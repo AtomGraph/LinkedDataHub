@@ -17,7 +17,7 @@ Written in Linux shell. Tested on Ubuntu (Windows Linux Subsystem).
 Atomic
 ------
 
-* [Create container](scripts/apps/create-container.sh)
+* [Create container](scripts/create-container.sh)
 * [Apps](scripts/apps)
     * [Create context](scripts/apps/create-context-app.sh)
     * [Create end-user](scripts/apps/create-end-user-app.sh)
