@@ -1,0 +1,6 @@
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+
+_:install-arg a <http://atomgraph.com/ns/platform/templates#Install> ; # TO-DO: lapp:Install
+    ldt:paramName "install" ;
+    rdf:value <${app_base}> .
