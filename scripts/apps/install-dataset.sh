@@ -4,7 +4,7 @@
 
 if [ "$#" -ne 4 ]; then
   echo "Usage:   $0 cert_pem_file cert_password app_doc app_base" >&2
-  echo "Example: $0" '../../certs/martynas.linkeddatahub.pem Password https://linkeddatahub.com/apps/end-user/atomgraph https://linkeddatahub.com/atomgraph/' >&2
+  echo "Example: $0" 'linkeddatahub.pem Password https://linkeddatahub.com/my/context/apps/end-user/my-dataspace https://linkeddatahub.com/my-dataspace/' >&2
   exit 1
 fi
 

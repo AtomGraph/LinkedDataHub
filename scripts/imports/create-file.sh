@@ -5,7 +5,7 @@
 
 if [ "$#" -ne 8 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title doc_slug file_slug file type" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/atomgraph/city-graph/ martynas.linkeddatahub.pem Password "Copenhagen Places" 44f18281-6afa-408e-a7c4-bad38487f198 646af756-a49f-40da-a25e-ea8d81f6d306 "files/Copenhagen geo data - Places.csv" text/csv' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" 44f18281-6afa-408e-a7c4-bad38487f198 646af756-a49f-40da-a25e-ea8d81f6d306 friends.csv text/csv' >&2
   exit 1
 fi
 

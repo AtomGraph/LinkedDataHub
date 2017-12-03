@@ -2,7 +2,7 @@
 
 if [ "$#" -ne 7 ]; then
   echo "Usage:   $0 cert_pem_file cert_password password title query_file file target" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/atomgraph/city-graph/ martynas.linkeddatahub.pem Password "Copenhagen Places" queries/constructPlaces.rq "files/Copenhagen geo data - Places.csv" https://linkeddatahub.com/atomgraph/city-graph/places/' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" construct_friends.rq "friends.csv" https://linkeddatahub.com/my-context/my-dataspace/friends/' >&2
   exit 1
 fi
 

@@ -4,7 +4,7 @@
 
 if [ "$#" -ne 6 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title slug service" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/atomgraph/ ../../certs/martynas.linkeddatahub.pem Password "City Graph" city-graph https://linkeddatahub.com/atomgraph/services/city-graph-admin' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/services/my-dataspace-admin' >&2
   exit 1
 fi
 

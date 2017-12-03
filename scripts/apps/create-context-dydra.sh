@@ -2,7 +2,7 @@
 
 if [ "$#" -ne 12 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title slug app_base admin_repository admin_service_user admin_service_password end_user_repository end_user_service_user end_user_service_password" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/ ../../certs/martynas.linkeddatahub.pem Password AtomGraph atomgraph https://linkeddatahub.com/atomgraph/ http://atomgraph.dydra.com/atomgraph/ldh-context-admin-prod AdminServiceUser AdminServicePassword http://atomgraph.dydra.com/atomgraph/ldh-context-prod EndUserServiceUser EndUserServicePassword' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/ linkeddatahub.pem Password "My context" my-context https://linkeddatahub.com/my-context/ http://dydra.com/my-context/context-admin AdminServiceUser AdminServicePassword http://dydra.com/my-context/context EndUserServiceUser EndUserServicePassword' >&2
   exit 1
 fi
 
