@@ -19,14 +19,14 @@ Atomic
 
 * [Create container](scripts/apps/create-container.sh)
 * [Apps](scripts/apps)
-** [Create context](scripts/apps/create-context-app.sh)
-** [Create end-user](scripts/apps/create-end-user-app.sh)
-** [Create admin](scripts/apps/create-admin-app.sh)
-** [Create Dydra service](scripts/apps/create-dydra-service.sh)
+    * [Create context](scripts/apps/create-context-app.sh)
+    * [Create end-user](scripts/apps/create-end-user-app.sh)
+    * [Create admin](scripts/apps/create-admin-app.sh)
+    * [Create Dydra service](scripts/apps/create-dydra-service.sh)
 * [Imports](scripts/imports)
-** [Create file](scripts/imports/create-file.sh)
-** [Create query](scripts/imports/create-query.sh)
-** [Create CSV import](scripts/imports/create-csv-import.sh)
+    * [Create file](scripts/imports/create-file.sh)
+    * [Create query](scripts/imports/create-query.sh)
+    * [Create CSV import](scripts/imports/create-csv-import.sh)
 
 Usage example:
 
@@ -36,10 +36,10 @@ Tasks
 -----
 
 * [Apps](scripts/apps)
-** [Create context with Dydra services](scripts/apps/create-context-dydra.sh)
-** [Create dataspace with Dydra services](scripts/apps/create-dataspace-dydra.sh)
+    * [Create context with Dydra services](scripts/apps/create-context-dydra.sh)
+    * [Create dataspace with Dydra services](scripts/apps/create-dataspace-dydra.sh)
 * [Imports](scripts/imports)
-** [Import CSV data](scripts/imports/import-csv.sh)
+    * [Import CSV data](scripts/imports/import-csv.sh)
 
 Usage example:
 
