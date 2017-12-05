@@ -27,6 +27,6 @@ admin_app_doc=$(./create-admin-app.sh "$base" "$cert_pem_file" "$cert_password" 
 
 end_user_app_doc=$(./create-end-user-app.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$slug" "$app_base" "$admin_app_doc#this" "$service_doc#this")
 
-./install-dataset.sh $cert_pem_file $cert_password $admin_app_doc "$app_base/admin/"
+./install-dataset.sh $cert_pem_file $cert_password $admin_app_doc "${app_base}admin/"
 
 ./install-dataset.sh $cert_pem_file $cert_password $end_user_app_doc $app_base
