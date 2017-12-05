@@ -17,7 +17,7 @@ base=$1
 parent=$2
 cert_pem_file=$3
 cert_password=$4
-class=${base}default#Container
+class=${base}ns/default#Container
 target=${parent}?forClass=$(urlencode "$class")
 
 export title=$5
