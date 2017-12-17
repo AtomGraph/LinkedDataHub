@@ -12,6 +12,7 @@ _:import a ns:CSVImport ;
   spin:query <${query}> ;
   apl:action <${action}> ;
   apl:file <${file}> ;
+  apl:delimiter "," ;
   foaf:isPrimaryTopicOf _:item .
 
 _:item a ns:ImportItem ;
