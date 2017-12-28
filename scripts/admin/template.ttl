@@ -1,0 +1,19 @@
+@prefix ns:	<ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ldt:    <https://www.w3.org/ns/ldt#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+
+_:template a ns:Template ;
+  rdfs:label "${label}" ;
+  ldt:path "${path}" ;
+  ldt:query <$query> ;
+  foaf:isPrimaryTopicOf _:item ;
+  rdfs:isDefinedBy <../ns/templates#> .
+
+_:item a ns:TemplateItem ;
+  dct:title "${title}" ;
+  dh:slug "${slug}" ;
+  foaf:primaryTopic _:template .
