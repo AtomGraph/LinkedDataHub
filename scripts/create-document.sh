@@ -3,8 +3,8 @@
 [ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
 
 if [ "$#" -ne 5 ]; then
-  echo "Usage:   cat instance.ttl | $0 base parent cert_pem_file cert_password class" >&2
-  echo "Example: cat instance.ttl | $0" 'https://linkeddatahub.com/my-context/my-dataspace/ https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "My container" my-container' >&2
+  echo "Usage:   cat doc.ttl | $0 base parent cert_pem_file cert_password class" >&2
+  echo "Example: cat doc.ttl | $0" 'https://linkeddatahub.com/my-context/my-dataspace/ https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "My container" my-container' >&2
   exit 1
 fi
 
