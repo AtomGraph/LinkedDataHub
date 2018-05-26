@@ -1,10 +1,10 @@
 This repository is for:
-* client shell scripts that can be used to automate LDH tasks
+* CLI shell scripts that can be used to automate LDH tasks
 * public LDH datasets and files such as those from the [Documentation](https://linkeddatahub.com/docs/) app
 * reported LDH [issues](../../issues)
 
-Client scripts
-==============
+Command line interface (CLI)
+============================
 
 Most scripts corresponds to a single atomic request to LinkedDataHub. Some of the scripts combine others into one task with multiple interdependent requests.
 
@@ -12,7 +12,7 @@ Authentication is done using PKCS12 client certificates, which are provided duri
 
 [Apache Jena](https://jena.apache.org/) must be installed and `$JENAROOT` must be available for most scripts in order to be able to convert between RDF formats.
 
-Written in Linux shell. Tested on Ubuntu (Windows Linux Subsystem).
+Written for bash shell. Tested on Ubuntu 16.04.3 LTS (Windows Linux Subsystem).
 
 Atomic
 ------
