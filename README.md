@@ -6,17 +6,23 @@ This repository is for:
 Command line interface (CLI)
 ============================
 
-Most scripts corresponds to a single atomic request to LinkedDataHub. Some of the scripts combine others into one task with multiple interdependent requests.
+You can use LinkedDataHub CLI to execute most of the common tasks that can be performed in the UI, such as application and document creation, file uploads, data import etc.
+
+The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such.
+We are continuously expanding and improving the script library. Pull requests and issue reports are welcome!
+
+Most scripts corresponds to a single [atomic request](#atomic-commands) to LinkedDataHub. Some of the scripts combine others into a [task](#tasks) with multiple interdependent requests.
 
 Dependencies
 ------------
 
-* Java - required by Jena
-* [Apache Jena](https://jena.apache.org/) - must be installed and `$JENAROOT` must be available for most scripts in order to be able to convert between RDF formats
+Required libraries and environmental variables:
+* Java - required by Jena. `$JAVA_HOME` must be set.
+* [Apache Jena](https://jena.apache.org/) - must be installed and `$JENA_HOME` must be set for most scripts in order to be able to convert between RDF formats
 * [Python](https://www.python.org/) 2.x - must be installed so that the scripts can do URL-encoding using `urllib.quote()`
 * [curl](https://curl.haxx.se/) - command line HTTP client
 
-Written for bash shell. Tested on Ubuntu 16.04.3 LTS (Windows Linux Subsystem).
+Written for bash shell. Tested on [Ubuntu 16.04.3 LTS (Windows Linux Subsystem)](https://www.microsoft.com/en-us/p/ubuntu-1804/9n9tngvndl3q).
 
 Usage
 -----
@@ -47,7 +53,7 @@ Atomic commands are focused on performing a single request, such as creating a d
 
 Usage example:
 
-    https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" construct_friends.rq "friends.csv" https://linkeddatahub.com/my-context/my-dataspace/friends/
+    ./create-file https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" 44f18281-6afa-408e-a7c4-bad38487f198 646af756-a49f-40da-a25e-ea8d81f6d306 friends.csv text/csv
 
 ### Tasks
 
@@ -61,4 +67,4 @@ Tasks consist of multiple chained commands, e.g. creating a service, then creati
 
 Usage example:
 
-    https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://dydra.com/my-dataspace/admin-prod AdminServiceUser AdminServicePassword http://dydra.com/my-dataspace/prod EndUserServiceUser EndUserServicePassword
+    ./create-dataspace-dydra.sh https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://dydra.com/my-dataspace/admin-prod AdminServiceUser AdminServicePassword http://dydra.com/my-dataspace/prod EndUserServiceUser EndUserServicePassword
