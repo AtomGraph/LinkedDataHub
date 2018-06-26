@@ -6,7 +6,7 @@ This repository is for:
 Command line interface (CLI)
 ============================
 
-You can use LinkedDataHub CLI to execute most of the common tasks that can be performed in the UI, such as application and document creation, file uploads, data import etc.
+You can use [LinkedDataHub](https://linkeddatahub.com/about) CLI to execute most of the common tasks that can be performed in the UI, such as application and document creation, file uploads, data import etc.
 
 The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such.
 We are continuously expanding and improving the script library. Pull requests and issue reports are welcome!
