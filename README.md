@@ -11,14 +11,14 @@ You can use [LinkedDataHub](https://linkeddatahub.com/docs/about) CLI to execute
 The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such.
 We are continuously expanding and improving the script library. Pull requests and issue reports are welcome!
 
-Most scripts corresponds to a single [atomic request](#atomic-commands) to LinkedDataHub. Some of the scripts combine others into a [task](#tasks) with multiple interdependent requests.
+Most scripts correspond to a single [atomic request](#atomic-commands) to LinkedDataHub. Some of the scripts combine others into a [task](#tasks) with multiple interdependent requests.
 
 Dependencies
 ------------
 
 Required libraries and environmental variables:
 * Java - required by Jena. `$JAVA_HOME` must be set.
-* [Apache Jena](https://jena.apache.org/) - must be installed and `$JENA_HOME` must be set for most scripts in order to be able to convert between RDF formats
+* [Apache Jena](https://jena.apache.org/) - must be installed and `$JENA_HOME` and `$PATH` [must be set](https://jena.apache.org/documentation/tools/index.html) for most scripts in order to be able to convert between RDF formats
 * [Python](https://www.python.org/) 2.x - must be installed so that the scripts can do URL-encoding using `urllib.quote()`
 * [curl](https://curl.haxx.se/) - command line HTTP client
 
@@ -46,6 +46,7 @@ Atomic commands are focused on performing a single request, such as creating a d
     * [Create end-user](scripts/apps/create-end-user-app.sh)
     * [Create admin](scripts/apps/create-admin-app.sh)
     * [Create Dydra service](scripts/apps/create-dydra-service.sh)
+    * [Install dataset](scripts/apps/install-dataset.sh)
 * [Imports](scripts/imports)
     * [Create file](scripts/imports/create-file.sh)
     * [Create query](scripts/imports/create-query.sh)
