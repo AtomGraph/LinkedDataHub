@@ -24,4 +24,4 @@ export PATH=$PATH:$JENAROOT/bin
 
 # set env values in the Turtle doc and sumbit it to the server
 
-envsubst < end-user-app.ttl | ../create-document.sh "${base}" "${base}apps/end-user/" "${cert_pem_file}" "${cert_password}" "${class}"
+envsubst < end-user-app.ttl | turtle --base=${base} | ../create-document.sh "${base}apps/end-user/" "${cert_pem_file}" "${cert_password}" "text/turtle" "${class}"

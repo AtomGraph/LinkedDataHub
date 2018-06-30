@@ -8,16 +8,11 @@ if [ "$#" -ne 8 ]; then
   exit 1
 fi
 
-urlencode()
-{
-  echo $(python -c 'import urllib, sys; print urllib.quote(  sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' $1)
-}
-
 base=$1
 cert_pem_file=$2
 cert_password=$3
 class=${base}ns#CSVImport
-target=${base}imports/?forClass=$(urlencode "$class")
+container=${base}imports/
 
 export title=$4
 export slug=$5
@@ -28,6 +23,6 @@ export file=$8
 # make Jena scripts available
 export PATH=$PATH:$JENAROOT/bin
 
-# convert Turtle to N-Triples using base URI, POST N-Triples to the server and print Location URL
+# convert Turtle to N-Triples using base URI and create a document
 
-envsubst < csv-import.ttl | turtle --base=${base} | curl -v -k -E ${cert_pem_file}:${cert_password} -d @- -H "Content-Type: application/n-triples" -H "Accept: text/turtle" ${target} -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+envsubst < csv-import.ttl | turtle --base=${base} | ../create-document.sh "${container}" "$cert_pem_file" "$cert_password" "application/n-triples" "$class"

@@ -24,4 +24,4 @@ export PATH=$PATH:$JENAROOT/bin
 
 # convert Turtle to N-Triples using base URI, POST N-Triples to the server and print Location URL
 
-envsubst < context.ttl | turtle --base=${base} | ../create-document.sh "${base}" "${base}apps/end-user/" "${cert_pem_file}" "${cert_password}" "${class}"
+envsubst < context.ttl | turtle --base=${base} | ../create-document.sh "${base}apps/end-user/" "${cert_pem_file}" "${cert_password}" "text/turtle" "${class}"

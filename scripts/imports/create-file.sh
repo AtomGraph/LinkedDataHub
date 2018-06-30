@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
-# multipart reikia tik tada, kai failai uploadinami
 
 if [ "$#" -ne 8 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title doc_slug file_slug file type" >&2
