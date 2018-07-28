@@ -4,7 +4,7 @@
 
 if [ "$#" -ne 8 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title slug repository service_user service_password" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My context" my-context http://dydra.com/my-context/end-user ServiceUser ServicePassword' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My Dydra service" my-dydra-service http://dydra.com/my-context/end-user ServiceUser ServicePassword' >&2
   exit 1
 fi
 
