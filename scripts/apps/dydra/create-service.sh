@@ -24,4 +24,4 @@ export PATH=$PATH:$JENAROOT/bin
 
 # set env values in the Turtle doc and sumbit it to the server
 
-envsubst < dydra-service.ttl | turtle --base=${base} | ../create-document.sh "${base}services/" "${cert_pem_file}" "${cert_password}" "text/turtle" "${class}"
+envsubst < service.ttl | turtle --base=${base} | ../../create-document.sh "${base}services/" "${cert_pem_file}" "${cert_password}" "text/turtle" "${class}"
