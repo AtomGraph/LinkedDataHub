@@ -77,4 +77,4 @@ Tasks consist of multiple chained commands, e.g. creating a service, then creati
 
 Usage example:
 
-    ./create-dataspace-dydra.sh https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://dydra.com/my-dataspace/admin-prod AdminServiceUser AdminServicePassword http://dydra.com/my-dataspace/prod EndUserServiceUser EndUserServicePassword
+    ./create-dataspace.sh https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://localhost:3030/admin/sparql http://localhost:3030/admin/data AdminServiceUser AdminServicePassword http://localhost:3030/end-user/sparql http://localhost:3030/end-user/data EndUserServiceUser EndUserServicePassword

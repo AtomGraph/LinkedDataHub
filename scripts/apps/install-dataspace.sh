@@ -2,7 +2,7 @@
 
 if [ "$#" -ne 14 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title slug app_base admin_endpoint admin_graph_store admin_service_user admin_service_password end_user_endpoint end_user_graph_store end_user_service_user end_user_service_password" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://localhost:3030/admin/sparql AdminServiceUser AdminServicePassword http://localhost:3030/end-user/sparql EndUserServiceUser EndUserServicePassword' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://localhost:3030/admin/sparql http://localhost:3030/admin/data AdminServiceUser AdminServicePassword http://localhost:3030/end-user/sparql http://localhost:3030/end-user/data EndUserServiceUser EndUserServicePassword' >&2
   exit 1
 fi
 

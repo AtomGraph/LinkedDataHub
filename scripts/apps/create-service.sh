@@ -4,7 +4,7 @@
 
 if [ "$#" -ne 9 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title slug endpoint graph_store service_user service_password" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My generic service" my-generic-service http://localhost:3030/ds/sparql ServiceUser ServicePassword' >&2
+  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My generic service" my-generic-service http://localhost:3030/ds/sparql http://localhost:3030/ds/data ServiceUser ServicePassword' >&2
   exit 1
 fi
 
