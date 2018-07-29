@@ -23,6 +23,10 @@ admin_service_doc=$(./create-service.sh "$base" "$cert_pem_file" "$cert_password
 
 service_doc=$(./create-service.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$slug" "$end_user_repository" "$end_user_service_user" "$end_user_service_password")
 
-admin_app_doc=$(../create-admin-app.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$slug" "$admin_service_doc#this")
+pushd . && cd ..
 
-../create-end-user-app.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$slug" "$app_base" "$admin_app_doc#this" "$service_doc#this"
+admin_app_doc=$(./create-admin-app.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$slug" "$admin_service_doc#this")
+
+./create-end-user-app.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$slug" "$app_base" "$admin_app_doc#this" "$service_doc#this"
+
+popd
