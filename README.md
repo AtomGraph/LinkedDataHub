@@ -8,10 +8,12 @@ Command line interface (CLI)
 
 You can use [LinkedDataHub](https://linkeddatahub.com/docs/about) CLI to execute most of the common tasks that can be performed in the UI, such as application and document creation, file uploads, data import etc.
 
-The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such.
+The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the [user interace](https://linkeddatahub.com/docs/user-interface), as well as easier to reproduce.
+
 We are continuously expanding and improving the script library. Pull requests and issue reports are welcome!
 
 Most scripts correspond to a single [atomic request](#atomic-commands) to LinkedDataHub. Some of the scripts combine others into a [task](#tasks) with multiple interdependent requests.
+If you use [Dydra](https://dydra.com) as the triplestore, you may use the Dydra-specific scripts (they accept a repository URI instead of SPARQL endpoint and graph store URIs). Otherwise, use the generic scripts.
 
 Dependencies
 ------------
