@@ -13,6 +13,7 @@ The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set
 We are continuously expanding and improving the script library. Pull requests and issue reports are welcome!
 
 Most scripts correspond to a single [atomic request](#atomic-commands) to LinkedDataHub. Some of the scripts combine others into a [task](#tasks) with multiple interdependent requests.
+
 If you use [Dydra](https://dydra.com) as the triplestore, you may use the Dydra-specific scripts (they accept a repository URI instead of SPARQL endpoint and graph store URIs). Otherwise, use the generic scripts.
 
 Dependencies
