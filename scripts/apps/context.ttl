@@ -8,7 +8,7 @@
 _:app a ns:Context ;
   dct:title "${title}" ;
   lapp:adminApplication <${admin_app}> ;
-  lapp:public true ;
+  lapp:public ${public} ;
   ldt:base <${app_base}> ;
   ldt:ontology <${app_base}ns#> ;
   ldt:service <${service}> ;
