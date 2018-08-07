@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" -ne 7 ]; then
-  echo "Usage:   $0 cert_pem_file cert_password password title query_file file target" >&2
+  echo "Usage:   $0 cert_pem_file cert_password password title query_file file action" >&2
   echo "Example: $0" 'https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" construct_friends.rq "friends.csv" https://linkeddatahub.com/my-context/my-dataspace/friends/' >&2
   exit 1
 fi
