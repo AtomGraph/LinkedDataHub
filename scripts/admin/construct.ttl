@@ -12,6 +12,6 @@ _:construct a ns:Construct ;
   rdfs:isDefinedBy <../ns/templates#> .
 
 _:item a ns:QueryItem ;
-  dct:title "${title}" ;
+  dct:title "${label}" ;
   dh:slug "${slug}" ;
   foaf:primaryTopic _:construct .

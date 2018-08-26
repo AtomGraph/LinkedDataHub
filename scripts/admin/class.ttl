@@ -4,16 +4,15 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
 
-_:template a ns:Template ;
+_:class a ns:Class ;
   rdfs:label "${label}" ;
-  ldt:match "${match}" ;
-  ldt:query <$query> ;
+  spin:constructor <$constructor> ;
   foaf:isPrimaryTopicOf _:item ;
-  rdfs:isDefinedBy <../ns/templates#> .
+  rdfs:isDefinedBy <../ns/domain#> .
 
-_:item a ns:TemplateItem ;
+_:item a ns:ClassItem ;
   dct:title "${label}" ;
   dh:slug "${slug}" ;
-  foaf:primaryTopic _:template .
+  foaf:primaryTopic _:class .
