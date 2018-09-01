@@ -2,6 +2,8 @@
 
 # New version of scripts that accept named arguments, e.g.: ./create-container.sh -f ../../linkeddatahub-apps/certs/martynas.stage.localhost.pem -p XXXXXX -b https://localhost:4443/demo/city-graph/  https://localhost:4443/demo/city-graph/ --title "Test" --description "This is a container"
 
+[ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
+
 args=()
 while [[ $# -gt 0 ]]
 do
@@ -44,6 +46,7 @@ if [ -z "$title" ] ; then
     echo '--title not set'
     exit 1
 fi
+
 args+=("-c")
 args+=("${base}ns/default#Container")
 args+=("-t")

@@ -1,7 +1,0 @@
-@prefix def:	<ns/default#> .
-@prefix dct:	<http://purl.org/dc/terms/> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-
-_:container a def:Container ;
-  dct:title "${title}" ;
-  dh:slug "${slug}" .

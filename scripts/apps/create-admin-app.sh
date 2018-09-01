@@ -2,24 +2,86 @@
 
 [ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
 
-if [ "$#" -ne 6 ]; then
-  echo "Usage:   $0 base cert_pem_file cert_password title slug service" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/services/my-dataspace-admin' >&2
-  exit 1
+args=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -b|--base)
+    base="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --title)
+    title="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --description)
+    description="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --slug)
+    slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --service)
+    service="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown arguments
+    args+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${args[@]}" # restore args
+
+if [ -z "$base" ] ; then
+    echo '-b|--base not set'
+    exit 1
+fi
+if [ -z "$title" ] ; then
+    echo '--title not set'
+    exit 1
+fi
+if [ -z "$service" ] ; then
+    echo '--service not set'
+    exit 1
 fi
 
-base=$1
-cert_pem_file=$2
-cert_password=$3
-class=${base}ns#AdminApplication
+args+=("-c")
+args+=("${base}ns#AdminApplication") # class
+args+=("-t")
+args+=("text/turtle") # content type
+args+=("${base}apps/admin/") # container
 
-export title=$4
-export slug=$5
-export service=$6
+turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
+turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="_:app a ns:AdminApplication .\n"
+turtle+="_:app dct:title \"${title}\" .\n"
+turtle+="_:app ldt:service <${service}> .\n"
+turtle+="_:app foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a ns:AdminApplicationItem .\n"
+turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item foaf:primaryTopic _:app .\n"
+
+if [ ! -z "$description" ] ; then
+    turtle+="_:app dct:description \"${description}\" .\n"
+fi
+if [ ! -z "$slug" ] ; then
+    turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
 
 # make Jena scripts available
 export PATH=$PATH:$JENAROOT/bin
 
-# set env values in the Turtle doc and sumbit it to the server
-
-envsubst < admin-app.ttl | turtle --base=${base} | ../create-document.sh "${base}apps/admin/" "${cert_pem_file}" "${cert_password}" "text/turtle" "${class}"
+# submit Turtle doc to the server
+echo -e $turtle | turtle --base="${base}" | ../create-document.sh "${args[@]}"
