@@ -1,6 +1,17 @@
 #!/bin/bash
 
-# ./create-document.sh -f shit -t text/turtle -c Class http://target -p XXX
+print_usage()
+{
+    printf "Create an RDF document, possibly with related resources, under the specified container in the document hierarchy.\n"
+    printf "\n"
+    printf "Usage:  echo -e \$rdf_body | $0 options CONTAINER\n"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERTIFICATE      .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate (provided during signup)\n"
+    printf "  -c, --class CLASS_URI                URI of the class that is the type of the document being created\n"
+    printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
+}
 
 unknown=()
 while [[ $# -gt 0 ]]
@@ -37,22 +48,26 @@ done
 set -- "${unknown[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert_pem_file not set'
+    # echo '-f|--cert_pem_file not set'
+    print_usage
     exit 1
 fi
 
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    # echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 
 if [ -z "$class" ] ; then
-    echo '-c|--class not set'
+    # echo '-c|--class not set'
+    print_usage
     exit 1
 fi
 
 if [ -z "$content_type" ] ; then
-    echo '-t|--content-type not set'
+    # echo '-t|--content-type not set'
+    print_usage
     exit 1
 fi
 

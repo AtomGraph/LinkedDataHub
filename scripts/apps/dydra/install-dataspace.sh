@@ -224,8 +224,8 @@ fi
 
 end_user_app_doc=$(./create-end-user-app.sh "${args[@]}")
 
-./install-dataset.sh $cert_pem_file $cert_password $admin_app_doc "${app_base}admin/"
+./install-dataset.sh -f "${cert_pem_file}" -p "${cert_password}" --app-base "${app_base}admin/" $admin_app_doc 
 
-./install-dataset.sh $cert_pem_file $cert_password $end_user_app_doc $app_base
+./install-dataset.sh -f "${cert_pem_file}" -p "${cert_password}" --app-base $app_base $end_user_app_doc
 
 popd

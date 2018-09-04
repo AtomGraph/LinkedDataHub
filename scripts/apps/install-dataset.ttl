@@ -1,6 +1,0 @@
-@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
-
-_:install-arg a <http://linkeddatahub.com/ns/apps/templates#Install> ;
-    ldt:paramName "install" ;
-    rdf:value <${app_base}> .
