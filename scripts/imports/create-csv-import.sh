@@ -2,27 +2,121 @@
 
 [ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
 
-if [ "$#" -ne 8 ]; then
-  echo "Usage:   $0 base cert_pem_file cert_password title slug action query file" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/atomgraph/city-graph/ martynas.linkeddatahub.com Password "Copenhagen Places" 3c2623bb-5018-4630-8216-82b78ad0bcf7 https://linkeddatahub.com/atomgraph/city-graph/places/ https://linkeddatahub.com/atomgraph/city-graph/queries/a24f513d-e59f-4a3a-9995-0324cb8b4f47#this https://linkeddatahub.com/atomgraph/city-graph/uploads/646af756-a49f-40da-a25e-ea8d81f6d306' >&2
-  exit 1
+args=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -b|--base)
+    base="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --title)
+    title="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --description)
+    description="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --slug)
+    slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --action)
+    action="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --query)
+    query="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --file)
+    file="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --delimiter)
+    delimiter="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown arguments
+    args+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${args[@]}" # restore args
+
+if [ -z "$base" ] ; then
+    echo '-b|--base not set'
+    exit 1
+fi
+if [ -z "$title" ] ; then
+    echo '--title not set'
+    exit 1
+fi
+if [ -z "$action" ] ; then
+    echo '--action not set'
+    exit 1
+fi
+if [ -z "$query" ] ; then
+    echo '--query not set'
+    exit 1
+fi
+if [ -z "$file" ] ; then
+    echo '--file not set'
+    exit 1
+fi
+if [ -z "$delimiter" ] ; then
+    echo '--delimiter not set'
+    exit 1
 fi
 
-base=$1
-cert_pem_file=$2
-cert_password=$3
-class=${base}ns#CSVImport
-container=${base}imports/
+args+=("-c")
+args+=("${base}ns#CSVImport") # class
+args+=("-t")
+args+=("text/turtle") # content type
+args+=("${base}imports/") # container
 
-export title=$4
-export slug=$5
-export action=$6
-export query=$7
-export file=$8
+turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .\n"
+turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix dydra:	<http://dydra.com/ns#> .\n"
+turtle+="@prefix srv:	<http://jena.hpl.hp.com/Service#> .\n"
+turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="_:import a ns:CSVImport .\n"
+turtle+="_:import dct:title \"${title}\" .\n"
+turtle+="_:import spin:query <${query}> .\n"
+turtle+="_:import apl:action <${action}> .\n"
+turtle+="_:import apl:file <${file}> .\n"
+turtle+="_:import apl:delimiter \"${delimiter}\" .\n"
+turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a ns:ImportItem .\n"
+turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item foaf:primaryTopic _:import .\n"
+
+if [ ! -z "$description" ] ; then
+    turtle+="_:import dct:description \"${description}\" .\n"
+fi
+if [ ! -z "$slug" ] ; then
+    turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+
+# set env values in the Turtle doc and sumbit it to the server
 
 # make Jena scripts available
 export PATH=$PATH:$JENAROOT/bin
 
-# convert Turtle to N-Triples using base URI and create a document
-
-envsubst < csv-import.ttl | turtle --base=${base} | ../create-document.sh "${container}" "$cert_pem_file" "$cert_password" "application/n-triples" "$class"
+# submit Turtle doc to the server
+echo -e $turtle | turtle --base="${base}" | ../create-document.sh "${args[@]}"

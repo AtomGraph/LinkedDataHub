@@ -97,7 +97,7 @@ turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:service .\n"
 
 if [ ! -z "$description" ] ; then
-    turtle+="_:app dct:description \"${description}\" .\n"
+    turtle+="_:service dct:description \"${description}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
