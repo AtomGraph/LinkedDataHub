@@ -6,6 +6,21 @@ do
 key="$1"
 
 case $key in
+    -f|--cert-pem-file)
+    cert_pem_file="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -p|--cert-password)
+    cert_password="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -t|--content-type)
+    content_type="$2"
+    shift # past argument
+    shift # past value
+    ;;
     -b|--base)
     base="$2"
     shift # past argument
@@ -25,7 +40,6 @@ case $key in
     slug="$2"
     shift # past argument
     shift # past value
-    ;;
     ;;
     --file)
     file="$2"
@@ -50,6 +64,21 @@ esac
 done
 set -- "${args[@]}" # restore args
 
+if [ -z "$cert_pem_file" ] ; then
+    echo '-f|--cert_pem_file not set'
+    # print_usage
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    echo '-p|--cert-password not set'
+    # print_usage
+    exit 1
+fi
+if [ -z "$file_content_type" ] ; then
+    echo '--file-content-type not set'
+    # print_usage
+    exit 1
+fi
 if [ -z "$base" ] ; then
     echo '-b|--base not set'
     exit 1
@@ -67,8 +96,13 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
+urlencode()
+{
+  echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' $1)
+}
+
 ns="${base}ns#"
-class=${base}ns#File
+class="${base}ns#File"
 target=${base}files/?forClass=$(urlencode "$class")
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
@@ -104,10 +138,10 @@ if [ ! -z "$slug" ] ; then
     rdf_post+="-F \"ol=${slug}\" "
 
 fi
-if [ ! -z "$file-slug" ] ; then
+if [ ! -z "$file_slug" ] ; then
     rdf_post+="-F \"sb=file\" "
     rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\" "
-    rdf_post+="-F \"ol=${file-slug}\" "
+    rdf_post+="-F \"ol=${file_slug}\" "
 
 fi
 

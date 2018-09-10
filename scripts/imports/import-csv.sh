@@ -1,30 +1,91 @@
 #!/bin/bash
 
-if [ "$#" -ne 7 ]; then
-  echo "Usage:   $0 cert_pem_file cert_password password title query_file file action" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" construct_friends.rq "friends.csv" https://linkeddatahub.com/my-context/my-dataspace/friends/' >&2
-  exit 1
-fi
+args=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
 
-uuid()
-{
-  echo $(od -x /dev/urandom | head -1 | awk '{OFS="-"; print $2$3,$4,$5,$6,$7$8$9}')
-}
+case $key in
+    -f|--cert-pem-file)
+    cert_pem_file="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -p|--cert-password)
+    cert_password="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    -b|--base)
+    base="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --title)
+    title="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --description)
+    description="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --slug)
+    slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --action)
+    action="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --query-file)
+    query_file="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --query-doc-slug)
+    query_doc_slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --file)
+    file="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --file-slug)
+    file_slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --file-doc-slug)
+    file_doc_slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --delimiter)
+    delimiter="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --import-slug)
+    import_slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown arguments
+    args+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${args[@]}" # restore args
 
-base=$1
-cert_pem_file=$2
-cert_password=$3
-title=$4
-query_doc_slug=$(uuid)
-query_file=$5
-file_doc_slug=$(uuid)
-file_slug=$(uuid)
-file=$6
-import_slug=$(uuid)
-action=$7
+query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug --slug "$query_doc_slug" --query-file "$query_file")
 
-query_doc=$(./create-query.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$query_doc_slug" "$query_file")
+file=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv")
 
-file=$(./create-file.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$file_doc_slug" "$file_slug" "$file" "text/csv")
-
-import=$(./create-csv-import.sh "$base" "$cert_pem_file" "$cert_password" "$title" "$import_slug" "$action" "$query_doc#this" "$file")
+import=$(./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query_doc#this" --file "$file" --delimiter ",")

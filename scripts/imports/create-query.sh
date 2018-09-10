@@ -2,25 +2,92 @@
 
 [ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
 
-if [ "$#" -ne 6 ]; then
-  echo "Usage:   $0 base cert_pem_file cert_password title slug query_file" >&2
-  echo "Example: $0" 'https://linkeddatahub.com/atomgraph/city-graph/ martynas.linkeddatahub.pem Password "Copenhagen Places" a24f513d-e59f-4a3a-9995-0324cb8b4f47 queries/constructPlaces.rq' >&2
-  exit 1
+args=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -b|--base)
+    base="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --label)
+    label="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --comment)
+    comment="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --slug)
+    slug="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --query-file)
+    query_file="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown arguments
+    args+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${args[@]}" # restore args
+
+if [ -z "$base" ] ; then
+    echo '-b|--base not set'
+    exit 1
+fi
+if [ -z "$label" ] ; then
+    echo '--label not set'
+    exit 1
+fi
+if [ -z "$query_file" ] ; then
+    echo '--query-file not set'
+    exit 1
 fi
 
-base=$1
-cert_pem_file=$2
-cert_password=$3
-class=${base}ns#Construct
-container=${base}queries/
+query=$(<$query_file) # read query string from file
 
-export title=$4
-export slug=$5
-export query=$(<$6)
+args+=("-c")
+args+=("${base}ns#Construct") # class
+args+=("-t")
+args+=("text/turtle") # content type
+args+=("${base}queries/") # container
+
+turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
+turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
+turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
+turtle+="_:query a ns:Construct .\n"
+turtle+="_:query rdfs:label \"${label}\" .\n"
+turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
+turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:query rdfs:isDefinedBy <../ns/templates#> .\n"
+turtle+="_:item a ns:QueryItem .\n"
+turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="_:item foaf:primaryTopic _:query .\n"
+
+if [ ! -z "$comment" ] ; then
+    turtle+="_:query rdfs:comment \"${comment}\" .\n"
+fi
+if [ ! -z "$slug" ] ; then
+    turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+
+# set env values in the Turtle doc and sumbit it to the server
 
 # make Jena scripts available
 export PATH=$PATH:$JENAROOT/bin
 
-# convert Turtle to N-Triples using base URI and create a document
-
-envsubst < construct.ttl | turtle --base=${base} | ../create-document.sh "${container}" "$cert_pem_file" "$cert_password" "application/n-triples" "$class"
+# submit Turtle doc to the server
+echo -e $turtle | turtle --base="${base}" | ../create-document.sh "${args[@]}"
