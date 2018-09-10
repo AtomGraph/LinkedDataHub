@@ -13,13 +13,13 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --label)
-    label="$2"
+    --title)
+    title="$2"
     shift # past argument
     shift # past value
     ;;
-    --comment)
-    comment="$2"
+    --description)
+    description="$2"
     shift # past argument
     shift # past value
     ;;
@@ -45,8 +45,8 @@ if [ -z "$base" ] ; then
     echo '-b|--base not set'
     exit 1
 fi
-if [ -z "$label" ] ; then
-    echo '--label not set'
+if [ -z "$title" ] ; then
+    echo '--title not set'
     exit 1
 fi
 if [ -z "$query_file" ] ; then
@@ -63,22 +63,20 @@ args+=("text/turtle") # content type
 args+=("${base}queries/") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
-turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="_:query a ns:Construct .\n"
-turtle+="_:query rdfs:label \"${label}\" .\n"
+turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
 turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:query rdfs:isDefinedBy <../ns/templates#> .\n"
 turtle+="_:item a ns:QueryItem .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
+turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:query .\n"
 
-if [ ! -z "$comment" ] ; then
-    turtle+="_:query rdfs:comment \"${comment}\" .\n"
+if [ ! -z "$description" ] ; then
+    turtle+="_:query dct:description \"${description}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"

@@ -107,43 +107,44 @@ target=${base}files/?forClass=$(urlencode "$class")
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
-rdf_post+="-F \"rdf=\" "
-rdf_post+="-F \"sb=file\" "
-rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\" "
-rdf_post+="-F \"ol=@${file};type=${file_content_type}\" "
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\" "
-rdf_post+="-F \"ol=${title}\" "
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\" "
-rdf_post+="-F \"ou=${ns}File\" "
-rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\" "
-rdf_post+="-F \"ol=${file_slug}\" "
-rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\" "
-rdf_post+="-F \"ob=item\" "
-rdf_post+="-F \"sb=item\" "
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\" "
-rdf_post+="-F \"ol=${title}\" "
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\" "
-rdf_post+="-F \"ou=${ns}FileItem\" "
-rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\" "
-rdf_post+="-F \"ob=file\" "
+# rdf_post+="-v -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} "
+rdf_post+="-F \"rdf=\"\n"
+rdf_post+="-F \"sb=file\"\n"
+rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
+rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
+rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
+rdf_post+="-F \"ol=${title}\"\n"
+rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
+rdf_post+="-F \"ou=${ns}File\"\n"
+rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
+rdf_post+="-F \"ol=${file_slug}\"\n"
+rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
+rdf_post+="-F \"ob=item\"\n"
+rdf_post+="-F \"sb=item\"\n"
+rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
+rdf_post+="-F \"ol=${title}\"\n"
+rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
+rdf_post+="-F \"ou=${ns}FileItem\"\n"
+rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
+rdf_post+="-F \"ob=file\"\n"
 
 if [ ! -z "$description" ] ; then
-    rdf_post+="-F \"sb=file\" "
-    rdf_post+="-F \"pu=http://purl.org/dc/terms/description\" "
-    rdf_post+="-F \"ol=${description}\" "
+    rdf_post+="-F \"sb=file\"\n"
+    rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
+    rdf_post+="-F \"ol=${description}\"\n"
 fi
 if [ ! -z "$slug" ] ; then
-    rdf_post+="-F \"sb=item\" "
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\" "
-    rdf_post+="-F \"ol=${slug}\" "
+    rdf_post+="-F \"sb=item\"\n"
+    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
+    rdf_post+="-F \"ol=${slug}\"\n"
 
 fi
 if [ ! -z "$file_slug" ] ; then
-    rdf_post+="-F \"sb=file\" "
-    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\" "
-    rdf_post+="-F \"ol=${file_slug}\" "
+    rdf_post+="-F \"sb=file\"\n"
+    rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
+    rdf_post+="-F \"ol=${file_slug}\"\n"
 
 fi
 
 # POST RDF/POST multipart form from stdin to the server and print Location URL
-echo -e $rdf_post+ | curl -v -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} --config - $target -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+echo -e $rdf_post | curl -v -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} --config - $target -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
