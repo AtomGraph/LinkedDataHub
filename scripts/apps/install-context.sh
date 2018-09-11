@@ -230,6 +230,10 @@ if [ ! -z "$slug" ] ; then
     args+=("--slug")
     args+=("$slug")
 fi
+if [ ! -z "$description" ] ; then
+    args+=("--description")
+    args+=("$description")
+fi
 if [ ! -z "$public" ] ; then
     args+=("--public")
 fi
