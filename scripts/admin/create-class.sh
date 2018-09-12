@@ -33,6 +33,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --subclass-of)
+    subclass_of="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -47,10 +52,6 @@ if [ -z "$base" ] ; then
 fi
 if [ -z "$label" ] ; then
     echo '--label not set'
-    exit 1
-fi
-if [ -z "$constructor" ] ; then
-    echo '--constructor not set'
     exit 1
 fi
 
@@ -83,6 +84,9 @@ if [ ! -z "$slug" ] ; then
 fi
 if [ ! -z "$constructor" ] ; then
     turtle+="_:class spin:constructor <$constructor> .\n"
+fi
+if [ ! -z "$subclass_of" ] ; then
+    turtle+="_:class rdfs:subClassOf <$subclass_of> .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
