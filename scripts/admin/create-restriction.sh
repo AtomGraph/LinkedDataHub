@@ -28,13 +28,13 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --constructor)
-    constructor="$2"
+    --on-property)
+    on_property="$2"
     shift # past argument
     shift # past value
     ;;
-    --sub-class-of)
-    sub_class_of="$2"
+    --all-values-from)
+    all_values_from="$2"
     shift # past argument
     shift # past value
     ;;
@@ -56,37 +56,38 @@ if [ -z "$label" ] ; then
 fi
 
 args+=("-c")
-args+=("${base}ns#Class") # class
+args+=("${base}ns#Restriction") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}model/classes/") # container
+args+=("${base}model/restrictions/") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="_:class a ns:Class .\n"
-turtle+="_:class rdfs:label \"${label}\" .\n"
-turtle+="_:class foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:class rdfs:isDefinedBy <../ns/domain#> .\n"
-turtle+="_:item a ns:ClassItem .\n"
+turtle+="_:restriction a ns:Restriction .\n"
+turtle+="_:restriction rdfs:label \"${label}\" .\n"
+turtle+="_:restriction foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:restriction rdfs:isDefinedBy <../ns/domain#> .\n"
+turtle+="_:item a ns:RestrictionItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:class .\n"
+turtle+="_:item foaf:primaryTopic _:restriction .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:class rdfs:comment \"${comment}\" .\n"
+    turtle+="_:restriction rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-if [ ! -z "$constructor" ] ; then
-    turtle+="_:class spin:constructor <$constructor> .\n"
+if [ ! -z "$on_property" ] ; then
+    turtle+="_:restriction owl:onProperty <$on_property> .\n"
 fi
-if [ ! -z "$sub_class_of" ] ; then
-    turtle+="_:class rdfs:subClassOf <$sub_class_of> .\n"
+if [ ! -z "$all_values_from" ] ; then
+    turtle+="_:restriction owl:allValuesFrom <$all_values_from> .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
