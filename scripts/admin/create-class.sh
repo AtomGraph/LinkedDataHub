@@ -3,6 +3,7 @@
 [ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
 
 args=()
+super_classes=() # --super-class-of can have multiple values, so we need an array
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -33,8 +34,18 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --path)
+    path="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --fragment)
+    fragment="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --sub-class-of)
-    sub_class_of="$2"
+    super_classes+=("$2")
     shift # past argument
     shift # past value
     ;;
@@ -85,9 +96,17 @@ fi
 if [ ! -z "$constructor" ] ; then
     turtle+="_:class spin:constructor <$constructor> .\n"
 fi
-if [ ! -z "$sub_class_of" ] ; then
-    turtle+="_:class rdfs:subClassOf <$sub_class_of> .\n"
+if [ ! -z "$path" ] ; then
+    turtle+="_:class ldt:path \"${path}\" .\n"
 fi
+if [ ! -z "$fragment" ] ; then
+    turtle+="_:class ldt:fragment \"${fragment}\" .\n"
+fi
+
+for sub_class_of in "${super_classes[@]}"
+do
+    turtle+="_:class rdfs:subClassOf <$sub_class_of> .\n"
+done
 
 # set env values in the Turtle doc and sumbit it to the server
 
