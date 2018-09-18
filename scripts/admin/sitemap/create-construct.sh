@@ -57,7 +57,7 @@ fi
 query=$(<$query_file) # read query string from file
 
 args+=("-c")
-args+=("${base}ns#Describe") # class
+args+=("${base}ns#Construct") # class
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}sitemap/queries/") # container
@@ -68,7 +68,7 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:query a ns:Describe .\n"
+turtle+="_:query a ns:Construct .\n"
 turtle+="_:query rdfs:label \"${label}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
 turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
@@ -90,4 +90,4 @@ fi
 export PATH=$PATH:$JENAROOT/bin
 
 # submit Turtle doc to the server
-echo -e $turtle | turtle --base="${base}" | ../create-document.sh "${args[@]}"
+echo -e $turtle | turtle --base="${base}" | ../../create-document.sh "${args[@]}"

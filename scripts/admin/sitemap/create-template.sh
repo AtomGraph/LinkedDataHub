@@ -28,8 +28,18 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --query-file)
-    query_file="$2"
+    --query)
+    query="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --match)
+    match="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    --extends)
+    extends="$2"
     shift # past argument
     shift # past value
     ;;
@@ -49,39 +59,44 @@ if [ -z "$label" ] ; then
     echo '--label not set'
     exit 1
 fi
-if [ -z "$query_file" ] ; then
-    echo '--query-file not set'
+if ( [ -z "$extends" ] && [ -z "$query" ] ) || ( [ -z "$extends" ] && [ -z "$match" ] ) ; then
+    echo '--extends or --query and --match not set'
     exit 1
 fi
 
-query=$(<$query_file) # read query string from file
-
 args+=("-c")
-args+=("${base}ns#Construct") # class
+args+=("${base}ns#Template") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}sitemap/queries/") # container
+args+=("${base}sitemap/templates/") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
+turtle+="@prefix ldt:    <https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:query a ns:Construct .\n"
-turtle+="_:query rdfs:label \"${label}\" .\n"
-turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:query rdfs:isDefinedBy <../ns/templates#> .\n"
-turtle+="_:item a ns:QueryItem .\n"
+turtle+="_:template a ns:Template .\n"
+turtle+="_:template rdfs:label \"${label}\" .\n"
+turtle+="_:template foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:template rdfs:isDefinedBy <../ns/templates#> .\n"
+turtle+="_:item a ns:TemplateItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:query .\n"
+turtle+="_:item foaf:primaryTopic _:template .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:query rdfs:comment \"${comment}\" .\n"
+    turtle+="_:template rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
+fi
+
+if [ ! -z "$match" ] ; then
+    turtle+="_:template ldt:match \"${match}\" .\n"
+fi
+if [ ! -z "$query" ] ; then
+    turtle+="_:template ldt:query <$query> .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
@@ -90,4 +105,4 @@ fi
 export PATH=$PATH:$JENAROOT/bin
 
 # submit Turtle doc to the server
-echo -e $turtle | turtle --base="${base}" | ../create-document.sh "${args[@]}"
+echo -e $turtle | turtle --base="${base}" | ../../create-document.sh "${args[@]}"

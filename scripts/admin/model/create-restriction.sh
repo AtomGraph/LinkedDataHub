@@ -28,18 +28,18 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --query)
-    query="$2"
+    --on-property)
+    on_property="$2"
     shift # past argument
     shift # past value
     ;;
-    --match)
-    match="$2"
+    --all-values-from)
+    all_values_from="$2"
     shift # past argument
     shift # past value
     ;;
-    --extends)
-    extends="$2"
+    --has-value)
+    has_value="$2"
     shift # past argument
     shift # past value
     ;;
@@ -59,44 +59,43 @@ if [ -z "$label" ] ; then
     echo '--label not set'
     exit 1
 fi
-if ( [ -z "$extends" ] && [ -z "$query" ] ) || ( [ -z "$extends" ] && [ -z "$match" ] ) ; then
-    echo '--extends or --query and --match not set'
-    exit 1
-fi
 
 args+=("-c")
-args+=("${base}ns#Template") # class
+args+=("${base}ns#Restriction") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}sitemap/templates/") # container
+args+=("${base}model/restrictions/") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix ldt:    <https://www.w3.org/ns/ldt#> .\n"
+turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
+turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:template a ns:Template .\n"
-turtle+="_:template rdfs:label \"${label}\" .\n"
-turtle+="_:template foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:template rdfs:isDefinedBy <../ns/templates#> .\n"
-turtle+="_:item a ns:TemplateItem .\n"
+turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="_:restriction a ns:Restriction .\n"
+turtle+="_:restriction rdfs:label \"${label}\" .\n"
+turtle+="_:restriction foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:restriction rdfs:isDefinedBy <../ns/domain#> .\n"
+turtle+="_:item a ns:RestrictionItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:template .\n"
+turtle+="_:item foaf:primaryTopic _:restriction .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:template rdfs:comment \"${comment}\" .\n"
+    turtle+="_:restriction rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-
-if [ ! -z "$match" ] ; then
-    turtle+="_:template ldt:match \"${match}\" .\n"
+if [ ! -z "$on_property" ] ; then
+    turtle+="_:restriction owl:onProperty <$on_property> .\n"
 fi
-if [ ! -z "$query" ] ; then
-    turtle+="_:template ldt:query <$query> .\n"
+if [ ! -z "$all_values_from" ] ; then
+    turtle+="_:restriction owl:allValuesFrom <$all_values_from> .\n"
+fi
+if [ ! -z "$has_value" ] ; then
+    turtle+="_:restriction owl:hasValue <$has_value> .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
@@ -105,4 +104,4 @@ fi
 export PATH=$PATH:$JENAROOT/bin
 
 # submit Turtle doc to the server
-echo -e $turtle | turtle --base="${base}" | ../create-document.sh "${args[@]}"
+echo -e $turtle | turtle --base="${base}" | ../../create-document.sh "${args[@]}"
