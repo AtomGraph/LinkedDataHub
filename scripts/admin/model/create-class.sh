@@ -29,6 +29,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --uri)
+    uri="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --constructor)
     constructor="$2"
     shift # past argument
@@ -77,6 +82,13 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}model/classes/") # container
 
+# allow explicit URIs
+if [ ! -z "$uri" ] ; then
+    class="<${uri}>" # URI
+else
+    class="_:class" # blank node
+fi
+
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
@@ -84,36 +96,36 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="_:class a ns:Class .\n"
-turtle+="_:class rdfs:label \"${label}\" .\n"
-turtle+="_:class foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:class rdfs:isDefinedBy <../ns/domain#> .\n"
+turtle+="${class} a ns:Class .\n"
+turtle+="${class} rdfs:label \"${label}\" .\n"
+turtle+="${class} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${class} rdfs:isDefinedBy <../ns/domain#> .\n"
 turtle+="_:item a ns:ClassItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:class .\n"
+turtle+="_:item foaf:primaryTopic ${class} .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:class rdfs:comment \"${comment}\" .\n"
+    turtle+="${class} rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ ! -z "$constructor" ] ; then
-    turtle+="_:class spin:constructor <$constructor> .\n"
+    turtle+="${class} spin:constructor <$constructor> .\n"
 fi
 if [ ! -z "$constraint" ] ; then
-    turtle+="_:class spin:constraint <$constraint> .\n"
+    turtle+="${class} spin:constraint <$constraint> .\n"
 fi
 if [ ! -z "$path" ] ; then
-    turtle+="_:class ldt:path \"${path}\" .\n"
+    turtle+="${class} ldt:path \"${path}\" .\n"
 fi
 if [ ! -z "$fragment" ] ; then
-    turtle+="_:class ldt:fragment \"${fragment}\" .\n"
+    turtle+="${class} ldt:fragment \"${fragment}\" .\n"
 fi
 
 for sub_class_of in "${super_classes[@]}"
 do
-    turtle+="_:class rdfs:subClassOf <$sub_class_of> .\n"
+    turtle+="${class} rdfs:subClassOf <$sub_class_of> .\n"
 done
 
 # set env values in the Turtle doc and sumbit it to the server
