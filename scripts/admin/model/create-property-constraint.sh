@@ -28,6 +28,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --uri)
+    uri="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --property)
     property="$2"
     shift # past argument
@@ -56,6 +61,13 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}model/constraints/") # container
 
+# allow explicit URIs
+if [ ! -z "$uri" ] ; then
+    constraint="<${uri}>" # URI
+else
+    constraint="_:constraint" # blank node
+fi
+
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
@@ -63,17 +75,17 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:constraint a ns:MissingPropertyValue .\n"
-turtle+="_:constraint rdfs:label \"${label}\" .\n"
-turtle+="_:constraint sp:arg1 <${property}> .\n"
-turtle+="_:constraint foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:constraint rdfs:isDefinedBy <../ns/domain#> .\n"
+turtle+="${constraint} a ns:MissingPropertyValue .\n"
+turtle+="${constraint} rdfs:label \"${label}\" .\n"
+turtle+="${constraint} sp:arg1 <${property}> .\n"
+turtle+="${constraint} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${constraint} rdfs:isDefinedBy <../ns/domain#> .\n"
 turtle+="_:item a ns:ConstraintItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:constraint .\n"
+turtle+="_:item foaf:primaryTopic ${constraint} .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:constraint rdfs:comment \"${comment}\" .\n"
+    turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"

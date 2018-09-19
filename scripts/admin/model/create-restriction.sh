@@ -28,6 +28,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --uri)
+    uri="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --on-property)
     on_property="$2"
     shift # past argument
@@ -66,6 +71,13 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}model/restrictions/") # container
 
+# allow explicit URIs
+if [ ! -z "$uri" ] ; then
+    restriction="<${uri}>" # URI
+else
+    restriction="_:restriction" # blank node
+fi
+
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
@@ -74,28 +86,28 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="_:restriction a ns:Restriction .\n"
-turtle+="_:restriction rdfs:label \"${label}\" .\n"
-turtle+="_:restriction foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:restriction rdfs:isDefinedBy <../ns/domain#> .\n"
+turtle+="${restriction} a ns:Restriction .\n"
+turtle+="${restriction} rdfs:label \"${label}\" .\n"
+turtle+="${restriction} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${restriction} rdfs:isDefinedBy <../ns/domain#> .\n"
 turtle+="_:item a ns:RestrictionItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:restriction .\n"
+turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:restriction rdfs:comment \"${comment}\" .\n"
+    turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ ! -z "$on_property" ] ; then
-    turtle+="_:restriction owl:onProperty <$on_property> .\n"
+    turtle+="${restriction} owl:onProperty <$on_property> .\n"
 fi
 if [ ! -z "$all_values_from" ] ; then
-    turtle+="_:restriction owl:allValuesFrom <$all_values_from> .\n"
+    turtle+="${restriction} owl:allValuesFrom <$all_values_from> .\n"
 fi
 if [ ! -z "$has_value" ] ; then
-    turtle+="_:restriction owl:hasValue <$has_value> .\n"
+    turtle+="${restriction} owl:hasValue <$has_value> .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
