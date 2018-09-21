@@ -28,6 +28,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --uri)
+    uri="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --query-file)
     query_file="$2"
     shift # past argument
@@ -54,7 +59,7 @@ if [ -z "$query_file" ] ; then
     exit 1
 fi
 
-query=$(<$query_file) # read query string from file
+query_string=$(<$query_file) # read query string from file
 
 args+=("-c")
 args+=("${base}ns#Describe") # class
@@ -62,23 +67,30 @@ args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}sitemap/queries/") # container
 
+# allow explicit URIs
+if [ ! -z "$uri" ] ; then
+    query="<${uri}>" # URI
+else
+    query="_:query" # blank node
+fi
+
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:query a ns:Describe .\n"
-turtle+="_:query rdfs:label \"${label}\" .\n"
-turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:query rdfs:isDefinedBy <../ns/templates#> .\n"
+turtle+="${query} a ns:Describe .\n"
+turtle+="${query} rdfs:label \"${label}\" .\n"
+turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
+turtle+="${query} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${query} rdfs:isDefinedBy <../ns/templates#> .\n"
 turtle+="_:item a ns:QueryItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic _:query .\n"
+turtle+="_:item foaf:primaryTopic ${query} .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="_:query rdfs:comment \"${comment}\" .\n"
+    turtle+="${query} rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
