@@ -6,7 +6,7 @@ This repository is for:
 Command line interface (CLI)
 ============================
 
-You can use [LinkedDataHub](https://linkeddatahub.com/docs/about) CLI to execute most of the common tasks that can be performed in the UI, such as application and document creation, file uploads, data import etc.
+You can use [LinkedDataHub](https://linkeddatahub.com/docs/about) CLI to execute most of the common tasks that can be performed in the UI, such as application and document creation, file uploads, data import, ontology management etc.
 
 The CLI wraps the [HTTP API](https://linkeddatahub.com/docs/http-api) into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the [user interace](https://linkeddatahub.com/docs/user-interface), as well as easier to reproduce.
 
@@ -52,6 +52,17 @@ Atomic commands are focused on performing a single request, such as creating a d
     * [Install dataset](scripts/apps/install-dataset.sh)
     * [Dydra-specific](scripts/apps/dydra)
         * [Create service](scripts/apps/dydra/create-service.sh)
+* [Admin](scripts/admin)
+    * [Clear ontology](scripts/admin/clear-ontology.sh)
+    * [Model](scripts/admin/model)
+        * [Create class](scripts/admin/model/create-class.sh)
+        * [Create `CONSTRUCT` query](scripts/admin/model/create-construct.sh)
+        * [Create property constraint](scripts/admin/model/create-property-constraint.sh)
+        * [Create restriction](scripts/admin/model/create-restriction.sh)
+    * [Sitemap](scripts/admin/sitemap)
+        * [Create `CONSTRUCT` query](scripts/admin/sitemap/create-construct.sh)
+        * [Create `DESCRIBE` query](scripts/admin/sitemap/create-describe.sh)
+        * [Create template](scripts/admin/sitemap/create-template.sh)
 * [Imports](scripts/imports)
     * [Create file](scripts/imports/create-file.sh)
     * [Create query](scripts/imports/create-query.sh)
@@ -59,7 +70,13 @@ Atomic commands are focused on performing a single request, such as creating a d
 
 Usage example:
 
-    ./create-file https://linkeddatahub.com/my-context/my-dataspace/ linkeddatahub.pem Password "Friends" 44f18281-6afa-408e-a7c4-bad38487f198 646af756-a49f-40da-a25e-ea8d81f6d306 friends.csv text/csv
+    ./create-file https://linkeddatahub.com/my-context/my-dataspace/ \
+    -f linkeddatahub.pem \
+    -p CertPassword \
+    --title "Friends" \
+    --file-slug 646af756-a49f-40da-a25e-ea8d81f6d306 \
+    --file friends.csv \
+    --file-content-type text/csv
 
 ### Tasks
 
@@ -80,4 +97,19 @@ Tasks consist of multiple chained commands, e.g. creating a service, then creati
 
 Usage example:
 
-    ./create-dataspace.sh https://linkeddatahub.com/my-context/ linkeddatahub.pem Password "My dataspace" my-dataspace https://linkeddatahub.com/my-context/my-dataspace/ http://localhost:3030/admin/sparql http://localhost:3030/admin/data AdminServiceUser AdminServicePassword http://localhost:3030/end-user/sparql http://localhost:3030/end-user/data EndUserServiceUser EndUserServicePassword
+    ./create-dataspace.sh \
+    -b https://linkeddatahub.com/my-context/ \
+    -f linkeddatahub.pem \
+    -p CertPassword \
+    --title "My dataspace" \
+    --description "Dataspace for my data" \
+    --slug my-dataspace \
+    --app-base https://linkeddatahub.com/my-context/my-dataspace/ \
+    --admin-endpoint http://localhost:3030/admin/sparql \
+    --admin-graph-store http://localhost:3030/admin/data \
+    --admin-service-user AdminServiceUser \
+    --admin-service-password AdminServicePassword \
+    --end-user-endpoint http://localhost:3030/end-user/sparql \
+    --end-user-graph-store http://localhost:3030/end-user/data \
+    --end-user-service-user EndUserServiceUser \
+    --end-user-service-password EndUserServicePassword
