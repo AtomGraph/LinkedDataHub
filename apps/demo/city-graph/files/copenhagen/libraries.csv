@@ -1,0 +1,21 @@
+FID,wkb_geometry,long,lat,name,address,postcode,postdistrikt,email,link
+biblioteker.0,POINT (12.581745359843794 55.69457326676311),12.58174536,55.69457327,Østerbro Bibliotek,Dag Hammarskjölds Allé 19,2100,København Ø,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/oesterbro
+biblioteker.1,POINT (12.5131070384209 55.6653427353054),12.51310704,55.66534274,Valby Bibliotek,Annexstræde 2,2500,Valby,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/valby
+biblioteker.2,POINT (12.580964243346905 55.63128647629463),12.58096424,55.63128648,Ørestad Bibliotek,Arne Jacobsens Allé 19,2300,København S,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/orestad
+biblioteker.3,POINT (12.556770109039634 55.68609122692412),12.55677011,55.68609123,Blågårdens Bibliotek,Blågårds Plads 5,2200,København N,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/blaagaardens
+biblioteker.4,POINT (12.543641614525315 55.6990123375313),12.54364161,55.69901234,Nørrebro Bibliotek,Bragesgade 8b,2200,København N,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/noerrebro
+biblioteker.5,POINT (12.576494590600904 55.70916603955145),12.57649459,55.70916604,Øbro Jagtvej Bibliotek,Jagtvej 227,2100,København Ø,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/oebro-jagtvej
+biblioteker.6,POINT (12.477235738923248 55.71075510821146),12.47723574,55.71075511,Husum Bibliotek,Frederikssundsvej 290,2700,Brønshøj,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/husum
+biblioteker.7,POINT (12.499257114847524 55.704311905770986),12.49925711,55.70431191,Brønshøj Bibliotek,Frederikssundsvej 175,2700,Brønshøj,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/broenshoej
+biblioteker.8,POINT (12.59212091966293 55.67232124045602),12.59212092,55.67232124,Christianshavns Bibliotek,Dronningensgade 53,1420,København K,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/christianshavn
+biblioteker.9,POINT (12.57937591294882 55.666467503403034),12.57937591,55.6664675,Islands Brygge Bibliotek,Njalsgade 15,2300,København S,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/islands-brygge
+biblioteker.10,POINT (12.603936487981368 55.665203677828174),12.60393649,55.66520368,Sundby Bibliotek,Jemtelandsgade 3,2300,København S,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/sundby
+biblioteker.11,POINT (12.49130887528394 55.68652214248285),12.49130888,55.68652214,Kulturstationen Vanløse,Jernbane Allé 38,2720,Vanløse,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/vanloese
+biblioteker.12,POINT (12.503313355608507 55.6492308208943),12.50331336,55.64923082,Vigerslev Bibliotek,Kirsebærhaven 23,2500,Valby,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/vigerslev
+biblioteker.13,POINT (12.573653234093157 55.68087610562476),12.57365323,55.68087611,Hovedbiblioteket,Krystalgade 15,1172,København K,bibliotek@kff.kk.dk,https://bibliotek.kk.dk/bibliotek/hovedbiblioteket
+biblioteker.14,POINT (12.543715195841289 55.66782679418936),12.5437152,55.66782679,Kulturanstalten - Vesterbro Bibliotek,Lyrskovgade 4,1758,København V,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/vesterbro
+biblioteker.15,POINT (12.595484064660932 55.64872227604868),12.59548406,55.64872228,Solvang Bibliotek,Remisevej 14,2300,København S,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/solvang
+biblioteker.16,POINT (12.522916217324196 55.70841203177259),12.52291622,55.70841203,BIBLIOTEKET Rentemestervej,Rentemestervej 76,2400,København NV,bibliotek@kff.kk.dk,https://bibliotek.kk.dk/bibliotek/rentemestervej
+biblioteker.17,POINT (12.613150562287347 55.65034949033002),12.61315056,55.65034949,Bibliotekshuset,Rodosvej 4,2300,København S,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/bibliotekshuset
+biblioteker.18,POINT (12.48119514014686 55.7188555933771),12.48119514,55.71885559,Tingbjerg Bibliotek,Ruten 14,2700,Brønshøj,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/tingbjerg
+biblioteker.19,POINT (12.529663800582032 55.646928020969895),12.5296638,55.64692802,Sydhavnens Bibliotek,Wagnersvej 19,2450,København SV,bibliotek@kff.kk.dk,http://bibliotek.kk.dk/bibliotek/sydhavn

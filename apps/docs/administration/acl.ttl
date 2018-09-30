@@ -1,0 +1,138 @@
+@prefix ns:     <ns#> .
+@prefix def:    <ns/default#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+    
+    <administration/acl> a def:Item ;
+        dct:title "Manage access control" ;
+        dct:description "Learn to create agents, groups, and authorizations" ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">LinkedDataHub access control is based on the W3C <a href="https://www.w3.org/wiki/WebAccessControl">ACL ontology</a>.</p>
+    <div>
+        <h2 id="access-modes">Access modes</h2>
+        <p>There are 4 access modes (classes of operation) that map to <a href="../http-api">HTTP methods</a>:</p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Mode</th>
+                    <th>Those allowed may</th>
+                    <th>HTTP method</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Read</td>
+                    <td>read the contents (including querying it, etc)</td>
+                    <td><code>GET</code></td>
+                </tr>
+                <tr>
+                    <td>Write</td>
+                    <td>overwrite the contents (including deleting it, or modifying part of it)</td>
+                    <td><code>PUT</code>, <code>DELETE</code></td>
+                </tr>
+                <tr>
+                    <td>Append</td>
+                    <td>add information to [the end of] it but not remove information</td>
+                    <td><code>POST</code></td>
+                </tr>
+                <tr>
+                    <td>Control</td>
+                    <td>set the Access Control List for this themselves</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h2 id="agents">Agents</h2>
+        <p>An agent is a person or a software agent that can be authorized to have certain <a href="#access-modes">modes
+            of access</a> to certain applications.</p>
+        <!--
+        <p>Each agent is associated with a <a href="#user-accounts">user account</a>. The exception is the class
+            <code>foaf:Agent</code> as the class of all agents. This indicates that the given access is public. In this
+            case authentication is skipped.</p>
+        -->
+    </div>
+    <!--
+    <div>
+        <h2 id="user-accounts">User accounts</h2>
+        <p>User account is a subclass of the <a href="http://rdfs.org/sioc/spec/#term_UserAccount"><code>sioc:UserAccount</code></a>
+            class. An account is the actual instance that performs actions on the application
+            (<a href="../usage/#manage">manages documents</a>, <a href="../usage/import-data">imports data</a> etc.). An
+            account always belongs to an <a href="#agents">agent</a>.</p>
+    </div>
+    -->
+    <div>
+        <h2 id="groups">Groups</h2>
+        <p>A group is a named group of <a href="#agents">agents</a> to which an <a href="#authorizations">authorization</a> can
+            be given. It is a subclass of the <a href="http://xmlns.com/foaf/spec/#term_Group"><code>foaf:Group</code></a>
+            class.</p>
+        <p>There are several default groups:</p>
+        <ul>
+            <li>owners</li>
+            <li>readers</li>
+            <li>writers</li>
+        </ul>
+        <div class="alert alert-info">
+            <p>Only agents that belong to the owners group will have access to the administration application.<br></br>
+            Note that an agent being a member of one of the above groups does not automatically provide it with an
+                authorization. A valid authorization for the whole group has to be present.</p>
+        </div>
+    </div>
+    <div>
+        <h2 id="authorizations">Authorizations</h2>
+        <p>An authorization explicitly grants access for an <a href="#agent">agent</a> or a <a href="#groups">group</a>
+            of agents to access a specific end-user application document or a <a href="../model/#classes">class</a>
+            of its documents.</p>
+        <p>An <a href="#agents">agent</a> has to be authorized using the <a href="#access-modes">Control</a> mode to be
+            able to login to the <a href="../manage-apps#admin-apps">administration application</a>.</p>
+        <p>Here are the default authorizations for groups and their respective access modes:</p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Group</th>
+                    <th>Read access</th>
+                    <th>Write/append access</th>
+                    <th>Full control</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="2">Owners</td>
+                    <td rowspan="2"><a href="#access-modes">Read</a></td>
+                    <td><a href="#access-modes">Write</a></td>
+                    <td rowspan="2"><a href="#access-modes">Control</a></td>
+                </tr>
+                <tr>
+                    <td><a href="#access-modes">Append</a></td>
+                </tr>
+                <tr>
+                    <td rowspan="2">Writers</td>
+                    <td rowspan="2"><a href="#access-modes">Read</a></td>
+                    <td><a href="#access-modes">Write</a></td>
+                    <td rowspan="2"></td>
+                </tr>
+                <tr>
+                    <td><a href="#access-modes">Append</a></td>
+                </tr>
+                <tr>
+                    <td>Readers</td>
+                    <td><a href="#access-modes">Read</a></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>Public access authorization allows access for non-authenticated agents.</p>
+        <div>
+            <h3 id="auth-requests">Requests</h3>
+            <p>If access is denied due to missing authorization, the agent can ask for it by issuing a request to the application's
+            <a href="../manage-apps#admin-apps">owners</a>. It indicates the request URI and access mode in question.
+            The owners can then accept the request by creating an <a href="#authorizations">authorization</a> with the provided information
+            (possibly extending the requested access to a <a href="#groups">group</a> of agents or a <a href="./model/#classes">class of resources</a>),
+            or simply ignore it.</p>
+        </div>
+    </div>
+</div>"""^^rdf:XMLLiteral .

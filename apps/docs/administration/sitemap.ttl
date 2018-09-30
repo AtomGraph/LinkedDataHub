@@ -1,0 +1,251 @@
+@prefix ns:     <ns#> .
+@prefix def:    <ns/default#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+
+    <administration/sitemap/> a def:Container ;
+        dct:title "Manage sitemap" ;
+        dct:description "Learn to create and manage Linked Data templates, queries, parameters etc." ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+        <h2 id="ontologies">Ontologies</h2>
+        <p>Ontologies are sets of domain concepts. The domain can span both documents (information resources) and abstract/physical things
+            (non-information resources).</p>
+        <p>Ontologies can <a href="https://www.w3.org/TR/owl2-primer/#Ontology_Management">import other ontologies</a>, both user-defined
+            and system ones provided by LinkedDataHub. The imports are retrieved during application initialization, and the ontology
+            becomes a transitive union, i.e. is merged with its imports and imports of the imports etc.</p>
+        <p>Main ontology properties:</p>
+        <dl>
+            <dt>Imports</dt>
+            <dd>Ontology to be imported</dd>
+            <dt>Version</dt>
+            <dd>Unique version of this ontology</dd>
+        </dl>
+        <p>All concepts managed in the sitemap and explained below (templates parameters etc.) belong to exactly one ontology. The membership
+           is specified using the <code>rdfs:isDefined</code> property.</p>
+        <div>
+            <h3>System ontologies</h3>
+            <p class="text-center">
+                <img src="../../uploads/74847ba3ea2f8862bcb0bd9e177517363de83e74" title="LinkedDataHub ontologies"></img>
+            </p>
+            <p>AtomGraph Platform templates (APLT) is the default templates ontology used by LinkedDataHub.</p>
+            <table class="table">
+                <caption>Template ontologies</caption>
+                <thead>
+                    <tr>
+                        <th>Ontology</th>
+                        <th>Title</th>
+                        <th>Prefix</th>
+                        <th>Imports</th>
+                        <th>Document hierarchy</th>
+                        <th>Primary topics</th>
+                        <th>Named graphs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><a id="aplt-ont"><code>http://atomgraph.com/ns/platform/templates#</code></a></td>
+                        <td>AtomGraph Platform</td>
+                        <td><code>aplt:</code></td>
+                        <td><a href="#thgt-ont"><code>thgt:</code></a></td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><a id="thgt-ont"><code>https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#</code></a></td>
+                        <td>Topic hierarchy graphs</td>
+                        <td><code>thgt:</code></td>
+                        <td><a href="#tht-ont"><code>tht:</code></a></td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://www.w3.org/ns/ldt/topic-hierarchy/templates#" id="tht-ont"><code>https://www.w3.org/ns/ldt/topic-hierarchy/templates#</code></a></td>
+                        <td>Topic hierarchy</td>
+                        <td><code>tht:</code></td>
+                        <td><a href="#dht-ont"><code>dht:</code></a></td>
+                        <td>✓</td>
+                        <td>✓</td>
+                        <td>✕</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://www.w3.org/ns/ldt/document-hierarchy/templates#" id="dht-ont"><code>https://www.w3.org/ns/ldt/document-hierarchy/templates#</code></a></td>
+                        <td>Document hierarchy</td>
+                        <td><code>dht:</code></td>
+                        <td><a href="#ct-ont"><code>ct:</code></a></td>
+                        <td>✓</td>
+                        <td>✕</td>
+                        <td>✕</td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://www.w3.org/ns/ldt/named-graphs/templates#" id="ngt-ont"><code>https://www.w3.org/ns/ldt/named-graphs/templates#</code></a></td>
+                        <td>Named graphs</td>
+                        <td><code>ngt:</code></td>
+                        <td><a href="#ct-ont"><code>ct:</code></a></td>
+                        <td>✕</td>
+                        <td>✕</td>
+                        <td>✓</td>
+                    </tr>
+                    <tr>
+                        <td><a href="https://www.w3.org/ns/ldt/core/templates#" id="ct-ont"><code>https://www.w3.org/ns/ldt/core/templates#</code></a></td>
+                        <td>Core</td>
+                        <td><code>ct:</code></td>
+                        <td></td>
+                        <td>✕</td>
+                        <td>✕</td>
+                        <td>✕</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <h2 id="templates">Templates</h2>
+        <p>LinkedDataHub uses <a href="https://atomgraph.github.io/Linked-Data-Templates/">Linked Data Templates</a> to define
+          operations on applications resources. A template combines a URI pattern wit a SPARQL command (or its template).</p>
+        <p>Templates can extend each other. A sub-template inherits the LDT properties of the super-template (such as path, command, parameters etc.), unless the
+            sub-template defines its own property. The mechanism is similar to object-oriented class inheritance. Classes inherit SPIN properties the same way.</p>
+        <p>There is a number of <a href="#built-in-templates">built-in templates</a> provided in template ontologies. The default APLT templates are tailored to match
+            the LinkedDataHub <a href="../dataset-structure#linked-data-hub">dataset structure</a>. If they do not match your dataset structure, you can extend a lower-level
+            template (e.g. <code>ct:Document</code>) or create your own base template which other templates can extend.</p>
+        <p>The main template properties are:</p>
+        <dl>
+            <dt>Extends</dt>
+            <dd>Super-template that this template will inherit properties from</dd>
+            <dt>Match</dt>
+            <dd><a href="#match">Relative URI path pattern</a> that has to match request URI.</dd>
+            <dt>Command</dt>
+            <dd>SPARQL <a href="#query">query</a> or <a href="#update">update</a> executed during request. It can also be a
+                SPIN <a href="#command-templates">command template</a>.</dd>
+            <dt>Parameters</dt>
+            <dd>A template can have any number of request <a href="#parameters">parameters</a>.</dd>
+            <dt>Priority</dt>
+            <dd>Similar to XSLT template priority, you can specify a priority value which is used to resolve a conflict when two templates
+                match the same template. Template with higher priority gets selected. The default priority is 0.</dd>
+            <dt>Cache control</dt>
+            <dd>Specifies the <code>Cache-Control</code> header value that will be used for responses generated by this template</dd>
+        </dl>
+        <div>
+            <h3 id="match">Match</h3>
+            <p>Match is a relative URI (path) pattern that HTTP requests are matched against. It does not include the base URI (starts with a leading slash) or the URL query string.
+              Match paths pattern are defined using JAX-RS <a href="http://download.oracle.com/otn-pub/jcp/jaxrs-2_0-fr-eval-spec/jsr339-jaxrs-2.0-final-spec.pdf#page=27">URI
+              template</a> syntax.</p>
+            <p>Some examples:</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Path</th>
+                        <th>Request URI</th>
+                        <th>Match?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/</code></td>
+                        <td><code>/</code></td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>/</code></td>
+                        <td><code>/some</code></td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><code>/{item}</code></td>
+                        <td><code>/some</code></td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><code>/{container}/</code></td>
+                        <td><code>/some</code></td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><code>/{container}/</code></td>
+                        <td><code>/other/</code></td>
+                        <td>Yes</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>Note that the captured variable values are discarded. <a href="https://www.w3.org/DesignIssues/Axioms.html#opaque">URIs are opaque
+                identifiers</a> and they should  be used for lookup of RDF resources. It is bad practice to "slice" URIs into literal values that are
+                used for such lookup.</p>
+        </div>
+        <div>
+            <h3 id="parameters">Parameters</h3>
+            <p>Parameters define what values the template allows in the request  URI query string (which is not considered during template matching).
+                For example, query string <code>?givenName=Tim&amp;familyName=Berners-Lee</code> includes 2 parameters: <code>givenName</code> with value
+                <code>Tim</code> and <code>familyName</code> with value <code>Berners-Lee</code>. Except for some system parameters, parameters are
+                normally used to supply values from the request URI into the SPARQL query string. Supplying parameters that are not defined by the matching
+                template will produce a <code>400 Bad Request</code> response.</p>
+            <p>A parameter has the following properties:</p>
+            <dl>
+                <dt>Property</dt>
+                <dd>The RDF property that this parameter maps to. Following SPIN convention, the local name of the property is the name of the
+                    parameter. For example, if <code>foaf:givenName</code> is the parameter property, then <code>givenName</code> is the parameter
+                    name.</dd>
+                <dt>Value type</dt>
+                <dd>The RDF datatype to which the parameter value will be cast before it is used as a query binding. If the value is to be interpreted
+                    as a URI, <code>rdfs:Resource</code> should be used. Parameter values that cannot be cast to its value type will produce a
+                    <code>400 Bad Request</code> response.</dd>
+                <dt>Requiredness</dt>
+                <dd>Indicates whether this parameter is mandatory or optional. If the matching template has a mandatory (non-optional) parameter for
+                    which a value is not supplied in the URI query string, a <code>400 Bad Request</code> response will be produced.</dd>
+            </dl>
+            <p>Query bindings are produced from parameters for matching templates that satisfy all of the following conditions:</p>
+            <ol>
+                <li>request method is <code>GET</code> and the template uses <a href="#command-templates">query template</a>, as opposed to a concrete
+                    <a href="#queries">query</a></li>
+                <li>request method is <code>PUT</code> or <code>DELETE</code> and the template uses an <a href="#command-templates">update template</a>,
+                    as opposed to a concrete <a href="#updates">update</a></li>
+                <li>command template has parameter(s) with the same property as the template parameter(s)</li>
+            </ol>
+            <p>If the conditions are satisfied, all parameters from #3 will become SPARQL query bindings. For example: <code>(?familyName,
+                "Berners-Lee")</code>.</p>
+        </div>
+    </div>
+    <div>
+        <h2 id="queries">Queries</h2>
+        <p>Queries are SPARQL 1.1 queries expressed as RDF resources using the <a href="http://spinrdf.org/sp.html">SPIN RDF</a>
+            syntax. Queries are used to retrieve resource description from SPARQL service when the <a href="#templates">template</a> they belong
+            to matches <code>GET</code> request (<code>DESCRIBE</code> and <code>CONSTRUCT</code> queries).</p>
+        <p>Queries should define a special <code>?this</code> variable, which is bound to the absolute path of the matching
+            request URI (i.e. without the query string) before execution. For example, if a template matched request with URI
+            <code>https://linkeddatahub.com/docs/?limit=20</code>, a variable binding <code>(?this, &lt;https://linkeddatahub.com/docs/&gt;)</code>
+            will be applied on the query of that template. Additional variable bindings can be introduced using template
+            <a href="#parameters">parameters</a>.</p>
+        <p>Queries used by container templates must have a <code>SELECT</code> <a href="https://www.w3.org/TR/sparql11-query/#subqueries">subquery</a>
+            which is used for pagination. The processor will set <code>LIMIT</code>/<code>OFFSET</code>/<code>ORDER BY</code>/<code>DESC</code>
+            modifiers to request <a href="#parameters">argument</a> values, if they are provided. Using request URI from the previous
+            example would result in <code>LIMIT 20</code>.</p>
+        <p>The query strings must follow SPARQL 1.1 syntax, otherwise you will not be able to store them.</p>
+    </div>
+    <div>
+        <h2 id="updates">Updates</h2>
+        <p>Updates are SPARQL 1.1 <code>DELETE</code> updates expressed as RDF resources using the <a href="http://spinrdf.org/sp.html">SPIN RDF</a>
+            syntax. Updates are used to:</p>
+        <ul>
+            <li>update resource description from SPARQL service when the <a href="#templates">template</a> they belong to matches <code>PUT</code>
+                request (<code>DELETE</code> is combined with <code>INSERT DATA</code> generated from the request body)</li>
+            <li>remove resource description from SPARQL service when the <a href="#templates">template</a> they belong to matches <code>DELETE</code>
+                request</li>
+        </ul>
+        <p>It is possible to use updates that include not only <code>DELETE</code> but also <code>INSERT</code> block, but their behavior is undefined
+            in terms of LDT.</p>
+    </div>
+     <div>
+        <h2 id="command-templates">Command templates</h2>
+        <p>Command templates are <a href="http://spinrdf.org/spin.html#spin-templates">SPIN templates</a> for SPARQL queries and updates that have
+            2 parts:</p>
+        <ul>
+            <li>body which is a <a href="#queries">query</a> or <a href="#updates">update</a></li>
+            <li>arguments with predicate and value type</li>
+        </ul>
+        <p>Instances of command templates can be used instead of queries and updates.</p>
+    </div>
+</div>"""^^rdf:XMLLiteral .

@@ -1,0 +1,496 @@
+@prefix ns:     <ns#> .
+@prefix def:    <ns/default#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+    
+    <administration/sitemap/built-ins> a def:Item ;
+        dct:title "Built-in sitemap terms" ;
+        dct:description "Learn to create and manage Linked Data templates, queries, parameters etc." ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+        <table class="table">
+            <caption>Built-in templates</caption>
+            <thead>
+                <tr>
+                    <th>Ontology</th>
+                    <th>Template</th>
+                    <th>Extends</th>
+                    <th>Match</th>
+                    <th>Query</th>
+                    <th>Update</th>
+                    <th>Parameter</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="33"><a href="./#aplt-ont"><code>aplt:</code></a></td>
+                    <td rowspan="14"><code>aplt:Container</code></td>
+                    <td rowspan="14"><code>thgt:Container</code></td>
+                    <td rowspan="14"></td>
+                    <td rowspan="14"><code>aplt:DescribeWithACLChildrenTopics</code></td>
+                    <td rowspan="14"></td>
+                    <td><a href="#Limit20-param"><code>aplt:Limit20</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#OrderByCreated-param"><code>aplt:OrderByCreated</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Desc-param"><code>aplt:Desc</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Type-param"><code>aplt:Type</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#ChildPrimaryTopicType-param"><code>aplt:ChildPrimaryTopicType</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#FilterIn-param"><code>aplt:FilterIn</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#FilterEq-param"><code>aplt:FilterEq</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#FilterGe-param"><code>aplt:FilterGe</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#FilterLe-param"><code>aplt:FilterLe</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#FilterRegex-param"><code>aplt:FilterRegex</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Debug-param"><code>aplt:Debug</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#ChartType-param"><code>aplt:ChartType</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#XAxisProperty-param"><code>aplt:XAxisProperty</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#YAxisProperty-param"><code>aplt:YAxisProperty</code></a></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:Item</code></td>
+                    <td><code>thgt:Item</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><a href="#Debug-param"><code>aplt:Debug</code></a></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:GraphItem</code></td>
+                    <td><code>thgt:Item</code></td>
+                    <td><code>/graphs/{path: .+}</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:NamespaceOntology</code></td>
+                    <td><code>thgt:Item</code></td>
+                    <td><code>/ns</code></td>
+                    <td><code>aplt:DescribeOntology</code></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:SubOntology</code></td>
+                    <td><code>thgt:Item</code></td>
+                    <td><code>/ns/{sub}</code></td>
+                    <td><code>aplt:DescribeOntology</code></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:SPARQLEndpoint</code></td>
+                    <td><code>ct:SPARQLEndpoint</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:GraphStore</code></td>
+                    <td><code>ct:GraphStore</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="2"><code>aplt:SearchContainer</code></td>
+                    <td rowspan="2"><code>aplt:Container</code></td>
+                    <td rowspan="2"><code>/search/</code></td>
+                    <td rowspan="2"><code>aplt:DescribeLabelResources</code></td>
+                    <td rowspan="2"></td>
+                    <td><a href="#Label-param"><code>aplt:Label</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Type-param"><code>aplt:Type</code></a></td>
+                </tr>
+                <tr>
+                    <td rowspan="5"><code>aplt:GeoContainer</code></td>
+                    <td rowspan="5"><code>thgt:Container</code></td>
+                    <td rowspan="5"><code>/geo/</code></td>
+                    <td rowspan="5"><code>aplt:ConstructGeoResources</code></td>
+                    <td rowspan="5"></td>
+                    <td><a href="#East-param"><code>aplt:East</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#North-param"><code>aplt:North</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#South-param"><code>aplt:South</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#West-param"><code>aplt:West</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#HasContainer-param"><code>aplt:HasContainer</code></a></td>
+                </tr>
+                <tr>
+                    <td rowspan="2"><code>aplt:LatestContainer</code></td>
+                    <td rowspan="2"><code>aplt:Container</code></td>
+                    <td rowspan="2"><code>/latest/</code></td>
+                    <td rowspan="2"><code>aplt:DescribeLatestWithACL</code></td>
+                    <td rowspan="2"></td>
+                    <td><a href="#OrderByCreated-param"><code>aplt:OrderByCreated</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Desc-param"><code>aplt:Desc</code></a></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:FileContainer</code></td>
+                    <td><code>aplt:Container</code></td>
+                    <td><code>/files/</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:File</code></td>
+                    <td><code>aplt:Item</code></td>
+                    <td><code>/uploads/{slug}</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:ImportContainer</code></td>
+                    <td><code>aplt:Container</code></td>
+                    <td><code>/imports/</code></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>aplt:ImportItem</code></td>
+                    <td><code>aplt:Item</code></td>
+                    <td><code>/imports/{slug}</code></td>
+                    <td><code>aplt:DescribeWithResponse</code></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="2"><a href="./#thgt-ont"><code>thgt:</code></a></td>
+                    <td><code>thgt:Container</code></td>
+                    <td><code>tht:Container</code></td>
+                    <td></td>
+                    <td><code>thgt:DescribeWithChildrenTopics</code></td>
+                    <td><code>thgt:DeleteWithTopic</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>thgt:Item</code></td>
+                    <td><code>tht:Item</code></td>
+                    <td></td>
+                    <td><code>thgt:DescribeWithTopic</code></td>
+                    <td><code>thgt:DeleteWithTopic</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="2"><a href="./#tht-ont"><code>tht:</code></a></td>
+                    <td><code>tht:Container</code></td>
+                    <td><code>dht:Container</code></td>
+                    <td></td>
+                    <td><code>tht:DescribeWithChildrenTopics</code></td>
+                    <td><code>tht:DeleteWithTopic</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><code>tht:Item</code></td>
+                    <td><code>ct:Document</code></td>
+                    <td></td>
+                    <td><code>tht:DescribeWithTopic</code></td>
+                    <td><code>tht:DeleteWithTopic</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="5"><a href="./#dht-ont"><code>dht:</code></a></td>
+                    <td rowspan="5"><code>dht:Container</code></td>
+                    <td rowspan="5"><code>ct:Document</code></td>
+                    <td rowspan="5"><code>{path: .*}/</code></td>
+                    <td rowspan="5"><code>dht:DescribeWithChildren</code></td>
+                    <td rowspan="5"></td>
+                    <td><a href="#ForClass-param"><code>dht:ForClass</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Limit-param"><code>dht:Limit</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Offset-param"><code>dht:Offset</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#OrderBy-param"><code>dht:OrderBy</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Desc-param"><code>dht:Desc</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="./#ngt-ont"><code>ngt:</code></a></td>
+                    <td><code>ngt:Document</code></td>
+                    <td><code>ct:Document</code></td>
+                    <td></td>
+                    <td><code>ngt:Describe</code></td>
+                    <td><code>ngt:Delete</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="6"><a href="./#ct-ont"><code>ct:</code></a></td>
+                    <td><code>ct:Document</code></td>
+                    <td></td>
+                    <td><code>{path: .*}</code></td>
+                    <td><code>ct:Describe</code></td>
+                    <td><code>ct:Delete</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="3"><code>ct:SPARQLEndpoint</code></td>
+                    <td rowspan="3"></td>
+                    <td rowspan="3"><code>/sparql</code></td>
+                    <td rowspan="3"></td>
+                    <td rowspan="3"></td>
+                    <td><a href="#Query-param"><code>ct:Query</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#DefaultGraphURI-param"><code>ct:DefaultGraphURI</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#NamedGraphURI-param"><code>ct:NamedGraphURI</code></a></td>
+                </tr>
+                <tr>
+                    <td rowspan="2"><code>ct:GraphStore</code></td>
+                    <td rowspan="2"></td>
+                    <td rowspan="2"><code>/service</code></td>
+                    <td rowspan="2"></td>
+                    <td rowspan="2"></td>
+                    <td><a href="#Default-param"><code>ct:Default</code></a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Graph-param"><code>ct:Graph</code></a></td>
+                </tr>
+           </tbody>
+       </table>
+       <p>The SPARQL command strings can be looked up in the RDF documents of the respective <a href="./#ontologies">ontologies</a>.</p>
+        <table class="table">
+            <caption>Built-in parameters</caption>
+            <thead>
+                <tr>
+                    <th>Ontology</th>
+                    <th>Parameter</th>
+                    <th>Name</th>
+                    <th>Value type</th>
+                    <th>Optional</th>
+                    <th>Default value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="21"><a href="./#aplt-ont"><code>aplt:</code></a></td>
+                    <td><a id="Limit20-param"><code>aplt:Limit20</code></a></td>
+                    <td><code>limit</code></td>
+                    <td><code>xsd:long</code></td>
+                    <td><code>true</code></td>
+                    <td><code>20</code></td>
+                </tr>
+                <tr>
+                    <td><a id="OrderByCreated-param"><code>aplt:OrderByCreated</code></a></td>
+                    <td><code>orderBy</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td><code>"created"</code></td>
+                </tr>
+                <tr>
+                    <td><a id="Desc-param"><code>aplt:Desc</code></a></td>
+                    <td><code>desc</code></td>
+                    <td><code>xsd:boolean</code></td>
+                    <td><code>true</code></td>
+                    <td><code>true</code></td>
+                </tr>
+                <tr>
+                    <td><a id="ChildPrimaryTopicType-param"><code>aplt:ChildPrimaryTopicType</code></a></td>
+                    <td><code>childPrimaryTopicType</code></td>
+                    <td><code>rdfs:Class</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="FilterIn-param"><code>aplt:FilterIn</code></a></td>
+                    <td><code>filterIn</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+               </tr>
+                <tr>
+                    <td><a id="FilterEq-param"><code>aplt:FilterEq</code></a></td>
+                    <td><code>filterEq</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="FilterGe-param"><code>aplt:FilterGe</code></a></td>
+                    <td><code>filterGe</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="FilterLe-param"><code>aplt:FilterLe</code></a></td>
+                    <td><code>filterLe</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="FilterRegex-param"><code>aplt:FilterRegex</code></a></td>
+                    <td><code>filterRegex</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="ForClass-param"><code>aplt:ForClass</code></a></td>
+                    <td><code>forClass</code></td>
+                    <td><code>rdfs:Class</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="Debug-param"><code>aplt:Debug</code></a></td>
+                    <td><code>debug</code></td>
+                    <td><code>rdfs:Resource</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="Label-param"><code>aplt:Label</code></a></td>
+                    <td><code>label</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="Type-param"><code>aplt:Type</code></a></td>
+                    <td><code>Type</code></td>
+                    <td><code>rdfs:Class</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="East-param"><code>aplt:East</code></a></td>
+                    <td><code>east</code></td>
+                    <td><code>xsd:float</code></td>
+                    <td><code>true</code></td>
+                    <td><code>180</code></td>
+                </tr>
+                <tr>
+                    <td><a id="North-param"><code>aplt:North</code></a></td>
+                    <td><code>north</code></td>
+                    <td><code>xsd:float</code></td>
+                    <td><code>true</code></td>
+                    <td><code>90</code></td>
+                </tr>
+                <tr>
+                    <td><a id="South-param"><code>aplt:South</code></a></td>
+                    <td><code>south</code></td>
+                    <td><code>xsd:float</code></td>
+                    <td><code>true</code></td>
+                    <td><code>-90</code></td>
+                </tr>
+                <tr>
+                    <td><a id="West-param"><code>aplt:West</code></a></td>
+                    <td><code>west</code></td>
+                    <td><code>xsd:float</code></td>
+                    <td><code>true</code></td>
+                    <td><code>-180</code></td>
+                </tr>
+                <tr>
+                    <td><a id="HasContainer-param"><code>aplt:HasContainer</code></a></td>
+                    <td><code>has_container</code></td>
+                    <td><code>dh:Container</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="ChartType-param"><code>aplt:ChartType</code></a></td>
+                    <td><code>chartType</code></td>
+                    <td><code>rdfs:Resource</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="XAxisProperty-param"><code>aplt:XAxisProperty</code></a></td>
+                    <td><code>xAxisProperty</code></td>
+                    <td><code>rdfs:Resource</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="YAxisProperty-param"><code>aplt:YAxisProperty</code></a></td>
+                    <td><code>yAxisProperty</code></td>
+                    <td><code>rdfs:Resource</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td rowspan="5"><a href="./#dht-ont"><code>dht:</code></a></td>
+                    <td><a id="ForClass-param"><code>dht:ForClass</code></a></td>
+                    <td><code>forClass</code></td>
+                    <td><code>rdfs:Class</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="Limit-param"><code>dht:Limit</code></a></td>
+                    <td><code>limit</code></td>
+                    <td><code>xsd:long</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="Offset-param"><code>dht:Offset</code></a></td>
+                    <td><code>offset</code></td>
+                    <td><code>xsd:long</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="OrderBy-param"><code>dht:OrderBy</code></a></td>
+                    <td><code>orderBy</code></td>
+                    <td><code>xsd:string</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><a id="Desc-param"><code>dht:Desc</code></a></td>
+                    <td><code>desc</code></td>
+                    <td><code>xsd:boolean</code></td>
+                    <td><code>true</code></td>
+                    <td></td>
+                </tr>
+           </tbody>
+       </table>
+</div>"""^^rdf:XMLLiteral .

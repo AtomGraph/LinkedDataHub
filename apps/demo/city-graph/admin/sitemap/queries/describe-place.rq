@@ -1,0 +1,32 @@
+PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DESCRIBE ?this ?place ?closePlace ?closePlaceDoc
+WHERE
+  { GRAPH ?g
+      { ?this  foaf:primaryTopic  ?place
+        OPTIONAL
+          { SELECT  ?closePlace ?closePlaceDoc
+            WHERE
+              { ?this   foaf:primaryTopic  ?place .
+                ?place  geo:lat            ?lat ;
+                        geo:long           ?long
+                GRAPH ?closePlaceGraph
+                  { ?closePlace  geo:lat  ?closeLat ;
+                              geo:long   ?closeLong ;
+                              dct:title  ?closeTitle ;
+                              foaf:isPrimaryTopicOf ?closePlaceDoc .
+                  }
+                BIND(abs(( ?closeLat - ?lat )) AS ?distanceLat)
+                BIND(abs(( ?closeLong - ?long )) AS ?distanceLong)
+                FILTER ( ?place != ?closePlace )
+                FILTER ( ?distanceLat < 0.001 )
+                FILTER ( ?distanceLong < 0.001 )
+                BIND(( ?distanceLat + ?distanceLong ) AS ?approxDistance)
+              }
+            ORDER BY ?approxDistance
+            LIMIT   10
+          }
+      }
+  }

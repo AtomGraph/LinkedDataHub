@@ -1,0 +1,77 @@
+@prefix ns:     <ns#> .
+@prefix def:    <ns/default#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+    
+    <tutorials/import-rdf-data> a def:Item ;
+        dct:title "Import RDF data" ;
+        dct:description "Step by step guide to importing RDF data" ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">Step by step guide to importing RDF data</p>
+    <p>There are multiple ways to import RDF data into LinkedDataHub. Which one is the right choice for you, depends on the nature of your data:</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th><a href="../dataset-structure#linked-data-hub">LinkedDataHub dataset</a></th>
+                <th><a href="../dataset-structure#generic">Generic dataset</a></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Graph (triples)</td>
+                <td><a href="#container-import">Container import</a></td>
+                <td><a href="#service-import">Service import</a></td>
+            </tr>
+            <tr>
+                <td>Dataset (quads)</td>
+                <td><a href="#service-import">Service import</a></td>
+                <td><a href="#service-import">Service import</a></td>
+            </tr>
+        </tbody>
+    </table>
+    <p>The dataset column above indicates whether the RDF dataset in the end-user service follows the LinkedDataHub dataset structure, or whether it is any generic RDF dataset.</p>
+    <div>
+        <h2 id="container-import">Container import</h2>
+        <p>If you want to import RDF data in a way where it attaches to the existing <a href="../usage/#hierarchy">document hierarchy</a>, you need to make sure that it:</p>
+        <ul>
+            <li>consists of triples (quad import into a container is undefined)</li>
+            <li>describes one or more documents, possibly with some non-information resources attached to them</li>
+            <li>the documents are either containers with a <code>dh:Container</code> (or its subclass) type, or items with a <code>dh:Item</code> (or its subclass) type</li>
+            <li>the document resources <em>may</em> be blank nodes, in which case there will be an attempt to skolemize them based on the their
+                <a href="../administration/model/#classes">type class properties</a></li>
+        </ul>
+        <p>Documents conforming to the above criteria will become children the container they are submitted to (the <em>target container</em>). Each of the documents and its related
+        resources will be put into separate named graphs.</p>
+        <p>To execute the actual import, make an <a href="../http-api#ld-post">HTTP <code>POST</code> request</a>, for example using <a href="https://curl.haxx.se/">cURL</a>:</p>
+        <pre><code>cat data.ttl | curl -E ${cert_pem_file}:${cert_password} -d @- -H "Content-Type: text/turtle" -H "Accept: text/turtle" "${target}" -i</code></pre>
+        <p>This submits the <samp>data.ttl</samp> file, which could look like this:</p>
+        <pre>@prefix dh:        &lt;https://www.w3.org/ns/ldt/document-hierarchy/domain#&gt; .
+@prefix dct:       &lt;http://purl.org/dc/terms/&gt; .
+
+_:item a dh:Item ;
+  dh:slug "test-item" ;
+  dct:title "Test item" .
+        
+_:container a dh:Container ;
+  dh:slug "test-container" ;
+  dct:title "Test container" .</pre>
+        <p>The command line parameters are as follows:</p>
+        <dl>
+           <dt><samp>${cert_pem_file}</samp></dt>
+           <dd>Location of your WebID certificate in a PEM format.</dd>
+           <dd>PKCS12 (<samp>.p12</samp>) files can be converted to PEM (<samp>.pem</samp>) using <code>openssl pkcs12 -in cert.p12 -out cert.pem</code>.</dd>
+           <dt><samp>${cert_password}</samp></dt>
+           <dd>The password of your WebID certificate (provided during signup)</dd>
+           <dt><samp>${target}</samp></dt>
+           <dd>URI of the target container, for example <samp>https://linkeddatahub.com/docs/tutorials/</samp></dd>
+        </dl>
+    </div>
+    <div>
+       <h2 id="service-import">Service import</h2>
+       <p>Use <a href="https://www.w3.org/TR/sparql11-http-rdf-update/">Graph Store Protocol</a> to import data directly into your end-user service repository, or use a management UI
+           to upload it, if your vendor provides one.</p>
+    </div>
+</div>"""^^rdf:XMLLiteral .

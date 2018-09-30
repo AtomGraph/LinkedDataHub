@@ -1,0 +1,43 @@
+PREFIX foaf:       <http://xmlns.com/foaf/0.1/>
+PREFIX dct:        <http://purl.org/dc/terms/>
+PREFIX dbo:        <http://dbpedia.org/ontology/> 
+PREFIX schema:     <http://schema.org/> 
+PREFIX xsd:        <http://www.w3.org/2001/XMLSchema#> 
+PREFIX rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dh:         <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+
+CONSTRUCT
+{
+  ?item rdf:type ?itemType ;
+       dh:slug ?postal_code ;
+       dct:title ?city_name ;
+       foaf:primaryTopic ?postalArea .
+  ?postalArea a schema:PostalAddress ;
+         foaf:isPrimaryTopicOf ?item ;
+         dbo:postalCode ?postal_code ;
+         dbo:municipality ?municipality ;
+         dbo:municipalityCode ?municipalityCode ;
+         dbo:county ?county ;
+         dct:title ?city_name .
+}
+WHERE
+{
+  BIND(uri(concat(str(?base), "default#Item")) AS ?itemType)
+  BIND(uri(concat(str(?base), "ns#PostalArea")) AS ?type)
+  BIND (BNODE() AS ?item)
+  
+  ?postalArea <#postal_code> ?postal_codeString ;
+              <#city_name> ?city_name .
+  		  
+  BIND (xsd:integer(?postal_codeString) AS ?postal_code) .
+
+  OPTIONAL 
+  { ?postalArea <#municipality_name> ?municipality }
+  OPTIONAL 
+  { ?postalArea <#county_name> ?county }
+  OPTIONAL 
+  { 
+    ?postalArea <#municipality_number> ?municipalityCodeString
+    BIND (xsd:integer(?municipalityCodeString) AS ?municipalityCode)
+  }
+}

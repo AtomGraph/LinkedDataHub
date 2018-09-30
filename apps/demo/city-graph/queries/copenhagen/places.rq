@@ -1,0 +1,37 @@
+PREFIX  schema: <http://schema.org/>
+PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dh:   <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX  xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+CONSTRUCT 
+  { 
+    ?item a ?itemType .
+    ?item dct:title ?name .
+    ?item dh:slug ?id .
+    ?item foaf:primaryTopic ?place .
+    ?place a ?type .
+    ?place foaf:isPrimaryTopicOf ?item .
+    ?place geo:lat ?lat .
+    ?place geo:long ?long .
+    ?place dct:identifier ?id .
+    ?place dct:title ?name .
+    ?place dct:subject [ skos:prefLabel ?category_name ] .
+  }
+WHERE
+  {
+    BIND(uri(concat(str(?base), "ns/default#Item")) AS ?itemType)
+    BIND(uri(concat(str(?base), "ns#Place")) AS ?type)
+    BIND (BNODE() as ?item)
+    ?place  <#FID>   ?id ;
+            <#name>  ?name ;
+            <#lat>   ?lat_string ;
+            <#long>  ?long_string
+    BIND(xsd:float(?lat_string) AS ?lat)
+    BIND(xsd:float(?long_string) AS ?long)
+    OPTIONAL
+      { ?place  <#category>  ?category_name }
+  }

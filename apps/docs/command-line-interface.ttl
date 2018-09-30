@@ -1,0 +1,124 @@
+@prefix ns:     <ns#> .
+@prefix def:    <ns/default#> .
+@prefix rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:        <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:        <http://purl.org/dc/terms/> .
+@prefix sioc:        <http://rdfs.org/sioc/ns#> .
+
+    <command-line-interface> a def:Item ;
+        dct:title "Command line interface" ;
+        dct:description "Learn to use CLI to execute most of the common tasks that can be performed in the UI" ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">Learn to use CLI to execute most of the common tasks that can be performed in the UI</p>
+    <p>LinkedDataHub CLI wraps the <a href="http-api">HTTP API</a> into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation,
+        scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the <a href="user-interface">user interface</a>, as well as easier to
+        reproduce.</p>
+    <p>Some scripts correspond to a single <a href="#atomic">atomic</a> request to LinkedDataHub. Others combine others into <a href="#tasks">tasks</a> with multiple
+        interdependent requests.</p>
+    <p>If you use <a href="https://dydra.com">Dydra</a> as the triplestore, you may use the Dydra-specific scripts (they accept a repository URI instead of SPARQL endpoint and graph store URIs). Otherwise, use the generic scripts.</p>
+    <p><dfn>Installation</dfn> here is meant here in terms of installing (importing) the respective <a href="dataset-structure">default dataset(s)</a> into both end-user and admin
+        application services. If you do not wish to install the end-user dataset as part of the task, you need to install the admin dataset separately.</p>
+    <div>
+        <h2 id="atomic">Atomic</h2>
+        <p>Atomic commands are focused on performing a single request, such as creating a document or an application. Currently supported:</p>
+        <ul>
+            <li>Create document</li>
+            <li>Create container</li>
+            <li>Apps
+                <ul>
+                    <li>Create context</li>
+                    <li>Create end-user</li>
+                    <li>Create admin</li>
+                    <li>Create service</li>
+                    <li>Install dataset</li>
+                    <li>Dydra-specific
+                        <ul>
+                            <li>Create service</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Admin
+                <ul>
+                    <li>Clear ontology</li>
+                    <ul>
+                        <li>Model
+                            <ul>
+                                <li>Create class</li>
+                                <li>Create <code>CONSTRUCT</code> query</li>
+                                <li>Create property constraint</li>
+                                <li>Create restriction</li>
+                            </ul>
+                        </li>
+                        <li>Sitemap
+                            <ul>
+                                <li>Create <code>CONSTRUCT</code> query</li>
+                                <li>Create <code>DESCRIBE</code> query</li>
+                                <li>Create template</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </ul>
+            </li>
+            <li>Imports
+                <ul>
+                    <li>Create file</li>
+                    <li>Create query</li>
+                    <li>Create CSV import</li>
+                </ul>
+            </li>
+        </ul>
+        <p>Usage example:</p>
+        <pre>./create-file https://linkeddatahub.com/my-context/my-dataspace/ \\
+-f linkeddatahub.pem \\
+-p CertPassword \\
+--title "Friends" \\
+--file-slug 646af756-a49f-40da-a25e-ea8d81f6d306 \\
+--file friends.csv \\
+--file-content-type text/csv</pre>
+    </div>
+    <div>
+        <h2 id="tasks">Tasks</h2>
+        <ul>
+            <li>Apps
+                <ul>
+                    <li>Create context</li>
+                    <li>Create dataspace</li>
+                    <li>Install context</li>
+                    <li>Install dataspace</li>
+                    <li>Dydra-specific
+                        <ul>
+                            <li>Create context</li>
+                            <li>Create dataspace</li>
+                            <li>Install context</li>
+                            <li>Install dataspace</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Imports
+                <ul>
+                    <li>Import CSV data</li>
+                </ul>
+            </li>
+        </ul>
+        <p>Usage example:</p>
+        <pre>./create-dataspace.sh \\
+-b https://linkeddatahub.com/my-context/ \\
+-f linkeddatahub.pem \\
+-p CertPassword \\
+--title "My dataspace" \\
+--description "Dataspace for my data" \\
+--slug my-dataspace \\
+--app-base https://linkeddatahub.com/my-context/my-dataspace/ \\
+--admin-endpoint http://localhost:3030/admin/sparql \\
+--admin-graph-store http://localhost:3030/admin/data \\
+--admin-service-user AdminServiceUser \\
+--admin-service-password AdminServicePassword \\
+--end-user-endpoint http://localhost:3030/end-user/sparql \\
+--end-user-graph-store http://localhost:3030/end-user/data \\
+--end-user-service-user EndUserServiceUser \\
+--end-user-service-password EndUserServicePassword</pre>
+    </div>
+    <p class="lead">Find the <a href="https://github.com/AtomGraph/LinkedDataHub">CLI scripts on GitHub</a>.</p>
+</div>"""^^rdf:XMLLiteral .
