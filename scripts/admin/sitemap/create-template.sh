@@ -48,6 +48,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --is-defined-by)
+    is_defined_by="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -66,6 +71,10 @@ if [ -z "$label" ] ; then
 fi
 if ( [ -z "$extends" ] && [ -z "$query" ] ) || ( [ -z "$extends" ] && [ -z "$match" ] ) ; then
     echo '--extends or --query and --match not set'
+    exit 1
+fi
+if [ -z "$is_defined_by" ] ; then
+    echo '--is-defined-by not set'
     exit 1
 fi
 
@@ -92,7 +101,7 @@ turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="${template} a ns:Template .\n"
 turtle+="${template} rdfs:label \"${label}\" .\n"
 turtle+="${template} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="${template} rdfs:isDefinedBy <../ns/templates#> .\n"
+turtle+="${template} rdfs:isDefinedBy <${is_defined_by}> .\n"
 turtle+="_:item a ns:TemplateItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${template} .\n"
@@ -104,11 +113,14 @@ if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
+if [ ! -z "$extends" ] ; then
+    turtle+="${template} ldt:extends <${extends}> .\n"
+fi
 if [ ! -z "$match" ] ; then
     turtle+="${template} ldt:match \"${match}\" .\n"
 fi
 if [ ! -z "$query" ] ; then
-    turtle+="${template} ldt:query <$query> .\n"
+    turtle+="${template} ldt:query <${query}> .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
