@@ -134,4 +134,4 @@ done
 export PATH=$PATH:$JENAROOT/bin
 
 # submit Turtle doc to the server
-echo -e $turtle | turtle --base="${base}" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="${base}" | ../../create-document.sh "${args[@]}"

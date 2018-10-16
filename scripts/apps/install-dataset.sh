@@ -54,4 +54,4 @@ export PATH=$PATH:$JENAROOT/bin
 
 # convert Turtle to N-Triples, POST N-Triples to the server
 
-echo -e $turtle | turtle | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: application/n-triples" -H "Accept: text/turtle" ${app_doc} -s -D -
+echo -e "$turtle" | turtle | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: application/n-triples" -H "Accept: text/turtle" ${app_doc} -s -D -
