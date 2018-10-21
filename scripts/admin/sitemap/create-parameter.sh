@@ -33,24 +33,18 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --query)
-    query="$2"
+    --predicate)
+    predicate="$2"
     shift # past argument
     shift # past value
     ;;
-    --match)
-    match="$2"
+    --value-type)
+    value_type="$2"
     shift # past argument
     shift # past value
     ;;
-    --extends)
-    extends="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --param)
-    param="$2"
-    shift # past argument
+    --optional)
+    optional=true
     shift # past value
     ;;
     --is-defined-by)
@@ -74,8 +68,16 @@ if [ -z "$label" ] ; then
     echo '--label not set'
     exit 1
 fi
-if ( [ -z "$extends" ] && [ -z "$query" ] ) || ( [ -z "$extends" ] && [ -z "$match" ] ) ; then
-    echo '--extends or --query and --match not set'
+if [ -z "$predicate" ] ; then
+    echo '--predicate not set'
+    exit 1
+fi
+if [ -z "$value_type" ] ; then
+    echo '--value-type not set'
+    exit 1
+fi
+if [ -z "$optional" ] ; then
+    echo '--optional not set'
     exit 1
 fi
 if [ -z "$is_defined_by" ] ; then
@@ -84,50 +86,47 @@ if [ -z "$is_defined_by" ] ; then
 fi
 
 args+=("-c")
-args+=("${base}ns#Template") # class
+args+=("${base}ns#Parameter") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}sitemap/templates/") # container
+args+=("${base}sitemap/parameters/") # container
 
 # allow explicit URIs
 if [ ! -z "$uri" ] ; then
-    template="<${uri}>" # URI
+    param="<${uri}>" # URI
 else
-    template="_:template" # blank node
+    param="_:param" # blank node
 fi
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
+turtle+="@prefix spl:	<http://spinrdf.org/spl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="${template} a ns:Template .\n"
-turtle+="${template} rdfs:label \"${label}\" .\n"
-turtle+="${template} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="${template} rdfs:isDefinedBy <${is_defined_by}> .\n"
-turtle+="_:item a ns:TemplateItem .\n"
+turtle+="${param} a ns:Parameter .\n"
+turtle+="${param} rdfs:label \"${label}\" .\n"
+turtle+="${param} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${param} rdfs:isDefinedBy <${is_defined_by}> .\n"
+turtle+="_:item a ns:ParameterItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${template} .\n"
+turtle+="_:item foaf:primaryTopic ${param} .\n"
 
 if [ ! -z "$comment" ] ; then
-    turtle+="${template} rdfs:comment \"${comment}\" .\n"
+    turtle+="${param} rdfs:comment \"${comment}\" .\n"
 fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-if [ ! -z "$query" ] ; then
-    turtle+="${template} ldt:query <${query}> .\n"
+if [ ! -z "$predicate" ] ; then
+    turtle+="${param} spl:predicate <${predicate}> .\n"
 fi
-if [ ! -z "$extends" ] ; then
-    turtle+="${template} ldt:extends <${extends}> .\n"
+if [ ! -z "$value_type" ] ; then
+    turtle+="${param} spl:valueType <${value_type}> .\n"
 fi
-if [ ! -z "$match" ] ; then
-    turtle+="${template} ldt:match \"${match}\" .\n"
-fi
-if [ ! -z "$param" ] ; then
-    turtle+="${template} ldt:param <${param}> .\n"
+if [ ! -z "$optional" ] ; then
+    turtle+="${param} spl:optional true .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
