@@ -47,6 +47,11 @@ case $key in
     public=true
     shift # past value
     ;;
+    --stylesheet)
+    stylesheet="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -88,6 +93,7 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix lapp:	<http://linkeddatahub.com/ns/apps/domain#> .\n"
+turtle+="@prefix ac:	<http://atomgraph.com/ns/client#> .\n"
 turtle+="_:app a ns:EndUserApplication .\n"
 turtle+="_:app dct:title \"${title}\" .\n"
 turtle+="_:app lapp:adminApplication <${admin_app}> .\n"
@@ -105,8 +111,12 @@ fi
 if [ ! -z "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
+
 if [ ! -z "$public" ] ; then
     turtle+="_:app lapp:public ${public} .\n"
+fi
+if [ ! -z "$stylesheet" ] ; then
+    turtle+="_:app ac:stylesheet <${stylesheet}> .\n"
 fi
 
 # make Jena scripts available

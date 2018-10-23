@@ -3,6 +3,7 @@
 [ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
 
 args=()
+params=() # --param can have multiple values, so we need an array
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -49,7 +50,7 @@ case $key in
     shift # past value
     ;;
     --param)
-    param="$2"
+    params+=("$2")
     shift # past argument
     shift # past value
     ;;
@@ -126,9 +127,11 @@ fi
 if [ ! -z "$match" ] ; then
     turtle+="${template} ldt:match \"${match}\" .\n"
 fi
-if [ ! -z "$param" ] ; then
+
+for param in "${params[@]}"
+do
     turtle+="${template} ldt:param <${param}> .\n"
-fi
+done
 
 # set env values in the Turtle doc and sumbit it to the server
 
