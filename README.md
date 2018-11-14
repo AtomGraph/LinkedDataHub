@@ -3,6 +3,31 @@ This repository is for:
 * public LDH datasets and files such as those from the [Demo](https://linkeddatahub.com/demo/) context
 * reported LDH [issues](../../issues)
 
+Demo applications
+=================
+
+[City Graph](tree/master/apps/demo/city-graph)
+--------------
+
+Browser of Copenhagen's geospatial open data, imported from [Open Data København](https://data.kk.dk/).
+
+Features:
+* RDF [import from CSV](blob/master/apps/demo/city-graph/import-csv.sh)
+* [item template](blob/master/apps/demo/city-graph/admin/sitemap/create-templates.sh)
+    * [query](blob/master/apps/demo/city-graph/admin/sitemap/queries/describe-place.rq) describes not only the requested resource, but also other resources with coordinates in a bounding box around it
+* 
+
+[SKOS](tree/master/apps/demo/skos)
+--------
+
+Basic SKOS editor.
+
+Features:
+* domain [classes](blob/master/apps/demo/skos/admin/model/create-classes.sh) with
+    * [constructors](blob/master/apps/demo/skos/admin/model/create-constructors.sh)
+    * [constraints](blob/master/apps/demo/skos/admin/model/create-constraints.sh)
+    * [restrictions](blob/master/apps/demo/skos/admin/model/create-restrictions.sh)
+
 Command line interface (CLI)
 ============================
 
