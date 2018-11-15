@@ -9,9 +9,11 @@ Demo applications
 City Graph
 ----------
 
+![City Graph geospatial view](../../raw/master/apps/demo/city-graph/screenshot.png "City Graph geospatial view")
+
 <dl>
     <dt>Source</dt>
-    <dd>[demo/city-graph](../../tree/master/apps/demo/city-graph)</dd>
+    <dd><a href="../../tree/master/apps/demo/city-graph">demo/city-graph</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/city-graph/">https://linkeddatahub.com/demo/city-graph/</a></dd>
 </dl>
@@ -26,9 +28,11 @@ Features:
 SKOS
 ----
 
+![SKOS editor view](../../raw/master/apps/demo/skos/screenshot.png "SKOS editor view")
+
 <dl>
     <dt>Source</dt>
-    <dd>[demo/skos](../../tree/master/apps/demo/skos)</dd>
+    <dd><a href="../../tree/master/apps/demo/skos">demo/skos</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/skos/">https://linkeddatahub.com/demo/skos/</a></dd>
 </dl>
