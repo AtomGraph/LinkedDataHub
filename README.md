@@ -1,10 +1,10 @@
 LinkedDataHub is a delarative Linked Data application platform that builds on open-source client/server components:
 <dl>
-  <dt><a href="https://github.com/AtomGraph/Core">Atomgraph Core</a></dt>
+  <dt><a href="../../../Core">Atomgraph Core</a></dt>
   <dd>Generic Linked Data framework for SPARQL tripestore backends</dd>
-  <dt><a href="https://github.com/AtomGraph/Processor">AtomGraph Processor</a></dt>
+  <dt><a href="../../../Processor">AtomGraph Processor</a></dt>
   <dd>Ontology-driven Linked Data processor and server for SPARQL backends</dd>
-  <dt><a href="https://github.com/AtomGraph/Web-Client">AtomGraph Web-Client</a></dt>
+  <dt><a href="../../../Web-Client">AtomGraph Web-Client</a></dt>
   <dd>Generic Linked Data browser and UX component framework</dd>
 </dl>
 
