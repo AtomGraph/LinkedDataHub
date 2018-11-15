@@ -13,7 +13,7 @@ City Graph
 
 <dl>
     <dt>Source</dt>
-    <dd><a href="../../tree/master/apps/demo/city-graph">demo/city-graph</a></dd>
+    <dd><a href="../../tree/master/apps/demo/city-graph/">demo/city-graph/</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/city-graph/">https://linkeddatahub.com/demo/city-graph/</a></dd>
 </dl>
@@ -32,7 +32,7 @@ SKOS
 
 <dl>
     <dt>Source</dt>
-    <dd><a href="../../tree/master/apps/demo/skos">demo/skos</a></dd>
+    <dd><a href="../../tree/master/apps/demo/skos/">demo/skos/</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/skos/">https://linkeddatahub.com/demo/skos/</a></dd>
 </dl>
