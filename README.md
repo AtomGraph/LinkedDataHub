@@ -6,20 +6,35 @@ This repository is for:
 Demo applications
 =================
 
-[City Graph](../../tree/master/apps/demo/city-graph)
---------------
+City Graph
+----------
 
-Browser of Copenhagen's geospatial open data, imported from [Open Data København](https://data.kk.dk/).
+<dl>
+    <dt>Source</dt>
+    <dd>[demo/city-graph](../../tree/master/apps/demo/city-graph)</dd>
+    <dt>Base URI</dt>
+    <dd><a href="https://linkeddatahub.com/demo/city-graph/">https://linkeddatahub.com/demo/city-graph/</a></dd>
+</dl>
+
+Browser of Copenhagen's geospatial open data, imported from [Open Data København](https://data.kk.dk/). Provides a type-colored geospatial overview. Geo resources provide a view with neighbouring resources included.
 
 Features:
 * RDF [import from CSV](../../blob/master/apps/demo/city-graph/import-csv.sh)
 * [item template](../../blob/master/apps/demo/city-graph/admin/sitemap/create-templates.sh)
     * [query](../../blob/master/apps/demo/city-graph/admin/sitemap/queries/describe-place.rq) describes not only the requested resource, but also other resources with coordinates in a bounding box around it
 
-[SKOS](../../tree/master/apps/demo/skos)
---------
+SKOS
+----
 
-Basic SKOS editor.
+<dl>
+    <dt>Source</dt>
+    <dd>[demo/skos](../../tree/master/apps/demo/skos)</dd>
+    <dt>Base URI</dt>
+    <dd><a href="https://linkeddatahub.com/demo/skos/">https://linkeddatahub.com/demo/skos/</a></dd>
+</dl>
+
+
+Basic SKOS editor. Concepts and concept schemas can be created, edited, and linked with each other. Ontology types have separate URI templates; required instance properties are validated using constraints.
 
 Features:
 * domain [classes](../../blob/master/apps/demo/skos/admin/model/create-classes.sh) with
