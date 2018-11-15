@@ -13,6 +13,19 @@ This repository is for:
 * public LDH apps/datasets/files, such as those from the [Demo](https://linkeddatahub.com/demo/) context
 * reported LDH [issues](../../issues)
 
+Documentation
+=============
+
+<dl>
+    <dt>Source</dt>
+    <dd><a href="../../tree/master/apps/docs/">docs/</a></dd>
+    <dt>Base URI</dt>
+    <dd><a href="https://linkeddatahub.com/docs/">https://linkeddatahub.com/docs/</a></dd>
+</dl>
+
+In the spirit of "eating your own dogfood" the documentation of LinkedDataHub is managed as RDF data and published as a LinkedDataHub app.
+The file/folder structure in the source folder matches the container/item structure in the live app.
+
 Demo applications
 =================
 
@@ -46,7 +59,6 @@ SKOS
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/skos/">https://linkeddatahub.com/demo/skos/</a></dd>
 </dl>
-
 
 Basic SKOS editor. Concepts and concept schemas can be created, edited, and linked with each other. Ontology types have separate URI templates; required instance properties are validated using constraints.
 
