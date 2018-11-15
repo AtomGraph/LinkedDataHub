@@ -3,6 +3,16 @@ This repository is for:
 * public LDH apps/datasets/files, such as those from the [Demo](https://linkeddatahub.com/demo/) context
 * reported LDH [issues](../../issues)
 
+LinkedDataHub builds on open-source client/server components:
+<dl>
+  <dt><a href="https://github.com/AtomGraph/Core">Atomgraph Core</a></dt>
+  <dd>Generic Linked Data framework for SPARQL tripestore backends</dd>
+  <dt><a href="https://github.com/AtomGraph/Processor">AtomGraph Processor</a></dt>
+  <dd>Ontology-driven Linked Data processor and server for SPARQL backends</dd>
+  <dt><a href="https://github.com/AtomGraph/Web-Client">AtomGraph Web-Client</a></dt>
+  <dd>Generic Linked Data browser and UX component framework</dd>
+</dl>
+
 Demo applications
 =================
 
