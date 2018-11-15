@@ -1,9 +1,4 @@
-This repository is for:
-* CLI shell scripts that can be used to automate LDH tasks
-* public LDH apps/datasets/files, such as those from the [Demo](https://linkeddatahub.com/demo/) context
-* reported LDH [issues](../../issues)
-
-LinkedDataHub builds on open-source client/server components:
+LinkedDataHub is a delarative Linked Data application platform that builds on open-source client/server components:
 <dl>
   <dt><a href="https://github.com/AtomGraph/Core">Atomgraph Core</a></dt>
   <dd>Generic Linked Data framework for SPARQL tripestore backends</dd>
@@ -12,6 +7,11 @@ LinkedDataHub builds on open-source client/server components:
   <dt><a href="https://github.com/AtomGraph/Web-Client">AtomGraph Web-Client</a></dt>
   <dd>Generic Linked Data browser and UX component framework</dd>
 </dl>
+
+This repository is for:
+* CLI shell scripts that can be used to automate LDH tasks
+* public LDH apps/datasets/files, such as those from the [Demo](https://linkeddatahub.com/demo/) context
+* reported LDH [issues](../../issues)
 
 Demo applications
 =================
