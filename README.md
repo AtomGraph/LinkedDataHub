@@ -21,6 +21,9 @@ Documentation
     <dd><a href="../../tree/master/apps/docs/">docs/</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/docs/">https://linkeddatahub.com/docs/</a></dd>
+    <dt>Lines of code</dt>
+    <dd>0 lines of Java</dd>
+    <dd>357 lines of installation shell scripts</dd>
 </dl>
 
 In the spirit of "eating your own dogfood" the documentation of LinkedDataHub is managed as RDF data and published as a LinkedDataHub app.
@@ -39,6 +42,10 @@ City Graph
     <dd><a href="../../tree/master/apps/demo/city-graph/">demo/city-graph/</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/city-graph/">https://linkeddatahub.com/demo/city-graph/</a></dd>
+    <dt>Lines of code</dt>
+    <dd>0 lines of Java</dd>
+    <dd>479 lines of SPARQL</dd>
+    <dd>342 lines of installation shell scripts</dd>
 </dl>
 
 Browser of Copenhagen's geospatial open data, imported from [Open Data København](https://data.kk.dk/). Provides a type-colored geospatial overview. Geo resources provide a view with neighbouring resources included.
