@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -z "$SCRIPT_ROOT" ] && echo "Need to set SCRIPT_ROOT" && exit 1;
+hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 if [ "$#" -ne 2 ]; then
   echo "Usage:   $0 $auth_token $repository" >&2

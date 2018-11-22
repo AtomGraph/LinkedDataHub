@@ -13,6 +13,8 @@ print_usage()
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
 }
 
+hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
+
 unknown=()
 while [[ $# -gt 0 ]]
 do

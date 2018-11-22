@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
 super_classes=() # --super-class-of can have multiple values, so we need an array

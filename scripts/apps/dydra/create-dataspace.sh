@@ -1,4 +1,12 @@
 #!/bin/bash
+set -E
+trap onexit ERR
+
+function onexit() {
+    local exit_status=${1:-$?}
+    echo Exiting $0 with $exit_status
+    exit $exit_status
+}
 
 if [ "$#" -ne 13 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password title slug app_base public admin_repository admin_service_user admin_service_password end_user_repository end_user_service_user end_user_service_password" >&2
