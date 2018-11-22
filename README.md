@@ -22,7 +22,7 @@ Documentation
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/docs/">https://linkeddatahub.com/docs/</a></dd>
     <dt>Lines of code</dt>
-    <dd>0 lines of Java</dd>
+    <dd>0 lines of imperative code</dd>
     <dd>357 lines of installation shell scripts</dd>
 </dl>
 
@@ -43,7 +43,7 @@ City Graph
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/city-graph/">https://linkeddatahub.com/demo/city-graph/</a></dd>
     <dt>Lines of code</dt>
-    <dd>0 lines of Java</dd>
+    <dd>0 lines of imperative code</dd>
     <dd>479 lines of SPARQL</dd>
     <dd>342 lines of installation shell scripts</dd>
 </dl>
@@ -65,6 +65,9 @@ SKOS
     <dd><a href="../../tree/master/apps/demo/skos/">demo/skos/</a></dd>
     <dt>Base URI</dt>
     <dd><a href="https://linkeddatahub.com/demo/skos/">https://linkeddatahub.com/demo/skos/</a></dd>
+    <dd>0 lines of imperative code</dd>
+    <dd>44 lines of SPARQL</dd>
+    <dd>324 lines of installation shell scripts</dd>
 </dl>
 
 Basic SKOS editor. Concepts and concept schemas can be created, edited, and linked with each other. Ontology types have separate URI templates; required instance properties are validated using constraints.
