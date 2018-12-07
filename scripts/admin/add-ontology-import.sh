@@ -18,8 +18,8 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --agent)
-    agent="$2"
+    --import)
+    import="$2"
     shift # past argument
     shift # past value
     ;;
@@ -31,8 +31,8 @@ esac
 done
 set -- "${args[@]}" # restore args
 
-if [ -z "$agent" ] ; then
-    echo '--agent not set'
+if [ -z "$import" ] ; then
+    echo '--import not set'
     exit 1
 fi
 
@@ -41,18 +41,18 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-group_doc=$1
+ontology_doc=$1
 
-# extract group URI and graph URI from app document N-Triples description (slashes in ${group_doc} need to be escaped before passing to sed)
+# extract ontology URI and graph URI from app document N-Triples description (slashes in ${ontology_doc} need to be escaped before passing to sed)
 
-group=$(curl -s -v -k -E ${cert_pem_file}:${cert_password} "${group_doc}" -H "Accept: application/n-triples" | cat | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+ontology=$(curl -s -v -k -E ${cert_pem_file}:${cert_password} "${ontology_doc}" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-graph_doc=$(curl -s -v -k -E ${cert_pem_file}:${cert_password} "${group_doc}" -H "Accept: application/n-triples" | cat | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
+graph_doc=$(curl -s -v -k -E ${cert_pem_file}:${cert_password} "${ontology_doc}" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
 
-sparql+="PREFIX foaf:	<http://xmlns.com/foaf/0.1/>\n"
+sparql+="PREFIX owl:	<http://www.w3.org/2002/07/owl#>\n"
 sparql+="INSERT DATA {\n"
 sparql+="  GRAPH <${graph_doc}> {\n"
-sparql+="    <${group}> foaf:member <${agent}> .\n"
+sparql+="    <${ontology}> owl:imports <${import}> .\n"
 sparql+="  }\n"
 sparql+="}\n"
 
