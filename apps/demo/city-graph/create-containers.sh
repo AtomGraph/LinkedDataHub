@@ -45,8 +45,8 @@ $parent
 -b $base \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---title "Electric car chargers" \
---slug "electric-car-chargers" \
+--title "Charging stations" \
+--slug "charging-stations" \
 $parent
 
 ./create-container.sh \
@@ -61,8 +61,8 @@ $parent
 -b $base \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---title "Parkings" \
---slug "parkings" \
+--title "Parking facilities" \
+--slug "parking-facilities" \
 $parent
 
 ./create-container.sh \
@@ -93,8 +93,8 @@ $parent
 -b $base \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---title "Toilets" \
---slug "toilets" \
+--title "Public toilets" \
+--slug "public-toilets" \
 $parent
 
 popd

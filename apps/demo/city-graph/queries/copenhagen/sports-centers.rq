@@ -1,7 +1,7 @@
 PREFIX foaf:       <http://xmlns.com/foaf/0.1/>
 PREFIX dct:        <http://purl.org/dc/terms/>
 PREFIX dbo:        <http://dbpedia.org/ontology/> 
-PREFIX schema:     <http://schema.org/> 
+PREFIX schema:     <https://schema.org/> 
 PREFIX geo:        <http://www.w3.org/2003/01/geo/wgs84_pos#> 
 PREFIX xsd:        <http://www.w3.org/2001/XMLSchema#> 
 PREFIX dh:         <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
@@ -26,7 +26,7 @@ CONSTRUCT
 WHERE
 {
   BIND(uri(concat(str(?base), "ns/default#Item")) AS ?itemType)
-  BIND(uri(concat(str(?base), "ns#SportCenter")) AS ?type)
+  BIND(uri(concat(str(?base), "ns/domain#SportsCenter")) AS ?type)
   BIND (BNODE() AS ?item)
   
   ?sportCenter <#FID> ?id ;

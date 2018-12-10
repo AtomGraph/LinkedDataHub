@@ -13,18 +13,17 @@ base=$1
 cert_pem_file=$(realpath -s $2)
 cert_password=$3
 
-pushd . && cd $SCRIPT_ROOT/admin/sitemap
+pwd=$(realpath -s $PWD)
 
-./create-template.sh \
+pushd . && cd $SCRIPT_ROOT/admin/acl
+
+./create-authorization.sh \
 -b "${base}admin/" \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---uri "${base}ns/templates#PlaceItem" \
---label "Place item" \
---slug place-item \
---extends "${base}ns/templates#Item" \
---match "/{city}/{type}/{id}" \
---query "${base}ns/templates#DescribePlace" \
---is-defined-by "${base}ns/templates#" \
+--label "Public Instrument" \
+--agent-class http://xmlns.com/foaf/0.1/Agent \
+--to-all-in http://permid.org/ontology/financial/Instrument \
+--read
 
 popd

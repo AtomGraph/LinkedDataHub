@@ -13,18 +13,17 @@ base=$1
 cert_pem_file=$(realpath -s $2)
 cert_password=$3
 
+pwd=$(realpath -s $PWD)
+
 pushd . && cd $SCRIPT_ROOT/admin/sitemap
 
-./create-template.sh \
+./create-construct.sh \
 -b "${base}admin/" \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---uri "${base}ns/templates#PlaceItem" \
---label "Place item" \
---slug place-item \
---extends "${base}ns/templates#Item" \
---match "/{city}/{type}/{id}" \
---query "${base}ns/templates#DescribePlace" \
---is-defined-by "${base}ns/templates#" \
+--uri "${base}ns/templates#ConstructInstruments" \
+--label "Construct instruments" \
+--slug construct-instruments \
+--query-file "$pwd/queries/construct-instruments.rq"
 
 popd

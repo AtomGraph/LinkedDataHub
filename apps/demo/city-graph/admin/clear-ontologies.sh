@@ -13,18 +13,21 @@ base=$1
 cert_pem_file=$(realpath -s $2)
 cert_password=$3
 
-pushd . && cd $SCRIPT_ROOT/admin/sitemap
+pushd . && cd $SCRIPT_ROOT/admin 
 
-./create-template.sh \
--b "${base}admin/" \
+./clear-ontology.sh \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---uri "${base}ns/templates#PlaceItem" \
---label "Place item" \
---slug place-item \
---extends "${base}ns/templates#Item" \
---match "/{city}/{type}/{id}" \
---query "${base}ns/templates#DescribePlace" \
---is-defined-by "${base}ns/templates#" \
+"${base}admin/model/ontologies/domain"
+
+./clear-ontology.sh \
+-f "$cert_pem_file" \
+-p "$cert_password" \
+"${base}admin/sitemap/ontologies/templates"
+
+./clear-ontology.sh \
+-f "$cert_pem_file" \
+-p "$cert_password" \
+"${base}admin/model/ontologies/namespace"
 
 popd

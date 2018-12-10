@@ -40,9 +40,9 @@ pushd . && cd $SCRIPT_ROOT/imports
 -f "$cert_pem_file" \
 -p "$cert_password" \
 --title "Electric car chargers" \
---query-file "$pwd/queries/copenhagen/electric-car-chargers.rq" \
---file "$pwd/files/copenhagen/electric-car-chargers.csv" \
---action "${base}copenhagen/electric-car-chargers/"
+--query-file "$pwd/queries/copenhagen/charging-stations.rq" \
+--file "$pwd/files/copenhagen/charging-stations.csv" \
+--action "${base}copenhagen/charging-stations/"
 
 ./import-csv.sh \
 -b $base \
@@ -57,10 +57,10 @@ pushd . && cd $SCRIPT_ROOT/imports
 -b $base \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---title "Parkings" \
---query-file "$pwd/queries/copenhagen/parkings.rq" \
---file "$pwd/files/copenhagen/parkings.csv" \
---action "${base}copenhagen/parkings/"
+--title "Parking facilities" \
+--query-file "$pwd/queries/copenhagen/parking-facilities.rq" \
+--file "$pwd/files/copenhagen/parking-facilities.csv" \
+--action "${base}copenhagen/parking-facilities/"
 
 ./import-csv.sh \
 -b $base \
@@ -93,10 +93,10 @@ pushd . && cd $SCRIPT_ROOT/imports
 -b $base \
 -f "$cert_pem_file" \
 -p "$cert_password" \
---title "Toilets" \
---query-file "$pwd/queries/copenhagen/toilets.rq" \
---file "$pwd/files/copenhagen/toilets.csv" \
---action "${base}copenhagen/toilets/"
+--title "Public toilets" \
+--query-file "$pwd/queries/copenhagen/public-toilets.rq" \
+--file "$pwd/files/copenhagen/public-toilets.csv" \
+--action "${base}copenhagen/public-toilets/"
 
 ./import-csv.sh \
 -b $base \

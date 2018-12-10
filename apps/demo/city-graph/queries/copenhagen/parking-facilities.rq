@@ -1,0 +1,58 @@
+PREFIX foaf:       <http://xmlns.com/foaf/0.1/>
+PREFIX dct:        <http://purl.org/dc/terms/>
+PREFIX dbo:        <http://dbpedia.org/ontology/> 
+PREFIX schema:     <https://schema.org/> 
+PREFIX geo:        <http://www.w3.org/2003/01/geo/wgs84_pos#> 
+PREFIX xsd:        <http://www.w3.org/2001/XMLSchema#> 
+PREFIX rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dh:         <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+
+CONSTRUCT
+{
+    ?item a ?itemType ;
+        dh:slug ?id ;
+        dct:title ?name ;
+        foaf:primaryTopic ?parking .
+    ?parking a ?type ;
+        foaf:isPrimaryTopicOf ?item ;
+        geo:lat ?lat ;
+        geo:long ?long ;
+        dct:title ?name ;
+        schema:streetAddress ?address ;
+        schema:postalCode ?postcode ;
+        schema:maximumAttendeeCapacity ?spaces ;
+        schema:additionalProperty ?parkingType ;
+        schema:comment ?information ;
+        schema:identifier ?id .
+    ?owner a ?ownerType ;
+        schema:owns ?parking .
+}
+WHERE
+{
+    BIND(uri(concat(str(?base), "ns/default#Item")) AS ?itemType)
+    BIND(uri(concat(str(?base), "ns/domain#ParkingFacility")) AS ?type)
+    BIND (BNODE() AS ?item)
+
+    ?parking <#FID> ?id ;
+        <#name> ?name ;
+        <#address> ?address ;
+        <#lat> ?lat_string ;
+        <#postcode> ?postcode ;
+        <#parkingSpace> ?spaces ;
+        <#parkingType> ?parkingType ;
+        <#information> ?information ;
+        <#long> ?long_string . 
+        {
+            ?parking <#owner> 'Privat' .
+            BIND(BNODE() AS ?owner)
+            BIND(schema:Corporation AS ?ownerType)
+        }
+        UNION
+        {
+            ?parking <#owner> 'Kommune' .
+            BIND (<http://www.wikidata.org/entity/Q504125> AS ?owner) # Copenhagen Municipality
+        }
+
+    BIND(xsd:float(?lat_string) AS ?lat)
+    BIND(xsd:float(?long_string) AS ?long)
+}
