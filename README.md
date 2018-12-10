@@ -84,8 +84,6 @@ PermID
 
 ![PermID instrument faceted search](../../raw/master/apps/demo/permid/screenshot.png "PermID instrument faceted search")
 
-A Linked Data browser for the [PermID](https://permid.org) instruments dataset. Provides faceted search by instrument name, asset class, and status.
-
 <dl>
     <dt>Source</dt>
     <dd><a href="../../tree/master/apps/demo/permid/">demo/permid/</a></dd>
@@ -95,6 +93,14 @@ A Linked Data browser for the [PermID](https://permid.org) instruments dataset. 
     <dd>42 lines of SPARQL</dd>
     <dd>277 lines of installation shell scripts</dd>
 </dl>
+
+A Linked Data browser for the [PermID](https://permid.org) instruments dataset. Provides faceted search by instrument name, asset class, and status.
+
+Features:
+* [custom UI layout](../../blob/master/apps/demo/permid.xsl) with faceted search
+* [container template](../../blob/master/apps/demo/permid/admin/sitemap/create-templates.sh)
+    * [container query](../../blob/master/apps/demo/permid/admin/sitemap/queries/construct-instruments.rq)
+* [template parameters](../../blob/master/apps/demo/permid/admin/sitemap/create-parameters.sh)
 
 Command line interface (CLI)
 ============================
