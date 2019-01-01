@@ -69,7 +69,7 @@ turtle+="_:arg rdf:value <${source}>.\n"
 # set env values in the Turtle doc and sumbit it to the server
 
 # make Jena scripts available
-export PATH=$PATH:$JENAROOT/bin
+export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="${base}" | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "${target}" -s -D -

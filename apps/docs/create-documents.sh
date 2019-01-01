@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[ -z "$JENAROOT" ] && echo "Need to set JENAROOT" && exit 1;
+[ -z "$JENA_HOME" ] && echo "Need to set JENA_HOME" && exit 1;
 
 if [ "$#" -ne 3 ]; then
   echo "Usage:   $0 base cert_pem_file cert_password" >&2

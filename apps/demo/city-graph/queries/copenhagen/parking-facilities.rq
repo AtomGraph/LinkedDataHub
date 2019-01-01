@@ -29,8 +29,8 @@ CONSTRUCT
 }
 WHERE
 {
-    BIND(uri(concat(str(?base), "ns/default#Item")) AS ?itemType)
-    BIND(uri(concat(str(?base), "ns/domain#ParkingFacility")) AS ?type)
+    BIND(<ns/default#Item> AS ?itemType)
+    BIND(<ns/domain#ParkingFacility> AS ?type)
     BIND (BNODE() AS ?item)
 
     ?parking <#FID> ?id ;

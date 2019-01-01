@@ -81,7 +81,7 @@ if [ ! -z "$slug" ] ; then
 fi
 
 # make Jena scripts available
-export PATH=$PATH:$JENAROOT/bin
+export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="${base}" | ../create-document.sh "${args[@]}"

@@ -51,7 +51,7 @@ turtle+="_:install-arg ldt:paramName \"install\" .\n"
 turtle+="_:install-arg rdf:value <${app_base}> .\n"
 
 # make Jena scripts available
-export PATH=$PATH:$JENAROOT/bin
+export PATH=$PATH:$JENA_HOME/bin
 
 # convert Turtle to N-Triples, POST N-Triples to the server
 
