@@ -78,6 +78,30 @@ Features:
     * [constraints](../../blob/master/apps/demo/skos/admin/model/create-constraints.sh)
     * [restrictions](../../blob/master/apps/demo/skos/admin/model/create-restrictions.sh)
 
+
+PermID
+----
+
+![PermID instrument faceted search](../../raw/master/apps/demo/permid/screenshot.png "PermID instrument faceted search")
+
+<dl>
+    <dt>Source</dt>
+    <dd><a href="../../tree/master/apps/demo/permid/">demo/permid/</a></dd>
+    <dt>Base URI</dt>
+    <dd><a href="https://linkeddatahub.com/demo/permid/">https://linkeddatahub.com/demo/permid/</a></dd>
+    <dd>0 lines of imperative code</dd>
+    <dd>42 lines of SPARQL</dd>
+    <dd>277 lines of installation shell scripts</dd>
+</dl>
+
+A Linked Data browser for the [PermID](https://permid.org) instruments dataset. Provides faceted search by instrument name, asset class, and status.
+
+Features:
+* [custom UI layout](../../blob/master/apps/demo/permid.xsl) with faceted search
+* [container template](../../blob/master/apps/demo/permid/admin/sitemap/create-templates.sh)
+    * [container query](../../blob/master/apps/demo/permid/admin/sitemap/queries/construct-instruments.rq)
+* [template parameters](../../blob/master/apps/demo/permid/admin/sitemap/create-parameters.sh)
+
 Command line interface (CLI)
 ============================
 
