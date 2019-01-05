@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
     
-    <tutorials/import-csv-data> a def:Item ;
-        dct:title "Import CSV data" ;
-        dct:description "Step by step guide to converting CSV data to RDF and importing into end-user application" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "import-csv-data" ;
+    dct:title "Import CSV data" ;
+    dct:description "Step by step guide to converting CSV data to RDF and importing into end-user application" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">Step by step guide to converting CSV data to RDF and importing into end-user application</p>
     <p>There are 3 main components that comprise a CSV import:</p>
     <dl>

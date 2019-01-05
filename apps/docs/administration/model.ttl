@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
-    <administration/model/> a def:Container ;
-        dct:title "Manage model" ;
-        dct:description "Learn to create and manage ontology classes, constraints, properties etc." ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Container ;
+    dh:slug "model" ;
+    dct:title "Manage model" ;
+    dct:description "Learn to create and manage ontology classes, constraints, properties etc." ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <div>
         <h2 id="ontologies">Ontologies</h2>
         <p>Ontologies are sets of domain concepts. The domain can span both documents (information resources) and abstract/physical things

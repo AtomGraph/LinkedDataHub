@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
     
-    <administration/acl> a def:Item ;
-        dct:title "Manage access control" ;
-        dct:description "Learn to create agents, groups, and authorizations" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "acl" ;
+    dct:title "Manage access control" ;
+    dct:description "Learn to create agents, groups, and authorizations" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">LinkedDataHub access control is based on the W3C <a href="https://www.w3.org/wiki/WebAccessControl">ACL ontology</a>.</p>
     <div>
         <h2 id="access-modes">Access modes</h2>

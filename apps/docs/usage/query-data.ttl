@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
     
-    <usage/query-data> a def:Item ;
-        dct:title "Query data" ;
-        dct:description "Learn how to query application data with SPARQL and store queries" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "query-data" ;
+    dct:title "Query data" ;
+    dct:description "Learn how to query application data with SPARQL and store queries" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
         <p class="lead">This guide describes how the application dataset can be queried using SPARQL.</p>
         <p>The <a href="../manage-apps#end-user-apps">end-user application</a> dataset can be queried using SPARQL 1.1
             endpoint, which is available via link in the <a href="../user-interface#nav-bar">navigation bar</a>.</p>

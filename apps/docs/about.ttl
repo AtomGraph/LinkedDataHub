@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
   
-  <about> a def:Item ;
-        dct:title "About LinkedDataHub" ;
-        dct:description "A UI-based cloud platform for data integration, management, and application building" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "about" ;
+    dct:title "About LinkedDataHub" ;
+    dct:description "A UI-based cloud platform for data integration, management, and application building" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead"><a href="https://linkeddatahub.com">LinkedDataHub</a> is next-generation software by
         <a href="https://atomgraph.com">AtomGraph</a> that fully exploits semantic technologies to help organizations
         overcome data silos and API hell</p>

@@ -3,13 +3,15 @@
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
   
-    <usage/import-data> a def:Item ;
-        dct:title "Import data" ;
-        dct:description "Learn how to map data to RDF and import it into the application" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "import-data" ;
+    dct:title "Import data" ;
+    dct:description "Learn how to map data to RDF and import it into the application" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">This guide describes how data files are converted to RDF and imported into the application dataset.</p>
     <p>A data import is a combination of 3 resources:</p>
     <dl>

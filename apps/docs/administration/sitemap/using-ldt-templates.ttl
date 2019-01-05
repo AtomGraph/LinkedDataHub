@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
-    <administration/sitemap/using-ldt-templates> a def:Item ;
-        dct:title "Using LDT templates" ;
-        dct:description "Learn how to use Linked Data Templates" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "using-ldt-templates" ;
+    dct:title "Using LDT templates" ;
+    dct:description "Learn how to use Linked Data Templates" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">This guide explains how to use LDT templates to change the way your application operates</p>
     <p><a href="./#templates">Template</a> is a core concept in an <a href="https://atomgraph.github.io/Linked-Data-Templates/">Linked Data Templates</a>
         application ontology. It defines what SPARQL command gets executed when on the application's <a href="../../manage-apps#services">service</a> when a certain URI is requested on that

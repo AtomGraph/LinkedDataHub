@@ -1,14 +1,16 @@
 @prefix ns:     <ns#> .
 @prefix def:    <ns/default#> .
-@prefix rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix xsd:        <http://www.w3.org/2001/XMLSchema#> .
-@prefix dct:        <http://purl.org/dc/terms/> .
-@prefix sioc:        <http://rdfs.org/sioc/ns#> .
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix sioc:   <http://rdfs.org/sioc/ns#> .
 
-    <command-line-interface> a def:Item ;
-        dct:title "Command line interface" ;
-        dct:description "Learn to use CLI to execute most of the common tasks that can be performed in the UI" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "command-line-interface" ;
+    dct:title "Command line interface" ;
+    dct:description "Learn to use CLI to execute most of the common tasks that can be performed in the UI" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">Learn to use CLI to execute most of the common tasks that can be performed in the UI</p>
     <p>LinkedDataHub CLI wraps the <a href="http-api">HTTP API</a> into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation,
         scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the <a href="user-interface">user interface</a>, as well as easier to

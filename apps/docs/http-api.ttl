@@ -3,13 +3,15 @@
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
     
-    <http-api> a def:Item ;
-        dct:title "HTTP API" ;
-        dct:description "Learn how to access and manage RDF data over generic HTTP API" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "http-api" ;
+    dct:title "HTTP API" ;
+    dct:description "Learn how to access and manage RDF data over generic HTTP API" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">Learn how to read and write RDF data from/to LinkedDataHub applications over HTTP</p>
     <p>LinkedDataHub implements a uniform, generic RESTful Linked Data API as defined by the
         <a href="https://atomgraph.github.io/Linked-Data-Templates/#ldt-http">Linked Data Templates</a> specification in

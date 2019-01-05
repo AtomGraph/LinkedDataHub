@@ -2,9 +2,11 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
   
-    <tutorials/> a def:Container ;
-        dct:title "Tutorials" ;
-        dct:description "Step by step tutorials for the most common tasks" .
+[] a def:Container ;
+    dh:slug "tutorials" ;
+    dct:title "Tutorials" ;
+    dct:description "Step by step tutorials for the most common tasks" .

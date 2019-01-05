@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
   
-    <manage-apps> a def:Item ;
-        dct:title "Manage applications" ;
-        dct:description "Learn how to create and manage LinkedDataHub applications" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Item ;
+    dh:slug "manage-apps" ;
+    dct:title "Manage applications" ;
+    dct:description "Learn how to create and manage LinkedDataHub applications" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <div>
         <h2 id="dataspaces">Dataspaces</h2>
         <p>The LinkedDataHub URI address space is split into <dfn>dataspaces</dfn>. Every dataspace consists of a pair of LDT applications:

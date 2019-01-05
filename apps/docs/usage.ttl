@@ -2,13 +2,15 @@
 @prefix def:    <ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
   
-    <usage/> a def:Container ;
-        dct:title "Usage" ;
-        dct:description "How to perform basic data management actions" ;
-        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+[] a def:Container ;
+    dh:slug "usage" ;
+    dct:title "Usage" ;
+    dct:description "How to perform basic data management actions" ;
+    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">This guide explains the basic terms and data management actions.</p>
     <div>
         <h2 id="dataspace">Dataspace</h2>
