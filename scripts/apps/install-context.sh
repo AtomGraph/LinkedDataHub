@@ -93,6 +93,11 @@ case $key in
     public=true
     shift # past value
     ;;
+    --logo)
+    logo="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -244,6 +249,10 @@ if [ ! -z "$description" ] ; then
 fi
 if [ ! -z "$public" ] ; then
     args+=("--public")
+fi
+if [ ! -z "$logo" ] ; then
+    args+=("--logo")
+    args+=("$logo")
 fi
 if [ ! -z "$app_base" ] ; then
     args+=("--app-base")

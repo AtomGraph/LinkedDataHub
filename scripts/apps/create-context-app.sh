@@ -47,6 +47,11 @@ case $key in
     public=true
     shift # past value
     ;;
+    --logo)
+    logo="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -107,6 +112,9 @@ if [ ! -z "$slug" ] ; then
 fi
 if [ ! -z "$public" ] ; then
     turtle+="_:app lapp:public ${public} .\n"
+fi
+if [ ! -z "$logo" ] ; then
+    turtle+="_:app foaf:logo <${logo}> .\n"
 fi
 
 # make Jena scripts available
