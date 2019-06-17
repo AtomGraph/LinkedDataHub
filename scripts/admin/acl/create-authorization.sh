@@ -105,7 +105,7 @@ args+=("text/turtle") # content type
 args+=("${base}acl/authorizations/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     auth="<${uri}>" # URI
 else
     auth="_:auth" # blank node
@@ -124,35 +124,35 @@ turtle+="_:item a ns:AuthorizationItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${auth} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-if [ ! -z "$agent" ] ; then
+if [ -n "$agent" ] ; then
     turtle+="${auth} acl:agent <${agent}> .\n"
 fi
-if [ ! -z "$agent_class" ] ; then
+if [ -n "$agent_class" ] ; then
     turtle+="${auth} acl:agentClass <${agent_class}> .\n"
 fi
-if [ ! -z "$to" ] ; then
+if [ -n "$to" ] ; then
     turtle+="${auth} acl:accessTo <${to}> .\n"
 fi
-if [ ! -z "$to_all_in" ] ; then
+if [ -n "$to_all_in" ] ; then
     turtle+="${auth} acl:accessToClass <${to_all_in}> .\n"
 fi
-if [ ! -z "$append" ] ; then
+if [ -n "$append" ] ; then
     turtle+="${auth} acl:mode acl:Append .\n"
 fi
-if [ ! -z "$control" ] ; then
+if [ -n "$control" ] ; then
     turtle+="${auth} acl:mode acl:Control .\n"
 fi
-if [ ! -z "$read" ] ; then
+if [ -n "$read" ] ; then
     turtle+="${auth} acl:mode acl:Read .\n"
 fi
-if [ ! -z "$write" ] ; then
+if [ -n "$write" ] ; then
     turtle+="${auth} acl:mode acl:Write .\n"
 fi
 

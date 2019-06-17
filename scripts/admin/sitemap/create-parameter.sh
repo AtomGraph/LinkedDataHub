@@ -92,7 +92,7 @@ args+=("text/turtle") # content type
 args+=("${base}sitemap/parameters/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     param="<${uri}>" # URI
 else
     param="_:param" # blank node
@@ -112,20 +112,20 @@ turtle+="_:item a ns:ParameterItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${param} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${param} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-if [ ! -z "$predicate" ] ; then
+if [ -n "$predicate" ] ; then
     turtle+="${param} spl:predicate <${predicate}> .\n"
 fi
-if [ ! -z "$value_type" ] ; then
+if [ -n "$value_type" ] ; then
     turtle+="${param} spl:valueType <${value_type}> .\n"
 fi
-if [ ! -z "$optional" ] ; then
+if [ -n "$optional" ] ; then
     turtle+="${param} spl:optional true .\n"
 fi
 

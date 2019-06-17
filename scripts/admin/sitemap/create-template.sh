@@ -91,7 +91,7 @@ args+=("text/turtle") # content type
 args+=("${base}sitemap/templates/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     template="<${uri}>" # URI
 else
     template="_:template" # blank node
@@ -111,20 +111,20 @@ turtle+="_:item a ns:TemplateItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${template} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${template} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-if [ ! -z "$query" ] ; then
+if [ -n "$query" ] ; then
     turtle+="${template} ldt:query <${query}> .\n"
 fi
-if [ ! -z "$extends" ] ; then
+if [ -n "$extends" ] ; then
     turtle+="${template} ldt:extends <${extends}> .\n"
 fi
-if [ ! -z "$match" ] ; then
+if [ -n "$match" ] ; then
     turtle+="${template} ldt:match \"${match}\" .\n"
 fi
 

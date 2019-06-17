@@ -75,10 +75,10 @@ turtle+="_:item a ns:QueryItem .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:query .\n"
 
-if [ ! -z "$description" ] ; then
+if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

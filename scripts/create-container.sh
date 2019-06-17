@@ -25,6 +25,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --select)
+    select="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --slug)
     slug="$2"
     shift # past argument
@@ -57,10 +62,13 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="_:container a def:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
-if [ ! -z "$description" ] ; then
+if [ -n "$select" ] ; then
+    turtle+="_:container dh:select <${select}> .\n"
+fi
+if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:container dh:slug \"${slug}\" .\n"
 fi
 

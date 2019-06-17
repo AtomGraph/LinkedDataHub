@@ -8,4 +8,4 @@ if [ "$#" -ne 6 ]; then
   exit 1
 fi
 
-"$JAVA_HOME"/bin/keytool -genkeypair -alias $1 -keyalg RSA -storetype PKCS12 -keystore $2 -storepass $3 -keypass $4 -ext SAN=uri:$5 -validity $6
+"$JAVA_HOME"/bin/keytool -genkeypair -alias "$1" -keyalg RSA -storetype PKCS12 -keystore "$2" -storepass "$3" -keypass "$4" -ext SAN=uri:"$5" -validity "$6"

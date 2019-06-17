@@ -2,9 +2,9 @@
 
 print_usage()
 {
-    printf "Create an RDF document, possibly with related resources, under the specified container in the document hierarchy.\n"
+    printf "Appends RDF data to the dataset.\n"
     printf "\n"
-    printf "Usage:  echo -e \$rdf_body | $0 options CONTAINER\n"
+    printf "Usage:  echo -e \$rdf_body | %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERTIFICATE      .pem file with the WebID certificate of the agent\n"
@@ -75,7 +75,7 @@ fi
 
 urlencode()
 {
-  echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' $1)
+    python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
 }
 
 if [ "$#" -ne 1 ]; then
@@ -84,7 +84,8 @@ if [ "$#" -ne 1 ]; then
 fi
 
 container=$1
-target=${container}?forClass=$(urlencode "$class")
+forClass=$(urlencode "$class")
+target="${container}?forClass=${forClass}"
 
 # POST RDF document from stdin to the server and print Location URL
 cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "${target}" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

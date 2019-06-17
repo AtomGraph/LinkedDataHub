@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# New version of scripts that accept named arguments, e.g.: ./create-container.sh -f ../../linkeddatahub-apps/certs/martynas.stage.localhost.pem -p XXXXXX -b https://localhost:4443/demo/city-graph/  https://localhost:4443/demo/city-graph/ --title "Test" --description "This is a container"
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -28,18 +30,13 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    --service)
-    service="$2"
-    shift # past argument
-    shift # past value
-    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
     ;;
 esac
 done
-set -- "${args[@]}" # restore args
+set -- "${args[@]}" # restore args parameters
 
 if [ -z "$base" ] ; then
     echo '-b|--base not set'
@@ -49,39 +46,22 @@ if [ -z "$title" ] ; then
     echo '--title not set'
     exit 1
 fi
-if [ -z "$service" ] ; then
-    echo '--service not set'
-    exit 1
-fi
 
 args+=("-c")
-args+=("${base}ns#AdminApplication") # class
+args+=("${base}ns/default#Item")
 args+=("-t")
-args+=("text/turtle") # content type
-args+=("${base}apps/admin/") # container
+args+=("text/turtle")
 
-turtle+="@prefix ns:	<ns#> .\n"
-turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
+turtle+="@prefix def:	<ns/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="_:app a ns:AdminApplication .\n"
-turtle+="_:app dct:title \"${title}\" .\n"
-turtle+="_:app ldt:service <${service}> .\n"
-turtle+="_:app foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:AdminApplicationItem .\n"
+turtle+="_:item a def:Item.\n"
 turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item foaf:primaryTopic _:app .\n"
-
-if [ ! -z "$description" ] ; then
-    turtle+="_:app dct:description \"${description}\" .\n"
+if [ -n "$description" ] ; then
+    turtle+="_:item dct:description \"${description}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
-
-# submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="${base}" | ../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="${base}" | ./create-document.sh "${args[@]}"

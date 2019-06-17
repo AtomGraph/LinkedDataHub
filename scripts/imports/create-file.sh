@@ -130,18 +130,18 @@ rdf_post+="-F \"ou=${ns}FileItem\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
 rdf_post+="-F \"ob=file\"\n"
 
-if [ ! -z "$description" ] ; then
+if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     rdf_post+="-F \"sb=item\"\n"
     rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
     rdf_post+="-F \"ol=${slug}\"\n"
 
 fi
-if [ ! -z "$file_slug" ] ; then
+if [ -n "$file_slug" ] ; then
     rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
     rdf_post+="-F \"ol=${file_slug}\"\n"

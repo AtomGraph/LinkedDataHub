@@ -68,7 +68,7 @@ args+=("text/turtle") # content type
 args+=("${base}model/queries/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     query="<${uri}>" # URI
 else
     query="_:query" # blank node
@@ -89,10 +89,10 @@ turtle+="_:item a ns:QueryItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${query} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${query} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

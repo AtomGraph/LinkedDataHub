@@ -83,7 +83,7 @@ args+=("text/turtle") # content type
 args+=("${base}model/classes/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     class="<${uri}>" # URI
 else
     class="_:class" # blank node
@@ -104,22 +104,22 @@ turtle+="_:item a ns:ClassItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${class} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${class} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-if [ ! -z "$constructor" ] ; then
+if [ -n "$constructor" ] ; then
     turtle+="${class} spin:constructor <$constructor> .\n"
 fi
-if [ ! -z "$constraint" ] ; then
+if [ -n "$constraint" ] ; then
     turtle+="${class} spin:constraint <$constraint> .\n"
 fi
-if [ ! -z "$path" ] ; then
+if [ -n "$path" ] ; then
     turtle+="${class} ldt:path \"${path}\" .\n"
 fi
-if [ ! -z "$fragment" ] ; then
+if [ -n "$fragment" ] ; then
     turtle+="${class} ldt:fragment \"${fragment}\" .\n"
 fi
 

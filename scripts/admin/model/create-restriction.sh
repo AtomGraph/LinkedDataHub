@@ -72,7 +72,7 @@ args+=("text/turtle") # content type
 args+=("${base}model/restrictions/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     restriction="<${uri}>" # URI
 else
     restriction="_:restriction" # blank node
@@ -94,19 +94,19 @@ turtle+="_:item a ns:RestrictionItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-if [ ! -z "$on_property" ] ; then
+if [ -n "$on_property" ] ; then
     turtle+="${restriction} owl:onProperty <$on_property> .\n"
 fi
-if [ ! -z "$all_values_from" ] ; then
+if [ -n "$all_values_from" ] ; then
     turtle+="${restriction} owl:allValuesFrom <$all_values_from> .\n"
 fi
-if [ ! -z "$has_value" ] ; then
+if [ -n "$has_value" ] ; then
     turtle+="${restriction} owl:hasValue <$has_value> .\n"
 fi
 

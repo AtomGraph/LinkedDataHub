@@ -62,7 +62,7 @@ args+=("text/turtle") # content type
 args+=("${base}model/constraints/") # container
 
 # allow explicit URIs
-if [ ! -z "$uri" ] ; then
+if [ -n "$uri" ] ; then
     constraint="<${uri}>" # URI
 else
     constraint="_:constraint" # blank node
@@ -84,10 +84,10 @@ turtle+="_:item a ns:ConstraintItem .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${constraint} .\n"
 
-if [ ! -z "$comment" ] ; then
+if [ -n "$comment" ] ; then
     turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
 fi
-if [ ! -z "$slug" ] ; then
+if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
