@@ -54,7 +54,7 @@ if [ -z "$query_file" ] ; then
     exit 1
 fi
 
-query=$(<$query_file) # read query string from file
+query=$(<"$query_file") # read query string from file
 
 args+=("-c")
 args+=("${base}ns#Construct") # class
@@ -88,4 +88,4 @@ fi
 export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="${base}" | ../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"

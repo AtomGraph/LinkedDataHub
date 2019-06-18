@@ -72,4 +72,4 @@ if [ -n "$slug" ] ; then
     turtle+="_:container dh:slug \"${slug}\" .\n"
 fi
 
-echo -e "$turtle" | turtle --base="${base}" | ./create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"

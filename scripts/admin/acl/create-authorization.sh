@@ -85,15 +85,15 @@ if [ -z "$label" ] ; then
     echo '--label not set'
     exit 1
 fi
-if ( [ -z "$agent" ] && [ -z "$agent_class" ] ) ; then
+if [ -z "$agent" ] && [ -z "$agent_class" ] ; then
     echo '--agemt or --agent-class not set'
     exit 1
 fi
-if ( [ -z "$to" ] && [ -z "$to_all_in" ] ) ; then
+if [ -z "$to" ] && [ -z "$to_all_in" ] ; then
     echo '--to or --to-all-in not set'
     exit 1
 fi
-if ( [ -z "$append" ] && [ -z "$control" ] && [ -z "$read" ] && [ -z "$write" ] ) ; then
+if [ -z "$append" ] && [ -z "$control" ] && [ -z "$read" ] && [ -z "$write" ] ; then
     echo '--append or --control or --read or --write not set'
     exit 1
 fi
@@ -162,4 +162,4 @@ fi
 export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="${base}" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"

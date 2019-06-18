@@ -41,13 +41,13 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-group_doc=$1
+group_doc="$1"
 
 # extract group URI and graph URI from app document N-Triples description (slashes in ${group_doc} need to be escaped before passing to sed)
 
-group=$(curl -s -v -k -E ${cert_pem_file}:${cert_password} "${group_doc}" -H "Accept: application/n-triples" | cat | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+group=$(curl -s -v -k -E "$cert_pem_file":"$cert_password" "$group_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-graph_doc=$(curl -s -v -k -E ${cert_pem_file}:${cert_password} "${group_doc}" -H "Accept: application/n-triples" | cat | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
+graph_doc=$(curl -s -v -k -E "$cert_pem_file":"$cert_password" "$group_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
 
 sparql+="PREFIX foaf:	<http://xmlns.com/foaf/0.1/>\n"
 sparql+="INSERT DATA {\n"
@@ -58,4 +58,4 @@ sparql+="}\n"
 
 # PATCH SPARQL to the named graph
 
-echo -e "$sparql" | curl -X PATCH --data-binary @- -v -k -E ${cert_pem_file}:${cert_password} $graph_doc -H "Content-Type: application/sparql-update"
+echo -e "$sparql" | curl -X PATCH --data-binary @- -v -k -E "$cert_pem_file":"$cert_password" "$graph_doc" -H "Content-Type: application/sparql-update"

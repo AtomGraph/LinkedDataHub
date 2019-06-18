@@ -75,7 +75,7 @@ if [ -z "$label" ] ; then
     echo '--label not set'
     exit 1
 fi
-if ( [ -z "$extends" ] && [ -z "$query" ] ) || ( [ -z "$extends" ] && [ -z "$match" ] ) ; then
+if { [ -z "$extends" ] && [ -z "$query" ] ; } || { [ -z "$extends" ] && [ -z "$match" ] ; } ; then
     echo '--extends or --query and --match not set'
     exit 1
 fi
@@ -139,4 +139,4 @@ done
 export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="${base}" | ../../create-document.sh "${args[@]}"
+echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"

@@ -100,12 +100,13 @@ fi
 
 urlencode()
 {
-  echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' $1)
+  echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1")
 }
 
 ns="${base}ns#"
 class="${base}ns#File"
-target=${base}files/?forClass=$(urlencode "$class")
+forClass=$(urlencode "$class")
+target="${base}files/?forClass=${forClass}"
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
@@ -149,4 +150,4 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server and print Location URL
-echo -e $rdf_post | curl -v -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} --config - $target -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+echo -e "$rdf_post" | curl -v -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

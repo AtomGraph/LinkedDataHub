@@ -4,8 +4,8 @@ trap onexit ERR
 
 function onexit() {
     local exit_status=${1:-$?}
-    echo Exiting $0 with $exit_status
-    exit $exit_status
+    echo "Exiting $0 with $exit_status"
+    exit "$exit_status"
 }
 
 args=()

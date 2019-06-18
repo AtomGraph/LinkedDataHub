@@ -4,7 +4,6 @@ hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 args=()
-super_classes=() # --super-class-of can have multiple values, so we need an array
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -72,4 +71,4 @@ turtle+="_:arg rdf:value <${source}>.\n"
 export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="${base}" | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "${target}" -s -D -
+echo -e "$turtle" | turtle --base="$base" | curl -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -
