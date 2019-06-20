@@ -54,7 +54,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-target="${base}model/ontologies"
+target="${base}model/ontologies/"
 source=$1
 content_type="text/turtle"
 

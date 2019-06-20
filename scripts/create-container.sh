@@ -64,6 +64,8 @@ turtle+="_:container a def:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 if [ -n "$select" ] ; then
     turtle+="_:container dh:select <${select}> .\n"
+else
+    turtle+="_:container dh:select <queries/default/select-children/#this> .\n" # default value
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
