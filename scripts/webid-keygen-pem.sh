@@ -4,7 +4,7 @@
 
 if [ "$#" -ne 5 ]; then
   echo "Usage:   $0 alias keystore_file keystore_password key_password webID" >&2
-  echo "Example: $0 martynas martynas.localhost.p12 Martynas Martynas https://localhost/admin/acl/agents/ce84eb31-cc1e-41f4-9e29-dacd417b9818#this" >&2
+  echo "Example: $0 martynas martynas.localhost.p12 Martynas Martynas https://localhost/admin/acl/agents/ce84eb31-cc1e-41f4-9e29-dacd417b9818/#this" >&2
   exit 1
 fi
 
