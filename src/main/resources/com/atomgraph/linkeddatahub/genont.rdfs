@@ -1,0 +1,160 @@
+
+
+
+<rdf:RDF xmlns="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:doc="http://www.w3.org/2000/10/swap/pim/doc#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:s="http://www.w3.org/2000/01/rdf-schema#">
+
+    <rdf:Description rdf:about="">
+        <dc:title>An Ontology for Relating Generic and Specific Information Resources</dc:title>
+        <comment>
+    This ontology implements concepts discussed in the Generic URIs 'DesignIsues' note.
+    It is also the topic of the W3C TAG issue and a related TAG finding.
+    This ontology does not model the fact that representations of a resource can be
+    customised as a function of things like user agent, target media,
+    the geographical position of the user,
+    the preferences of the user, etc.  These could be and can be added.
+    The FixedResource class is defined to be specific to ANY variation,
+    as is the fixedResource property.
+    </comment>
+        <seeAlso rdf:resource="http://www.w3.org/DesignIssues/Generic"/>
+        <doc:creator rdf:resource="http://www.w3.org/People/Berners-Lee/card#i"/>
+        <doc:ipr rdf:resource="http://www.w3.org/2000/10/swap/LICENSE.n3"/>
+        <doc:version>$Id: ont.rdf,v 1.7 2009/04/20 10:12:30 timbl Exp $</doc:version>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.w3.org/2006/gen/ont#ContentTypeGenericResource">
+        <comment>A resource which may have representations in
+    many different Content-Types.</comment>
+        <label>Content-Type-generic resource</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.w3.org/2006/gen/ont#ContentTypeSpecificResource">
+        <comment>A resource of which all representations are in the
+		same Internet media type, or 'Content-Type'.</comment>
+        <label>Content-Type-specific resource</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Description>
+
+    <Class rdf:about="http://www.w3.org/2006/gen/ont#FixedResource">
+        <comment>A resource whose representation type and content will not
+	    change under any circumstances.</comment>
+        <label>fixed resource</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#LanguageSpecificResource"/>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#contentTypeSpecificResource"/>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#timeSpecificResource"/>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/2006/gen/ont#InformationResource">
+        <comment>An Information Resource is defined by the Architecture of
+	    the WWW.</comment>
+        <label>information resource</label>
+    </Class>
+
+    <rdf:Description rdf:about="http://www.w3.org/2006/gen/ont#LanguageGenericResource">
+        <comment>A resource defiend without constraint as to
+	the particular natural language in which it
+        maight be expressed.</comment>
+        <label>language-generic resource</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.w3.org/2006/gen/ont#LanguageSpecificResource">
+        <comment>A resource of which all representations are in the
+		same natural language.</comment>
+        <label>language-specific resource</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.w3.org/2006/gen/ont#TimeGenericResource">
+        <comment>A Information Resource which may have many versions,
+    and therfore representations of the resource at different times may vary.</comment>
+        <label>Time-generic resource</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.w3.org/2006/gen/ont#TimeSpecificResource">
+        <comment>A resource of which all representations are in the
+		same version.  Representations of the resource will
+                not change as a result of th resource neing updated to a
+                version with time.  The dates of creation and
+                of last modification of such a resource would be
+                expected to be the same.</comment>
+        <label>version</label>
+        <subClassOf rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Description>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#contentTypeGeneric">
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#ContentTypeSpecificResource"/>
+        <label>Content-Type generic</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#ContentTypeGenericResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#sameWorkAs"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#contentTypeSpecific">
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#ContentTypeGenericResource"/>
+        <label>Content-Type specific</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#ContentTypeSpecificResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#sameWorkAs"/>
+        <owl:inverseOf rdf:resource="http://www.w3.org/2006/gen/ont#ContentTypeGeneric"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#fixedResource">
+        <comment>A relation between a generic resource and a fixedResource
+    which is an everything-specific version of it.</comment>
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+        <label>Content-Type specific</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#FixedResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#contentTypeSpecific"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#languageSpecific"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#timeSpecific"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#languageGeneric">
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#LanguageSpecificResource"/>
+        <label>language generic</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#LanguageGenericResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#sameWorkAs"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#languageSpecific">
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#LanguageGenericResource"/>
+        <label>language specific</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#LanguageSpecificResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#sameWorkAs"/>
+        <owl:inverseOf rdf:resource="http://www.w3.org/2006/gen/ont#languageGeneric"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#sameWorkAs">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+        <comment>The equivalence relation linking all versions of a work,
+            specific or generic along various axes.</comment>
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+        <label>same work as</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#timeGeneric">
+        <comment>The related resource which for this time-sepcific resource
+            is the related time-generic resource.
+            A representation of the time-generic resource may be expected to be
+            the most recent time-specific resource at the time of
+            the representation.</comment>
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#TimeSpecificResource"/>
+        <label>time generic</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#TimeGenericResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#sameWorkAs"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/2006/gen/ont#timeSpecific">
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#TimeGenericResource"/>
+        <label>version</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#TimeSpecificResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2006/gen/ont#sameWorkAs"/>
+        <owl:inverseOf rdf:resource="http://www.w3.org/2006/gen/ont#timeGeneric"/>
+    </rdf:Property>
+</rdf:RDF>

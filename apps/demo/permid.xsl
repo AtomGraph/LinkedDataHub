@@ -29,7 +29,7 @@ xmlns:uuid="java:java.util.UUID"
 xmlns:url="java:java.net.URLDecoder"
 exclude-result-prefixes="#all">
 
-    <xsl:import href="../../static/com/linkeddatahub/xsl/bootstrap/layout.xsl"/>
+    <xsl:import href="../../static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl"/>
 
     <rdf:Description rdf:nodeID="has-name">
         <dct:title>Name</dct:title>

@@ -1,0 +1,154 @@
+
+
+
+<rdf:RDF xmlns="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <rdf:Description rdf:about="">
+        <dc:title>Basic Access Control ontology</dc:title>
+        <comment>Defines the class Authorization and its essential properties,
+    and also some classes of access such as read and write. </comment>
+    </rdf:Description>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#Access">
+        <comment>Any kind of access to a resource. Don't use this, use R W and RW</comment>
+        <label xmlns="http://www.w3.org/ns/auth/acl#"
+            xml:lang="en">access</label>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#Append">
+        <comment>Append accesses are specific write access which only add information, and do not remove information.
+    For text files, for example, append access allows bytes to be added onto the end of the file.
+    For RDF graphs, Append access allows adds triples to the graph but does not remove any.
+    Append access is useful for dropbox functionality.
+    Dropbox can be used for link notification, which the information added is a notification
+    that a some link has been made elsewhere relevant to the given resource.
+    </comment>
+        <label xml:lang="en">append</label>
+        <subClassOf rdf:resource="http://www.w3.org/ns/auth/acl#Access"/>
+        <subClassOf rdf:resource="http://www.w3.org/ns/auth/acl#Write"/>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#AuthenticatedAgent">
+        <comment>A class of agents who have been authenticated.
+In other words, anyone can access this resource, but not anonymously.
+The social expectation is that the authentication process will provide an
+identify and a name, or pseudonym.
+(A new ID should not be minted for every access: the intent is that the user
+is able to continue to use the ID for continues interactions with peers,
+and for example to develop a reputation)
+</comment>
+        <label>Anyone authenticated</label>
+        <subClassOf rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#Authorization">
+        <comment>An element of access control,
+    allowing agent to agents access of some kind to resources or classes of resources</comment>
+        <label>authorization</label>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#Control">
+        <comment>Allows read/write access to the ACL for the resource(s)</comment>
+        <label xml:lang="en">control</label>
+        <subClassOf rdf:resource="http://www.w3.org/ns/auth/acl#Access"/>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#Read">
+        <comment>The class of read operations</comment>
+        <label xml:lang="en">read</label>
+        <subClassOf rdf:resource="http://www.w3.org/ns/auth/acl#Access"/>
+    </Class>
+
+    <Class rdf:about="http://www.w3.org/ns/auth/acl#Write">
+        <label xml:lang="en">write</label>
+        <subClassOf rdf:resource="http://www.w3.org/ns/auth/acl#Access"/>
+    </Class>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#accessControl">
+        <comment>The Access Control file for this information resource.
+        This may of course be a virtual resorce implemented by the access control system.
+        Note also HTTP's header  Link:  foo.meta ;rel=meta can be used for this.</comment>
+        <domain rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+        <label>access control</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+        <subPropertyOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#seeAlso"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#accessTo">
+        <comment>The information resource to which access is being granted.</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>to</label>
+        <range rdf:resource="http://www.w3.org/2006/gen/ont#InformationResource"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#accessToClass">
+        <comment>A class of information resources to which access is being granted.</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>to all in</label>
+        <range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#agent">
+        <comment>A person or social entity to being given the right</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>agent</label>
+        <range rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#agentClass">
+        <comment>A class of persons or social entities to being given the right</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>agent class</label>
+        <range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#agentGroup">
+        <comment>A group of persons or social entities to being given the right</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>agent group</label>
+        <range rdf:resource="http://www.w3.org/2006/vcard/ns#Group"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#default">
+        <comment>A directory for which this authorization is used for new files in the directory.</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>default access for things in this</label>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#defaultForNew">
+        <comment>THIS IS OBSOLETE AS OF 2017-08-01.   See 'default'.
+        Was: A directory for which this authorization is used for new files in the directory.</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>default access for new things in the object</label>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#delegates">
+        <comment>Delegates a person or another agent to act on behalf of the agent.
+    For example, Alice delegates Bob to act on behalf of Alice for ACL purposes.</comment>
+        <label xml:lang="en">delegates</label>
+        <range rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#mode">
+        <comment>A mode of access such as read or write.</comment>
+        <domain rdf:resource="http://www.w3.org/ns/auth/acl#Authorization"/>
+        <label>access mode</label>
+        <range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+    </rdf:Property>
+
+    <rdf:Property rdf:about="http://www.w3.org/ns/auth/acl#owner">
+        <comment>The person or other agent which owns this.
+    For example, the owner of a file in a filesystem.
+    There is a sense of right to control.   Typically defaults to the agent who craeted
+    something but can be changed.</comment>
+        <label xml:lang="en">owner</label>
+        <range rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+    </rdf:Property>
+
+    <rdf:Description rdf:about="https://www.w3.org/wiki/WebAccessControl">
+        <dc:describes rdf:resource=""/>
+    </rdf:Description>
+</rdf:RDF>

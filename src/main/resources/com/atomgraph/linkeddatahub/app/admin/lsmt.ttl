@@ -1,0 +1,48 @@
+@base           <http://linkeddatahub.com/ns/sitemap/templates> .
+
+@prefix :	<#> .
+@prefix aplt:   <http://atomgraph.com/ns/platform/templates#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix thgt:   <https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spl:    <http://spinrdf.org/spl#> .
+
+: a ldt:Ontology ;
+    owl:imports aplt: ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "Sitemap templates" ;
+    rdfs:comment "AtomGraph Sitemap templates" .
+
+# ontology
+
+:OntologyItem a ldt:Template ;
+    ldt:extends aplt:Document ;
+    ldt:match "/{container}/ontologies/{uuid}/" ;
+    ldt:param :Clear ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.sitemap.resource.ontology.Item> ;
+    rdfs:label "Ontology item" ;
+    rdfs:isDefinedBy : .
+
+:Clear a ldt:Parameter ;
+    rdfs:label "Clear" ;
+    spl:predicate :clear ;
+    spl:valueType rdfs:Resource ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:OntologyContainer a ldt:Template ;
+    ldt:extends aplt:Document ;
+    ldt:match "/{container}/ontologies/" ;
+    ldt:param :Source ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.sitemap.resource.ontology.Container> ;
+    rdfs:label "Ontology container" ;
+    rdfs:isDefinedBy : .
+
+:Source a ldt:Parameter ;
+    rdfs:label "Source" ;
+    spl:predicate :source ;
+    spl:valueType rdfs:Resource ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .

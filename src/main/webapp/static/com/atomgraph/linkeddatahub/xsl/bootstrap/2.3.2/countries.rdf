@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+	xmlns:dct="http://purl.org/dc/terms/"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:sesame="http://www.openrdf.org/schema/sesame#"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+	xmlns:fn="http://www.w3.org/2005/xpath-functions#"
+	xmlns:foaf="http://xmlns.com/foaf/0.1/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:hint="http://www.bigdata.com/queryHints#"
+	xmlns:bd="http://www.bigdata.com/rdf#"
+	xmlns:bds="http://www.bigdata.com/rdf/search#"
+	xmlns:psn="http://www.wikidata.org/prop/statement/value-normalized/"
+	xmlns:pqn="http://www.wikidata.org/prop/qualifier/value-normalized/"
+	xmlns:prn="http://www.wikidata.org/prop/reference/value-normalized/"
+	xmlns:mwapi="https://www.mediawiki.org/ontology#API/"
+	xmlns:gas="http://www.bigdata.com/rdf/gas#"
+	xmlns:wdt="http://www.wikidata.org/prop/direct/"
+	xmlns:psv="http://www.wikidata.org/prop/statement/value/"
+	xmlns:ps="http://www.wikidata.org/prop/statement/"
+	xmlns:pqv="http://www.wikidata.org/prop/qualifier/value/"
+	xmlns:pq="http://www.wikidata.org/prop/qualifier/"
+	xmlns:prv="http://www.wikidata.org/prop/reference/value/"
+	xmlns:pr="http://www.wikidata.org/prop/reference/"
+	xmlns:wdno="http://www.wikidata.org/prop/novalue/"
+	xmlns:p="http://www.wikidata.org/prop/"
+	xmlns:wikibase="http://wikiba.se/ontology#"
+	xmlns:wd="http://www.wikidata.org/entity/"
+	xmlns:wds="http://www.wikidata.org/entity/statement/"
+	xmlns:wdv="http://www.wikidata.org/value/"
+	xmlns:wdref="http://www.wikidata.org/reference/"
+	xmlns:wdata="http://www.wikidata.org/wiki/Special:EntityData/"
+	xmlns:schema="http://schema.org/"
+	xmlns:prov="http://www.w3.org/ns/prov#"
+	xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+	xmlns:geo="http://www.opengis.net/ont/geosparql#"
+	xmlns:geof="http://www.opengis.net/def/geosparql/function/">
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q262">
+	<dct:title xml:lang="en">Algeria</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q334">
+	<dct:title xml:lang="en">Singapore</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q347">
+	<dct:title xml:lang="en">Liechtenstein</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q419">
+	<dct:title xml:lang="en">Peru</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q657">
+	<dct:title xml:lang="en">Chad</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q664">
+	<dct:title xml:lang="en">New Zealand</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q672">
+	<dct:title xml:lang="en">Tuvalu</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q678">
+	<dct:title xml:lang="en">Tonga</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q685">
+	<dct:title xml:lang="en">Solomon Islands</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q697">
+	<dct:title xml:lang="en">Nauru</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q733">
+	<dct:title xml:lang="en">Paraguay</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q31">
+	<dct:title xml:lang="en">Belgium</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q35">
+	<dct:title xml:lang="en">Denmark</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q142">
+	<dct:title xml:lang="en">France</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q145">
+	<dct:title xml:lang="en">United Kingdom</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q191">
+	<dct:title xml:lang="en">Estonia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q232">
+	<dct:title xml:lang="en">Kazakhstan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q242">
+	<dct:title xml:lang="en">Belize</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q27">
+	<dct:title xml:lang="en">Ireland</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q55">
+	<dct:title xml:lang="en">Netherlands</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q43">
+	<dct:title xml:lang="en">Turkey</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q25">
+	<dct:title xml:lang="en">Wales</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q399">
+	<dct:title xml:lang="en">Armenia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q159">
+	<dct:title xml:lang="en">Russia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q212">
+	<dct:title xml:lang="en">Ukraine</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q238">
+	<dct:title xml:lang="en">San Marino</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q79">
+	<dct:title xml:lang="en">Egypt</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q40">
+	<dct:title xml:lang="en">Austria</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q38">
+	<dct:title xml:lang="en">Italy</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q183">
+	<dct:title xml:lang="en">Germany</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q222">
+	<dct:title xml:lang="en">Albania</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q227">
+	<dct:title xml:lang="en">Azerbaijan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q184">
+	<dct:title xml:lang="en">Belarus</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q236">
+	<dct:title xml:lang="en">Montenegro</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q45">
+	<dct:title xml:lang="en">Portugal</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q230">
+	<dct:title xml:lang="en">Georgia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q17">
+	<dct:title xml:lang="en">Japan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q229">
+	<dct:title xml:lang="en">Cyprus</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q39">
+	<dct:title xml:lang="en">Switzerland</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q224">
+	<dct:title xml:lang="en">Croatia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q668">
+	<dct:title xml:lang="en">India</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q739">
+	<dct:title xml:lang="en">Colombia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q414">
+	<dct:title xml:lang="en">Argentina</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q233">
+	<dct:title xml:lang="en">Malta</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q712">
+	<dct:title xml:lang="en">Fiji</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q711">
+	<dct:title xml:lang="en">Mongolia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q408">
+	<dct:title xml:lang="en">Australia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q225">
+	<dct:title xml:lang="en">Bosnia and Herzegovina</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q241">
+	<dct:title xml:lang="en">Cuba</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q695">
+	<dct:title xml:lang="en">Palau</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q96">
+	<dct:title xml:lang="en">Mexico</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q29">
+	<dct:title xml:lang="en">Spain</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q20">
+	<dct:title xml:lang="en">Norway</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q730">
+	<dct:title xml:lang="en">Suriname</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q252">
+	<dct:title xml:lang="en">Indonesia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q77">
+	<dct:title xml:lang="en">Uruguay</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q717">
+	<dct:title xml:lang="en">Venezuela</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q398">
+	<dct:title xml:lang="en">Bahrain</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q16">
+	<dct:title xml:lang="en">Canada</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q235">
+	<dct:title xml:lang="en">Monaco</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q28">
+	<dct:title xml:lang="en">Hungary</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q34">
+	<dct:title xml:lang="en">Sweden</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q258">
+	<dct:title xml:lang="en">South Africa</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q298">
+	<dct:title xml:lang="en">Chile</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q211">
+	<dct:title xml:lang="en">Latvia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q36">
+	<dct:title xml:lang="en">Poland</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q155">
+	<dct:title xml:lang="en">Brazil</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q683">
+	<dct:title xml:lang="en">Samoa</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q189">
+	<dct:title xml:lang="en">Iceland</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q37">
+	<dct:title xml:lang="en">Lithuania</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q217">
+	<dct:title xml:lang="en">Moldova</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q214">
+	<dct:title xml:lang="en">Slovakia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q219">
+	<dct:title xml:lang="en">Bulgaria</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q265">
+	<dct:title xml:lang="en">Uzbekistan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q33">
+	<dct:title xml:lang="en">Finland</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q244">
+	<dct:title xml:lang="en">Barbados</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q736">
+	<dct:title xml:lang="en">Ecuador</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q114">
+	<dct:title xml:lang="en">Kenya</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q403">
+	<dct:title xml:lang="en">Serbia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q423">
+	<dct:title xml:lang="en">North Korea</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q574">
+	<dct:title xml:lang="en">East Timor</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q691">
+	<dct:title xml:lang="en">Papua New Guinea</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q686">
+	<dct:title xml:lang="en">Vanuatu</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q41">
+	<dct:title xml:lang="en">Greece</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q228">
+	<dct:title xml:lang="en">Andorra</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q213">
+	<dct:title xml:lang="en">Czech Republic</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q148">
+	<dct:title xml:lang="en">People's Republic of China</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q237">
+	<dct:title xml:lang="en">Vatican City</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q117">
+	<dct:title xml:lang="en">Ghana</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q218">
+	<dct:title xml:lang="en">Romania</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q734">
+	<dct:title xml:lang="en">Guyana</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q424">
+	<dct:title xml:lang="en">Cambodia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q32">
+	<dct:title xml:lang="en">Luxembourg</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q30">
+	<dct:title xml:lang="en">United States of America</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q710">
+	<dct:title xml:lang="en">Kiribati</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q215">
+	<dct:title xml:lang="en">Slovenia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q702">
+	<dct:title xml:lang="en">Federated States of Micronesia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q115">
+	<dct:title xml:lang="en">Ethiopia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q709">
+	<dct:title xml:lang="en">Marshall Islands</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q221">
+	<dct:title xml:lang="en">Republic of Macedonia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q219060">
+	<dct:title xml:lang="en">State of Palestine</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q26988">
+	<dct:title xml:lang="en">Cook Islands</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q29999">
+	<dct:title xml:lang="en">Kingdom of the Netherlands</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q40362">
+	<dct:title xml:lang="en">Sahrawi Arab Democratic Republic</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q34020">
+	<dct:title xml:lang="en">Niue</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q784">
+	<dct:title xml:lang="en">Dominica</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q800">
+	<dct:title xml:lang="en">Costa Rica</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q813">
+	<dct:title xml:lang="en">Kyrgyzstan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q817">
+	<dct:title xml:lang="en">Kuwait</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q822">
+	<dct:title xml:lang="en">Lebanon</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q836">
+	<dct:title xml:lang="en">Myanmar</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q837">
+	<dct:title xml:lang="en">Nepal</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q843">
+	<dct:title xml:lang="en">Pakistan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q881">
+	<dct:title xml:lang="en">Vietnam</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q974">
+	<dct:title xml:lang="en">Democratic Republic of the Congo</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q945">
+	<dct:title xml:lang="en">Togo</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q958">
+	<dct:title xml:lang="en">South Sudan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1007">
+	<dct:title xml:lang="en">Guinea-Bissau</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1008">
+	<dct:title xml:lang="en">Ivory Coast</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1016">
+	<dct:title xml:lang="en">Libya</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1032">
+	<dct:title xml:lang="en">Niger</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1033">
+	<dct:title xml:lang="en">Nigeria</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1036">
+	<dct:title xml:lang="en">Uganda</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1045">
+	<dct:title xml:lang="en">Somalia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1049">
+	<dct:title xml:lang="en">Sudan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q804">
+	<dct:title xml:lang="en">Panama</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q9676">
+	<dct:title xml:lang="en">Isle of Man</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q865">
+	<dct:title xml:lang="en">Taiwan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1019">
+	<dct:title xml:lang="en">Madagascar</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q858">
+	<dct:title xml:lang="en">Syria</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q801">
+	<dct:title xml:lang="en">Israel</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q977">
+	<dct:title xml:lang="en">Djibouti</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q786">
+	<dct:title xml:lang="en">Dominican Republic</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q986">
+	<dct:title xml:lang="en">Eritrea</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q792">
+	<dct:title xml:lang="en">El Salvador</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q810">
+	<dct:title xml:lang="en">Jordan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1044">
+	<dct:title xml:lang="en">Sierra Leone</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q794">
+	<dct:title xml:lang="en">Iran</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q766">
+	<dct:title xml:lang="en">Jamaica</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1005">
+	<dct:title xml:lang="en">Gambia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q783">
+	<dct:title xml:lang="en">Honduras</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q781">
+	<dct:title xml:lang="en">Antigua and Barbuda</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1030">
+	<dct:title xml:lang="en">Namibia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q25230">
+	<dct:title xml:lang="en">Guernsey</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q811">
+	<dct:title xml:lang="en">Nicaragua</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1025">
+	<dct:title xml:lang="en">Mauritania</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q769">
+	<dct:title xml:lang="en">Grenada</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q863">
+	<dct:title xml:lang="en">Tajikistan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q916">
+	<dct:title xml:lang="en">Angola</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q902">
+	<dct:title xml:lang="en">Bangladesh</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q750">
+	<dct:title xml:lang="en">Bolivia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q760">
+	<dct:title xml:lang="en">Saint Lucia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q833">
+	<dct:title xml:lang="en">Malaysia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q774">
+	<dct:title xml:lang="en">Guatemala</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1027">
+	<dct:title xml:lang="en">Mauritius</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q954">
+	<dct:title xml:lang="en">Zimbabwe</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q924">
+	<dct:title xml:lang="en">Tanzania</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1014">
+	<dct:title xml:lang="en">Liberia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q790">
+	<dct:title xml:lang="en">Haiti</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q842">
+	<dct:title xml:lang="en">Oman</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q912">
+	<dct:title xml:lang="en">Mali</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q846">
+	<dct:title xml:lang="en">Qatar</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1009">
+	<dct:title xml:lang="en">Cameroon</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q962">
+	<dct:title xml:lang="en">Benin</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q854">
+	<dct:title xml:lang="en">Sri Lanka</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q889">
+	<dct:title xml:lang="en">Afghanistan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q796">
+	<dct:title xml:lang="en">Iraq</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q778">
+	<dct:title xml:lang="en">The Bahamas</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q874">
+	<dct:title xml:lang="en">Turkmenistan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q963">
+	<dct:title xml:lang="en">Botswana</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q965">
+	<dct:title xml:lang="en">Burkina Faso</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q983">
+	<dct:title xml:lang="en">Equatorial Guinea</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1011">
+	<dct:title xml:lang="en">Cape Verde</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1006">
+	<dct:title xml:lang="en">Guinea</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q948">
+	<dct:title xml:lang="en">Tunisia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1037">
+	<dct:title xml:lang="en">Rwanda</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1042">
+	<dct:title xml:lang="en">Seychelles</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q6250">
+	<dct:title xml:lang="en">Western Sahara</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q921">
+	<dct:title xml:lang="en">Brunei</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1028">
+	<dct:title xml:lang="en">Morocco</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1029">
+	<dct:title xml:lang="en">Mozambique</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q805">
+	<dct:title xml:lang="en">Yemen</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1000">
+	<dct:title xml:lang="en">Gabon</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q929">
+	<dct:title xml:lang="en">Central African Republic</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q878">
+	<dct:title xml:lang="en">United Arab Emirates</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1020">
+	<dct:title xml:lang="en">Malawi</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q757">
+	<dct:title xml:lang="en">Saint Vincent and the Grenadines</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q851">
+	<dct:title xml:lang="en">Saudi Arabia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q928">
+	<dct:title xml:lang="en">Philippines</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q953">
+	<dct:title xml:lang="en">Zambia</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1039">
+	<dct:title xml:lang="en">São Tomé and Príncipe</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q869">
+	<dct:title xml:lang="en">Thailand</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q826">
+	<dct:title xml:lang="en">Maldives</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q970">
+	<dct:title xml:lang="en">Comoros</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1013">
+	<dct:title xml:lang="en">Lesotho</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q763">
+	<dct:title xml:lang="en">Saint Kitts and Nevis</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q754">
+	<dct:title xml:lang="en">Trinidad and Tobago</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q971">
+	<dct:title xml:lang="en">Republic of the Congo</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q23681">
+	<dct:title xml:lang="en">Turkish Republic of Northern Cyprus</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q819">
+	<dct:title xml:lang="en">Laos</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1041">
+	<dct:title xml:lang="en">Senegal</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q917">
+	<dct:title xml:lang="en">Bhutan</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q967">
+	<dct:title xml:lang="en">Burundi</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q884">
+	<dct:title xml:lang="en">South Korea</dct:title>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.wikidata.org/entity/Q1050">
+	<dct:title xml:lang="en">Swaziland</dct:title>
+</rdf:Description>
+
+</rdf:RDF>

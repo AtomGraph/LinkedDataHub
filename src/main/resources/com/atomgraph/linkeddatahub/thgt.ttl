@@ -1,0 +1,74 @@
+@base           <https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates> .
+
+@prefix :	<#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix http:   <http://www.w3.org/2011/http#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix ct:	<https://www.w3.org/ns/ldt/core/templates#> .
+@prefix tht:	<https://www.w3.org/ns/ldt/topic-hierarchy/templates#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix vann:	<http://purl.org/vocab/vann/> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+
+: a ldt:Ontology ;
+    owl:imports tht: ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "Topic hierarchy graph templates" ;
+    rdfs:comment "Document hierarchy with topic resources, stored in named graphs" ;
+    dct:created "2016-09-28T00:08:00+02:00"^^xsd:dateTime ;
+    vann:preferredNamespaceUri "https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#" ;
+    vann:preferredNamespacePrefix "thgt";
+    dct:license <http://www.opendatacommons.org/licenses/pddl/1.0/> .
+
+# TEMPLATES
+
+:Document a ldt:Template ;
+    ldt:extends tht:Document ;
+    ldt:query :DescribeWithTopic ;
+    ldt:update :DeleteWithTopic ;
+    rdfs:label "Document" ;
+    rdfs:isDefinedBy : .
+
+# COMMANDS
+
+:DescribeWithTopic a sp:Describe, sp:Query ;
+    sp:text """PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DESCRIBE ?this ?primaryTopic ?seeAlso WHERE {
+    GRAPH ?graph
+    { ?this ?p ?o .
+      OPTIONAL { ?this foaf:primaryTopic ?primaryTopic }
+      OPTIONAL { ?this rdfs:seeAlso ?seeAlso }
+    }
+}""" ;
+    rdfs:label "Describe with topic" ;
+    rdfs:isDefinedBy : .
+
+:DeleteWithTopic a sp:DeleteWhere, sp:Update ;
+      sp:text """PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DELETE {
+  GRAPH ?graph {
+    ?this ?p ?o .
+    ?primaryTopic ?primaryTopicP ?primaryTopicO .
+  }
+}
+WHERE
+  { GRAPH ?graph
+      { ?this ?p ?o
+        OPTIONAL
+          { ?this foaf:primaryTopic ?primaryTopic .
+            ?primaryTopic ?primaryTopicP ?primaryTopicO
+          }
+      }
+  }""" ;
+    rdfs:label "Delete with topic" ;
+    rdfs:isDefinedBy : .

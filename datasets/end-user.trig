@@ -1,0 +1,510 @@
+@prefix ns:     <ns#> .
+@prefix def:    <ns/default#> .
+@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
+@prefix ac:	<http://atomgraph.com/ns/client#> .
+@prefix a:	<http://atomgraph.com/ns/core#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix void:	<http://rdfs.org/ns/void#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix srv:    <http://jena.hpl.hp.com/Service#> .
+@prefix dydra:  <http://dydra.com/ns#> .
+
+<graphs/05164fcf-9248-4855-9f3e-1c202db33658/>
+{
+
+    <graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/#this> .
+
+    <graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/> .
+
+    <> sioc:has_space <> ;
+        void:inDataset <graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/>
+{
+
+    <> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Root" ;
+        dct:description "Root container" .
+
+}
+
+# CONTAINERS
+
+<graphs/00bc978a-a1fb-4548-ab70-77276f542844/>
+{
+
+    <graphs/f0339b33-dc4f-4672-b9d8-d11ca033c9d6/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/f0339b33-dc4f-4672-b9d8-d11ca033c9d6/#this> .
+
+    <graphs/f0339b33-dc4f-4672-b9d8-d11ca033c9d6/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/f0339b33-dc4f-4672-b9d8-d11ca033c9d6/> .
+
+    <search/> sioc:has_space <> ;
+        dh:slug "search" ;
+        void:inDataset <graphs/f0339b33-dc4f-4672-b9d8-d11ca033c9d6/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/f0339b33-dc4f-4672-b9d8-d11ca033c9d6/>
+{
+
+    <search/> a def:Container ;
+        dh:select <queries/default/select-labelled/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Search" ;
+        dct:description "Search resources by keyword" .
+
+}
+
+<graphs/ad67674f-c652-4327-bfe9-861290c01917/>
+{
+
+    <graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/#this> .
+
+    <graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/> .
+
+    <queries/> sioc:has_space <> ;
+        dh:slug "queries" ;
+        void:inDataset <graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/>
+{
+
+    <queries/> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Queries" ;
+        dct:description "SPARQL queries" .
+
+}
+
+<graphs/3a449165-4797-47d8-9428-362de4e381e2/>
+{
+
+    <graphs/cd84d745-545e-4314-8213-30251f042404/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/cd84d745-545e-4314-8213-30251f042404/#this> .
+
+    <graphs/cd84d745-545e-4314-8213-30251f042404/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/cd84d745-545e-4314-8213-30251f042404/> .
+
+    <queries/default/> sioc:has_space <> ;
+        sioc:has_parent <queries/> ;
+        dh:slug "default" ;
+        void:inDataset <graphs/cd84d745-545e-4314-8213-30251f042404/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/cd84d745-545e-4314-8213-30251f042404/>
+{
+
+    <queries/default/> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Default" ;
+        dct:description "Default queries" .
+
+}
+
+<graphs/10fe67d3-79d9-41d5-b79e-89ff75a12fe2/>
+{
+
+    <graphs/47a63b3d-8ade-4a81-8694-f219b4db7c3b/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/47a63b3d-8ade-4a81-8694-f219b4db7c3b/#this> .
+
+    <graphs/47a63b3d-8ade-4a81-8694-f219b4db7c3b/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/47a63b3d-8ade-4a81-8694-f219b4db7c3b/> .
+
+    <files/> sioc:has_space <> ;
+        dh:slug "files" ;
+        void:inDataset <graphs/47a63b3d-8ade-4a81-8694-f219b4db7c3b/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/47a63b3d-8ade-4a81-8694-f219b4db7c3b/>
+{
+
+    <files/> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Files" ;
+        dct:description "Uploaded files" .
+
+}
+
+<graphs/3f6095bc-85a9-406e-bbff-6d31db52edfa/>
+{
+
+    <graphs/44ba6a3e-22e8-492d-a239-fd312d74361e/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/44ba6a3e-22e8-492d-a239-fd312d74361e/#this> .
+
+    <graphs/44ba6a3e-22e8-492d-a239-fd312d74361e/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/44ba6a3e-22e8-492d-a239-fd312d74361e/> .
+
+    <imports/> sioc:has_space <> ;
+        dh:slug "imports" ;
+        void:inDataset <graphs/44ba6a3e-22e8-492d-a239-fd312d74361e/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/44ba6a3e-22e8-492d-a239-fd312d74361e/>
+{
+
+    <imports/> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Imports" ;
+        dct:description "Data imports" .
+
+}
+
+<graphs/c841f0ad-f401-4610-b521-29114a1b8554/>
+{
+
+    <graphs/e5438790-413f-43c2-9f18-3cc2dd101626/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/e5438790-413f-43c2-9f18-3cc2dd101626/#this> .
+
+    <graphs/e5438790-413f-43c2-9f18-3cc2dd101626/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/e5438790-413f-43c2-9f18-3cc2dd101626/> .
+
+    <geo/> sioc:has_space <> ;
+        dh:slug "geo" ;
+        void:inDataset <graphs/e5438790-413f-43c2-9f18-3cc2dd101626/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/e5438790-413f-43c2-9f18-3cc2dd101626/>
+{
+
+    <geo/> a def:Container ;
+        dh:select <queries/default/select-geo-resources/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "geo" ;
+        dct:description "Geolocated resources" .
+
+}
+
+<graphs/d5182a56-e983-4511-a9ea-815ac7e104ea/>
+{
+
+    <graphs/26666d38-2709-4208-a41e-c9cc9b8bc2af/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/26666d38-2709-4208-a41e-c9cc9b8bc2af/#this> .
+
+    <graphs/26666d38-2709-4208-a41e-c9cc9b8bc2af/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/26666d38-2709-4208-a41e-c9cc9b8bc2af/> .
+
+    <latest/> sioc:has_space <> ;
+        dh:slug "latest" ;
+        void:inDataset <graphs/26666d38-2709-4208-a41e-c9cc9b8bc2af/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/26666d38-2709-4208-a41e-c9cc9b8bc2af/>
+{
+
+    <latest/> a def:Container ;
+        dh:select <queries/default/select-latest/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Latest" ;
+        dct:description "Latest resources" .
+
+}
+
+<graphs/907a601a-2f57-45ea-808c-2ada0c0ef11f/>
+{
+
+    <graphs/6fa21c93-8ed7-4293-b20b-02e78c90a4fb/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/6fa21c93-8ed7-4293-b20b-02e78c90a4fb/#this> .
+
+    <graphs/6fa21c93-8ed7-4293-b20b-02e78c90a4fb/#this> a apl:Dataset;
+        foaf:isPrimaryTopicOf <graphs/6fa21c93-8ed7-4293-b20b-02e78c90a4fb/> .
+
+    <charts/> sioc:has_space <> ;
+        dh:slug "charts" ;
+        void:inDataset <graphs/6fa21c93-8ed7-4293-b20b-02e78c90a4fb/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/6fa21c93-8ed7-4293-b20b-02e78c90a4fb/>
+{
+
+    <charts/> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Charts" ;
+        dct:description "Saved charts" .
+
+}
+
+<graphs/b67c668d-85f4-400b-adf7-d5dd7dbfee76/>
+{
+
+    <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/#this> .
+
+    <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/> .
+
+    <services/> sioc:has_space <> ;
+        dh:slug "services" ;
+        void:inDataset <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/#this> ;
+        dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
+
+}
+
+<graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/>
+{
+
+    <services/> a def:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        apl:endpoint <sparql> ;
+        dct:title "Services" ;
+        dct:description "SPARQL services" .
+
+}
+
+# QUERIES
+
+# select children
+
+<graphs/892bbd41-6377-42cd-9c42-6f6a17994003/>
+{
+
+    <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/#this> .
+
+    <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/> .
+
+    <queries/default/select-children/> sioc:has_space <> ;
+        sioc:has_container <queries/default/> ;
+        dh:slug "select-children" ;
+        void:inDataset <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/#this> .
+
+}
+
+<graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/>
+{
+
+    <queries/default/select-children/> a ns:QueryItem ;
+        dct:title "Select children" ;
+        foaf:primaryTopic <queries/default/select-children/#this> .
+
+    <queries/default/select-children/#this> a ns:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-children/> ;
+        dct:title "Select children" ;
+        sp:text """
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+SELECT DISTINCT  ?child ?title ?thing
+WHERE
+  { GRAPH ?childGraphGraph
+      {   { ?child  sioc:has_parent  ?this }
+        UNION
+          { ?child  sioc:has_container  ?this }
+      }
+    GRAPH ?childGraph
+      { ?child  a                     ?Type
+        OPTIONAL
+          { ?child  dct:title  ?title }
+        OPTIONAL
+          { ?child  foaf:primaryTopic  ?thing }
+      }
+  }
+""" .
+
+}
+
+# select geo resources
+
+<graphs/ba81049e-8095-4342-97af-fc5f2135b001/>
+{
+
+    <graphs/8512df46-1509-43cc-af70-027fe333820f/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/8512df46-1509-43cc-af70-027fe333820f/#this> .
+
+    <graphs/8512df46-1509-43cc-af70-027fe333820f/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/8512df46-1509-43cc-af70-027fe333820f/> .
+
+    <queries/default/select-geo-resources/> sioc:has_space <> ;
+        sioc:has_container <queries/default/> ;
+        dh:slug "select-geo-resources" ;
+        void:inDataset <graphs/8512df46-1509-43cc-af70-027fe333820f/#this> .
+
+}
+
+<graphs/8512df46-1509-43cc-af70-027fe333820f/>
+{
+
+    <queries/default/select-geo-resources/> a ns:QueryItem ;
+        dct:title "Select geo resources" ;
+        foaf:primaryTopic <queries/default/select-geo-resources/#this> .
+
+    <queries/default/select-geo-resources/#this> a ns:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
+        dct:title "Select geo resources" ;
+        sp:text """
+PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT  ?resource ?lat ?long ?type ?title
+WHERE
+  { GRAPH ?graph
+      { ?resource  geo:lat  ?lat ;
+                  geo:long  ?long
+        OPTIONAL
+          { ?resource  a                    ?type }
+        OPTIONAL
+          { ?resource  dct:title  ?title }
+      }
+  }
+""" .
+
+}
+
+# select latest
+
+<graphs/e6c2e7ba-fd4a-4621-9bde-0c7b2e44be55/>
+{
+
+    <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/#this> .
+
+    <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/> .
+
+    <queries/default/select-latest/> sioc:has_space <> ;
+        sioc:has_container <queries/default/> ;
+        dh:slug "select-latest" ;
+        void:inDataset <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/#this> .
+
+}
+
+<graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/>
+{
+
+    <queries/default/select-latest/> a ns:QueryItem ;
+        dct:title "Select latest" ;
+        foaf:primaryTopic <queries/default/select-latest/#this> .
+
+    <queries/default/select-latest/#this> a ns:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
+        dct:title "Select latest" ;
+        sp:text """
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT DISTINCT  ?dated ?created
+WHERE
+  { GRAPH ?graph
+      { ?dated  dct:created  ?created }
+  }
+ORDER BY DESC(?created)
+""" .
+
+}
+
+# select labelled
+
+<graphs/c20ba81a-8185-490c-a0da-67239329a908/>
+{
+
+    <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/#this> .
+
+    <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/> .
+
+    <queries/default/select-labelled/> sioc:has_space <> ;
+        sioc:has_container <queries/default/> ;
+        dh:slug "select-labelled" ;
+        void:inDataset <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/#this> .
+
+}
+
+<graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/>
+{
+
+    <queries/default/select-labelled/> a ns:QueryItem ;
+        dct:title "Select labelled" ;
+        foaf:primaryTopic <queries/default/select-labelled/#this> .
+
+    <queries/default/select-labelled/#this> a ns:Select ;
+        dct:title "Select labelled" ;
+        sp:text """
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+SELECT DISTINCT  ?resource ?label
+WHERE
+  { GRAPH ?graph
+      { ?resource a ?Type .
+        ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+        FILTER isURI(?resource)
+        OPTIONAL
+          { ?resource  dct:created  ?created }
+      }
+  }""" .
+
+}

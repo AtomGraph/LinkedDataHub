@@ -86,7 +86,7 @@ if [ -z "$label" ] ; then
     exit 1
 fi
 if [ -z "$agent" ] && [ -z "$agent_class" ] ; then
-    echo '--agemt or --agent-class not set'
+    echo '--agent or --agent-class not set'
     exit 1
 fi
 if [ -z "$to" ] && [ -z "$to_all_in" ] ; then

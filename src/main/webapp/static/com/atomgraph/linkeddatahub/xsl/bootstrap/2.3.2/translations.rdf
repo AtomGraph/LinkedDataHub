@@ -1,0 +1,97 @@
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf            "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs           "http://www.w3.org/2000/01/rdf-schema#">
+    <!ENTITY xsd            "http://www.w3.org/2001/XMLSchema#">
+]>
+<rdf:RDF xmlns:rdf="&rdf;" xmlns:rdfs="&rdfs;">
+    <rdf:Description rdf:nodeID="root">
+        <rdfs:label xml:lang="en-US">Root</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="filter">
+        <rdfs:label xml:lang="en-US">Filter</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="reset">
+        <rdfs:label xml:lang="en-US">Reset</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="search">
+        <rdfs:label xml:lang="en-US">Search</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="applications">
+        <rdfs:label xml:lang="en-US">Applications</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="atomgraph">
+        <rdfs:label xml:lang="en-US">AtomGraph</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="details">
+        <rdfs:label xml:lang="en-US">Details</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="add">
+        <rdfs:label xml:lang="en-US">Add</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="remove">
+        <rdfs:label xml:lang="en-US">Remove</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="save">
+        <rdfs:label xml:lang="en-US">Save</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="settings">
+        <rdfs:label xml:lang="en-US">Settings</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="latest">
+        <rdfs:label xml:lang="en-US">Latest</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="geo">
+        <rdfs:label xml:lang="en-US">Geo</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="files">
+        <rdfs:label xml:lang="en-US">Files</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="imports">
+        <rdfs:label xml:lang="en-US">Imports</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="queries">
+        <rdfs:label xml:lang="en-US">Queries</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="charts">
+        <rdfs:label xml:lang="en-US">Charts</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="services">
+        <rdfs:label xml:lang="en-US">Services</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="search-title">
+        <rdfs:label xml:lang="en-US">Search for resources by title, label, content etc.</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="application-list-title">
+        <rdfs:label xml:lang="en-US">Applications</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="mode-list-title">
+        <rdfs:label xml:lang="en-US">Change layout mode</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="acl-list-title">
+        <rdfs:label xml:lang="en-US">Allowed access modes</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="create-instance-title">
+        <rdfs:label xml:lang="en-US">Create a new resource of selected type</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="nav-bar-action-delete-title">
+        <rdfs:label xml:lang="en-US">Delete the graph of this resource</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="nav-bar-action-refresh-title">
+        <rdfs:label xml:lang="en-US">Clear the resource from SPARQL results cache</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="nav-bar-action-edit-graph-title">
+        <rdfs:label xml:lang="en-US">Edit the graph of this resource</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="nav-bar-action-export-rdf-title">
+        <rdfs:label xml:lang="en-US">Export RDF data for this response</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="nav-bar-action-settings-title">
+        <rdfs:label xml:lang="en-US">Settings</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="filter-title">
+        <rdfs:label xml:lang="en-US">Filter the current view</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="reset-changes-title">
+        <rdfs:label xml:lang="en-US">Reset changes</rdfs:label>
+    </rdf:Description>
+</rdf:RDF>

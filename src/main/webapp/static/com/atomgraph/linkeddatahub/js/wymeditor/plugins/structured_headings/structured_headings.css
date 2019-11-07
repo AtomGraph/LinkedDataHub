@@ -1,0 +1,55 @@
+/* Structured Headings Plugin CSS */
+body {
+    counter-reset: cntr-h1;
+}
+
+h1 {
+    counter-reset: cntr-h2;
+}
+
+h1:before {
+    content: counter(cntr-h1) " ";
+    counter-increment: cntr-h1;
+}
+
+h2 {
+    counter-reset: cntr-h3;
+}
+
+h2:before {
+    content: counter(cntr-h1) "." counter(cntr-h2) " ";
+    counter-increment: cntr-h2;
+}
+
+h3 {
+    counter-reset: cntr-h4;
+}
+
+h3:before {
+    content: counter(cntr-h1) "." counter(cntr-h2) "." counter(cntr-h3) " ";
+    counter-increment: cntr-h3;
+}
+
+h4 {
+    counter-reset: cntr-h5;
+}
+
+h4:before {
+    content: counter(cntr-h1) "." counter(cntr-h2) "." counter(cntr-h3) "." counter(cntr-h4) " ";
+    counter-increment: cntr-h4;
+}
+
+h5 {
+    counter-reset: cntr-h6;
+}
+
+h5:before {
+    content: counter(cntr-h1) "." counter(cntr-h2) "." counter(cntr-h3) "." counter(cntr-h4) "." counter(cntr-h5) " ";
+    counter-increment: cntr-h5;
+}
+
+h6:before {
+    content: counter(cntr-h1) "." counter(cntr-h2) "." counter(cntr-h3) "." counter(cntr-h4) "." counter(cntr-h5) "." counter(cntr-h6) " ";
+    counter-increment: cntr-h6;
+}
+

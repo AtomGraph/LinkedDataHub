@@ -1,0 +1,104 @@
+version: "2.3"
+services:
+  nginx:
+    image: atomgraph/nginx
+    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    ports:
+      - 81:81 # allow Tomcat to do HTTP to HTTPS redirect
+      - 4443:4443 # HTTPS
+    environment:
+      - UPSTREAM_SERVER=linkeddatahub
+      - UPSTREAM_HTTPS_PORT=8443
+      - UPSTREAM_HTTP_PORT=8080
+      - SERVER_NAME=localhost
+      - SERVER_HTTPS_PORT=4443
+      - SERVER_HTTP_PORT=81
+    volumes:
+      - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+  linkeddatahub:
+    image: atomgraph/linkeddatahub:latest
+    #depends_on:
+    #  - fuseki-admin
+    #  - fuseki-end-user
+    ports:
+      - 8001:8000 # debugger
+    environment:
+      - JPDA_ADDRESS=8000 # debugger port
+      - ATOMGRAPH_UPLOAD_ROOT=/var/www/stage.linkeddatahub.com/uploads/
+      - TZ="Europe/Copenhagen"
+      #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
+      - PROXY_HOST=nginx
+      - BASE_URI=https://localhost:4443/
+      - HTTP_PROXY_PORT=81
+      - HTTP_REDIRECT_PORT=4443
+      - HTTPS_PROXY_PORT=4443
+      - HTTPS_CLIENT_AUTH=want
+      - LETSENCRYPT_CERT_DIR=/etc/letsencrypt/live/stage.linkeddatahub.com
+      - PKCS12_PASSWORD=Marchius
+      - JKS_KEY_PASSWORD=Marchius
+      - JKS_STORE_PASSWORD=Marchius
+      - SECRETARY_CERT_ALIAS=ldh
+      - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
+      - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
+      - SELF_SIGNED_CERT=true # only on localhost
+      - SIGN_UP_CERT_VALIDITY=180
+      - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig
+      - STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
+      - CACHE_STYLESHEET=false # false for debugging
+      - MAIL_SMTP_HOST=smtp-relay.gmail.com
+      - MAIL_SMTP_PORT=25
+      - MAIL_USER=linkeddatahub@atomgraph.com
+      - MAIL_PASSWORD=XSy]YA9>>JF%T!va
+      - OWNER_MBOX=${OWNER_MBOX}
+      - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
+      - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
+      - OWNER_ORG_UNIT=${OWNER_ORG_UNIT}
+      - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
+      - OWNER_LOCALITY=${OWNER_LOCALITY}
+      - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
+      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
+      - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
+    volumes:
+      #- ./target/ROOT/WEB-INF/classes/com:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com
+      #- ./target/ROOT/WEB-INF/lib:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib
+      #- ./target/ROOT/WEB-INF/web.xml:/usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml
+      - ./certs:/usr/local/tomcat/webapps/ROOT/certs
+      - ../uploads:/var/www/stage.linkeddatahub.com/uploads
+      - ./src/main/resources/dev/log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties
+      - ./src/main/resources/prefix-mapping.n3:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/prefix-mapping.n3
+      - ./src/main/resources/com/atomgraph/linkeddatahub/apl.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/apl.ttl
+      - ./src/main/resources/com/atomgraph/linkeddatahub/aplt.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/aplt.ttl
+      - ./src/main/resources/com/atomgraph/linkeddatahub/lapp.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/lapp.ttl
+      - ./src/main/resources/com/atomgraph/linkeddatahub/app/admin/lsm.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/admin/lsm.ttl
+      - ./src/main/resources/com/atomgraph/linkeddatahub/app/end-user/dataset.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/end-user/dataset.trig
+      - ./src/main/resources/com/atomgraph/linkeddatahub/app/admin/dataset.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/admin/dataset.trig
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/typeahead.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/typeahead.xsl
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/wymeditor:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/wymeditor
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/jquery.js
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/SPARQLMap.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/SPARQLMap.js
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
+      - ./docker/letsencrypt/live/stage.linkeddatahub.com:/etc/letsencrypt/live/stage.linkeddatahub.com
+      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
+  fuseki-admin:
+    image: atomgraph/fuseki
+    ports:
+      - 3030:3030
+    environment:
+      - BASE_URI=https://localhost:4443/admin/
+    volumes:
+      - ./config/fuseki/admin.ttl:/mnt/apache-fuseki/configuration/admin.ttl:ro
+      - ./datasets/admin.trig:/mnt/apache-fuseki/admin.trig:ro
+    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/admin.trig; } > /mnt/apache-fuseki/based.admin.trig && /usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/admin.ttl" ]
+  fuseki-end-user:
+    image: atomgraph/fuseki
+    ports:
+      - 3031:3030
+    environment:
+      - BASE_URI=https://localhost:4443/
+    volumes:
+      - ./config/fuseki/end-user.ttl:/mnt/apache-fuseki/configuration/end-user.ttl:ro
+      - ./datasets/end-user.trig:/mnt/apache-fuseki/end-user.trig:ro
+    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/end-user.trig; } > /mnt/apache-fuseki/based.end-user.trig && /usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/end-user.ttl" ]

@@ -1,0 +1,26 @@
+PREFIX ldt:     <https://www.w3.org/ns/ldt#>
+PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
+PREFIX lapp:    <http://linkeddatahub.com/ns/apps/domain#>
+PREFIX dydra:   <http://dydra.com/ns#>
+PREFIX srv:     <http://jena.hpl.hp.com/Service#>
+
+SELECT ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd
+{
+    ?app ldt:base <$BASE_URI> ;
+        lapp:adminApplication ?adminApp .
+        ?adminApp ldt:service ?adminService ;
+            ldt:base ?adminBaseUri .
+        {
+            ?adminService sd:endpoint ?adminQuadStore .
+        }
+        UNION
+        {
+            ?adminService dydra:repository ?repository .
+            BIND (URI(CONCAT(STR(?repository), "service")) AS ?adminQuadStore)
+        }
+        OPTIONAL
+        {
+            ?adminService srv:queryAuthUser ?adminAuthUser ;
+                srv:queryAuthPwd ?adminAuthPwd .
+        }
+}

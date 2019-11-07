@@ -33,14 +33,12 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    # echo '-f|--cert_pem_file not set'
-    print_usage
+    echo '-f|--cert_pem_file not set'
     exit 1
 fi
 
 if [ -z "$cert_password" ] ; then
-    # echo '-p|--cert-password not set'
-    print_usage
+    echo '-p|--cert-password not set'
     exit 1
 fi
 
@@ -55,7 +53,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 target="${base}model/ontologies/"
-source=$1
+source="$1"
 content_type="text/turtle"
 
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
@@ -68,7 +66,7 @@ turtle+="_:arg rdf:value <${source}>.\n"
 # set env values in the Turtle doc and sumbit it to the server
 
 # make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
+export PATH="$PATH:$JENA_HOME/bin"
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | curl -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -
