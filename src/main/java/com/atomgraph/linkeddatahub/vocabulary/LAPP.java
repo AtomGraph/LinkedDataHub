@@ -47,14 +47,8 @@ public class LAPP
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
     // DOMAIN
-    
-    public static final OntClass Context = m_model.createClass( NS + "Context" );
-
-    public static final OntClass ContextLevel1 = m_model.createClass( NS + "ContextLevel1" );
 
     public static final OntClass Application = m_model.createClass( NS + "Application" );
-
-    public static final OntClass EndUserApplicationLevel2 = m_model.createClass( NS + "EndUserApplicationLevel2" );
 
     public static final OntClass AdminApplication = m_model.createClass( NS + "AdminApplication" );
 

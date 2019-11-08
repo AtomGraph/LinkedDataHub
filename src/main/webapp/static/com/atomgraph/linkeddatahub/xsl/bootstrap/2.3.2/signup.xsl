@@ -72,6 +72,10 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:Block"/>
     </xsl:template>
    
+    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
+
+    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="1"/>
+
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Main" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
@@ -129,8 +133,6 @@ exclude-result-prefixes="#all">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
-
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="1"/>
 
     <xsl:template match="foaf:based_near/@rdf:*[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>

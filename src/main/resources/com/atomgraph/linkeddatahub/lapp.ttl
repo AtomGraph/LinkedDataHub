@@ -136,15 +136,6 @@
     rdfs:label "End-user application constructor" ;
     rdfs:isDefinedBy : .
 
-:EndUserApplicationLevel2 a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :EndUserApplication ;
-    spin:constraint [ a :BasePathMatchesRegexTemplate ;
-            rdfs:label "Base URI path does not match regex" ;
-            sp:arg1 "^[^/]+/[^/]+/$" # 2 path segments
-        ] ;
-    rdfs:label "Second level application" ;
-    rdfs:isDefinedBy : .
-
 # admin
 
 :AdminApplication a rdfs:Class, owl:Class ;
@@ -176,23 +167,6 @@
     rdfs:label "Admin application constructor" ;
     rdfs:isDefinedBy : .
 
-# context
-
-:Context a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :EndUserApplication ;
-    rdfs:label "Context" ;
-    rdfs:comment "Application that lists one level of sub-applications (with relative base URI)" ;
-    rdfs:isDefinedBy : .
-
-:ContextLevel1 a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Context ;
-    spin:constraint [ a :BasePathMatchesRegexTemplate ;
-            rdfs:label "Base URI path does not match regex" ;
-            sp:arg1 "^[^/]+/$" # 1 path segment
-        ] ;
-    rdfs:label "First level context" ;
-    rdfs:isDefinedBy : .
-
 # CONSTRAINTS
 
 :StartsWithHTTPS a sp:Construct ;
@@ -212,16 +186,6 @@ WHERE {
   ?this  ldt:base  ?base
   FILTER ( ! strstarts(str(?base), "https://") )
 }""" ;
-    rdfs:isDefinedBy : .
-
-:BasePathMatchesRegexTemplate a spin:Template ;
-    rdfs:label "ldt:base does not match regex" ;
-    spin:body :BasePathMatchesRegex ;
-    spin:labelTemplate "Application base URI path does not match the {?arg1} pattern" ;
-    spin:constraint [ a spl:Argument ;
-        spl:predicate sp:arg1 ;
-        spl:valueType xsd:string
-    ] ;
     rdfs:isDefinedBy : .
 
 :BasePathMatchesRegex a sp:Construct ;
