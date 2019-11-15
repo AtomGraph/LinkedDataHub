@@ -462,6 +462,21 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return response;
     }
     
+    @Override
+    public Response delete()
+    {
+        Response response = super.delete();
+        
+        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
+                getSystem().getDeleteUpdate(getUriInfo().getBaseUri().toString()).toString(),
+                getQuerySolutionMap());
+        
+        if (log.isDebugEnabled()) log.debug("DELETE meta-graphs: {}", updateString);
+        getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        
+        return response;
+    }
+    
     /**
      * Handles multipart <code>POST</code> requests, stores uploaded files, and returns response.
      * Files are written to storage before the RDF data is passed to the default <code>POST</code> handler method.

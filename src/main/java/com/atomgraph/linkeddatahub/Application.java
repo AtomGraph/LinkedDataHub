@@ -210,7 +210,7 @@ public class Application extends javax.ws.rs.core.Application
     private final MediaTypes mediaTypes;
     private final Client client;
     private final Query authQuery, ownerAuthQuery, webIDQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
-    private final String postUpdateString; // has relative URIs
+    private final String postUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final boolean remoteVariableBindings;
@@ -257,6 +257,7 @@ public class Application extends javax.ws.rs.core.Application
             servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.postUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.postUpdate.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,            
             servletConfig.getServletContext().getResource("/").toString(),
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
@@ -287,7 +288,7 @@ public class Application extends javax.ws.rs.core.Application
             final String proxyURIString, final boolean remoteVariableBindings,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString,
             final String appQueryString, final String sitemapQueryString,
-            final String graphDocumentQueryString, final String postUpdateString,
+            final String graphDocumentQueryString, final String postUpdateString, final String deleteUpdateString,
             final String systemBase,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
@@ -372,6 +373,13 @@ public class Application extends javax.ws.rs.core.Application
             throw new ConfigurationException(APLC.postUpdate);
         }
         this.postUpdateString = postUpdateString;
+        
+        if (deleteUpdateString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.deleteUpdate);
+            throw new ConfigurationException(APLC.deleteUpdate);
+        }
+        this.deleteUpdateString = deleteUpdateString;
         
         if (cookieMaxAge == null)
         {
@@ -859,6 +867,11 @@ public class Application extends javax.ws.rs.core.Application
         return UpdateFactory.create(postUpdateString, baseURI);
     }
 
+    public UpdateRequest getDeleteUpdate(String baseURI)
+    {
+        return UpdateFactory.create(deleteUpdateString, baseURI);
+    }
+    
     public Integer getMaxGetRequestSize()
     {
         return maxGetRequestSize;

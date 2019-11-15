@@ -380,6 +380,20 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
+        <param-name>http://atomgraph.com/ns/platform/config#deleteUpdate</param-name>
+        <param-value><![CDATA[
+PREFIX  void: <http://rdfs.org/ns/void#>
+
+DELETE WHERE
+{
+  GRAPH ?graphGraphDoc {
+    ?this void:inDataset ?graph .
+    ?s ?p ?o .
+  }
+}
+]]></param-value>
+    </context-param>
+    <context-param>
         <param-name>http://atomgraph.com/ns/platform/config#ontologyImportQuery</param-name>
         <param-value><![CDATA[
 PREFIX  ns:   <ns#>
