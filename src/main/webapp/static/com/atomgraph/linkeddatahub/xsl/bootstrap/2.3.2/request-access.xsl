@@ -77,6 +77,10 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>
     
+    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
+
+    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="1"/>
+
     <!-- handle ConstraintViolations -->
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Main" priority="2">
         <xsl:next-match>
@@ -104,8 +108,6 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TargetContainer" priority="2"/>
     
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="1"/>
-
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>

@@ -536,16 +536,11 @@ version="2.0"
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
-                <xsl:for-each select="id('container-results', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Error during query execution:</strong>
-                            <pre>
-                                <xsl:value-of select="ixsl:get($response, 'statusText')"/>
-                            </pre>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <ixsl:schedule-action wait="0">
+                    <xsl:call-template name="render-container-error">
+                        <xsl:with-param name="message" select="ixsl:get($response, 'statusText')"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -581,6 +576,21 @@ version="2.0"
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template name="render-container-error">
+        <xsl:param name="message" as="xs:string"/>
+
+        <xsl:for-each select="id('container-pane', ixsl:page())">
+            <xsl:result-document href="?select=." method="ixsl:replace-content">
+                <div class="alert alert-block">
+                    <strong>Error during query execution:</strong>
+                    <pre>
+                        <xsl:value-of select="$message"/>
+                    </pre>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- container results layout -->
     
     <xsl:template name="container-mode">

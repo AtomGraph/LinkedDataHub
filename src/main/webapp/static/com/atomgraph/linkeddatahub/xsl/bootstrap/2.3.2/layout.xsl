@@ -218,7 +218,12 @@ exclude-result-prefixes="#all">
     </xsl:function>
     
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
-        <!-- <xsl:apply-imports/> -->
+        <xsl:param name="load-wymeditor" select="$ldt:base and ($lacl:Agent or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-ce" select="$ldt:base and ($lacl:Agent or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="$ldt:base and ($lacl:Agent or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="$ldt:base and ($lacl:Agent or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="$ldt:base and ($lacl:Agent or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}"></script>
         <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', $ac:contextUri)}"></script>
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', $ac:contextUri)}"></script>
@@ -233,56 +238,50 @@ exclude-result-prefixes="#all">
                 var contextUri = "]]><xsl:value-of select="$ac:contextUri"/><![CDATA[";
             ]]>
         </script>
-        <xsl:if test="$lacl:Agent or $ac:mode = '&ac;MapMode'">
-            <!-- we need Saxon.parseXML() for MapMode -->
+        <xsl:if test="$load-wymeditor">
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}"></script>
+        </xsl:if>
+        <xsl:if test="$load-saxon-ce">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-ce/Saxonce.nocache.js', $ac:contextUri)}"></script>
-        </xsl:if>
-        <xsl:if test="$ldt:base">
-            <xsl:if test="$lacl:Agent or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base)">
-                <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}"></script>
-                <script type="text/javascript">
-                    <![CDATA[
-                        var xslt2proc; // global Saxon-CE processor instance
-            
-                        var onSaxonLoad = function()
+            <script type="text/javascript">
+                <![CDATA[
+                    var xslt2proc; // global Saxon-CE processor instance
+        
+                    var onSaxonLoad = function()
+                    {
+                        // namespaced parameters such as {https://www.w3.org/ns/ldt#}baseUri do not seem to work
+                        // also not possible to pass xs:anyURI values, only xs:string
+                        xslt2proc = Saxon.run(
                         {
-                            // namespaced parameters such as {https://www.w3.org/ns/ldt#}baseUri do not seem to work
-                            // also not possible to pass xs:anyURI values, only xs:string
-                            xslt2proc = Saxon.run(
-                            {
-                                stylesheet: "]]><xsl:value-of select="apl:client-stylesheet()"/><![CDATA[",
-                                parameters: {
-                                    "context-uri-string": contextUri, // servlet context URI
-                                    "base-uri-string": baseUri,
-                                    "ontology-uri-string": ontologyUri
-                                    },
-                                initialTemplate: "main",
-                                //source: baseUri,
-                                logLevel: "FINE"
-                            });
-                         }
-                    ]]>
-                </script>
-                <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $ac:contextUri)}"></script>
-                <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={$ac:googleMapsKey}"/>
-                <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLMap.js', $ac:contextUri)}"></script>
-                <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-                <script type="text/javascript">
-                    <![CDATA[
-                        google.charts.load('current', {packages: ['corechart', 'table', 'timeline', 'map']});
-                    ]]>
-                </script>
-            </xsl:if>
+                            stylesheet: "]]><xsl:value-of select="apl:client-stylesheet()"/><![CDATA[",
+                            parameters: {
+                                "context-uri-string": contextUri, // servlet context URI
+                                "base-uri-string": baseUri,
+                                "ontology-uri-string": ontologyUri
+                                },
+                            initialTemplate: "main",
+                            //source: baseUri,
+                            logLevel: "FINE"
+                        });
+                     }
+                ]]>
+            </script>
         </xsl:if>
-
-        <!--
-        <xsl:if test="$ac:mode = '&ac;GraphMode'">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/Client.js', $ac:contextUri)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/ClientRequest.js', $ac:contextUri)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/ClientResponse.js', $ac:contextUri)}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/WebResource.js', $ac:contextUri)}"></script>
+        <xsl:if test="$load-sparql-builder">
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $ac:contextUri)}"></script>
         </xsl:if>
-        -->
+        <xsl:if test="$load-sparql-map">
+            <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={$ac:googleMapsKey}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLMap.js', $ac:contextUri)}"></script>
+        </xsl:if>
+        <xsl:if test="$load-google-charts">
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script type="text/javascript">
+                <![CDATA[
+                    google.charts.load('current', {packages: ['corechart', 'table', 'timeline', 'map']});
+                ]]>
+            </script>
+        </xsl:if>
     </xsl:template>
     
     <!-- NAVBAR -->

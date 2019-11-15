@@ -248,7 +248,8 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     @Override
     public Response patch(UpdateRequest updateRequest)
     {
-        getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Arrays.asList(URI.create(getURI().toString())));
+        // TO-DO: do a check that the update only uses this named graph
+        getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();
     }

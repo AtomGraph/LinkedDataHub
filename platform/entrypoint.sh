@@ -384,6 +384,11 @@ fi
 # generate root owner WebID certificate if $OWNER_KEYSTORE does not exist
 
 if [ ! -f "${OWNER_KEYSTORE}" ]; then
+    if [ -z "$OWNER_MBOX" ] ; then
+        echo '$OWNER_MBOX not set'
+        exit 1
+    fi
+
     if [ -z "$OWNER_GIVEN_NAME" ] ; then
         echo '$OWNER_GIVEN_NAME not set'
         exit 1
@@ -453,9 +458,6 @@ if [ ! -f "${OWNER_KEYSTORE}" ]; then
         -passin pass:"${OWNER_KEY_PASSWORD}" \
         -out "${OWNER_KEYSTORE}.pem" \
         -passout pass:"${OWNER_KEY_PASSWORD}"
-
-echo "WTF??"
-openssl version
 
     owner_cert_modulus=$(get_modulus "${OWNER_KEYSTORE}" "${OWNER_KEY_PASSWORD}")
     export owner_cert_modulus

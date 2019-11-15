@@ -62,16 +62,11 @@ public class DataManager extends com.atomgraph.client.util.DataManager
     @Override
     public boolean resolvingUncached(String filenameOrURI)
     {
-        if (getApplication() != null)
+        if (getApplication() != null && !isMapped(filenameOrURI))
         {
-            // only resolve local documents for authenticated users on the server-side
-            if (getSecurityContext().getUserPrincipal() != null && !isMapped(filenameOrURI))
-            {
-                // URI contextBase = URI.create(getContext().getBase().getURI()); // current Context
-                // always resolve URIs relative to the root Context base URI
-                boolean relative = !getRootContextURI().relativize(URI.create(filenameOrURI)).isAbsolute();
-                return relative;
-            }
+            // always resolve URIs relative to the root Context base URI
+            boolean relative = !getRootContextURI().relativize(URI.create(filenameOrURI)).isAbsolute();
+            return relative;
         }
         
         return false; // by default, do not resolve URIs
