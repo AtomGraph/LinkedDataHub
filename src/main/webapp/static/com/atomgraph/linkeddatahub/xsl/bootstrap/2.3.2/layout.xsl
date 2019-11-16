@@ -297,7 +297,7 @@ exclude-result-prefixes="#all">
                     </button>
 
                     <xsl:if test="not($ldt:base = $ac:contextUri)">
-                        <a class="brand" href="..">
+                        <a class="brand" href="{resolve-uri('..', $ldt:base)}">
                             <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_arrow_upward_white_18dp.png', $ac:contextUri)}" alt="{ac:label(.)}"/>
                         </a>
                     </xsl:if>
