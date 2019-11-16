@@ -84,7 +84,7 @@ args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
 args+=("-c")
-args+=("http://linkeddatahub.com/ns/apps/domain#EndUserApplicationLevel2") # class
+args+=("http://linkeddatahub.com/ns/apps/hierarchy#EndUserApplicationLevel2") # class
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}create") # URL
@@ -94,7 +94,6 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix ac:	<http://atomgraph.com/ns/client#> .\n"
 turtle+="@prefix lapp:	<http://linkeddatahub.com/ns/apps/domain#> .\n"
-# turtle+="_:app a lapp:EndUserApplication .\n" # skip type, it will be added by the Create process. otherwise constraint validation will fail during POST due to missing ldt:service, ldt:service properties etc.
 turtle+="_:app dct:title \"${title}\" .\n"
 turtle+="_:app ldt:base <${app_base}> .\n"
 
