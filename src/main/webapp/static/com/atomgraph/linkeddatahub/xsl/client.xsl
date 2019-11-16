@@ -158,6 +158,16 @@ version="2.0"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode')">
+            <!-- show container progress bar -->
+            <xsl:for-each select="id('main-content', ixsl:page())">
+                <xsl:result-document href="?select=." method="ixsl:append-content">
+                    <div id="container-pane">
+                        <div class="progress progress-striped active">
+                          <div class="bar" style="width: 20%;"></div>
+                        </div>
+                    </div>
+                </xsl:result-document>
+            </xsl:for-each>
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <xsl:message>
                 <xsl:sequence select="ac:fetch($ac:uri, 'application/rdf+xml', 'onrdfBodyLoad')"/>
@@ -182,16 +192,6 @@ version="2.0"
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?select=." method="ixsl:append-content">
                 <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
-            </xsl:result-document>
-        </xsl:for-each>
-        <!-- show container progress bar -->
-        <xsl:for-each select="id('main-content', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:append-content">
-                <div id="container-pane">
-                    <div class="progress progress-striped active">
-                      <div class="bar" style="width: 20%;"></div>
-                    </div>
-                </div>
             </xsl:result-document>
         </xsl:for-each>
     </xsl:template>
@@ -396,13 +396,13 @@ version="2.0"
     <!-- CALLBACKS -->
 
     <!-- ontology loaded -->
-    <xsl:template match="ixsl:window()" mode="ixsl:onOntologyLoad">
+<!--    <xsl:template match="ixsl:window()" mode="ixsl:onOntologyLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>
 
         <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', ixsl:get($response, 'statusText'))"/>
-    </xsl:template>
+    </xsl:template>-->
         
     <!-- when RDF/XML of current document loads, fetch its dh:select (container SELECT) query -->
     <xsl:template match="ixsl:window()" mode="ixsl:onrdfBodyLoad">

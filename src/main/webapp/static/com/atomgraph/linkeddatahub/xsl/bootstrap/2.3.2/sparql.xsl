@@ -43,10 +43,6 @@ xmlns:javaee="http://java.sun.com/xml/ns/javaee"
 xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
 
-<!--    <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/sparql.xsl"/>-->
-
-    <!-- <xsl:template match="*[@rdf:about = resolve-uri('query', $ldt:base)]" mode="bs2:BlockList" priority="2"/> -->
-
     <xsl:template match="rdf:RDF[not(key('resources-by-type', '&http;Response'))][$ac:mode = '&ac;QueryEditorMode']" mode="bs2:Main" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="'main-content'" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
@@ -68,90 +64,8 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="query" select="$ac:query"/>
                 <xsl:with-param name="default-query" select="$default-query"/>
             </xsl:call-template>
-
-<!--            <xsl:if test="$ac:query and $ac:endpoint">
-                <xsl:variable name="results-uri" select="resolve-uri(concat('sparql', '?query=', encode-for-uri($ac:query)), $ldt:base)" as="xs:anyURI"/>
-                <xsl:choose>
-                    <xsl:when test="doc-available($results-uri)">
-                        <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
-
-                        <ul class="nav nav-tabs">
-                            <li>
-                                <xsl:if test="not($ac:mode = '&ac;ChartMode')">
-                                    <xsl:attribute name="class" select="'active'"/>
-                                </xsl:if>
-
-                                 $ac:query is already in the URL as it is not removed 
-                                <a href="{if ($ac:mode = '&ac;ChartMode') then concat($ac:uri, '?query=', encode-for-uri($ac:query), '&amp;endpoint=', encode-for-uri($ac:endpoint), '&amp;mode=', encode-for-uri('&ac;QueryEditorMode')) else ()}">Results</a>
-                            </li>
-                            <li>
-                                <xsl:if test="$ac:mode = '&ac;ChartMode'">
-                                    <xsl:attribute name="class" select="'active'"/>
-                                </xsl:if>
-
-                                 $ac:query is already in the URL as it is not removed 
-                                <a href="{if (not($ac:mode = '&ac;ChartMode')) then concat($ac:uri, '?query=', encode-for-uri($ac:query), '&amp;endpoint=', encode-for-uri($ac:endpoint), '&amp;mode=', encode-for-uri('&ac;QueryEditorMode'), '&amp;mode=', encode-for-uri('&ac;ChartMode')) else ()}">
-                                    <xsl:for-each select="key('resources', '&apl;Chart', document('&apl;'))">
-                                        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_show_chart_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                                        <xsl:apply-templates select="." mode="ac:label"/>
-                                    </xsl:for-each>
-                                </a>
-                            </li>
-                        </ul>
-                
-                        <xsl:choose>
-                             draw diagram 
-                            <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                                <xsl:apply-templates select="$results" mode="bs2:Chart">
-                                        <xsl:with-param name="chart-type" select="$ac:chart-type"/>
-                                        <xsl:with-param name="category" select="$ac:category"/>
-                                        <xsl:with-param name="series" select="$ac:series"/>
-                                        <xsl:with-param name="uri" select="$ac:uri"/>
-                                        <xsl:with-param name="mode" select="$ac:mode"/>
-                                        <xsl:with-param name="endpoint" select="$ac:endpoint"/>
-                                        <xsl:with-param name="query" select="$ac:query"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                             show result table 
-                            <xsl:otherwise>
-                                <xsl:call-template name="ac:QueryResult"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                     show error if results could not be loaded 
-                    <xsl:otherwise>
-                        <div class="alert alert-block">
-                            <strong>Could not execute query</strong>. Check syntax
-                        </div>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:if>-->
         </div>
     </xsl:template>
-
-<!--    <xsl:template match="rdf:RDF[$ac:mode = '&ac;QueryEditorMode']" mode="bs2:Right" priority="2">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span3'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-
-            <xsl:if test="$ac:query">
-                <div class="well well-small">
-                    <h2 class="nav-header">Save query</h2>
-
-                    <xsl:apply-templates select="." mode="bs2:SaveAs">
-                        <xsl:with-param name="query" select="$ac:query"/>
-                    </xsl:apply-templates>
-                </div>
-            </xsl:if>
-        </div>
-    </xsl:template>-->
 
     <xsl:template name="bs2:QueryForm">
         <xsl:param name="method" select="'get'" as="xs:string"/>
@@ -185,33 +99,9 @@ exclude-result-prefixes="#all">
                 <xsl:text> </xsl:text>
                     <select id="endpoint-uri" name="endpoint" class="input-xxlarge">
                         <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
-
-<!--                        <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
-                            <xsl:sort select="ac:label(.)"/>
-
-                            <xsl:apply-templates select="." mode="xhtml:Option">
-                                <xsl:with-param name="value" select="sd:endpoint/@rdf:resource"/>
-                                <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
-                            </xsl:apply-templates>
-                        </xsl:for-each>
-                        <xsl:if test="true()"  use-when="system-property('xsl:product-name') = 'Saxon-CE'">
-                            <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
-                            <xsl:message>
-                                <xsl:sequence select="ac:fetch(resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'application/rdf+xml', 'onchartModeServiceLoad')"/>
-                            </xsl:message> 
-                        </xsl:if>-->
                 </select>
         
                 <textarea id="query-string" name="query" class="span12" rows="15">
-<!--                    <xsl:choose>
-                        <xsl:when test="$ac:query">
-                            <xsl:value-of select="$ac:query"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="$default-query"/>
-                        </xsl:otherwise>
-                    </xsl:choose>-->
-
                     <xsl:value-of select="$default-query"/>
                 </textarea>
 
@@ -234,16 +124,6 @@ exclude-result-prefixes="#all">
                     <xsl:for-each select="$mode">
                         <input type="hidden" name="mode" value="{.}"/>
                     </xsl:for-each>
-                    <!-- chart params -->
-<!--                    <xsl:if test="$ac:chart-type">
-                        <input type="hidden" name="chart-type" value="{$ac:chart-type}"/>
-                    </xsl:if>
-                    <xsl:if test="$ac:category">
-                        <input type="hidden" name="category" value="{$ac:category}"/>
-                    </xsl:if>
-                    <xsl:for-each select="$ac:series">
-                        <input type="hidden" name="series" value="{.}"/>
-                    </xsl:for-each>-->
     
                     <button class="btn btn-primary btn-run-query" type="submit" >
                         <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-play_arrow-24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
@@ -420,34 +300,11 @@ exclude-result-prefixes="#all">
         
             <div class="form-actions">
                 <button class="btn btn-save-query" type="submit">
-                    <!-- <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                        <xsl:with-param name="filename" select="'ic_note_add_white_24px.svg'"/>
-                    </xsl:apply-templates> -->
-
                     <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_save_white_24px.svg', $ac:contextUri)}" alt="Save"/>
                     <xsl:text> Save</xsl:text> <!-- to do: use query class in apl:logo mode -->
                 </button>
             </div>
         </form>
     </xsl:template>
-
-<!--    <xsl:template match="*" mode="bs2:SaveAs"/>-->
-
-<!--    <xsl:template match="*[@rdf:about][key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource = '&c;SPARQLEndpoint']" mode="bs2:ModeListItem" priority="2">
-        <xsl:param name="active" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="xs:anyURI(concat($ac:uri, '?query=', encode-for-uri($ac:query), '&amp;mode=', encode-for-uri(@rdf:about)))" as="xs:anyURI"/>
-        
-        <li>
-            <xsl:if test="@rdf:about = $active">
-                <xsl:attribute name="class">active</xsl:attribute>
-            </xsl:if>
-
-            <a href="{if (not(starts-with($href, $ac:contextUri))) then xs:anyURI(concat(lapp:base($ac:contextUri, $lapp:Application), '?uri=', encode-for-uri($href))) else $href}" title="{@rdf:about}">
-                <xsl:apply-templates select="." mode="apl:logo"/>
-                <xsl:text> </xsl:text>
-                <xsl:apply-templates select="." mode="ac:label"/>
-            </a>
-        </li>
-    </xsl:template>-->
     
 </xsl:stylesheet>

@@ -124,7 +124,7 @@ public class RequestAccess extends ResourceBase
     public Response construct(InfModel infModel)
     {
         if (!getTemplateCall().hasArgument(APLT.forClass))
-            throw new WebApplicationException(new IllegalStateException("dh:forClass argument is mandatory for aplt:RequestAccess template"), BAD_REQUEST);
+            throw new WebApplicationException(new IllegalStateException("aplt:forClass argument is mandatory for aplt:RequestAccess template"), BAD_REQUEST);
 
         Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
         ResIterator it = infModel.getRawModel().listResourcesWithProperty(RDF.type, forClass);

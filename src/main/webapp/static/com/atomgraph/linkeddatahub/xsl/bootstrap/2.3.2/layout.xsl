@@ -297,19 +297,9 @@ exclude-result-prefixes="#all">
                     </button>
 
                     <xsl:if test="not($ldt:base = $ac:contextUri)">
-                        <xsl:choose>
-                            <!-- special handling of Contexts by linking them explicitly to the Root. TO-DO: fix in system Application and/or URIOverrideFilter -->
-                            <xsl:when test="$lapp:Application//ldt:base/@rdf:resource[starts-with($ldt:base, .)] = $ldt:base">
-                                <a class="brand" href="{$ac:contextUri}">
-                                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_arrow_upward_white_18dp.png', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                                </a>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <a class="brand" href="{$lapp:Application//ldt:base/@rdf:resource[starts-with($ldt:base, .)]}">
-                                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_arrow_upward_white_18dp.png', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                                </a>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <a class="brand" href="..">
+                            <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_arrow_upward_white_18dp.png', $ac:contextUri)}" alt="{ac:label(.)}"/>
+                        </a>
                     </xsl:if>
                         
                     <!-- TO-DO: if ldt:base param is passed, lapp:Application can/should also?! -->
@@ -1817,11 +1807,13 @@ exclude-result-prefixes="#all">
                     <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
                 </xsl:if>
 
-                <input type="text" name="endpoint" value="{resolve-uri('sparql', $ldt:base)}"/>
+                <xsl:if test="apl:endpoint/@rdf:resource">
+                    <input type="hidden" name="endpoint" value="{apl:endpoint/@rdf:resource}"/>
+                </xsl:if>
                 <input type="hidden" name="mode" value="&ac;QueryEditorMode"/>
                 <input type="hidden" name="query" value="{sp:text}"/>
 
-                <button type="submit" class="btn btn-primary">&#9654; Run</button>
+                <button type="submit" class="btn btn-primary">Open</button>
             </form>
         </div>
     </xsl:template>

@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.sun.jersey.api.uri.UriComponent;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
@@ -40,10 +41,7 @@ public class ClientParamRemovalFilter implements ContainerRequestFilter, Resourc
     public final static List<String> CLIENT_PARAMS = Arrays.asList(AC.uri.getLocalName(), AC.endpoint.getLocalName(), // AC.query.getLocalName(),
             AC.limit.getLocalName(), AC.offset.getLocalName(), AC.order_by.getLocalName(), AC.desc.getLocalName(),
             AC.mode.getLocalName(), AC.accept.getLocalName(),
-            com.atomgraph.linkeddatahub.vocabulary.AC.chart_type.getLocalName(),
-            com.atomgraph.linkeddatahub.vocabulary.AC.category.getLocalName(), com.atomgraph.linkeddatahub.vocabulary.AC.series.getLocalName(),
-            com.atomgraph.linkeddatahub.vocabulary.AC.access_to.getLocalName(), com.atomgraph.linkeddatahub.vocabulary.AC.label.getLocalName(),
-            com.atomgraph.linkeddatahub.vocabulary.AC.filter_regex.getLocalName());
+            APL.access_to.getLocalName());
     
     @Override
     public ContainerRequest filter(ContainerRequest request)

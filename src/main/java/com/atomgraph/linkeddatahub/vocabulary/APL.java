@@ -67,16 +67,12 @@ public class APL
     public static final OntClass CountMode = m_model.createClass(NS + "CountMode");
 
     public static final OntClass ChartMode = m_model.createClass(NS + "ChartMode");
-    
+
     public static final OntClass ConstructorMode = m_model.createClass(NS + "ConstructorMode");
 
     public static final OntClass URISyntaxViolation = m_model.createClass(NS + "URISyntaxViolation");
     
     public static final ObjectProperty violation = m_model.createObjectProperty( NS + "violation" );
-
-    public static final ObjectProperty counterOf = m_model.createObjectProperty( NS + "counterOf" );
-    
-    public static final DatatypeProperty count = m_model.createDatatypeProperty( NS + "count" );
     
     public static final ObjectProperty file = m_model.createObjectProperty( NS + "file" );
     
@@ -87,6 +83,7 @@ public class APL
     public static final ObjectProperty resourceType = m_model.createObjectProperty( NS + "resourceType" );
 
     public static final DatatypeProperty violationValue = m_model.createDatatypeProperty( NS + "violationValue" );
-
+    
+    public static final ObjectProperty access_to = m_model.createObjectProperty(NS + "access-to"); // TO-DO: move to client-side?
 
 }

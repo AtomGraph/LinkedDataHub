@@ -94,11 +94,16 @@ exclude-result-prefixes="#all">
     
     <!-- show only created resources, hide constructor bnodes -->
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Block" priority="2">
-        <div class="alert alert-success">
-            <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-            <p>
-                <strong>Authentication details have been sent to your email address.</strong>
-            </p>
+        <div class="alert alert-success row-fluid">
+            <div class="span1">
+                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+            </div>
+            <div class="span11">
+                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
+                <p>
+                    <strong>Authentication details have been sent to your email address.</strong>
+                </p>
+            </div>
         </div>
         
         <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
