@@ -33,6 +33,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --endpoint)
+    endpoint="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -67,6 +72,7 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
+turtle+="@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .\n"
 turtle+="_:query a ns:Select .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
@@ -75,6 +81,9 @@ turtle+="_:item a ns:QueryItem .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:query .\n"
 
+if [ -n "$endpoint" ] ; then
+    turtle+="_:query apl:endpoint <${endpoint}> .\n"
+fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
 fi
