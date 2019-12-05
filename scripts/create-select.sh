@@ -62,7 +62,7 @@ fi
 query=$(<"$query_file") # read query string from file
 
 args+=("-c")
-args+=("${base}ns#Construct") # class
+args+=("${base}ns#Select") # class
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("${base}queries/") # container
