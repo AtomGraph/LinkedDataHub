@@ -10,9 +10,6 @@
     <rdf:Description rdf:nodeID="filter">
         <rdfs:label xml:lang="en-US">Filter</rdfs:label>
     </rdf:Description>
-    <rdf:Description rdf:nodeID="reset">
-        <rdfs:label xml:lang="en-US">Reset</rdfs:label>
-    </rdf:Description>
     <rdf:Description rdf:nodeID="search">
         <rdfs:label xml:lang="en-US">Search</rdfs:label>
     </rdf:Description>
@@ -31,8 +28,23 @@
     <rdf:Description rdf:nodeID="remove">
         <rdfs:label xml:lang="en-US">Remove</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="ban">
+        <rdfs:label xml:lang="en-US">Ban</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="delete">
+        <rdfs:label xml:lang="en-US">Delete</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="export">
+        <rdfs:label xml:lang="en-US">export</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="save">
         <rdfs:label xml:lang="en-US">Save</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="close">
+        <rdfs:label xml:lang="en-US">Close</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="reset">
+        <rdfs:label xml:lang="en-US">Reset</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="settings">
         <rdfs:label xml:lang="en-US">Settings</rdfs:label>
@@ -57,6 +69,18 @@
     </rdf:Description>
     <rdf:Description rdf:nodeID="services">
         <rdfs:label xml:lang="en-US">Services</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="layout">
+        <rdfs:label xml:lang="en-US">Layout</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="access">
+        <rdfs:label xml:lang="en-US">Access</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="toggle-content">
+        <rdfs:label xml:lang="en-US">Toggle content</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="run">
+        <rdfs:label xml:lang="en-US">Run</rdfs:label>
     </rdf:Description>
     <rdf:Description rdf:nodeID="search-title">
         <rdfs:label xml:lang="en-US">Search for resources by title, label, content etc.</rdfs:label>

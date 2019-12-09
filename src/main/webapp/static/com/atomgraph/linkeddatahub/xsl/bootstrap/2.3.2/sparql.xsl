@@ -43,6 +43,20 @@ xmlns:javaee="http://java.sun.com/xml/ns/javaee"
 xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
 
+    <xsl:template match="*[@rdf:nodeID = 'run']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID = 'save']" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF[not(key('resources-by-type', '&http;Response'))][$ac:mode = '&ac;QueryEditorMode']" mode="bs2:Main" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="'main-content'" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
@@ -125,9 +139,10 @@ exclude-result-prefixes="#all">
                         <input type="hidden" name="mode" value="{.}"/>
                     </xsl:for-each>
     
-                    <button class="btn btn-primary btn-run-query" type="submit" >
-                        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-play_arrow-24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                        <xsl:text>Run</xsl:text>
+                    <button type="submit" >
+                        <xsl:apply-templates select="key('resources', 'run', document('translations.rdf'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary'"/>
+                        </xsl:apply-templates>
                     </button>
                 </div>
             </fieldset>
@@ -300,8 +315,9 @@ exclude-result-prefixes="#all">
         
             <div class="form-actions">
                 <button class="btn btn-save-query" type="submit">
-                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_save_white_24px.svg', $ac:contextUri)}" alt="Save"/>
-                    <xsl:text> Save</xsl:text> <!-- to do: use query class in apl:logo mode -->
+                    <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn btn-save-query'"/>
+                    </xsl:apply-templates>
                 </button>
             </div>
         </form>

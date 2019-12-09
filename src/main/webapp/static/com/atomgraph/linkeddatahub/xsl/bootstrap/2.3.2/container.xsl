@@ -13,6 +13,7 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
+    <!ENTITY void   "http://rdfs.org/ns/void#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -30,26 +31,11 @@ xmlns:sd="&sd;"
 xmlns:foaf="&foaf;"
 xmlns:sp="&sp;"
 xmlns:geo="&geo;"
+xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all">
    
-    <xsl:template match="*[@rdf:about = '&ac;ListMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_view_list_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = '&ac;TableMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_border_all_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = '&ac;GridMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_grid_on_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = '&ac;ChartMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_show_chart_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
     <!-- FILTERS -->
     
     <xsl:template name="bs2:FilterIn">
@@ -101,15 +87,11 @@ exclude-result-prefixes="#all">
                                 <!-- only set hyperlink on server-side - client-side will use event listener to avoid page refresh -->
                                 <xsl:variable name="href" select="xs:anyURI(concat($ac:uri, '?limit=', $limit, '&amp;offset=', $offset - $limit, if ($order-by) then concat('&amp;order-by=', $order-by) else (), if ($desc) then concat('&amp;desc=', $desc) else ()))" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                                 <xsl:attribute name="href" select="$href" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_navigate_before_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
                             </a>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:attribute name="class">previous disabled</xsl:attribute>
-                            <a>
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_navigate_before_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                            </a>
+                            <a></a>
                         </xsl:otherwise>
                     </xsl:choose>
                 </li>
@@ -120,15 +102,11 @@ exclude-result-prefixes="#all">
                                 <!-- only set hyperlink on server-side - client-side will use event listener to avoid page refresh -->
                                 <xsl:variable name="href" select="xs:anyURI(concat($ac:uri, '?limit=', $limit, '&amp;offset=', $offset + $limit, if ($order-by) then concat('&amp;order-by=', $order-by) else (), if ($desc) then concat('&amp;desc=', $desc) else ()))" as="xs:anyURI" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                                 <xsl:attribute name="href" select="$href" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_navigate_next_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
                             </a>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:attribute name="class">next disabled</xsl:attribute>
-                            <a>
-                                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_navigate_next_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                            </a>
+                            <a></a>
                         </xsl:otherwise>
                     </xsl:choose>
                 </li>
@@ -176,7 +154,9 @@ exclude-result-prefixes="#all">
             
             <xsl:apply-templates select="." mode="bs2:TypeList"/>
             
-            <xsl:apply-templates select="." mode="apl:logo"/>
+            <xsl:apply-templates select="." mode="apl:logo">
+                <xsl:with-param name="class" select="'well'"/>
+            </xsl:apply-templates>
                         
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
             <xsl:text> </xsl:text>
@@ -190,7 +170,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[key('resources', foaf:isPrimaryTopicOf/@rdf:resource)]" mode="bs2:BlockList" priority="1"/>
 
-    <xsl:template match="*[*][@rdf:local-name = ('about', 'nodeID')]" mode="bs2:BlockList" priority="0.8">
+    <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:BlockList" priority="0.8">
         <xsl:apply-templates select="." mode="bs2:Header"/>
     </xsl:template>
     
@@ -245,20 +225,15 @@ exclude-result-prefixes="#all">
     <!-- GRAPH MODE -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
-        <div id="graph-canvas" style="width: 100%; height: 100%;"/>
-
-        <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/Client.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/ClientRequest.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/ClientResponse.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/http-client/WebResource.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/GraphMode.js', $ac:contextUri)}"></script>
-        
-        <script type="text/javascript"><![CDATA[
-            new GraphMode("#graph-canvas", 640, 480).load("]]><xsl:value-of select="$ac:uri"/><![CDATA[");
-        ]]>
-        </script>
+        <xsl:apply-templates select="." mode="ac:SVG">
+            <xsl:with-param name="width" select="'100%'"/>
+            <xsl:with-param name="step-count" select="5"/>
+            <xsl:with-param name="spring-length" select="100" tunnel="yes"/>
+        </xsl:apply-templates>
     </xsl:template>
+    
+    <!-- do not show system named graph resources with provenance metadata as SVG nodes, also hide links to them -->
+    <xsl:template match="*[starts-with(@rdf:about, resolve-uri('graphs/', xs:string($ldt:base)))] | void:inDataset[starts-with(@rdf:resource, resolve-uri('graphs/', xs:string($ldt:base)))] | @rdf:resource[starts-with(., resolve-uri('graphs/', xs:string($ldt:base)))]" mode="ac:SVG" priority="1"/>
     
     <!-- MAP MODE -->
 
@@ -335,278 +310,6 @@ exclude-result-prefixes="#all">
             <root statement="window.LinkedDataHub.map.addListener('idle', function() {{ window.LinkedDataHub.geo.loadMarkers(window.LinkedDataHub.geo.addMarkers); }})"/> <!-- use template literal because the query string is multi-line -->
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:template>
-    
-    <!--
-    <xsl:template match="*[geo:lat castable as xs:double][geo:long castable as xs:double]" mode="bs2:Map" priority="1">
-        <xsl:param name="nested" as="xs:boolean?"/>
-
-        <script type="text/javascript">
-            <![CDATA[
-                function initialize]]><xsl:value-of select="generate-id()"/><![CDATA[()
-                {
-                    var latLng = new google.maps.LatLng(]]><xsl:value-of select="geo:lat[1]"/>, <xsl:value-of select="geo:long[1]"/><![CDATA[);
-                    var contentString = ']]><xsl:variable name="info-xhtml"><xsl:call-template name="ac:escape-json">
-                                    <xsl:with-param name="string"><xsl:call-template name="xml-to-string">
-                                        <xsl:with-param name="node-set">
-                                            <xsl:apply-templates select="." mode="bs2:Block"/>
-                                        </xsl:with-param>
-                                    </xsl:call-template>
-                                </xsl:with-param>
-                            </xsl:call-template>
-                        </xsl:variable>
-                    <xsl:value-of disable-output-escaping="yes" select="$info-xhtml"/><![CDATA[';
-                    var infowindow = new google.maps.InfoWindow({
-                        content: contentString
-                    });
-                    var marker = new google.maps.Marker({
-                        position: latLng,
-                        map: map,
-                        title: "]]><xsl:apply-templates select="." mode="ac:label"/><![CDATA["]]>
-                        <xsl:variable name="color-property" select="key('resources-by-type', '&apl;Map')/apl:colorProperty/@rdf:resource" as="xs:string?"/>
-                        <xsl:variable name="color-value" select="*[concat(namespace-uri(), local-name()) = $color-property][1]" as="xs:float?"/>
-                        <xsl:variable name="color" select="key('resources-by-type', '&apl;Range')[apl:from &lt;= $color-value][apl:to &gt;= $color-value][1]/apl:color" as="xs:string?"/>
-                        <xsl:if test="$color">
-                            <![CDATA[,
-                                icon: {
-                                    path: google.maps.SymbolPath.CIRCLE,
-                                    strokeColor: '#]]><xsl:value-of select="$color"/><![CDATA[',
-                                    strokeWeight: 10,
-                                    scale: 4
-                                }
-                            ]]>
-                        </xsl:if>
-                    <![CDATA[
-                    });
-                    marker.addListener('click', function() {
-                      infowindow.open(map, marker);
-                    });
-                }
-
-                google.maps.event.addDomListener(window, 'load', initialize]]><xsl:value-of select="generate-id()"/><![CDATA[);
-            ]]>
-        </script>
-    </xsl:template>
-    -->
-    
-    <!-- MAP CONTROLS MODE -->
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:MapControlsMode">
-        <xsl:param name="resources" as="element()*" tunnel="yes"/>
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-        <!-- <xsl:param name="mode" select="$ac:mode" as="xs:anyURI?"/> -->
-        <xsl:param name="action" select="xs:anyURI('')" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/>
-
-        <xsl:variable name="range-doc" as="document-node()">
-            <xsl:document>
-                <rdf:RDF>
-                    <rdf:Description rdf:nodeID="map">
-                        <rdf:type rdf:resource="&apl;Map"/>
-                        <apl:latProperty rdf:nodeID="latProperty"/>
-                        <apl:longProperty rdf:nodeID="longProperty"/>
-                        <apl:colorProperty rdf:nodeID="colorProperty"/>
-                    </rdf:Description>
-                    <xsl:for-each select="1 to 5">
-                        <rdf:Description rdf:nodeID="range{position()}">
-                            <rdf:type rdf:resource="&apl;Range"/>
-                            <apl:from xml:space="preserve"> </apl:from>
-                            <apl:to xml:space="preserve"> </apl:to>
-                            <apl:color xml:space="preserve"> </apl:color>
-                        </rdf:Description>
-                    </xsl:for-each>
-                </rdf:RDF>
-            </xsl:document>
-        </xsl:variable>
-        
-        <form method="{$method}" action="{$action}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$enctype">
-                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
-            </xsl:if>
-            <!--
-            <xsl:if test="$dh:offset">
-                <input type="hidden" name="offset" value="{$dh:offset}"/>
-            </xsl:if>
-            <xsl:if test="$dh:limit">
-                <input type="hidden" name="limit" value="{$dh:limit}"/>
-            </xsl:if>
-            <xsl:if test="$dh:orderBy">
-                <input type="hidden" name="orderBy" value="{$dh:orderBy}"/>
-            </xsl:if>
-            <xsl:if test="$dh:desc">
-                <input type="hidden" name="desc" value="{$dh:desc}"/>
-            </xsl:if>
-            <xsl:if test="$ac:mode">
-                <input type="hidden" name="mode" value="{$ac:mode}"/>
-            </xsl:if>
-            -->
-
-            <input type="hidden" name="rdf"/>
-            
-            <fieldset class="table">
-                <button type="submit" class="pull-right btn btn-primary">Set</button>
-                
-                <xsl:choose>
-                    <xsl:when test="key('resources-by-type', '&apl;Map')">
-                        <xsl:apply-templates select="key('resources-by-type', '&apl;Map')" mode="#current"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:apply-templates select="key('resources-by-type', '&apl;Map', $range-doc)" mode="#current"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </fieldset>
-                        
-            <fieldset class="table">
-                <xsl:variable name="missing-range-count" select="count(key('resources-by-type', '&apl;Range', $range-doc)) - count(key('resources-by-type', '&apl;Range')[apl:from or apl:to or apl:color])" as="xs:integer"/>
-                <xsl:apply-templates select="key('resources-by-type', '&apl;Range')" mode="#current">
-                    <xsl:sort select="if (apl:from castable as xs:float) then xs:float(apl:from) else ()"/>
-                </xsl:apply-templates>
-                <xsl:apply-templates select="key('resources-by-type', '&apl;Range', $range-doc)[position() &lt;= $missing-range-count]" mode="#current"/>
-            </fieldset>
-        </form>
-    </xsl:template>
-    
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Map']" mode="apl:MapControlsMode">
-        <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current"/>
-        <xsl:apply-templates select="rdf:type" mode="#current"/>
-            
-        <dl class="row">
-            <xsl:apply-templates select="apl:latProperty" mode="#current"/>
-            <xsl:apply-templates select="apl:longProperty" mode="#current"/>
-            <xsl:apply-templates select="apl:colorProperty" mode="#current"/>
-        </dl>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Range']" mode="apl:MapControlsMode">
-        <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current"/>
-        <xsl:apply-templates select="rdf:type" mode="#current"/>
-
-        <dl class="row">
-            <xsl:apply-templates select="apl:from" mode="#current"/>
-            <xsl:apply-templates select="apl:to" mode="#current"/>
-            <xsl:apply-templates select="apl:color" mode="#current"/>
-        </dl>
-    </xsl:template>
-
-    <xsl:template match="rdf:type" mode="apl:MapControlsMode">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <xsl:template match="apl:colorProperty" mode="ac:property-label">Color</xsl:template>
-    <xsl:template match="apl:latProperty" mode="ac:property-label">Latitude</xsl:template>
-    <xsl:template match="apl:longProperty" mode="ac:property-label">Longitude</xsl:template>
-
-    <xsl:template match="apl:colorProperty | apl:latProperty | apl:longProperty" mode="apl:MapControlsMode">
-        <xsl:param name="this" select="concat(namespace-uri(), local-name())"/>
-        <xsl:param name="resources" as="element()*" tunnel="yes"/>
-        <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:variable name="current" select="."/>
-
-        <input type="hidden" name="pu" value="{$this}"/>
-        <dt class="cell">
-            <label for="{$for}">
-                <xsl:apply-templates select="." mode="ac:property-label"/>
-            </label>
-        </dt>
-        <dd class="cell">
-            <select id="{$for}" name="ou" class="input-small">
-                <xsl:for-each-group select="key('resources', $resources/foaf:primaryTopic/(@rdf:resource,@rdf:nodeID), root($resources[1]))/*[. castable as xs:float]" group-by="concat(namespace-uri(), local-name())">
-                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
-                    <option value="{current-grouping-key()}">
-                        <xsl:if test="$current/@rdf:resource = current-grouping-key()">
-                            <xsl:attribute name="selected">selected</xsl:attribute>
-                        </xsl:if>
-
-                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label">
-                            <xsl:sort select="ac:object-label(@rdf:resource)" order="ascending"/>
-                        </xsl:apply-templates>
-                    </option>
-                </xsl:for-each-group>
-            </select>
-        </dd>
-    </xsl:template>
-
-    <xsl:template match="apl:from" mode="ac:property-label">From</xsl:template>
-    <xsl:template match="apl:to" mode="ac:property-label">To</xsl:template>
-    <xsl:template match="apl:color" mode="ac:property-label">Color</xsl:template>
-
-    <xsl:template match="apl:from | apl:to | apl:color" mode="apl:MapControlsMode">
-        <xsl:param name="this" select="concat(namespace-uri(), local-name())"/>
-        <xsl:param name="resources" as="element()*" tunnel="yes"/>
-        <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:variable name="current" select="."/>
-
-        <input type="hidden" name="pu" value="{$this}"/>
-        <dt class="cell">
-            <label for="{$for}">
-                <xsl:apply-templates select="." mode="ac:property-label"/>
-            </label>
-        </dt>
-        <dd class="cell">
-            <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current"/>
-        </dd>
-    </xsl:template>
-
-    <xsl:template match="@rdf:resource | @rdf:nodeID" mode="apl:MapControlsMode">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControl">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="type-label" select="false()"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <xsl:template match="text()" mode="apl:MapControlsMode">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="class" select="'input-small'" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControl">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="type-label" select="false()"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <xsl:template match="apl:color/text()" mode="apl:MapControlsMode" priority="1">
-        <xsl:param name="type" select="'text'" as="xs:string"/>
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="class" select="'input-small'" as="xs:string?"/>
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControl">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="type-label" select="false()"/>
-        </xsl:apply-templates>
-
-        <xsl:text> </xsl:text>
-        <span style="background-color: #{.};">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;</span>
     </xsl:template>
 
     <!-- CHART MODE -->
@@ -911,12 +614,9 @@ exclude-result-prefixes="#all">
                 </fieldset>
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="submit">
-                        <!-- <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                            <xsl:with-param name="filename" select="'ic_note_add_white_24px.svg'"/>
-                        </xsl:apply-templates> -->
-
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_save_white_24px.svg', $ac:contextUri)}" alt="Save"/>
-                        <xsl:text> Save</xsl:text> <!-- to do: use query class in apl:logo mode -->
+                        <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                        </xsl:apply-templates>
                     </button>
                 </div>
             </form>
@@ -1205,12 +905,9 @@ exclude-result-prefixes="#all">
                 </fieldset>
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="submit">
-                        <!-- <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                            <xsl:with-param name="filename" select="'ic_note_add_white_24px.svg'"/>
-                        </xsl:apply-templates> -->
-
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_save_white_24px.svg', $ac:contextUri)}" alt="Save"/>
-                        <xsl:text> Save</xsl:text> <!-- to do: use query class in apl:logo mode -->
+                        <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                        </xsl:apply-templates>
                     </button>
                 </div>
             </form>

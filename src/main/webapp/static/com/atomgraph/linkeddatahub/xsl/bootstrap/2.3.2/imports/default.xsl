@@ -164,6 +164,18 @@ exclude-result-prefixes="#all">
     
     <!-- SHARED FUNCTIONS -->
     
+    <xsl:function name="ac:svg-label" as="xs:string?">
+        <xsl:param name="resource" as="element()"/>
+
+        <xsl:sequence select="ac:label($resource)"/>
+    </xsl:function>
+
+    <xsl:function name="ac:svg-object-label" as="xs:string?">
+        <xsl:param name="object" as="attribute()"/>
+
+        <xsl:sequence select="ac:object-label($object)"/>
+    </xsl:function>
+    
     <xsl:function name="apl:subClasses" as="node()*">
         <xsl:param name="class" as="xs:anyURI*"/>
         <xsl:param name="document" as="document-node()"/>
@@ -195,16 +207,24 @@ exclude-result-prefixes="#all">
         </xsl:for-each>
     </xsl:function>
     
-    <xsl:template match="*" mode="apl:logo"/>
-    
     <xsl:template match="*[@rdf:nodeID = 'add']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_add_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-add')"/>
     </xsl:template>
     
     <xsl:template match="*[@rdf:nodeID = 'remove']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_remove_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove')"/>
     </xsl:template>
         
+    <xsl:template match="*" mode="apl:logo" priority="0">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="$class"/>
+    </xsl:template>
+    
     <!-- DEFAULT -->
 
     <!-- resources with URIs not relative to app base -->
@@ -432,9 +452,11 @@ exclude-result-prefixes="#all">
             <div class="controls">
                 <xsl:if test="not($required)">
                     <div class="btn-group pull-right">
-                        <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement">
-                            <!-- TO-DO: unify when cached RDF/XML ontologies are available for clien-side XSLT -->
-                            <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'remove', document('../translations.rdf'))" mode="apl:logo"/>
+                        <button type="button" title="Remove this statement">
+                            <!-- TO-DO: unify when cached RDF/XML ontologies are available for client-side XSLT -->
+                            <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'remove', document('../translations.rdf'))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
+                            </xsl:apply-templates>
                             <xsl:text use-when="system-property('xsl:product-name') = 'Saxon-CE'">&#x2715;</xsl:text>
                         </button>
                     </div>
@@ -725,7 +747,9 @@ exclude-result-prefixes="#all">
             <div class="controls">
                 <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
                     <!-- TO-DO: unify when cached RDF/XML ontologies are available for clien-side XSLT -->
-                    <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('../translations.rdf'))" mode="apl:logo"/>
+                    <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('../translations.rdf'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn add-value'"/>
+                    </xsl:apply-templates>
                     <xsl:text use-when="system-property('xsl:product-name') = 'Saxon-CE'">&#10133;</xsl:text>
                 </button>
             </div>
@@ -746,15 +770,19 @@ exclude-result-prefixes="#all">
         <xsl:choose>
             <xsl:when test="$subclasses and apl:subClasses($forClass, $ac:sitemap)">
                 <div class="btn-group">
-                    <button type="button" class="btn dropdown-toggle">
+                    <button type="button">
                         <xsl:choose>
                             <xsl:when test="$with-label">
-                                <xsl:apply-templates select="." mode="apl:logo"/>
+                                <xsl:apply-templates select="." mode="apl:logo">
+                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                </xsl:apply-templates>
                                 <xsl:text> </xsl:text>
                                 <xsl:apply-templates select="." mode="ac:label"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
+                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                </xsl:apply-templates>
                             </xsl:otherwise>
                         </xsl:choose>
                     </button>
@@ -790,23 +818,25 @@ exclude-result-prefixes="#all">
                         <xsl:value-of select="key('resources', key('resources', key('resources', key('resources', $forClass)/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
                     </xsl:for-each>
                 </xsl:variable>
-                <button type="button" class="btn add-constructor" title="{@rdf:about}">
+                <button type="button" title="{@rdf:about}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
                     
-                    <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
-
                     <xsl:choose>
                         <xsl:when test="$with-label">
-                            <xsl:apply-templates select="." mode="apl:logo"/>
-                            <xsl:text> </xsl:text>
-                            <xsl:apply-templates select="." mode="ac:label"/>
+                            <xsl:apply-templates select="." mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn add-constructor'"/>
+                            </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
+                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn add-constructor'"/>
+                            </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
+
+                    <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
                 </button>
             </xsl:otherwise>
         </xsl:choose>

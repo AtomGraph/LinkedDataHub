@@ -31,6 +31,95 @@ xmlns:geo="&geo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
     
+    <!-- CSS -->
+    
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Container']" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
+    </xsl:template>
+
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Item']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
+    </xsl:template>
+
+    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = resolve-uri('ns/default#Container', $ldt:ontology)]" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
+    </xsl:template>
+
+    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = resolve-uri('ns/default#Item', $ldt:base)]" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
+    </xsl:template>
+
+    <!-- BLOCK MODE -->
+
+    <!-- TO-DO: move to Web-Client -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:Header"/>
+
+            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
+        </div>
+    </xsl:template>
+
+    <!-- TO-DO: move to Web-Client -->
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:PropertyList">
+        <xsl:variable name="properties" as="element()*">
+            <xsl:apply-templates select="*" mode="#current">
+                <xsl:sort select="ac:property-label(.)" data-type="text" order="ascending" /> <!-- lang="{$ldt:lang}" -->
+            </xsl:apply-templates>
+        </xsl:variable>
+
+        <xsl:if test="$properties">
+            <dl class="dl-horizontal">
+                <xsl:copy-of select="$properties"/>
+            </dl>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- TO-DO: move to Web-Client -->
+    <!-- inline blank node resource if there is only one property except foaf:primaryTopic having it as object -->
+    <xsl:template match="@rdf:nodeID[key('resources', .)][count(key('predicates-by-object', .)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="2">
+        <xsl:param name="inline" select="true()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:choose>
+            <xsl:when test="$inline">
+                <xsl:apply-templates select="key('resources', .)" mode="#current">
+                    <xsl:with-param name="display" select="$inline" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:next-match/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- TO-DO: move to Web-Client -->
+    <!-- hide inlined blank node resources from the main block flow -->
+    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="1">
+        <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
+        
+        <xsl:if test="$display">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- HEADER MODE -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
@@ -62,12 +151,6 @@ exclude-result-prefixes="#all">
             </p>
 
             <xsl:apply-templates select="." mode="bs2:TypeList"/>
-
-            <!--
-            <xsl:if test="@rdf:nodeID">
-            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
-            </xsl:if>
-            -->
         </div>
     </xsl:template>
     

@@ -302,7 +302,7 @@ $(document).ready(function()
     $("input.typeahead").on("blur", onTypeaheadInputBlur);
     $("fieldset input").on("mouseover", onInputMouseOver);
     
-    $("button.toggle-content").on("click", onContentDisplayToggle);
+    $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
 
     $("form").on("submit", function()
     {

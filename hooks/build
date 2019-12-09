@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker build --build-arg VERSION_HASH="$SOURCE_COMMIT" -t atomgraph/platform .
+docker tag $IMAGE_NAME "$DOCKER_TAG":"$SOURCE_COMMIT"

@@ -75,6 +75,7 @@ exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/external.xsl"/>
+    <xsl:import href="../../../../client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
@@ -297,19 +298,15 @@ exclude-result-prefixes="#all">
                     </button>
 
                     <xsl:if test="not($ldt:base = $ac:contextUri)">
-                        <a class="brand" href="{resolve-uri('..', $ldt:base)}">
-                            <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_arrow_upward_white_18dp.png', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                        </a>
+                        <a class="brand context" href="{resolve-uri('..', $ldt:base)}"/>
                     </xsl:if>
                         
-                    <!-- TO-DO: if ldt:base param is passed, lapp:Application can/should also?! -->
                     <a class="brand" href="{if ($lapp:Application) then lapp:base($ac:contextUri, $lapp:Application) else $ldt:base}">
-                        <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
-                        
                         <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
-                            <xsl:text> </xsl:text>
-                            <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_settings_white_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+                            <xsl:attribute name="class" select="'brand admin'"/>
                         </xsl:if>
+                        
+                        <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
                     </a>
 
                     <div id="collapsing-top-navbar" class="nav-collapse collapse" style="margin-left: 17%;">
@@ -335,8 +332,10 @@ exclude-result-prefixes="#all">
                     </xsl:if>
                 </input>
 
-                <button type="submit" class="btn btn-primary">
-                    <xsl:apply-templates select="key('resources', 'search', document('translations.rdf'))" mode="apl:logo"/>
+                <button type="submit">
+                    <xsl:apply-templates select="key('resources', 'search', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn btn-primary'"/>
+                    </xsl:apply-templates>
                 </button>
             </div>
         </form>
@@ -401,8 +400,10 @@ exclude-result-prefixes="#all">
                         <xsl:if test="doc-available($apps-uri)">
                             <li>
                                 <div class="btn-group">
-                                    <button class="btn dropdown-toggle" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                                        <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo"/>
+                                    <button title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                                        <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo">
+                                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                        </xsl:apply-templates>
                                     </button>
                                     <ul class="dropdown-menu pull-right">
                                         <xsl:variable name="apps" select="document($apps-uri)" as="document-node()"/>
@@ -420,8 +421,10 @@ exclude-result-prefixes="#all">
 
                     <li>
                         <div class="btn-group">
-                            <button type="button" class="btn dropdown-toggle" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
-                                <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo"/>
+                            <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
+                                <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo">
+                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                </xsl:apply-templates>
                             </button>
                             <ul class="dropdown-menu pull-right">
                                 <li>
@@ -537,11 +540,10 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$lacl:Agent][$ac:sitemap]" mode="bs2:Create" priority="1">
         <div class="btn-group pull-left">
-            <button type="button" class="btn btn-primary dropdown-toggle" title="{ac:label(key('resources', 'create-instance-title', document('translations.rdf')))}">
+            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                    <xsl:with-param name="filename" select="'ic_note_add_white_24px.svg'"/>
+                    <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>
-                <xsl:text> </xsl:text>
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="ac:label"/>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
@@ -781,8 +783,10 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[$ac:uri]" mode="bs2:ModeList">
         <div class="btn-group pull-right">
-            <button type="button" class="btn dropdown-toggle" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', $ac:mode, document('&ac;')) | key('resources', $ac:mode, document('&apl;'))" mode="apl:logo"/>
+            <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
+                <xsl:apply-templates select="key('resources', $ac:mode, document('&ac;')) | key('resources', $ac:mode, document('&apl;'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                </xsl:apply-templates>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
             </button>
@@ -811,11 +815,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class">active</xsl:attribute>
             </xsl:if>
 
-            <button class="btn" title="{@rdf:about}">
+            <a href="{if (not(starts-with($href, $ac:contextUri))) then xs:anyURI(concat('?uri=', encode-for-uri($href), '&amp;mode=', encode-for-uri(@rdf:about))) else if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri(@rdf:about)) else concat($ac:uri, '?mode=', encode-for-uri(@rdf:about))}" title="{@rdf:about}">
                 <xsl:apply-templates select="." mode="apl:logo"/>
-                <xsl:text> </xsl:text>
-                <xsl:apply-templates select="." mode="ac:label"/>
-            </button>
+            </a>
         </li>
     </xsl:template>
        
@@ -823,159 +825,220 @@ exclude-result-prefixes="#all">
     
     <!-- LOGO MODE -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Container']" mode="apl:logo" priority="1">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/folder.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+    <xsl:template match="*[@rdf:about = '&ac;ConstructMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-action')"/>
+        <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Item']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/file.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+    <xsl:template match="*[@rdf:about = '&dh;Container'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&dh;Container']" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&dh;Item'] | *[@rdf:about][$ac:sitemap][ apl:superClasses(@rdf:about, $ac:sitemap) = '&dh;Item']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Service'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Service']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-cloud-24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Construct'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Construct']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_code_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-construct')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Describe'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Describe']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_code_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-describe')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Select'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Select']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_code_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-select')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Ask'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Ask']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_code_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-ask')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;File'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;File']" mode="apl:logo" priority="1">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_file_upload_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-file')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Import'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Import']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_transform_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-import')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about = '&apl;Chart'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Chart']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_show_chart_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-chart')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = ('&apl;URISyntaxViolation', '&spin;ConstraintViolation', '&apl;ResourceExistsException')]" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_error_white_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:nodeID = 'latest']" mode="apl:logo" priority="1">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_new_releases_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:nodeID = 'files']" mode="apl:logo" priority="1">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_file_upload_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:nodeID = 'imports']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_transform_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:nodeID = 'geo']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_location_on_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:nodeID = 'queries']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_code_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:nodeID = 'charts']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_show_chart_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:nodeID = 'services']" mode="apl:logo">
-        <img style="height: 2em;" src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-cloud-24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = '&ac;ConstructMode']" mode="apl:logo">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="filename" select="'ic_note_add_black_24px.svg'" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
         
-        <img src="{resolve-uri(concat('static/com/atomgraph/linkeddatahub/icons/', $filename), $ac:contextUri)}" alt="{ac:label(.)}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
-        </img>
+        <xsl:attribute name="class" select="concat($class, ' ', 'violation')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID = ('latest', 'files', 'imports', 'geo', 'queries', 'charts', 'services')]" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', @rdf:nodeID)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'toggle-content']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-toggle-content')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&aplt;Ban']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_refresh_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-ban')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
         
     <xsl:template match="*[@rdf:about = '&ac;Delete']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_delete_forever_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-delete')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;Export']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_file_download_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-export')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'settings']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_settings_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-settings')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'save']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_save_white_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'filter']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_filter_list_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+    <xsl:template match="*[@rdf:nodeID = 'close']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-close')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'reset']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_clear_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-reset')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'search']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_search_white_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-search')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'applications']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_apps_white_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:nodeID = 'atomgraph']" mode="apl:logo">
-        <img src="http://atomgraph.com/static/com/atomgraph/images/atomgraph-logo-white.svg" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-context')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&lacl;Agent']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_account_circle_white_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-agent')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_details_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-read')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_create_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_map_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-map')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_blur_on_black_24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-graph')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="apl:logo">
-        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-remove_red_eye-24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-acl')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource]" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'access-required')"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <!-- CONTENT TOGGLE MODE -->
     
     <xsl:template match="rdf:RDF[key('resources', $ac:uri)/sioc:content]" mode="bs2:ContentToggle" priority="1">
         <div class="pull-right">
-            <button class="btn toggle-content" title="Collapse/expand document content">
-                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-expand_less-24px.svg', $ac:contextUri)}"/>
+            <button class="btn" title="Collapse/expand document content">
+                <xsl:apply-templates select="key('resources', 'toggle-content', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
             </button>
         </div>
     </xsl:template>
@@ -986,20 +1049,44 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:BreadCrumbList" priority="1"/>
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:BreadCrumbList">
-        <div class="pull-left breadcrumb-icon">
-            <xsl:apply-templates select="." mode="apl:logo"/>
-        </div>
+    <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
+        <xsl:param name="leaf" select="true()" as="xs:boolean" tunnel="yes"/>
 
-        <xsl:apply-imports/>
+        <xsl:choose>
+            <xsl:when test="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)">
+                <xsl:apply-templates select="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)" mode="#current">
+                    <xsl:with-param name="leaf" select="false()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:when test="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource">
+                <xsl:if test="doc-available((sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)[1])">
+                    <xsl:variable name="parent-doc" select="document(sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)" as="document-node()?"/>
+                    <xsl:apply-templates select="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource, $parent-doc)" mode="#current">
+                        <xsl:with-param name="leaf" select="false()" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:if>
+            </xsl:when>
+        </xsl:choose>
+        
+        <li>
+            <xsl:apply-templates select="." mode="apl:logo"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+
+            <xsl:if test="not($leaf)">
+                <span class="divider">/</span>
+            </xsl:if>
+        </li>
     </xsl:template>
 
     <!-- HEADER MODE -->
         
     <xsl:template match="rdf:RDF" mode="bs2:MediaTypeList" priority="1">
         <div class="btn-group pull-right">
-            <button type="button" class="btn dropdown-toggle" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', '&ac;Export', document('&ac;'))" mode="apl:logo"/>
+            <button type="button" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
+                <xsl:apply-templates select="key('resources', '&ac;Export', document('&ac;'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                </xsl:apply-templates>
                 
                 <span class="caret"></span>
             </button>
@@ -1079,11 +1166,9 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <h2>
+                <xsl:apply-templates select="." mode="apl:logo"/>
+                
                 <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then resolve-uri(concat('?uri=', encode-for-uri(lacl:requestAccess/@rdf:resource), '&amp;access-to=', encode-for-uri($ac:uri)), $ldt:base) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri($ac:uri))}" class="btn btn-primary pull-right">Request access</a>
-
-                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline-warning-24px.svg', $ac:contextUri)}" alt="{ac:label(.)}"/>
-                <xsl:text> </xsl:text>
-                <xsl:apply-templates select="." mode="ac:label"/>
             </h2>
         </div>
     </xsl:template>
@@ -1111,13 +1196,33 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[$ac:mode = '&ac;EditMode']" mode="apl:Content" priority="1"/>
 
     <xsl:template match="*[@rdf:about = $ac:uri][sioc:content[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:Content" priority="1">
-        <div class="ContentMode">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'ContentMode'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
             <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/>
         </div>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = $ac:uri][sioc:attachment/@rdf:resource]" mode="apl:Content" priority="1">
-        <div class="ContentMode">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'ContentMode'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
             <object data="{sioc:attachment/@rdf:resource}?mode={encode-for-uri('&aplt;ObjectMode')}" type="text/html"></object>
         </div>
     </xsl:template>
@@ -1187,8 +1292,6 @@ exclude-result-prefixes="#all">
                         </div>
 
                         <div class="modal-body">
-                            <!-- <xsl:apply-templates select="." mode="bs2:TargetContainer"/> -->
-
                             <xsl:apply-templates mode="bs2:Exception"/>
 
                             <xsl:choose>
@@ -1281,7 +1384,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="apl:logo"/>
+            <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="apl:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
             <xsl:text> </xsl:text>
             <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="ac:label"/>
         </div>
@@ -1289,13 +1394,27 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Exception"/>
 
+    <!-- FORM ACTIONS -->
+    
     <xsl:template match="rdf:RDF" mode="bs2:FormActions">
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
         <div class="form-actions modal-footer">
-            <button type="submit" class="{$button-class}">Save</button>
-            <button type="button" class="btn btn-close">Close</button>
-            <button type="reset" class="btn">Reset</button>
+            <button type="submit" class="{$button-class}">
+                <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="$button-class"/>
+                </xsl:apply-templates>
+            </button>
+            <button type="button" class="btn">
+                <xsl:apply-templates select="key('resources', 'close', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+            </button>
+            <button type="reset" class="btn">
+                <xsl:apply-templates select="key('resources', 'reset', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+            </button>
         </div>
     </xsl:template>
     
@@ -1461,18 +1580,6 @@ exclude-result-prefixes="#all">
         </button>
     </xsl:template>
     
-    <!-- FORM ACTIONS -->
-    
-    <xsl:template match="*[@rdf:about]" mode="bs2:FormActions">
-        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
-        
-        <div class="form-actions">
-            <button type="submit" class="{$button-class}">
-                <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo"/>
-            </button>
-        </div>
-    </xsl:template>
-    
     <!-- NAVBAR ACTIONS -->
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
@@ -1480,8 +1587,10 @@ exclude-result-prefixes="#all">
             <xsl:for-each select="key('resources', $ac:uri)/void:inDataset/@rdf:resource">
                 <div class="pull-right">
                     <form action="{ac:document-uri(.)}?_method=DELETE" method="post">
-                        <button class="btn btn-delete" type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
-                            <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo"/>
+                        <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
+                            <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn'"/>
+                            </xsl:apply-templates>
                         </button>
                     </form>
                 </div>
@@ -1489,9 +1598,12 @@ exclude-result-prefixes="#all">
                 <xsl:if test="not($ac:mode = '&ac;EditMode')">
                     <div class="pull-right">
                         <xsl:variable name="graph-uri" select="xs:anyURI(concat(ac:document-uri(.), '?mode=', encode-for-uri('&ac;EditMode'), '&amp;mode=', encode-for-uri('&ac;ModalMode')))" as="xs:anyURI"/>
-                        <button class="btn edit-graph" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                        <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn'"/>
+                            </xsl:apply-templates>
+                            
                             <input type="hidden" value="{$graph-uri}"/>
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo"/>
                         </button>
                     </div>
                 </xsl:if>
@@ -1500,15 +1612,19 @@ exclude-result-prefixes="#all">
             <div class="pull-right">
                 <form action="" method="get"> <!-- TO-DO: change to POST -->
                     <input type="hidden" name="ban" value="true"/>
-                    <button class="btn" type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">
-                        <xsl:apply-templates select="key('resources', '&aplt;Ban', document('&aplt;'))" mode="apl:logo"/>
+                    <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">
+                        <xsl:apply-templates select="key('resources', '&aplt;Ban', document('&aplt;'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
                     </button>
                 </form>
             </div>
             
             <div class="btn-group pull-right">
-                <button type="button" class="btn dropdown-toggle" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document('&acl;'))" mode="apl:logo"/>
+                <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document('&acl;'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                    </xsl:apply-templates>
                     <xsl:text> </xsl:text>
                     <span class="caret"></span>
                 </button>
@@ -1551,8 +1667,10 @@ exclude-result-prefixes="#all">
             <xsl:variable name="uri" select="xs:anyURI(concat(@rdf:about, '?_method=DELETE'))" as="xs:anyURI"/>
 
             <form action="{if (starts-with($ac:uri, $ac:contextUri)) then $ac:uri else concat($ac:contextUri, '?uri=', encode-for-uri($ac:uri))}" method="post">
-                <button class="btn btn-delete" type="submit">
-                    <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo"/>
+                <button type="submit">
+                    <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
                 </button>
             </form>
         </div>
@@ -1562,7 +1680,9 @@ exclude-result-prefixes="#all">
                 <xsl:variable name="uri" select="xs:anyURI(concat(@rdf:about, '?mode=', encode-for-uri('&ac;EditMode')))" as="xs:anyURI"/>
                 
                 <a class="btn" href="{if (starts-with($ac:uri, $ac:contextUri)) then $ac:uri else concat(lapp:base($ac:contextUri, $lapp:Application), '?uri=', encode-for-uri($ac:uri))}">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
                 </a>
             </div>
         </xsl:if>
@@ -1573,8 +1693,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:Settings" priority="1">
         <xsl:if test="$lacl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
             <div class="btn-group pull-right">
-                <button type="button" class="btn dropdown-toggle" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo"/>
+                <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+                    <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                    </xsl:apply-templates>
                     <xsl:text> </xsl:text>
                     <span class="caret"></span>
                 </button>
@@ -1608,7 +1730,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', '&apl;URISyntaxViolation', document('&apl;'))" mode="apl:logo"/>
+            <xsl:apply-templates select="key('resources', '&apl;URISyntaxViolation', document('&apl;'))" mode="apl:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
             <xsl:text> </xsl:text>
             <xsl:value-of select="rdfs:label"/>
         </div>
@@ -1623,125 +1747,22 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', '&spin;ConstraintViolation', document('&spin;'))" mode="apl:logo"/>
+            <xsl:apply-templates select="key('resources', '&spin;ConstraintViolation', document('&spin;'))" mode="apl:logo">
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
             <xsl:text> </xsl:text>
             <!-- <xsl:apply-templates select="key('resources', spin:violationSource/(@rdf:nodeID, @rdf:resource))" mode="ac:label"/> -->
             <xsl:apply-templates select="." mode="ac:label"/>
         </div>
     </xsl:template>
-    
-    <!-- CONSTRUCTOR MODE -->
-    
-    <xsl:template match="rdf:RDF" mode="apl:ConstructorMode">
-        <xsl:param name="ont-class" select="key('resources-by-subclass', key('restrictions-by-container', $ldt:template, $ac:sitemap)/@rdf:nodeID, $ac:sitemap)" as="element()"/>
-        <xsl:param name="constructor" select="key('resources', $ont-class/spin:constructor/@rdf:resource | $ont-class/spin:constructor/@rdf:nodeID, $ac:sitemap)" as="element()"/>
 
-        <form class="form-horizontal">
-            <xsl:for-each select="list:member(key('resources', $constructor/sp:templates/@rdf:nodeID, $ac:sitemap), $ac:sitemap)">
-                <xsl:apply-templates select="sp:predicate" mode="#current"/>
-                <!--
-                <dd>
-                    <xsl:choose>
-                        <xsl:when test="sp:object/@rdf:resource">
-                            <xsl:value-of select="sp:object/@rdf:resource"/>
-                        </xsl:when>
-                        <xsl:when test="sp:object/@rdf:nodeID">
-                            Resource!
-                        </xsl:when>
-                        <xsl:when test="sp:object/text()">
-                            Literal!
-                        </xsl:when>
-                    </xsl:choose>
-                </dd>
-                -->
-            </xsl:for-each>
-            
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-        </form>
-    </xsl:template>
-        
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="apl:ConstructorMode">
-        <div class="well">
-            <xsl:apply-templates select="." mode="bs2:Image"/>
-            
-            <xsl:apply-templates select="." mode="bs2:Actions"/>
-
-            <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current"/>
-
-            <xsl:apply-templates select="." mode="ac:description"/>
-
-            <xsl:apply-templates select="." mode="bs2:TypeList"/>
-
-            <xsl:if test="@rdf:nodeID">
-                <xsl:apply-templates select="." mode="bs2:PropertyList"/>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="sp:predicate" mode="apl:ConstructorMode">
-        <xsl:param name="this" select="@rdf:resource"/>
-        <xsl:param name="violations" as="element()*"/>
-        <xsl:param name="required" select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]) and key('constraints-by-type', ../rdf:type/@rdf:resource, $ac:sitemap)/sp:arg2/@rdf:resource = $this"/>
-        <xsl:param name="id" as="xs:string"/>
- 
-        <div class="control-group">
-            <xsl:if test="$violations/spin:violationPath/@rdf:resource = $this">
-                <xsl:attribute name="class">control-group error</xsl:attribute>
-            </xsl:if>
-            <xsl:apply-templates select="." mode="xhtml:Input">
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:apply-templates>
-            <label class="control-label" for="{$id}" title="{$this}">
-                <xsl:apply-templates select="key('resources', $this, document(ac:document-uri($this)))" mode="ac:label"/>
-            </label>
-            <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-add" title="Add another statement">&#x271a;</button>
-            </div>
-            <xsl:if test="not($required)">
-                <div class="btn-group pull-right">
-                    <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement">&#x2715;</button>
-                </div>
-            </xsl:if>
-
-            <div class="controls">
-                <xsl:apply-templates select="../sp:object/node() | ../sp:object/@rdf:resource | ../sp:object/@rdf:nodeID" mode="#current">
-                    <xsl:with-param name="id" select="$id"/>
-                </xsl:apply-templates>
-            </div>
-            <xsl:if test="@xml:lang | @rdf:datatype">
-                <div class="controls">
-                    <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current"/>
-                </div>
-            </xsl:if>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="sp:object/@rdf:resource" mode="apl:ConstructorMode">
-        <button class="btn" title="{.}">
-            <xsl:apply-templates select="." mode="ac:ObjectLabelMode"/>
-        </button>
-    </xsl:template>
-
-    <xsl:template match="sp:object/@rdf:nodeID" mode="apl:ConstructorMode">
-        <button class="btn">Resource</button>
-    </xsl:template>
-
-    <xsl:template match="sp:object/text()" mode="apl:ConstructorMode">
-        <button class="btn" title="{.}">Literal</button>
-    </xsl:template>
-
-    <!-- GRAPH MODE -->
+    <!-- GRAPH MODE  -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
-        <svg xmlns="http://www.w3.org/2000/svg">
-            <g id="node-layer">
-                <xsl:for-each select="*">
-                      <circle cx="25" cy="75" r="20" stroke="red" fill="transparent" stroke-width="5"/>
-                </xsl:for-each>
-            </g>
-        </svg>
+        <xsl:apply-templates select="." mode="ac:SVG">
+            <xsl:with-param name="width" select="'100%'"/>
+            <xsl:with-param name="spring-length" select="150" tunnel="yes"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- BLOCK MODE -->
@@ -2025,9 +2046,9 @@ exclude-result-prefixes="#all">
             </p>
         
             <p>
-                <button class="btn btn-primary" type="submit">
+                <button type="submit">
                     <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                        <xsl:with-param name="filename" select="'ic_note_add_white_24px.svg'"/>
+                        <xsl:with-param name="class" select="'btn btn-primary'"/>
                     </xsl:apply-templates>
 
                     <xsl:text> Save</xsl:text> <!-- to do: use query class in apl:logo mode -->

@@ -57,6 +57,7 @@ version="2.0"
 
     <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2DataTable.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/converters/SPARQLXMLResults2DataTable.xsl"/>
+    <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
@@ -103,6 +104,38 @@ version="2.0"
     <xsl:key name="violations-by-value" match="*" use="apl:violationValue/text()"/>
     
     <xsl:strip-space elements="*"/>
+    
+    <!-- embedding mode descriptions here because currently the AC vocabulary is not resolvable from the client-side -->
+    
+    <rdf:Description rdf:about="&ac;ReadMode">
+        <rdfs:label>Properties</rdfs:label>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&ac;ListMode">
+        <rdfs:label>List</rdfs:label>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&ac;TableMode">
+        <rdfs:label>Table</rdfs:label>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&ac;GridMode">
+        <rdfs:label>Grid</rdfs:label>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&ac;ChartMode">
+        <rdfs:label>Chart</rdfs:label>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&ac;MapMode">
+        <rdfs:label>Map</rdfs:label>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="&ac;GraphMode">
+        <rdfs:label>Graph</rdfs:label>
+    </rdf:Description>
+
+    <!-- INITIAL TEMPLATE -->
     
     <xsl:template name="main">
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
@@ -308,6 +341,55 @@ version="2.0"
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'read-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about = '&ac;ListMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'list-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;TableMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'table-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about = '&ac;GridMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'grid-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;ChartMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'chart-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'map-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'graph-mode')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
     <!-- copied from layout.xsl which is not imported -->
     <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -600,14 +682,22 @@ version="2.0"
         
         <div>
             <ul class="nav nav-tabs">
+                <li class="read-mode">
+                    <xsl:if test="$active-class = 'read-mode' or (not($active-class) and $ac:container-mode = '&ac;ReadMode')">
+                        <xsl:attribute name="class" select="'read-mode active'"/>
+                    </xsl:if>
+
+                    <a>
+                        <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(''))" mode="apl:logo"/>
+                    </a>
+                </li>
                 <li class="list-mode">
                     <xsl:if test="$active-class = 'list-mode' or (not($active-class) and $ac:container-mode = '&ac;ListMode')">
                         <xsl:attribute name="class" select="'list-mode active'"/>
                     </xsl:if>
 
                     <a>
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_view_list_black_24px.svg', $ac:contextUri)}" alt="List"/>
-                        List
+                        <xsl:apply-templates select="key('resources', '&ac;ListMode', document(''))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="table-mode">
@@ -616,8 +706,7 @@ version="2.0"
                     </xsl:if>
 
                     <a>
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_border_all_black_24px.svg', $ac:contextUri)}" alt="Table"/>
-                        Table
+                        <xsl:apply-templates select="key('resources', '&ac;TableMode', document(''))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="grid-mode">
@@ -626,8 +715,7 @@ version="2.0"
                     </xsl:if>
 
                     <a>
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_grid_on_black_24px.svg', $ac:contextUri)}" alt="Grid"/>
-                        Grid
+                        <xsl:apply-templates select="key('resources', '&ac;GridMode', document(''))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="chart-mode">
@@ -636,8 +724,7 @@ version="2.0"
                     </xsl:if>
 
                     <a>
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_show_chart_black_24px.svg', $ac:contextUri)}" alt="Chart"/>
-                        Chart
+                        <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(''))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="map-mode">
@@ -646,8 +733,16 @@ version="2.0"
                     </xsl:if>
 
                     <a>
-                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/ic_map_black_24px.svg', $ac:contextUri)}" alt="Map"/>
-                        Map
+                        <xsl:apply-templates select="key('resources', '&ac;MapMode', document(''))" mode="apl:logo"/>
+                    </a>
+                </li>
+                <li class="graph-mode">
+                    <xsl:if test="$active-class = 'graph-mode' or (not($active-class) and $ac:container-mode = '&ac;GraphMode')">
+                        <xsl:attribute name="class" select="'graph-mode active'"/>
+                    </xsl:if>
+
+                    <a>
+                        <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(''))" mode="apl:logo"/>
                     </a>
                 </li>
             </ul>
@@ -666,6 +761,9 @@ version="2.0"
                     </xsl:document>
                 </xsl:variable>
                 <xsl:choose>
+                    <xsl:when test="$active-class = 'list-mode' or (not($active-class) and $ac:container-mode = '&ac;ListMode')">
+                        <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList"/>
+                    </xsl:when>
                     <xsl:when test="$active-class = 'table-mode' or (not($active-class) and $ac:container-mode = '&ac;TableMode')">
                         <xsl:apply-templates select="$sorted-results" mode="xhtml:Table"/>
                     </xsl:when>
@@ -678,8 +776,11 @@ version="2.0"
                     <xsl:when test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
                         <xsl:apply-templates select="$sorted-results" mode="bs2:Map"/>
                     </xsl:when>
+                    <xsl:when test="$active-class = 'graph-mode' or (not($active-class) and $ac:container-mode = '&ac;GraphMode')">
+                        <xsl:apply-templates select="$sorted-results" mode="bs2:Graph"/>
+                    </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList"/>
+                        <xsl:apply-templates select="$sorted-results" mode="bs2:Block"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
@@ -1282,7 +1383,7 @@ version="2.0"
         </xsl:message>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'edit-graph']" mode="ixsl:onclick">
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
         <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
         
