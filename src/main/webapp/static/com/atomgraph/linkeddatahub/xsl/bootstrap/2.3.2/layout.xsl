@@ -792,7 +792,7 @@ exclude-result-prefixes="#all">
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:for-each select="key('resources-by-type', ('&ac;Mode'), document('&ac;'))">
+                <xsl:for-each select="key('resources-by-type', '&ac;Mode', document('&ac;')) | key('resources', ('&ac;QueryEditorMode'), document('&ac;'))">
                     <xsl:sort select="ac:label(.)"/>
                     <xsl:apply-templates select="." mode="bs2:ModeListItem">
                         <xsl:with-param name="active" select="$ac:mode"/>
@@ -805,8 +805,8 @@ exclude-result-prefixes="#all">
     <!-- hide ac:EditMode if the current resource belongs is edited via its named graph (and has a separate Edit button) -->
     <xsl:template match="*[@rdf:about = '&ac;EditMode'][key('resources', $ac:uri, $main-doc)/void:inDataset/@rdf:resource]" mode="bs2:ModeListItem" priority="3"/>
     
-    <!-- always show ac:DocumentModes; only show ac:ContainerModes for dh:Container (subclass) instances -->
-    <xsl:template match="*[@rdf:about][$ac:uri][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', $ac:uri, $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', $ac:uri, $main-doc)/core:stateOf/@rdf:resource = $ldt:base) or rdf:type/@rdf:resource = '&ac;DocumentMode']" mode="bs2:ModeListItem" priority="1">
+    <!-- always show ac:DocumentModes and ac:QueryEditorMode; only show ac:ContainerModes for dh:Container (subclass) instances -->
+    <xsl:template match="*[@rdf:about][$ac:uri][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', $ac:uri, $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', $ac:uri, $main-doc)/core:stateOf/@rdf:resource = $ldt:base) or rdf:type/@rdf:resource = '&ac;DocumentMode' or @rdf:about = '&ac;QueryEditorMode']" mode="bs2:ModeListItem" priority="1">
         <xsl:param name="active" as="xs:anyURI*"/>
         <xsl:variable name="href" select="$ac:uri" as="xs:anyURI"/>
 
@@ -1015,6 +1015,14 @@ exclude-result-prefixes="#all">
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-graph')"/>
         <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;QueryEditorMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-query')"/>
+        <text>Query editor</text>
+<!--        <xsl:sequence select="ac:label(.)"/>-->
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&acl;Access']" mode="apl:logo">

@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.client.util.Constructor;
 import com.atomgraph.client.vocabulary.AC;
 import static com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE;
 import com.atomgraph.core.MediaTypes;
@@ -204,6 +205,22 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public Response get()
     {
+        // a workaround required by client-side XSLT to access a class constructor. TO-DO: remove when ontologies and constructors accessible on the client-side
+        if (getClientUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && getClientUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
+        {
+            URI mode = URI.create(getClientUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()));
+            if (mode.toString().equals(AC.NS + "ConstructMode"))
+            {
+                String forClassURI = getClientUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
+                Resource instance = new Constructor().construct(getOntology().getOntModel().getOntClass(forClassURI), ModelFactory.createDefaultModel(), getApplication().getBase().getURI());
+
+                Variant variant = getRequest().selectVariant(getVariants(getWritableMediaTypes(Dataset.class)));
+                if (variant == null) return getResponseBuilder(instance.getModel()).build(); // if quads are not acceptable, fallback to responding with the default graph
+                
+                return getResponseBuilder(DatasetFactory.create(instance.getModel())).build();
+            }
+        }
+        
         if (getTemplateCall() != null && getTemplateCall().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
         {
             if (log.isDebugEnabled()) log.debug("Returning SPARQL query string as debug response");

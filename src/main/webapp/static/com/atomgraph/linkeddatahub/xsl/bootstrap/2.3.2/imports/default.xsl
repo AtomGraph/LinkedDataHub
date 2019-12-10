@@ -223,6 +223,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="$class"/>
+        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
     
     <!-- DEFAULT -->
@@ -453,11 +454,9 @@ exclude-result-prefixes="#all">
                 <xsl:if test="not($required)">
                     <div class="btn-group pull-right">
                         <button type="button" title="Remove this statement">
-                            <!-- TO-DO: unify when cached RDF/XML ontologies are available for client-side XSLT -->
-                            <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'remove', document('../translations.rdf'))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', 'remove', document('../translations.rdf'))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                             </xsl:apply-templates>
-                            <xsl:text use-when="system-property('xsl:product-name') = 'Saxon-CE'">&#x2715;</xsl:text>
                         </button>
                     </div>
                 </xsl:if>
@@ -746,11 +745,9 @@ exclude-result-prefixes="#all">
 
             <div class="controls">
                 <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
-                    <!-- TO-DO: unify when cached RDF/XML ontologies are available for clien-side XSLT -->
-                    <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('../translations.rdf'))" mode="apl:logo">
+                    <xsl:apply-templates select="key('resources', 'add', document('../translations.rdf'))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>
-                    <xsl:text use-when="system-property('xsl:product-name') = 'Saxon-CE'">&#10133;</xsl:text>
                 </button>
             </div>
         </div>

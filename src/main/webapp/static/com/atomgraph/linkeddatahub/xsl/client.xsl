@@ -1514,7 +1514,7 @@ version="2.0"
 
                     <div class="controls">
                         <div class="btn-group pull-right">
-                            <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement">&#x2715;</button>
+                            <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement"></button>
                         </div>
                         
                         <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
