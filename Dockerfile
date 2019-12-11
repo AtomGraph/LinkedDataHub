@@ -38,6 +38,12 @@ FROM atomgraph/letsencrypt-tomcat
 
 LABEL maintainer="martynas@atomgraph.com"
 
+# hash of the current commit
+
+ARG SOURCE_COMMIT=
+
+ENV SOURCE_COMMIT=$SOURCE_COMMIT
+
 WORKDIR $CATALINA_HOME
 
 # add XSLT stylesheet that makes changes to server.xml
