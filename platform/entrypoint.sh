@@ -237,6 +237,49 @@ fi
 
 mkdir -p "$ATOMGRAPH_UPLOAD_ROOT"/"$UPLOAD_CONTAINER_PATH"
 
+# functions that wait for other services to start
+
+wait_for_host()
+{
+    local host="$1"
+    local counter="$2"
+    i=1
+
+    while [ "$i" -le "$counter" ] && ! ping -c1 "${host}" >/dev/null 2>&1
+    do
+        sleep 1 ;
+        i=$(( i+1 ))
+    done
+
+    if ! ping -c1 "${host}" >/dev/null 2>&1 ; then
+        echo "### ${host} not responding, exiting..."
+        exit 1
+    else
+        echo "### ${host} responded"
+    fi
+}
+
+wait_for_url()
+{
+    local url="$1"
+    local counter="$2"
+    local accept="$3"
+    i=1
+
+    while [ "$i" -le "$counter" ] && ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
+    do
+        sleep 1 ;
+        i=$(( i+1 ))
+    done
+
+    if ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+        echo "### ${url} not responding, exiting..."
+        exit 1
+    else
+        echo "### ${url} responded"
+    fi
+}
+
 # function to extract a WebID-compatible modulus from a .p12 certificate
 
 get_modulus()
@@ -280,17 +323,18 @@ append_quads()
 # extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
 # $PWD == $CATALINA_HOME
 
-envsubst '$BASE_URI' < select-root-admin-service.rq.template > select-root-admin-service.rq
+envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
 
-sparql --data="${PWD}/webapps/ROOT${CONTEXT_DATASET}" --query="select-root-admin-service.rq" --results=XML > root_admin_service_metadata.xml
+sparql --data="${PWD}/webapps/ROOT${CONTEXT_DATASET}" --query="select-root-services.rq" --results=XML > root_admin_service_metadata.xml
 
+root_end_user_quad_store_url=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
 root_admin_base_uri=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
 root_admin_quad_store_url=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
 root_admin_service_auth_user=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
 root_admin_service_auth_pwd=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
 
 rm -f root_admin_service_metadata.xml
-rm -f select-root-admin-service.rq
+rm -f select-root-services.rq
 
 if [ -z "$root_admin_base_uri" ] || [ -z "$root_admin_quad_store_url" ] ; then
     echo "Admin base URI and/or admin quad store could not be extracted from ${CONTEXT_DATASET} for root app with base URI ${BASE_URI}. Exiting..."
@@ -559,25 +603,23 @@ eval "$transform"
 
 java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize'
 
+# wait for the end-user GSP service
+
+echo "### Waiting for ${root_end_user_quad_store_url}..."
+
+wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
+
+# wait for the admin GSP service
+
+echo "### Waiting for ${root_admin_quad_store_url}..."
+
+wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
+
 # wait for the proxy server
 
 echo "### Waiting for ${PROXY_HOST}..."
 
-counter="${TIMEOUT}"
-i=1
-
-while [ "$i" -le "$counter" ] && ! ping -c1 "${PROXY_HOST}" >/dev/null 2>&1
-do
-    sleep 1 ;
-    i=$(( i+1 ))
-done
-
-if ! ping -c1 "${PROXY_HOST}" >/dev/null 2>&1 ; then
-    echo "### ${PROXY_HOST} not responding, exiting..."
-    exit 1
-else
-    echo "### ${PROXY_HOST} responded"
-fi
+wait_for_host "${PROXY_HOST}" "${TIMEOUT}"
 
 # set localhost to the nginx IP address - we want to loopback to it
 

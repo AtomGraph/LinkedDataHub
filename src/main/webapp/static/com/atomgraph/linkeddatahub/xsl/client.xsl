@@ -390,6 +390,13 @@ version="2.0"
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
     
+    <!-- copied from rdf.xsl which is not imported -->
+    <xsl:template match="rdf:type/@rdf:resource" priority="1">
+        <span title="{.}" class="btn btn-type">
+            <xsl:next-match/>
+        </span>
+    </xsl:template>
+    
     <!-- copied from layout.xsl which is not imported -->
     <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>

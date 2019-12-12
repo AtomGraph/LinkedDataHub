@@ -57,6 +57,13 @@ exclude-result-prefixes="#all">
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
     </xsl:template>
 
+    <!-- do not show text instead for logo icon for "things" -->
+    <xsl:template match="*[foaf:isPrimaryTopicOf]" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="$class"/>
+    </xsl:template>
+
     <!-- BLOCK MODE -->
 
     <!-- TO-DO: move to Web-Client -->

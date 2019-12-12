@@ -1524,6 +1524,62 @@ exclude-result-prefixes="#all">
             </xsl:apply-templates>
         </fieldset>
     </xsl:template>
+    
+    <!-- override the value of dh:select in constructor with a default query -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/dh:select/@rdf:nodeID" mode="bs2:FormControl" priority="1">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
+        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <span>
+            <xsl:variable name="query-uri" select="resolve-uri('queries/default/select-children/#this', $ldt:base)" as="xs:anyURI"/>
+            <xsl:apply-templates select="key('resources', $query-uri, document(ac:document-uri($query-uri)))" mode="apl:Typeahead"/>
+        </span>
+        <xsl:text> </xsl:text>
+
+        <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
+        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
+        <xsl:choose>
+            <xsl:when test="system-property('xsl:product-name') = 'SAXON' and not($forClass = '&rdfs;Resource')">
+                <!-- add subclasses as forClass -->
+                <xsl:for-each select="distinct-values(apl:subClasses($forClass, $ac:sitemap))[not(. = $forClass)]">
+                    <input type="hidden" class="forClass" value="{.}"/>
+                </xsl:for-each>
+                <!-- bs2:Constructor sets forClass -->
+                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="bs2:Constructor">
+                    <xsl:with-param name="subclasses" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- $ac:sitemap not available for Saxon-CE -->
+                <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by ?Type FILTER -->
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <span class="help-inline">
+                <xsl:choose>
+                    <xsl:when test="system-property('xsl:product-name') = 'SAXON'"> <!-- server-side Saxon has access to the sitemap ontology -->
+                        <xsl:choose>
+                            <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
+                            <xsl:when test="key('resources', $forClass, $ac:sitemap)">
+                                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="ac:label"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:value-of select="$forClass"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:otherwise> <!-- client-side Saxon-CE does not have access to the sitemap ontology -->
+                        <xsl:value-of select="$forClass"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </span>
+        </xsl:if>
+    </xsl:template>
 
     <!-- TYPE CONTROL -->
     
@@ -1668,32 +1724,6 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="." mode="ac:label"/>
             </a>
         </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = $ac:uri]" mode="bs2:NavBarActions">
-        <div class="pull-right">
-            <xsl:variable name="uri" select="xs:anyURI(concat(@rdf:about, '?_method=DELETE'))" as="xs:anyURI"/>
-
-            <form action="{if (starts-with($ac:uri, $ac:contextUri)) then $ac:uri else concat($ac:contextUri, '?uri=', encode-for-uri($ac:uri))}" method="post">
-                <button type="submit">
-                    <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                </button>
-            </form>
-        </div>
-
-        <xsl:if test="not($ac:mode = '&ac;EditMode')">
-            <div class="pull-right">
-                <xsl:variable name="uri" select="xs:anyURI(concat(@rdf:about, '?mode=', encode-for-uri('&ac;EditMode')))" as="xs:anyURI"/>
-                
-                <a class="btn" href="{if (starts-with($ac:uri, $ac:contextUri)) then $ac:uri else concat(lapp:base($ac:contextUri, $lapp:Application), '?uri=', encode-for-uri($ac:uri))}">
-                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                </a>
-            </div>
-        </xsl:if>
     </xsl:template>
         
     <!-- SETTINGS -->

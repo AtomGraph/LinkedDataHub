@@ -98,7 +98,7 @@ COPY platform/entrypoint.sh entrypoint.sh
 
 # copy SPARQL query used to get metadata of the root app service from the system dataset
 
-COPY platform/select-root-admin-service.rq.template select-root-admin-service.rq.template
+COPY platform/select-root-services.rq.template select-root-services.rq.template
 
 # copy the metadata of the built-in secretary agent
 
