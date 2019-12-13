@@ -40,7 +40,6 @@
 
     <> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Root" ;
         dct:description "Root container" .
 
@@ -71,7 +70,6 @@
 
     <search/> a def:Container ;
         dh:select <queries/default/select-labelled/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Search" ;
         dct:description "Search resources by keyword" .
 
@@ -100,7 +98,6 @@
 
     <queries/> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -118,7 +115,6 @@
         foaf:isPrimaryTopicOf <graphs/cd84d745-545e-4314-8213-30251f042404/> .
 
     <queries/default/> sioc:has_space <> ;
-        sioc:has_parent <queries/> ;
         dh:slug "default" ;
         void:inDataset <graphs/cd84d745-545e-4314-8213-30251f042404/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -129,8 +125,8 @@
 {
 
     <queries/default/> a def:Container ;
+        sioc:has_parent <queries/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Default queries" .
 
@@ -159,7 +155,6 @@
 
     <files/> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Files" ;
         dct:description "Uploaded files" .
 
@@ -188,7 +183,6 @@
 
     <imports/> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Imports" ;
         dct:description "Data imports" .
 
@@ -217,7 +211,6 @@
 
     <geo/> a def:Container ;
         dh:select <queries/default/select-geo-resources/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "geo" ;
         dct:description "Geolocated resources" .
 
@@ -246,7 +239,6 @@
 
     <latest/> a def:Container ;
         dh:select <queries/default/select-latest/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Latest" ;
         dct:description "Latest resources" .
 
@@ -275,7 +267,6 @@
 
     <charts/> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Charts" ;
         dct:description "Saved charts" .
 
@@ -304,7 +295,6 @@
 
     <services/> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Services" ;
         dct:description "SPARQL services" .
 
@@ -326,7 +316,6 @@
         foaf:isPrimaryTopicOf <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/> .
 
     <queries/default/select-children/> sioc:has_space <> ;
-        sioc:has_container <queries/default/> ;
         dh:slug "select-children" ;
         void:inDataset <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/#this> .
 
@@ -336,6 +325,7 @@
 {
 
     <queries/default/select-children/> a ns:QueryItem ;
+        sioc:has_container <queries/default/> ;
         dct:title "Select children" ;
         foaf:primaryTopic <queries/default/select-children/#this> .
 
@@ -380,7 +370,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/8512df46-1509-43cc-af70-027fe333820f/> .
 
     <queries/default/select-geo-resources/> sioc:has_space <> ;
-        sioc:has_container <queries/default/> ;
         dh:slug "select-geo-resources" ;
         void:inDataset <graphs/8512df46-1509-43cc-af70-027fe333820f/#this> .
 
@@ -390,6 +379,7 @@ WHERE
 {
 
     <queries/default/select-geo-resources/> a ns:QueryItem ;
+        sioc:has_container <queries/default/> ;
         dct:title "Select geo resources" ;
         foaf:primaryTopic <queries/default/select-geo-resources/#this> .
 
@@ -429,7 +419,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/> .
 
     <queries/default/select-latest/> sioc:has_space <> ;
-        sioc:has_container <queries/default/> ;
         dh:slug "select-latest" ;
         void:inDataset <graphs/29be7190-7515-4cdb-b419-12f0eeb590f6/#this> .
 
@@ -439,6 +428,7 @@ WHERE
 {
 
     <queries/default/select-latest/> a ns:QueryItem ;
+        sioc:has_container <queries/default/> ;
         dct:title "Select latest" ;
         foaf:primaryTopic <queries/default/select-latest/#this> .
 
@@ -472,7 +462,6 @@ ORDER BY DESC(?created)
         foaf:isPrimaryTopicOf <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/> .
 
     <queries/default/select-labelled/> sioc:has_space <> ;
-        sioc:has_container <queries/default/> ;
         dh:slug "select-labelled" ;
         void:inDataset <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/#this> .
 
@@ -482,6 +471,7 @@ ORDER BY DESC(?created)
 {
 
     <queries/default/select-labelled/> a ns:QueryItem ;
+        sioc:has_container <queries/default/> ;
         dct:title "Select labelled" ;
         foaf:primaryTopic <queries/default/select-labelled/#this> .
 

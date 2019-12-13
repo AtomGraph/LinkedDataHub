@@ -458,6 +458,7 @@ exclude-result-prefixes="#all">
                                 <xsl:value-of use-when="system-property('xsl:product-name') = 'Saxon-CE'">Chart type</xsl:value-of>
                             </label>
                             <br/>
+                            <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/apl.xsl -->
                             <select id="{$chart-type-id}" name="ou" class="input-medium">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">

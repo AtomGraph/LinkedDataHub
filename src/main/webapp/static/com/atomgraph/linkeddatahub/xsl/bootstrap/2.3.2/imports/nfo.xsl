@@ -61,13 +61,5 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:next-match>
     </xsl:template>
-
-    <!--
-    <xsl:template match="@rdf:about[key('resources', ../foaf:primaryTopic/@rdf:resource)[@rdf:about][nfo:fileName]]" mode="bs2:Header">
-        <h2>
-            <xsl:apply-templates select="key('resources', ../foaf:primaryTopic/@rdf:resource)/@rdf:about"/>
-        </h2>
-    </xsl:template>
-    -->
      
 </xsl:stylesheet>

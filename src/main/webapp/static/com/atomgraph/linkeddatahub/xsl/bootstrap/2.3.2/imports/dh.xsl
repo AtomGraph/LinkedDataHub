@@ -5,24 +5,23 @@
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
-    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
-    <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
+    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
+    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:ac="&ac;"
 xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
-xmlns:sioc="&sioc;"
-xmlns:foaf="&foaf;"
+xmlns:ldt="&ldt;"
+xmlns:dh="&dh;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
-
-    <!-- override the value of sioc:has_parent/sioc:has_constructor in constructor with a default query -->
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
+    
+    <!-- override the value of dh:select in constructor with a default query -->
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/dh:select/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>
@@ -31,7 +30,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <span>
-            <xsl:apply-templates select="key('resources', $ac:uri, $main-doc)" mode="apl:Typeahead"/>
+            <xsl:variable name="query-uri" select="resolve-uri('queries/default/select-children/#this', $ldt:base)" as="xs:anyURI"/>
+            <xsl:apply-templates select="key('resources', $query-uri, document(ac:document-uri($query-uri)))" mode="apl:Typeahead"/>
         </span>
         <xsl:text> </xsl:text>
 
@@ -75,24 +75,5 @@ exclude-result-prefixes="#all">
             </span>
         </xsl:if>
     </xsl:template>
-
-    <xsl:template match="sioc:email/@rdf:*"  mode="bs2:FormControl">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" as="xs:string?"/>
-
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="type" select="'text'"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-            <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
-        </xsl:call-template>
-        <span class="help-inline">Literal</span>
-    </xsl:template>
-
-    <xsl:template match="sioc:content[@rdf:parseType = 'Literal']" mode="bs2:PropertyList"/>
-
-    <!-- do not show the content input if its document is the topic of another document -->
-    <xsl:template match="sioc:content[@rdf:parseType = 'Literal'][key('resources', ../foaf:isPrimaryTopicOf/@rdf:nodeID)]" mode="bs2:FormControl"/>
     
 </xsl:stylesheet>

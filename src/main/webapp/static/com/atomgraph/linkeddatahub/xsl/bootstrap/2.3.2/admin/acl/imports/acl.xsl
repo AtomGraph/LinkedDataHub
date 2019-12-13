@@ -34,7 +34,7 @@ xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
     
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="bs2:FormControl" priority="1">
-	<xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
         <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', $ac:sitemap)" as="element()*"/>

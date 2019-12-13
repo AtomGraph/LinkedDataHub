@@ -55,7 +55,6 @@
 
     <> a adm:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Root" ;
         dct:description "Root container" .
 
@@ -83,7 +82,6 @@
 
     <search/> a adm:Container ;
         dh:select <queries/default/select-labelled/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Search" ;
         dct:description "Search resources by label" .
 
@@ -112,7 +110,6 @@
 
     <queries/> a def:Container ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -130,7 +127,6 @@
         foaf:isPrimaryTopicOf <graphs/cd84d745-545e-4314-8213-30251f042404/> .
 
     <queries/default/> sioc:has_space <> ;
-        sioc:has_parent <queries/> ;
         dh:slug "default" ;
         void:inDataset <graphs/cd84d745-545e-4314-8213-30251f042404/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -141,8 +137,8 @@
 {
 
     <queries/default/> a def:Container ;
+        sioc:has_parent <queries/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Default queries" .
 
@@ -228,7 +224,6 @@
         foaf:isPrimaryTopicOf <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/> .
 
     <queries/default/select-children/> sioc:has_space <> ;
-        sioc:has_container <queries/default/> ;
         dh:slug "select-children" ;
         void:inDataset <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/#this> .
 
@@ -238,6 +233,7 @@
 {
 
     <queries/default/select-children/> a ns:QueryItem ;
+        sioc:has_container <queries/default/> ;
         dct:title "Select children" ;
         foaf:primaryTopic <queries/default/select-children/#this> .
 
@@ -282,7 +278,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/> .
 
     <queries/default/select-labelled/> sioc:has_space <> ;
-        sioc:has_container <queries/default/> ;
         dh:slug "select-labelled" ;
         void:inDataset <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/#this> .
 
@@ -292,6 +287,7 @@ WHERE
 {
 
     <queries/default/select-labelled/> a ns:QueryItem ;
+        sioc:has_container <queries/default/> ;
         dct:title "Select labelled" ;
         foaf:primaryTopic <queries/default/select-labelled/#this> .
 
@@ -334,7 +330,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/213f11d7-71ea-4db1-8d80-6a8fffbda40a> .
 
     <acl/> sioc:has_space <> ;
-        sioc:has_parent <> ;
         dh:slug "acl" ;
         void:inDataset <graphs/213f11d7-71ea-4db1-8d80-6a8fffbda40a/#this> .
 
@@ -344,8 +339,8 @@ WHERE
 {
 
     <acl/> a adm:Container ;
+        sioc:has_parent <> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Access control" ;
         dct:description "Manage agents, user accounts and authorizations" .
 
@@ -363,7 +358,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/4919e338-3151-4315-b342-fc13d9851d86/> .
 
     <acl/authorizations/> sioc:has_space <> ;
-        sioc:has_parent <acl/> ;
         dh:slug "authorizations" ;
         void:inDataset <graphs/4919e338-3151-4315-b342-fc13d9851d86/#this> .
 
@@ -373,8 +367,8 @@ WHERE
 {
 
     <acl/authorizations/> a adm:Container ;
+        sioc:has_parent <acl/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Authorizations" ;
         dct:description "Manage who has access to which resources" .
 
@@ -392,7 +386,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/04aa1c8f-2d46-4e29-9c32-e88317670695/> .
 
     <acl/authorization-requests/> sioc:has_space <> ;
-        sioc:has_parent <acl/> ;
         dh:slug "authorization-requests" ;
         void:inDataset <graphs/04aa1c8f-2d46-4e29-9c32-e88317670695/#this> .
 
@@ -402,8 +395,8 @@ WHERE
 {
 
     <acl/authorization-requests/> a adm:Container ;
+        sioc:has_parent <acl/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Authorization requests" ;
         dct:description "Manage who has access to which resources" .
 
@@ -421,7 +414,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/394f6623-6dfb-47ed-8a06-06f0892c39f1/> .
 
     <acl/agents/> sioc:has_space <> ;
-        sioc:has_parent <acl/> ;
         dh:slug "agents" ;
         void:inDataset <graphs/394f6623-6dfb-47ed-8a06-06f0892c39f1/#this> .
 
@@ -431,8 +423,8 @@ WHERE
 {
 
     <acl/agents/> a adm:Container ;
+        sioc:has_parent <acl/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Agents" ;
         dct:description "Manage people and software agents that have access" .
 
@@ -450,7 +442,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/843d5645-e878-408f-9201-dc874147ca5a/> .
 
     <acl/public-keys/> sioc:has_space <> ;
-        sioc:has_parent <acl/> ;
         dh:slug "public-keys" ;
         void:inDataset <graphs/843d5645-e878-408f-9201-dc874147ca5a/#this> .
 
@@ -460,8 +451,8 @@ WHERE
 {
 
     <acl/public-keys/> a adm:Container ;
+        sioc:has_parent <acl/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Public keys" ;
         dct:description "Manage RSA public keys" .
 
@@ -479,7 +470,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/c5f6ed23-db21-4037-aa83-458f9a2b33d9/> .
 
     <acl/users/> sioc:has_space <> ;
-        sioc:has_parent <acl/> ;
         dh:slug "users" ;
         void:inDataset <graphs/c5f6ed23-db21-4037-aa83-458f9a2b33d9/#this> .
 
@@ -489,8 +479,8 @@ WHERE
 {
 
     <acl/users/> a adm:Container ;
+        sioc:has_parent <acl/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Users" ;
         dct:description "Manage agent user accounts and credentials" .
 
@@ -508,7 +498,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/4ec207bd-dc18-4440-a98c-320ece9e8598/> .
 
     <acl/groups/> sioc:has_space <> ;
-        sioc:has_parent <acl/> ;
         dh:slug "groups" ;
         void:inDataset <graphs/4ec207bd-dc18-4440-a98c-320ece9e8598/#this> .
 
@@ -518,8 +507,8 @@ WHERE
 {
 
     <acl/groups/> a adm:Container ;
+        sioc:has_parent <acl/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Groups" ;
         dct:description "Manage agent groups that have access" .
 
@@ -541,7 +530,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/a86ce4fa-0197-4118-878e-32ea2d695878/> .
 
     <acl/authorizations/public/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "public" ;
         void:inDataset <graphs/a86ce4fa-0197-4118-878e-32ea2d695878/#this> .
 
@@ -551,6 +539,7 @@ WHERE
 {
 
     <acl/authorizations/public/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Public access" ;
         foaf:primaryTopic <acl/authorizations/public/#this> .
 
@@ -579,7 +568,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/3f6ce64f-e5cf-47ac-8f32-c357ad277c12/> .
 
     <acl/authorizations/sign-up/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations> ;
         dh:slug "sign-up" ;
         void:inDataset <graphs/3f6ce64f-e5cf-47ac-8f32-c357ad277c12/#this> .
 
@@ -589,6 +577,7 @@ WHERE
 {
 
     <acl/authorizations/sign-up/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations> ;
         dct:title "Signup access" ;
         foaf:primaryTopic <acl/authorizations/sign-up/#this> .
 
@@ -616,7 +605,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/af065258-2a91-4f29-a25a-304220ec3db4/> .
 
     <acl/authorizations/request-access/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "request-access" ;
         void:inDataset <graphs/af065258-2a91-4f29-a25a-304220ec3db4/#this> .
 
@@ -626,6 +614,7 @@ WHERE
 {
 
     <acl/authorizations/request-access/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Authorization request access" ;
         foaf:primaryTopic <acl/authorizations/request-access/#this> .
 
@@ -653,7 +642,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/abdc6df6-3020-44c5-a52f-bdb483359b0d/> .
 
     <acl/authorizations/append-request/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "append-request" ;
         void:inDataset <graphs/abdc6df6-3020-44c5-a52f-bdb483359b0d/#this> .
 
@@ -663,6 +651,7 @@ WHERE
 {
 
     <acl/authorizations/append-request/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Append authorization request" ;
         foaf:primaryTopic <acl/authorizations/append-request/#this> .
 
@@ -690,7 +679,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/7a634968-b5b8-4da7-93e7-c912d495ae6c/> .
 
     <acl/authorizations/oauth2/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "oauth2" ;
         void:inDataset <graphs/7a634968-b5b8-4da7-93e7-c912d495ae6c/#this> .
 
@@ -700,6 +688,7 @@ WHERE
 {
 
     <acl/authorizations/oauth2/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "OAuth 2.0 access" ;
         foaf:primaryTopic <acl/authorizations/oauth2/#this> .
 
@@ -727,7 +716,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/2cf41157-03a5-45ec-a7ec-64def69e0179/> .
 
     <acl/authorizations/full-control/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "full-control" ;
         void:inDataset <graphs/2cf41157-03a5-45ec-a7ec-64def69e0179/#this> .
 
@@ -737,6 +725,7 @@ WHERE
 {
 
     <acl/authorizations/full-control/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Full control" ;
         foaf:primaryTopic <acl/authorizations/full-control/#this> .
 
@@ -765,7 +754,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/ac973b8e-d9b5-4ce1-a750-579a24dc71c7/> .
 
     <acl/authorizations/write-append/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "write-append" ;
         void:inDataset <graphs/ac973b8e-d9b5-4ce1-a750-579a24dc71c7/#this> .
 
@@ -775,6 +763,7 @@ WHERE
 {
 
     <acl/authorizations/write-append/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Write/append access" ;
         foaf:primaryTopic <acl/authorizations/write-append/#this> .
 
@@ -803,7 +792,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/a68f57ba-6bd1-4f97-9c00-fe4a9d43b31d/> .
 
     <acl/authorizations/read/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "read" ;
         void:inDataset <graphs/a68f57ba-6bd1-4f97-9c00-fe4a9d43b31d/#this> .
 
@@ -813,6 +801,7 @@ WHERE
 {
 
     <acl/authorizations/read/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Read access" ;
         foaf:primaryTopic <acl/authorizations/read/#this> .
 
@@ -841,7 +830,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/dbd9c26c-aa03-483d-9ed1-ee030fb18821/> .
 
     <acl/authorizations/creator/> sioc:has_space <> ;
-        sioc:has_container <acl/authorizations/> ;
         dh:slug "creator" ;
         void:inDataset <graphs/dbd9c26c-aa03-483d-9ed1-ee030fb18821/#this> .
 
@@ -851,6 +839,7 @@ WHERE
 {
 
     <acl/authorizations/creator/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Creator access" ;
         foaf:primaryTopic <acl/authorizations/creator/#this> .
 
@@ -880,7 +869,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/fc9b0f80-2e17-4cba-b144-e493de08f959/> .
 
     <acl/groups/owners/> sioc:has_space <> ;
-        sioc:has_container <acl/groups/> ;
         dh:slug "owners" ;
         void:inDataset <graphs/fc9b0f80-2e17-4cba-b144-e493de08f959/#this> .
 
@@ -890,6 +878,7 @@ WHERE
 {
 
     <acl/groups/owners/> a adm:GroupItem ;
+        sioc:has_container <acl/groups/> ;
         dct:title "Owners" ;
         foaf:primaryTopic <acl/groups/owners/#this> .
 
@@ -914,7 +903,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/8ef85389-4114-43fe-8023-e1f399e56b94/> .
 
     <acl/groups/writers/> sioc:has_space <> ;
-        sioc:has_container <acl/groups/> ;
         dh:slug "writers" ;
         void:inDataset <graphs/8ef85389-4114-43fe-8023-e1f399e56b94/#this> .
 
@@ -924,6 +912,7 @@ WHERE
 {
 
     <acl/groups/writers/> a adm:GroupItem ;
+        sioc:has_container <acl/groups/> ;
         dct:title "Writers" ;
         foaf:primaryTopic <acl/groups/writers/#this> .
 
@@ -948,7 +937,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/bc6440f9-403f-4e4b-967f-8f0d8cd7ab70/> .
 
     <acl/groups/readers/> sioc:has_space <> ;
-        sioc:has_container <acl/groups/> ;
         dh:slug "readers" ;
         void:inDataset <graphs/bc6440f9-403f-4e4b-967f-8f0d8cd7ab70/#this> .
 
@@ -958,6 +946,7 @@ WHERE
 {
 
     <acl/groups/readers/> a adm:GroupItem ;
+        sioc:has_container <acl/groups/> ;
         dct:title "Readers" ;
         foaf:primaryTopic <acl/groups/readers/#this> .
 
@@ -984,7 +973,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/547af5b6-5b96-4992-8b34-6c089ec8299e/> .
 
     <model/> sioc:has_space <> ;
-        sioc:has_parent <> ;
         dh:slug "model" ;
         void:inDataset <graphs/547af5b6-5b96-4992-8b34-6c089ec8299e/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -995,8 +983,8 @@ WHERE
 {
 
     <model/> a adm:Container ;
+        sioc:has_parent <> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Model" ;
         dct:description "Manage application model: classes, properties, constraints etc." .
 
@@ -1014,7 +1002,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/ae09bff7-87ca-4371-bb24-6da4c9f5cd99/> .
 
     <model/ontologies/> sioc:has_space <> ;
-        sioc:has_parent <model/> ;
         dh:slug "ontologies" ;
         void:inDataset <graphs/ae09bff7-87ca-4371-bb24-6da4c9f5cd99/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1025,8 +1012,8 @@ WHERE
 {
 
     <model/ontologies/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" .
 
@@ -1044,7 +1031,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/6a669718-a641-4102-a3b1-9edb1c5dc70c/> .
 
     <model/queries/> sioc:has_space <> ;
-        sioc:has_parent <model/> ;
         dh:slug "queries" ;
         void:inDataset <graphs/6a669718-a641-4102-a3b1-9edb1c5dc70c/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1055,8 +1041,8 @@ WHERE
 {
 
     <model/queries/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Queries" ;
         dct:description "Manage SPARQL queries that are used by constructors and constraints" .
 
@@ -1074,7 +1060,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/4f1f8244-6077-409b-9f7f-14c4ff91293f/> .
 
     <model/queries/default/> sioc:has_space <> ;
-        sioc:has_parent <model/queries/> ;
         dh:slug "default" ;
         void:inDataset <graphs/4f1f8244-6077-409b-9f7f-14c4ff91293f/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1085,8 +1070,8 @@ WHERE
 {
 
     <model/queries/default/> a adm:Container ;
+        sioc:has_parent <model/queries/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Queries of the Default ontology" .
 
@@ -1104,7 +1089,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/2257e492-bccd-4cfe-9782-fbd72d10d0a5/> .
 
     <model/classes/> sioc:has_space <> ;
-        sioc:has_parent <model/> ;
         dh:slug "classes" ;
         void:inDataset <graphs/2257e492-bccd-4cfe-9782-fbd72d10d0a5/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1115,8 +1099,8 @@ WHERE
 {
 
     <model/classes/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Classes" ;
         dct:description "Manage application classes to define the domain model" .
 
@@ -1134,7 +1118,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/835b7a04-9449-4406-aaa4-b23ed322d7d4/> .
 
     <model/classes/default/> sioc:has_space <> ;
-        sioc:has_parent <model/classes/> ;
         dh:slug "default" ;
         void:inDataset <graphs/835b7a04-9449-4406-aaa4-b23ed322d7d4/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1145,8 +1128,8 @@ WHERE
 {
 
     <model/classes/default/> a adm:Container ;
+        sioc:has_parent <model/classes/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Classes of the Default ontology" .
 
@@ -1164,7 +1147,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/9a6007e4-84aa-4d5c-a821-c6313ea9ce97/> .
 
     <model/properties/> sioc:has_space <> ;
-        sioc:has_parent <model/> ;
         dh:slug "properties" ;
         void:inDataset <graphs/9a6007e4-84aa-4d5c-a821-c6313ea9ce97/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1175,8 +1157,8 @@ WHERE
 {
 
     <model/properties/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Properties" ;
         dct:description "Manage properties of the domain model" .
 
@@ -1194,7 +1176,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/7495f7a7-0d78-4844-8f67-b8b6f1b186e1/> .
 
     <model/constraints/> sioc:has_space <> ;
-        sioc:has_parent <model> ;
         dh:slug "constraints" ;
         void:inDataset <graphs/7495f7a7-0d78-4844-8f67-b8b6f1b186e1/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1205,8 +1186,8 @@ WHERE
 {
 
     <model/constraints/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Constraints" ;
         dct:description "Manage SPIN constraints to control the quality of incoming data" .
 
@@ -1224,7 +1205,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/5f9a9d7c-2d52-47fd-9f8e-56fc23343c80/> .
 
     <model/constraints/default/> sioc:has_space <> ;
-        sioc:has_parent <model/constraints/> ;
         dh:slug "constraints" ;
         void:inDataset <graphs/5f9a9d7c-2d52-47fd-9f8e-56fc23343c80/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1235,8 +1215,8 @@ WHERE
 {
 
     <model/constraints/default/> a adm:Container ;
+        sioc:has_parent <model/constraints/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Constraints of the Default ontology" .
 
@@ -1254,7 +1234,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/35ec0cb1-c6e3-4052-b7f7-329c8e48495f/> .
 
     <model/restrictions/> sioc:has_space <> ;
-        sioc:has_parent <model/> ;
         dh:slug "restrictions" ;
         void:inDataset <graphs/35ec0cb1-c6e3-4052-b7f7-329c8e48495f/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1265,8 +1244,8 @@ WHERE
 {
 
     <model/restrictions/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Restrictions" ;
         dct:description "Manage OWL restrictions on properties" .
 
@@ -1284,7 +1263,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/a7b6d4b3-434b-44ef-a6d0-97610137fe7e/> .
 
     <model/restrictions/namespace/> sioc:has_space <> ;
-        sioc:has_parent <model/restrictions/> ;
         dh:slug "namespace" ;
         void:inDataset <graphs/a7b6d4b3-434b-44ef-a6d0-97610137fe7e/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1295,8 +1273,8 @@ WHERE
 {
 
     <model/restrictions/namespace/> a adm:Container ;
+        sioc:has_parent <model/restrictions/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Namespace" ;
         dct:description "Restrictions of the Namespace ontology" .
 
@@ -1314,7 +1292,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/2773c0c8-9a95-4328-9b19-9ac1b987e780/> .
 
     <model/command-templates/> sioc:has_space <> ;
-        sioc:has_parent <model/> ;
         dh:slug "command-templates" ;
         void:inDataset <graphs/2773c0c8-9a95-4328-9b19-9ac1b987e780/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -1325,8 +1302,8 @@ WHERE
 {
 
     <model/command-templates/> a adm:Container ;
+        sioc:has_parent <model/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Command templates" ;
         dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
 
@@ -1348,7 +1325,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/4ea09d11-e28f-4977-a359-297d5411aa4d/> .
 
     <model/ontologies/default/> sioc:has_space <> ;
-        sioc:has_container <model/ontologies/> ;
         dh:slug "default" ;
         void:inDataset <graphs/4ea09d11-e28f-4977-a359-297d5411aa4d/#this> .
 
@@ -1358,6 +1334,7 @@ WHERE
 {
 
     <model/ontologies/default/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
         dct:title "Default" ;
         foaf:primaryTopic def: .
 
@@ -1384,7 +1361,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/d8ffc632-6274-4cac-ad51-f09fb17f5dab/> .
 
     <model/ontologies/domain/> sioc:has_space <> ;
-        sioc:has_container <model/ontologies/> ;
         dh:slug "domain" ;
         void:inDataset <graphs/d8ffc632-6274-4cac-ad51-f09fb17f5dab/#this> .
 
@@ -1394,6 +1370,7 @@ WHERE
 {
 
     <model/ontologies/domain/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
         dct:title "Domain" ;
         foaf:primaryTopic nsd: .
 
@@ -1422,7 +1399,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/15e8e729-8158-4bfe-b6ce-5889eb6b0e8c/> .
 
     <model/classes/default/container/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "container" ;
         void:inDataset <graphs/15e8e729-8158-4bfe-b6ce-5889eb6b0e8c/#this> .
 
@@ -1432,6 +1408,7 @@ WHERE
 {
 
     <model/classes/default/container/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "Container" ;
         foaf:primaryTopic def:Container .
 
@@ -1439,7 +1416,7 @@ WHERE
         foaf:isPrimaryTopicOf <model/classes/default/container/> ;
         rdfs:subClassOf dh:Container ;
         spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-        spin:constraint def:MissingTitle, def:MissingSelect ;
+        spin:constraint def:MissingParent, def:MissingTitle, def:MissingSelect ;
         rdfs:label "Container" ;
         rdfs:isDefinedBy def: .
 
@@ -1459,7 +1436,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/4e50a24f-3d06-44f7-8268-c38b5a6ef430/> .
 
     <model/classes/default/item/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "item" ;
         void:inDataset <graphs/4e50a24f-3d06-44f7-8268-c38b5a6ef430/#this> .
 
@@ -1469,6 +1445,7 @@ WHERE
 {
 
     <model/classes/default/item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "Item" ;
         foaf:primaryTopic def:Item .
 
@@ -1476,7 +1453,7 @@ WHERE
         foaf:isPrimaryTopicOf <model/classes/default/item/> ;
         rdfs:subClassOf dh:Item ;
         spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-        spin:constraint def:MissingTitle ;
+        spin:constraint def:MissingContainer, def:MissingTitle ;
         rdfs:label "Item" ;
         rdfs:isDefinedBy def: .
 
@@ -1496,7 +1473,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/c8fb77b5-efae-4ad8-959c-3ef6075eef41/> .
 
     <model/classes/default/generic-service/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "generic-service" ;
         void:inDataset <graphs/c8fb77b5-efae-4ad8-959c-3ef6075eef41/#this> .
 
@@ -1506,6 +1482,7 @@ WHERE
 {
 
     <model/classes/default/generic-service/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "Generic service" ;
         foaf:primaryTopic def:GenericService .
 
@@ -1534,7 +1511,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/5f88c4a7-dc15-4d50-b614-b4d8974bc200/> .
 
     <model/classes/default/dydra-service/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "dydra-service" ;
         void:inDataset <graphs/5f88c4a7-dc15-4d50-b614-b4d8974bc200/#this> .
 
@@ -1544,6 +1520,7 @@ WHERE
 {
 
     <model/classes/default/dydra-service/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "Dydra service" ;
         foaf:primaryTopic def:DydraService .
 
@@ -1572,7 +1549,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/154a5866-642c-4990-90bf-987960537ffb/> .
 
     <model/classes/default/file/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "file" ;
         void:inDataset <graphs/154a5866-642c-4990-90bf-987960537ffb/#this> .
 
@@ -1581,7 +1557,8 @@ WHERE
 <graphs/154a5866-642c-4990-90bf-987960537ffb/>
 {
 
-    <model/classes/default/file/> a adm:Class ;
+    <model/classes/default/file/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "File" ;
         foaf:primaryTopic def:File .
 
@@ -1609,7 +1586,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/40bb7298-62ea-4895-b959-54c9d9b135b1/> .
 
     <model/classes/default/construct/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "construct" ;
         void:inDataset <graphs/40bb7298-62ea-4895-b959-54c9d9b135b1/#this> .
 
@@ -1618,7 +1594,8 @@ WHERE
 <graphs/40bb7298-62ea-4895-b959-54c9d9b135b1/>
 {
 
-    <model/classes/default/construct/> a adm:Class ;
+    <model/classes/default/construct/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "CONSTRUCT" ;
         foaf:primaryTopic def:Construct .
 
@@ -1646,7 +1623,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/16806b05-241e-4e67-b138-cd876d84d018/> .
 
     <model/classes/default/describe/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "describe" ;
         void:inDataset <graphs/40bb7298-62ea-4895-b959-54c9d9b135b1/#this> .
 
@@ -1655,7 +1631,8 @@ WHERE
 <graphs/16806b05-241e-4e67-b138-cd876d84d018/>
 {
 
-    <model/classes/default/describe/> a adm:Class ;
+    <model/classes/default/describe/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "DESCRIBE" ;
         foaf:primaryTopic def:Describe .
 
@@ -1683,7 +1660,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/dadd3722-7df4-4ec3-b29c-495c7d791b51/> .
 
     <model/classes/default/select/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "select" ;
         void:inDataset <graphs/40bb7298-62ea-4895-b959-54c9d9b135b1/#this> .
 
@@ -1692,7 +1668,8 @@ WHERE
 <graphs/dadd3722-7df4-4ec3-b29c-495c7d791b51/>
 {
 
-    <model/classes/default/select/> a adm:Class ;
+    <model/classes/default/select/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "SELECT" ;
         foaf:primaryTopic def:Select .
 
@@ -1720,7 +1697,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/e63768cd-b23c-4a6a-b2a4-bbb9d9ebb4c9/> .
 
     <model/classes/default/ask/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "ask" ;
         void:inDataset <graphs/40bb7298-62ea-4895-b959-54c9d9b135b1/#this> .
 
@@ -1729,7 +1705,8 @@ WHERE
 <graphs/e63768cd-b23c-4a6a-b2a4-bbb9d9ebb4c9/>
 {
 
-    <model/classes/default/ask/> a adm:Class ;
+    <model/classes/default/ask/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "ASK" ;
         foaf:primaryTopic def:Ask .
 
@@ -1757,7 +1734,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/dd8e08ea-fdd1-4a01-a39a-049f740cd7ef/> .
 
     <model/classes/default/csv-import/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "csv-import" ;
         void:inDataset <graphs/dd8e08ea-fdd1-4a01-a39a-049f740cd7ef/#this> .
 
@@ -1766,7 +1742,8 @@ WHERE
 <graphs/dd8e08ea-fdd1-4a01-a39a-049f740cd7ef/>
 {
 
-    <model/classes/default/csv-import/> a adm:Class ;
+    <model/classes/default/csv-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "CSV import" ;
         foaf:primaryTopic def:CSVImport .
 
@@ -1794,7 +1771,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/6d904dce-ac66-431e-9e3b-e10bf960ae93/> .
 
     <model/classes/default/graph-chart/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "graph-chart" ;
         void:inDataset <graphs/6d904dce-ac66-431e-9e3b-e10bf960ae93/#this> .
 
@@ -1803,7 +1779,8 @@ WHERE
 <graphs/6d904dce-ac66-431e-9e3b-e10bf960ae93/>
 {
 
-    <model/classes/default/graph-chart/> a adm:Class ;
+    <model/classes/default/graph-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "Graph chart" ;
         foaf:primaryTopic def:GraphChart .
 
@@ -1831,7 +1808,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/bb051474-0648-4bcd-8486-ccf90cf3a235/> .
 
     <model/classes/default/result-set-chart/> sioc:has_space <> ;
-        sioc:has_container <model/classes/default/> ;
         dh:slug "result-set-chart" ;
         void:inDataset <graphs/bb051474-0648-4bcd-8486-ccf90cf3a235/#this> .
 
@@ -1840,7 +1816,8 @@ WHERE
 <graphs/bb051474-0648-4bcd-8486-ccf90cf3a235/>
 {
 
-    <model/classes/default/result-set-chart/> a adm:Class ;
+    <model/classes/default/result-set-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
         dct:title "Result set chart" ;
         foaf:primaryTopic def:ResultSetChart .
 
@@ -1870,7 +1847,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/0abe8ae9-87d7-47cf-899b-3653fccfbcb3/> .
 
     <model/queries/default/title-constructor/> sioc:has_space <> ;
-        sioc:has_container <model/queries/default/> ;
         dh:slug "title-constructor" ;
         void:inDataset <graphs/0abe8ae9-87d7-47cf-899b-3653fccfbcb3/#this> .
 
@@ -1880,6 +1856,7 @@ WHERE
 {
 
     <model/queries/default/title-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
         dct:title "Title constructor" ;
         foaf:primaryTopic def:TitleConstructor .
 
@@ -1913,7 +1890,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/d3f65581-78e7-4844-a2fe-816a4b72305f/> .
 
     <model/queries/default/description-constructor/> sioc:has_space <> ;
-        sioc:has_container <model/queries/default/> ;
         dh:slug "description-constructor" ;
         void:inDataset <graphs/d3f65581-78e7-4844-a2fe-816a4b72305f/#this> .
 
@@ -1923,6 +1899,7 @@ WHERE
 {
 
     <model/queries/default/description-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
         dct:description "Description constructor" ;
         foaf:primaryTopic def:DescriptionConstructor .
 
@@ -1956,7 +1933,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/a67e948a-f2c6-44a2-b960-41780c269648/> .
 
     <model/queries/default/content-constructor/> sioc:has_space <> ;
-        sioc:has_container <model/queries/default/> ;
         dh:slug "content-constructor" ;
         void:inDataset <graphs/a67e948a-f2c6-44a2-b960-41780c269648/#this> .
 
@@ -1966,6 +1942,7 @@ WHERE
 {
 
     <model/queries/default/content-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
         dct:title "Content constructor" ;
         foaf:primaryTopic def:ContentConstructor .
 
@@ -1999,7 +1976,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/7995e000-5d12-4aee-ae21-35ad1191e1e1/> .
 
     <model/queries/default/attachment-constructor/> sioc:has_space <> ;
-        sioc:has_container <model/queries/default/> ;
         dh:slug "attachment-constructor" ;
         void:inDataset <graphs/7995e000-5d12-4aee-ae21-35ad1191e1e1/#this> .
 
@@ -2009,6 +1985,7 @@ WHERE
 {
 
     <model/queries/default/attachment-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
         dct:title "Attachment constructor" ;
         foaf:primaryTopic def:AttachmentConstructor .
 
@@ -2030,6 +2007,74 @@ WHERE
 
 # CONSTRAINTS
 
+<graphs/539c5a4b-6a1d-4b71-b7c1-6c4dc5594d28/>
+{
+
+    <graphs/a3921236-3f2f-44ef-a6a4-f7ce6f4eb4a7/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/a3921236-3f2f-44ef-a6a4-f7ce6f4eb4a7/#this> .
+
+    <graphs/a3921236-3f2f-44ef-a6a4-f7ce6f4eb4a7/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/a3921236-3f2f-44ef-a6a4-f7ce6f4eb4a7/> .
+
+    <model/constraints/default/missing-parent/> sioc:has_space <> ;
+        dh:slug "missing-parent" ;
+        void:inDataset <graphs/a3921236-3f2f-44ef-a6a4-f7ce6f4eb4a7/#this> .
+
+}
+
+<graphs/a3921236-3f2f-44ef-a6a4-f7ce6f4eb4a7/>
+{
+
+    <model/constraints/default/missing-parent/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
+        dct:title "Missing parent" ;
+        foaf:primaryTopic def:MissingParent .
+
+    def:MissingParent a adm:MissingPropertyValue ;
+        foaf:isPrimaryTopicOf <model/constraints/default/missing-parent/> ;
+        rdfs:label "Missing parent" ;
+        rdfs:comment "Requires containers to have a parent container" ;
+        sp:arg1 sioc:has_parent ;
+        rdfs:isDefinedBy def: .
+
+}
+
+<graphs/677a9176-c4a7-4ca4-9290-285c431b1f6e/>
+{
+
+    <graphs/18718a67-8b13-415e-8c10-faaf6b962da3/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/18718a67-8b13-415e-8c10-faaf6b962da3/#this> .
+
+    <graphs/18718a67-8b13-415e-8c10-faaf6b962da3/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/18718a67-8b13-415e-8c10-faaf6b962da3/> .
+
+    <model/constraints/default/missing-container/> sioc:has_space <> ;
+        dh:slug "missing-container" ;
+        void:inDataset <graphs/18718a67-8b13-415e-8c10-faaf6b962da3/#this> .
+
+}
+
+<graphs/18718a67-8b13-415e-8c10-faaf6b962da3/>
+{
+
+    <model/constraints/default/missing-container/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
+        dct:title "Missing container" ;
+        foaf:primaryTopic def:MissingContainer .
+
+    def:MissingContainer a adm:MissingPropertyValue ;
+        foaf:isPrimaryTopicOf <model/constraints/default/missing-container/> ;
+        rdfs:label "Missing container" ;
+        rdfs:comment "Requires items to have a parent container" ;
+        sp:arg1 sioc:has_container ;
+        rdfs:isDefinedBy def: .
+
+}
+
 <graphs/8be333b9-e80e-40a3-a687-a7b0beaca378/>
 {
 
@@ -2042,7 +2087,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/1c206001-95cb-4e5f-be9a-e9017196a5b8/> .
 
     <model/constraints/default/missing-title/> sioc:has_space <> ;
-        sioc:has_container <model/constraints/default/> ;
         dh:slug "missing-title" ;
         void:inDataset <graphs/1c206001-95cb-4e5f-be9a-e9017196a5b8/#this> .
 
@@ -2052,6 +2096,7 @@ WHERE
 {
 
     <model/constraints/default/missing-title/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
         dct:title "Missing title" ;
         foaf:primaryTopic def:MissingTitle .
 
@@ -2076,7 +2121,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/e7872362-6e40-4a55-8da4-d2001cefbd8a/> .
 
     <model/constraints/default/missing-select/> sioc:has_space <> ;
-        sioc:has_container <model/constraints/default/> ;
         dh:slug "missing-select" ;
         void:inDataset <graphs/e7872362-6e40-4a55-8da4-d2001cefbd8a/#this> .
 
@@ -2086,6 +2130,7 @@ WHERE
 {
 
     <model/constraints/default/missing-select/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
         dct:title "Missing select" ;
         foaf:primaryTopic def:MissingSelect .
 
@@ -2114,7 +2159,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/efdf9ccb-d34f-41ba-8457-554b750834b3/> .
 
     <sitemap/> sioc:has_space <> ;
-        sioc:has_parent <> ;
         dh:slug "sitemap" ;
         void:inDataset <graphs/efdf9ccb-d34f-41ba-8457-554b750834b3/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2125,8 +2169,8 @@ WHERE
 {
 
     <sitemap/> a adm:Container ;
+        sioc:has_parent <> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Sitemap" ;
         dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
 
@@ -2144,7 +2188,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/e77ab171-b0ef-49c9-82b2-e2211e743ebb/> .
 
     <sitemap/ontologies/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/> ;
         dh:slug "ontologies" ;
         void:inDataset <graphs/e77ab171-b0ef-49c9-82b2-e2211e743ebb/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2155,8 +2198,8 @@ WHERE
 {
 
     <sitemap/ontologies/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application structure" .
 
@@ -2174,7 +2217,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/56a7caed-ca27-4bbe-9e60-56bbf688274a/> .
 
     <sitemap/queries/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/> ;
         dh:slug "queries" ;
         void:inDataset <graphs/56a7caed-ca27-4bbe-9e60-56bbf688274a/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2185,8 +2227,8 @@ WHERE
 {
 
     <sitemap/queries/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Queries" ;
         dct:description "Manage SPARQL queries that are used by templates and constraints" .
 
@@ -2204,7 +2246,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/a5ea2f0c-6b2c-4eaa-914e-df491d7793c7/> .
 
     <sitemap/queries/default/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/queries/> ;
         dh:slug "default" ;
         void:inDataset <graphs/a5ea2f0c-6b2c-4eaa-914e-df491d7793c7/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2215,8 +2256,8 @@ WHERE
 {
 
     <sitemap/queries/default/> a adm:Container ;
+        sioc:has_parent <sitemap/queries/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Queries of the Default templates" .
 
@@ -2234,7 +2275,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/5689c7c1-a9d3-4db1-9052-a932350e5426/> .
 
     <sitemap/updates/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/> ;
         dh:slug "updates" ;
         void:inDataset <graphs/5689c7c1-a9d3-4db1-9052-a932350e5426/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2245,8 +2285,8 @@ WHERE
 {
 
     <sitemap/updates/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Updates" ;
         dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
 
@@ -2264,7 +2304,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/> .
 
     <sitemap/templates/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/> ;
         dh:slug "templates" ;
         void:inDataset <graphs/322dd33d-e646-4573-9bc8-7ffb438c3da3/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2275,8 +2314,8 @@ WHERE
 {
 
     <sitemap/templates/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Templates" ;
         dct:description "Manage LDT template that define the Linked Data API of the application by mapping URI templates to SPARQL" .
 
@@ -2294,7 +2333,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/5aef7218-ff84-469e-95d5-c21bb5fbc3a5/> .
 
     <sitemap/templates/default/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/templates/> ;
         dh:slug "default" ;
         void:inDataset <graphs/5aef7218-ff84-469e-95d5-c21bb5fbc3a5/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2305,8 +2343,8 @@ WHERE
 {
 
     <sitemap/templates/default/> a adm:Container ;
+        sioc:has_parent <sitemap/templates/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Default" ;
         dct:description "Templates of the Default ontology" .
 
@@ -2324,7 +2362,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/fd22f419-1664-42f8-a33d-ad4bdc6dadf4/> .
 
     <sitemap/parameters/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/> ;
         dh:slug "parameters" ;
         void:inDataset <graphs/fd22f419-1664-42f8-a33d-ad4bdc6dadf4/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2335,8 +2372,8 @@ WHERE
 {
 
     <sitemap/parameters/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Parameters" ;
         dct:description "Manage LDT template parameters that define what values can be passed to resources" .
 
@@ -2354,7 +2391,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/42b1243d-7f6f-418e-b85a-525b5511b85e/> .
 
     <sitemap/command-templates/> sioc:has_space <> ;
-        sioc:has_parent <sitemap/> ;
         dh:slug "command-templates" ;
         void:inDataset <graphs/42b1243d-7f6f-418e-b85a-525b5511b85e/#this> ;
         dct:created "2016-02-17T18:51:00+01:00"^^xsd:dateTime .
@@ -2365,8 +2401,8 @@ WHERE
 {
 
     <sitemap/command-templates/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
         dh:select <queries/default/select-children/#this> ;
-        apl:endpoint <sparql> ;
         dct:title "Command templates" ;
         dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
 
@@ -2388,7 +2424,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/2d24181f-679b-4d3e-8ad0-8da94478342e/> .
 
     <model/ontologies/namespace/> sioc:has_space <> ;
-        sioc:has_container <model/ontologies/> ;
         dh:slug "namespace" ;
         void:inDataset <graphs/2d24181f-679b-4d3e-8ad0-8da94478342e/#this> .
 
@@ -2398,6 +2433,7 @@ WHERE
 {
 
     <model/ontologies/namespace/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
         dct:title "Namespace" ;
         foaf:primaryTopic ns: .
 
@@ -2424,7 +2460,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/ed7d7a02-ab53-4e93-acc8-b3e9ec75de63/> .
 
     <sitemap/ontologies/templates/> sioc:has_space <> ;
-        sioc:has_container <sitemap/ontologies/> ;
         dh:slug "templates" ;
         void:inDataset <graphs/ed7d7a02-ab53-4e93-acc8-b3e9ec75de63/#this> .
 
@@ -2434,6 +2469,7 @@ WHERE
 {
 
     <sitemap/ontologies/templates/> a adm:OntologyItem ;
+        sioc:has_container <sitemap/ontologies/> ;
         dct:title "Templates" ;
         foaf:primaryTopic nst: .
 
@@ -2462,7 +2498,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/c819ebfa-7638-4024-80d3-6abb91daf968/> .
 
     <sitemap/templates/default/namespace-ontology/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "namespace-ontology" ;
         void:inDataset <graphs/c819ebfa-7638-4024-80d3-6abb91daf968/#this> .
 
@@ -2472,6 +2507,7 @@ WHERE
 {
 
     <sitemap/templates/default/namespace-ontology/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Namespace ontology" ;
         foaf:primaryTopic nst:NamespaceOntology .
 
@@ -2498,7 +2534,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/0aa8ea86-13a1-4660-892d-1201663007ec/> .
 
     <sitemap/templates/default/sub-ontology/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "sub-ontology" ;
         void:inDataset <graphs/0aa8ea86-13a1-4660-892d-1201663007ec/#this> .
 
@@ -2508,6 +2543,7 @@ WHERE
 {
 
     <sitemap/templates/default/sub-ontology/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Sub-ontology" ;
         foaf:primaryTopic nst:SubOntology .
 
@@ -2534,7 +2570,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/3cea7ad3-ca98-412f-9fef-feeae16a552d/> .
 
     <sitemap/templates/default/sparql-endpoint/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "sparql-endpoint" ;
         void:inDataset <graphs/3cea7ad3-ca98-412f-9fef-feeae16a552d/#this> .
 
@@ -2544,6 +2579,7 @@ WHERE
 {
 
     <sitemap/templates/default/sparql-endpoint/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "SPARQL endpoint" ;
         foaf:primaryTopic nst:SPARQLEndpoint .
 
@@ -2569,7 +2605,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/80ad4873-5446-4ffa-a59e-1f67e8fd188a/> .
 
     <sitemap/templates/default/graph-store/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "graph-store" ;
         void:inDataset <graphs/80ad4873-5446-4ffa-a59e-1f67e8fd188a/#this> .
 
@@ -2579,6 +2614,7 @@ WHERE
 {
 
     <sitemap/templates/default/graph-store/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Graph store" ;
         foaf:primaryTopic nst:GraphStore .
 
@@ -2604,7 +2640,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/1855d876-92aa-4689-bbcc-5c62ca4726ca/> .
 
     <sitemap/templates/default/item/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "item" ;
         void:inDataset <graphs/1855d876-92aa-4689-bbcc-5c62ca4726ca/#this> .
 
@@ -2614,6 +2649,7 @@ WHERE
 {
 
     <sitemap/templates/default/item/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Item" ;
         foaf:primaryTopic nst:Item .
 
@@ -2640,7 +2676,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/db96b665-859f-41af-96a1-4f27b4a2ca06/> .
 
     <sitemap/templates/default/graph-item/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "graph-item" ;
         void:inDataset <graphs/db96b665-859f-41af-96a1-4f27b4a2ca06/#this> .
 
@@ -2650,6 +2685,7 @@ WHERE
 {
 
     <sitemap/templates/default/graph-item/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Graph item" ;
         foaf:primaryTopic nst:GraphItem .
 
@@ -2675,7 +2711,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/35124ac5-39c0-48b0-8cc5-9367fb375df1/> .
 
     <sitemap/templates/default/file-container/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "file-container" ;
         void:inDataset <graphs/35124ac5-39c0-48b0-8cc5-9367fb375df1/#this> .
 
@@ -2685,6 +2720,7 @@ WHERE
 {
 
     <sitemap/templates/default/file-container/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "File container" ;
         foaf:primaryTopic nst:FileContainer .
 
@@ -2713,7 +2749,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/6b53a4b5-41b0-4c0e-b995-958afad4a79a/> .
 
     <sitemap/templates/default/file/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "file" ;
         void:inDataset <graphs/6b53a4b5-41b0-4c0e-b995-958afad4a79a/#this> .
 
@@ -2723,6 +2758,7 @@ WHERE
 {
 
     <sitemap/templates/default/file/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "File" ;
         foaf:primaryTopic nst:File .
 
@@ -2751,7 +2787,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/8a8be107-3eda-4393-91b2-36f64402b00d/> .
 
     <sitemap/templates/default/import-container/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "import-container" ;
         void:inDataset <graphs/8a8be107-3eda-4393-91b2-36f64402b00d/#this> .
 
@@ -2761,6 +2796,7 @@ WHERE
 {
 
     <sitemap/templates/default/import-container/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Import container" ;
         foaf:primaryTopic nst:ImportContainer .
 
@@ -2789,7 +2825,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/9a6700b9-bdd8-40e1-aad6-572a8e403ba4/> .
 
     <sitemap/templates/default/import-item/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "import-item" ;
         void:inDataset <graphs/9a6700b9-bdd8-40e1-aad6-572a8e403ba4/#this> .
 
@@ -2799,6 +2834,7 @@ WHERE
 {
 
     <sitemap/templates/default/import-item/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "Import item" ;
         foaf:primaryTopic nst:ImportItem .
 
@@ -2826,7 +2862,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/34b66f60-3b02-495e-af1e-f4c7add78475/> .
 
     <sitemap/templates/default/oauth2-login/> sioc:has_space <> ;
-        sioc:has_container <sitemap/templates/default/> ;
         dh:slug "oauth2-login" ;
         void:inDataset <graphs/34b66f60-3b02-495e-af1e-f4c7add78475/#this> .
 
@@ -2836,6 +2871,7 @@ WHERE
 {
 
     <sitemap/templates/default/oauth2-login/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/default/> ;
         dct:title "OAuth 2.0 login" ;
         foaf:primaryTopic nst:OAuth2Login .
 
@@ -2865,7 +2901,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/29b31386-bad3-4420-87f8-c4d1d9461896/> .
 
     <model/classes/namespace/services/generic/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/services/> ;
         dh:slug "generic" ;
         void:inDataset <graphs/29b31386-bad3-4420-87f8-c4d1d9461896/#this> .
 
@@ -2875,6 +2910,7 @@ WHERE
 {
 
     <model/classes/namespace/services/generic/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/services/> ;
         dct:title "Generic service" ;
         foaf:primaryTopic ns:GenericService .
 
@@ -2903,7 +2939,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/f8caa7f7-059d-4048-9744-3920fd9378d8/> .
 
     <model/classes/namespace/services/dydra/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/services/> ;
         dh:slug "dydra" ;
         void:inDataset <graphs/f8caa7f7-059d-4048-9744-3920fd9378d8/#this> .
 
@@ -2913,6 +2948,7 @@ WHERE
 {
 
     <model/classes/namespace/services/dydra/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/services/> ;
         dct:title "Dydra service" ;
         foaf:primaryTopic ns:DydraService .
 
@@ -2941,7 +2977,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/8c1bc2cb-db28-470c-a34e-a394b2524b9b/> .
 
     <model/classes/namespace/services/service-item/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/services/> ;
         dh:slug "service-item" ;
         void:inDataset <graphs/8c1bc2cb-db28-470c-a34e-a394b2524b9b/#this> .
 
@@ -2951,6 +2986,7 @@ WHERE
 {
 
     <model/classes/namespace/services/service-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/services/> ;
         dct:title "Service item" ;
         foaf:primaryTopic ns:ServiceItem .
 
@@ -2976,7 +3012,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/3738f330-dad8-429a-af6e-6e8469efe870/> .
 
     <model/classes/namespace/file/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "file" ;
         void:inDataset <graphs/3738f330-dad8-429a-af6e-6e8469efe870/#this> .
 
@@ -2986,6 +3021,7 @@ WHERE
 {
 
     <model/classes/namespace/file/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "File" ;
         foaf:primaryTopic ns:File .
 
@@ -3012,7 +3048,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/0a47e211-d362-4f69-b536-b7dddcaaf2d5/> .
 
     <model/classes/namespace/file-item/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "file-item" ;
         void:inDataset <graphs/0a47e211-d362-4f69-b536-b7dddcaaf2d5/#this> .
 
@@ -3022,6 +3057,7 @@ WHERE
 {
 
     <model/classes/namespace/file-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "File item" ;
         foaf:primaryTopic ns:FileItem .
 
@@ -3047,7 +3083,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/277f7203-564c-4ea3-8c17-a18ed48b3bd9/> .
 
     <model/classes/namespace/csv-import/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "csv-import" ;
         void:inDataset <graphs/277f7203-564c-4ea3-8c17-a18ed48b3bd9/#this> .
 
@@ -3057,6 +3092,7 @@ WHERE
 {
 
     <model/classes/namespace/csv-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "CSV import" ;
         foaf:primaryTopic ns:CSVImport .
 
@@ -3082,7 +3118,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/c94df7a1-06a7-4524-bd4a-56bd5e1b77e2/> .
 
     <model/classes/namespace/import-item/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "import-item" ;
         void:inDataset <graphs/c94df7a1-06a7-4524-bd4a-56bd5e1b77e2/#this> .
 
@@ -3092,6 +3127,7 @@ WHERE
 {
 
     <model/classes/namespace/import-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "Import item" ;
         foaf:primaryTopic ns:ImportItem .
 
@@ -3117,7 +3153,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/0ba1374e-fe2a-4020-9975-6c18be783db0/> .
 
     <model/classes/namespace/construct/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "construct" ;
         void:inDataset <graphs/0ba1374e-fe2a-4020-9975-6c18be783db0/#this> .
 
@@ -3127,6 +3162,7 @@ WHERE
 {
 
     <model/classes/namespace/construct/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "CONSTRUCT" ;
         foaf:primaryTopic ns:Construct .
 
@@ -3152,7 +3188,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/f2456e7b-1b50-4719-a34b-8c7746fc77f1/> .
 
     <model/classes/namespace/describe/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "describe" ;
         void:inDataset <graphs/f2456e7b-1b50-4719-a34b-8c7746fc77f1/#this> .
 
@@ -3162,6 +3197,7 @@ WHERE
 {
 
     <model/classes/namespace/describe/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "DESCRIBE" ;
         foaf:primaryTopic ns:Describe .
 
@@ -3187,7 +3223,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/155a6975-04e0-4d93-82a7-600faa028d58/> .
 
     <model/classes/namespace/select/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "select" ;
         void:inDataset <graphs/155a6975-04e0-4d93-82a7-600faa028d58/#this> .
 
@@ -3197,6 +3232,7 @@ WHERE
 {
 
     <model/classes/namespace/select/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "SELECT" ;
         foaf:primaryTopic ns:Select .
 
@@ -3222,7 +3258,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/a9d989c1-3605-40f2-afa6-dd3726675062/> .
 
     <model/classes/namespace/ask/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "ask" ;
         void:inDataset <graphs/a9d989c1-3605-40f2-afa6-dd3726675062/#this> .
 
@@ -3232,6 +3267,7 @@ WHERE
 {
 
     <model/classes/namespace/ask/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "ASK" ;
         foaf:primaryTopic ns:Ask .
 
@@ -3257,7 +3293,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/13822fa2-851a-432e-8700-b3f5e61a5e57/> .
 
     <model/classes/namespace/query-item/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "query-item" ;
         void:inDataset <graphs/13822fa2-851a-432e-8700-b3f5e61a5e57/#this> .
 
@@ -3267,6 +3302,7 @@ WHERE
 {
 
     <model/classes/namespace/query-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "Query item" ;
         foaf:primaryTopic ns:QueryItem .
 
@@ -3292,7 +3328,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/98d44acd-7e16-429e-ac0e-624a751e56f2/> .
 
     <model/classes/namespace/graph-chart/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "graph-chart" ;
         void:inDataset <graphs/98d44acd-7e16-429e-ac0e-624a751e56f2/#this> .
 
@@ -3302,6 +3337,7 @@ WHERE
 {
 
     <model/classes/namespace/graph-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "Graph chart" ;
         foaf:primaryTopic ns:GraphChart .
 
@@ -3327,7 +3363,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/9d5ce472-969e-4408-954e-7f04c2f70cb2/> .
 
     <model/classes/namespace/result-set-chart/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "result-set-chart" ;
         void:inDataset <graphs/9d5ce472-969e-4408-954e-7f04c2f70cb2/#this> .
 
@@ -3337,6 +3372,7 @@ WHERE
 {
 
     <model/classes/namespace/result-set-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "Result set chart" ;
         foaf:primaryTopic ns:ResultSetChart .
 
@@ -3362,7 +3398,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/dc1248d1-391b-4b32-95b3-d01f565f5997/> .
 
     <model/classes/namespace/chart-item/> sioc:has_space <> ;
-        sioc:has_container <model/classes/namespace/> ;
         dh:slug "chart-item" ;
         void:inDataset <graphs/dc1248d1-391b-4b32-95b3-d01f565f5997/#this> .
 
@@ -3372,6 +3407,7 @@ WHERE
 {
 
     <model/classes/namespace/chart-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
         dct:title "Chart item" ;
         foaf:primaryTopic ns:ChartItem .
 
@@ -3399,7 +3435,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/7495983d-d642-481c-b927-fa94e245069c/> .
 
     <model/restrictions/topic-of-service-item/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/> ;
         dh:slug "topic-of-service-item" ;
         void:inDataset <graphs/7495983d-d642-481c-b927-fa94e245069c/#this> .
 
@@ -3408,7 +3443,8 @@ WHERE
 <graphs/7495983d-d642-481c-b927-fa94e245069c/>
 {
 
-    <model/restrictions/topic-of-service-item/> a dh:Item ;
+    <model/restrictions/topic-of-service-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/> ;
         dct:title "Topic of service item" ;
         foaf:primaryTopic ns:TopicOfServiceItem .
 
@@ -3435,7 +3471,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/ac6afbd3-b21b-42e0-b946-9b877b2a847d/> .
 
     <model/restrictions/namespace/topic-of-query-item/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "topic-of-query-item" ;
         void:inDataset <graphs/ac6afbd3-b21b-42e0-b946-9b877b2a847d/#this> .
 
@@ -3445,6 +3480,7 @@ WHERE
 {
 
     <model/restrictions/namespace/topic-of-query-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Topic of query item" ;
         foaf:primaryTopic ns:TopicOfQueryItem .
 
@@ -3471,7 +3507,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/c295b2ef-877f-478d-a785-5d79eba37c08/> .
 
     <model/restrictions/namespace/topic-of-import-item/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "topic-of-import-item" ;
         void:inDataset <graphs/c295b2ef-877f-478d-a785-5d79eba37c08/#this> .
 
@@ -3481,6 +3516,7 @@ WHERE
 {
 
     <model/restrictions/namespace/topic-of-import-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Topic of import item" ;
         foaf:primaryTopic ns:TopicOfImportItem .
 
@@ -3507,7 +3543,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/5cdb4e28-9701-4b3f-ae71-a07bf6111c3a/> .
 
     <model/restrictions/namespace/topic-of-file-item/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "topic-of-file-item" ;
         void:inDataset <graphs/5cdb4e28-9701-4b3f-ae71-a07bf6111c3a/#this> .
 
@@ -3517,6 +3552,7 @@ WHERE
 {
 
     <model/restrictions/namespace/topic-of-file-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Topic of file item" ;
         foaf:primaryTopic ns:TopicOfFileItem .
 
@@ -3543,7 +3579,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/46e147a1-2fbc-43bd-a8e0-5e19b5758e1f/> .
 
     <model/restrictions/namespace/topic-of-chart-item/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "topic-of-chart-item" ;
         void:inDataset <graphs/46e147a1-2fbc-43bd-a8e0-5e19b5758e1f/#this> .
 
@@ -3553,6 +3588,7 @@ WHERE
 {
 
     <model/restrictions/namespace/topic-of-chart-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Topic of chart item" ;
         foaf:primaryTopic ns:TopicOfChartItem .
 
@@ -3579,7 +3615,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/f0aff0a8-1642-4ba2-b41c-3e95ec146979/> .
 
     <model/restrictions/namespace/services-container/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/> ;
         dh:slug "services-container" ;
         void:inDataset <graphs/f0aff0a8-1642-4ba2-b41c-3e95ec146979/#this> .
 
@@ -3588,7 +3623,8 @@ WHERE
 <graphs/f0aff0a8-1642-4ba2-b41c-3e95ec146979/>
 {
 
-    <model/restrictions/namespace/services-container/> a dh:Item ;
+    <model/restrictions/namespace/services-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/> ;
         dct:title "Has services container" ;
         foaf:primaryTopic ns:ItemOfServiceContainer .
 
@@ -3615,7 +3651,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/ec71be7e-cf22-448a-8d15-a125073900c5/> .
 
     <model/restrictions/namespace/uploads-container/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "uploads-container" ;
         void:inDataset <graphs/ec71be7e-cf22-448a-8d15-a125073900c5/#this> .
 
@@ -3625,6 +3660,7 @@ WHERE
 {
 
     <model/restrictions/namespace/uploads-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Has uploads container" ;
         foaf:primaryTopic ns:ItemOfFileContainer .
 
@@ -3651,7 +3687,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/59ec165e-a7c2-434d-bdd7-e53bd898e55e/> .
 
     <model/restrictions/namespace/imports-container/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "imports-container" ;
         void:inDataset <graphs/59ec165e-a7c2-434d-bdd7-e53bd898e55e/#this> .
 
@@ -3661,6 +3696,7 @@ WHERE
 {
 
     <model/restrictions/namespace/imports-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Has imports container" ;
         foaf:primaryTopic ns:ItemOfImportsContainer .
 
@@ -3687,7 +3723,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/548831a5-f9c3-46f9-bb17-333aaf120fbb/> .
 
     <model/restrictions/namespace/files-container/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "files-container" ;
         void:inDataset <graphs/548831a5-f9c3-46f9-bb17-333aaf120fbb/#this> .
 
@@ -3697,6 +3732,7 @@ WHERE
 {
 
     <model/restrictions/namespace/files-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Has files container" ;
         foaf:primaryTopic ns:ItemOfFilesContainer .
 
@@ -3723,7 +3759,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/af9d3f6d-0a52-4006-94ad-97f46b8d430e/> .
 
     <model/restrictions/namespace/queries-container/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "queries-container" ;
         void:inDataset <graphs/af9d3f6d-0a52-4006-94ad-97f46b8d430e/#this> .
 
@@ -3733,6 +3768,7 @@ WHERE
 {
 
     <model/restrictions/namespace/queries-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Has queries container" ;
         foaf:primaryTopic ns:ItemOfQueriesContainer .
 
@@ -3759,7 +3795,6 @@ WHERE
         foaf:isPrimaryTopicOf <graphs/b10b8791-b05f-4a5d-9523-5784458bf230/> .
 
     <model/restrictions/namespace/charts-container/> sioc:has_space <> ;
-        sioc:has_container <model/restrictions/namespace/> ;
         dh:slug "charts-container" ;
         void:inDataset <graphs/b10b8791-b05f-4a5d-9523-5784458bf230/#this> .
 
@@ -3769,6 +3804,7 @@ WHERE
 {
 
     <model/restrictions/namespace/charts-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/namespace/> ;
         dct:title "Has charts container" ;
         foaf:primaryTopic ns:ItemOfChartsContainer .
 

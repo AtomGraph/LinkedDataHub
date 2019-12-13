@@ -24,7 +24,7 @@
     owl:imports dh:, ac:, spin:, foaf:, void:, sd:, prov:, nfo: ;
     rdfs:label "AtomGraph Platform ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
-    owl:versionInfo "1.1.4" .
+    owl:versionInfo "1.1.5" .
 
 # PROPERTIES
 
@@ -431,12 +431,44 @@ WHERE {
     rdfs:label "Construct missing property value" ;
     rdfs:isDefinedBy : .
 
+:ConstructPropertyCardinality a sp:Construct ;
+      sp:text """PREFIX  spin: <http://spinrdf.org/spin#>
+
+CONSTRUCT 
+  { 
+    _:c0 a spin:ConstraintViolation .
+    _:c0 spin:violationRoot ?this .
+    _:c0 spin:violationPath ?arg1 .
+  }
+WHERE
+  { SELECT  ?this ?arg1
+    WHERE
+      { ?this  ?arg1  ?o }
+    GROUP BY ?this ?arg1
+    HAVING ( COUNT(DISTINCT ?o) > ?arg2 )
+  }""" ;
+    rdfs:label "Construct property cardinality" ;
+    rdfs:isDefinedBy : .
+
 # SPIN TEMPLATES
 
 :MissingPropertyValue a spin:Template ;
     rdfs:label "Missing property value" ;
     spin:body :ConstructMissingPropertyValue ;
     spin:labelTemplate "Instance does not have a mandatory RDF property {?arg1} with value {?arg2}" ;
+    spin:constraint [ a spl:Argument ;
+        spl:predicate sp:arg1 ;
+        spl:valueType rdf:Property
+    ] , [ a spl:Argument ;
+        spl:predicate sp:arg2 ;
+        spl:optional true
+    ] ;
+    rdfs:isDefinedBy : .
+
+:PropertyCardinality a spin:Template ;
+    rdfs:label "Missing property value" ;
+    spin:body :ConstructPropertyCardinality ;
+    spin:labelTemplate "Instance violates the cardinality of RDF property {?arg1}: {?arg2}" ;
     spin:constraint [ a spl:Argument ;
         spl:predicate sp:arg1 ;
         spl:valueType rdf:Property
@@ -516,6 +548,11 @@ ac:Chart a rdfs:Class, owl:Class ;
     rdfs:label "Chart" ;
     rdfs:isDefinedBy ac: .
 
+ac:Table a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ac:Chart ;
+    rdfs:label "Table" ;
+    rdfs:isDefinedBy ac: .
+
 ac:ScatterChart a rdfs:Class, owl:Class ;
     rdfs:subClassOf ac:Chart ;
     rdfs:label "Scatter chart" ;
@@ -529,6 +566,11 @@ ac:LineChart a rdfs:Class, owl:Class ;
 ac:BarChart a rdfs:Class, owl:Class ;
     rdfs:subClassOf ac:Chart ;
     rdfs:label "Bar chart" ;
+    rdfs:isDefinedBy ac: .
+
+ac:Timeline a rdfs:Class, owl:Class ;
+    rdfs:subClassOf ac:Chart ;
+    rdfs:label "Timeline" ;
     rdfs:isDefinedBy ac: .
 
 # individuals

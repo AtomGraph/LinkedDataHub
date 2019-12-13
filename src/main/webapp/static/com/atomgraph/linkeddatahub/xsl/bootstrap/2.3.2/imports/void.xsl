@@ -20,16 +20,4 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="void:inDataset" mode="ac:TablePredicateMode"/>
 
-    <xsl:template match="void:inDataset" mode="bs2:FormControl">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
 </xsl:stylesheet>

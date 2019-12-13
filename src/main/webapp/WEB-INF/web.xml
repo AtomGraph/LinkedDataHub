@@ -310,13 +310,13 @@ INSERT
         ?graph a apl:Dataset ;
             foaf:isPrimaryTopicOf ?graphDoc .
         ?doc sioc:has_space ?base ;
-            ?parentProperty ?parent ;
             foaf:maker ?Agent ; # sioc:has_creator ?UserAccount ;
             acl:owner ?Agent ;
             dct:created ?now ;
             void:inDataset ?graph .
     }
     GRAPH ?graphDoc {
+        ?doc ?parentProperty ?parent .
         ?doc ?docP ?docO .
         ?docO ?thingP ?thingO .
         ?thingO ?thing1P ?thing1O .
