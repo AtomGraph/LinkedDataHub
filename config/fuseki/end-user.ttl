@@ -13,10 +13,10 @@ PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
     fuseki:endpoint [ fuseki:operation fuseki:gsp-rw; ] ;
     fuseki:dataset <#dataset> .
 
-<#dataset> a ja:MemoryDataset;
-    ja:data "/mnt/apache-fuseki/based.end-user.trig" .
+# <#dataset> a ja:MemoryDataset;
+#    ja:data "/mnt/apache-fuseki/based.end-user.trig" .
 
-#<#dataset> a tdb2:DatasetTDB ;
+<#dataset> a tdb2:DatasetTDB2 ;
 #    ja:data "/mnt/apache-fuseki/based.end-user.trig" ;
-#    ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "10000,30000" ] ;
-#    tdb2:location "end-user-data" .
+    ja:context [ ja:cxtName "arq:queryTimeout" ; ja:cxtValue "10000,30000" ] ;
+    tdb2:location "/mnt/apache-fuseki/tdb/end-user" .

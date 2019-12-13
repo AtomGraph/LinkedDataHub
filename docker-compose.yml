@@ -70,8 +70,6 @@ services:
       - ./src/main/resources/com/atomgraph/linkeddatahub/aplt.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/aplt.ttl
       - ./src/main/resources/com/atomgraph/linkeddatahub/lapp.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/lapp.ttl
       - ./src/main/resources/com/atomgraph/linkeddatahub/app/admin/lsm.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/admin/lsm.ttl
-      - ./src/main/resources/com/atomgraph/linkeddatahub/app/end-user/dataset.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/end-user/dataset.trig
-      - ./src/main/resources/com/atomgraph/linkeddatahub/app/admin/dataset.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/admin/dataset.trig
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/typeahead.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/typeahead.xsl
@@ -90,6 +88,7 @@ services:
       - BASE_URI=https://localhost:4443/admin/
     volumes:
       - ./config/fuseki/admin.ttl:/mnt/apache-fuseki/configuration/admin.ttl:ro
+      - ./data/admin:/mnt/apache-fuseki/tdb/admin
       - ./datasets/admin.trig:/mnt/apache-fuseki/admin.trig:ro
     entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/admin.trig; } > /mnt/apache-fuseki/based.admin.trig && /usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/admin.ttl" ]
   fuseki-end-user:
@@ -100,5 +99,10 @@ services:
       - BASE_URI=https://localhost:4443/
     volumes:
       - ./config/fuseki/end-user.ttl:/mnt/apache-fuseki/configuration/end-user.ttl:ro
+      - ./data/end-user:/mnt/apache-fuseki/tdb/end-user
       - ./datasets/end-user.trig:/mnt/apache-fuseki/end-user.trig:ro
-    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/end-user.trig; } > /mnt/apache-fuseki/based.end-user.trig && /usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/end-user.ttl" ]
+    entrypoint: >
+        sh -c "/usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/end-user.ttl &&
+               /mnt/apache-fuseki/wait-for-it.sh localhost:3030 echo 'SMTH!'"
+
+    # { echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/end-user.trig; } > curl -f -X PUT --data-binary @- -H \"Content-Type: application/trig\" \"http://localhost:3030/data\"
