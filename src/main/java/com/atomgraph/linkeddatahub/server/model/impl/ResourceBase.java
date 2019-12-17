@@ -436,10 +436,10 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     }
 
     /**
-     * Handles <code>PUT</code> requests, stores the input RDF data in the application's service dataset, and returns response.
+     * Handles <code>PUT</code> requests, stores the input RDF data in the application's dataset, and returns response.
      * 
      * @param dataset RDF input dataset
-     * @return response HTTP response
+     * @return response <code>201 Created</code> if resource did not exist, <code>200 OK</code> if it did
      */
     @Override
     public Response put(Dataset dataset)
@@ -463,6 +463,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return response;
     }
     
+    /**
+     * Handles <code>DELETE</code> method, deletes the RDF representation of this resource as well as its meta-graph from the application's dataset, and
+     * returns response.
+     * 
+     * @return response <code>204 No Content</code>
+     */
     @Override
     public Response delete()
     {

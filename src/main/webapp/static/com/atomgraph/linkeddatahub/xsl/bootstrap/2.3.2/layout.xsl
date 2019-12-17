@@ -164,7 +164,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[key('resources', $ac:uri)][$ac:mode = '&aplt;InfoWindowMode']" mode="xhtml:Body" priority="1">
         <body>
-            <div> <!-- MapMode.js renders the first child of <body> as InfoWindow -->
+            <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
                 <xsl:apply-templates select="." mode="bs2:Block">
                     <xsl:with-param name="display" select="true()" tunnel="yes"/>
                 </xsl:apply-templates>
@@ -699,12 +699,6 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about = $ac:uri]" mode="bs2:Right" priority="1">
         <div class="well well-small">
-            <!--
-            <h2 class="nav-header">
-                <xsl:apply-templates select="key('resources', 'details', document('translations.rdf'))" mode="ac:label"/>
-            </h2>
-            -->
-
             <xsl:apply-templates select="." mode="bs2:PropertyList">
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
@@ -1133,12 +1127,6 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="href" select="xs:anyURI(concat($ac:uri, '?debug=', encode-for-uri('http://www.w3.org/ns/sparql-service-description#SPARQL11Query')))" as="xs:anyURI"/>
                     <li>
                         <a href="{$href}" title="application/sparql-query">SPARQL query</a>
-                        <!--
-                        <form action="{resolve-uri('sparql', $ldt:base)}" method="post">
-                            <input type="hidden" name="query" value="{unparsed-text($queryUri)}"/>
-                            <button type="submit" class="btn">Run query</button>
-                        </form>
-                        -->
                     </li>
                 </xsl:if>
             </ul>
@@ -1356,31 +1344,11 @@ exclude-result-prefixes="#all">
                 </label>
                 <div class="controls">
                     <span>
-                        <!--
-                        <xsl:variable name="action-uri" as="xs:anyURI?">
-                            <xsl:for-each select="$ac:sitemap">
-                                <xsl:value-of select="key('resources', key('resources', key('resources', key('resources', $forClass)/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
-                            </xsl:for-each>
-                        </xsl:variable>
-                        <xsl:choose>
-                            <xsl:when test="$action-uri">
-                                <xsl:apply-templates select="key('resources', $action-uri, document($action-uri))" mode="apl:Typeahead">
-                                    <xsl:with-param name="disabled" select="true()"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="key('resources', $ac:uri)" mode="apl:Typeahead"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                        -->
                         <xsl:apply-templates select="key('resources', $ac:uri, $main-doc)" mode="apl:Typeahead">
                             <xsl:with-param name="disabled" select="true()"/>
                         </xsl:apply-templates>
                     </span>
-                    <!-- <xsl:if test="not($type = 'hidden') and $type-label"> -->
-                        <span class="help-inline">Resource</span>
-                    <!-- </xsl:if> -->
-                    <xsl:text> </xsl:text>
+                    <span class="help-inline">Resource</span>
                 </div>
             </div>
         </fieldset>
@@ -1441,13 +1409,6 @@ exclude-result-prefixes="#all">
                         <xsl:text> </xsl:text>
                         <xsl:apply-templates select="." mode="ac:label"/>
                     </legend>
-                    <!--
-                    <xsl:if test="ac:description(.)">
-                        <p class="text-info">
-                            <xsl:apply-templates select="." mode="ac:description"/>
-                        </p>
-                    </xsl:if>
-                    -->
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1662,7 +1623,6 @@ exclude-result-prefixes="#all">
                         <xsl:text>&#x2714;</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
-                        <!-- <xsl:attribute name="href" select="resolve-uri(concat('admin/request%20access', '?', 'forClass=', encode-for-uri(resolve-uri('admin/ns#AuthorizationRequest', $ldt:base)),  '&amp;requestAccessTo=', encode-for-uri($ac:uri)), $ldt:base)"/> -->
                         <xsl:text>&#x2718;</xsl:text>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -1735,7 +1695,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
-            <!-- <xsl:apply-templates select="key('resources', spin:violationSource/(@rdf:nodeID, @rdf:resource))" mode="ac:label"/> -->
             <xsl:apply-templates select="." mode="ac:label"/>
         </div>
     </xsl:template>
