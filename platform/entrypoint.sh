@@ -193,26 +193,6 @@ if [ -z "$CONTEXT_DATASET" ] ; then
     exit 1
 fi
 
-#if [ -z "$CONTEXT_REPOSITORY" ] ; then
-#    echo '$CONTEXT_REPOSITORY not set'
-#    exit 1
-#fi
-#
-#if [ -z "$CONTEXT_REPOSITORY_AUTH_TOKEN" ] ; then
-#    echo '$CONTEXT_REPOSITORY_AUTH_TOKEN not set'
-#    exit 1
-#fi
-#
-#if [ -z "$APP_ACCOUNT" ] ; then
-#    echo '$APP_ACCOUNT not set'
-#    exit 1
-#fi
-#
-#if [ -z "$APP_ACCOUNT_AUTH_TOKEN" ] ; then
-#    echo '$APP_ACCOUNT_AUTH_TOKEN not set'
-#    exit 1
-#fi
-
 if [ -z "$MAIL_SMTP_HOST" ] ; then
     echo '$MAIL_SMTP_HOST not set'
     exit 1
@@ -287,7 +267,7 @@ get_modulus()
     local cert="$1"
     local password="$2"
 
-    modulus_string=$(openssl pkcs12 -in "$cert" -nodes -passin pass:"$password" | openssl x509 -noout -modulus)
+    modulus_string=$(openssl pkcs12 -in "$cert" -nodes -passin pass:"$password" 2>/dev/null | openssl x509 -noout -modulus)
     modulus="${modulus_string##*Modulus=}" # cut Modulus= text
     echo "${modulus}" | tr '[:upper:]' '[:lower:]' # lowercase
 }
