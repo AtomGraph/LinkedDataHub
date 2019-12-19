@@ -278,7 +278,6 @@ SELECT *
         <param-value><![CDATA[
 PREFIX apl:     <http://atomgraph.com/ns/platform/domain#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl:     <http://www.w3.org/2002/07/owl#>
 PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
 PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
 PREFIX prov:    <http://www.w3.org/ns/prov#>
@@ -316,7 +315,6 @@ INSERT
             void:inDataset ?graph .
     }
     GRAPH ?graphDoc {
-        ?doc ?parentProperty ?parent .
         ?doc ?docP ?docO .
         ?docO ?thingP ?thingO .
         ?thingO ?thing1P ?thing1O .
@@ -339,28 +337,6 @@ WHERE
     BIND (NOW() AS ?now)
     ?doc ?docP ?docO .
     ?doc a ?Type .
-    GRAPH ?Ontology {
-        ?Type a rdfs:Class .
-        OPTIONAL {
-            ?Type  rdfs:subClassOf* dh:Container .
-            BIND (sioc:has_parent AS ?parentProperty)
-            OPTIONAL {
-              ?Type  rdfs:subClassOf ?ParentRestriction .
-              ?ParentRestriction owl:onProperty sioc:has_parent ; # infer document container from Restriction
-                  owl:hasValue ?has_parent .
-            }
-        }
-        OPTIONAL {
-            ?Type  rdfs:subClassOf* dh:Item .
-            BIND (sioc:has_container AS ?parentProperty)
-            OPTIONAL {
-              ?Type  rdfs:subClassOf ?ContainerRestriction .
-              ?ContainerRestriction owl:onProperty sioc:has_container ; # infer document container from Restriction
-                  owl:hasValue ?has_container .
-            }
-        }
-    }
-    BIND (COALESCE(?has_parent, ?has_container, ?this) AS ?parent)
     OPTIONAL {
         ?docO ?thingP ?thingO . # topic 1st level description
         FILTER NOT EXISTS { ?docO dh:slug ?docOSlug } # do not match topic if it's a document

@@ -379,18 +379,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
-        // clone request Model to avoid clearing it during UpdateAction
-        Model defaultModel = ModelFactory.createDefaultModel().add(model);
         ParameterizedSparqlString updateString = new ParameterizedSparqlString(
                 getSystem().getPostUpdate(getUriInfo().getBaseUri().toString()).toString(),
                 getQuerySolutionMap());
-        updateString.setIri(LDT.Ontology.getLocalName(), getOntology().getURI());
         UpdateRequest update = updateString.asUpdate();
-        Dataset dataset = DatasetFactory.create();
-        dataset.addNamedModel(getOntology().getURI(), getOntology().getOntModel()); // add ontology
-        dataset.setDefaultModel(defaultModel);
+        Dataset dataset = DatasetFactory.create(model);
         UpdateAction.execute(update, dataset);
-        dataset.removeNamedModel(getOntology().getURI()); // remove ontology again
         dataset.getDefaultModel().removeAll(); // we don't want to store anything in the default graph
         
         return dataset;

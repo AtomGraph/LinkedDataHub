@@ -85,11 +85,7 @@ if [ -z "$is_defined_by" ] ; then
     exit 1
 fi
 
-args+=("-c")
-args+=("${base}ns#Parameter") # class
-args+=("-t")
-args+=("text/turtle") # content type
-args+=("${base}sitemap/parameters/") # container
+container="${base}sitemap/parameters/"
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
@@ -98,17 +94,25 @@ else
     param="_:param" # blank node
 fi
 
+args+=("-c")
+args+=("${base}ns#Parameter") # class
+args+=("-t")
+args+=("text/turtle") # content type
+args+=("${container}") # container
+
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix spl:	<http://spinrdf.org/spl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${param} a ns:Parameter .\n"
 turtle+="${param} rdfs:label \"${label}\" .\n"
 turtle+="${param} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${param} rdfs:isDefinedBy <${is_defined_by}> .\n"
 turtle+="_:item a ns:ParameterItem .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${param} .\n"
 

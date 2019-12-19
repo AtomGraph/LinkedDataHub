@@ -25,6 +25,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --parent)
+    parent="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --select)
     select="$2"
     shift # past argument
@@ -51,6 +56,10 @@ if [ -z "$title" ] ; then
     echo '--title not set'
     exit 1
 fi
+if [ -z "$parent" ] ; then
+    echo '--parent not set'
+    exit 1
+fi
 
 args+=("-c")
 args+=("${base}ns/default#Container")
@@ -60,8 +69,10 @@ args+=("text/turtle")
 turtle+="@prefix def:	<ns/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:container a def:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
+turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$select" ] ; then
     turtle+="_:container dh:select <${select}> .\n"
 else

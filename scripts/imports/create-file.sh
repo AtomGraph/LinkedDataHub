@@ -103,10 +103,11 @@ urlencode()
   echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1")
 }
 
+container="${base}files/"
 ns="${base}ns#"
 class="${base}ns#File"
 forClass=$(urlencode "$class")
-target="${base}files/?forClass=${forClass}"
+target="${container}?forClass=${forClass}"
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
@@ -128,6 +129,8 @@ rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=${ns}FileItem\"\n"
+rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
+rdf_post+="-F \"ou=${container}\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/primaryTopic\"\n"
 rdf_post+="-F \"ob=file\"\n"
 

@@ -65,11 +65,7 @@ if [ -z "$label" ] ; then
     exit 1
 fi
 
-args+=("-c")
-args+=("${base}ns#Restriction") # class
-args+=("-t")
-args+=("text/turtle") # content type
-args+=("${base}model/restrictions/") # container
+container="${base}model/restrictions/"
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
@@ -77,6 +73,12 @@ if [ -n "$uri" ] ; then
 else
     restriction="_:restriction" # blank node
 fi
+
+args+=("-c")
+args+=("${base}ns#Restriction") # class
+args+=("-t")
+args+=("text/turtle") # content type
+args+=("${container}") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
@@ -86,11 +88,13 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${restriction} a ns:Restriction .\n"
 turtle+="${restriction} rdfs:label \"${label}\" .\n"
 turtle+="${restriction} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${restriction} rdfs:isDefinedBy <../ns/domain#> .\n"
 turtle+="_:item a ns:RestrictionItem .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 

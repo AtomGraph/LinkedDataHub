@@ -98,11 +98,7 @@ if [ -z "$append" ] && [ -z "$control" ] && [ -z "$read" ] && [ -z "$write" ] ; 
     exit 1
 fi
 
-args+=("-c")
-args+=("${base}ns#Authorization") # class
-args+=("-t")
-args+=("text/turtle") # content type
-args+=("${base}acl/authorizations/") # container
+container="${base}acl/authorizations/"
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
@@ -111,16 +107,24 @@ else
     auth="_:auth" # blank node
 fi
 
+args+=("-c")
+args+=("${base}ns#Authorization") # class
+args+=("-t")
+args+=("text/turtle") # content type
+args+=("${container}")
+
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${auth} a ns:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
 turtle+="${auth} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="_:item a ns:AuthorizationItem .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 turtle+="_:item foaf:primaryTopic ${auth} .\n"
 

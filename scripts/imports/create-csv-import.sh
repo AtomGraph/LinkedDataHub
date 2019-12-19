@@ -81,11 +81,13 @@ if [ -z "$delimiter" ] ; then
     exit 1
 fi
 
+container="${base}imports/"
+
 args+=("-c")
 args+=("${base}ns#CSVImport") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}imports/") # container
+args+=("${container}") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .\n"
@@ -95,6 +97,7 @@ turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix dydra:	<http://dydra.com/ns#> .\n"
 turtle+="@prefix srv:	<http://jena.hpl.hp.com/Service#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a ns:CSVImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import spin:query <${query}> .\n"
@@ -103,6 +106,7 @@ turtle+="_:import apl:file <${file}> .\n"
 turtle+="_:import apl:delimiter \"${delimiter}\" .\n"
 turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
 turtle+="_:item a ns:ImportItem .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:import .\n"
 
