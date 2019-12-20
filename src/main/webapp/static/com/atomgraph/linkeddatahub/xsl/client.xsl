@@ -801,6 +801,8 @@ version="2.0"
         <xsl:variable name="doc-uri" select="xs:anyURI(ixsl:get($detail, 'response.url'))" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(key('resources', $doc-uri, $query-doc)/foaf:primaryTopic/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="key('resources', key('resources', $doc-uri, $query-doc)/foaf:primaryTopic/@rdf:resource, $query-doc)/sp:text" as="xs:string"/>
+        <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
+        <xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query-string)))" as="xs:anyURI"/>
 

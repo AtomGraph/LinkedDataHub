@@ -1,5 +1,14 @@
 #!/bin/bash
 
+if [ "$#" -ne 1 ]; then
+  echo "Usage:   $0 cert_password" >&2
+  echo "Example: $0" Password' >&2
+  echo "Note: special characters such as $ need to be escaped in passwords!" >&2
+  exit 1
+fi
+
+export CERT_PWD="$1"
+
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
 export STATUS_PATCH_SUCCESS='200|201|204'

@@ -59,13 +59,14 @@ if [ -z "$query_file" ] ; then
     exit 1
 fi
 
+container="${base}queries/"
 query=$(<"$query_file") # read query string from file
 
 args+=("-c")
 args+=("${base}ns#Select") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${base}queries/") # container
+args+=("${container}") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -73,12 +74,14 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:query a ns:Select .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
 turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
 turtle+="_:item a ns:QueryItem .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item foaf:primaryTopic _:query .\n"
 
 if [ -n "$endpoint" ] ; then

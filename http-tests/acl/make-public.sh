@@ -8,7 +8,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 ./create-authorization.sh \
 -f "$CERT_FILE" \
--p Marchius \
+-p "$CERT_PWD" \
 -b "$ADMIN_BASE_URL" \
 --label "Test authorization" \
 --agent-class 'http://xmlns.com/foaf/0.1/Agent' \

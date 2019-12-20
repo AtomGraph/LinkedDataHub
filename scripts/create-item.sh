@@ -30,6 +30,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --container)
+    container="$2"
+    shift # past argument
+    shift # past value
+    ;;
     *)    # unknown arguments
     args+=("$1") # save it in an array for later
     shift # past argument
@@ -55,8 +60,11 @@ args+=("text/turtle")
 turtle+="@prefix def:	<ns/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:item a def:Item.\n"
 turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
+
 if [ -n "$description" ] ; then
     turtle+="_:item dct:description \"${description}\" .\n"
 fi

@@ -383,7 +383,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 getSystem().getPostUpdate(getUriInfo().getBaseUri().toString()).toString(),
                 getQuerySolutionMap());
         UpdateRequest update = updateString.asUpdate();
-        Dataset dataset = DatasetFactory.create(model);
+        Dataset dataset = DatasetFactory.create();
+        dataset.setDefaultModel(model);
         UpdateAction.execute(update, dataset);
         dataset.getDefaultModel().removeAll(); // we don't want to store anything in the default graph
         
