@@ -28,13 +28,22 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query-file)
-        query_file="$2"
+        --endpoint)
+        endpoint="$2"
         shift # past argument
         shift # past value
         ;;
-        --endpoint)
-        endpoint="$2"
+        --graph-store)
+        graph_store="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --auth-user)
+        auth_user=true
+        shift # past value
+        ;;
+        --auth-pwd)
+        auth_pwd="$2"
         shift # past argument
         shift # past value
         ;;
@@ -46,46 +55,50 @@ do
 done
 set -- "${args[@]}" # restore args
 
-if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+if [ -z "$endpoint" ] ; then
+    echo '--endpoint not set'
     exit 1
 fi
 if [ -z "$title" ] ; then
     echo '--title not set'
     exit 1
 fi
-if [ -z "$query_file" ] ; then
-    echo '--query-file not set'
-    exit 1
-fi
 
-container="${base}queries/"
-query=$(<"$query_file") # read query string from file
+container="${base}services/"
 
 args+=("-c")
-args+=("${base}ns#Select") # class
+args+=("${base}ns#GenericService") # class
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("${container}") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix a:	<http://atomgraph.com/ns/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .\n"
+turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
+turtle+="@prefix srv:	<http://jena.hpl.hp.com/Service#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:query a ns:Select .\n"
-turtle+="_:query dct:title \"${title}\" .\n"
-turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:QueryItem .\n"
-turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:service a ns:GenericService .\n"
+turtle+="_:service dct:title \"${title}\" .\n"
+turtle+="_:service sd:endpoint <${endpoint}> .\n"
+turtle+="_:service sd:supportedLanguage sd:SPARQL11Query .\n"
+turtle+="_:service sd:supportedLanguage sd:SPARQL11Update .\n"
+turtle+="_:service foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a ns:ServiceItem .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item foaf:primaryTopic _:query .\n"
+turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item foaf:primaryTopic _:service .\n"
 
-if [ -n "$endpoint" ] ; then
-    turtle+="_:query apl:endpoint <${endpoint}> .\n"
+if [ -n "$graph_store" ] ; then
+    turtle+="_:service a:graphStore <${graph_store}> .\n"
+fi
+if [ -n "$auth_user" ] ; then
+    turtle+="_:service srv:queryAuthUser \"${auth_user}\" .\n"
+fi
+if [ -n "$auth_pwd" ] ; then
+    turtle+="_:service srv:queryAuthPwd \"${auth_pwd}\" .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
@@ -93,8 +106,6 @@ fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
-
-# set env values in the Turtle doc and sumbit it to the server
 
 # make Jena scripts available
 export PATH="$PATH":"$JENA_HOME/bin"

@@ -6,64 +6,64 @@ args=()
 params=() # --param can have multiple values, so we need an array
 while [[ $# -gt 0 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -b|--base)
-    base="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --label)
-    label="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --comment)
-    comment="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --slug)
-    slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --uri)
-    uri="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --query)
-    query="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --match)
-    match="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --extends)
-    extends="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --param)
-    params+=("$2")
-    shift # past argument
-    shift # past value
-    ;;
-    --is-defined-by)
-    is_defined_by="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown arguments
-    args+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
+    case $key in
+        -b|--base)
+        base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --label)
+        label="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --comment)
+        comment="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --slug)
+        slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --uri)
+        uri="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --query)
+        query="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --match)
+        match="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --extends)
+        extends="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --param)
+        params+=("$2")
+        shift # past argument
+        shift # past value
+        ;;
+        --is-defined-by)
+        is_defined_by="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
 done
 set -- "${args[@]}" # restore args
 

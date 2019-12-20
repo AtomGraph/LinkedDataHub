@@ -5,54 +5,54 @@ hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_
 args=()
 while [[ $# -gt 0 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -b|--base)
-    base="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --label)
-    label="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --comment)
-    comment="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --slug)
-    slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --uri)
-    uri="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --on-property)
-    on_property="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --all-values-from)
-    all_values_from="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --has-value)
-    has_value="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown arguments
-    args+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
+    case $key in
+        -b|--base)
+        base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --label)
+        label="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --comment)
+        comment="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --slug)
+        slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --uri)
+        uri="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --on-property)
+        on_property="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --all-values-from)
+        all_values_from="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --has-value)
+        has_value="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
 done
 set -- "${args[@]}" # restore args
 

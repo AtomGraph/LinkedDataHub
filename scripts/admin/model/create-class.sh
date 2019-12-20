@@ -6,64 +6,64 @@ args=()
 super_classes=() # --super-class-of can have multiple values, so we need an array
 while [[ $# -gt 0 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -b|--base)
-    base="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --label)
-    label="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --comment)
-    comment="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --slug)
-    slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --uri)
-    uri="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --constructor)
-    constructor="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --constraint)
-    constraint="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --path)
-    path="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --fragment)
-    fragment="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --sub-class-of)
-    super_classes+=("$2")
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown arguments
-    args+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
+    case $key in
+        -b|--base)
+        base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --label)
+        label="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --comment)
+        comment="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --slug)
+        slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --uri)
+        uri="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --constructor)
+        constructor="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --constraint)
+        constraint="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --path)
+        path="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --fragment)
+        fragment="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --sub-class-of)
+        super_classes+=("$2")
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
 done
 set -- "${args[@]}" # restore args
 
