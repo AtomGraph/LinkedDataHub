@@ -361,6 +361,10 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
     envsubst < root-secretary.trig.template > root-secretary.trig
     trig --base="${root_admin_base_uri}" --output=nq root-secretary.trig > root-secretary.nq
 
+    echo "### Waiting for ${root_end_user_quad_store_url}..."
+
+    wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
+
     printf "\n### Uploading the metadata of the secretary agent...\n\n"
 
     append_quads "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "root-secretary.nq" "application/n-quads"

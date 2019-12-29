@@ -70,24 +70,26 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/jquery.js:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css:ro
       - ./docker/letsencrypt/live/stage.linkeddatahub.com:/etc/letsencrypt/live/stage.linkeddatahub.com:ro
-      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro:ro
+      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   fuseki-admin:
-    image: atomgraph/fuseki
+    image: atomgraph/fuseki-tdb
     ports:
       - 3030:3030
     environment:
       - BASE_URI=https://localhost:4443/admin/
     volumes:
-      - ./config/fuseki/admin.ttl:/mnt/apache-fuseki/configuration/admin.ttl:ro
-      - ./datasets/admin.trig:/mnt/apache-fuseki/admin.trig:ro
-    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/admin.trig; } > /mnt/apache-fuseki/based.admin.trig && /usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/admin.ttl" ]
+      - ./config/fuseki/admin.ttl:/var/fuseki/config.ttl:ro
+      - ./datasets/admin.trig:/tmp/init.trig:ro
+      - ./data/admin:/var/fuseki/data
+    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /tmp/init.trig; } > /var/fuseki/init.d/based.init.trig && /var/fuseki/entrypoint.sh --config /var/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki
+    image: atomgraph/fuseki-tdb
     ports:
       - 3031:3030
     environment:
       - BASE_URI=https://localhost:4443/
     volumes:
-      - ./config/fuseki/end-user.ttl:/mnt/apache-fuseki/configuration/end-user.ttl:ro
-      - ./datasets/end-user.trig:/mnt/apache-fuseki/end-user.trig:ro
-    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /mnt/apache-fuseki/end-user.trig; } > /mnt/apache-fuseki/based.end-user.trig && /usr/bin/java -jar fuseki-server.jar --config /mnt/apache-fuseki/configuration/end-user.ttl" ]
+      - ./config/fuseki/end-user.ttl:/var/fuseki/config.ttl:ro
+      - ./datasets/end-user.trig:/tmp/init.trig:ro
+      - ./data/end-user:/var/fuseki/data
+    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /tmp/init.trig; } > /var/fuseki/init.d/based.init.trig && /var/fuseki/entrypoint.sh --config /var/fuseki/config.ttl" ]
