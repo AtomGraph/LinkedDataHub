@@ -64,13 +64,13 @@ services:
       #- ./target/ROOT/WEB-INF/web.xml:/usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ../uploads:/var/www/stage.linkeddatahub.com/uploads
-      - ./src/main/resources/dev/log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/jquery.js
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
-      - ./docker/letsencrypt/live/stage.linkeddatahub.com:/etc/letsencrypt/live/stage.linkeddatahub.com
-      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
+      - ./src/main/resources/dev/log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl:ro
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/jquery.js:ro
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css:ro
+      - ./docker/letsencrypt/live/stage.linkeddatahub.com:/etc/letsencrypt/live/stage.linkeddatahub.com:ro
+      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro:ro
   fuseki-admin:
     image: atomgraph/fuseki
     ports:

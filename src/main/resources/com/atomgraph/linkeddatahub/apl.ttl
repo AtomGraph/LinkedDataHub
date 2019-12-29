@@ -138,11 +138,11 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     spin:constraint [ a :MissingPropertyValue ;
             rdfs:label "Missing SPARQL endpoint" ;
             sp:arg1 sd:endpoint
-        ] ,
-        [ a :MissingPropertyValue ;
-            rdfs:label "Missing Graph Store" ;
-            sp:arg1 a:graphStore
         ] ;
+        #[ a :MissingPropertyValue ;
+        #    rdfs:label "Missing Graph Store" ;
+        #    sp:arg1 a:graphStore
+        #]
     rdfs:label "Generic service" ;
     rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
     rdfs:isDefinedBy : .
