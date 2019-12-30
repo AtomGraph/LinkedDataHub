@@ -108,7 +108,7 @@
 <graphs/6f206c1a-66ab-4f8e-aceb-bc8e42901441/>
 {
 
-    <queries/> a def:Container ;
+    <queries/> a adm:Container ;
         dh:select <queries/default/select-children/#this> ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
@@ -136,7 +136,7 @@
 <graphs/cd84d745-545e-4314-8213-30251f042404/>
 {
 
-    <queries/default/> a def:Container ;
+    <queries/default/> a adm:Container ;
         sioc:has_parent <queries/> ;
         dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
@@ -232,12 +232,12 @@
 <graphs/a3642aeb-46f6-44d3-89ba-a568865f4dad/>
 {
 
-    <queries/default/select-children/> a ns:QueryItem ;
+    <queries/default/select-children/> a adm:QueryItem ;
         sioc:has_container <queries/default/> ;
         dct:title "Select children" ;
         foaf:primaryTopic <queries/default/select-children/#this> .
 
-    <queries/default/select-children/#this> a ns:Select ;
+    <queries/default/select-children/#this> a adm:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-children/> ;
         dct:title "Select children" ;
         sp:text """
@@ -286,12 +286,12 @@ WHERE
 <graphs/0d5d5ef8-1914-439d-9b25-d80d8c433416/>
 {
 
-    <queries/default/select-labelled/> a ns:QueryItem ;
+    <queries/default/select-labelled/> a adm:QueryItem ;
         sioc:has_container <queries/default/> ;
         dct:title "Select labelled" ;
         foaf:primaryTopic <queries/default/select-labelled/#this> .
 
-    <queries/default/select-labelled/#this> a ns:Select ;
+    <queries/default/select-labelled/#this> a adm:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-labelled/> ;
         dct:title "Select labelled" ;
         sp:text """
@@ -4100,6 +4100,26 @@ WHERE
     adm:Describe a rdfs:Class ;
         rdfs:subClassOf adm:Query, lsm:Describe, adm:TopicOfQueryItem ;
         rdfs:label "DESCRIBE" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+<32c87b56-a29a-47d9-b3da-23a031c0d14d>
+{
+
+    adm:Select a rdfs:Class ;
+        rdfs:subClassOf adm:Query, adm:TopicOfQueryItem ;
+        rdfs:label "SELECT" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+<d8af9d5b-5532-4408-8aef-971e1415debe>
+{
+
+    adm:Ask a rdfs:Class ;
+        rdfs:subClassOf adm:Query, adm:TopicOfQueryItem ;
+        rdfs:label "ASK" ;
         rdfs:isDefinedBy adm: .
 
 }
