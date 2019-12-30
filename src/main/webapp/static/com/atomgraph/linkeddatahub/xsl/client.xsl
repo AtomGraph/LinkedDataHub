@@ -78,10 +78,18 @@ version="2.0"
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/> <!-- ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'document'), 'documentElement'), 'lang') -->
     <!-- this is the document URI as absolute path - hash and query string are removed -->
     <xsl:param name="ac:uri" as="xs:anyURI">
-        <!-- remove #hash part, if any -->
-        <xsl:variable name="before-hash" select="if (contains(ixsl:get(ixsl:window(), 'location.href'), '#')) then substring-before(ixsl:get(ixsl:window(), 'location.href'), '#') else ixsl:get(ixsl:window(), 'location.href')" as="xs:string"/>
-        <!-- remove ?query part, if any -->
-        <xsl:sequence select="xs:anyURI(if (contains($before-hash, '?')) then substring-before($before-hash, '?') else $before-hash)"/>
+        <xsl:choose>
+            <!-- override with ?uri= query param value, if any -->
+            <xsl:when test="ac:query-param('uri')">
+                <xsl:sequence select="xs:anyURI(ac:query-param('uri'))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- remove #hash part, if any -->
+                <xsl:variable name="before-hash" select="if (contains(ixsl:get(ixsl:window(), 'location.href'), '#')) then substring-before(ixsl:get(ixsl:window(), 'location.href'), '#') else ixsl:get(ixsl:window(), 'location.href')" as="xs:string"/>
+                <!-- remove ?query part, if any -->
+                <xsl:sequence select="xs:anyURI(if (contains($before-hash, '?')) then substring-before($before-hash, '?') else $before-hash)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:param>
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
@@ -140,6 +148,7 @@ version="2.0"
     <xsl:template name="main">
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
+        <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:uri: <xsl:value-of select="$ac:uri"/></xsl:message>
         <xsl:message>Search container URI: <xsl:value-of select="$search-container-uri"/></xsl:message>
@@ -190,7 +199,7 @@ version="2.0"
         </xsl:for-each>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
-        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode')">
+        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
             <!-- show container progress bar -->
             <xsl:for-each select="id('main-content', ixsl:page())">
                 <xsl:result-document href="?select=." method="ixsl:append-content">

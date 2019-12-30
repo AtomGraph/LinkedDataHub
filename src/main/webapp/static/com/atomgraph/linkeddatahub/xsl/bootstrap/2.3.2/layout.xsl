@@ -834,79 +834,68 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&dh;Item'] | *[@rdf:about][$ac:sitemap][ apl:superClasses(@rdf:about, $ac:sitemap) = '&dh;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Service'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Service']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Construct'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Construct']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-construct')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Describe'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Describe']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-describe')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Select'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Select']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-select')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Ask'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Ask']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-ask')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;File'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;File']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-file')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&apl;Import'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Import']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-import')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about = '&apl;Chart'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Chart']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-chart')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = ('&apl;URISyntaxViolation', '&spin;ConstraintViolation', '&apl;ResourceExistsException')]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'violation')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
-    
+
     <xsl:template match="*[@rdf:nodeID = ('latest', 'files', 'imports', 'geo', 'queries', 'charts', 'services')]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         

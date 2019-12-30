@@ -45,13 +45,13 @@ exclude-result-prefixes="#all">
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = resolve-uri('ns/default#Container', $ldt:ontology)]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = resolve-uri('ns/default#Item', $ldt:base)]" mode="apl:logo">
+    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>

@@ -11,11 +11,13 @@ The default application structure and user interface are provided, making LDH a 
 1.2. [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
 2. Run this one-liner:
 ```bash
-curl https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/docker-compose.yml | docker-compose -f - up
+curl -s --show-error https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/docker-compose.yml | docker-compose -f - up
 ```
 3. LinkedDataHub will start on https://localhost:4443/
 
-Two folders will appear (add them to `.gitignore` to avoid c):
+You may need to run the commands as `sudo` or be in the `docker` group.
+
+Two folders will appear:
 * `data` where the triplestore(s) will persist RDF data
 * `certs` where your WebID certificates are stored
 

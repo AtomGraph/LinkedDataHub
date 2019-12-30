@@ -222,8 +222,9 @@ exclude-result-prefixes="#all">
     <xsl:template match="*" mode="apl:logo" priority="0">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="$class"/>
-        <xsl:sequence select="ac:label(.)"/>
+        <xsl:if test="$class">
+            <xsl:attribute name="class" select="$class"/>
+        </xsl:if>
     </xsl:template>
     
     <!-- DEFAULT -->
@@ -825,6 +826,8 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="." mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn add-constructor'"/>
                             </xsl:apply-templates>
+                            
+                            <xsl:apply-templates select="." mode="ac:label"/>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
