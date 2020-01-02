@@ -8,7 +8,7 @@ The default application structure and user interface are provided, making LDH a 
 ## Getting started
 
 1. [Install Docker](https://docs.docker.com/install/)
-    1.2. [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
+   - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
 2. Run this one-liner:
 ```bash
 curl -s --show-error https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/docker-compose.yml | docker-compose -f - up
