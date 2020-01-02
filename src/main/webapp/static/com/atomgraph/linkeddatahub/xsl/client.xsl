@@ -861,6 +861,15 @@ version="2.0"
                                     <xsl:with-param name="category" select="$category" as="xs:string?"/>
                                     <xsl:with-param name="series" select="$series" as="xs:string*"/>
                                 </xsl:apply-templates>
+
+                                <xsl:choose>
+                                    <xsl:when test="$results/rdf:RDF">
+                                        <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                                    </xsl:when>
+                                    <xsl:when test="$results/srx:sparql">
+                                        <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                                    </xsl:when>
+                                </xsl:choose>
                                 
                                 <ixsl:schedule-action wait="0">
                                    <xsl:call-template name="ac:draw-chart">
@@ -1100,8 +1109,6 @@ version="2.0"
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
-<!--                    <xsl:with-param name="width" select="'480'"/>
-                    <xsl:with-param name="height" select="$height"/>-->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:if>
@@ -1140,8 +1147,6 @@ version="2.0"
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
-<!--                    <xsl:with-param name="width" select="'480'"/>
-                    <xsl:with-param name="height" select="$height"/>-->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:if>
