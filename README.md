@@ -24,7 +24,7 @@ OWNER_KEY_PASSWORD=
 ```
 4. Run this command:
 ```bash
-docker-compose - up
+docker-compose up
 ```
 5. LinkedDataHub will start on https://localhost:4443/
 
