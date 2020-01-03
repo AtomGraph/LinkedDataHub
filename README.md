@@ -9,11 +9,24 @@ The default application structure and user interface are provided, making LDH a 
 
 1. [Install Docker](https://docs.docker.com/install/)
    - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
-2. Run this one-liner:
-```bash
-curl -s --show-error https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/docker-compose.yml | docker-compose -f - up
+2. Checkout this repository into a folder
+3. In the folder, create an `.env` file and fill out the following values:
 ```
-3. LinkedDataHub will start on https://localhost:4443/
+OWNER_MBOX=
+OWNER_GIVEN_NAME=
+OWNER_FAMILY_NAME=
+OWNER_ORG_UNIT=
+OWNER_ORGANIZATION=
+OWNER_LOCALITY=
+OWNER_STATE_OR_PROVINCE=
+OWNER_COUNTRY_NAME=
+OWNER_KEY_PASSWORD=
+```
+4. Run this command:
+```bash
+docker-compose - up
+```
+5. LinkedDataHub will start on https://localhost:4443/
 
 You may need to run the commands as `sudo` or be in the `docker` group.
 

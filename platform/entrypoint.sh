@@ -3,23 +3,18 @@ set -e
 
 ### LETSENCRYPT-TOMCAT ###
 
-if [ -z "$LETSENCRYPT_CERT_DIR" ] ; then
-    echo '$LETSENCRYPT_CERT_DIR not set'
+if [ -z "$P12_FILE" ] ; then
+    echo '$P12_FILE not set'
     exit 1
 fi
 
-if [ -z "$PKCS12_PASSWORD" ] ; then
-    echo '$PKCS12_PASSWORD not set'
+if [ -z "$PKCS12_KEY_PASSWORD" ] ; then
+    echo '$PKCS12_KEY_PASSWORD not set'
     exit 1
 fi
 
-if [ -z "$JKS_KEY_PASSWORD" ] ; then
-    echo '$JKS_KEY_PASSWORD not set'
-    exit 1
-fi
-
-if [ -z "$JKS_STORE_PASSWORD" ] ; then
-    echo '$JKS_STORE_PASSWORD not set'
+if [ -z "$PKCS12_STORE_PASSWORD" ] ; then
+    echo '$PKCS12_STORE_PASSWORD not set'
     exit 1
 fi
 
@@ -32,38 +27,42 @@ fi
 # ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
 # echo $TZ > /etc/timezone
 
-# convert LetsEncrypt certificates
+# if server's SSL certificates do not exist (e.g. not mounted), generate them
 # https://community.letsencrypt.org/t/cry-for-help-windows-tomcat-ssl-lets-encrypt/22902/4
 
-# remove existing keystores
+if [ ! -f "$P12_FILE" ]; then
+    if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
+        echo "### Generating server certificate"
 
-rm -f "$P12_FILE"
-rm -f "$JKS_FILE"
+        keytool \
+          -genkeypair \
+          -storetype PKCS12 \
+          -alias "$KEY_ALIAS" \
+          -keyalg RSA \
+          -keypass "$PKCS12_KEY_PASSWORD" \
+          -storepass "$PKCS12_STORE_PASSWORD" \
+          -dname 'CN=localhost,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK' \
+          -keystore "$P12_FILE"
+    else
+        echo "### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate"
 
-# convert PEM to PKCS12
-
-openssl pkcs12 -export \
-  -in "$LETSENCRYPT_CERT_DIR"/fullchain.pem \
-  -inkey "$LETSENCRYPT_CERT_DIR"/privkey.pem \
-  -name "$KEY_ALIAS" \
-  -out "$P12_FILE" \
-  -password pass:"$PKCS12_PASSWORD"
-
-# import PKCS12 into JKS
-
-keytool -importkeystore \
-  -alias "$KEY_ALIAS" \
-  -destkeypass "$JKS_KEY_PASSWORD" \
-  -destkeystore "$JKS_FILE" \
-  -deststorepass "$JKS_STORE_PASSWORD" \
-  -srckeystore "$P12_FILE" \
-  -srcstorepass "$PKCS12_PASSWORD" \
-  -srcstoretype PKCS12
+        openssl pkcs12 \
+          -export \
+          -in "$LETSENCRYPT_CERT_DIR"/fullchain.pem \
+          -inkey "$LETSENCRYPT_CERT_DIR"/privkey.pem \
+          -name "$KEY_ALIAS" \
+          -out "$P12_FILE" \
+          -password pass:"$PKCS12_KEY_PASSWORD"
+    fi
+else
+    echo "### Server certificate exists"
+fi
 
 # change server configuration
 
-JKS_KEY_PASSWORD_PARAM="--stringparam https.keystorePass '$JKS_KEY_PASSWORD' "
-JKS_STORE_PASSWORD_PARAM="--stringparam https.keyPass '$JKS_STORE_PASSWORD' "
+P12_FILE_PARAM="--stringparam https.keystoreFile '$P12_FILE' "
+PKCS12_KEY_PASSWORD_PARAM="--stringparam https.keystorePass '$PKCS12_KEY_PASSWORD' "
+PKCS12_STORE_PASSWORD_PARAM="--stringparam https.keyPass '$PKCS12_STORE_PASSWORD' "
 
 if [ -n "$HTTP_PORT" ] ; then
     HTTP_PORT_PARAM="--stringparam http.port '$HTTP_PORT' "
@@ -105,10 +104,6 @@ if [ -n "$HTTPS_PROXY_PORT" ] ; then
     HTTPS_PROXY_PORT_PARAM="--stringparam https.proxyPort '$HTTPS_PROXY_PORT' "
 fi
 
-if [ -n "$JKS_FILE" ] ; then
-    JKS_FILE_PARAM="--stringparam https.keystoreFile '$JKS_FILE' "
-fi
-
 if [ -n "$KEY_ALIAS" ] ; then
     KEY_ALIAS_PARAM="--stringparam https.keyAlias '$KEY_ALIAS' "
 fi
@@ -125,10 +120,10 @@ transform="xsltproc \
   $HTTPS_CLIENT_AUTH_PARAM \
   $HTTPS_PROXY_NAME_PARAM \
   $HTTPS_PROXY_PORT_PARAM \
-  $JKS_FILE_PARAM \
-  $JKS_KEY_PASSWORD_PARAM \
+  $P12_FILE_PARAM \
+  $PKCS12_KEY_PASSWORD_PARAM \
   $KEY_ALIAS_PARAM \
-  $JKS_STORE_PASSWORD_PARAM \
+  $PKCS12_STORE_PASSWORD_PARAM \
   conf/letsencrypt-tomcat.xsl \
   conf/server.xml"
 
@@ -339,7 +334,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
 
     printf "\n### Secretary's WebID URI: %s\n" "${SECRETARY_URI}"
 
-    "$JAVA_HOME"/bin/keytool \
+    keytool \
         -genkeypair \
         -alias "${SECRETARY_CERT_ALIAS}" \
         -keyalg RSA \
@@ -381,7 +376,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
         -alias "$KEY_ALIAS" \
         -file letsencrypt.cer \
         -keystore "$P12_FILE" \
-        -storepass "$PKCS12_PASSWORD" \
+        -storepass "$PKCS12_STORE_PASSWORD" \
         -storetype PKCS12
 
       # import server certificate into client truststore
@@ -466,7 +461,7 @@ if [ ! -f "${OWNER_KEYSTORE}" ]; then
 
     printf "\n### Root owner's WebID URI: %s\n" "${OWNER_URI}"
 
-    "$JAVA_HOME"/bin/keytool \
+    keytool \
         -genkeypair \
         -alias "${OWNER_CERT_ALIAS}" \
         -keyalg RSA \

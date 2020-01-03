@@ -34,10 +34,8 @@ services:
       - HTTPS_PROXY_PORT=4443
       - HTTPS_CLIENT_AUTH=want
       - LETSENCRYPT_CERT_DIR=/etc/letsencrypt/live/stage.linkeddatahub.com
-      - PKCS12_PASSWORD=Marchius
-      - JKS_KEY_PASSWORD=Marchius
-      - JKS_STORE_PASSWORD=Marchius
-      - SECRETARY_CERT_ALIAS=ldh
+      - PKCS12_KEY_PASSWORD=R4#?CWaY#ZET\ncZ
+      - PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ
       - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
@@ -59,17 +57,9 @@ services:
       - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
       - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
     volumes:
-      #- ./target/ROOT/WEB-INF/classes/com:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com
-      #- ./target/ROOT/WEB-INF/lib:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib
-      #- ./target/ROOT/WEB-INF/web.xml:/usr/local/tomcat/webapps/ROOT/WEB-INF/web.xml
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
-      - ../uploads:/var/www/stage.linkeddatahub.com/uploads
+      - ./uploads:/var/www/stage.linkeddatahub.com/uploads
       - ./src/main/resources/dev/log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/jquery.js:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css:ro
-      - ./docker/letsencrypt/live/stage.linkeddatahub.com:/etc/letsencrypt/live/stage.linkeddatahub.com:ro
       - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   fuseki-admin:
     image: atomgraph/fuseki-tdb
