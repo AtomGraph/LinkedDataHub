@@ -26,13 +26,16 @@ OWNER_KEY_PASSWORD=
 ```bash
 docker-compose up
 ```
-5. LinkedDataHub will start on https://localhost:4443/
+5. LinkedDataHub will start on *https://localhost:4443/*
+
+_You will likely get a browser warning such as `Your connection is not private` in Chrome or `Warning: Potential Security Risk Ahead` in Firefox due to the self-signed server certificate. Ignore it: click `Advanced` and `Proceed` or `Accept the risk` to proceed._
 
 You may need to run the commands as `sudo` or be in the `docker` group.
 
-Two folders will appear:
-* `data` where the triplestore(s) will persist RDF data
+Three folders will appear:
 * `certs` where your WebID certificates are stored
+* `data` where the triplestore(s) will persist RDF data
+* `uploads` where LDH stores content-hashed file uploads
 
 ## [Documentation](https://linkeddatahub.com:4443/linkeddatahub/docs/)
 
