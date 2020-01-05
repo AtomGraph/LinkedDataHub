@@ -17,9 +17,6 @@ services:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
-    #depends_on:
-    #  - fuseki-admin
-    #  - fuseki-end-user
     ports:
       - 8001:8000 # debugger
     environment:

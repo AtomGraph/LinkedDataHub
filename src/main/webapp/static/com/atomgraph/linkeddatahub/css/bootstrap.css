@@ -57,7 +57,7 @@ ul.dropdown-menu ul { margin: 0; }
 .list-mode.active { background-image: url('../icons/ic_navigate_before_black_24px.svg'); }
 legend.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 alert.violation { background-image: url('../icons/ic_error_white_24px.svg '); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.ContentMode { overflow-x: auto; }
+.ContentMode { overflow-x: auto; margin-bottom: 20px; }
 .hero-unit { background-color: #0f82f530; box-shadow: 5px 5px 3px 0px rgb(192,192,192); }
 h2.access-required { background-image: url('../icons/baseline-warning-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 h2.container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }

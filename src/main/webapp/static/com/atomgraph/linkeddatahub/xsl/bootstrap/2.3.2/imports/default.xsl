@@ -68,8 +68,13 @@ exclude-result-prefixes="#all">
         </xsl:choose>
     </xsl:function>
 
+    <!-- format external URLs in DataTable as HTML links with ?uri= indirection (which leads back to the app in LD browser mode -->
+    <xsl:template match="@rdf:*[local-name() = 'about'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'about'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'" priority="1">
+        "&lt;a href=\"?uri=<xsl:value-of select="encode-for-uri(.)"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
+    </xsl:template>
+
     <!-- format URLs in DataTable as HTML links -->
-    <xsl:template match="srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
         "&lt;a href=\"<xsl:value-of select="."/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
     
@@ -238,9 +243,9 @@ exclude-result-prefixes="#all">
 
     <!-- ANCHOR -->
 
-    <!-- override Web-Client's template which always adds ?uri= -->
-    <xsl:template match="*[@rdf:about[starts-with(., $ldt:base)]]" mode="xhtml:Anchor">
-        <xsl:param name="href" select="@rdf:about" as="xs:anyURI"/>
+    <!-- add ?uri= indirection on external HTTP(S) links -->
+    <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
+        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(@rdf:about)))" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -874,5 +879,14 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="value" select="format-number(., '#####.00000')"/>
         </xsl:call-template>
     </xsl:template>
-   
+
+    <!-- XHTML CONTENT IDENTITY TRANSFORM -->
+    
+    <!-- remove XHTML namespace (copy-namespaces="no" doesn't work) -->
+    <xsl:template match="@* | node()" mode="apl:XHTMLContent">
+        <xsl:element name="{name()}">
+            <xsl:apply-templates/>
+        </xsl:element>
+    </xsl:template>
+    
 </xsl:stylesheet>

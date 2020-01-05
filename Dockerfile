@@ -74,6 +74,8 @@ ENV HTTPS_PROXY_PORT=443
 
 ENV HTTPS_CLIENT_AUTH=want
 
+ENV P12_FILE="/var/linkeddatahub/server.p12"
+
 ENV PKCS12_KEY_PASSWORD=
 
 ENV PKCS12_STORE_PASSWORD=
@@ -139,5 +141,9 @@ COPY --from=maven /jena/* /jena
 ENV JENA_HOME=/jena
 
 ENV PATH="${PATH}:${JENA_HOME}/bin"
+
+# persist certificates in a volume
+
+VOLUME /var/linkeddatahub "$CATALINA_HOME/webapps/ROOT/certs"
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

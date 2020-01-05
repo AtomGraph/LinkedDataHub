@@ -200,12 +200,12 @@ version="2.0"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
-            <!-- show container progress bar -->
+            <!-- show progress bar -->
             <xsl:for-each select="id('main-content', ixsl:page())">
                 <xsl:result-document href="?select=." method="ixsl:append-content">
-                    <div id="container-pane">
+                    <div id="progress-bar">
                         <div class="progress progress-striped active">
-                          <div class="bar" style="width: 20%;"></div>
+                            <div class="bar" style="width: 20%;"></div>
                         </div>
                     </div>
                 </xsl:result-document>
@@ -518,7 +518,7 @@ version="2.0"
                     </xsl:message>
 
                     <!-- container progress bar -->
-                    <xsl:for-each select="id('container-pane', ixsl:page())">
+                    <xsl:for-each select="id('progress-bar', ixsl:page())">
                         <xsl:result-document href="?select=." method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 40%;"></div>
@@ -535,7 +535,7 @@ version="2.0"
                 </xsl:when>
                 <xsl:otherwise>
                     <!-- container progress bar -->
-                    <xsl:for-each select="id('container-pane', ixsl:page())">
+                    <xsl:for-each select="id('progress-bar', ixsl:page())">
                         <xsl:result-document href="?select=." method="ixsl:replace-content">
                             <!-- do not show progress bar for Items - only for Containers -->
                         </xsl:result-document>
@@ -559,6 +559,15 @@ version="2.0"
                     <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
+                    <!-- query progress bar -->
+                    <xsl:for-each select="id('progress-bar', ixsl:page())">
+                        <xsl:result-document href="?select=." method="ixsl:replace-content">
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 40%;"></div>
+                            </div>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                    
                     <xsl:message>
                         <xsl:sequence select="ac:fetch($query-uri, 'application/rdf+xml', 'onChartQueryLoad')"/>
                     </xsl:message>
@@ -593,7 +602,7 @@ version="2.0"
         <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         
         <!-- container progress bar -->
-        <xsl:for-each select="id('container-pane', ixsl:page())">
+        <xsl:for-each select="id('progress-bar', ixsl:page())">
             <xsl:result-document href="?select=." method="ixsl:replace-content">
                 <div class="progress progress-striped active">
                     <div class="bar" style="width: 60%;"></div>
@@ -613,7 +622,7 @@ version="2.0"
         <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>
 
         <!-- container progress bar -->
-        <xsl:for-each select="id('container-pane', ixsl:page())">
+        <xsl:for-each select="id('progress-bar', ixsl:page())">
             <xsl:result-document href="?select=." method="ixsl:replace-content">
                 <div class="progress progress-striped active">
                     <div class="bar" style="width: 80%;"></div>
@@ -646,7 +655,13 @@ version="2.0"
     <xsl:template name="render-container">
         <xsl:param name="results" as="document-node()"/>
         
+        <!-- remove container progress bar -->
+        <xsl:for-each select="id('progress-bar', ixsl:page())">
+            <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+        </xsl:for-each>
+        
         <xsl:choose>
+            <!-- container results are already rendered -->
             <xsl:when test="id('container-pane', ixsl:page())">
                 <xsl:for-each select="id('container-pane', ixsl:page())">
                     <xsl:result-document href="?select=." method="ixsl:replace-content">
@@ -658,6 +673,7 @@ version="2.0"
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
+            <!-- first time rendering the container results -->
             <xsl:otherwise>
                 <xsl:for-each select="id('main-content', ixsl:page())">
                     <xsl:result-document href="?select=." method="ixsl:append-content">
@@ -815,6 +831,15 @@ version="2.0"
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query-string)))" as="xs:anyURI"/>
 
+        <!-- query progress bar -->
+        <xsl:for-each select="id('progress-bar', ixsl:page())">
+            <xsl:result-document href="?select=." method="ixsl:replace-content">
+                <div class="progress progress-striped active">
+                    <div class="bar" style="width: 60%;"></div>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
+        
         <xsl:for-each select="id('main-content', ixsl:page())">
             <xsl:result-document href="?select=." method="ixsl:append-content">
                 <div id="sparql-results"/>
@@ -836,6 +861,15 @@ version="2.0"
                 <xsl:variable name="results" select="ixsl:get($detail, 'body')" as="document-node()"/>
                 <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
+                <!-- query progress bar -->
+                <xsl:for-each select="id('progress-bar', ixsl:page())">
+                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                        <div class="progress progress-striped active">
+                            <div class="bar" style="width: 80%;"></div>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+        
                 <xsl:choose>
                     <xsl:when test="$results/rdf:RDF">
                         <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, (), ())" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -847,56 +881,25 @@ version="2.0"
 
                 <xsl:for-each select="id('sparql-results', ixsl:page())">
                     <xsl:result-document href="?select=." method="ixsl:replace-content">
+                        <!-- values may already be initialized from chart properties in ixsl:onrdfBodyLoad -->
                         <xsl:variable name="chart-type" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-                        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                        
-                        <xsl:variable name="category" select="ixsl:get(ixsl:window(), 'LinkedDataHub.category')" as="xs:string?"/>
-                        <xsl:variable name="series" select="ixsl:get(ixsl:window(), 'LinkedDataHub.series')" as="xs:string*"/>
-                        
-                        <xsl:choose>
-                            <!-- chart parameters loaded from Query description -->
-                            <xsl:when test="$chart-type and $category and not(empty($series))">
-                                <xsl:apply-templates select="$results" mode="bs2:ChartForm">
-                                    <xsl:with-param name="chart-type" select="$chart-type" as="xs:anyURI?"/>
-                                    <xsl:with-param name="category" select="$category" as="xs:string?"/>
-                                    <xsl:with-param name="series" select="$series" as="xs:string*"/>
-                                </xsl:apply-templates>
+                        <xsl:variable name="category" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.category')) then ixsl:get(ixsl:window(), 'LinkedDataHub.category') else (if ($results/srx:sparql) then $results/srx:sparql/srx:head/srx:variable[1]/@name else ())" as="xs:string?"/>
+                        <xsl:variable name="series" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.series')) then ixsl:get(ixsl:window(), 'LinkedDataHub.series') else (if ($results/rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) else $results/srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
-                                <xsl:choose>
-                                    <xsl:when test="$results/rdf:RDF">
-                                        <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                                    </xsl:when>
-                                    <xsl:when test="$results/srx:sparql">
-                                        <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                                    </xsl:when>
-                                </xsl:choose>
-                                
-                                <ixsl:schedule-action wait="0">
-                                   <xsl:call-template name="ac:draw-chart">
-                                        <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
-                                        <xsl:with-param name="chart-type" select="$chart-type"/>
-                                        <xsl:with-param name="category" select="$category"/>
-                                        <xsl:with-param name="series" select="$series"/>
-                                   </xsl:call-template>
-                                </ixsl:schedule-action>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates select="$results" mode="bs2:ChartForm"/>
-                                
-                                <ixsl:schedule-action wait="0">
-                                   <xsl:call-template name="ac:draw-chart">
-                                       <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
-                                       <xsl:with-param name="chart-type" select="xs:anyURI('&ac;Table')"/>
-                                   </xsl:call-template>
-                                </ixsl:schedule-action>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                        
-                        <div id="chart-canvas"/>
+                        <xsl:apply-templates select="$results" mode="bs2:Chart">
+                            <xsl:with-param name="chart-type" select="$chart-type"/>
+                            <xsl:with-param name="category" select="$category"/>
+                            <xsl:with-param name="series" select="$series"/>
+                        </xsl:apply-templates>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+                <!-- remove query progress bar -->
+                <xsl:for-each select="id('progress-bar', ixsl:page())">
+                    <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+                </xsl:for-each>
+        
                 <!-- error response - could not load query results -->
                 <xsl:for-each select="id('sparql-results', ixsl:page())">
                     <xsl:result-document href="?select=." method="ixsl:replace-content">
@@ -910,6 +913,25 @@ version="2.0"
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <xsl:template name="render-chart">
+        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
+        
+        <!-- remove query progress bar -->
+        <xsl:for-each select="id('progress-bar', ixsl:page())">
+            <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+        </xsl:for-each>
+        
+        <xsl:call-template name="ac:draw-chart">
+             <xsl:with-param name="canvas-id" select="$canvas-id"/>
+             <xsl:with-param name="chart-type" select="$chart-type"/>
+             <xsl:with-param name="category" select="$category"/>
+             <xsl:with-param name="series" select="$series"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
@@ -1059,8 +1081,8 @@ version="2.0"
 
         <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <xsl:if test="$chart-type and $category and not(empty($series))">
-            <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and not(empty($series))">
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
                     <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1071,13 +1093,11 @@ version="2.0"
             </xsl:choose>
             
             <ixsl:schedule-action wait="0">
-                <xsl:call-template name="ac:draw-chart">
+                <xsl:call-template name="render-chart">
                     <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
-<!--                    <xsl:with-param name="width" select="'480'"/>
-                    <xsl:with-param name="height" select="$height"/>-->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:if>
@@ -1092,8 +1112,8 @@ version="2.0"
 
         <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <xsl:if test="$chart-type and $category and not(empty($series))">
-            <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and not(empty($series))">
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
                     <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1104,7 +1124,7 @@ version="2.0"
             </xsl:choose>
             
             <ixsl:schedule-action wait="0">
-                <xsl:call-template name="ac:draw-chart">
+                <xsl:call-template name="render-chart">
                     <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -1130,8 +1150,8 @@ version="2.0"
 
         <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <xsl:if test="$chart-type and $category and not(empty($series))">
-            <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and not(empty($series))">
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
                     <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1142,7 +1162,7 @@ version="2.0"
             </xsl:choose>
             
             <ixsl:schedule-action wait="0">
-                <xsl:call-template name="ac:draw-chart">
+                <xsl:call-template name="render-chart">
                     <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
@@ -1457,7 +1477,7 @@ version="2.0"
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-                
+
     <!-- CALLBACKS -->
     
     <xsl:template match="ixsl:window()" mode="ixsl:ontypeTypeaheadCallback">

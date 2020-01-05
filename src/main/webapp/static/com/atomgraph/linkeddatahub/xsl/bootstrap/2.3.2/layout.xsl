@@ -74,7 +74,7 @@ xmlns:url="java:java.net.URLDecoder"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
-    <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/external.xsl"/>
+    <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/layout.xsl"/>
     <xsl:import href="../../../../client/xsl/converters/RDFXML2SVG.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/apl.xsl"/>
@@ -1196,7 +1196,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/>
+            <!--  remove XHTML namespace -->
+            <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
+            <xsl:apply-templates select="sioc:content/xhtml:div" mode="apl:XHTMLContent"/>
         </div>
     </xsl:template>
 

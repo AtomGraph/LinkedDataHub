@@ -245,7 +245,9 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <div id="map-canvas"></div>
+        <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
+        
+        <div id="{$canvas-id}"></div>
         
         <ixsl:schedule-action wait="0">
             <xsl:call-template name="create-google-map">
@@ -314,15 +316,37 @@ exclude-result-prefixes="#all">
 
     <!-- CHART MODE -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Chart" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
-        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
-        
-        <xsl:apply-templates select="$results" mode="bs2:ChartForm"/>
-
-        <div id="chart-canvas"/>
-    </xsl:template>
-    
     <!-- graph chart (for RDF/XML results) -->
+
+    <xsl:template match="rdf:RDF" mode="bs2:Chart" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        <!-- <xsl:param name="endpoint" as="xs:anyURI"/> -->
+        <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
+
+        <xsl:apply-templates select="." mode="bs2:ChartForm">
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+        </xsl:apply-templates>
+
+        <div id="{$canvas-id}"></div>
+        
+        <ixsl:set-property name="data-table" select="ac:rdf-data-table(root(.), $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+        <ixsl:schedule-action wait="0">
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') = 'Saxon-CE'" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
@@ -334,7 +358,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="chart-type" select="xs:anyURI(ac:query-param('chart-type'))" as="xs:anyURI?"/>
+        <!-- table is the default chart type -->
+        <xsl:param name="chart-type" select="if (ac:query-param('chart-type')) then xs:anyURI(ac:query-param('chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="ac:query-param('category')" as="xs:string?"/>
         <xsl:param name="series" select="ac:query-param('series')" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
@@ -508,7 +533,12 @@ exclude-result-prefixes="#all">
                             <br/>
                             <select id="{$category-id}" name="ou" class="input-large">
                                 <option value="">
-                                    <xsl:text>[URI/ID]</xsl:text> <!-- URI is the default category -->
+                                    <!-- URI is the default category -->
+                                    <xsl:if test="not($category)">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>[URI/ID]</xsl:text>
                                 </option>
 
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
@@ -626,6 +656,36 @@ exclude-result-prefixes="#all">
 
     <!-- table chart (for SPARQL XML results) -->
     
+    <xsl:template match="srx:sparql" mode="bs2:Chart" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
+        <!-- <xsl:param name="endpoint" as="xs:anyURI"/> -->
+        <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
+
+        <xsl:apply-templates select="." mode="bs2:ChartForm">
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+        </xsl:apply-templates>
+
+        <div id="{$canvas-id}"></div>
+        
+        <ixsl:set-property name="data-table" select="ac:sparql-results-data-table(root(.), $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+        <ixsl:schedule-action wait="0">
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
     <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
@@ -636,7 +696,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="chart-type" select="xs:anyURI(ac:query-param('chart-type'))" as="xs:anyURI?"/>
+        <!-- table is the default chart type -->
+        <xsl:param name="chart-type" select="if (ac:query-param('chart-type')) then xs:anyURI(ac:query-param('chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="ac:query-param('category')" as="xs:string?"/>
         <xsl:param name="series" select="ac:query-param('series')" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
