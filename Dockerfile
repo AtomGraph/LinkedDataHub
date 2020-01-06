@@ -18,9 +18,9 @@ COPY src /usr/src/platform/src
 
 COPY pom.xml /usr/src/platform/pom.xml
 
-# build platform TO-DO: ARG for profile
+ARG MAVEN_PROFILE=prod
 
-RUN mvn clean install -Pdev
+RUN mvn clean install -P${MAVEN_PROFILE}
 
 # download and extract Jena
 

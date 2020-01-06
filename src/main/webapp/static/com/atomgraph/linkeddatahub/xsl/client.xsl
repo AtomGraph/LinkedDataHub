@@ -825,7 +825,8 @@ version="2.0"
         <xsl:variable name="query-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>
         <xsl:variable name="doc-uri" select="xs:anyURI(ixsl:get($detail, 'response.url'))" as="xs:anyURI"/>
         <xsl:variable name="query-uri" select="xs:anyURI(key('resources', $doc-uri, $query-doc)/foaf:primaryTopic/@rdf:resource)" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="key('resources', key('resources', $doc-uri, $query-doc)/foaf:primaryTopic/@rdf:resource, $query-doc)/sp:text" as="xs:string"/>
+        <xsl:variable name="query-type" select="xs:anyURI(key('resources', $query-uri, $query-doc)/rdf:type/@rdf:resource)" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="key('resources', $query-uri, $query-doc)/sp:text" as="xs:string"/>
         <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
         <xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
@@ -884,7 +885,7 @@ version="2.0"
                         <!-- values may already be initialized from chart properties in ixsl:onrdfBodyLoad -->
                         <xsl:variable name="chart-type" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
                         <xsl:variable name="category" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.category')) then ixsl:get(ixsl:window(), 'LinkedDataHub.category') else (if ($results/srx:sparql) then $results/srx:sparql/srx:head/srx:variable[1]/@name else ())" as="xs:string?"/>
-                        <xsl:variable name="series" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.series')) then ixsl:get(ixsl:window(), 'LinkedDataHub.series') else (if ($results/rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) else $results/srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
+                        <xsl:variable name="series" select="if (not(empty(ixsl:get(ixsl:window(), 'LinkedDataHub.series')))) then ixsl:get(ixsl:window(), 'LinkedDataHub.series') else (if ($results/rdf:RDF) then distinct-values($results/rdf:RDF/*/*/concat(namespace-uri(), local-name())) else $results/srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -1077,7 +1078,7 @@ version="2.0"
     <xsl:template match="select[@id = 'chart-type']" mode="ixsl:onchange">
         <xsl:param name="chart-type" select="xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI?"/>
         <xsl:param name="category" select="ixsl:get(ixsl:window(), 'LinkedDataHub.category')" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*" select="ixsl:get(ixsl:window(), 'LinkedDataHub.series')"/>
+        <xsl:param name="series" select="ixsl:get(ixsl:window(), 'LinkedDataHub.series')" as="xs:string*"/>
 
         <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 

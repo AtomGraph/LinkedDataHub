@@ -18,6 +18,7 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
+    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="2.0"
@@ -281,6 +282,16 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="name" select="'sb'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
                 <xsl:with-param name="value" select="'this'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+                <xsl:with-param name="value" select="'&sioc;has_container'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+                <xsl:with-param name="value" select="resolve-uri('queries/', $ldt:base)"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>

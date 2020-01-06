@@ -882,11 +882,16 @@ exclude-result-prefixes="#all">
 
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
     
-    <!-- remove XHTML namespace (copy-namespaces="no" doesn't work) -->
-    <xsl:template match="@* | node()" mode="apl:XHTMLContent">
+    <xsl:template match="*" mode="apl:XHTMLContent" priority="1">
         <xsl:element name="{name()}">
-            <xsl:apply-templates/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:element>
+    </xsl:template>
+
+    <xsl:template match="@* | node()" mode="apl:XHTMLContent">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
     </xsl:template>
     
 </xsl:stylesheet>
