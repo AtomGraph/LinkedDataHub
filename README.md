@@ -10,7 +10,7 @@ The default application structure and user interface are provided, making LDH a 
 1. [Install Docker](https://docs.docker.com/install/)
    - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
 2. Checkout this repository into a folder
-3. In the folder, create an `.env` file and fill out the following values:
+3. In the folder, create an `.env` file and fill out the missing values (you can use [`.env_sample`](.env_sample) as a template):
 ```
 OWNER_MBOX=
 OWNER_GIVEN_NAME=
@@ -22,7 +22,7 @@ OWNER_STATE_OR_PROVINCE=
 OWNER_COUNTRY_NAME=
 OWNER_KEY_PASSWORD=
 ```
-4. Run this command:
+4. Run this from command line:
 ```bash
 docker-compose up
 ```

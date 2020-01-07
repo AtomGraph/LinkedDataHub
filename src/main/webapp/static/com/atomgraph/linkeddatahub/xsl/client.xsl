@@ -693,16 +693,41 @@ version="2.0"
     <xsl:template name="render-container-error">
         <xsl:param name="message" as="xs:string"/>
 
-        <xsl:for-each select="id('container-pane', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content">
-                <div class="alert alert-block">
-                    <strong>Error during query execution:</strong>
-                    <pre>
-                        <xsl:value-of select="$message"/>
-                    </pre>
-                </div>
-            </xsl:result-document>
+        <!-- remove container progress bar -->
+        <xsl:for-each select="id('progress-bar', ixsl:page())">
+            <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
         </xsl:for-each>
+        
+        <xsl:choose>
+            <!-- container results are already rendered -->
+            <xsl:when test="id('container-pane', ixsl:page())">
+                <xsl:for-each select="id('container-pane', ixsl:page())">
+                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="$message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <!-- first time rendering the container results -->
+            <xsl:otherwise>
+                <xsl:for-each select="id('main-content', ixsl:page())">
+                    <xsl:result-document href="?select=." method="ixsl:append-content">
+                        <div id="container-pane">
+                            <div class="alert alert-block">
+                                <strong>Error during query execution:</strong>
+                                <pre>
+                                    <xsl:value-of select="$message"/>
+                                </pre>
+                            </div>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- container results layout -->
