@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- schema.org metadata -->
+    <script type="application/ld+json">
+        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "Knowledge Graph management system", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
+    </script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300i,400,500" rel="stylesheet">
+    <style type="text/css">
+        body {
+            font-family: "Rubik", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+            font-weight: 400;
+            color: #04286E;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .jumbotron {
+            background: linear-gradient(0deg, #04286E 0%, #182848 100%);
+            /* background-image: url('img/cool-background.png'); */
+            color: white;
+        }
+        
+        .jumbotron h1 {
+            /* text-shadow: 2px 2px 2px grey; */
+        }
+        
+        h5.card-title {
+            color: #EA607E;
+        }
+        
+        .card {
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .table {
+            color: #04286E;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+        }
+        .table th {
+            background-color: rgba(0,0,0,.03);
+            font-weight: 500;
+            font-size: 20px;
+        }
+    </style>
+    <title>LinkedDataHub - The Knowledge Graph management system</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">LinkedDataHub</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="https://linkeddatahub.com/linkeddatahub/docs/">Documentation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="https://linkeddatahub.com/demo/">Sample applications</a>
+                </li>
+            </ul>
+            <!--
+        <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+        -->
+        </div>
+    </nav>
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container text-center">
+            <h1 class="display-4">The Knowledge Graph<br/> management system</h1>
+            <p class="lead">LinkedDataHub is open source software you can use to manage data,
+                <br/> create visualizations and build apps on RDF Knowledge Graphs</p>
+             <a href="https://linkeddatahub.com/linkeddatahub/docs/getting-started/" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Get started</a>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">For developers</h5>
+                        <p class="card-text lead">Build applications without writing code</p>
+                        <ul>
+                            <li>Data-driven UI and API provided out ouf the box</li>
+                            <li>Reuse, configure, customize and extend declarative components</li>
+                            <li>Exploit the flexibility of RDF data and SPARQL query</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">For data engineers</h5>
+                        <p class="card-text lead">Get answers to your questions</p>
+                        <ul>
+                            <li>Import tabular data and turn it into Linked Data</li>
+                            <li>Analyze local and remote data using SPARQL query</li>
+                            <li>Visualize query results</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">For business managers</h5>
+                        <p class="card-text lead">Create value from your company's data</p>
+                        <ul>
+                            <li>Manage existing Knowledge Graph or build one from scratch</li>
+                            <li>Get an overview using faceted search and visualizations</li>
+                            <li>Launch applications faster than ever</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <h2 class="display-4 text-center mt-5 mb-5">Uniform user experience</h2>
+
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+            </ol>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <img src="LDHEditMode.png" class="d-block w-100" alt="...">
+                        </div>
+                        <div class="col-sm-6">
+                            <img src="LDHChartMode.png" class="d-block w-100" alt="...">
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <img src="LDHChartMode1.png" class="d-block w-100" alt="...">
+                        </div>
+                        <div class="col-sm-6">
+                            <img src="LDHMapMode.png" class="d-block w-100" alt="...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container-fluid mb-4">
+        <h2 class="display-4 text-center mt-5 mb-5">Powerful features</h2>
+
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="card">
+                    <h5 class="card-header">User interface</h5>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Graph editing</li>
+                            <li class="list-group-item">Visualizations</li>
+                            <li class="list-group-item">Faceted search</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <h5 class="card-header">Data management</h5>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Access control</li>
+                            <li class="list-group-item">Quality control</li>
+                            <li class="list-group-item">Data imports</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <h5 class="card-header">Development</h5>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Low code</li>
+                            <li class="list-group-item">Full extensibility</li>
+                            <li class="list-group-item">Command line interface</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <h5 class="card-header">Infrastructure</h5>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">SPARQL endpoint</li>
+                            <li class="list-group-item">Linked Data API</li>
+                            <li class="list-group-item">Docker-based deployment</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid mb-4">
+        <h2 class="display-4 text-center mt-5 mb-5">Comparison</h2>
+
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 25%"></th>
+              <th scope="col" style="width: 25%">Content Management System</th>
+              <th scope="col" style="width: 25%">Web framework</th>
+              <th scope="col" style="width: 25%">LinkedDataHub</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Change domain model</th>
+              <td class="table-warning">Write code</td>
+              <td class="table-warning">Write code</td>
+              <td class="table-success">Use UI or CLI</td>
+            </tr>
+            <tr>
+              <th scope="row">Change UI layout</th>
+              <td class="table-success">&#10004;</td>
+              <td class="table-success">&#10004;</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Change API logic</th>
+              <td class="table-warning">Write code</td>
+              <td class="table-warning">Write code</td>
+              <td class="table-success">Single generic API</td>
+            </tr>
+            <tr>
+              <th scope="row">Edit documents</th>
+              <td class="table-success">&#10004;</td>
+              <td class="table-warning">Write code</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Edit metadata</th>
+              <td class="table-danger">&#10008;</td>
+              <td class="table-warning">Write code</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+
+</html>
