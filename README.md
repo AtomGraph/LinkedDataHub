@@ -28,7 +28,7 @@ OWNER_COUNTRY_NAME=DK
 OWNER_KEY_PASSWORD=changeit
 ```
 4. Run this from command line:
-```bash
+```
 docker-compose up
 ```
 5. LinkedDataHub will start and create the following sub-folders:

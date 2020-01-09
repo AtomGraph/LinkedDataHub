@@ -197,6 +197,13 @@ version="2.0"
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]">
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
+        <xsl:if test="not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+            <xsl:for-each select="id('main-content', ixsl:page())">
+                <xsl:result-document href="?select=." method="ixsl:append-content">
+                    <xsl:call-template name="first-time-message"/>
+                </xsl:result-document>
+            </xsl:for-each>
+        </xsl:if>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
@@ -480,7 +487,7 @@ version="2.0"
         
         <!-- remove modal constructor form -->
         <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', $constructor-form/..), 'remove')"/>
+            <xsl:value-of select="ixsl:call($constructor-form/.., 'remove')"/>
         </xsl:message>
         
         <!-- $target-id is of "Create" button, need to replace the preceding typeahead input instead -->
@@ -489,6 +496,19 @@ version="2.0"
                 <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
             </xsl:result-document>
         </xsl:for-each>
+    </xsl:template>
+    
+    <xsl:template name="first-time-message">
+        <div class="hero-unit">
+            <button type="button" class="close">×</button>
+            <h1>Your app is ready</h1>
+            <h2>Deploy structured data, <em>without coding</em></h2>
+            <p>Manage and publish RDF graph data, import CSV, create custom views and visualizations within minutes. Change app structure and API logic without writing code.</p>
+            <p class="">
+                <a href="https://linkeddatahub.com/demo/" class="float-left btn btn-primary btn-large" target="_blank">Check out demo apps</a>
+                <a href="https://linkeddatahub.com/linkeddatahub/docs/" class="float-left btn btn-primary btn-large" target="_blank">Learn more</a>
+            </p>
+        </div>
     </xsl:template>
     
     <!-- CALLBACKS -->
@@ -962,6 +982,17 @@ version="2.0"
 
     <!-- EVENT LISTENERS -->
     
+    <xsl:template match="div[tokenize(@class, ' ') = 'hero-unit']/button[tokenize(@class, ' ') = 'close']" mode="ixsl:onclick" priority="1">
+        <!-- remove the hero-unit -->
+        <xsl:for-each select="..">
+            <xsl:message>
+                <xsl:value-of select="ixsl:call(., 'remove')"/>
+            </xsl:message>
+        </xsl:for-each>
+        <!-- set a cookie to never show it again -->
+        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after($ldt:base, $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
+    </xsl:template>
+    
     <!-- trigger typeahead in the search bar -->
     
     <xsl:template match="input[@id = 'uri']" mode="ixsl:onkeyup" priority="1">
@@ -1432,13 +1463,6 @@ version="2.0"
             </xsl:copy>
         </xsl:result-document>
     </xsl:template>
-    
-    <!-- not so easy to remove an element by replacing/appending content. JS is better in this situation -->
-    <!--
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="ixsl:onclick">
-        <xsl:value-of select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', ../../..), 'remove')"/>
-    </xsl:template>
-    -->
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
         <xsl:variable name="action" select="input[@class = 'action']/@value" as="xs:anyURI"/>
@@ -1466,7 +1490,7 @@ version="2.0"
         <!-- remove modal constructor form -->
         <xsl:for-each select="ancestor::div[tokenize(@class, ' ') = 'modal']">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', .), 'remove')"/>
+                <xsl:value-of select="ixsl:call(., 'remove')"/>
             </xsl:message>
         </xsl:for-each>
     </xsl:template>

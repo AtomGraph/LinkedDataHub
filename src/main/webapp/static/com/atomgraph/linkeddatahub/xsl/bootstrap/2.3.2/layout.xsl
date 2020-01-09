@@ -216,11 +216,9 @@ exclude-result-prefixes="#all">
 
     <!-- SCRIPT -->
 
-    <xsl:function name="apl:client-stylesheet" as="xs:anyURI">
-        <xsl:sequence select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl', $ac:contextUri)"/>
-    </xsl:function>
-    
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
+        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl', $ac:contextUri)" as="xs:anyURI"/>
+        <xsl:param name="saxon-ce-log-level" select="'FINE'" as="xs:string"/>
         <xsl:param name="load-wymeditor" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-saxon-ce" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
@@ -256,7 +254,7 @@ exclude-result-prefixes="#all">
                         // also not possible to pass xs:anyURI values, only xs:string
                         xslt2proc = Saxon.run(
                         {
-                            stylesheet: "]]><xsl:value-of select="apl:client-stylesheet()"/><![CDATA[",
+                            stylesheet: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
                             parameters: {
                                 "context-uri-string": contextUri, // servlet context URI
                                 "base-uri-string": baseUri,
@@ -264,7 +262,7 @@ exclude-result-prefixes="#all">
                                 },
                             initialTemplate: "main",
                             //source: baseUri,
-                            logLevel: "FINE"
+                            logLevel: "]]><xsl:value-of select="$saxon-ce-log-level"/><![CDATA["
                         });
                      }
                 ]]>
