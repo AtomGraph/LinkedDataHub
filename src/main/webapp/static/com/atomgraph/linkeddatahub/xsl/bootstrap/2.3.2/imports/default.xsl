@@ -168,7 +168,17 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- SHARED FUNCTIONS -->
-    
+
+    <!-- TO-DO: move down to Web-Client -->
+    <xsl:function name="ac:image" as="xs:anyURI?">
+        <xsl:param name="resource" as="element()"/>
+
+        <xsl:variable name="images" as="xs:anyURI*">
+            <xsl:apply-templates select="$resource" mode="ac:image"/>
+        </xsl:variable>
+        <xsl:sequence select="$images[1]"/>
+    </xsl:function>
+
     <xsl:function name="ac:svg-label" as="xs:string?">
         <xsl:param name="resource" as="element()"/>
 

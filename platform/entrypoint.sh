@@ -227,10 +227,10 @@ wait_for_host()
     done
 
     if ! ping -c1 "${host}" >/dev/null 2>&1 ; then
-        echo "### ${host} not responding, exiting..."
+        echo "### Host ${host} not responding after ${counter} seconds, exiting..."
         exit 1
     else
-        echo "### ${host} responded"
+        echo "### Host ${host} responded"
     fi
 }
 
@@ -241,17 +241,17 @@ wait_for_url()
     local accept="$3"
     i=1
 
-    while [ "$i" -le "$counter" ] && ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
+    while [ "$i" -le "$counter" ] && ! curl -s --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
     do
         sleep 1 ;
         i=$(( i+1 ))
     done
 
-    if ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-        echo "### ${url} not responding, exiting..."
+    if ! curl -s --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+        echo "### URL ${url} not responding after ${counter} seconds, exiting..."
         exit 1
     else
-        echo "### ${url} responded"
+        echo "### URL ${url} responded"
     fi
 }
 

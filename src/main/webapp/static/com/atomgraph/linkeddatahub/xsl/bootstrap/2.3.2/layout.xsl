@@ -182,6 +182,52 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
+    <!-- HEAD - TO-DO: move to Web-Client -->
+    <xsl:template match="rdf:RDF" mode="xhtml:Head">
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+            <meta name="og:url" content="{$ac:uri}"/>
+            <meta name="twitter:url" content="{$ac:uri}"/>
+            
+            <xsl:for-each select="key('resources', $ac:uri)">
+                <meta name="og:title" content="{ac:label(.)}"/>
+                <meta name="twitter:title" content="{ac:label(.)}"/>
+                
+                <meta name="twitter:card" content="summary_large_image"/>
+                
+                <xsl:if test="ac:description(.)">
+                    <meta name="description" content="{ac:description(.)}"/>
+                    <meta property="og:description" content="{ac:description(.)}"/>
+                    <meta name="twitter:description" content="{ac:description(.)}"/>
+                </xsl:if>
+                
+                <xsl:if test="ac:image(.)">
+                    <meta property="og:image" content="{ac:image(.)}"/>
+                    <meta name="twitter:image" content="{ac:image(.)}"/>
+                </xsl:if>
+                
+                <xsl:for-each select="foaf:maker/@rdf:resource">
+                    <xsl:if test="doc-available(ac:document-uri(.))">
+                        <xsl:for-each select="key('resources', ., document(ac:document-uri(.)))">
+                            <meta name="author" content="{ac:label(.)}"/>
+                        </xsl:for-each>
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:for-each>
+            
+            <xsl:if test="$lapp:Application">
+                <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $ldt:base])}"/>
+            </xsl:if>
+    
+            <xsl:apply-templates select="." mode="xhtml:Title"/>
+            
+            <xsl:apply-templates select="." mode="xhtml:Style"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Script"/>
+        </head>
+    </xsl:template>
+    
     <!-- TITLE -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
