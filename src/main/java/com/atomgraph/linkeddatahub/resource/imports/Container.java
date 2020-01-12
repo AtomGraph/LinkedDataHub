@@ -91,7 +91,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         
         Response constructor = super.construct(infModel); // construct Import
         
-        if (constructor.getStatus() == Status.CREATED.getStatusCode())  // import created
+        if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
             Resource document = getCreatedDocument(infModel);
             Resource topic = document.getPropertyResourceValue(FOAF.primaryTopic);

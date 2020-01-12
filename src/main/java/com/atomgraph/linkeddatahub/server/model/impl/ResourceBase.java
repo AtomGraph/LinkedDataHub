@@ -31,7 +31,6 @@ import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.util.TemplateCall;
-import com.atomgraph.processor.vocabulary.LDT;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -379,12 +378,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
+        // clone request Model to avoid clearing it during UpdateAction
+        Model defaultModel = ModelFactory.createDefaultModel().add(model);
         ParameterizedSparqlString updateString = new ParameterizedSparqlString(
                 getSystem().getPostUpdate(getUriInfo().getBaseUri().toString()).toString(),
                 getQuerySolutionMap());
         UpdateRequest update = updateString.asUpdate();
         Dataset dataset = DatasetFactory.create();
-        dataset.setDefaultModel(model);
+        dataset.setDefaultModel(defaultModel);
         UpdateAction.execute(update, dataset);
         dataset.getDefaultModel().removeAll(); // we don't want to store anything in the default graph
         
