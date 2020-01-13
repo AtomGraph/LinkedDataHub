@@ -1,36 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY java   "http://xml.apache.org/xalan/java/">
     <!ENTITY lacl   "http://linkeddatahub.com/ns/acl/domain#">
     <!ENTITY apl    "http://atomgraph.com/ns/platform/domain#">
-    <!ENTITY aplt   "http://atomgraph.com/ns/platform/templates#">
     <!ENTITY ac     "http://atomgraph.com/ns/client#">
     <!ENTITY a      "http://atomgraph.com/ns/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY xhv    "http://www.w3.org/1999/xhtml/vocab#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
-    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
-    <!ENTITY sparql "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY cert   "http://www.w3.org/ns/auth/cert#">
-    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
-    <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
-    <!ENTITY spl    "http://spinrdf.org/spl#">
-    <!ENTITY void   "http://rdfs.org/ns/void#">
-    <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
-    <!ENTITY list   "http://jena.hpl.hp.com/ARQ/list#">
-    <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
-    <!ENTITY google "http://atomgraph.com/ns/google#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -40,16 +27,11 @@ xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
-xmlns:aplt="&aplt;"
 xmlns:rdf="&rdf;"
-xmlns:xhv="&xhv;"
 xmlns:rdfs="&rdfs;"
-xmlns:owl="&owl;"
-xmlns:sparql="&sparql;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:cert="&cert;"
-xmlns:sd="&sd;"
 xmlns:ldt="&ldt;"
 xmlns:core="&c;"
 xmlns:dh="&dh;"
@@ -57,13 +39,6 @@ xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
-xmlns:sp="&sp;"
-xmlns:spl="&spl;"
-xmlns:void="&void;"
-xmlns:nfo="&nfo;"
-xmlns:list="&list;"
-xmlns:geo="&geo;"
-xmlns:google="&google;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
@@ -139,6 +114,18 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container" mode="bs2:FormControl">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'ou'"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="value" select="resolve-uri('acl/agents/', $ldt:base)"/>
+        </xsl:call-template>
+    </xsl:template>
+    
     <xsl:template match="foaf:based_near/@rdf:*[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>

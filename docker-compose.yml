@@ -39,10 +39,9 @@ services:
       - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig
       - STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
       - CACHE_STYLESHEET=false # false for debugging
-      - MAIL_SMTP_HOST=localhost
+      - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
-      - MAIL_PASSWORD=changeit
       - OWNER_MBOX=${OWNER_MBOX}
       - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
       - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
@@ -79,3 +78,8 @@ services:
       - ./datasets/end-user.trig:/tmp/init.trig:ro
       - ./data/end-user:/var/fuseki/data
     entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /tmp/init.trig; } > /var/fuseki/init.d/based.init.trig && /var/fuseki/entrypoint.sh --config /var/fuseki/config.ttl" ]
+  email-server:
+    image: namshi/smtp
+    environment:
+      - MAILNAME=linkeddatahub.com
+      - DISABLE_IPV6=true

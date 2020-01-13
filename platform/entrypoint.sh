@@ -203,11 +203,6 @@ if [ -z "$MAIL_USER" ] ; then
     exit 1
 fi
 
-if [ -z "$MAIL_PASSWORD" ] ; then
-    echo '$MAIL_PASSWORD not set'
-    exit 1
-fi
-
 # create AtomGraph upload root
 
 mkdir -p "$ATOMGRAPH_UPLOAD_ROOT"/"$UPLOAD_CONTAINER_PATH"
@@ -536,7 +531,6 @@ CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$CONTEXT_DATASET' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
-MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 
 # stylesheet URL must be relative to the base context URL
 if [ -n "$STYLESHEET" ] ; then
@@ -553,6 +547,10 @@ fi
 
 if [ -n "$OWNER_AUTH_QUERY" ] ; then
     OWNER_AUTH_QUERY_PARAM="--stringparam aplc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
+fi
+
+if [ -n "$MAIL_PASSWORD" ] ; then
+    MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
 
 transform="xsltproc \
