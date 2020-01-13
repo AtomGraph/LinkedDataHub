@@ -382,7 +382,6 @@ public class SignUp extends ResourceBase
                 agent.getURI(),
                 certExpires.format(DateTimeFormatter.ISO_LOCAL_DATE))).
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
-            debug(). // SMTP debug output
             build());
     }
     

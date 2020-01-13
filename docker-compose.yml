@@ -81,5 +81,4 @@ services:
   email-server:
     image: namshi/smtp
     environment:
-      - MAILNAME=linkeddatahub.com
       - DISABLE_IPV6=true
