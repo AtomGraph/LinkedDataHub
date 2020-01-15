@@ -1,16 +1,22 @@
 language: c
+
+env:
+  - JENA_VERSION=3.13.0
+  - JENA_REPO=https://repository.apache.org/content/repositories/releases/
+  - JENA_JAR_URL=${JENA_REPO}/org/apache/jena/jena-fuseki-server/${VERSION}/jena-fuseki-server-${VERSION}.jar
+
 before_install:
   - find ./scripts -name "*.sh" -exec chmod +x {} \;
   - find ./http-tests -name "*.sh" -exec chmod +x {} \;
-  - sudo apt-get update
-  - sudo apt-get install -qq raptor2-utils
+  - (curl -sS --fail $ASF_MIRROR_EU/jena/binaries/apache-jena-$JENA_VERSION.tar.gz || curl -sS --fail $ASF_MIRROR_US/jena/binaries/apache-jena-$JENA_VERSION.tar.gz || curl -sS --fail $ASF_ARCHIVE/jena/binaries/apache-jena-$JENA_VERSION.tar.gz) > jena.tar.gz && sha512sum -c jena.tar.gz.sha512 && tar zxf jena.tar.gz && mv apache-jena* /jena && rm jena.tar.gz* && cd /jena && rm -rf *javadoc* *src* bat
+  - ls /jena -l
+  - export JENA_HOME=/jena
+  - export PATH="$PATH:$JENA_HOME/bin"
+  - ls $JENA_HOME -l
 
 install:
-  - touch ./.env
-  - bash ./http-tests/print-env-file.sh > ./.env
-  - cat ./.env
-  - ls -l
-  - ls http-tests -l
+  - bash ./http-tests/print-env-file.sh > .env
+  - ls -la
   - docker-compose pull
   - docker-compose up -d # run in the background
   - cd http-tests
