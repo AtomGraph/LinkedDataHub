@@ -2,12 +2,12 @@
 
 if [ "$#" -ne 1 ]; then
   echo "Usage:   $0 cert_password" >&2
-  echo "Example: $0" Password' >&2
+  echo "Example: $0 Password" >&2
   echo "Note: special characters such as $ need to be escaped in passwords!" >&2
   exit 1
 fi
 
-export CERT_PWD="$1"
+export OWNER_CERT_PWD="$1"
 
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
@@ -51,41 +51,61 @@ function run_tests()
     return $error_count
 }
 
+function download_dataset()
+{
+    curl -s -f \
+      -H "Accept: application/trig" \
+      "${1}"
+}
+
 function initialize_dataset()
 {
-    #echo "@base <${1}> ." \
-    #| cat - "$2" \
-    cat "$2" \
+    echo "@base <${1}> ." \
+    | cat - "${2}" \
     | curl -f -s \
       -X PUT \
       --data-binary @- \
-      -H "Content-Type: application/n-quads" \
+      -H "Content-Type: application/trig" \
       "${3}" > /dev/null
 }
 
 export -f initialize_dataset
 
+export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
-export TMP_ADMIN_DATASET="/tmp/original_admin_dataset.nq"
-
-curl "$ADMIN_ENDPOINT_URL" -s -f -H "Accept: application/n-quads" > "$TMP_ADMIN_DATASET"
+export END_USER_BASE_URL="https://localhost:4443/"
+export ADMIN_BASE_URL="https://localhost:4443/admin/"
+export OWNER_CERT_FILE="$PWD/../certs/owner.p12.pem"
 
 error_count=0
 
 ### Authorization tests ###
 
-export END_USER_BASE_URL="https://localhost:4443/"
-export ADMIN_BASE_URL="https://localhost:4443/admin/"
-export CERT_FILE="$PWD/../certs/owner.p12.pem"
+export AGENT_CERT_FILE=$(mktemp)
+export AGENT_CERT_PWD="changeit"
 
-#initialize_dataset "$BASE_URL" "dataset.trig" "$ADMIN_ENDPOINT_URL"
-#initialize_dataset "$BASE_URL_WRITABLE" "dataset.trig" "$ADMIN_ENDPOINT_URL_WRITABLE"
+run_tests "signup.sh"
+(( error_count += $? ))
+
+export AGENT_WEBID_URI="$(../scripts/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
+
+# store the end-user and admin datasets
+export TMP_END_USER_DATASET=$(mktemp)
+export TMP_ADMIN_DATASET=$(mktemp)
+download_dataset "$END_USER_ENDPOINT_URL" > "$TMP_END_USER_DATASET"
+download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 run_tests $(find ./acl/ -name '*.sh*')
 (( error_count += $? ))
 
 ### Exit
 
+# restore original datasets
+initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
+initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+
+rm "$AGENT_CERT_FILE"
+rm "$TMP_END_USER_DATASET"
 rm "$TMP_ADMIN_DATASET"
 
 exit $error_count

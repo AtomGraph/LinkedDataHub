@@ -39,6 +39,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
 import org.apache.jena.query.DatasetAccessor;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -51,6 +53,7 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spinrdf.vocabulary.SPIN;
 
 /**
  * Data import listener.
@@ -91,12 +94,15 @@ public class ImportListener implements ServletContextListener
         Resource provImport = ModelFactory.createDefaultModel().createResource(csvImport.getURI()).
                 addProperty(PROV.startedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
-        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(),
-                csvImport.getBaseUri().getURI(), csvImport.getDataManager());
+        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), csvImport.getBaseUri().getURI(), csvImport.getDataManager());
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, csvImport.getBaseUri().getURI());
+        
         Supplier<ClientResponse> csvSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, csvImport.getDataManager());
         // skip validation because it will be done during final POST anyway
         Function<ClientResponse, CSVStreamRDFOutput> rdfOutputWriter = new CSVStreamRDFOutputWriter(csvImport.getContainer().getURI(),
-                csvImport.getDataManager(), csvImport.getBaseUri().getURI(), queryLoader.get(), csvImport.getDelimiter());
+                csvImport.getDataManager(), csvImport.getBaseUri().getURI(), pss.asQuery(), csvImport.getDelimiter());
         
         CompletableFuture.supplyAsync(csvSupplier).thenApplyAsync(rdfOutputWriter).
             thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, accessor)).

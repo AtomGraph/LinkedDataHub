@@ -282,7 +282,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         if (getService().getDatasetQuadAccessor() != null)
         {
-            getService().getDatasetQuadAccessor().patch(splitDefaultModel(dataset.getDefaultModel()));
+            getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel()));
             
             return Response.ok().build();
         }

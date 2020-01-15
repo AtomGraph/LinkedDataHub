@@ -133,10 +133,5 @@ if [ -n "$optional" ] ; then
     turtle+="${param} spl:optional true .\n"
 fi
 
-# set env values in the Turtle doc and sumbit it to the server
-
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
-
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"

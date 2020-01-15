@@ -13,13 +13,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --label)
-        label="$2"
+        --name)
+        name="$2"
         shift # past argument
         shift # past value
         ;;
-        --comment)
-        comment="$2"
+        --description)
+        description="$2"
         shift # past argument
         shift # past value
         ;;
@@ -33,8 +33,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --query-file)
-        query_file="$2"
+        --member)
+        members+=("$2")
         shift # past argument
         shift # past value
         ;;
@@ -50,54 +50,56 @@ if [ -z "$base" ] ; then
     echo '-b|--base not set'
     exit 1
 fi
-if [ -z "$label" ] ; then
-    echo '--label not set'
+if [ -z "$name" ] ; then
+    echo '--name not set'
     exit 1
 fi
-if [ -z "$query_file" ] ; then
-    echo '--query-file not set'
+if [ ${#members[@]} -eq 0 ]; then
+    echo '--member not set'
     exit 1
 fi
 
-container="${base}sitemap/queries/"
-query_string=$(<"$query_file") # read query string from file
+container="${base}acl/authorizations/"
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
-    query="<${uri}>" # URI
+    group="<${uri}>" # URI
 else
-    query="_:query" # blank node
+    group="_:auth" # blank node
 fi
 
 args+=("-c")
-args+=("${base}ns#Describe") # class
+args+=("${base}ns#Group") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}") # container
+args+=("${container}")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
+turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${query} a ns:Describe .\n"
-turtle+="${query} rdfs:label \"${label}\" .\n"
-turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
-turtle+="${query} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="${query} rdfs:isDefinedBy <../ns/templates#> .\n"
-turtle+="_:item a ns:QueryItem .\n"
+turtle+="${group} a ns:Group .\n"
+turtle+="${group} foaf:name \"${label}\" .\n"
+turtle+="${group} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a ns:GroupItem .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${query} .\n"
+turtle+="_:item foaf:primaryTopic ${group} .\n"
 
-if [ -n "$comment" ] ; then
-    turtle+="${query} rdfs:comment \"${comment}\" .\n"
+if [ -n "$description" ] ; then
+    turtle+="${group} dct:description \"${description}\" .\n"
 fi
 if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
+
+for member in "${members[@]}"
+do
+    turtle+="${group} foaf:member <$member> .\n"
+done
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"

@@ -130,6 +130,7 @@ public class SignUp extends ResourceBase
     private final String emailSubject;
     private final String emailText;
     private final int validityDays;
+    private final boolean download;
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     public SignUp(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
@@ -198,6 +199,8 @@ public class SignUp extends ResourceBase
         if (servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()) == null)
             throw new WebApplicationException(new ConfigurationException(APLC.signUpCertValidity));
         validityDays = Integer.parseInt(servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()));
+        
+        download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
 
     @Override
@@ -281,12 +284,22 @@ public class SignUp extends ResourceBase
                                 queryParam(APLT.forClass.getLocalName(), encodedAppClassURI).
                                 build(); // this is quite fragile
 
-                        sendEmail(agent, createContextURI, certExpires, keyStoreBytes, keyStoreFileName);
-                        
-                        // append Agent data to response
-                        Dataset description = describe();
-                        description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
-                        return getResponseBuilder(description).build();
+                        if (download)
+                        {
+                            return Response.ok(keyStoreBytes).
+                                type(PKCS12_MEDIA_TYPE).
+                                header("Content-Disposition", "attachment; filename=cert.p12").
+                                build();
+                        }
+                        else
+                        {
+                            sendEmail(agent, createContextURI, certExpires, keyStoreBytes, keyStoreFileName);
+
+                            // append Agent data to response
+                            Dataset description = describe();
+                            description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
+                            return getResponseBuilder(description).build();
+                        }
                     }
                 }
             }

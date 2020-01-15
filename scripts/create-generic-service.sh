@@ -107,8 +107,5 @@ if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-# make Jena scripts available
-export PATH="$PATH":"$JENA_HOME/bin"
-
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
