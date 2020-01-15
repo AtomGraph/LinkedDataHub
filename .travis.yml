@@ -6,9 +6,9 @@ before_install:
   - sudo apt-get install -qq raptor2-utils
 
 install:
-  - touch .env
-  - bash ./http-tests/print-env-file.sh > .env
-  - cat .env
+  - touch ./.env
+  - bash ./http-tests/print-env-file.sh > ./.env
+  - cat ./.env
   - ls -l
   - ls http-tests -l
   - docker-compose pull
