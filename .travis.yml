@@ -10,16 +10,16 @@ before_install:
   - tar zxf jena.tar.gz 
 
 install:
-  - bash ./http-tests/print-env-file.sh > .env
+  - ./http-tests/print-env-file.sh > .env
   - docker-compose pull
   - docker-compose up -d # run in the background
-  - cd http-tests
 
 before_script:
   - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
   - ls -l
   - ls ./certs -l
   - openssl pkcs12 -in ./certs/owner.p12 -out ./certs/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # regenerate owner PEM cert - seems to different with different openssl versions?
+  - cd http-tests
 
 script:
   - bash ./run.sh "$OWNER_KEY_PASSWORD" # run tests with owner password
