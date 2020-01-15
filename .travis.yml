@@ -1,12 +1,12 @@
 language: c
 before_install:
+  - find ./scripts -name "*.sh" -exec chmod +x {} \;
+  - find ./http-tests -name "*.sh" -exec chmod +x {} \;
   - sudo apt-get update
   - sudo apt-get install -qq raptor2-utils
 
 install:
-  - bash ./http-tests/print-env-file.sh
   - bash ./http-tests/print-env-file.sh > .env
-  - cat .env
   - docker-compose pull
   - docker-compose up -d # run in the background
   - cd http-tests
