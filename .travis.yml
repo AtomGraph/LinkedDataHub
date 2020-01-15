@@ -1,7 +1,7 @@
 language: c
 
 env:
-  - ASF_ARCHIVE=http://archive.apache.org/dist/ JENA_VERSION=3.13.1 JENA_HOME="${TRAVIS_BUILD_DIR}/apache-jena-${JENA_VERSION}" PATH="$PATH:$JENA_HOME/bin" BASE_URI=https://localhost:4443/
+  - ASF_ARCHIVE=http://archive.apache.org/dist/ JENA_VERSION=3.13.1 JENA_HOME="${TRAVIS_BUILD_DIR}/apache-jena-${JENA_VERSION}" PATH="$PATH:$JENA_HOME/bin" BASE_URI=https://localhost:4443/ OWNER_KEY_PASSWORD=changeit
 
 before_install:
   - find ./scripts -name "*.sh" -exec chmod +x {} \;
@@ -17,9 +17,10 @@ install:
 
 before_script:
   - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+  - openssl pkcs12 -in ./certs/owner.p12 -out ./certs/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # regenerate owner PEM cert - seems to different with different openssl versions?
 
 script:
-  - bash ./run.sh changeit # run tests with owner password
+  - bash ./run.sh "$OWNER_KEY_PASSWORD" # run tests with owner password
 
 after_script:
   - docker-compose down

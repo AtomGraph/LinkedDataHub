@@ -89,9 +89,6 @@ run_tests "signup.sh"
 (( error_count += $? ))
 
 export AGENT_WEBID_URI="$(../scripts/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
-echo "AGENT_WEBID_URI: $AGENT_WEBID_URI"
-
-ls -l
 
 # store the end-user and admin datasets
 export TMP_END_USER_DATASET=$(mktemp)
