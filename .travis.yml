@@ -1,7 +1,7 @@
 language: c
 
 env:
-  - ASF_ARCHIVE=http://archive.apache.org/dist/ JENA_VERSION=3.13.1 JENA_HOME="apache-jena-${JENA_VERSION}" PATH="$PATH:$JENA_HOME/bin"
+  - ASF_ARCHIVE=http://archive.apache.org/dist/ JENA_VERSION=3.13.1 JENA_HOME="${TRAVIS_BUILD_DIR}/apache-jena-${JENA_VERSION}" PATH="$PATH:$JENA_HOME/bin" BASE_URI=https://localhost:4443/
 
 before_install:
   - find ./scripts -name "*.sh" -exec chmod +x {} \;
@@ -19,7 +19,7 @@ install:
   - cd http-tests
 
 before_script:
-  - while ! curl -w "%{http_code}\n" -k -s https://localhost:4443/ | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+  - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
 
 script:
   - echo "$PATH"
