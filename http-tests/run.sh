@@ -8,6 +8,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 export OWNER_CERT_PWD="$1"
+export SCRIPT_ROOT="$PWD/../scripts"
 
 export STATUS_OK=200
 export STATUS_DELETE_SUCCESS='200|204'
