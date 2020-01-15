@@ -8,6 +8,7 @@ before_install:
 install:
   - bash ./http-tests/print-env-file.sh > .env
   - ls -l
+  - ls http-tests -l
   - docker-compose pull
   - docker-compose up -d # run in the background
   - cd http-tests
