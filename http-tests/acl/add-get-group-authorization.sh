@@ -5,8 +5,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 
 # authenticated access is unauthorized
 
-echo "AGENT_CERT_FILE: ${AGENT_CERT_FILE}"
-cat "${AGENT_CERT_FILE}"
+echo "OWNER_CERT_FILE: ${OWNER_CERT_FILE}"
+cat "${OWNER_CERT_FILE}"
 
 curl -k -w "%{http_code}\n" -f -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
