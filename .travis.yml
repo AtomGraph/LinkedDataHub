@@ -18,7 +18,7 @@ before_script:
   - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
   - ls -l
   - ls ./certs -l
-  - rm ./certs/owner.p12.pem
+  - rm -f ./certs/owner.p12.pem
   - openssl pkcs12 -in ./certs/owner.p12 -out ./certs/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # regenerate owner PEM cert - seems to different with different openssl versions?
   - cd http-tests
 
