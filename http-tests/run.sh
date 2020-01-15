@@ -1,13 +1,14 @@
 #!/bin/bash
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage:   $0 cert_password" >&2
-  echo "Example: $0 Password" >&2
+if [ "$#" -ne 2 ]; then
+  echo "Usage:   $0 cert_pem_file cert_password" >&2
+  echo "Example: $0 $PWD/../certs/owner.p12.pem Password" >&2
   echo "Note: special characters such as $ need to be escaped in passwords!" >&2
   exit 1
 fi
 
-export OWNER_CERT_PWD="$1"
+export OWNER_CERT_FILE="$1"
+export OWNER_CERT_PWD="$2"
 export SCRIPT_ROOT="$PWD/../scripts"
 
 export STATUS_OK=200
@@ -76,7 +77,6 @@ export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://localhost:4443/admin/"
-export OWNER_CERT_FILE="$PWD/../certs/owner.p12.pem"
 
 error_count=0
 

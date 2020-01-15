@@ -16,14 +16,11 @@ install:
 
 before_script:
   - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
-  - ls -l
-  - ls ./certs -l
-  - rm -f ./certs/owner.p12.pem
-  - openssl pkcs12 -in ./certs/owner.p12 -out ./certs/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # regenerate owner PEM cert - seems to different with different openssl versions?
+  - openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # generate a copy of the owner PEM cert - seems to differ with different openssl versions?
   - cd http-tests
 
 script:
-  - bash ./run.sh "$OWNER_KEY_PASSWORD" # run tests with owner password
+  - bash ./run.sh ./owner.p12.pem "$OWNER_KEY_PASSWORD" # run tests with owner password
 
 after_script:
   - docker-compose down
