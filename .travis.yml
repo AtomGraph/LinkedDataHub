@@ -20,7 +20,7 @@ before_script:
   - cd http-tests
 
 script:
-  - bash ./run.sh "$PWD/owner.p12.pem" "$OWNER_KEY_PASSWORD" # run tests with owner password
+  - bash ./run.sh "$PWD/../certs/owner.p12.pem" "$OWNER_KEY_PASSWORD" # run tests with owner password
 
 after_script:
   - docker-compose down
