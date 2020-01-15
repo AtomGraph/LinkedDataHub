@@ -1,6 +1,9 @@
 language: c
 
 env:
+  - ASF_MIRROR_EU http://www.eu.apache.org/dist/
+  - ASF_MIRROR_US http://www.us.apache.org/dist/
+  - ASF_ARCHIVE http://archive.apache.org/dist/
   - JENA_VERSION=3.13.0
   - JENA_REPO=https://repository.apache.org/content/repositories/releases/
   - JENA_JAR_URL=${JENA_REPO}/org/apache/jena/jena-fuseki-server/${VERSION}/jena-fuseki-server-${VERSION}.jar
