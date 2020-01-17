@@ -185,40 +185,7 @@ exclude-result-prefixes="#all">
     <!-- HEAD - TO-DO: move to Web-Client -->
     <xsl:template match="rdf:RDF" mode="xhtml:Head">
         <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-            <meta name="og:url" content="{$ac:uri}"/>
-            <meta name="twitter:url" content="{$ac:uri}"/>
-            
-            <xsl:for-each select="key('resources', $ac:uri)">
-                <meta name="og:title" content="{ac:label(.)}"/>
-                <meta name="twitter:title" content="{ac:label(.)}"/>
-                
-                <meta name="twitter:card" content="summary_large_image"/>
-                
-                <xsl:if test="ac:description(.)">
-                    <meta name="description" content="{ac:description(.)}"/>
-                    <meta property="og:description" content="{ac:description(.)}"/>
-                    <meta name="twitter:description" content="{ac:description(.)}"/>
-                </xsl:if>
-                
-                <xsl:if test="ac:image(.)">
-                    <meta property="og:image" content="{ac:image(.)}"/>
-                    <meta name="twitter:image" content="{ac:image(.)}"/>
-                </xsl:if>
-                
-                <xsl:for-each select="foaf:maker/@rdf:resource">
-                    <xsl:if test="doc-available(ac:document-uri(.))">
-                        <xsl:for-each select="key('resources', ., document(ac:document-uri(.)))">
-                            <meta name="author" content="{ac:label(.)}"/>
-                        </xsl:for-each>
-                    </xsl:if>
-                </xsl:for-each>
-            </xsl:for-each>
-            
-            <xsl:if test="$lapp:Application">
-                <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $ldt:base])}"/>
-            </xsl:if>
+            <xsl:apply-templates select="." mode="xhtml:Meta"/>
     
             <xsl:apply-templates select="." mode="xhtml:Title"/>
             
@@ -251,13 +218,56 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="xhtml:Title"/>
     
+    <!-- META -->
+    
+    <xsl:template match="rdf:RDF" mode="xhtml:Meta">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+        <meta name="og:url" content="{$ac:uri}"/>
+        <meta name="twitter:url" content="{$ac:uri}"/>
+
+        <xsl:for-each select="key('resources', $ac:uri)">
+            <meta name="og:title" content="{ac:label(.)}"/>
+            <meta name="twitter:title" content="{ac:label(.)}"/>
+
+            <meta name="twitter:card" content="summary_large_image"/>
+
+            <xsl:if test="ac:description(.)">
+                <meta name="description" content="{ac:description(.)}"/>
+                <meta property="og:description" content="{ac:description(.)}"/>
+                <meta name="twitter:description" content="{ac:description(.)}"/>
+            </xsl:if>
+
+            <xsl:if test="ac:image(.)">
+                <meta property="og:image" content="{ac:image(.)}"/>
+                <meta name="twitter:image" content="{ac:image(.)}"/>
+            </xsl:if>
+
+            <xsl:for-each select="foaf:maker/@rdf:resource">
+                <xsl:if test="doc-available(ac:document-uri(.))">
+                    <xsl:for-each select="key('resources', ., document(ac:document-uri(.)))">
+                        <meta name="author" content="{ac:label(.)}"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:for-each>
+
+        <xsl:if test="$lapp:Application">
+            <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $ldt:base])}"/>
+        </xsl:if>
+    </xsl:template>
+
     <!-- STYLE -->
     
     <xsl:template match="rdf:RDF" mode="xhtml:Style">
+        <xsl:param name="load-wymeditor" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean"/>
+        
         <xsl:apply-imports/>
 
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
-        <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        <xsl:if test="$load-wymeditor">
+            <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        </xsl:if>
     </xsl:template>
 
     <!-- SCRIPT -->
@@ -265,7 +275,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-ce-log-level" select="'FINE'" as="xs:string"/>
-        <xsl:param name="load-wymeditor" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean"/>
         <xsl:param name="load-saxon-ce" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
@@ -1695,7 +1705,7 @@ exclude-result-prefixes="#all">
                         <a href="{resolve-uri('ns', $ldt:base)}">Namespace</a>
                     </li>
                     <li>
-                        <a href="https://linkeddatahub.com/docs/">Help</a>
+                        <a href="https://linkeddatahub.com/linkeddatahub/docs/">Help</a>
                     </li>
                 </ul>
             </div>
