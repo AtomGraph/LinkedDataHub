@@ -289,7 +289,6 @@ exclude-result-prefixes="#all">
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}"></script>
         <script type="text/javascript">
             <![CDATA[
-                var appUri = "]]><xsl:value-of select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/@rdf:about"/><![CDATA[";
                 var baseUri = "]]><xsl:value-of select="$ldt:base"/><![CDATA[";
                 var ontologyUri = "]]><xsl:value-of select="$ldt:ontology"/><![CDATA[";
                 var contextUri = "]]><xsl:value-of select="$ac:contextUri"/><![CDATA[";
@@ -2069,7 +2068,7 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">Resources</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="{$ac:contextUri}docs/">Documentation</a>
+                                <a href="{$ac:contextUri}linkeddatahub/docs/">Documentation</a>
                             </li>
                             <li>
                                 <a href="https://www.youtube.com/playlist?list=PLnDXST4pVcQQr-j3YXrVvGRP46E2Nnn5l">Screencasts</a>

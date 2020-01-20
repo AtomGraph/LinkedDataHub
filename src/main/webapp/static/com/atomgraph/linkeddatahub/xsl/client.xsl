@@ -197,7 +197,8 @@ version="2.0"
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]">
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
-        <xsl:if test="not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+        <!-- only show first time message for authenticated agents -->
+        <xsl:if test="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:for-each select="id('main-content', ixsl:page())">
                 <xsl:result-document href="?select=." method="ixsl:append-content">
                     <xsl:call-template name="first-time-message"/>
@@ -1492,6 +1493,26 @@ version="2.0"
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'remove')"/>
             </xsl:message>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!-- content tabs (markup from Bootstrap) -->
+    <xsl:template match="div[tokenize(@class, ' ') = 'tabbable']/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
+        <!-- deactivate other tabs -->
+        <xsl:for-each select="../../li">
+            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="..">
+            <ixsl:set-attribute name="class" select="'active'"/>
+        </xsl:for-each>
+        <!-- deactivate other tab panes -->
+        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']">
+            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+        </xsl:for-each>
+        <!-- activate this tab -->
+        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]">
+            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
         </xsl:for-each>
     </xsl:template>
     
