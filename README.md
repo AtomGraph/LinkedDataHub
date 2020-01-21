@@ -42,6 +42,10 @@ docker-compose up
    - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
 7. Open **https://localhost:4443/** in that web browser
 
+After a successful startup, the last line of the Docker log should read:
+
+    stage.linkeddatahub              | 02-Feb-2020 02:02:20.200 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 3420 ms
+
 Notes:
 * You will likely get a browser warning such as `Your connection is not private` in Chrome or `Warning: Potential Security Risk Ahead` in Firefox due to the self-signed server certificate. Ignore it: click `Advanced` and `Proceed` or `Accept the risk` to proceed.
 * `.env_sample` and `.env` files might be invisible in MacOS Finder which hides filenames starting with a dot. You should be able to [create it using Terminal](https://stackoverflow.com/questions/5891365/mac-os-x-doesnt-allow-to-name-files-starting-with-a-dot-how-do-i-name-the-hta) however.

@@ -69,7 +69,9 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .nav-tabs .chart-mode a { background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .map-mode a { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .graph-mode a { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.modal { max-height: 80%; overflow-y: scroll; overflow-x: hidden; }
 .modal-header legend { margin-bottom: 0; }
+.modal-body { max-height: none; }
 .nav-tabs > li > a, .pager > li > a.active { cursor: pointer; }
 .pager > li.previous > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_before_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }
 .pager > li.next > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_next_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }

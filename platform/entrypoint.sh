@@ -41,6 +41,7 @@ if [ ! -f "$P12_FILE" ]; then
           -keyalg RSA \
           -keypass "$PKCS12_KEY_PASSWORD" \
           -storepass "$PKCS12_STORE_PASSWORD" \
+          -ext SAN=DNS:localhost,IP:127.0.0.1 \
           -dname 'CN=localhost,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK' \
           -keystore "$P12_FILE"
     else
