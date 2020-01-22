@@ -281,7 +281,7 @@ var onContentDisplayToggle = function()
 $(document).ready(function()
 {
     // turn off browser autocomplete for input's with our own autocomplete
-    $("input.resource-typeahead").attr("autocomplete", "off");
+    $("input.typeahead").attr("autocomplete", "off");
     
     $(".navbar-inner .btn.btn-navbar").on("click", function()
     {

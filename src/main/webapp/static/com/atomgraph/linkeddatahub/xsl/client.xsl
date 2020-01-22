@@ -1009,6 +1009,7 @@ version="2.0"
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
+        <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', $select-string)"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term(QueryBuilder.str($text))))) -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', 'label')), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', ac:escape-regex($text)), true())))"/>
@@ -1019,6 +1020,30 @@ version="2.0"
         <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
 
         <xsl:choose>
+            <xsl:when test="$key-code = 'Escape'">
+                <xsl:call-template name="typeahead:hide">
+                    <xsl:with-param name="menu" select="$menu"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="$key-code = 'Enter'">
+                <xsl:if test="$menu/li[tokenize(@class, ' ') = 'active']">
+                    <!-- redirect to the resource URI selected in the typeahead -->
+                    <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/@prop:value" as="xs:anyURI"/>
+                    <xsl:call-template name="redirect">
+                        <xsl:with-param name="uri" select="$resource-uri"/>
+                    </xsl:call-template>
+                </xsl:if>
+            </xsl:when>
+            <xsl:when test="$key-code = 'ArrowUp'">
+                <xsl:call-template name="typeahead:selection-up">
+                    <xsl:with-param name="menu" select="$menu"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="$key-code = 'ArrowDown'">
+                <xsl:call-template name="typeahead:selection-down">
+                    <xsl:with-param name="menu" select="$menu"/>
+                </xsl:call-template>
+            </xsl:when>
             <!-- ignore URIs in the input -->
             <xsl:when test="@prop:value[not(starts-with(., 'http://'))][not(starts-with(., 'https://'))]">
                 <ixsl:schedule-action wait="$delay">
@@ -1044,11 +1069,9 @@ version="2.0"
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']//ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown" priority="1">
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/@prop:value" as="xs:anyURI"/>
         <!-- redirect to the resource URI selected in the typeahead -->
-        <ixsl:schedule-action wait="0">
-            <xsl:call-template name="redirect">
-                <xsl:with-param name="uri" select="$resource-uri"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:call-template name="redirect">
+            <xsl:with-param name="uri" select="$resource-uri"/>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template name="redirect">
@@ -1303,6 +1326,7 @@ version="2.0"
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
+        <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <xsl:variable name="value-uris" select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'of')"/>
         <xsl:for-each select="$resource-types[not(. = '&rdfs;Resource')]">
             <xsl:message>
@@ -1319,8 +1343,45 @@ version="2.0"
         <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
         <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
-
+        
         <xsl:choose>
+            <xsl:when test="$key-code = 'Escape'">
+                <xsl:call-template name="typeahead:hide">
+                    <xsl:with-param name="menu" select="$menu"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="$key-code = 'Enter'">
+                <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'active']">
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault')"/> <!-- prevent form submit -->
+                
+                    <xsl:variable name="resource-uri" select="input[@name = 'ou']/@prop:value"/>
+                    <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
+                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
+                    <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
+
+                    <xsl:result-document href="?select=../.." method="ixsl:replace-content">
+                        <xsl:apply-templates select="$resource" mode="apl:Typeahead">
+                            <xsl:with-param name="class" select="$typeahead-class"/>
+                        </xsl:apply-templates>
+                    </xsl:result-document>
+
+                    <ixsl:schedule-action wait="0">
+                        <xsl:call-template name="resource-typeahead">
+                            <xsl:with-param name="id" select="generate-id($resource)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:when test="$key-code = 'ArrowUp'">
+                <xsl:call-template name="typeahead:selection-up">
+                    <xsl:with-param name="menu" select="$menu"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:when test="$key-code = 'ArrowDown'">
+                <xsl:call-template name="typeahead:selection-down">
+                    <xsl:with-param name="menu" select="$menu"/>
+                </xsl:call-template>
+            </xsl:when>
             <!-- ignore URIs in the input -->
             <xsl:when test="@prop:value[not(starts-with(., 'http://'))][not(starts-with(., 'https://'))]">
                 <ixsl:schedule-action wait="$delay">

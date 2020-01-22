@@ -252,7 +252,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:if test="$lapp:Application">
+        <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]">
             <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $ldt:base])}"/>
         </xsl:if>
     </xsl:template>
@@ -1505,21 +1505,10 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
             
-            <xsl:apply-templates select="*[not(self::foaf:isPrimaryTopicOf)][not(self::foaf:primaryTopic)]" mode="#current">
-                <xsl:sort select="ac:property-label(.)"/>
-                <xsl:with-param name="violations" select="$violations"/>
-                <xsl:with-param name="template-doc" select="$template-doc"/>
-                <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
-            </xsl:apply-templates>
-            <xsl:if test="$template-properties">
-                <xsl:apply-templates select="$template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)]" mode="#current">
-                    <xsl:sort select="ac:property-label(.)"/>
-                    <xsl:with-param name="violations" select="$violations"/>
-                    <xsl:with-param name="template-doc" select="$template-doc"/>
-                    <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:if>
-            <xsl:apply-templates select="foaf:isPrimaryTopicOf | foaf:primaryTopic" mode="#current">
+            <!-- create inputs for both resource description and constructor template properties -->
+            <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)]" mode="#current">
+                <!-- move required properties up -->
+                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $ac:sitemap) then (key('resources', key('resources', (../rdf:type/@rdf:resource, apl:superClasses(../rdf:type/@rdf:resource, $ac:sitemap)), $ac:sitemap)/spin:constraint/(@rdf:resource|@rdf:nodeID), $ac:sitemap)[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="template-doc" select="$template-doc"/>
@@ -2057,10 +2046,10 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">About</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="{$ac:contextUri}docs/about">LinkedDataHub</a>
+                                <a href="https://linkeddatahub.com/docs/about/" target="_blank">LinkedDataHub</a>
                             </li>
                             <li>
-                                <a href="https://atomgraph.com">AtomGraph</a>
+                                <a href="https://atomgraph.com" target="_blank">AtomGraph</a>
                             </li>
                         </ul>
                     </div>
@@ -2068,19 +2057,16 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">Resources</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="{$ac:contextUri}linkeddatahub/docs/">Documentation</a>
+                                <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
                             </li>
                             <li>
-                                <a href="https://www.youtube.com/playlist?list=PLnDXST4pVcQQr-j3YXrVvGRP46E2Nnn5l">Screencasts</a>
+                                <a href="https://www.youtube.com/playlist?list=PLnDXST4pVcQQr-j3YXrVvGRP46E2Nnn5l" target="_blank">Screencasts</a>
                             </li>
                             <li>
-                                <a href="/demo/">Demo apps</a> <!-- built-in Context -->
+                                <a href="https://linkeddatahub.com/demo/" target="_blank">Demo apps</a> <!-- built-in Context -->
                             </li>
                             <li>
-                                <a href="https://github.com/AtomGraph/LinkedDataHub">CLI scripts</a>
-                            </li>
-                            <li>
-                                <a href="https://atomgraph.github.io/Linked-Data-Templates/">LDT specification</a>
+                                <a href="https://atomgraph.github.io/Linked-Data-Templates/" target="_blank">LDT specification</a>
                             </li>
                         </ul>
                     </div>
@@ -2088,10 +2074,10 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">Support</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="https://groups.io/g/linkeddatahub">Mailing list</a>
+                                <a href="https://groups.io/g/linkeddatahub" target="_blank">Mailing list</a>
                             </li>
                             <li>
-                                <a href="https://github.com/AtomGraph/LinkedDataHub/issues">Report issues</a>
+                                <a href="https://github.com/AtomGraph/LinkedDataHub/issues" target="_blank">Report issues</a>
                             </li>
                             <li>
                                 <a href="mailto:support@linkeddatahub.com">Contact support</a>
@@ -2102,13 +2088,13 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">Follow us</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="https://twitter.com/atomgraphhq">@atomgraphhq</a>
+                                <a href="https://twitter.com/atomgraphhq" target="_blank">@atomgraphhq</a>
                             </li>
                             <li>
-                                <a href="https://github.com/AtomGraph">github.com/AtomGraph</a>
+                                <a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a>
                             </li>
                             <li>
-                                <a href="https://www.facebook.com/AtomGraph">facebook.com/AtomGraph</a>
+                                <a href="https://www.facebook.com/AtomGraph" target="_blank">facebook.com/AtomGraph</a>
                             </li>
                         </ul>
                     </div>
