@@ -33,6 +33,7 @@ import com.atomgraph.linkeddatahub.exception.auth.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.server.provider.ApplicationProvider;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
@@ -155,37 +156,45 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 webIDCert.checkValidity(); // check if certificate is expired or not yet valid
                 RSAPublicKey publicKey = (RSAPublicKey)webIDCert.getPublicKey();
                 URI webID = getWebIDURI(webIDCert);
-                if (log.isDebugEnabled()) log.debug("Client WebID: {}", webID);
-                
-                Resource agent = authenticate(webID, publicKey);
-                if (agent == null)
-                {
-                    if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
-                    throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
-                }
-                getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
+                if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-                String onBehalfOf = request.getHeaderValue(ON_BEHALF_OF);
-                if (onBehalfOf != null)
+                try
                 {
-                    URI principalWebID = new URI(onBehalfOf);
-                    Model principalWebIDModel = loadWebID(principalWebID);
-                    Resource principal = principalWebIDModel.createResource(onBehalfOf);
-                    // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
-                    if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
-                    else throw new WebIDDelegationException(agent, principal);
-                }
-                
-                // imitate type inference, otherwise we'll get Jena's polymorphism exception
-                request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
+                    Resource agent = authenticate(loadWebID(webID), webID, publicKey);
+                    if (agent == null)
+                    {
+                        if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
+                        throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
+                    }
+                    getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
 
-                if (app != null)
-                {
-                    Resource authorization = authorize(app, request, agent, accessMode);
-                    ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
+                    String onBehalfOf = request.getHeaderValue(ON_BEHALF_OF);
+                    if (onBehalfOf != null)
+                    {
+                        URI principalWebID = new URI(onBehalfOf);
+                        Model principalWebIDModel = loadWebID(principalWebID);
+                        Resource principal = principalWebIDModel.createResource(onBehalfOf);
+                        // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
+                        if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
+                        else throw new WebIDDelegationException(agent, principal);
+                    }
+                    
+                    // imitate type inference, otherwise we'll get Jena's polymorphism exception
+                    request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
+
+                    if (app != null)
+                    {
+                        Resource authorization = authorize(app, request, agent, accessMode);
+                        ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
+                    }
+
+                    return request;
                 }
-                
-                return request;
+                catch (ClientHandlerException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
+                    return request; // default to unauthenticated access
+                }
             }
             catch (CertificateException ex)
             {
@@ -229,11 +238,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return null;
     }
     
-    public Resource authenticate(URI webID, RSAPublicKey publicKey)
-    {
-        return authenticate(loadWebID(webID), webID, publicKey);
-    }
-    
     public Resource authenticate(Model webIDModel, URI webID, RSAPublicKey publicKey)
     {
         ParameterizedSparqlString pss = getWebIDQuery().copy();
@@ -260,7 +264,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         if (getSystem().getWebIDModelCache().containsKey(webID)) return getSystem().getWebIDModelCache().get(webID);
         
         Model model = loadWebIDFromURI(webID);
-        // getModelCache().put(webID, model); // only put into cache after we have validated the keys!
         
         return model;
     }
