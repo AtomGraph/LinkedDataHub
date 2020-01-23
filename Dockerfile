@@ -20,7 +20,7 @@ COPY pom.xml /usr/src/platform/pom.xml
 
 ARG MAVEN_PROFILE=prod
 
-RUN mvn clean install -P${MAVEN_PROFILE}
+RUN mvn -Pstandalone -P${MAVEN_PROFILE} clean install
 
 # download and extract Jena
 

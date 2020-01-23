@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -190,10 +190,22 @@
 
     <profiles>
         <profile>
-            <id>dev</id>
+            <id>standalone</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <packaging.type>war</packaging.type>
             </properties>
+        </profile>
+        <profile>
+            <id>dependency</id>
+            <properties>
+                <packaging.type>jar</packaging.type>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -217,9 +229,6 @@
         </profile>
         <profile>
             <id>prod</id>
-            <properties>
-                <packaging.type>war</packaging.type>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -241,7 +250,7 @@
         <profile>
             <id>release</id>
             <properties>
-                <packaging.type>jar</packaging.type>
+                <packaging.type>war</packaging.type>
             </properties>
             <build>
                 <plugins>
