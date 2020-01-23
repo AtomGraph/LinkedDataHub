@@ -56,3 +56,20 @@ Notes:
 ## Demo applications
 
 *TBD*
+
+## Test suite
+
+LinkedDataHub includes a basic HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests).
+
+[![Build status](https://api.travis-ci.org/AtomGraph/LinkedDataHub.svg?branch=master)](https://travis-ci.org/AtomGraph/LinkedDataHub)
+
+## Support
+
+Please [report issues](https://github.com/AtomGraph/LinkedDataHub/issues) if you've encountered a bug or have a feature request.
+
+Commercial consulting, development, and support are available from [AtomGraph](https://atomgraph.com).
+
+## Community
+
+* [@atomgraphhq](https://twitter.com/atomgraphhq)
+* W3C [Declarative Linked Data Apps Community Group](http://www.w3.org/community/declarative-apps/)
