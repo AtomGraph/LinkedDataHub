@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -117,6 +118,36 @@ public class MessageBuilder
     public MessageBuilder to(String to, String personal) throws MessagingException, UnsupportedEncodingException
     {
         return recipient(Message.RecipientType.TO, to, personal);
+    }
+    
+    public MessageBuilder replyTo(Address[] addresses) throws MessagingException, UnsupportedEncodingException
+    {
+        getMessage().setReplyTo(addresses);
+        return this;
+    }
+    
+    public MessageBuilder replyTo(Address address) throws MessagingException, UnsupportedEncodingException
+    {
+        if (getMessage().getReplyTo() == null)
+            // create an array with one ReplyTo and set it
+            return replyTo(new Address[] { address });
+        else
+        {
+            // append ReplyTo
+            Address[] addresses = Arrays.copyOf(getMessage().getReplyTo(), getMessage().getReplyTo().length + 1);
+            addresses[addresses.length - 1] = address;
+            return replyTo(addresses);
+        }
+    }
+    
+    public MessageBuilder replyTo(String replyTo) throws MessagingException, UnsupportedEncodingException
+    {
+        return replyTo(new InternetAddress(replyTo));
+    }
+    
+    public MessageBuilder replyTo(String replyTo, String personal) throws MessagingException, UnsupportedEncodingException
+    {
+        return replyTo(new InternetAddress(replyTo, personal));
     }
     
     public MessageBuilder subject(String subject) throws MessagingException

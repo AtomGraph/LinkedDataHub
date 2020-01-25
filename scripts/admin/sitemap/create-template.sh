@@ -54,6 +54,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --load-class)
+        load_class="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --is-defined-by)
         is_defined_by="$2"
         shift # past argument
@@ -130,6 +135,9 @@ if [ -n "$extends" ] ; then
 fi
 if [ -n "$match" ] ; then
     turtle+="${template} ldt:match \"${match}\" .\n"
+fi
+if [ -n "$load_class" ] ; then
+    turtle+="${template} ldt:loadClass <${load_class}> .\n"
 fi
 
 for param in "${params[@]}"
