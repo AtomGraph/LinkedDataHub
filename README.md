@@ -48,8 +48,16 @@ After a successful startup, the last line of the Docker log should read:
 
 Notes:
 * You will likely get a browser warning such as `Your connection is not private` in Chrome or `Warning: Potential Security Risk Ahead` in Firefox due to the self-signed server certificate. Ignore it: click `Advanced` and `Proceed` or `Accept the risk` to proceed.
+  * If this option does not appear in Chrome (as observed on some MacOS), you can open [chrome://flags/#allow-insecure-localhost](chrome://flags/#allow-insecure-localhost), switch `Allow invalid certificates for resources loaded from localhost` to `Enabled` and restart Chrome
 * `.env_sample` and `.env` files might be invisible in MacOS Finder which hides filenames starting with a dot. You should be able to [create it using Terminal](https://stackoverflow.com/questions/5891365/mac-os-x-doesnt-allow-to-name-files-starting-with-a-dot-how-do-i-name-the-hta) however.
-* You may need to run the commands as `sudo` or be in the `docker` group.
+* *On Linux* your user may need to be a member of the `docker` group. Add it using
+```
+sudo usermod -aG docker ${USER}
+```
+and re-login with your user. An alternative, but not recommended, is to run
+```
+sudo docker-compose up
+```
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
 

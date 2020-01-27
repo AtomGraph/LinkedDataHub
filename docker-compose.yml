@@ -54,30 +54,25 @@ services:
     volumes:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ./uploads:/var/www/stage.linkeddatahub.com/uploads
+      - ./datasets:/var/linkeddatahub/datasets:ro
       - ./config/prod.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   fuseki-admin:
-    image: atomgraph/fuseki-tdb
+    image: atomgraph/fuseki
     ports:
       - 3030:3030
-    environment:
-      - BASE_URI=${BASE_URI}admin/
     volumes:
       - ./config/fuseki/admin.ttl:/var/fuseki/config.ttl:ro
-      - ./datasets/admin.trig:/tmp/init.trig:ro
       - ./data/admin:/var/fuseki/data
-    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /tmp/init.trig; } > /var/fuseki/init.d/based.init.trig && /var/fuseki/entrypoint.sh --config /var/fuseki/config.ttl" ]
+    command: [ "--config", "/var/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki-tdb
+    image: atomgraph/fuseki
     ports:
       - 3031:3030
-    environment:
-      - BASE_URI=${BASE_URI}
     volumes:
       - ./config/fuseki/end-user.ttl:/var/fuseki/config.ttl:ro
-      - ./datasets/end-user.trig:/tmp/init.trig:ro
       - ./data/end-user:/var/fuseki/data
-    entrypoint: [ sh, -c, "{ echo \"@base <$${BASE_URI}> .\"; cat /tmp/init.trig; } > /var/fuseki/init.d/based.init.trig && /var/fuseki/entrypoint.sh --config /var/fuseki/config.ttl" ]
+    command: [ "--config", "/var/fuseki/config.ttl" ]
   email-server:
     image: namshi/smtp
     environment:

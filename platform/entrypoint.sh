@@ -247,13 +247,14 @@ wait_for_url()
     local accept="$3"
     i=1
 
-    while [ "$i" -le "$counter" ] && ! curl -s --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
+    # use --head when https://issues.apache.org/jira/browse/JENA-1795 is fixed in used Jena version
+    while [ "$i" -le "$counter" ] && ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
     do
         sleep 1 ;
         i=$(( i+1 ))
     done
 
-    if ! curl -s --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+    if ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
         echo "### URL ${url} not responding after ${counter} seconds, exiting..."
         exit 1
     else
@@ -302,13 +303,14 @@ append_quads()
 }
 
 # extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
-# $PWD == $CATALINA_HOME
 
 envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
 
 sparql --data="${PWD}/webapps/ROOT${CONTEXT_DATASET}" --query="select-root-services.rq" --results=XML > root_admin_service_metadata.xml
 
 root_end_user_quad_store_url=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
+root_end_user_service_auth_user=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
+root_end_user_service_auth_pwd=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
 root_admin_base_uri=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
 root_admin_quad_store_url=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
 root_admin_service_auth_user=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
@@ -323,6 +325,29 @@ if [ -z "$root_admin_base_uri" ] || [ -z "$root_admin_quad_store_url" ] ; then
 fi
 
 printf "\n### Quad store URL of the root admin service: %s\n" "${root_admin_quad_store_url}"
+
+if [ -z "$LOAD_DATASETS" ]; then
+    if [ ! -d /var/linkeddatahub/based-datasets ]; then
+        LOAD_DATASETS=true
+    else
+        LOAD_DATASETS=false
+    fi
+fi
+
+if [ "$LOAD_DATASETS" = true ]; then
+    mkdir -p /var/linkeddatahub/based-datasets
+
+    printf "\n### Loading default datasets into the end-user/admin triplestores...\n"
+
+    trig --base="$BASE_URI" /var/linkeddatahub/datasets/end-user.trig > /var/linkeddatahub/based-datasets/based.end-user.nq
+    trig --base="$root_admin_base_uri" /var/linkeddatahub/datasets/admin.trig > /var/linkeddatahub/based-datasets/based.admin.nq
+
+    wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
+    append_quads "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.end-user.nq "application/n-quads"
+
+    wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
+    append_quads "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.admin.nq "application/n-quads"
+fi
 
 # if CLIENT_TRUSTSTORE does not exist:
 # 1. generate a secretary (server) certificate with a WebID relative to the BASE_URI
