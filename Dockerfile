@@ -102,6 +102,8 @@ ENV OWNER_URI=
 
 ENV OWNER_DOC_URI=
 
+ENV LOAD_DATASETS=
+
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
