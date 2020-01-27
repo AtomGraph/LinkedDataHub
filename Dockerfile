@@ -104,6 +104,10 @@ ENV OWNER_DOC_URI=
 
 ENV LOAD_DATASETS=
 
+ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
+
+ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
+
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
@@ -117,6 +121,12 @@ COPY platform/select-root-services.rq.template select-root-services.rq.template
 COPY platform/root-secretary.trig.template root-secretary.trig.template
 
 COPY platform/root-owner.trig.template root-owner.trig.template
+
+# copy default datasets
+
+COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
+
+COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
 # define upload container path
 

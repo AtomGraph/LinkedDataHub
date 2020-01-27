@@ -334,13 +334,14 @@ if [ -z "$LOAD_DATASETS" ]; then
     fi
 fi
 
+# load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
 if [ "$LOAD_DATASETS" = true ]; then
     mkdir -p /var/linkeddatahub/based-datasets
 
     printf "\n### Loading default datasets into the end-user/admin triplestores...\n"
 
-    trig --base="$BASE_URI" /var/linkeddatahub/datasets/end-user.trig > /var/linkeddatahub/based-datasets/based.end-user.nq
-    trig --base="$root_admin_base_uri" /var/linkeddatahub/datasets/admin.trig > /var/linkeddatahub/based-datasets/based.admin.nq
+    trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/based.end-user.nq
+    trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/based.admin.nq
 
     wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
     append_quads "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.end-user.nq "application/n-quads"
