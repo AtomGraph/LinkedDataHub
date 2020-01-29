@@ -85,7 +85,6 @@ Dataspaces are configured in `config/system.trig`. Their base URIs need to be al
 Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command
 ```
 sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig
-
 ```
 Note that `sed` requires to escape forward slashes `/` with backslashes `\`.
 
