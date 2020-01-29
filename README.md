@@ -72,8 +72,8 @@ Besides owner WebID configuration, the most common case is changing the base URI
 Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
 ```
 PROTOCOL=https
-PROXY_HTTP_PORT=80
-PROXY_HTTPS_PORT=443
+HTTP_PORT=80
+HTTPS_PORT=443
 HOST=ec2-54-235-229-141.compute-1.amazonaws.com
 ABS_PATH=/linkeddatahub/
 ```
@@ -82,7 +82,7 @@ ABS_PATH=/linkeddatahub/
 
 Dataspaces are configured in `config/system.trig`. Their base URIs need to be aligned to the base URI configured in the `.env` file.
 
-Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command
+Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command:
 ```
 sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig
 ```
