@@ -15,7 +15,11 @@ The default application structure and user interface are provided, making LDH a 
 COMPOSE_CONVERT_WINDOWS_PATHS=1
 COMPOSE_PROJECT_NAME=linkeddatahub
 
-BASE_URI=https://localhost:4443/
+PROTOCOL=https
+PROXY_HTTP_PORT=81
+PROXY_HTTPS_PORT=4443
+HOST=localhost
+ABS_PATH=/
 
 OWNER_MBOX=john@doe.com
 OWNER_GIVEN_NAME=John
@@ -58,6 +62,41 @@ and re-login with your user. An alternative, but not recommended, is to run
 ```
 sudo docker-compose up
 ```
+
+## Configuration
+
+### Base URI
+
+Besides owner WebID configuration, the most common case is changing the base URI from the default `https://localhost:4443` to your own.
+
+Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
+```
+PROTOCOL=https
+PROXY_HTTP_PORT=80
+PROXY_HTTPS_PORT=443
+HOST=ec2-54-235-229-141.compute-1.amazonaws.com
+ABS_PATH=/linkeddatahub/
+```
+
+### Dataspaces
+
+Dataspaces are configured in `config/system.trig`. Their base URIs need to be aligned to the base URI configured in the `.env` file.
+
+Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command
+```
+sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig
+
+```
+Note that `sed` requires to escape forward slashes `/` with backslashes `\`.
+
+## Reset
+
+If you need to start fresh and wipe the existing setup (e.g. after configuring a new base URI), you can do that using
+```
+sudo rm -rf certs data && docker-compose down -v
+```
+
+This will remove the persisted data, server and owner certificates as well as their Docker volumes.
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
 

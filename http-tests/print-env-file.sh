@@ -2,7 +2,11 @@
 
 echo "COMPOSE_CONVERT_WINDOWS_PATHS=1"
 echo "COMPOSE_PROJECT_NAME=linkeddatahub"
-echo "BASE_URI=https://localhost:4443/"
+echo "PROTOCOL=https"
+echo "PROXY_HTTP_PORT=81"
+echo "PROXY_HTTPS_PORT=4443"
+echo "HOST=localhost"
+echo "ABS_PATH=/"
 echo "OWNER_MBOX=test@linkeddatahub.com"
 echo "OWNER_GIVEN_NAME=Test"
 echo "OWNER_FAMILY_NAME=Agent"

@@ -523,7 +523,7 @@ exclude-result-prefixes="#all">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <div class="container-fluid">
+            <div id="content-body" class="container-fluid">
                 <div class="row-fluid">
                     <xsl:apply-templates select="." mode="bs2:Left"/>
 

@@ -4,15 +4,15 @@ services:
     image: atomgraph/nginx
     command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
-      - 81:81 # allow Tomcat to do HTTP to HTTPS redirect
-      - 4443:4443 # HTTPS
+      - ${PROXY_HTTP_PORT}:${PROXY_HTTP_PORT} # allow Tomcat to do HTTP to HTTPS redirect
+      - ${PROXY_HTTPS_PORT}:${PROXY_HTTPS_PORT} # HTTPS
     environment:
       - UPSTREAM_SERVER=linkeddatahub
       - UPSTREAM_HTTPS_PORT=8443
       - UPSTREAM_HTTP_PORT=8080
-      - SERVER_NAME=localhost
-      - SERVER_HTTPS_PORT=4443
-      - SERVER_HTTP_PORT=81
+      - SERVER_NAME=${HOST}
+      - SERVER_HTTPS_PORT=${PROXY_HTTPS_PORT}
+      - SERVER_HTTP_PORT=${PROXY_HTTP_PORT}
     volumes:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
   linkeddatahub:
@@ -25,10 +25,12 @@ services:
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
       - PROXY_HOST=nginx
-      - BASE_URI=${BASE_URI}
-      - HTTP_PROXY_PORT=81
-      - HTTP_REDIRECT_PORT=4443
-      - HTTPS_PROXY_PORT=4443
+      - PROTOCOL=${PROTOCOL}
+      - HOST=${HOST}
+      - ABS_PATH=${ABS_PATH}
+      - PROXY_HTTP_PORT=${PROXY_HTTP_PORT}
+      - HTTP_REDIRECT_PORT=${PROXY_HTTPS_PORT}
+      - PROXY_HTTPS_PORT=${PROXY_HTTPS_PORT}
       - HTTPS_CLIENT_AUTH=want
       - PKCS12_KEY_PASSWORD=R4#?CWaY#ZET\ncZ
       - PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ

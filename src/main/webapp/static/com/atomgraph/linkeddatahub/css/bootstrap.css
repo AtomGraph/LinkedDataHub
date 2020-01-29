@@ -1,4 +1,5 @@
-body { padding-top: 120px; padding-bottom: 0; }
+html { height: 100%; }
+body { height: calc(100% - 120px); padding-top: 120px; padding-bottom: 0; }
 body.embed { padding-top: 0; }
 .brand.context { background-image: url('../icons/baseline_arrow_upward_white_18dp.png'); background-repeat: no-repeat; background-position: center center; height: 20px; width: 20px; background-size: 20px 20px; }
 .brand.admin { background-image: url('../icons/ic_settings_white_24px.svg'); background-repeat: no-repeat; background-position: right center; padding-right: 30px; }
@@ -54,6 +55,7 @@ ul.dropdown-menu ul { margin: 0; }
 .dropdown-menu > li > a.btn-map { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-graph { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
+#content-body { min-height: calc(100% - 14em); }
 .list-mode.active { background-image: url('../icons/ic_navigate_before_black_24px.svg'); }
 legend.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 alert.violation { background-image: url('../icons/ic_error_white_24px.svg '); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
@@ -96,4 +98,4 @@ object { width: 100%; height: 400px; overflow: hidden; }
 .table { display: table ; }
 .row { display: table-row ; }
 .cell { display: table-cell ; }
-.footer { background-color: #fafafa; font-size: smaller; padding-bottom: 2em; }
+.footer { background-color: #fafafa; font-size: smaller; padding-bottom: 2em; height: 14em; }

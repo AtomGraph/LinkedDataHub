@@ -32,7 +32,7 @@ fi
 
 if [ ! -f "$P12_FILE" ]; then
     if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
-        echo "### Generating server certificate"
+        printf "\n### Generating server certificate\n"
 
         keytool \
           -genkeypair \
@@ -45,7 +45,7 @@ if [ ! -f "$P12_FILE" ]; then
           -dname 'CN=localhost,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK' \
           -keystore "$P12_FILE"
     else
-        echo "### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate"
+        printf "\n### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate\n"
 
         openssl pkcs12 \
           -export \
@@ -56,7 +56,7 @@ if [ ! -f "$P12_FILE" ]; then
           -password pass:"$PKCS12_KEY_PASSWORD"
     fi
 else
-    echo "### Server certificate exists"
+    printf "\n### Server certificate exists\n"
 fi
 
 # change server configuration
@@ -69,12 +69,12 @@ if [ -n "$HTTP_PORT" ] ; then
     HTTP_PORT_PARAM="--stringparam http.port '$HTTP_PORT' "
 fi
 
-if [ -n "$HTTP_PROXY_NAME" ] ; then
-    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName '$HTTP_PROXY_NAME' "
+if [ -n "$PROXY_HTTP_NAME" ] ; then
+    PROXY_HTTP_NAME_PARAM="--stringparam http.proxyName '$PROXY_HTTP_NAME' "
 fi
 
-if [ -n "$HTTP_PROXY_PORT" ] ; then
-    HTTP_PROXY_PORT_PARAM="--stringparam http.proxyPort '$HTTP_PROXY_PORT' "
+if [ -n "$PROXY_HTTP_PORT" ] ; then
+    PROXY_HTTP_PORT_PARAM="--stringparam http.proxyPort '$PROXY_HTTP_PORT' "
 fi
 
 if [ -n "$HTTP_REDIRECT_PORT" ] ; then
@@ -101,12 +101,12 @@ if [ -n "$HTTPS_CLIENT_AUTH" ] ; then
     HTTPS_CLIENT_AUTH_PARAM="--stringparam https.clientAuth '$HTTPS_CLIENT_AUTH' "
 fi
 
-if [ -n "$HTTPS_PROXY_NAME" ] ; then
-    HTTPS_PROXY_NAME_PARAM="--stringparam https.proxyName '$HTTPS_PROXY_NAME' "
+if [ -n "$PROXY_HTTPS_NAME" ] ; then
+    PROXY_HTTPS_NAME_PARAM="--stringparam https.proxyName '$PROXY_HTTPS_NAME' "
 fi
 
-if [ -n "$HTTPS_PROXY_PORT" ] ; then
-    HTTPS_PROXY_PORT_PARAM="--stringparam https.proxyPort '$HTTPS_PROXY_PORT' "
+if [ -n "$PROXY_HTTPS_PORT" ] ; then
+    PROXY_HTTPS_PORT_PARAM="--stringparam https.proxyPort '$PROXY_HTTPS_PORT' "
 fi
 
 if [ -n "$HTTPS_COMPRESSION" ] ; then
@@ -120,16 +120,16 @@ fi
 transform="xsltproc \
   --output conf/server.xml \
   $HTTP_PORT_PARAM \
-  $HTTP_PROXY_NAME_PARAM \
-  $HTTP_PROXY_PORT_PARAM \
+  $PROXY_HTTP_NAME_PARAM \
+  $PROXY_HTTP_PORT_PARAM \
   $HTTP_REDIRECT_PORT_PARAM \
   $HTTP_CONNECTION_TIMEOUT_PARAM \
   $HTTP_COMPRESSION_PARAM \
   $HTTPS_PORT_PARAM \
   $HTTPS_MAX_THREADS_PARAM \
   $HTTPS_CLIENT_AUTH_PARAM \
-  $HTTPS_PROXY_NAME_PARAM \
-  $HTTPS_PROXY_PORT_PARAM \
+  $PROXY_HTTPS_NAME_PARAM \
+  $PROXY_HTTPS_PORT_PARAM \
   $HTTPS_COMPRESSION_PARAM \
   $P12_FILE_PARAM \
   $PKCS12_KEY_PASSWORD_PARAM \
@@ -154,8 +154,28 @@ if [ -z "$TIMEOUT" ] ; then
     exit 1
 fi
 
-if [ -z "$BASE_URI" ] ; then
-    echo '$BASE_URI not set'
+if [ -z "$PROTOCOL" ] ; then
+    echo '$PROTOCOL not set'
+    exit 1
+fi
+
+if [ -z "$PROXY_HTTP_PORT" ] ; then
+    echo '$PROXY_HTTP_PORT not set'
+    exit 1
+fi
+
+if [ -z "$PROXY_HTTPS_PORT" ] ; then
+    echo '$PROXY_HTTPS_PORT not set'
+    exit 1
+fi
+
+if [ -z "$HOST" ] ; then
+    echo '$HOST not set'
+    exit 1
+fi
+
+if [ -z "$ABS_PATH" ] ; then
+    echo '$ABS_PATH not set'
     exit 1
 fi
 
@@ -214,6 +234,24 @@ if [ -z "$MAIL_USER" ] ; then
     exit 1
 fi
 
+# construct base URI (ignore default HTTP and HTTPS ports)
+
+if [ "$PROTOCOL" = "https" ]; then
+    if [ "$PROXY_HTTPS_PORT" = 443 ]; then
+        export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
+    else
+        export BASE_URI="${PROTOCOL}://${HOST}:${PROXY_HTTPS_PORT}${ABS_PATH}"
+    fi
+else
+    if [ "$PROXY_HTTP_PORT" = 80 ]; then
+        export BASE_URI="http://${HOST}${ABS_PATH}"
+    else
+        export BASE_URI="http://${HOST}:${PROXY_HTTP_PORT}${ABS_PATH}"
+    fi
+fi
+
+printf "\n### Base URI: %s\n" "${BASE_URI}"
+
 # create AtomGraph upload root
 
 mkdir -p "$ATOMGRAPH_UPLOAD_ROOT"/"$UPLOAD_CONTAINER_PATH"
@@ -233,10 +271,10 @@ wait_for_host()
     done
 
     if ! ping -c1 "${host}" >/dev/null 2>&1 ; then
-        echo "### Host ${host} not responding after ${counter} seconds, exiting..."
+        printf "\n### Host ${host} not responding after ${counter} seconds, exiting..."
         exit 1
     else
-        echo "### Host ${host} responded"
+        printf "\n### Host ${host} responded\n"
     fi
 }
 
@@ -255,10 +293,10 @@ wait_for_url()
     done
 
     if ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-        echo "### URL ${url} not responding after ${counter} seconds, exiting..."
+        printf "\n### URL ${url} not responding after ${counter} seconds, exiting...\n"
         exit 1
     else
-        echo "### URL ${url} responded"
+        printf "\n### URL ${url} responded\n"
     fi
 }
 
@@ -320,7 +358,7 @@ rm -f root_admin_service_metadata.xml
 rm -f select-root-services.rq
 
 if [ -z "$root_admin_base_uri" ] || [ -z "$root_admin_quad_store_url" ] ; then
-    echo "Admin base URI and/or admin quad store could not be extracted from ${CONTEXT_DATASET} for root app with base URI ${BASE_URI}. Exiting..."
+    printf "\nAdmin base URI and/or admin quad store could not be extracted from ${CONTEXT_DATASET} for root app with base URI ${BASE_URI}. Exiting...\n"
     exit 1
 fi
 
@@ -335,7 +373,7 @@ if [ -z "$LOAD_DATASETS" ]; then
 fi
 
 # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
-if [ "$LOAD_DATASETS" = true ]; then
+if [ "$LOAD_DATASETS" = "true" ]; then
     mkdir -p /var/linkeddatahub/based-datasets
 
     printf "\n### Loading default datasets into the end-user/admin triplestores...\n"
@@ -388,7 +426,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
     envsubst < root-secretary.trig.template > root-secretary.trig
     trig --base="${root_admin_base_uri}" --output=nq root-secretary.trig > root-secretary.nq
 
-    echo "### Waiting for ${root_admin_quad_store_url}..."
+    printf "\n### Waiting for ${root_admin_quad_store_url}...\n"
 
     wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
 
@@ -619,19 +657,19 @@ java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize
 
 # wait for the end-user GSP service
 
-echo "### Waiting for ${root_end_user_quad_store_url}..."
+printf "\n### Waiting for ${root_end_user_quad_store_url}...\n"
 
 wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
 
 # wait for the admin GSP service
 
-echo "### Waiting for ${root_admin_quad_store_url}..."
+printf "\n### Waiting for ${root_admin_quad_store_url}...\n"
 
 wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
 
 # wait for the proxy server
 
-echo "### Waiting for ${PROXY_HOST}..."
+printf "\n### Waiting for ${PROXY_HOST}...\n"
 
 wait_for_host "${PROXY_HOST}" "${TIMEOUT}"
 
