@@ -11,6 +11,7 @@ before_install:
 
 install:
   - ./http-tests/print-env-file.sh > .env
+  - cat .env
   - docker-compose pull
   - docker-compose up -d # run in the background
 
