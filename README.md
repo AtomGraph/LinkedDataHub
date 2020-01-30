@@ -67,7 +67,7 @@ sudo docker-compose up
 
 ### Base URI
 
-Besides owner WebID configuration, the most common case is changing the base URI from the default `https://localhost:4443` to your own.
+Besides owner WebID configuration, the most common case is changing the base URI from the default `https://localhost:4443/` to your own.
 
 Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
 ```
