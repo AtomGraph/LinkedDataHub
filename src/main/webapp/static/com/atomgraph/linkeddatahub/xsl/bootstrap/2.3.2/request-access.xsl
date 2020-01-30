@@ -74,6 +74,18 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
                 
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][$ac:uri = resolve-uri('request%20access', $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
+        <xsl:apply-templates select="." mode="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:apply-templates>
+
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'ou'"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="value" select="resolve-uri('acl/authorization-requests/', $ldt:base)"/>
+        </xsl:call-template>
+    </xsl:template>
+    
     <xsl:template match="lacl:requestMode/@rdf:*[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>

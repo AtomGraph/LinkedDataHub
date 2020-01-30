@@ -72,13 +72,13 @@ public class EMailListener implements ServletContextListener
                 try
                 {
                     if (log.isErrorEnabled()) log.error("Could not send Message with subject: {} to addresses: {}", message.getSubject(), message.getAllRecipients());
+                    throw new RuntimeException(t);
                 }
                 catch (MessagingException ex)
                 {
                     if (log.isErrorEnabled()) log.error("Could not Message properties: {}", message);
+                    throw new RuntimeException(ex);
                 }
-                
-                return null;
             }
         
         };
@@ -89,18 +89,6 @@ public class EMailListener implements ServletContextListener
     {
         
         private final Message message;
-        
-        public final class Exception extends RuntimeException
-        {
-            
-            //private final MessagingException exception;
-            
-            public Exception(MessagingException ex)
-            {
-                super(ex);
-            }
-            
-        }
         
         public MessageSender(Message message)
         {
@@ -116,7 +104,7 @@ public class EMailListener implements ServletContextListener
             }
             catch (MessagingException ex)
             {
-                throw new Exception(ex);
+                throw new RuntimeException(ex);
             }
         }
         
