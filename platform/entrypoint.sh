@@ -27,38 +27,6 @@ fi
 # ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
 # echo $TZ > /etc/timezone
 
-# if server's SSL certificates do not exist (e.g. not mounted), generate them
-# https://community.letsencrypt.org/t/cry-for-help-windows-tomcat-ssl-lets-encrypt/22902/4
-
-if [ ! -f "$P12_FILE" ]; then
-    if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
-        printf "\n### Generating server certificate\n"
-
-        keytool \
-          -genkeypair \
-          -storetype PKCS12 \
-          -alias "$KEY_ALIAS" \
-          -keyalg RSA \
-          -keypass "$PKCS12_KEY_PASSWORD" \
-          -storepass "$PKCS12_STORE_PASSWORD" \
-          -ext SAN=DNS:localhost,IP:127.0.0.1 \
-          -dname 'CN=localhost,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK' \
-          -keystore "$P12_FILE"
-    else
-        printf "\n### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate\n"
-
-        openssl pkcs12 \
-          -export \
-          -in "$LETSENCRYPT_CERT_DIR"/fullchain.pem \
-          -inkey "$LETSENCRYPT_CERT_DIR"/privkey.pem \
-          -name "$KEY_ALIAS" \
-          -out "$P12_FILE" \
-          -password pass:"$PKCS12_KEY_PASSWORD"
-    fi
-else
-    printf "\n### Server certificate exists\n"
-fi
-
 # change server configuration
 
 P12_FILE_PARAM="--stringparam https.keystoreFile '$P12_FILE' "
@@ -232,6 +200,38 @@ fi
 if [ -z "$MAIL_USER" ] ; then
     echo '$MAIL_USER not set'
     exit 1
+fi
+
+# if server's SSL certificates do not exist (e.g. not mounted), generate them
+# https://community.letsencrypt.org/t/cry-for-help-windows-tomcat-ssl-lets-encrypt/22902/4
+
+if [ ! -f "$P12_FILE" ]; then
+    if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
+        printf "\n### Generating server certificate\n"
+
+        keytool \
+          -genkeypair \
+          -storetype PKCS12 \
+          -alias "$KEY_ALIAS" \
+          -keyalg RSA \
+          -keypass "$PKCS12_KEY_PASSWORD" \
+          -storepass "$PKCS12_STORE_PASSWORD" \
+          -ext "SAN=DNS:${HOST}" \
+          -dname "CN=${HOST},OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK" \
+          -keystore "$P12_FILE"
+    else
+        printf "\n### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate\n"
+
+        openssl pkcs12 \
+          -export \
+          -in "$LETSENCRYPT_CERT_DIR"/fullchain.pem \
+          -inkey "$LETSENCRYPT_CERT_DIR"/privkey.pem \
+          -name "$KEY_ALIAS" \
+          -out "$P12_FILE" \
+          -password pass:"$PKCS12_KEY_PASSWORD"
+    fi
+else
+    printf "\n### Server certificate exists\n"
 fi
 
 # construct base URI (ignore default HTTP and HTTPS ports)
