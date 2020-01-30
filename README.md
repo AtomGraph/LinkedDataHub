@@ -109,6 +109,16 @@ LinkedDataHub includes a basic HTTP [test suite](https://github.com/AtomGraph/Li
 
 [![Build status](https://api.travis-ci.org/AtomGraph/LinkedDataHub.svg?branch=master)](https://travis-ci.org/AtomGraph/LinkedDataHub)
 
+## Dependencies
+
+* [Jersey](https://eclipse-ee4j.github.io/jersey/)
+* [XOM](http://www.xom.nu)
+* [JavaMail](https://javaee.github.io/javamail/)
+* [Guava](https://github.com/google/guava)
+* [CSV2RDF](https://github.com/AtomGraph/CSV2RDF)
+* [Processor](https://github.com/AtomGraph/Processor)
+* [Web-Client](https://github.com/AtomGraph/Web-Client)
+
 ## Support
 
 Please [report issues](https://github.com/AtomGraph/LinkedDataHub/issues) if you've encountered a bug or have a feature request.
