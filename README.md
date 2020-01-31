@@ -78,6 +78,8 @@ HOST=ec2-54-235-229-141.compute-1.amazonaws.com
 ABS_PATH=/linkeddatahub/
 ```
 
+`ABS_PATH` is required, even if it's just `/`.
+
 ### Dataspaces
 
 Dataspaces are configured in `config/system.trig`. Their base URIs need to be aligned to the base URI configured in the `.env` file.
