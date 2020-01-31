@@ -209,6 +209,15 @@ if [ ! -f "$P12_FILE" ]; then
     if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
         printf "\n### Generating server certificate\n"
 
+        # crude check if the host is an IP address
+        IP_ADDR_MATCH=$(echo "$HOST" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
+
+        if [ -n "$IP_ADDR_MATCH" ]; then
+            ext="SAN=IP:${HOST}" # IP address
+        else
+            ext="SAN=DNS:${HOST}" # hostname
+        fi
+
         keytool \
           -genkeypair \
           -storetype PKCS12 \
@@ -216,7 +225,7 @@ if [ ! -f "$P12_FILE" ]; then
           -keyalg RSA \
           -keypass "$PKCS12_KEY_PASSWORD" \
           -storepass "$PKCS12_STORE_PASSWORD" \
-          -ext "SAN=DNS:${HOST}" \
+          -ext "$ext" \
           -dname "CN=${HOST},OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK" \
           -keystore "$P12_FILE"
     else
