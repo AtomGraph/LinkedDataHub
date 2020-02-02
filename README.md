@@ -103,9 +103,7 @@ This will remove the persisted data, server and owner certificates as well as th
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
 
-## Demo applications
-
-*TBD*
+## [Demo applications](https://github.com/AtomGraph/LinkedDataHub-Apps)
 
 ## Test suite
 
