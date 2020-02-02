@@ -11,9 +11,8 @@ The default application structure and user interface are provided, making LDH a 
 
 1. [Install Docker](https://docs.docker.com/install/)
    - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
-2. [Fork](https://help.github.com/en/github/getting-started-with-github/fork-a-repo) this repository
-3. [Clone](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository) the fork into a folder
-4. In the folder, create an `.env` file and fill out the missing values (you can use [`.env_sample`](https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample) as a template). For example:
+2. [Fork and clone](https://guides.github.com/activities/forking/) the fork repository into a folder
+3. In the folder, create an `.env` file and fill out the missing values (you can use [`.env_sample`](https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample) as a template). For example:
 ```
 COMPOSE_CONVERT_WINDOWS_PATHS=1
 COMPOSE_PROJECT_NAME=linkeddatahub
@@ -34,20 +33,20 @@ OWNER_STATE_OR_PROVINCE=Denmark
 OWNER_COUNTRY_NAME=DK
 OWNER_KEY_PASSWORD=changeit
 ```
-5. Run this from command line:
+4. Run this from command line:
 ```
 docker-compose up
 ```
-6. LinkedDataHub will start and create the following sub-folders:
+5. LinkedDataHub will start and create the following sub-folders:
    - `certs` where your WebID certificates are stored
    - `data` where the triplestore(s) will persist RDF data
    - `uploads` where LDH stores content-hashed file uploads
-7. Install `certs/owner.p12` into a web browser of your choice (password is the `OWNER_KEY_PASSWORD` value)
+6. Install `certs/owner.p12` into a web browser of your choice (password is the `OWNER_KEY_PASSWORD` value)
    - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
    - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
    - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool.
    - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
-8. Open **https://localhost:4443/** in that web browser
+7. Open **https://localhost:4443/** in that web browser
 
 After a successful startup, the last line of the Docker log should read:
 
