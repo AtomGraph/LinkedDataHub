@@ -11,7 +11,7 @@ The default application structure and user interface are provided, making LDH a 
 
 1. [Install Docker](https://docs.docker.com/install/)
    - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
-2. [Fork and clone](https://guides.github.com/activities/forking/) the fork repository into a folder
+2. [Fork](https://guides.github.com/activities/forking/) this repository and clone the fork into a folder
 3. In the folder, create an `.env` file and fill out the missing values (you can use [`.env_sample`](https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample) as a template). For example:
 ```
 COMPOSE_CONVERT_WINDOWS_PATHS=1
