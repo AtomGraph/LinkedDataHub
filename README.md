@@ -2,6 +2,8 @@
 
 _LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.
 
+![AtomGraph LinkedDataHub screenshot](https://raw.github.com/AtomGraph/LinkedDataHub/master/screenshot.png)
+
 LDH features a completely data-driven application architecture: generic server and client components process declarative RDF/OWL, SPARQL, and XSLT instructions.
 The default application structure and user interface are provided, making LDH a standalone product, yet they can be completely overridden and customized, thus also making LDH a [low-code application platform](https://en.wikipedia.org/wiki/Low-code_development_platform). Unless a custom processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
 
