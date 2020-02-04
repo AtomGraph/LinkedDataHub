@@ -97,6 +97,8 @@ download_dataset "$END_USER_ENDPOINT_URL" > "$TMP_END_USER_DATASET"
 download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 run_tests $(find ./acl/ -name '*.sh*')
+run_tests $(find ./model/ -name '*.sh*')
+run_tests $(find ./sitemap/ -name '*.sh*')
 (( error_count += $? ))
 
 ### Exit
