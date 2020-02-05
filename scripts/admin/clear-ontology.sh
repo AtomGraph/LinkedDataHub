@@ -27,14 +27,12 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    # echo '-f|--cert_pem_file not set'
-    print_usage
+    echo '-f|--cert_pem_file not set'
     exit 1
 fi
 
 if [ -z "$cert_password" ] ; then
-    # echo '-p|--cert-password not set'
-    print_usage
+    echo '-p|--cert-password not set'
     exit 1
 fi
 

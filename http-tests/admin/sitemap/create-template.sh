@@ -14,8 +14,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/sitemap"
 --uri "${END_USER_BASE_URL}ns/templates#NewTemplate" \
 --label "New template" \
 --slug new-template \
---extends "${ADMIN_BASE_URL}ns/templates#Item" \
---match "/new-template" \
+--extends "${END_USER_BASE_URL}ns/templates#Item" \
+--match "/" \
 --is-defined-by "${END_USER_BASE_URL}ns/templates#"
 
 popd > /dev/null
@@ -25,4 +25,23 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}ns/templates" \
-| grep -q ""${END_USER_BASE_URL}ns/templates#NewTemplate""
+| grep -q "${END_USER_BASE_URL}ns/templates#NewTemplate"
+
+# clear ontology from memory
+
+pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
+
+./clear-ontology.sh \
+-f "$OWNER_CERT_FILE" \
+-p "$OWNER_CERT_PWD" \
+"${ADMIN_BASE_URL}sitemap/ontologies/templates/"
+
+popd > /dev/null
+
+# check that the new template matches /
+
+curl -k -f -I -N \
+  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -H "Accept: application/n-quads" \
+  "${END_USER_BASE_URL}" \
+| grep "Link: <${END_USER_BASE_URL}ns/templates#NewTemplate>; rel=https://www.w3.org/ns/ldt#template"
