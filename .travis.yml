@@ -21,7 +21,7 @@ install:
 before_script:
   - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
   - openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # generate a copy of the owner PEM cert - seems to differ with different openssl versions?
-  - pushd
+  - pushd .
   - cd http-tests
 
 script:
