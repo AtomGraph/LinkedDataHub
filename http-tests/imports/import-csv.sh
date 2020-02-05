@@ -22,28 +22,28 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 cd imports
 
-import_url=$(./import-csv.sh \
+./import-csv.sh \
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
 --title "Test" \
 --query-file "$pwd/test.rq" \
 --file "$pwd/test.csv" \
---action "${END_USER_BASE_URL}test/")
+--action "${END_USER_BASE_URL}test/"
 
 popd > /dev/null
 
 # wait until the imported item appears (since import is executed asynchronously)
 
 counter=20
-i=1
+i=0
 
-while [ "$i" -le "$counter" ] && ! curl -k -s -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "${END_USER_BASE_URL}test/test-item/" -H "Accept: application/n-triples"  >/dev/null 2>&1
+while [ "$i" -lt "$counter" ] && ! curl -k -s -f -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" "${END_USER_BASE_URL}test/test-item/" -H "Accept: application/n-triples" >/dev/null 2>&1
 do
     sleep 1 ;
     i=$(( i+1 ))
 
-    echo "$i"
+    echo "Waited ${i}s..."
 done
 
 # check item properties
