@@ -52,4 +52,4 @@ curl -k -f -v -N \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}test/test-item/" \
-| grep "<${END_USER_BASE_URL}test/test-item/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> \"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+| grep -q "<${END_USER_BASE_URL}test/test-item/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> \"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"

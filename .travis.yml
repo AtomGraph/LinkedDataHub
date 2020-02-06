@@ -15,7 +15,6 @@ before_install:
 
 install:
   - ./http-tests/print-env-file.sh > .env
-  # - docker-compose pull
   - docker-compose up -d # run in the background
 
 before_script:
@@ -25,7 +24,7 @@ before_script:
   - cd http-tests
 
 script:
-  - ./run.sh "$PWD/owner.p12.pem" "$OWNER_KEY_PASSWORD" # run tests with owner password
+  - ./run.sh "$PWD/owner.p12.pem" "$OWNER_KEY_PASSWORD" # run tests with owner certificate/password
 
 after_script:
   - popd
