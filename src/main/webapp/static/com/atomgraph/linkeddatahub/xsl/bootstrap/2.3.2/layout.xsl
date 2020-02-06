@@ -2046,7 +2046,7 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">About</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="https://linkeddatahub.com/docs/about/" target="_blank">LinkedDataHub</a>
+                                <a href="https://linkeddatahub.com/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a>
                             </li>
                             <li>
                                 <a href="https://atomgraph.com" target="_blank">AtomGraph</a>

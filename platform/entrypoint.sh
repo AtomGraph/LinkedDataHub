@@ -280,7 +280,7 @@ wait_for_host()
     done
 
     if ! ping -c1 "${host}" >/dev/null 2>&1 ; then
-        printf "\n### Host ${host} not responding after ${counter} seconds, exiting..."
+        printf "\n### Host ${host} not responding after ${counter} retries, exiting..."
         exit 1
     else
         printf "\n### Host ${host} responded\n"
@@ -295,14 +295,14 @@ wait_for_url()
     i=1
 
     # use --head when https://issues.apache.org/jira/browse/JENA-1795 is fixed in used Jena version
-    while [ "$i" -le "$counter" ] && ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
+    while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
     do
         sleep 1 ;
         i=$(( i+1 ))
     done
 
-    if ! curl -s "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-        printf "\n### URL ${url} not responding after ${counter} seconds, exiting...\n"
+    if ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+        printf "\n### URL ${url} not responding after ${counter} retries, exiting...\n"
         exit 1
     else
         printf "\n### URL ${url} responded\n"
