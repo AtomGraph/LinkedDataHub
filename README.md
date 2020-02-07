@@ -85,7 +85,7 @@ ABS_PATH=/linkeddatahub/
 
 ### Dataspaces
 
-Dataspaces are configured in `config/system.trig`. Their base URIs need to be aligned to the base URI configured in the `.env` file.
+Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Their base URIs need to be aligned to the base URI configured in the `.env` file.
 
 Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command:
 ```
