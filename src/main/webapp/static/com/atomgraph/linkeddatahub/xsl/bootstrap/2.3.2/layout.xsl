@@ -1590,7 +1590,6 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
         <xsl:if test="$lacl:Agent//@rdf:about">
-<!--            <xsl:for-each select="key('resources', $ac:uri)/void:inDataset/@rdf:resource">-->
                 <div class="pull-right">
                     <form action="{$ac:uri}?_method=DELETE" method="post">
                         <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
