@@ -1,0 +1,339 @@
+@base           <http://atomgraph.com/ns/platform/templates> .
+
+@prefix :	<#> .
+@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
+@prefix ac:	<http://atomgraph.com/ns/client#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix ct:	<https://www.w3.org/ns/ldt/core/templates#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix thgt:	<https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#> .
+@prefix prov:	<http://www.w3.org/ns/prov#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix spl:	<http://spinrdf.org/spl#> .
+@prefix void:	<http://rdfs.org/ns/void#> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+
+: a ldt:Ontology ;
+    owl:imports thgt:, ac:, spin: ;
+    rdfs:label "AtomGraph platform templates" ;
+    owl:versionInfo "1.1.4" .
+
+# PROPERTIES
+
+sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.ConversionException
+
+ac:mode a ldt:InheritedProperty . # otherwise client modes are not inherited
+
+:countVar a owl:ObjectProperty ;
+    rdfs:domain ldt:Template ;
+    rdfs:label "Children count variable" ;
+    rdfs:isDefinedBy : .
+
+:consumes a owl:ObjectProperty, ldt:InheritedProperty ;
+    rdfs:domain ldt:Template ;
+    rdfs:range :MediaType ;
+    rdfs:label "Consumes" ;
+    rdfs:isDefinedBy : .
+
+:mediaType a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "Media type" ;
+    rdfs:isDefinedBy : .
+
+# TEMPLATES
+
+:NamespaceOntology a ldt:Template ;
+    ldt:extends thgt:Document ;
+    ldt:match "/ns" ;
+    ldt:query [ a sp:Construct ;
+        sp:text """
+PREFIX  c:    <https://www.w3.org/ns/ldt/core/domain#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+CONSTRUCT 
+  { 
+    ?this a c:Document .
+    # ?this foaf:primaryTopic ?ontology .
+  }
+WHERE
+  { 
+    # BIND(uri(concat(str(?this), "#")) AS ?ontology) # cannot construct ?ontology because ?this is undefined in Dydra using Sesame protocol
+}""" ] ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.namespace.Item> ;
+    rdfs:label "Namespace ontology" ;
+    rdfs:isDefinedBy : .
+
+:SubOntology a ldt:Template ;
+    ldt:extends thgt:Document ;
+    ldt:match "/ns/{slug}" ;
+    ldt:query [ a sp:Construct ;
+        sp:text """
+PREFIX  c:    <https://www.w3.org/ns/ldt/core/domain#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+CONSTRUCT 
+  { 
+    ?this a c:Document .
+    # ?this foaf:primaryTopic ?ontology .
+  }
+WHERE
+  { 
+    # BIND(uri(concat(str(?this), "#")) AS ?ontology) # cannot construct ?ontology because ?this is undefined in Dydra using Sesame protocol
+}""" ] ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.namespace.Item> ;
+    rdfs:label "Sub-ontology" ;
+    rdfs:isDefinedBy : .
+
+:Document a ldt:Template ;
+    ldt:extends thgt:Document ;
+    ldt:param ct:Query, :ForClass, :Ban, :Debug ; # :Login, :Logout
+    ac:mode ac:ReadMode ;
+    rdfs:label "Document" ;
+    rdfs:isDefinedBy : .
+
+:SPARQLEndpoint a ldt:Template ;
+    ldt:extends ct:SPARQLEndpoint ;
+    ldt:query [ a sp:Construct ;
+        sp:text """
+PREFIX  c:    <https://www.w3.org/ns/ldt/core/domain#>
+
+CONSTRUCT 
+  { 
+    <sparql> a c:SPARQLEndpoint .
+  }
+WHERE
+  { }""" ] ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl> ;
+    ac:mode ac:TableMode ;
+    rdfs:label "SPARQL endpoint" ;
+    rdfs:isDefinedBy : .
+
+:GraphStore a ldt:Template ;
+    ldt:extends ct:GraphStore ;
+    ldt:query [ a sp:Construct ;
+        sp:text """
+PREFIX  c:    <https://www.w3.org/ns/ldt/core/domain#>
+
+CONSTRUCT 
+  { 
+    <service> a c:GraphStore .
+  }
+WHERE
+  { }""" ] ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl> ;
+    rdfs:label "Graph Store" ;
+    rdfs:isDefinedBy : .
+
+:GraphItem a ldt:Template ;
+    ldt:extends thgt:Document ;
+    ldt:match "/graphs/{slug}/" ;
+    ldt:param :ForClass ; # is ForClass used? # :EditMode
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.graph.Item> ;
+    ldt:cacheControl "no-cache" ;
+    ac:mode ac:EditMode ;
+    rdfs:label "Graph document" ;
+    rdfs:isDefinedBy : .
+
+# files
+
+:FileContainer a ldt:Template ;
+    ldt:extends :Document ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.file.Container> ;
+    ldt:match "/files/" ;
+    :consumes [ :mediaType "multipart/form-data" ] ;
+    rdfs:label "Files" ;
+    rdfs:comment "Provides multipart file upload capability to matching containers" ;
+    rdfs:isDefinedBy : .
+
+:File a ldt:Template ;
+    ldt:extends :Document ;
+    ldt:match "/uploads/{slug}/" ;
+    ldt:query [ a sp:Describe ; sp:text """
+DESCRIBE ?this
+{
+    GRAPH ?g
+    {
+        ?this a ?type
+    }
+}
+""" ] ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.upload.sha1.Item> ;
+    rdfs:label "File" ;
+    rdfs:isDefinedBy : .
+
+# imports
+
+:ImportContainer a ldt:Template ;
+    ldt:extends :Document ;
+    ldt:match "/imports/" ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.imports.Container> ;
+    rdfs:label "Imports" ;
+    rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
+    rdfs:isDefinedBy : .
+
+:ImportItem a ldt:Template ;
+    ldt:extends :Document ;
+    ldt:match "/imports/{slug}/" ;
+    ldt:query :DescribeWithResponse ;
+    rdfs:label "Import item" ;
+    rdfs:isDefinedBy : .
+
+# OAuth 2.0
+
+:OAuth2Login a ldt:Template ;
+    ldt:extends ct:Document ;
+    ldt:match "/oauth2/login" ;
+    ldt:query [ a sp:Construct ;
+        sp:text """
+PREFIX  apl:   <http://atomgraph.com/ns/platform/domain#>
+
+CONSTRUCT 
+  { 
+    ?this a apl:OAuth2Callback .
+  }
+WHERE
+  { }""" ] ;
+    ldt:param :Code, :State, :Error, :AuthUser, :Hd, :Prompt, :SessionState ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.server.oauth2.facebook.Login> ;
+    rdfs:label "OAuth 2.0 login" ;
+    rdfs:isDefinedBy : .
+
+#:AuthorizeGoogle a ldt:Template ;
+#    ldt:extends ct:Document ;
+#    ldt:match "/oauth2/authorize/google" ;
+#    ldt:query [ a sp:Construct ;
+#        sp:text """
+#PREFIX  apl:   <http://atomgraph.com/ns/platform/domain#>
+#
+#CONSTRUCT 
+#  { 
+#    ?this a apl:AuthorizeGoogle .
+#  }
+#WHERE
+#  { }""" ] ;
+#    ldt:loadClass <java:com.atomgraph.linkeddatahub.server.oauth2.Authorize> ;
+#    rdfs:label "OAuth 2.0 authorization endpoint" ;
+#    rdfs:isDefinedBy : .
+
+# PARAMETERS
+
+:ForClass a ldt:Parameter ;
+    rdfs:label "Constructor class" ;
+    spl:predicate :forClass ;
+    spl:valueType rdfs:Class ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Ban a ldt:Parameter ;
+    rdfs:label "BAN resource from cache" ;
+    spl:predicate :ban ;
+    spl:valueType xsd:boolean ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Debug a ldt:Parameter ;
+    rdfs:label "Debug response" ;
+    spl:predicate :debug ;
+    spl:valueType rdfs:Resource ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Code a ldt:Parameter ;
+    rdfs:label "OAuth authorization code" ;
+    spl:predicate :code ;
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:State a ldt:Parameter ;
+    rdfs:label "OAuth client state" ;
+    spl:predicate :state ;
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Error a ldt:Parameter ;
+    rdfs:label "OAuth error" ;
+    spl:predicate :error ;
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:AuthUser a ldt:Parameter ;
+    rdfs:label "Auth user" ;
+    spl:predicate :authuser ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Hd a ldt:Parameter ;
+    rdfs:label "HD" ;
+    spl:predicate :hd ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Prompt a ldt:Parameter ;
+    rdfs:label "Prompt" ;
+    spl:predicate :prompt ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:SessionState a ldt:Parameter ;
+    rdfs:label "Session state" ;
+    spl:predicate :session_state ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+# QUERIES
+
+# sitemap
+
+:DescribeOntology a sp:Construct, sp:Query ;
+    sp:text """
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DESCRIBE ?this ?isDefinedBy ?term
+WHERE
+  { ?this  foaf:primaryTopic  ?isDefinedBy
+    OPTIONAL
+      { ?term  rdfs:isDefinedBy  ?isDefinedBy }
+  }""" ;
+    rdfs:label "Construct ontology" ;
+    rdfs:isDefinedBy : .
+
+# ====
+
+:DescribeWithResponse a sp:Describe, sp:Query ; # ldt:Query  ;
+    sp:text """PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  prov: <http://www.w3.org/ns/prov#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+DESCRIBE ?this ?primaryTopic ?seeAlso ?response
+WHERE
+  { GRAPH ?graph
+      { ?this  ?p  ?o
+        OPTIONAL
+          { ?this  foaf:primaryTopic  ?primaryTopic }
+        OPTIONAL
+          { ?this  rdfs:seeAlso  ?seeAlso }
+        OPTIONAL
+          { GRAPH ?provGraph
+              { ?response  prov:wasGeneratedBy  ?primaryTopic }
+          }
+      }
+  }""" ;
+    rdfs:label "Describe with topic" ;
+    rdfs:isDefinedBy : .
