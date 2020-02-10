@@ -1,7 +1,7 @@
-@base           <http://linkeddatahub.com/ns/sitemap/domain> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain> .
 
 @prefix :	<#> .
-@prefix apl:    <http://atomgraph.com/ns/platform/domain#> .
+@prefix apl:    <https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -31,7 +31,7 @@ PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl:	<http://www.w3.org/2002/07/owl#>
 PREFIX ldt:     <https://www.w3.org/ns/ldt#>
-PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 PREFIX sp:	<http://spinrdf.org/sp#>
 PREFIX spin:	<http://spinrdf.org/spin#>
 PREFIX foaf:	<http://xmlns.com/foaf/0.1/>
@@ -65,7 +65,7 @@ WHERE {}""" ;
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
 CONSTRUCT {
     ?this rdfs:subPropertyOf [ a rdf:Property ] ;
@@ -101,7 +101,7 @@ WHERE {}""" ;
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX owl:     <http://www.w3.org/2002/07/owl#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
       CONSTRUCT {
           ?this ldt:extends [ a lsm:Template ] ;
@@ -164,7 +164,7 @@ WHERE
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
@@ -180,7 +180,7 @@ WHERE
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
@@ -205,7 +205,7 @@ WHERE
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
       PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
       CONSTRUCT {
           ?this # a sp:Modify ;
@@ -232,7 +232,7 @@ WHERE
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sp:      <http://spinrdf.org/sp#>
       PREFIX spl:     <http://spinrdf.org/spl#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
@@ -258,7 +258,7 @@ WHERE
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
@@ -345,7 +345,7 @@ WHERE {}""" ;
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-      PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
       PREFIX sp:      <http://spinrdf.org/sp#>
 
       CONSTRUCT {

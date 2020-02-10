@@ -1,7 +1,7 @@
-@base           <http://linkeddatahub.com/ns/acl/templates> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates> .
 
 @prefix :	<#> .
-@prefix aplt:   <http://atomgraph.com/ns/platform/templates#> .
+@prefix aplt:   <https://w3id.org/atomgraph/linkeddatahub/templates#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .

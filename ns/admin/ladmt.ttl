@@ -1,10 +1,10 @@
-@base           <http://linkeddatahub.com/ns/admin/templates> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/admin/templates> .
 
 @prefix :	<#> .
-@prefix laclt:	<http://linkeddatahub.com/ns/acl/templates#> .
-@prefix lsmt:	<http://linkeddatahub.com/ns/sitemap/templates#> .
-@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
-@prefix aplt:	<http://atomgraph.com/ns/platform/templates#> .
+@prefix laclt:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#> .
+@prefix lsmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix aplt:	<https://w3id.org/atomgraph/linkeddatahub/templates#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
