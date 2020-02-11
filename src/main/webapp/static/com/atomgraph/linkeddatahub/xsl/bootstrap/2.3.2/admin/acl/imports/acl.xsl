@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY java   "http://xml.apache.org/xalan/java/">
-    <!ENTITY apl    "http://atomgraph.com/ns/platform/domain#">
-    <!ENTITY ac     "http://atomgraph.com/ns/client#">
-    <!ENTITY lacl   "http://linkeddatahub.com/ns/acl/domain#">
-    <!ENTITY lsm    "http://linkeddatahub.com/ns/sitemap/domain#">
+    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">

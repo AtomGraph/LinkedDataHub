@@ -1,7 +1,7 @@
-@base		<http://linkeddatahub.com/ns/acl/domain> .
+@base		<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain> .
 
 @prefix :	<#> .
-@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
@@ -89,7 +89,7 @@
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
-        PREFIX lacl:    <http://linkeddatahub.com/ns/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 
         CONSTRUCT {
             ?this lacl:requestMode [ a acl:Mode ] ;
@@ -126,8 +126,8 @@
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
-        PREFIX lacl:    <http://linkeddatahub.com/ns/acl/domain#>
-        PREFIX lsm:     <http://linkeddatahub.com/ns/sitemap/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+        PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
 
         CONSTRUCT {
             ?this rdfs:label [ a xsd:string ] ;
@@ -171,7 +171,7 @@
 #        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 #        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 #        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
-#        PREFIX lacl:    <http://linkeddatahub.com/ns/acl/domain#>
+#        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 #        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 #
 #        CONSTRUCT {
@@ -204,7 +204,7 @@
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
         PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
-        PREFIX lacl:    <http://linkeddatahub.com/ns/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 
         CONSTRUCT {
             ?this cert:key [ a lacl:PublicKey ] ;
@@ -306,7 +306,7 @@
     sp:text """
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
         PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
-        PREFIX lacl:    <http://linkeddatahub.com/ns/acl/domain#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
         PREFIX dct:     <http://purl.org/dc/terms/>
 
         CONSTRUCT {

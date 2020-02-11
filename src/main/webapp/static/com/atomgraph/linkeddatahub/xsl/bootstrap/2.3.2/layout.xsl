@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY java   "http://xml.apache.org/xalan/java/">
-    <!ENTITY lapp   "http://linkeddatahub.com/ns/apps/domain#">
-    <!ENTITY lacl   "http://linkeddatahub.com/ns/acl/domain#">
-    <!ENTITY lsm    "http://linkeddatahub.com/ns/sitemap/domain#">
-    <!ENTITY apl    "http://atomgraph.com/ns/platform/domain#">
-    <!ENTITY aplt   "http://atomgraph.com/ns/platform/templates#">
-    <!ENTITY ac     "http://atomgraph.com/ns/client#">
-    <!ENTITY a      "http://atomgraph.com/ns/core#">
+    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
+    <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY aplt   "https://w3id.org/atomgraph/linkeddatahub/templates#">
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
+    <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xhv    "http://www.w3.org/1999/xhtml/vocab#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
@@ -33,7 +33,6 @@
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
     <!ENTITY list   "http://jena.hpl.hp.com/ARQ/list#">
-    <!ENTITY google "http://atomgraph.com/ns/google#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -67,7 +66,6 @@ xmlns:void="&void;"
 xmlns:nfo="&nfo;"
 xmlns:list="&list;"
 xmlns:geo="&geo;"
-xmlns:google="&google;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:uuid="java:java.util.UUID"
 xmlns:url="java:java.net.URLDecoder"
@@ -496,10 +494,6 @@ exclude-result-prefixes="#all">
                 <p class="pull-right">
                     <xsl:variable name="signup-uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
                     <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($signup-uri)) else $signup-uri}">Sign up</a>
-                    
-<!--                    <xsl:if test="$lapp:Application//google:clientID">
-                        <a class="btn btn-primary" href="{$ldt:base}?login=JWT">Sign in with Google</a>
-                    </xsl:if>-->
                 </p>
             </xsl:when>
         </xsl:choose>

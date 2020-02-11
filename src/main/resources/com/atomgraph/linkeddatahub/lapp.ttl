@@ -1,8 +1,8 @@
-@base           <http://linkeddatahub.com/ns/apps/domain> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/apps/domain> .
 
 @prefix :	<#> .
-@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
-@prefix a:	<http://atomgraph.com/ns/core#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -80,7 +80,7 @@
 
 :ApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX apl:     <http://atomgraph.com/ns/platform/domain#>
+      PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 
       CONSTRUCT {
@@ -114,22 +114,18 @@
 
 :EndUserApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <http://linkeddatahub.com/ns/apps/domain#>
-      PREFIX apl:     <http://atomgraph.com/ns/platform/domain#>
-      PREFIX ac:      <http://atomgraph.com/ns/client#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
+      PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+      PREFIX ac:      <https://w3id.org/atomgraph/client#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
       PREFIX dct:     <http://purl.org/dc/terms/>
-      PREFIX google:  <http://atomgraph.com/ns/google#>
 
       CONSTRUCT {
           ?this dct:title [ a xsd:string ] ;
             dct:description [ a xsd:string ] ;
             lapp:adminApplication [ a lapp:AdminApplication ] ;
             ac:stylesheet [ a apl:File ] ;
-            google:clientID [ a xsd:string ] ;
-            google:clientSecret [ a xsd:string ] ;
             lapp:public [ a xsd:boolean ] .
       }
       WHERE {}""" ;
@@ -154,7 +150,7 @@
 
 :AdminApplicationConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <http://linkeddatahub.com/ns/apps/domain#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX dct:     <http://purl.org/dc/terms/>
 

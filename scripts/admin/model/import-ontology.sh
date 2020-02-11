@@ -57,7 +57,7 @@ source="$1"
 content_type="text/turtle"
 
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
-turtle+="@prefix lsm:	<http://linkeddatahub.com/ns/sitemap/templates#> .\n"
+turtle+="@prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#> .\n"
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="_:arg a lsm:Source .\n"
 turtle+="_:arg ldt:paramName \"source\".\n"

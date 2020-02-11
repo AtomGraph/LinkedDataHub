@@ -1,9 +1,9 @@
 @base           <jndi:/stage.linkeddatahub.com/> .
 
-@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
-@prefix lapp:	<http://linkeddatahub.com/ns/apps/domain#> .
-@prefix a:	<http://atomgraph.com/ns/core#> .
-@prefix ac:     <http://atomgraph.com/ns/client#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
+@prefix a:	<https://w3id.org/atomgraph/core#> .
+@prefix ac:     <https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .

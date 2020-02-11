@@ -1,8 +1,8 @@
-@base           <http://atomgraph.com/ns/platform/templates> .
+@base           <https://w3id.org/atomgraph/linkeddatahub/templates> .
 
 @prefix :	<#> .
-@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .
-@prefix ac:	<http://atomgraph.com/ns/client#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -194,7 +194,7 @@ DESCRIBE ?this
     ldt:match "/oauth2/login" ;
     ldt:query [ a sp:Construct ;
         sp:text """
-PREFIX  apl:   <http://atomgraph.com/ns/platform/domain#>
+PREFIX  apl:   <https://w3id.org/atomgraph/linkeddatahub/domain#>
 
 CONSTRUCT 
   { 
@@ -212,7 +212,7 @@ WHERE
 #    ldt:match "/oauth2/authorize/google" ;
 #    ldt:query [ a sp:Construct ;
 #        sp:text """
-#PREFIX  apl:   <http://atomgraph.com/ns/platform/domain#>
+#PREFIX  apl:   <https://w3id.org/atomgraph/linkeddatahub/domain#>
 #
 #CONSTRUCT 
 #  { 

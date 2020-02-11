@@ -90,7 +90,7 @@ args+=("text/turtle") # content type
 args+=("${container}") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
-turtle+="@prefix apl:	<http://atomgraph.com/ns/platform/domain#> .\n"
+turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"

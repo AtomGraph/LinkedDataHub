@@ -8,15 +8,15 @@
     <description>Multi-tenant Linked Data platform</description>
     <!-- context-params are set in docker-compose via conf/ROOT.xml -->
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#authCacheControl</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authCacheControl</param-name>
         <param-value>max-age=69</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#authQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  lacl: <http://linkeddatahub.com/ns/acl/domain#>
+PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
@@ -89,11 +89,11 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#ownerAuthQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ownerAuthQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  lacl: <http://linkeddatahub.com/ns/acl/domain#>
+PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
@@ -154,7 +154,7 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#webIDQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDQuery</param-name>
         <param-value><![CDATA[
 PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
             
@@ -168,10 +168,10 @@ SELECT *
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#appQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#appQuery</param-name>
         <param-value><![CDATA[
 PREFIX  ldt:  <https://www.w3.org/ns/ldt#>
-PREFIX  lapp: <http://linkeddatahub.com/ns/apps/domain#>
+PREFIX  lapp: <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
 
 DESCRIBE ?app ?service ?adminApp ?adminService ?endUserApp ?endUserService
 WHERE
@@ -196,7 +196,7 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#sitemapQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#sitemapQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  describeForm: <urn:dydra:simple-concise-bounded-description>
@@ -220,7 +220,7 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#graphDocumentQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#graphDocumentQuery</param-name>
         <param-value><![CDATA[
 PREFIX  sioc: <http://rdfs.org/sioc/ns#> 
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/> 
@@ -243,10 +243,10 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#restrictionsQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#restrictionsQuery</param-name>
         <param-value><![CDATA[
 PREFIX ldt:	<https://www.w3.org/ns/ldt#>
-PREFIX apl:	<http://atomgraph.com/ns/platform/domain#>
+PREFIX apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#>
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:	<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl:	<http://www.w3.org/2002/07/owl#>
@@ -274,9 +274,9 @@ SELECT *
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#postUpdate</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#postUpdate</param-name>
         <param-value><![CDATA[
-PREFIX apl:     <http://atomgraph.com/ns/platform/domain#>
+PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
 PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
@@ -356,7 +356,7 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#deleteUpdate</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#deleteUpdate</param-name>
         <param-value><![CDATA[
 PREFIX  void: <http://rdfs.org/ns/void#>
 
@@ -370,7 +370,7 @@ DELETE WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#ontologyImportQuery</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ontologyImportQuery</param-name>
         <param-value><![CDATA[
 PREFIX  ns:   <ns#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -476,15 +476,15 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#signUpAddress</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpAddress</param-name>
         <param-value><![CDATA[LinkedDataHub <signup@linkeddatahub.com>]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#signUpEMailSubject</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpEMailSubject</param-name>
         <param-value>[%s] Signup of "%s" is complete</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#signUpEMailText</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpEMailText</param-name>
         <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's %s application.
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
@@ -506,15 +506,15 @@ LinkedDataHub by AtomGraph
 support@linkeddatahub.com]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#notificationAddress</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#notificationAddress</param-name>
         <param-value><![CDATA[LinkedDataHub <notifications@linkeddatahub.com>]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#requestAccessEMailSubject</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#requestAccessEMailSubject</param-name>
         <param-value>[%s] Request for access</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#requestAccessEMailText</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#requestAccessEMailText</param-name>
         <param-value><![CDATA[Agent %s has requested access to the resource: %s
 
 Manage it here: %s
@@ -524,15 +524,15 @@ LinkedDataHub by AtomGraph
 support@linkeddatahub.com]]></param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/client#resolvingUncached</param-name>
+        <param-name>https://w3id.org/atomgraph/client#resolvingUncached</param-name>
         <param-value>true</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/core#preemptiveAuth</param-name>
+        <param-name>https://w3id.org/atomgraph/core#preemptiveAuth</param-name>
         <param-value>true</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/processor#sitemapRules</param-name>
+        <param-name>https://w3id.org/atomgraph/processor#sitemapRules</param-name>
         <param-value><![CDATA[
 [inhClass: (?class rdf:type <http://www.w3.org/2000/01/rdf-schema#Class>), (?class ?p ?o), (?p rdf:type <https://www.w3.org/ns/ldt#InheritedProperty>), (?subClass rdfs:subClassOf ?class), (?subClass rdf:type <http://www.w3.org/2000/01/rdf-schema#Class>), noValue(?subClass ?p) -> (?subClass ?p ?o) ]
 [inhTemplate: (?template rdf:type <https://www.w3.org/ns/ldt#Template>), (?template ?p ?o), (?p rdf:type <https://www.w3.org/ns/ldt#InheritedProperty>), (?subTemplate <https://www.w3.org/ns/ldt#extends> ?template), (?subTemplate rdf:type <https://www.w3.org/ns/ldt#Template>), noValue(?subTemplate ?p) -> (?subTemplate ?p ?o) ]
@@ -541,24 +541,24 @@ support@linkeddatahub.com]]></param-value>
     </context-param>
     <!--
     <context-param>
-        <param-name>http://atomgraph.com/ns/processor#cacheSitemap</param-name>
+        <param-name>https://w3id.org/atomgraph/processor#cacheSitemap</param-name>
         <param-value>false</param-value>
     </context-param>
     -->
     <!--
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#proxy</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#proxy</param-name>
         <param-value>http://atomgraph.dydra.varnish/</param-value>
     </context-param>
     -->
     <!--
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#remoteVariableBindings</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#remoteVariableBindings</param-name>
         <param-value>true</param-value>
     </context-param>
     -->
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#invalidateCache</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#invalidateCache</param-name>
         <param-value>true</param-value>
     </context-param>
     <context-param>
@@ -566,19 +566,19 @@ support@linkeddatahub.com]]></param-value>
         <param-value>4ec00694a7806c141816</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/client#prefixMapping</param-name>
+        <param-name>https://w3id.org/atomgraph/client#prefixMapping</param-name>
         <param-value>prefix-mapping.n3</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#cookieMaxAge</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#cookieMaxAge</param-name>
         <param-value>86400</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#signUpCertValidity</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpCertValidity</param-name>
         <param-value>90</param-value>
     </context-param>
     <context-param>
-        <param-name>http://atomgraph.com/ns/platform/config#insertOwnerUpdate</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#insertOwnerUpdate</param-name>
         <param-value><![CDATA[
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 

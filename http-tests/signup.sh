@@ -27,9 +27,9 @@ curl -k -s \
     --data-urlencode "pu=http://www.w3.org/ns/auth/cert#key" \
     --data-urlencode "ob=key" \
     --data-urlencode "sb=key" \
-    --data-urlencode "pu=http://linkeddatahub.com/ns/acl/domain#password" \
+    --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#password" \
     --data-urlencode "ol=${password}" \
-    --data-urlencode "pu=http://linkeddatahub.com/ns/acl/domain#password" \
+    --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#password" \
     --data-urlencode "ol=${password}" \
     --data-urlencode "sb=agent" \
     --data-urlencode "pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf" \

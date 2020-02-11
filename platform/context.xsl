@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY ac     "http://atomgraph.com/ns/client#">
-    <!ENTITY aplc   "http://atomgraph.com/ns/platform/config#">
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
+    <!ENTITY aplc   "https://w3id.org/atomgraph/linkeddatahub/config#">
 ]>
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"

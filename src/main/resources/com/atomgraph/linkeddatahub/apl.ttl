@@ -1,8 +1,8 @@
-@base		<http://atomgraph.com/ns/platform/domain> .
+@base		<https://w3id.org/atomgraph/linkeddatahub/domain> .
 
 @prefix :	<#> .
-@prefix ac:	<http://atomgraph.com/ns/client#> .
-@prefix a:	<http://atomgraph.com/ns/core#> .
+@prefix ac:	<https://w3id.org/atomgraph/client#> .
+@prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -116,7 +116,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :ServiceConstructor a sp:Construct ;
     sp:text """
-      PREFIX lapp:    <http://linkeddatahub.com/ns/apps/domain#>
+      PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
@@ -149,7 +149,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :GenericServiceConstructor a sp:Construct ;
     sp:text """
-      PREFIX a:       <http://atomgraph.com/ns/core#>
+      PREFIX a:       <https://w3id.org/atomgraph/core#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 
@@ -254,7 +254,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :QueryConstructor a sp:Construct ;
   sp:text """
-      PREFIX :        <http://atomgraph.com/ns/platform/domain#>
+      PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sp:      <http://spinrdf.org/sp#>
@@ -315,7 +315,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
         PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
         PREFIX sp:      <http://spinrdf.org/sp#>
         PREFIX spin:    <http://spinrdf.org/spin#>
-        PREFIX :        <http://atomgraph.com/ns/platform/domain#>
+        PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
 
         CONSTRUCT {
             ?this :action [ a dh:Container ] ;
@@ -327,7 +327,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:isDefinedBy : .
 
 :CSVImportConstructor a sp:Construct ;
-    sp:text """PREFIX :        <http://atomgraph.com/ns/platform/domain#>
+    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
 
         CONSTRUCT {
             ?this :delimiter "," .
@@ -348,7 +348,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :ChartConstructor a sp:Construct ;
   sp:text """
-      PREFIX :      <http://atomgraph.com/ns/platform/domain#>
+      PREFIX :      <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
 
@@ -369,7 +369,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :GraphChartConstructor a sp:Construct ;
   sp:text """
-      PREFIX :      <http://atomgraph.com/ns/platform/domain#>
+      PREFIX :      <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       PREFIX spin:  <http://spinrdf.org/spin#>
 
@@ -391,7 +391,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :ResultSetChartConstructor a sp:Construct ;
   sp:text """
-      PREFIX :      <http://atomgraph.com/ns/platform/domain#>
+      PREFIX :      <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
       PREFIX spin:  <http://spinrdf.org/spin#>
 
