@@ -35,7 +35,7 @@ public class LSMT
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "http://linkeddatahub.com/ns/sitemap/templates#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */

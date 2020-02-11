@@ -1,6 +1,6 @@
 PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-PREFIX lapp:    <http://linkeddatahub.com/ns/apps/domain#>
+PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
 PREFIX dydra:   <http://dydra.com/ns#>
 PREFIX srv:     <http://jena.hpl.hp.com/Service#>
 

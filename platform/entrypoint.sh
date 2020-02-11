@@ -294,7 +294,6 @@ wait_for_url()
     local accept="$3"
     i=1
 
-    # use --head when https://issues.apache.org/jira/browse/JENA-1795 is fixed in used Jena version
     while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
     do
         sleep 1 ;
