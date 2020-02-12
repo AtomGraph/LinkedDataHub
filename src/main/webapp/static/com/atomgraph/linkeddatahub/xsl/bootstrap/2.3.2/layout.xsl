@@ -738,7 +738,7 @@ exclude-result-prefixes="#all">
     
     <!-- RIGHT NAV MODE -->
     
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri][key('resources', $root-containers) or key('resources', $ac:uri)/sioc:has_parent or key('resources', $ac:uri)/sioc:has_container]" mode="bs2:Right">
+    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri]" mode="bs2:Right">
         <xsl:apply-imports>
             <xsl:with-param name="class" select="'span3'"/>
         </xsl:apply-imports>
