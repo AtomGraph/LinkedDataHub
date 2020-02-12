@@ -1,0 +1,80 @@
+@base           <https://w3id.org/atomgraph/linkeddatahub/apps/hierarchy> .
+
+@prefix :	<#> .
+@prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix spl:	<http://spinrdf.org/spl#> .
+
+: a owl:Ontology ;
+    owl:imports lapp: ;
+    rdfs:label "LinkedDataHub hierarchical application ontology" ;
+    owl:versionInfo "1.1.4" .
+
+# CLASSES
+
+# context
+
+:Context a rdfs:Class, owl:Class ;
+    rdfs:subClassOf lapp:EndUserApplication ;
+    rdfs:label "Context" ;
+    rdfs:comment "Application that lists one level of sub-applications (with relative base URI)" ;
+    rdfs:isDefinedBy : .
+
+# application
+
+:EndUserApplicationLevel2 a rdfs:Class, owl:Class ;
+    rdfs:subClassOf lapp:EndUserApplication ;
+    spin:constraint [ a :BasePathMatchesRegexTemplate ;
+            rdfs:label "Base URI path does not match regex" ;
+            sp:arg1 "^[^/]+/[^/]+/$" # 2 path segments
+        ] ;
+    rdfs:label "Second level application" ;
+    rdfs:isDefinedBy : .
+
+# context
+
+:ContextLevel1 a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Context ;
+    spin:constraint [ a :BasePathMatchesRegexTemplate ;
+            rdfs:label "Base URI path does not match regex" ;
+            sp:arg1 "^[^/]+/$" # 1 path segment
+        ] ;
+    rdfs:label "First level context" ;
+    rdfs:isDefinedBy : .
+
+# CONSTRAINTS
+
+:BasePathMatchesRegexTemplate a spin:Template ;
+    rdfs:label "ldt:base does not match regex" ;
+    spin:body :BasePathMatchesRegex ;
+    spin:labelTemplate "Application base URI path does not match the {?arg1} pattern" ;
+    spin:constraint [ a spl:Argument ;
+        spl:predicate sp:arg1 ;
+        spl:valueType xsd:string
+    ] ;
+    rdfs:isDefinedBy : .
+
+:BasePathMatchesRegex a sp:Construct ;
+    rdfs:label "Base URI path does not match regex" ;
+    sp:text """
+PREFIX  ldt:  <https://www.w3.org/ns/ldt#>
+PREFIX  spin: <http://spinrdf.org/spin#>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+CONSTRUCT {
+    _:c0 a spin:ConstraintViolation .
+    _:c0 spin:violationRoot ?this .
+    _:c0 spin:violationPath ldt:base .
+}
+WHERE {
+  ?this  ldt:base  ?base
+  BIND(strafter(strafter(str(?base), "//"), "/") AS ?path)
+  FILTER (!regex(?path, ?arg1, "i"))
+}""" ;
+    rdfs:isDefinedBy : .
