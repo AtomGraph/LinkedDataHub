@@ -290,21 +290,39 @@ wait_for_host()
 wait_for_url()
 {
     local url="$1"
-    local counter="$2"
-    local accept="$3"
+    local auth_user="$2"
+    local auth_pwd="$3"
+    local counter="$4"
+    local accept="$5"
     i=1
 
-    while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1
-    do
-        sleep 1 ;
-        i=$(( i+1 ))
-    done
+    # use HTTP Basic auth if username/password are provided
+    if [ -n "$auth_user" ] && [ -n "$auth_pwd" ] ; then
+        while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" --user "${auth_user}":"${auth_pwd}" -H "Accept: ${accept}" >/dev/null 2>&1
+        do
+            sleep 1 ;
+            i=$(( i+1 ))
+        done
 
-    if ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-        printf "\n### URL ${url} not responding after ${counter} retries, exiting...\n"
-        exit 1
+        if ! curl -s -f --head "${url}" --user "${auth_user}":"${auth_pwd}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL ${url} not responding after ${counter} retries, exiting...\n"
+            exit 1
+        else
+            printf "\n### URL ${url} responded\n"
+        fi
     else
-        printf "\n### URL ${url} responded\n"
+        while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" -H "Accept: ${accept}"
+        do
+            sleep 1 ;
+            i=$(( i+1 ))
+        done
+
+        if ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL ${url} not responding after ${counter} retries, exiting...\n"
+            exit 1
+        else
+            printf "\n### URL ${url} responded\n"
+        fi
     fi
 }
 
@@ -389,10 +407,10 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/based.end-user.nq
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/based.admin.nq
 
-    wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
+    wait_for_url "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
     append_quads "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.end-user.nq "application/n-quads"
 
-    wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
+    wait_for_url "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
     append_quads "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.admin.nq "application/n-quads"
 fi
 
@@ -436,7 +454,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
 
     printf "\n### Waiting for ${root_admin_quad_store_url}...\n"
 
-    wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
+    wait_for_url "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
 
     printf "\n### Uploading the metadata of the secretary agent...\n\n"
 
@@ -667,13 +685,13 @@ java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize
 
 printf "\n### Waiting for ${root_end_user_quad_store_url}...\n"
 
-wait_for_url "${root_end_user_quad_store_url}" "${TIMEOUT}" "application/trig"
+wait_for_url "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
 
 # wait for the admin GSP service
 
 printf "\n### Waiting for ${root_admin_quad_store_url}...\n"
 
-wait_for_url "${root_admin_quad_store_url}" "${TIMEOUT}" "application/trig"
+wait_for_url "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
 
 # wait for the proxy server
 
