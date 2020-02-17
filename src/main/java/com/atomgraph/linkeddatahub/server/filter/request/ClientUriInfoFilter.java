@@ -42,7 +42,7 @@ public class ClientUriInfoFilter implements ResourceFilter, ContainerRequestFilt
         // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
         if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
         {
-            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getBaseUri(), request.getAbsolutePath(), request.getQueryParameters());
+            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getBaseUri(), request.getRequestUri(), request.getQueryParameters());
             getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
         }
 

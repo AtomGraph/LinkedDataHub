@@ -56,11 +56,6 @@ public class ClientUriInfo implements UriInfo
         return params;
     }
     
-    public ClientUriInfo(URI baseUri, URI requestUri, QuerySolutionMap qsm)
-    {
-        this(baseUri, requestUri, solutionMapToMultivaluedMap(qsm));
-    }
-    
     public ClientUriInfo(URI baseUri, URI requestUri, MultivaluedMap<String, String> queryParams)
     {
         this.baseUri = baseUri;
