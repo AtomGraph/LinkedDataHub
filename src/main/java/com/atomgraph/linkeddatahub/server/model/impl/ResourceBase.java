@@ -71,8 +71,6 @@ import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.*;
-import com.atomgraph.linkeddatahub.server.filter.request.ClientParamRemovalFilter;
-import com.sun.jersey.spi.container.ResourceFilters;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -87,7 +85,6 @@ import org.spinrdf.arq.ARQ2SPIN;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("/")
-@ResourceFilters(ClientParamRemovalFilter.class)
 public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase implements com.atomgraph.linkeddatahub.server.model.Resource
 {
     private static final Logger log = LoggerFactory.getLogger(ResourceBase.class);

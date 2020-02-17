@@ -35,6 +35,7 @@ import javax.ws.rs.core.UriBuilder;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class ClientParamRemovalFilter implements ContainerRequestFilter, ResourceFilter
 {
 
