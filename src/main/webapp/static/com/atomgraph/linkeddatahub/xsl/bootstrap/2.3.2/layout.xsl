@@ -618,7 +618,7 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')), $ac:sitemap)" as="element()*"/>
 
                     <xsl:if test="key('resources', $ac:uri)/rdf:type/@rdf:resource">
-                        <xsl:if test="apl:superClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource, $ac:sitemap) = resolve-uri('ns/default#Container', $ldt:base)">
+                        <xsl:if test="apl:superClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource, $ac:sitemap) = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
                             <xsl:for-each select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), $ac:sitemap)">
                                 <xsl:sort select="ac:label(.)"/>
                                 <li>

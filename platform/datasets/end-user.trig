@@ -1,22 +1,16 @@
-@prefix ns:     <ns#> .
-@prefix def:    <ns/default#> .
+@prefix ns:	<ns#> .
+@prefix def:	<ns/default#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
-@prefix ac:	<https://w3id.org/atomgraph/client#> .
-@prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
-@prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix void:	<http://rdfs.org/ns/void#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
-@prefix srv:    <http://jena.hpl.hp.com/Service#> .
-@prefix dydra:  <http://dydra.com/ns#> .
 
 <graphs/05164fcf-9248-4855-9f3e-1c202db33658/>
 {
@@ -38,7 +32,7 @@
 <graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/>
 {
 
-    <> a def:Container ;
+    <> a def:Root ;
         dh:select <queries/default/select-children/#this> ;
         dct:title "Root" ;
         dct:description "Root container" .

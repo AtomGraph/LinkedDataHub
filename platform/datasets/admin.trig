@@ -1,9 +1,9 @@
-@prefix adm:    <ns#> .
-@prefix admt:   <ns/templates#> .
-@prefix ns:     <../ns#> .
-@prefix def:    <../ns/default#> .
-@prefix nsd:    <../ns/domain#> .
-@prefix nst:    <../ns/templates#> .
+@prefix adm:	<ns#> .
+@prefix admt:	<ns/templates#> .
+@prefix ns:	<../ns#> .
+@prefix def:	<../ns/default#> .
+@prefix nsd:	<../ns/domain#> .
+@prefix nst:	<../ns/templates#> .
 @prefix ladmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/templates#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix laclt:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#> .
@@ -16,21 +16,21 @@
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix acl:    <http://www.w3.org/ns/auth/acl#> .
-@prefix cert:   <http://www.w3.org/ns/auth/cert#> .
+@prefix acl:	<http://www.w3.org/ns/auth/acl#> .
+@prefix cert:	<http://www.w3.org/ns/auth/cert#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-@prefix thgt:   <https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#> .
-@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix thgt:	<https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#> .
+@prefix prov:	<http://www.w3.org/ns/prov#> .
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix spl:	<http://spinrdf.org/spl#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
-@prefix void:   <http://rdfs.org/ns/void#> .
+@prefix void:	<http://rdfs.org/ns/void#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
-@prefix dct:    <http://purl.org/dc/terms/> .
+@prefix dct:	<http://purl.org/dc/terms/> .
 @prefix nfo:	<http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
 
 <graphs/05164fcf-9248-4855-9f3e-1c202db33658/>
@@ -1384,6 +1384,43 @@ WHERE
 }
 
 # CLASSES
+
+# root (space/container)
+
+<graphs/8da34148-30ae-40b6-a6b6-e82559d9c2dd/>
+{
+
+    <graphs/a10c1705-fbd4-42f9-a7ee-7bb4ae170d1d/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_root <graphs/> ;
+        foaf:primaryTopic <graphs/a10c1705-fbd4-42f9-a7ee-7bb4ae170d1d/#this> .
+
+    <graphs/a10c1705-fbd4-42f9-a7ee-7bb4ae170d1d/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/a10c1705-fbd4-42f9-a7ee-7bb4ae170d1d/> .
+
+    <model/classes/default/root/> sioc:has_space <> ;
+        dh:slug "root" ;
+        void:inDataset <graphs/a10c1705-fbd4-42f9-a7ee-7bb4ae170d1d/#this> .
+
+}
+
+<graphs/a10c1705-fbd4-42f9-a7ee-7bb4ae170d1d/>
+{
+
+    <model/classes/default/root/> a adm:ClassItem ;
+        sioc:has_root <model/classes/default/> ;
+        dct:title "Root" ;
+        foaf:primaryTopic def:Root .
+
+    def:Root a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/root/> ;
+        rdfs:subClassOf sioc:Space, dh:Container ;
+        spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
+        spin:constraint def:MissingTitle, def:MissingSelect ; # roots do not have parents, therefore no def:MissingParent
+        rdfs:label "Root" ;
+        rdfs:isDefinedBy def: .
+
+}
 
 # container
 
