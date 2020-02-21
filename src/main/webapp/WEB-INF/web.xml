@@ -488,13 +488,13 @@ WHERE
         <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's %s application.
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
-Read more about LinkedDataHub signup and login here: https://linkeddatahub.com/docs/getting-started/
+Read more about LinkedDataHub signup and login here: https://linkeddatahub.com/linkeddatahub/docs/getting-started/
 
 When you're ready, proceed to create a context for your Linked Data applications by following this link: %s
-Read more about LinkedDataHub contexts here: https://linkeddatahub.com/docs/manage-apps/#contexts
+Read more about LinkedDataHub contexts here: https://linkeddatahub.com/linkeddatahub/docs/manage-apps/#contexts
 
 With the certificate installed, you will be able to authenticate with every LinkedDataHub application. Note that you will still need to request authorization to get access to non-public resources.
-Read more about access control here: https://linkeddatahub.com/docs/administration/manage-acl/
+Read more about access control here: https://linkeddatahub.com/linkeddatahub/docs/administration/manage-acl/
 
 
 Application's base URI: %s

@@ -74,6 +74,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .modal { max-height: 80%; overflow-y: scroll; overflow-x: hidden; }
 .modal-header { position: sticky; top: 0; background-color: white; z-index: 1060; }
 .modal-header legend { margin-bottom: 0; }
+.close { font-size: 35px; opacity: 0.4; }
 .modal-body { max-height: none; }
 .modal-footer { position: sticky; bottom: 0; background-color: white; z-index: 1060; }
 .nav-tabs > li > a, .pager > li > a.active { cursor: pointer; }
