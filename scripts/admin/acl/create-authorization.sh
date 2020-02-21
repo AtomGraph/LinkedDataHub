@@ -34,22 +34,22 @@ do
         shift # past value
         ;;
         --agent)
-        agent="$2"
+        agents+=("$2")
         shift # past argument
         shift # past value
         ;;
         --agent-class)
-        agent_class="$2"
+        agent_classes+=("$2")
         shift # past argument
         shift # past value
         ;;
         --to)
-        to="$2"
+        tos+=("$2")
         shift # past argument
         shift # past value
         ;;
         --to-all-in)
-        to_all_in="$2"
+        to_all_ins+=("$2")
         shift # past argument
         shift # past value
         ;;
@@ -85,11 +85,12 @@ if [ -z "$label" ] ; then
     echo '--label not set'
     exit 1
 fi
-if [ -z "$agent" ] && [ -z "$agent_class" ] ; then
+if [ ${#agents[@]} -eq 0 ] && [ ${#agent_classes[@]} -eq 0 ] ; then
+
     echo '--agent or --agent-class not set'
     exit 1
 fi
-if [ -z "$to" ] && [ -z "$to_all_in" ] ; then
+if [ ${#tos[@]} -eq 0 ] && [ ${#to_all_ins[@]} -eq 0 ] ; then
     echo '--to or --to-all-in not set'
     exit 1
 fi
@@ -135,18 +136,23 @@ if [ -n "$slug" ] ; then
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
-if [ -n "$agent" ] ; then
+for agent in "${agents[@]}"
+do
     turtle+="${auth} acl:agent <${agent}> .\n"
-fi
-if [ -n "$agent_class" ] ; then
+done
+for agent_class in "${agent_classes[@]}"
+do
     turtle+="${auth} acl:agentClass <${agent_class}> .\n"
-fi
-if [ -n "$to" ] ; then
+done
+for to in "${tos[@]}"
+do
     turtle+="${auth} acl:accessTo <${to}> .\n"
-fi
-if [ -n "$to_all_in" ] ; then
+done
+for to_all_in in "${to_all_ins[@]}"
+do
     turtle+="${auth} acl:accessToClass <${to_all_in}> .\n"
-fi
+done
+
 if [ -n "$append" ] ; then
     turtle+="${auth} acl:mode acl:Append .\n"
 fi
