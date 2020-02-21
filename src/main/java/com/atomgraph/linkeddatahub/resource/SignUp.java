@@ -42,7 +42,6 @@ import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.util.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
@@ -50,7 +49,6 @@ import com.atomgraph.server.exception.ConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.container.MappableContainerException;
-import com.sun.jersey.api.uri.UriComponent;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -275,15 +273,6 @@ public class SignUp extends ResourceBase
                             throw new WebApplicationException();
                         }
                         
-                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                        // we URI-encode values ourselves because Jersey UriBuilder 1.x fails to do so: https://java.net/jira/browse/JERSEY-1717
-                        //String contextClassURI = getApplication().getEndUserApplication().getOntology().getURI() + LAPP.Context.getLocalName();
-                        String encodedAppClassURI = UriComponent.encode(LAPP.EndUserApplication.getURI(), UriComponent.Type.UNRESERVED);
-                        URI createContextURI = UriBuilder.fromUri(getApplication().getEndUserApplication().getBaseURI()).
-                                path("create").
-                                queryParam(APLT.forClass.getLocalName(), encodedAppClassURI).
-                                build(); // this is quite fragile
-
                         if (download)
                         {
                             return Response.ok(keyStoreBytes).
@@ -293,7 +282,8 @@ public class SignUp extends ResourceBase
                         }
                         else
                         {
-                            sendEmail(agent, createContextURI, certExpires, keyStoreBytes, keyStoreFileName);
+                            LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                            sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
                             // append Agent data to response
                             Dataset description = describe();
@@ -372,7 +362,7 @@ public class SignUp extends ResourceBase
         return publicKeyRes;
     }
     
-    public void sendEmail(Resource agent, URI createContextURI, LocalDate certExpires, byte[] keyStoreBytes, String keyStoreFileName) throws MessagingException, UnsupportedEncodingException
+    public void sendEmail(Resource agent, LocalDate certExpires, byte[] keyStoreBytes, String keyStoreFileName) throws MessagingException, UnsupportedEncodingException
     {
         // send email with attached KeyStore
         String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
@@ -390,7 +380,6 @@ public class SignUp extends ResourceBase
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
                 getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
-                createContextURI.toString(),
                 getApplication().getEndUserApplication().getBase(),
                 agent.getURI(),
                 certExpires.format(DateTimeFormatter.ISO_LOCAL_DATE))).
