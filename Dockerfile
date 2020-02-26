@@ -58,6 +58,10 @@ COPY platform/context.xsl conf/context.xsl
 
 COPY --from=maven /usr/src/trust-manager/target/trust-manager-1.0.0-SNAPSHOT.jar lib/ldh-trust-manager.jar
 
+ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
+
+ENV CACHE_STYLESHEET=true
+
 ENV ATOMGRAPH_UPLOAD_ROOT=
 
 ENV PROXY_HOST=
@@ -82,7 +86,7 @@ ENV HTTPS_CLIENT_AUTH=want
 
 ENV HTTPS_COMPRESSION=on
 
-ENV P12_FILE="/var/linkeddatahub/server.p12"
+ENV P12_FILE=/var/linkeddatahub/server.p12
 
 ENV PKCS12_KEY_PASSWORD=
 

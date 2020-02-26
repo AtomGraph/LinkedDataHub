@@ -21,7 +21,7 @@ services:
       - 8001:8000 # debugger
     environment:
       - JPDA_ADDRESS=8000 # debugger port
-      - ATOMGRAPH_UPLOAD_ROOT=/var/www/stage.linkeddatahub.com/uploads/
+      - ATOMGRAPH_UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
       - PROXY_HOST=nginx
@@ -39,8 +39,6 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig
-      - STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
-      - CACHE_STYLESHEET=false # false for debugging
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
@@ -55,7 +53,7 @@ services:
       - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
     volumes:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
-      - ./uploads:/var/www/stage.linkeddatahub.com/uploads
+      - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/prod.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   fuseki-admin:
