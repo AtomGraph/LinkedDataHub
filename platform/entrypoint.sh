@@ -475,7 +475,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
         -storepass "$PKCS12_STORE_PASSWORD" \
         -storetype PKCS12
 
-      # import server certificate into client truststore
+      printf "\n### Importing server certificate into client truststore\n\n"
 
       keytool -importcert \
         -alias "$KEY_ALIAS" \
