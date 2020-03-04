@@ -8,6 +8,16 @@ do
     key="$1"
 
     case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
         -b|--base)
         base="$2"
         shift # past argument
@@ -61,6 +71,14 @@ do
 done
 set -- "${args[@]}" # restore args
 
+if [ -z "$cert_pem_file" ] ; then
+    echo '-f|--cert-pem-file not set'
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    echo '-p|--cert-password not set'
+    exit 1
+fi
 if [ -z "$base" ] ; then
     echo '-b|--base not set'
     exit 1
@@ -92,11 +110,19 @@ fi
 
 container="${base}charts/"
 
+# if target URL is not provided, it equals container
+if [ -z "$1" ] ; then
+    args+=("${container}")
+fi
+
+args+=("-f")
+args+=("${cert_pem_file}")
+args+=("-p")
+args+=("${cert_password}")
 args+=("-c")
 args+=("${base}ns#ResultSetChart") # class
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("${container}") # container
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

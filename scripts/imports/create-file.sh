@@ -5,75 +5,73 @@ hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 args=()
 while [[ $# -gt 0 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -f|--cert-pem-file)
-    cert_pem_file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -p|--cert-password)
-    cert_password="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -t|--content-type)
-    content_type="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -b|--base)
-    base="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --title)
-    title="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --description)
-    description="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --slug)
-    slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --file)
-    file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --file-content-type)
-    file_content_type="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --file-slug)
-    file_slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown arguments
-    args+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
+    case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -t|--content-type)
+        content_type="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -b|--base)
+        base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --title)
+        title="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --description)
+        description="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --slug)
+        slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file)
+        file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file-content-type)
+        file_content_type="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file-slug)
+        file_slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
 done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert_pem_file not set'
-    # print_usage
+    echo '-f|--cert-pem-file not set'
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
     echo '-p|--cert-password not set'
-    # print_usage
     exit 1
 fi
 if [ -z "$file_content_type" ] ; then
@@ -103,11 +101,17 @@ urlencode()
   echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1")
 }
 
-container="${base}files/"
 ns="${base}ns#"
 class="${base}ns#File"
 forClass=$(urlencode "$class")
-target="${container}?forClass=${forClass}"
+container="${base}files/"
+
+# if target URL is not provided, it equals container
+if [ -z "$1" ] ; then
+    target="${container}?forClass=${forClass}"
+else
+    target="${1}?forClass=${forClass}"
+fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 

@@ -350,8 +350,10 @@ exclude-result-prefixes="#all">
                         <span class="icon-bar"></span>
                     </button>
 
-                    <xsl:if test="not($ldt:base = $ac:contextUri)">
-                        <a class="brand context" href="{resolve-uri('..', $ldt:base)}"/>
+                    <xsl:if test="$ldt:base">
+                        <xsl:if test="not($ldt:base = $ac:contextUri)">
+                            <a class="brand context" href="{resolve-uri('..', $ldt:base)}"/>
+                        </xsl:if>
                     </xsl:if>
                         
                     <a class="brand" href="{if ($lapp:Application) then lapp:base($ac:contextUri, $lapp:Application) else $ldt:base}">

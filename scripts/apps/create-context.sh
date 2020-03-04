@@ -60,6 +60,14 @@ do
 done
 set -- "${args[@]}" # restore args
 
+if [ -z "$cert_pem_file" ] ; then
+    echo '-f|--cert-pem-file not set'
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    echo '-p|--cert-password not set'
+    exit 1
+fi
 if [ -z "$base" ] ; then
     echo '-b|--base not set'
     exit 1

@@ -24,6 +24,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --source)
+        source="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -52,8 +57,12 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-target="${base}model/ontologies/"
-source="$1"
+if [ -z "$1" ] ; then
+    target="${base}model/ontologies/"
+else
+    target="$1"
+fi
+
 content_type="text/turtle"
 
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
