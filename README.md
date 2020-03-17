@@ -7,7 +7,7 @@
 LDH features a completely data-driven application architecture: generic server and client components process declarative RDF/OWL, SPARQL, and XSLT instructions.
 The default application structure and user interface are provided, making LDH a standalone product, yet they can be completely overridden and customized, thus also making LDH a [low-code application platform](https://en.wikipedia.org/wiki/Low-code_development_platform). Unless a custom processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
 
-## Getting started
+## Setup
 
 1. [Install Docker](https://docs.docker.com/install/)
    - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
@@ -85,7 +85,7 @@ ABS_PATH=/linkeddatahub/
 
 ### Dataspaces
 
-Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Their base URIs need to be aligned to the base URI configured in the `.env` file.
+Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Their base URIs need to be relative to the base URI configured in the `.env` file.
 
 Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command:
 ```
@@ -104,7 +104,13 @@ This will remove the persisted data, server and owner certificates as well as th
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
 
-## [Demo applications](https://github.com/AtomGraph/LinkedDataHub-Apps)
+* [Get started](https://linkeddatahub.com/linkeddatahub/docs/get-started/)
+* [Reference](https://linkeddatahub.com/linkeddatahub/docs/reference/)
+* [User guide](https://linkeddatahub.com/linkeddatahub/docs/user-guide/)
+
+## [Demo applications](https://linkeddatahub.com/demo/)
+
+[Source code](https://github.com/AtomGraph/LinkedDataHub-Apps):
 
 ## Test suite
 

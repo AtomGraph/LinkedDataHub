@@ -107,10 +107,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:chart-type" as="xs:anyURI?"/>
     <xsl:param name="ac:category" as="xs:string?"/>
     <xsl:param name="ac:series" as="xs:string*"/>
-    <xsl:param name="ac:limit" select="20" as="xs:integer?"/>
-    <xsl:param name="ac:offset" select="0" as="xs:integer?"/>
-    <xsl:param name="ac:order-by" as="xs:string?"/>
-    <xsl:param name="ac:desc" as="xs:boolean?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="dh:select" as="xs:string?"/>
     <xsl:param name="lacl:mode" select="if ($ac:sitemap) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, apl:superClasses(key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, $ac:sitemap))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
@@ -1679,16 +1675,16 @@ exclude-result-prefixes="#all">
                 <ul class="dropdown-menu">
                     <li>
                         <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}">
+                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
                                 Administration
                             </a>
                         </xsl:for-each>
                     </li>
                     <li>
-                        <a href="{resolve-uri('ns', $ldt:base)}">Namespace</a>
+                        <a href="{resolve-uri('ns', $ldt:base)}" target="_blank">Namespace</a>
                     </li>
                     <li>
-                        <a href="https://linkeddatahub.com/linkeddatahub/docs/">Help</a>
+                        <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Help</a>
                     </li>
                 </ul>
             </div>
