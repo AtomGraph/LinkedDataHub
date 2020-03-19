@@ -43,7 +43,6 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.riot.out.NodeFmtLib;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateAction;
 import org.apache.jena.update.UpdateRequest;
@@ -75,6 +74,8 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.riot.out.NodeFmtLib;
 import org.spinrdf.arq.ARQ2SPIN;
 
 /**
@@ -225,13 +226,51 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     build();
         }
         
-        // force removal of triplestore cache entries that have resource in the query string
-        if (getAgent() != null && getTemplateCall() != null && getTemplateCall().hasArgument(APLT.ban))
-            ban(getOntResource());
-        
         return super.get();
     }
 
+    @Override
+    public ResponseBuilder getResponseBuilder(Model model)
+    {
+        Date modified = getModifiedDate(model);
+        if (modified != null)
+            return super.getResponseBuilder(model).
+                lastModified(modified);
+        
+        return super.getResponseBuilder(model);
+    }
+    
+    @Override
+    public ResponseBuilder getResponseBuilder(Dataset dataset)
+    {
+        Date modified = getModifiedDate(dataset.getDefaultModel()); // TO-DO: we probably shouldn't be looking in the default model only
+        if (modified != null)
+            return super.getResponseBuilder(dataset).
+                lastModified(modified);
+        
+        return super.getResponseBuilder(dataset);
+    }
+    
+    public Date getModifiedDate(Model model)
+    {
+        NodeIterator it = model.listObjectsOfProperty(getOntResource(), DCTerms.modified);
+        try
+        {
+            if (it.hasNext())
+            {
+                RDFNode object = it.next();
+                if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
+                    return ((XSDDateTime)object.asLiteral().getValue()).asCalendar().getTime();
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        
+        return null;
+    }
+    
     /**
      * Checks whether URI resource already exists in the application's service dataset.
      * 
@@ -389,44 +428,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return dataset;
     }
     
-    /**
-     * Bans resources by URI from Varnish HTTP cache.
-     * Requires Varnish to be enabled (see <code>docker-compose.yml</code>).
-     * 
-     * @param resources URI resources
-     * @return HTTP response from Varnish
-     * @see <a href="https://varnish-cache.org/docs/trunk/users-guide/purging.html#bans">Bans</a>
-     */
-    @Override
-    public ClientResponse ban(org.apache.jena.rdf.model.Resource... resources)
-    {
-        if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        if (getApplication().getService().getProxy() != null)
-        {
-            // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-            WebResource.Builder builder = getClient().resource(getApplication().getService().getProxy().getURI()).getRequestBuilder();
-
-            for (Resource resource : resources)
-            {
-                String escapedURI = NodeFmtLib.str(resource.asNode());
-                builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(escapedURI, UriComponent.Type.UNRESERVED));
-            }
-
-            ClientResponse cr = null;
-            try
-            {
-                cr = builder.method("BAN", ClientResponse.class);
-                return cr;
-            }
-            finally
-            {
-                if (cr != null) cr.close();
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Handles <code>PUT</code> requests, stores the input RDF data in the application's dataset, and returns response.
@@ -445,13 +446,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         }
         
         Response response = super.put(dataset);
-        
-        if (getSystem().isInvalidateCache())
-        {
-            ClientResponse ban = ban(getOntResource());
-            if (ban != null)
-                if (log.isDebugEnabled()) log.debug("Sent BAN request to URI: {}; received status code: {}", getOntResource().getURI(), ban.getStatus());
-        }
 
         return response;
     }
@@ -720,6 +714,37 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         }
     }
 
+    public ClientResponse ban(org.apache.jena.rdf.model.Resource... resources)
+    {
+        if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        if (getApplication().getService().getProxy() != null)
+        {
+            // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+            WebResource.Builder builder = getClient().resource(getApplication().getService().getProxy().getURI()).getRequestBuilder();
+
+            for (Resource resource : resources)
+            {
+                String escapedURI = NodeFmtLib.str(resource.asNode());
+                // encode the URI, because that is how it will appear in SPARQL Protocol URLs cached by the backend proxy
+                builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(escapedURI, UriComponent.Type.UNRESERVED));
+            }
+
+            ClientResponse cr = null;
+            try
+            {
+                cr = builder.method("BAN", ClientResponse.class);
+                return cr;
+            }
+            finally
+            {
+                if (cr != null) cr.close();
+            }
+        }
+
+        return null;
+    }
+    
     /*
     @Override
     public UserAccount getUserAccount()

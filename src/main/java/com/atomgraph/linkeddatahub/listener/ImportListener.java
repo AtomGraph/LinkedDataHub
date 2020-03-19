@@ -47,7 +47,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
@@ -117,8 +116,6 @@ public class ImportListener implements ServletContextListener
             @Override
             public void accept(CSVStreamRDFOutput output)
             {
-                importRes.ban(csvImport.getPropertyResourceValue(FOAF.isPrimaryTopicOf)); // clear import from RDF results cache
-
                 Resource dataset = provImport.getModel().createResource().
                     addProperty(RDF.type, VoID.Dataset).
                     addLiteral(VoID.distinctSubjects, output.getCSVStreamRDFProcessor().getSubjectCount()).
@@ -145,7 +142,6 @@ public class ImportListener implements ServletContextListener
                 {
                     if (t.getCause() instanceof TextParsingException) // could not parse CSV
                     {
-                        importRes.ban(csvImport.getPropertyResourceValue(FOAF.isPrimaryTopicOf)); // clear import from RDF results cache
                         TextParsingException tpe = (TextParsingException)t.getCause();
                         Resource exception = provImport.getModel().createResource().
                             addProperty(RDF.type, PROV.Entity).
@@ -157,7 +153,6 @@ public class ImportListener implements ServletContextListener
                     
                     if (t.getCause() instanceof ImportException) // could not save RDF
                     {
-                        importRes.ban(csvImport.getPropertyResourceValue(FOAF.isPrimaryTopicOf)); // clear import from RDF results cache
                         ImportException ie = (ImportException)t.getCause();
                         Model excModel = ie.getModel();
                         Resource response = getResource(excModel, RDF.type, HTTP.Response); // find Response

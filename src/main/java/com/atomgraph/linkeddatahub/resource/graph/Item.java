@@ -43,10 +43,9 @@ import com.atomgraph.linkeddatahub.server.method.PATCH;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.processor.util.TemplateCall;
-import com.atomgraph.processor.vocabulary.DH;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import java.util.Arrays;
 import java.util.Collections;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HttpMethod;
@@ -128,18 +127,6 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     @PUT
     public Response put(Dataset dataset)
     {
-        Resource document = null, container = null;
-        ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
-                getTemplateCall().getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                new MultivaluedMapImpl()).
-                getEntity(ResultSetRewindable.class);
-        if (resultSet.hasNext())
-        {
-            QuerySolution qs = resultSet.next();
-            document = qs.getResource(FOAF.Document.getLocalName());
-            container = qs.getResource(DH.Container.getLocalName());
-        }
-        
         Model existing = getService().getDatasetAccessor().getModel(getURI().toString());
         if (!existing.isEmpty()) // remove existing representation
         {
@@ -152,22 +139,34 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             }
         }
         
-        //Response response = super.put(dataset, Boolean.FALSE, URI.create(getURI().toString()));
         getService().getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
         
+        // attempt to purge ?doc where { ?doc void:inDataset ?this }
         if (getSystem().isInvalidateCache())
         {
-//            if (document == null) throw new IllegalStateException("Graph '" + getURI() + "' does not contain a document resource");
-//            ClientResponse purgeResponse = purge(document); // purge cache for Item URI
-//            if (log.isDebugEnabled()) log.debug("Sent PURGE request to URI: {}; received status code: {}", document.getURI(), purgeResponse.getStatus());
-//            purgeResponse.close();
-
-            // ban the Item and its parent Container
-//            ClientResponse ban;
-//            if (container != null) ban = ban(document, container);
-//            else ban = ban(document);
-//            if (ban != null)
-//                if (log.isDebugEnabled()) log.debug("Sent BAN request, received status code: {}", ban.getStatus());
+            ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
+                    getTemplateCall().getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
+                    new MultivaluedMapImpl()).
+                    getEntity(ResultSetRewindable.class);
+            if (resultSet.hasNext())
+            {
+                QuerySolution qs = resultSet.next();
+                Resource document = qs.getResource(FOAF.Document.getLocalName());
+                
+                if (document != null)
+                {
+                    ClientResponse banResponse = null;
+                    try
+                    {
+                        banResponse = ban(document);
+                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                    }
+                    finally
+                    {
+                        if (banResponse != null) banResponse.close();
+                    }
+                }
+            }
         }
         
         return Response.ok().build();
@@ -208,39 +207,37 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     @DELETE
     public Response delete()
     {
-        Resource document = null, container = null;
-        ResultSet resultSet = getService().getSPARQLClient().
-            query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
-                getTemplateCall().getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                new MultivaluedMapImpl()).
-            getEntity(ResultSetRewindable.class);
-        if (resultSet.hasNext())
-        {
-            QuerySolution qs = resultSet.next();
-            document = qs.getResource(FOAF.Document.getLocalName());
-            container = qs.getResource(DH.Container.getLocalName());
-        }
-
-        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()); // remove named graph about named graph
-        getService().getDatasetAccessor().deleteModel(getURI().toString());
-
+        // attempt to purge ?doc where { ?doc void:inDataset ?this }
         if (getSystem().isInvalidateCache())
         {
-//            if (document == null) throw new IllegalStateException("Graph '" + getURI() + "' does not contain a document resource");
-//            ClientResponse purgeResponse = purge(document); // purge cache for Item URI
-//            if (log.isDebugEnabled()) log.debug("Sent PURGE request to URI: {}; received status code: {}", document.getURI(), purgeResponse.getStatus());
-//            purgeResponse.close();
-
-            // ban the Item and its parent Container
-//            ClientResponse ban;
-//            if (container != null) ban = ban(document, container);
-//            else ban = ban(document);
-//            if (ban != null)
-//                if (log.isDebugEnabled()) log.debug("Sent BAN request, received status code: {}", ban.getStatus());
+            ResultSet resultSet = getService().getSPARQLClient().
+                query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
+                    getTemplateCall().getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
+                    new MultivaluedMapImpl()).
+                getEntity(ResultSetRewindable.class);
+            if (resultSet.hasNext())
+            {
+                QuerySolution qs = resultSet.next();
+                Resource document = qs.getResource(FOAF.Document.getLocalName());
+                if (document != null)
+                {
+                    ClientResponse banResponse = null;
+                    try
+                    {
+                        banResponse = ban(document);
+                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                    }
+                    finally
+                    {
+                        if (banResponse != null) banResponse.close();
+                    }
+                }
+            }
         }
         
-        if (container != null) return Response.seeOther(URI.create(container.getURI())).build(); // TO-DO: move to Filter?
-        
+        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()); // TO-DO: remove named graph about named graph
+        getService().getDatasetAccessor().deleteModel(getURI().toString());
+
         return Response.noContent().build();
     }
     

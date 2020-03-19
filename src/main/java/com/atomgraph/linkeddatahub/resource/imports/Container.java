@@ -121,8 +121,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                     throw new IllegalStateException("Document provenance graph query returned no results");
                 }
                 
-                // ban(document); // clear import from RDF results cache
-                
                 // we need to load stored import to know its graph URI which we will append to
                 CSVImport csvImport = topic.as(CSVImport.class);
                 csvImport.setDataManager(getDataManager()).

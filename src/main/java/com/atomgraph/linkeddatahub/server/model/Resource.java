@@ -40,10 +40,6 @@ public interface Resource extends com.atomgraph.core.model.Resource
 
     Response construct(InfModel infModel);
 
-    // https://serverfault.com/questions/654773/what-effect-does-https-traffic-have-on-web-cache-proxy-servers
-    // ClientResponse purge(org.apache.jena.rdf.model.Resource resource); // not caching the frontend with Varnish as HTTPS encryption makes it impossible
-    
-    ClientResponse ban(org.apache.jena.rdf.model.Resource... resources);
     
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
