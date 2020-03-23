@@ -21,6 +21,7 @@ import com.atomgraph.client.vocabulary.AC;
 import static com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
+import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
@@ -75,7 +76,6 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
-import org.apache.jena.riot.out.NodeFmtLib;
 import org.spinrdf.arq.ARQ2SPIN;
 
 /**
@@ -228,47 +228,93 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return super.get();
     }
+    
+    @Override
+    public EntityTag getEntityTag(Model model)
+    {
+        long eTagHash = ModelUtils.hashModel(model);
 
-    @Override
-    public ResponseBuilder getResponseBuilder(Model model)
-    {
-        Date modified = getModifiedDate(model);
-        if (modified != null)
-            return super.getResponseBuilder(model).
-                lastModified(modified);
+        List<Variant> variants = getVariants(getWritableMediaTypes(Model.class));
+        Variant variant = getRequest().selectVariant(variants);
+        if (variant != null && variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
+        {
+            // authenticated agents get a different HTML representation
+            if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
+            {
+                Agent agent = (Agent)getSecurityContext().getUserPrincipal();
+                eTagHash += agent.hashCode();
+            }
+        }
         
-        return super.getResponseBuilder(model);
+        return new EntityTag(Long.toHexString(eTagHash));
     }
     
     @Override
-    public ResponseBuilder getResponseBuilder(Dataset dataset)
+    public EntityTag getEntityTag(Dataset dataset)
     {
-        Date modified = getModifiedDate(dataset.getDefaultModel()); // TO-DO: we probably shouldn't be looking in the default model only
-        if (modified != null)
-            return super.getResponseBuilder(dataset).
-                lastModified(modified);
+        long eTagHash = com.atomgraph.core.model.impl.Response.hashDataset(dataset);
         
-        return super.getResponseBuilder(dataset);
+        List<Variant> variants = getVariants(getWritableMediaTypes(Dataset.class));
+        Variant variant = getRequest().selectVariant(variants);
+        if (variant != null && variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
+        {
+            // authenticated agents get a different HTML representation
+            if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
+            {
+                Agent agent = (Agent)getSecurityContext().getUserPrincipal();
+                eTagHash += agent.hashCode();
+            }
+        }
+        
+        return new EntityTag(Long.toHexString(eTagHash));
     }
     
-    public Date getModifiedDate(Model model)
+    @Override
+    public Date getLastModified(Model model)
     {
-        NodeIterator it = model.listObjectsOfProperty(getOntResource(), DCTerms.modified);
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        
+        List<Date> dates = new ArrayList<>();
+
+        NodeIterator createdIt = model.listObjectsOfProperty(getOntResource(), DCTerms.created);
         try
         {
-            if (it.hasNext())
+            while (createdIt.hasNext())
             {
-                RDFNode object = it.next();
+                RDFNode object = createdIt.next();
                 if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
-                    return ((XSDDateTime)object.asLiteral().getValue()).asCalendar().getTime();
+                    dates.add(((XSDDateTime)object.asLiteral().getValue()).asCalendar().getTime());
             }
         }
         finally
         {
-            it.close();
+            createdIt.close();
+        }
+
+        NodeIterator modifiedIt = model.listObjectsOfProperty(getOntResource(), DCTerms.modified);
+        try
+        {
+            while (modifiedIt.hasNext())
+            {
+                RDFNode object = modifiedIt.next();
+                if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
+                    dates.add(((XSDDateTime)object.asLiteral().getValue()).asCalendar().getTime());
+            }
+        }
+        finally
+        {
+            modifiedIt.close();
         }
         
+        if (!dates.isEmpty()) return Collections.max(dates);
+        
         return null;
+    }
+    
+    @Override
+    public Date getLastModified(Dataset dataset)
+    {
+        return getLastModified(dataset.getDefaultModel()); // TO-DO: we probably shouldn't be looking in the default model only
     }
     
     /**
@@ -724,11 +770,16 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             WebResource.Builder builder = getClient().resource(getApplication().getService().getProxy().getURI()).getRequestBuilder();
 
             for (Resource resource : resources)
-            {
-                String escapedURI = NodeFmtLib.str(resource.asNode());
-                // encode the URI, because that is how it will appear in SPARQL Protocol URLs cached by the backend proxy
-                builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(escapedURI, UriComponent.Type.UNRESERVED));
-            }
+                if (resource != null)
+                {
+                    // make URIs relative as this is how they will appear in SPARQL queries with BASE
+                    URI absolute = URI.create(resource.getURI());
+                    URI relative = getApplication().getBaseURI().relativize(absolute);
+
+                    // String escapedURI = NodeFmtLib.str(resource.asNode()); // no need to have <uri> syntax as in RDF?
+                    // encode the URI, because that is how it will appear in SPARQL Protocol URLs cached by the backend proxy
+                    builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(relative.toString(), UriComponent.Type.UNRESERVED));
+                }
 
             ClientResponse cr = null;
             try

@@ -17,13 +17,10 @@
 package com.atomgraph.linkeddatahub.client.provider;
 
 import com.sun.jersey.spi.resource.Singleton;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.SecurityContext;
@@ -122,19 +119,6 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
             if (getURI() != null) builder.parameter("{" + AC.uri.getNameSpace() + "}" + AC.uri.getLocalName(), getURI());
             else builder.parameter("{" + AC.uri.getNameSpace() + "}" + AC.uri.getLocalName(), getAbsolutePath());
 
-            BigInteger modelVariantHash = null;
-            EntityTag entityTag = ((EntityTag)headerMap.getFirst(HttpHeaders.ETAG));
-            if (entityTag != null) // decode number from possible EntityTag
-                try
-                {
-                    modelVariantHash = new BigInteger(entityTag.getValue(), 16);
-                    if (log.isDebugEnabled()) log.debug("Decoded hexadecimal hash from EntityTag value: {}", entityTag.getValue());
-                }
-                catch (NumberFormatException ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Could not decode hexadecimal hash from EntityTag value", ex);
-                }
-
             Application app = getApplication();
             if (app != null)
             {
@@ -178,12 +162,6 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
                     source.setSystemId(agent.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lacl:Agent)
 
                 builder.parameter("{" + LACL.Agent.getNameSpace() + "}" + LACL.Agent.getLocalName(), source);
-
-                if (modelVariantHash != null)
-                {
-                    if (log.isDebugEnabled()) log.debug("Adding Agent hash code value '{}' to EntityTag", agent.hashCode());
-                    modelVariantHash = modelVariantHash.add(BigInteger.valueOf(agent.hashCode()));
-                }
             }
 
             // TO-DO: move to client-side?
@@ -196,27 +174,6 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
                 URI referer = URI.create(getHttpHeaders().getRequestHeader("Referer").get(0));
                 if (log.isDebugEnabled()) log.debug("Passing $Referer URI to XSLT: {}", referer);
                 builder.parameter("Referer", referer); // TO-DO: move to ac: namespace
-            }
-
-            if (modelVariantHash != null)
-            {
-                List<URI> modes = getModes(getUriInfo(), getSupportedNamespaces());
-                if (!modes.isEmpty())
-                {
-                    if (log.isDebugEnabled()) log.debug("Adding Referer URI hash code value '{}' to EntityTag", modes.hashCode());
-                    modelVariantHash = modelVariantHash.add(BigInteger.valueOf(modes.hashCode()));
-                }
-                
-                Object contentLanguage = headerMap.getFirst(HttpHeaders.CONTENT_LANGUAGE);
-                if (contentLanguage != null)
-                {
-                    if (log.isDebugEnabled()) log.debug("Adding Referer URI hash code value '{}' to EntityTag", contentLanguage.hashCode());
-                    modelVariantHash = modelVariantHash.add(BigInteger.valueOf(contentLanguage.hashCode()));
-                }
-
-                EntityTag newEntityTag = new EntityTag(modelVariantHash.toString(16));
-                headerMap.putSingle(HttpHeaders.ETAG, newEntityTag);
-                if (log.isDebugEnabled()) log.debug("ETag header value changed from '{}' to '{}'", entityTag, newEntityTag);
             }
 
             return builder;

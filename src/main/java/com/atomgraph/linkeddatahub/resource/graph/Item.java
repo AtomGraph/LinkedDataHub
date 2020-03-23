@@ -43,10 +43,12 @@ import com.atomgraph.linkeddatahub.server.method.PATCH;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.vocabulary.DH;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
@@ -58,8 +60,10 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.ResultSetRewindable;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,31 +144,40 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         }
         
         getService().getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
-        
-        // attempt to purge ?doc where { ?doc void:inDataset ?this }
-        if (getSystem().isInvalidateCache())
+
+        ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
+                getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
+                new MultivaluedMapImpl()).
+                getEntity(ResultSetRewindable.class);
+        if (resultSet.hasNext())
         {
-            ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
-                    getTemplateCall().getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                    new MultivaluedMapImpl()).
-                    getEntity(ResultSetRewindable.class);
-            if (resultSet.hasNext())
+            QuerySolution qs = resultSet.next();
+            Resource document = qs.getResource(FOAF.Document.getLocalName());
+            Resource provGraph = qs.getResource("provGraph"); // TO-DO: use some constant instead of a hardcoded string
+            Resource container = qs.getResource(DH.Container.getLocalName());
+            
+            if (provGraph != null)
             {
-                QuerySolution qs = resultSet.next();
-                Resource document = qs.getResource(FOAF.Document.getLocalName());
-                
-                if (document != null)
+                // add dct:modified on ?doc where { ?doc void:inDataset ?this }
+                Model provModel = ModelFactory.createDefaultModel();
+                provModel.addLiteral(document, DCTerms.modified, provModel.createTypedLiteral(GregorianCalendar.getInstance()));
+                Dataset provDataset = DatasetFactory.create();
+                provDataset.addNamedModel(provGraph.getURI(), provModel);
+                getService().getDatasetQuadAccessor().add(provDataset);
+            }
+            
+            // attempt to purge ?doc where { ?doc void:inDataset ?this }
+            if (getSystem().isInvalidateCache() && document != null)
+            {
+                ClientResponse banResponse = null;
+                try
                 {
-                    ClientResponse banResponse = null;
-                    try
-                    {
-                        banResponse = ban(document);
-                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
-                    }
-                    finally
-                    {
-                        if (banResponse != null) banResponse.close();
-                    }
+                    banResponse = ban(document, container);
+                    if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                }
+                finally
+                {
+                    if (banResponse != null) banResponse.close();
                 }
             }
         }
@@ -212,13 +225,14 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         {
             ResultSet resultSet = getService().getSPARQLClient().
                 query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
-                    getTemplateCall().getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
+                    getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
                     new MultivaluedMapImpl()).
                 getEntity(ResultSetRewindable.class);
             if (resultSet.hasNext())
             {
                 QuerySolution qs = resultSet.next();
                 Resource document = qs.getResource(FOAF.Document.getLocalName());
+                
                 if (document != null)
                 {
                     ClientResponse banResponse = null;

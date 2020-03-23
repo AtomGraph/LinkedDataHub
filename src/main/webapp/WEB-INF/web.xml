@@ -238,7 +238,7 @@ WHERE
           } 
         GRAPH ?this 
           { ?Document ?p ?o } 
-      } 
+      }
   }
 ]]></param-value>
     </context-param>
