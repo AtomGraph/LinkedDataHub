@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource.file;
 
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.ResourceUtils;
@@ -46,7 +44,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.util.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
@@ -54,7 +51,6 @@ import com.sun.jersey.api.client.Client;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.InfModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,21 +112,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 ResourceUtils.renameResource(resource, sha1Uri.toString());
 
                 return super.writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
-
-                /*
-                PropertiesCredentials credentials = new PropertiesCredentials(getServletContext().getResourceAsStream("AwsCredentials.properties"));
-                AmazonS3 s3 = new AmazonS3Client(credentials);
-
-                if (!s3.doesBucketExist(getUriInfo().getBaseUri().getHost()))
-                    createBucket(s3, getUriInfo().getBaseUri().getHost());
-
-                ObjectMetadata metadata = new ObjectMetadata();
-                metadata.setContentType(bodyPart.getMediaType().toString());
-                metadata.setContentDisposition("attachment");
-                //PutObjectRequest request = new PutObjectRequest(uri.getHost(), uri.getPath().substring(1), dis, metadata); // remove leading / from path
-
-                //s3.putObject(request);
-                */
             }
         }
         catch (NoSuchAlgorithmException ex)
@@ -144,77 +125,5 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         
         return null;
     }
-
-    //@Override
-    public Resource getURIResource(InfModel infModel, Property property, Resource object) // return the document about the file, not the file itself
-    {
-        if (infModel == null) throw new IllegalArgumentException("Model cannot be null");
-        if (property == null) throw new IllegalArgumentException("Property cannot be null");
-        if (object == null) throw new IllegalArgumentException("Object Resource cannot be null");
-        
-        ResIterator it = infModel.listSubjectsWithProperty(property, object);
-
-        try
-        {
-            while (it.hasNext())
-            {
-                Resource resource = it.next();
-
-                if (resource.isURIResource() && !resource.hasProperty(property, NFO.FileDataObject)) return resource;
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-        
-        return null;
-    }
-    
-//    @Override
-//    public Response get()
-//    {
-//        if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
-//        {
-//            String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource
-//            if (uri.startsWith("https://www.googleapis.com/drive/v3/files"))
-//            {
-//                ClientResponse cr = null;
-//                try
-//                {
-//                    cr = getClient().resource(uri).
-//                        accept(MediaType.APPLICATION_JSON_TYPE).
-//                        get(ClientResponse.class);
-//
-//                    FileListBean fileListBean = cr.getEntity(FileListBean.class);
-//
-//                    if (fileListBean == null) return Response.noContent().build();
-//                    else return Response.ok(fileListBean.getFiles().size()).build();
-//                }
-//                finally
-//                {
-//                    if (cr != null) cr.close();
-//                }
-//            }
-//        }
-//        
-//        return super.get();
-//    }
-    
-    /*
-    public void createBucket(AmazonS3 s3, String bucketName)
-    {
-        s3.createBucket(bucketName);
-
-        // set public read permissions to all files -- good idea?!
-        Statement allowPublicRead = new Statement(Statement.Effect.Allow)
-            .withPrincipals(Principal.AllUsers)
-            .withActions(S3Actions.GetObject)
-            .withResources(new S3ObjectResource(bucketName, "*"));
-
-        Policy policy = new Policy().withStatements(allowPublicRead);
-        s3.setBucketPolicy(bucketName, policy.toJson());
-    }
-*/
 
 }

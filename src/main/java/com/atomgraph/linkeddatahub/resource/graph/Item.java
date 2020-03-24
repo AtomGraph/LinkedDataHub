@@ -24,11 +24,9 @@ import org.apache.jena.rdf.model.Resource;
 import com.sun.jersey.api.core.HttpContext;
 import com.sun.jersey.api.core.ResourceContext;
 import java.net.URI;
-import java.util.List;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -106,7 +104,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             header("Allow", HttpMethod.PUT).
             header("Allow", HttpMethod.DELETE);
         
-        String acceptWritable = StringUtils.join(getWritableMediaTypes(), ",");
+        String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
         rb.header("Accept-Put", acceptWritable);
         
@@ -232,13 +230,14 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             {
                 QuerySolution qs = resultSet.next();
                 Resource document = qs.getResource(FOAF.Document.getLocalName());
+                Resource container = qs.getResource(DH.Container.getLocalName());
                 
                 if (document != null)
                 {
                     ClientResponse banResponse = null;
                     try
                     {
-                        banResponse = ban(document);
+                        banResponse = ban(document, container);
                         if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
                     }
                     finally
@@ -263,11 +262,6 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();
-    }
-
-    public List<MediaType> getWritableMediaTypes()
-    {
-        return getMediaTypes().getWritable(Model.class);
     }
     
 }

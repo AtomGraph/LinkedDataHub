@@ -19,6 +19,8 @@ file_url=$(./create-file.sh \
 --file "$pwd/test.csv" \
 --file-content-type "${file_content_type}")
 
+echo "${file_url}"
+
 popd > /dev/null
 
 curl -k -w "%{http_code}\n" -f -s \

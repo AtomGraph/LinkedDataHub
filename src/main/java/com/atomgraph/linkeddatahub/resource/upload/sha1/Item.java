@@ -21,7 +21,6 @@ import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
@@ -31,6 +30,7 @@ import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.processor.util.TemplateCall;
 import com.sun.jersey.api.client.Client;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
@@ -64,11 +64,11 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
                 dataManager, providers,
                 system);
     }
-
+    
     @Override
-    public ResponseBuilder getResponseBuilder(Dataset dataset)
+    public EntityTag getEntityTag(Dataset dataset)
     {
-        return super.getResponseBuilder(dataset).tag(getSHA1Hash());
+        return new EntityTag(getSHA1Hash());
     }
     
     public String getSHA1Hash()

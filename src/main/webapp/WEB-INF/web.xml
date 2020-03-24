@@ -199,8 +199,6 @@ WHERE
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#sitemapQuery</param-name>
         <param-value><![CDATA[
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  describeForm: <urn:dydra:simple-concise-bounded-description>
-PREFIX  describeSubjectDepth: <http://www.w3.org/1999/02/22-rdf-syntax-ns#_4>
 PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 
@@ -222,22 +220,23 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#graphDocumentQuery</param-name>
         <param-value><![CDATA[
-PREFIX  sioc: <http://rdfs.org/sioc/ns#> 
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/> 
-PREFIX  void: <http://rdfs.org/ns/void#> 
- 
+PREFIX  void: <http://rdfs.org/ns/void#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
 SELECT DISTINCT *
-WHERE 
+WHERE
   { GRAPH ?provGraph
-      { ?this foaf:primaryTopic ?Dataset . 
-        ?Document void:inDataset ?Dataset 
-        OPTIONAL 
-          {   { ?Document sioc:has_parent ?Container } 
-            UNION 
-              { ?Document sioc:has_container ?Container } 
-          } 
-        GRAPH ?this 
-          { ?Document ?p ?o } 
+      { ?this     foaf:primaryTopic  ?Dataset .
+        ?Document  void:inDataset    ?Dataset
+        GRAPH ?this
+          { ?Document  ?p  ?o
+            OPTIONAL
+              {   { ?Document  sioc:has_parent  ?Container }
+                UNION
+                  { ?Document  sioc:has_container  ?Container }
+              }
+          }
       }
   }
 ]]></param-value>
@@ -252,7 +251,7 @@ PREFIX rdfs:	<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl:	<http://www.w3.org/2002/07/owl#>
 PREFIX sioc:	<http://rdfs.org/sioc/ns#>
 
-SELECT *
+SELECT DISTINCT *
 {
     ?Class a rdfs:Class ; # not necessarily a ldt:Template
         rdfs:subClassOf ?Restriction .
@@ -536,24 +535,6 @@ support@linkeddatahub.com]]></param-value>
 [rdfs9: (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y)]
 ]]></param-value>
     </context-param>
-    <!--
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/processor#cacheSitemap</param-name>
-        <param-value>false</param-value>
-    </context-param>
-    -->
-    <!--
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#proxy</param-name>
-        <param-value>http://atomgraph.dydra.varnish/</param-value>
-    </context-param>
-    -->
-    <!--
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#remoteVariableBindings</param-name>
-        <param-value>true</param-value>
-    </context-param>
-    -->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#invalidateCache</param-name>
         <param-value>true</param-value>

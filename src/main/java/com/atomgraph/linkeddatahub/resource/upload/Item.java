@@ -39,11 +39,14 @@ import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.processor.util.TemplateCall;
 import com.sun.jersey.api.client.Client;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
@@ -95,7 +98,7 @@ public class Item extends ResourceBase
         }
         
         // respond with file content if Variant is compatible with the File's MediaType. otherwise, send RDF
-        if (getMediaType().isCompatible(variant.getMediaType()))
+        if (getFormat().isCompatible(variant.getMediaType()))
         {
             URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
             File file = new File(fileURI);
@@ -104,7 +107,7 @@ public class Item extends ResourceBase
             {
                 if (!file.exists()) throw new FileNotFoundException();
 
-                return Response.ok(file).
+                return super.getResponseBuilder(dataset).entity(file).
                         type(variant.getMediaType());
                 //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
             }
@@ -118,7 +121,7 @@ public class Item extends ResourceBase
         return super.getResponseBuilder(dataset);
     }
     
-    public javax.ws.rs.core.MediaType getMediaType()
+    public javax.ws.rs.core.MediaType getFormat()
     {
         Resource format = getOntResource().getPropertyResourceValue(DCTerms.format);
         if (format == null)
@@ -127,16 +130,16 @@ public class Item extends ResourceBase
             throw new IllegalStateException("File does not have a media type (dct:format)");
         }
         
-        return com.atomgraph.linkeddatahub.MediaType.valueOf(format); // TO-DO: add charset=UTF-8?
+        return com.atomgraph.linkeddatahub.MediaType.valueOf(format);
     }
     
     @Override
     public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
         List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
-        list.add(getMediaType());
+        list.add(getFormat());
 
         return list;
     }
-
+    
 }

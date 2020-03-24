@@ -170,7 +170,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             return Arrays.asList(mediaType);
         }
 
-        return getMediaTypes().getWritable(clazz);
+        return super.getWritableMediaTypes(clazz);
     }
     
     /**

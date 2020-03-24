@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Appends RDF data to the dataset.\n"
+    printf "Appends RDF description.\n"
     printf "\n"
     printf "Usage:  echo -e \$rdf_body | %s options TARGET_URI\n" "$0"
     printf "\n"
