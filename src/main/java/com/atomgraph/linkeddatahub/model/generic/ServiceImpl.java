@@ -203,6 +203,7 @@ public class ServiceImpl extends ResourceImpl implements Service
             final URI proxyURI = URI.create(getProxy().getURI());
             
             return UriBuilder.fromUri(uri).
+                    scheme(proxyURI.getScheme()).
                     host(proxyURI.getHost()).
                     port(proxyURI.getPort()).
                     build();
