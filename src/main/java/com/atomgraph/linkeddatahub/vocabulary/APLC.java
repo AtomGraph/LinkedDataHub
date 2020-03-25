@@ -24,7 +24,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- *
+ * LinkedDataHub configuration vocabulary.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class APLC
@@ -47,8 +48,6 @@ public class APLC
 
     // CONFIG
 
-    // public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
-        
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
