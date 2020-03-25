@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.model.dydra.impl;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.sun.jersey.api.client.Client;
+import java.net.URI;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -36,12 +37,14 @@ public class ServiceImplementation extends Implementation
     private final Client client;
     private final MediaTypes mediaTypes;
     private final Integer maxGetRequestSize;
+    private final URI proxy;
 
-    public ServiceImplementation(Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ServiceImplementation(Client client, MediaTypes mediaTypes, Integer maxGetRequestSize, URI proxy)
     {
         this.client = client;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
+        this.proxy = proxy;
     }
     
     @Override
@@ -49,7 +52,7 @@ public class ServiceImplementation extends Implementation
     {
         if (canWrap(node, enhGraph))
         {
-            return new ServiceImpl(node, enhGraph, getClient(), getMediaTypes(), getMaxGetRequestSize());
+            return new ServiceImpl(node, enhGraph, getClient(), getMediaTypes(), getMaxGetRequestSize(), getProxy());
         }
         else
         {
@@ -78,6 +81,11 @@ public class ServiceImplementation extends Implementation
     public Integer getMaxGetRequestSize()
     {
         return maxGetRequestSize;
+    }
+    
+    public URI getProxy()
+    {
+        return proxy;
     }
     
 }

@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.model;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.sun.jersey.api.client.Client;
+import java.net.URI;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -29,7 +30,7 @@ import org.apache.jena.rdf.model.Resource;
 public interface Service extends com.atomgraph.core.model.RemoteService, Resource
 {
 
-    Resource getProxy();
+    URI getProxy();
     
     Client getClient();
 

@@ -220,6 +220,7 @@ public class Application extends javax.ws.rs.core.Application
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
     private final URI uploadRoot;
+    private final URI proxy;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
@@ -248,7 +249,6 @@ public class Application extends javax.ws.rs.core.Application
             servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) : null,
-            null, // servletConfig.getServletContext().getInitParameter(APLC.proxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxy.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.remoteVariableBindings.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.remoteVariableBindings.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) : null,
@@ -260,6 +260,7 @@ public class Application extends javax.ws.rs.core.Application
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,            
             servletConfig.getServletContext().getResource("/").toString(),
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.proxy.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxy.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
@@ -285,12 +286,12 @@ public class Application extends javax.ws.rs.core.Application
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final String proxyURIString, final boolean remoteVariableBindings,
+            final boolean remoteVariableBindings,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString,
             final String appQueryString, final String sitemapQueryString,
             final String graphDocumentQueryString, final String postUpdateString, final String deleteUpdateString,
-            final String systemBase,
-            final String uploadRootString, final boolean invalidateCache,
+            final String systemBase, final String uploadRootString,
+            final String proxyURIString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort)
     {
@@ -399,6 +400,8 @@ public class Application extends javax.ws.rs.core.Application
         try
         {
             this.uploadRoot = new URI(uploadRootString);
+            if (proxyURIString != null) this.proxy = new URI(proxyURIString);
+            else this.proxy = null;
         }
         catch (URISyntaxException ex)
         {
@@ -468,8 +471,8 @@ public class Application extends javax.ws.rs.core.Application
             BuiltinPersonalities.model.add(AdminApplication.class, AdminApplicationImpl.factory);
             BuiltinPersonalities.model.add(EndUserApplication.class, EndUserApplicationImpl.factory);
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, ApplicationImpl.factory);
-            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(client, mediaTypes, maxGetRequestSize));
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(client, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(client, mediaTypes, maxGetRequestSize, proxy));
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(client, mediaTypes, maxGetRequestSize, proxy));
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
@@ -910,6 +913,11 @@ public class Application extends javax.ws.rs.core.Application
     public boolean isResolvingUncached()
     {
         return resolvingUncached;
+    }
+    
+    public URI getProxy()
+    {
+        return proxy;
     }
     
     public URI getUploadRoot()

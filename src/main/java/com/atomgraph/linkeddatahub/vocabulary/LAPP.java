@@ -58,6 +58,4 @@ public class LAPP
 
     public static final ObjectProperty endUserApplication = m_model.createObjectProperty( NS + "endUserApplication" );
 
-    public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
-
 }

@@ -28,7 +28,6 @@ import com.atomgraph.core.model.impl.remote.EndpointAccessorImpl;
 import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
@@ -61,13 +60,15 @@ public class ServiceImpl extends ResourceImpl implements Service
     private final Client client;
     private final MediaTypes mediaTypes;
     private final Integer maxGetRequestSize;
+    private final URI proxy;
     
-    public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize, URI proxy)
     {
         super(n, g);
         this.client = client;
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
+        this.proxy = proxy;
     }
     
     @Override
@@ -86,12 +87,6 @@ public class ServiceImpl extends ResourceImpl implements Service
     public Resource getQuadStore()
     {
         return getPropertyResourceValue(A.quadStore);
-    }
-    
-    @Override
-    public Resource getProxy()
-    {
-        return getPropertyResourceValue(LAPP.proxy);
     }
     
     @Override
@@ -199,14 +194,10 @@ public class ServiceImpl extends ResourceImpl implements Service
     {
         // if service proxyURI is set, change the URI host/port to proxyURI host/port
         if (getProxy() != null)
-        {
-            final URI proxyURI = URI.create(getProxy().getURI());
-            
             return UriBuilder.fromUri(uri).
-                    host(proxyURI.getHost()).
-                    port(proxyURI.getPort()).
+                    host(getProxy().getHost()).
+                    port(getProxy().getPort()).
                     build();
-        }
         
         return uri;
     }
@@ -229,4 +220,10 @@ public class ServiceImpl extends ResourceImpl implements Service
         return maxGetRequestSize;
     }
 
+    @Override
+    public URI getProxy()
+    {
+        return proxy;
+    }
+    
 }

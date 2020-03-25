@@ -56,5 +56,5 @@ _:root_end_user_service a apl:GenericService ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
-    a:quadStore <http://fuseki-end-user:3030/ds/> ;
-    lapp:proxy <http://varnish-end-user/> .
+    a:quadStore <http://fuseki-end-user:3030/ds/> .
+    # lapp:proxy <http://varnish-end-user/> .

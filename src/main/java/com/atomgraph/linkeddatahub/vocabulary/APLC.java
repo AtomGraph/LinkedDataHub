@@ -47,7 +47,7 @@ public class APLC
 
     // CONFIG
 
-    // public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
+    public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
         
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 

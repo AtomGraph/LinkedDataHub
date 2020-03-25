@@ -572,6 +572,10 @@ WHERE
   }
 ]]></param-value>
     </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#proxy</param-name>
+        <param-value>http://varnish-end-user/</param-value>
+    </context-param>
     <servlet>
         <servlet-name>platform</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>

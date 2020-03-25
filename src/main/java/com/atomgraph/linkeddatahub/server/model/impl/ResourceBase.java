@@ -431,8 +431,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             {
                 Resource created = it.next();
                 
-                 // special case that handles apl:File creation
-                 // a file has a apl:FileItem attached via foaf:isPrimaryTopicOf, but since it is a document itself and not a "thing", it can be returned directly
+                // special case that handles apl:File creation
+                // a file has a apl:FileItem attached via foaf:isPrimaryTopicOf, but since it is a document itself and not a "thing", it can be returned directly
                 if (created.hasProperty(RDF.type, FOAF.Document)) return created;
                 
                 // handle creation of "things"- they are not documents themselves, so we return the attached document instead
@@ -760,14 +760,21 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         }
     }
 
+    /**
+     * Bans resource URIs from Varnish cache by sending a <code>BAN</code> request.
+     * 
+     * @param resources URIs to be banned
+     * @return client response
+     * @see <a href="https://varnish-cache.org/docs/trunk/users-guide/purging.html#bans">Bans</a>
+     */
     public ClientResponse ban(org.apache.jena.rdf.model.Resource... resources)
     {
         if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
         
-        if (getApplication().getService().getProxy() != null)
+        if (getSystem().getProxy() != null)
         {
             // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-            WebResource.Builder builder = getClient().resource(getApplication().getService().getProxy().getURI()).getRequestBuilder();
+            WebResource.Builder builder = getClient().resource(getSystem().getProxy()).getRequestBuilder();
 
             for (Resource resource : resources)
                 if (resource != null)
@@ -784,7 +791,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             ClientResponse cr = null;
             try
             {
-                cr = builder.method("BAN", ClientResponse.class);
+                cr = builder.method("BAN", ClientResponse.class); // TO-DO: this is Varnish-specific, make more generic?
                 return cr;
             }
             finally

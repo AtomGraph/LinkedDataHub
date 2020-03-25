@@ -40,9 +40,9 @@ import java.net.URI;
 public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.ServiceImpl implements Service
 {
 
-    public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize, URI proxy)
     {
-        super(n, g, client, mediaTypes, maxGetRequestSize);
+        super(n, g, client, mediaTypes, maxGetRequestSize, proxy);
     }
 
     @Override
