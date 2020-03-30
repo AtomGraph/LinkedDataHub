@@ -74,8 +74,8 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
         if (lang == null) throw new IllegalArgumentException("Lang must be not null");
 
         CollectingErrorHandler errorHandler = new CollectingErrorHandler(); // collect parse errors. do not throw exceptions
-        ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
-        read(model, is, lang, baseURI, errorHandler, parserProfile);
+        //ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
+        read(model, is, lang, baseURI, errorHandler);
 
         if (!errorHandler.getViolations().isEmpty())
         {

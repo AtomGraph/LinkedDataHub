@@ -595,7 +595,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
 
-        return new RDFPostReader().parse(keys, values);
+        return RDFPostReader.parse(keys, values);
     }
     
     /**
