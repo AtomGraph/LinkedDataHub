@@ -21,7 +21,6 @@ import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestReader;
-import com.atomgraph.linkeddatahub.client.NoCertClient;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -32,17 +31,19 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.ext.Provider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,29 +54,29 @@ import org.slf4j.LoggerFactory;
  */
 @Provider
 @Singleton
-public class NoCertClientProvider implements Factory<NoCertClient> // extends PerRequestTypeInjectableProvider<Context, NoCertClient> implements ContextResolver<NoCertClient>
+public class NoCertClientProvider implements Factory<Client> // extends PerRequestTypeInjectableProvider<Context, NoCertClient> implements ContextResolver<NoCertClient>
 {
 
     private static final Logger log = LoggerFactory.getLogger(NoCertClientProvider.class);
     
     private final KeyStore trustStore;
-    private final NoCertClient client;
+    private final Client client;
     
     public NoCertClientProvider(KeyStore trustStore)
     {
-//        super(NoCertClient.class);
         this.trustStore = trustStore;
         
-        ClientConfig clientConfig = new DefaultApacheHttpClient4Config();
 //        clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
-        clientConfig.getSingletons().add(new ModelProvider());
-        clientConfig.getSingletons().add(new DatasetProvider());
-        clientConfig.getSingletons().add(new ResultSetProvider());
-        clientConfig.getSingletons().add(new QueryProvider());
-        clientConfig.getSingletons().add(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
         // cannot CSVReader with Client because it depends on request URI
         //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_CONNECTION_MANAGER, new ThreadSafeClientConnManager());
 //        clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.connectorProvider(new HttpUrlConnectorProvider().useSetMethodWorkaround());
+        clientConfig.register(new ModelProvider());
+        clientConfig.register(new DatasetProvider());
+        clientConfig.register(new ResultSetProvider());
+        clientConfig.register(new QueryProvider());
+        clientConfig.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
         
         try
         {
@@ -83,7 +84,7 @@ public class NoCertClientProvider implements Factory<NoCertClient> // extends Pe
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init(trustStore);
             
-            SSLContext ctx = SSLContext.getInstance("SSL");
+            SSLContext ctx = SSLContext.getInstance("TLSv1");
             ctx.init(null, tmf.getTrustManagers(), null);
 
             HostnameVerifier hv = new HostnameVerifier()
@@ -96,8 +97,8 @@ public class NoCertClientProvider implements Factory<NoCertClient> // extends Pe
                     return true;
                 }
             };
-
-            // clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hv, ctx));
+//
+//            // clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hv, ctx));
             SchemeRegistry schemeRegistry = new SchemeRegistry();
             SSLSocketFactory ssf = new SSLSocketFactory(ctx);
             Scheme httpsScheme = new Scheme("https", 443, ssf);
@@ -105,9 +106,16 @@ public class NoCertClientProvider implements Factory<NoCertClient> // extends Pe
             Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
             schemeRegistry.register(httpScheme);
             ClientConnectionManager conman = new ThreadSafeClientConnManager(schemeRegistry);
-            HttpClient httpClient = new DefaultHttpClient(conman);
-            ApacheHttpClient4Handler handler = new ApacheHttpClient4Handler(httpClient, null, false);
-            client = new NoCertClient(handler, clientConfig);
+            
+//            HttpClient httpClient = new DefaultHttpClient(conman);
+//            ApacheHttpClient4Handler handler = new ApacheHttpClient4Handler(httpClient, null, false);
+//            client = new NoCertClient(handler, clientConfig);
+            client = ClientBuilder.newBuilder().
+                sslContext(ctx).
+                hostnameVerifier(hv).
+                property(ApacheClientProperties.CONNECTION_MANAGER, conman).
+                build();
+        
         }
         catch (NoSuchAlgorithmException ex)
         {
@@ -125,8 +133,19 @@ public class NoCertClientProvider implements Factory<NoCertClient> // extends Pe
             throw new WebApplicationException(ex);
         }
         
-        client.setFollowRedirects(true);
-        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
+        //client.setFollowRedirects(true);
+        //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
+    }
+    
+    @Override
+    public Client provide()
+    {
+        return getClient();
+    }
+
+    @Override
+    public void dispose(Client t)
+    {
     }
     
 //    @Override
@@ -153,7 +172,7 @@ public class NoCertClientProvider implements Factory<NoCertClient> // extends Pe
         return trustStore;
     }
     
-    public NoCertClient getClient()
+    public Client getClient()
     {
         return client;
     }

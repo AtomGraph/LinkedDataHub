@@ -20,7 +20,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.client.NoCertClient;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDURIException;
@@ -44,6 +43,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
@@ -273,8 +273,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
             Response cr = getNoCertClient().target(webIDDoc).
-                    accept(getAcceptableMediaTypes()).
-                    get(Response.class);
+                    request(getAcceptableMediaTypes()).
+                    get();
             
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {
@@ -425,9 +425,10 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return getProviders().getContextResolver(DataManager.class, null).getContext(DataManager.class);
     }
     
-    public NoCertClient getNoCertClient()
+    public Client getNoCertClient()
     {
-        return getProviders().getContextResolver(NoCertClient.class, null).getContext(NoCertClient.class);
+        //return getProviders().getContextResolver(NoCertClient.class, null).getContext(NoCertClient.class);
+        return null;
     }
     
     public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()

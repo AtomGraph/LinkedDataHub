@@ -19,20 +19,17 @@ package com.atomgraph.linkeddatahub.client.provider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.PerRequestTypeInjectableProvider;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.client.DataManager
  */
 @Provider
-public class DataManagerProvider extends PerRequestTypeInjectableProvider<Context, DataManager> implements ContextResolver<DataManager>
+public class DataManagerProvider implements Factory<DataManager>// extends PerRequestTypeInjectableProvider<Context, DataManager> implements ContextResolver<DataManager>
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerProvider.class);
 
@@ -58,31 +55,42 @@ public class DataManagerProvider extends PerRequestTypeInjectableProvider<Contex
     
     public DataManagerProvider(boolean preemptiveAuth, boolean resolvingUncached)
     {
-        super(DataManager.class);
+//        super(DataManager.class);
         
         this.preemptiveAuth = preemptiveAuth;
         this.resolvingUncached = resolvingUncached;
     }
 
-    @Override
-    public Injectable<DataManager> getInjectable(ComponentContext cc, Context a)
-    {
-        return new Injectable<DataManager>()
-        {
-            @Override
-            public DataManager getValue()
-            {
-                return getDataManager();
-            }
-        };
-    }
+//    @Override
+//    public Injectable<DataManager> getInjectable(ComponentContext cc, Context a)
+//    {
+//        return new Injectable<DataManager>()
+//        {
+//            @Override
+//            public DataManager getValue()
+//            {
+//                return getDataManager();
+//            }
+//        };
+//    }
+//
+//    @Override
+//    public DataManager getContext(Class<?> type)
+//    {
+//        return getDataManager();
+//    }
 
     @Override
-    public DataManager getContext(Class<?> type)
+    public DataManager provide()
     {
         return getDataManager();
     }
 
+    @Override
+    public void dispose(DataManager t)
+    {
+    }
+    
     public DataManager getDataManager()
     {
         return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),

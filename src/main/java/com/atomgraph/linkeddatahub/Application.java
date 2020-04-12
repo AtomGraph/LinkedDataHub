@@ -142,12 +142,10 @@ import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerConfigurationException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -170,6 +168,7 @@ import com.atomgraph.processor.vocabulary.LDT;
 import java.util.Iterator;
 import java.util.TreeMap;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -177,6 +176,8 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 
 /**
@@ -430,7 +431,7 @@ public class Application extends javax.ws.rs.core.Application
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(new DefaultApacheHttpClient4Config(), keyStore, clientKeyStorePassword, trustStore);
+            client = getClient(new ClientConfig(), keyStore, clientKeyStorePassword, trustStore);
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
@@ -733,7 +734,7 @@ public class Application extends javax.ws.rs.core.Application
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
 
-        //clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
+        clientConfig.connectorProvider(new HttpUrlConnectorProvider().useSetMethodWorkaround());
         clientConfig.register(new ModelProvider());
         clientConfig.register(new DatasetProvider());
         clientConfig.register(new ResultSetProvider());
@@ -751,7 +752,7 @@ public class Application extends javax.ws.rs.core.Application
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         tmf.init(trustStore);
 
-        SSLContext ctx = SSLContext.getInstance("SSL");
+        SSLContext ctx = SSLContext.getInstance("TLSv1");
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         HostnameVerifier hv = new HostnameVerifier()
@@ -774,13 +775,23 @@ public class Application extends javax.ws.rs.core.Application
         schemeRegistry.register(httpScheme);
         ThreadSafeClientConnManager conman = new ThreadSafeClientConnManager(schemeRegistry);
         conman.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
-        HttpClient httpClient = new DefaultHttpClient(conman);
-        ApacheHttpClient4Handler handler = new ApacheHttpClient4Handler(httpClient, null, false);
-        Client client = new ApacheHttpClient4(handler, clientConfig);
-        client.setFollowRedirects(true);
-        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
+//        HttpClient httpClient = new DefaultHttpClient(conman);
+//        ApacheHttpClient4Handler handler = new ApacheHttpClient4Handler(httpClient, null, false);
+//        Client client = new ApacheHttpClient4(handler, clientConfig);
+//        client.setFollowRedirects(true);
+        
+//        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
 
-        return client;
+        return ClientBuilder.newBuilder().
+            sslContext(ctx).
+            hostnameVerifier(hv).
+            property(ApacheClientProperties.CONNECTION_MANAGER, conman).
+            register(new ModelProvider()).
+            register(new DatasetProvider()).
+            register(new ResultSetProvider()).
+            register(new QueryProvider()).
+            register(new UpdateRequestReader()). // TO-DO: UpdateRequestProvider
+            build();
     }
     
     @Override

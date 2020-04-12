@@ -41,7 +41,7 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
     
     public QueriedResource getQueriedResource()
     {
-        return getResourceContext().matchResource(getUriInfo().getRequestUri(), QueriedResource.class);
+        return getResourceContext().getResource(QueriedResource.class);
     }
     
     public ResourceContext getResourceContext()
