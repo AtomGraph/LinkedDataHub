@@ -19,26 +19,25 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.riot.lang.TokenizerRDFPost;
 import com.atomgraph.processor.vocabulary.SIOC;
-import com.sun.jersey.core.header.InBoundHeaders;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-import com.sun.jersey.spi.container.ContainerResponseFilter;
-import com.sun.jersey.spi.container.ResourceFilter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.ReaderInterceptor;
+import javax.ws.rs.ext.ReaderInterceptorContext;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.ParsingException;
 import nu.xom.canonical.Canonicalizer;
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,18 +49,21 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RDFPostCleanupFilter implements ResourceFilter, ContainerRequestFilter
+public class RDFPostCleanupFilter implements ReaderInterceptor // ResourceFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(RDFPostCleanupFilter.class);
 
     @Override
-    public ContainerRequest filter(ContainerRequest request)
+    public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
     {
-        if (request.getMediaType() != null &&
-                request.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        if (context.getMediaType() != null &&
+                context.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
         {
-            String formData = request.getEntity(String.class);
+            StringWriter writer = new StringWriter();
+            IOUtils.copy(context.getInputStream(), writer);;
+            
+            String formData = writer.toString();
             
             if (formData.startsWith(TokenizerRDFPost.RDF))
             {
@@ -110,12 +112,10 @@ public class RDFPostCleanupFilter implements ResourceFilter, ContainerRequestFil
                     }
 
                     // set re-serialized RDF/POST as request entity stream
-                    request.setEntityInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
+                    context.setInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
                     
                     // replace generic Form URL-encoded media type with RDF/POST
-                    MultivaluedMap<String, String> headers = request.getRequestHeaders();
-                    headers.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_RDF_URLENCODED);
-                    request.setHeaders((InBoundHeaders)headers);
+                    context.getHeaders().putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_RDF_URLENCODED);
                 }
                 catch (ParsingException | IOException ex)
                 {
@@ -124,7 +124,7 @@ public class RDFPostCleanupFilter implements ResourceFilter, ContainerRequestFil
             }
         }
         
-        return request;
+        return context.proceed();
     }
     
     public List<String> fixValues(List<String> keys, List<String> values, String charsetName) throws ParsingException, IOException
@@ -188,17 +188,18 @@ public class RDFPostCleanupFilter implements ResourceFilter, ContainerRequestFil
             return baos.toString(StandardCharsets.UTF_8.name());
         }
     }
-    
-    @Override
-    public ContainerRequestFilter getRequestFilter()
-    {
-        return this;
-    }
+//    
+//    @Override
+//    public ContainerRequestFilter getRequestFilter()
+//    {
+//        return this;
+//    }
+//
+//    @Override
+//    public ContainerResponseFilter getResponseFilter()
+//    {
+//        return null;
+//    }
 
-    @Override
-    public ContainerResponseFilter getResponseFilter()
-    {
-        return null;
-    }
     
 }

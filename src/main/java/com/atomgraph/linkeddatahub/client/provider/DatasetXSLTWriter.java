@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.client.provider;
 
-import com.sun.jersey.spi.resource.Singleton;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.ws.rs.Produces;
@@ -64,7 +63,6 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-@Singleton
 @Produces({MediaType.TEXT_HTML + ";charset=UTF-8"}) // MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8", 
 public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWriter
 {

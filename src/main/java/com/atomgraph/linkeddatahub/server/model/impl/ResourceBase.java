@@ -31,16 +31,7 @@ import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
-import com.atomgraph.processor.util.TemplateCall;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
-import com.sun.jersey.api.uri.UriComponent;
-import com.sun.jersey.multipart.BodyPart;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataMultiPart;
+import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
@@ -71,11 +62,19 @@ import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.*;
+import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.uri.UriComponent;
 import org.spinrdf.arq.ARQ2SPIN;
 
 /**
@@ -95,16 +94,16 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     private final DataManager dataManager;
     private final Client client;
     private final SecurityContext securityContext;
-    private final HttpContext httpContext;
     private final Providers providers;
     private final ClientUriInfo clientUriInfo;
-        
+    
+    @Inject
     public ResourceBase(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
             @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+            @Context Ontology ontology, @Context Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
+            @Context SecurityContext securityContext,
             @Context DataManager dataManager, @Context Providers providers,
             @Context Application system)
     {
@@ -114,17 +113,17 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 (com.atomgraph.linkeddatahub.Application)system);
     }
     
     protected ResourceBase(final UriInfo uriInfo, final ClientUriInfo clientUriInfo, final Request request, final MediaTypes mediaTypes, final URI uri, 
             final Service service, final com.atomgraph.linkeddatahub.apps.model.Application application,
-            final Ontology ontology, final TemplateCall templateCall,
+            final Ontology ontology, final Optional<TemplateCall> templateCall,
             final HttpHeaders httpHeaders, final ResourceContext resourceContext,
             final Client client,
-            final HttpContext httpContext, final SecurityContext securityContext,
+            final SecurityContext securityContext,
             final DataManager dataManager, final Providers providers,
             final com.atomgraph.linkeddatahub.Application system)
     {
@@ -133,7 +132,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 httpHeaders, resourceContext);
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext cannot be null");
-        if (httpContext == null) throw new IllegalArgumentException("HttpContext cannot be null");
+//        if (httpContext == null) throw new IllegalArgumentException("HttpContext cannot be null");
         if (dataManager == null) throw new IllegalArgumentException("DataManager cannot be null");
         if (client == null) throw new IllegalArgumentException("Client cannot be null");
         if (providers == null) throw new IllegalArgumentException("Providers cannot be null");
@@ -145,7 +144,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         this.dataManager = dataManager;
         this.client = client;
         this.securityContext = securityContext;
-        this.httpContext = httpContext;
+//        this.httpContext = httpContext;
         this.providers = providers;
         this.system = system;
         if (log.isDebugEnabled()) log.debug("SecurityContext: {} UserPrincipal: {} ", securityContext, securityContext.getUserPrincipal());
@@ -218,7 +217,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
         
-        if (getTemplateCall() != null && getTemplateCall().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
+        if (getTemplateCall() != null && getTemplateCall().get().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
         {
             if (log.isDebugEnabled()) log.debug("Returning SPARQL query string as debug response");
             return Response.ok(getQuery().toString()).
@@ -355,7 +354,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             return getResourceContext().getResource(ProxyResourceBase.class).post(dataset);
         }
         
-        if (getTemplateCall().hasArgument(APLT.forClass)) // resource instance
+        if (getTemplateCall().get().hasArgument(APLT.forClass)) // resource instance
         {
             // we need inference to support subclasses
             InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), dataset.getDefaultModel());
@@ -424,7 +423,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         
         ResIterator it = model.listSubjectsWithProperty(RDF.type,
-                getTemplateCall().getArgumentProperty(APLT.forClass).getResource());
+                getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource());
         try
         {
             if (it.hasNext())
@@ -760,14 +759,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         }
     }
 
-    public ClientResponse ban(org.apache.jena.rdf.model.Resource... resources)
+    public Response ban(org.apache.jena.rdf.model.Resource... resources)
     {
         if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
         
         if (getApplication().getService().getProxy() != null)
         {
             // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-            WebResource.Builder builder = getClient().resource(getApplication().getService().getProxy().getURI()).getRequestBuilder();
+            Invocation.Builder builder = getClient().target(getApplication().getService().getProxy().getURI()).request();
 
             for (Resource resource : resources)
                 if (resource != null)
@@ -781,10 +780,10 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(relative.toString(), UriComponent.Type.UNRESERVED));
                 }
 
-            ClientResponse cr = null;
+            Response cr = null;
             try
             {
-                cr = builder.method("BAN", ClientResponse.class);
+                cr = builder.method("BAN", Response.class);
                 return cr;
             }
             finally
@@ -870,14 +869,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             dataset = ((SesameProtocolClient)getService().
                 getSPARQLClient()).
                 query(getQuery(), Dataset.class, getQuerySolutionMap(), null).
-                getEntity(Dataset.class);
+                readEntity(Dataset.class);
         else
         {
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getQuery().toString(), getQuerySolutionMap());
             dataset = getService().
                 getSPARQLClient().
                 query(pss.asQuery(), Dataset.class, null).
-                getEntity(Dataset.class);
+                readEntity(Dataset.class);
         }
         
         return dataset;
@@ -894,7 +893,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
             // if endpoint suports "Sesame protocol", send query solutions as URL parameters instead of setting in the query string
-            return new ParameterizedSparqlString(ARQ2SPIN.getTextOnly(getTemplateCall().getTemplate().getQuery()), getUriInfo().getBaseUri().toString()).asQuery();
+            return new ParameterizedSparqlString(ARQ2SPIN.getTextOnly(getTemplateCall().get().getTemplate().getQuery()), getUriInfo().getBaseUri().toString()).asQuery();
         
         return super.getQuery();
     }
@@ -926,7 +925,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public CacheControl getCacheControl()
     {
-        if (getTemplateCall().hasArgument(APLT.forClass))
+        if (getTemplateCall().get().hasArgument(APLT.forClass))
             return CacheControl.valueOf("no-cache"); // do not cache instance pages
         
         return super.getCacheControl();
@@ -956,11 +955,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     public SecurityContext getSecurityContext()
     {
         return securityContext;
-    }
-
-    public HttpContext getHttpContext()
-    {
-        return httpContext;
     }
 
     public Providers getProviders()

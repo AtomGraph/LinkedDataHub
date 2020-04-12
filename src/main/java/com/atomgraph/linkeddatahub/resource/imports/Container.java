@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource.imports;
 
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -30,12 +28,15 @@ import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.CSVImport;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -63,12 +64,13 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     
     private final HttpServletRequest httpServletRequest;
 
+    @Inject
     public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes, 
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
+            Client client,
+            @Context SecurityContext securityContext,
             @Context DataManager dataManager, @Context Providers providers,
             @Context Application system,
             @Context HttpServletRequest httpServletRequest)
@@ -78,7 +80,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 system);
         this.httpServletRequest = httpServletRequest;
@@ -103,8 +105,8 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 qsm.add(FOAF.Document.getLocalName(), document);
                 ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                         qsm, getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                        new MultivaluedMapImpl()).
-                        getEntity(ResultSetRewindable.class);
+                        new MultivaluedHashMap()).
+                        readEntity(ResultSetRewindable.class);
                 if (resultSet.hasNext())
                 {
                     QuerySolution qs = resultSet.next();

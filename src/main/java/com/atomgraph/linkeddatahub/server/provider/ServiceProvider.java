@@ -20,15 +20,12 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.PerRequestTypeInjectableProvider;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
+import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ServiceProvider extends PerRequestTypeInjectableProvider<Context, Service> implements ContextResolver<Service>
+public class ServiceProvider implements Factory<Service> // extends PerRequestTypeInjectableProvider<Context, Service> implements ContextResolver<Service>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceProvider.class);
@@ -50,28 +47,45 @@ public class ServiceProvider extends PerRequestTypeInjectableProvider<Context, S
 
     public ServiceProvider(final Integer maxGetRequestSize)
     {
-        super(Service.class);
         this.maxGetRequestSize = maxGetRequestSize;
     }
     
     @Override
-    public Injectable<Service> getInjectable(ComponentContext ic, Context a)
-    {
-        return new Injectable<Service>()
-        {
-            @Override
-            public Service getValue()
-            {
-                return getService(getHttpServletRequest());
-            }
-        };
-    }
-
-    @Override
-    public Service getContext(Class<?> type)
+    public Service provide()
     {
         return getService(getHttpServletRequest());
     }
+
+    @Override
+    public void dispose(Service t)
+    {
+    }
+    
+//    public ServiceProvider(final Integer maxGetRequestSize)
+//    {
+//        super(Service.class);
+//        this.maxGetRequestSize = maxGetRequestSize;
+//    }
+//    
+//    @Override
+//    public Injectable<Service> getInjectable(ComponentContext ic, Context a)
+//    {
+//        return new Injectable<Service>()
+//        {
+//            @Override
+//            public Service getValue()
+//            {
+//                return getService(getHttpServletRequest());
+//            }
+//        };
+//    }
+//
+//    @Override
+//    public Service getContext(Class<?> type)
+//    {
+//        return getService(getHttpServletRequest());
+//    }
+    
     
     public Service getService(HttpServletRequest httpServletRequest)
     {

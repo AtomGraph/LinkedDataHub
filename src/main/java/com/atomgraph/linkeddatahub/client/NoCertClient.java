@@ -16,10 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.client;
 
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.client.apache4.ApacheHttpClient4;
-import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
-import com.sun.jersey.core.spi.component.ioc.IoCComponentProviderFactory;
+import org.glassfish.jersey.client.ClientConfig;
 
 /**
  * HTTP client that does not send an SSL client certificate.

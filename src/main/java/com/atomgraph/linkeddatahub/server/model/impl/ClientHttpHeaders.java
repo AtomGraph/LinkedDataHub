@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -78,6 +79,24 @@ public class ClientHttpHeaders implements HttpHeaders
 
     @Override
     public Map<String, Cookie> getCookies()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getHeaderString(String name)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Date getDate()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getLength()
     {
         throw new UnsupportedOperationException();
     }

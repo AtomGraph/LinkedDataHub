@@ -27,11 +27,11 @@ import com.atomgraph.linkeddatahub.model.dydra.Service;
 import com.atomgraph.linkeddatahub.vocabulary.dydra.URN;
 import org.apache.jena.rdf.model.Statement;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import java.net.URI;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.WebTarget;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 /**
  *
@@ -87,11 +87,11 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
     @Override
     public SesameProtocolClient getSPARQLClient()
     {
-        return getSPARQLClient(getClient().resource(getProxiedURI(URI.create(getSPARQLEndpoint().getURI()))));
+        return getSPARQLClient(getClient().target(getProxiedURI(URI.create(getSPARQLEndpoint().getURI()))));
     }
     
     @Override
-    public SesameProtocolClient getSPARQLClient(WebResource resource) // uses SesameProtocolClient which supports remote bindings
+    public SesameProtocolClient getSPARQLClient(WebTarget resource) // uses SesameProtocolClient which supports remote bindings
     {
         SesameProtocolClient sparqlClient;
         
@@ -102,30 +102,36 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-            ClientFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-            sparqlClient.addFilter(authFilter);
+//            ClientRequestFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
+//            sparqlClient.register(authFilter);
+            
+            HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
+                credentials(getAuthUser(), getAuthPwd()).
+                build();
+            
+            sparqlClient.getWebTarget().register(authFeature);
         }
         if (getAccessToken() != null)
         {
-            ClientFilter authFilter = new AuthTokenFilter(getAccessToken());
-            sparqlClient.addFilter(authFilter);
+            ClientRequestFilter authFilter = new AuthTokenFilter(getAccessToken());
+            sparqlClient.register(authFilter);
         }
         
         return sparqlClient;
     }
 
     @Override
-    public GraphStoreClient getGraphStoreClient(WebResource resource)
+    public GraphStoreClient getGraphStoreClient(WebTarget resource)
     {
-        if (getAccessToken() != null) return super.getGraphStoreClient(resource).addFilter(new AuthTokenFilter(getAccessToken()));
+        if (getAccessToken() != null) return super.getGraphStoreClient(resource).register(new AuthTokenFilter(getAccessToken()));
         
         return super.getGraphStoreClient(resource);
     }
     
     @Override
-    public QuadStoreClient getQuadStoreClient(WebResource resource)
+    public QuadStoreClient getQuadStoreClient(WebTarget resource)
     {
-        if (getAccessToken() != null) return super.getQuadStoreClient(resource).addFilter(new AuthTokenFilter(getAccessToken()));
+        if (getAccessToken() != null) return super.getQuadStoreClient(resource).register(new AuthTokenFilter(getAccessToken()));
         
         return super.getQuadStoreClient(resource);
     }

@@ -20,10 +20,11 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.sun.jersey.api.client.Client;
 import java.net.URI;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -41,9 +42,10 @@ import javax.ws.rs.core.UriInfo;
 public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
 {
 
+    @Inject
     public ProxyResourceBase(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, @Context MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            @Context Client client, @Context HttpServletRequest httpServletRequest)
+            Client client, @Context HttpServletRequest httpServletRequest)
     {
         super(clientUriInfo, request, httpHeaders, mediaTypes,
                 clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
@@ -53,7 +55,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         
         if (securityContext.getUserPrincipal() instanceof Agent &&
             securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-            super.getWebResource().addFilter(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
     }
     
 }

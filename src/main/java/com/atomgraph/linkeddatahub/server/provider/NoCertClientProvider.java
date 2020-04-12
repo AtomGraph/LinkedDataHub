@@ -22,27 +22,16 @@ import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestReader;
 import com.atomgraph.linkeddatahub.client.NoCertClient;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
-import com.sun.jersey.client.apache4.config.ApacheHttpClient4Config;
-import com.sun.jersey.client.apache4.config.DefaultApacheHttpClient4Config;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.PerRequestTypeInjectableProvider;
-import com.sun.jersey.spi.resource.Singleton;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import javax.inject.Singleton;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
@@ -52,6 +41,8 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.glassfish.hk2.api.Factory;
+import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +53,7 @@ import org.slf4j.LoggerFactory;
  */
 @Provider
 @Singleton
-public class NoCertClientProvider extends PerRequestTypeInjectableProvider<Context, NoCertClient> implements ContextResolver<NoCertClient>
+public class NoCertClientProvider implements Factory<NoCertClient> // extends PerRequestTypeInjectableProvider<Context, NoCertClient> implements ContextResolver<NoCertClient>
 {
 
     private static final Logger log = LoggerFactory.getLogger(NoCertClientProvider.class);
@@ -72,11 +63,11 @@ public class NoCertClientProvider extends PerRequestTypeInjectableProvider<Conte
     
     public NoCertClientProvider(KeyStore trustStore)
     {
-        super(NoCertClient.class);
+//        super(NoCertClient.class);
         this.trustStore = trustStore;
         
         ClientConfig clientConfig = new DefaultApacheHttpClient4Config();
-        clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
+//        clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
         clientConfig.getSingletons().add(new ModelProvider());
         clientConfig.getSingletons().add(new DatasetProvider());
         clientConfig.getSingletons().add(new ResultSetProvider());
@@ -84,7 +75,7 @@ public class NoCertClientProvider extends PerRequestTypeInjectableProvider<Conte
         clientConfig.getSingletons().add(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
         // cannot CSVReader with Client because it depends on request URI
         //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_CONNECTION_MANAGER, new ThreadSafeClientConnManager());
-        clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
+//        clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
         
         try
         {
@@ -138,24 +129,24 @@ public class NoCertClientProvider extends PerRequestTypeInjectableProvider<Conte
         if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
-    @Override
-    public Injectable<NoCertClient> getInjectable(ComponentContext ic, Context a)
-    {
-        return new Injectable<NoCertClient>()
-        {
-            @Override
-            public NoCertClient getValue()
-            {
-                return getClient();
-            }
-        };
-    }
-
-    @Override
-    public NoCertClient getContext(Class<?> type)
-    {
-        return getClient();
-    }
+//    @Override
+//    public Injectable<NoCertClient> getInjectable(ComponentContext ic, Context a)
+//    {
+//        return new Injectable<NoCertClient>()
+//        {
+//            @Override
+//            public NoCertClient getValue()
+//            {
+//                return getClient();
+//            }
+//        };
+//    }
+//
+//    @Override
+//    public NoCertClient getContext(Class<?> type)
+//    {
+//        return getClient();
+//    }
     
     public KeyStore getTrustStore()
     {

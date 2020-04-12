@@ -16,10 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.client.filter;
 
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.filter.ClientFilter;
+import java.io.IOException;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.HttpHeaders;
 
@@ -27,7 +26,7 @@ import javax.ws.rs.core.HttpHeaders;
  *
  * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public class CacheControlFilter extends ClientFilter
+public class CacheControlFilter implements ClientRequestFilter
 {
 
     private final CacheControl cacheControl;
@@ -38,11 +37,9 @@ public class CacheControlFilter extends ClientFilter
     }
     
     @Override
-    public ClientResponse handle(ClientRequest cr) throws ClientHandlerException
+    public void filter(ClientRequestContext request) throws IOException
     {
-        cr.getHeaders().putSingle(HttpHeaders.CACHE_CONTROL, getCacheControl());
-
-        return getNext().handle(cr);
+        request.getHeaders().putSingle(HttpHeaders.CACHE_CONTROL, getCacheControl());
     }
         
     public CacheControl getCacheControl()

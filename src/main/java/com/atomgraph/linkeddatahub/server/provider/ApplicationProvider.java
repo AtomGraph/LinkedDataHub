@@ -16,15 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.server.provider;
 
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.PerRequestTypeInjectableProvider;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import javax.servlet.http.HttpServletRequest;
+import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,35 +31,47 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ApplicationProvider extends PerRequestTypeInjectableProvider<Context, Application> implements ContextResolver<Application>
+public class ApplicationProvider implements Factory<Application> // extends PerRequestTypeInjectableProvider<Context, Application> implements ContextResolver<Application>
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationProvider.class);
 
     @Context HttpServletRequest httpServletRequest;
     
-    public ApplicationProvider()
-    {
-        super(Application.class);
-    }
-    
-    @Override
-    public Injectable<Application> getInjectable(ComponentContext ic, Context a)
-    {
-        return new Injectable<Application>()
-        {
-            @Override
-            public Application getValue()
-            {
-                return getApplication(getHttpServletRequest());
-            }
-        };
-    }
 
     @Override
-    public Application getContext(Class<?> type)
+    public Application provide()
     {
         return getApplication(getHttpServletRequest());
     }
+
+    @Override
+    public void dispose(Application t)
+    {
+    }
+    
+//    public ApplicationProvider()
+//    {
+//        super(Application.class);
+//    }
+//    
+//    @Override
+//    public Injectable<Application> getInjectable(ComponentContext ic, Context a)
+//    {
+//        return new Injectable<Application>()
+//        {
+//            @Override
+//            public Application getValue()
+//            {
+//                return getApplication(getHttpServletRequest());
+//            }
+//        };
+//    }
+//
+//    @Override
+//    public Application getContext(Class<?> type)
+//    {
+//        return getApplication(getHttpServletRequest());
+//    }
     
     public Application getApplication(HttpServletRequest httpServletRequest)
     {

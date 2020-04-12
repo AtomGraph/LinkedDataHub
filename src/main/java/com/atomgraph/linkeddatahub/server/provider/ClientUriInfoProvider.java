@@ -17,13 +17,10 @@
 package com.atomgraph.linkeddatahub.server.provider;
 
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.PerRequestTypeInjectableProvider;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
+import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,36 +30,48 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ClientUriInfoProvider extends PerRequestTypeInjectableProvider<Context, ClientUriInfo> implements ContextResolver<ClientUriInfo>
+public class ClientUriInfoProvider implements Factory<ClientUriInfo> // extends PerRequestTypeInjectableProvider<Context, ClientUriInfo> implements ContextResolver<ClientUriInfo>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriInfoProvider.class);
 
     @Context HttpServletRequest httpServletRequest;
-
-    public ClientUriInfoProvider()
-    {
-        super(ClientUriInfo.class);
-    }
-
+    
     @Override
-    public Injectable<ClientUriInfo> getInjectable(ComponentContext ic, Context a)
-    {
-        return new Injectable<ClientUriInfo>()
-        {
-            @Override
-            public ClientUriInfo getValue()
-            {
-                return getClientUriInfo(getHttpServletRequest());
-            }
-        };
-    }
-
-    @Override
-    public ClientUriInfo getContext(Class<?> type)
+    public ClientUriInfo provide()
     {
         return getClientUriInfo(getHttpServletRequest());
     }
+
+    @Override
+    public void dispose(ClientUriInfo t)
+    {
+    }
+    
+//
+//    public ClientUriInfoProvider()
+//    {
+//        super(ClientUriInfo.class);
+//    }
+//
+//    @Override
+//    public Injectable<ClientUriInfo> getInjectable(ComponentContext ic, Context a)
+//    {
+//        return new Injectable<ClientUriInfo>()
+//        {
+//            @Override
+//            public ClientUriInfo getValue()
+//            {
+//                return getClientUriInfo(getHttpServletRequest());
+//            }
+//        };
+//    }
+//
+//    @Override
+//    public ClientUriInfo getContext(Class<?> type)
+//    {
+//        return getClientUriInfo(getHttpServletRequest());
+//    }
     
     public ClientUriInfo getClientUriInfo(HttpServletRequest httpServletRequest)
     {

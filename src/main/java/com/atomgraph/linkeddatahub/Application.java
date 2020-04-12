@@ -55,11 +55,9 @@ import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
 import com.atomgraph.core.vocabulary.A;
-import com.atomgraph.linkeddatahub.server.mapper.ClientHandlerExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.InvalidWebIDPublicKeyExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.ModelExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.OntClassNotFoundExceptionMapper;
-import com.atomgraph.linkeddatahub.server.mapper.UniformInterfaceExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.QueryExecExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.RiotParseExceptionMapper;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
@@ -105,14 +103,6 @@ import com.atomgraph.server.provider.TemplateCallProvider;
 import com.atomgraph.server.provider.TemplateProvider;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.client.apache4.ApacheHttpClient4;
-import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
-import com.sun.jersey.client.apache4.config.ApacheHttpClient4Config;
-import com.sun.jersey.client.apache4.config.DefaultApacheHttpClient4Config;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.apache.jena.enhanced.BuiltinPersonalities;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.riot.RDFParserRegistry;
@@ -179,12 +169,14 @@ import org.slf4j.LoggerFactory;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.util.Iterator;
 import java.util.TreeMap;
+import javax.ws.rs.client.Client;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.glassfish.jersey.client.ClientConfig;
 import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 
 /**
@@ -584,7 +576,6 @@ public class Application extends javax.ws.rs.core.Application
         singletons.add(new RiotExceptionMapper());
         singletons.add(new RiotParseExceptionMapper()); // move to Processor?
         singletons.add(new ClientErrorExceptionMapper());
-        singletons.add(new ClientHandlerExceptionMapper());
         singletons.add(new HttpHostConnectExceptionMapper());
         singletons.add(new OntClassNotFoundExceptionMapper());
         singletons.add(new InvalidWebIDPublicKeyExceptionMapper());
@@ -596,7 +587,6 @@ public class Application extends javax.ws.rs.core.Application
         singletons.add(new QueryParseExceptionMapper());
         singletons.add(new AuthenticationExceptionMapper());
         singletons.add(new AuthorizationExceptionMapper());
-        singletons.add(new UniformInterfaceExceptionMapper());
         singletons.add(new MessagingExceptionMapper());
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
@@ -743,16 +733,15 @@ public class Application extends javax.ws.rs.core.Application
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
 
-        //ClientConfig clientConfig = new DefaultApacheHttpClient4Config();
-        clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
-        clientConfig.getSingletons().add(new ModelProvider());
-        clientConfig.getSingletons().add(new DatasetProvider());
-        clientConfig.getSingletons().add(new ResultSetProvider());
-        clientConfig.getSingletons().add(new QueryProvider());
-        clientConfig.getSingletons().add(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
+        //clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
+        clientConfig.register(new ModelProvider());
+        clientConfig.register(new DatasetProvider());
+        clientConfig.register(new ResultSetProvider());
+        clientConfig.register(new QueryProvider());
+        clientConfig.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
         // cannot register CSVReader with Client because it depends on request URI (AppUriInfo) as context
         //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_CONNECTION_MANAGER, new ThreadSafeClientConnManager());
-        clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
+        //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
 
         // for client authentication
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());

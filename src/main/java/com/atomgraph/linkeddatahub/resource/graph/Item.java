@@ -21,8 +21,6 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import java.net.URI;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
@@ -40,18 +38,20 @@ import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.method.PATCH;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.Dataset;
@@ -75,12 +75,13 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
+    @Inject
     public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
+            Client client,
+            @Context SecurityContext securityContext,
             @Context DataManager dataManager, @Context Providers providers,
             @Context Application system)
     {
@@ -89,7 +90,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
                 ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 system);
     }
@@ -145,8 +146,8 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
 
         ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                 getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                new MultivaluedMapImpl()).
-                getEntity(ResultSetRewindable.class);
+                new MultivaluedHashMap()).
+                readEntity(ResultSetRewindable.class);
         if (resultSet.hasNext())
         {
             QuerySolution qs = resultSet.next();
@@ -167,7 +168,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             // attempt to purge ?doc where { ?doc void:inDataset ?this }
             if (getSystem().isInvalidateCache() && document != null)
             {
-                ClientResponse banResponse = null;
+                Response banResponse = null;
                 try
                 {
                     banResponse = ban(document, container);
@@ -224,8 +225,8 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             ResultSet resultSet = getService().getSPARQLClient().
                 query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                     getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                    new MultivaluedMapImpl()).
-                getEntity(ResultSetRewindable.class);
+                    new MultivaluedHashMap()).
+                readEntity(ResultSetRewindable.class);
             if (resultSet.hasNext())
             {
                 QuerySolution qs = resultSet.next();
@@ -234,7 +235,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
                 
                 if (document != null)
                 {
-                    ClientResponse banResponse = null;
+                    Response banResponse = null;
                     try
                     {
                         banResponse = ban(document, container);

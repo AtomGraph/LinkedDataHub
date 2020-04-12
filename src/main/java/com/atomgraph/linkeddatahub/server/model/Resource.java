@@ -18,13 +18,12 @@ package com.atomgraph.linkeddatahub.server.model;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.multipart.FormDataMultiPart;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.apache.jena.rdf.model.InfModel;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 /**
  * LinkedDataHub server resource interface.

@@ -18,12 +18,6 @@ package com.atomgraph.linkeddatahub.client.provider;
 
 import com.atomgraph.linkeddatahub.MediaType;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.PerRequestTypeInjectableProvider;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,11 +25,14 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
 import javax.xml.transform.Source;
@@ -45,6 +42,7 @@ import javax.xml.transform.URIResolver;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.IOUtils;
+import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.client.provider.DatasetXSLTWriter
  */
 @Provider
-public class TemplatesProvider extends PerRequestTypeInjectableProvider<Context, Templates> implements ContextResolver<Templates>
+public class TemplatesProvider implements Factory<Templates> // extends PerRequestTypeInjectableProvider<Context, Templates> implements ContextResolver<Templates>
 {
     
     private static final Logger log = LoggerFactory.getLogger(TemplatesProvider.class);
@@ -72,7 +70,7 @@ public class TemplatesProvider extends PerRequestTypeInjectableProvider<Context,
     public TemplatesProvider(final SAXTransformerFactory transformerFactory, final URIResolver uriResolver,
             final Source stylesheet, final boolean cacheStylesheet)
     {
-        super(Templates.class);
+//        super(Templates.class);
         this.transformerFactory = transformerFactory;
         this.cacheStylesheet = cacheStylesheet;
 
@@ -80,23 +78,34 @@ public class TemplatesProvider extends PerRequestTypeInjectableProvider<Context,
     }
 
     @Override
-    public Injectable<Templates> getInjectable(ComponentContext cc, Context a)
-    {
-        return new Injectable<Templates>()
-        {
-            @Override
-            public Templates getValue()
-            {
-                return getTemplates();
-            }
-        };
-    }
-
-    @Override
-    public Templates getContext(Class<?> type)
+    public Templates provide()
     {
         return getTemplates();
     }
+
+    @Override
+    public void dispose(Templates t)
+    {
+    }
+    
+//    @Override
+//    public Injectable<Templates> getInjectable(ComponentContext cc, Context a)
+//    {
+//        return new Injectable<Templates>()
+//        {
+//            @Override
+//            public Templates getValue()
+//            {
+//                return getTemplates();
+//            }
+//        };
+//    }
+//
+//    @Override
+//    public Templates getContext(Class<?> type)
+//    {
+//        return getTemplates();
+//    }
     
     public Templates getTemplates()
     {
@@ -203,8 +212,8 @@ public class TemplatesProvider extends PerRequestTypeInjectableProvider<Context,
         
         if (uri.getScheme().equals("http") || uri.getScheme().equals("https"))
         {
-            WebResource webResource = getClient().resource(uri);
-            WebResource.Builder builder = webResource.getRequestBuilder();
+            WebTarget webResource = getClient().target(uri);
+            Invocation.Builder builder = webResource.request();
 
             /*
             List<String> authHeaders = getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION);
@@ -212,25 +221,17 @@ public class TemplatesProvider extends PerRequestTypeInjectableProvider<Context,
                 builder = webResource.header(HttpHeaders.AUTHORIZATION, authHeaders.get(0));
             */
 
-            ClientResponse cr = null;
-            try
-            {
-                cr = builder.accept(MediaType.TEXT_XSL_TYPE). // MediaType.WILDCARD_TYPE
-                    get(ClientResponse.class);
+            Response cr = builder.accept(MediaType.TEXT_XSL_TYPE). // MediaType.WILDCARD_TYPE
+                get();
 
-                if (!cr.getStatusInfo().getFamily().equals(Family.SUCCESSFUL))
-                    throw new IOException("XSLT stylesheet could not be successfully loaded over HTTP");
+            if (!cr.getStatusInfo().getFamily().equals(Family.SUCCESSFUL))
+                throw new IOException("XSLT stylesheet could not be successfully loaded over HTTP");
 
-                // buffer the stylesheet stream so we can close ClientResponse
-                try (InputStream is = cr.getEntityInputStream())
-                {
-                    byte[] bytes = IOUtils.toByteArray(is);
-                    return new StreamSource(new ByteArrayInputStream(bytes), uri.toString());
-                }
-            }
-            finally
+            // buffer the stylesheet stream so we can close Response
+            try (InputStream is = cr.readEntity(InputStream.class))
             {
-                if (cr != null) cr.close();
+                byte[] bytes = IOUtils.toByteArray(is);
+                return new StreamSource(new ByteArrayInputStream(bytes), uri.toString());
             }
         }
         

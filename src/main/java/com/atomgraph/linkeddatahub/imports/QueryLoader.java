@@ -17,8 +17,8 @@
 package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.sun.jersey.api.client.ClientResponse;
 import java.util.function.Supplier;
+import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
@@ -52,17 +52,9 @@ public class QueryLoader implements Supplier<Query>
     @Override
     public Query get()
     {
-        ClientResponse cr = null;
-        try
-        {
-            cr = getDataManager().load(getURI());
-            Resource queryRes = cr.getEntity(Model.class).getResource(getURI());
-            return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI());
-        }
-        finally
-        {
-            if (cr != null) cr.close();
-        }
+        Response cr = getDataManager().load(getURI());
+        Resource queryRes = cr.readEntity(Model.class).getResource(getURI());
+        return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI());
     }
 
     public String getURI()

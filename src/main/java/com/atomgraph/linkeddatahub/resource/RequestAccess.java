@@ -29,19 +29,20 @@ import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.util.TemplateCall;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
+import com.atomgraph.processor.model.TemplateCall;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -79,12 +80,13 @@ public class RequestAccess extends ResourceBase
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
 
+    @Inject
     public RequestAccess(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-                  @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-                  @Context Ontology ontology, @Context TemplateCall templateCall,
+                  Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+                  Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Context Client client,
-                  @Context HttpContext httpContext, @Context SecurityContext securityContext,
+                  Client client,
+                  @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   @Context Application system, @Context final ServletConfig servletConfig)
     {
@@ -93,7 +95,7 @@ public class RequestAccess extends ResourceBase
                 ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 (com.atomgraph.linkeddatahub.Application)system);
         
@@ -123,10 +125,10 @@ public class RequestAccess extends ResourceBase
     @Override
     public Response construct(InfModel infModel)
     {
-        if (!getTemplateCall().hasArgument(APLT.forClass))
+        if (!getTemplateCall().get().hasArgument(APLT.forClass))
             throw new WebApplicationException(new IllegalStateException("aplt:forClass argument is mandatory for aplt:RequestAccess template"), BAD_REQUEST);
 
-        Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
+        Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
         ResIterator it = infModel.getRawModel().listResourcesWithProperty(RDF.type, forClass);
         try
         {
@@ -138,14 +140,14 @@ public class RequestAccess extends ResourceBase
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application '" + getApplication().getURI() + "' does not have a maker (foaf:maker)");
 
-            ClientResponse cr = null;
+            Response cr = null;
             try
             {
                 cr = getDataManager().getEndpoint(URI.create(owner.getURI())).
-                        accept(MediaType.TEXT_NQUADS_TYPE).
-                        get(ClientResponse.class); // load maker's WebID model
+                        request(MediaType.TEXT_NQUADS_TYPE).
+                        get(); // load maker's WebID model
                 
-                owner = cr.getEntity(Dataset.class).getDefaultModel().getResource(owner.getURI());
+                owner = cr.readEntity(Dataset.class).getDefaultModel().getResource(owner.getURI());
                 
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
@@ -153,14 +155,13 @@ public class RequestAccess extends ResourceBase
                     throw new ClientException(cr);
                 }
 
-                ClientResponse cr1 = null;
+                Response cr1 = null;
                 try
                 {
                     URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
                     cr1 = getDataManager().getEndpoint(authRequestContainerURI).
-                        accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
-                        type(MediaType.TEXT_NTRIPLES_TYPE).
-                        post(ClientResponse.class, infModel.getRawModel());
+                        request(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+                        post(Entity.entity(infModel.getRawModel(), MediaType.TEXT_NTRIPLES_TYPE));
 
                     if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {

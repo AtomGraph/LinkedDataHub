@@ -17,11 +17,10 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-import com.sun.jersey.spi.container.ContainerResponseFilter;
-import com.sun.jersey.spi.container.ResourceFilter;
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
@@ -30,36 +29,36 @@ import javax.ws.rs.core.Context;
   * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ClientUriInfoFilter implements ResourceFilter, ContainerRequestFilter
+public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFilter
 {
     
     @Context HttpServletRequest httpServletRequest;
     @Context Application system;
 
-    @Override
-    public ContainerRequest filter(ContainerRequest request)
-    {
-        // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
-        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
-        {
-            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getBaseUri(), request.getRequestUri(), request.getQueryParameters());
-            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
-        }
-
-        return request;
-    }
-
-    @Override
-    public ContainerRequestFilter getRequestFilter()
-    {
-        return this;
-    }
-
-    @Override
-    public ContainerResponseFilter getResponseFilter()
-    {
-        return null;
-    }
+//    @Override
+//    public ContainerRequest filter(ContainerRequest request)
+//    {
+//        // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
+//        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
+//        {
+//            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getBaseUri(), request.getRequestUri(), request.getQueryParameters());
+//            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
+//        }
+//
+//        return request;
+//    }
+//
+//    @Override
+//    public ContainerRequestFilter getRequestFilter()
+//    {
+//        return this;
+//    }
+//
+//    @Override
+//    public ContainerResponseFilter getResponseFilter()
+//    {
+//        return null;
+//    }
     
     public HttpServletRequest getHttpServletRequest()
     {
@@ -69,6 +68,17 @@ public class ClientUriInfoFilter implements ResourceFilter, ContainerRequestFilt
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return (com.atomgraph.linkeddatahub.Application)system;
+    }
+
+    @Override
+    public void filter(ContainerRequestContext request) throws IOException
+    {
+        // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
+        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
+        {
+            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());
+            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
+        }
     }
     
 }

@@ -25,7 +25,6 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
-import com.sun.jersey.api.client.ClientResponse;
 import com.univocity.parsers.common.TextParsingException;
 import java.util.Calendar;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +37,7 @@ import java.util.function.Supplier;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
@@ -98,9 +98,9 @@ public class ImportListener implements ServletContextListener
         qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, csvImport.getBaseUri().getURI());
         
-        Supplier<ClientResponse> csvSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, csvImport.getDataManager());
+        Supplier<Response> csvSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, csvImport.getDataManager());
         // skip validation because it will be done during final POST anyway
-        Function<ClientResponse, CSVStreamRDFOutput> rdfOutputWriter = new CSVStreamRDFOutputWriter(csvImport.getContainer().getURI(),
+        Function<Response, CSVStreamRDFOutput> rdfOutputWriter = new CSVStreamRDFOutputWriter(csvImport.getContainer().getURI(),
                 csvImport.getDataManager(), csvImport.getBaseUri().getURI(), pss.asQuery(), csvImport.getDelimiter());
         
         CompletableFuture.supplyAsync(csvSupplier).thenApplyAsync(rdfOutputWriter).

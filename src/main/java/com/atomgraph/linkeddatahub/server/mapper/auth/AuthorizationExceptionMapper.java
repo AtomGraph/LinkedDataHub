@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
-import com.sun.jersey.api.uri.UriComponent;
 import java.net.URI;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
@@ -36,6 +35,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.ContextResolver;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * JAX-RS mapper for authorization exceptions.

@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.exception.auth;
 
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.core.Response;
 
 /**
  * 
@@ -28,15 +28,15 @@ import com.sun.jersey.api.client.ClientResponse;
 public class WebIDLoadingException extends RuntimeException
 {
     
-    private final ClientResponse cr;
+    private final Response cr;
     
-    public WebIDLoadingException(ClientResponse cr)
+    public WebIDLoadingException(Response cr)
     {
         super("WebID profile could not be loaded: " + cr.getStatusInfo().getReasonPhrase());
         this.cr = cr;
     }
     
-    public ClientResponse getClientResponse()
+    public Response getResponse()
     {
         return cr;
     }

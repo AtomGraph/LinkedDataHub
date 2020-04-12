@@ -19,15 +19,16 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.core.exception.NotFoundException;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-import com.sun.jersey.spi.container.ContainerResponseFilter;
-import com.sun.jersey.spi.container.ResourceFilter;
+import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.server.ContainerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ApplicationFilter implements ResourceFilter, ContainerRequestFilter
+public class ApplicationFilter implements ContainerRequestFilter // ResourceFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationFilter.class);
@@ -45,9 +46,9 @@ public class ApplicationFilter implements ResourceFilter, ContainerRequestFilter
     @Context Application system;
 
     @Override
-    public ContainerRequest filter(ContainerRequest request)
+    public void filter(ContainerRequestContext request) throws IOException
     {
-        Resource appResource = getSystem().matchApp(request.getAbsolutePath());
+        Resource appResource = getSystem().matchApp(request.getUriInfo().getAbsolutePath());
         if (appResource != null)
         {
             // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
@@ -60,28 +61,26 @@ public class ApplicationFilter implements ResourceFilter, ContainerRequestFilter
             com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
             getHttpServletRequest().setAttribute(LAPP.Application.getURI(), app);
 
-            request.setUris(app.getBaseURI(), request.getRequestUri());
+            request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri());
         }
         else
         {
-            if (log.isDebugEnabled()) log.debug("Resource {} has not matched any Application, returning 404 Not Found", request.getAbsolutePath());
+            if (log.isDebugEnabled()) log.debug("Resource {} has not matched any Application, returning 404 Not Found", request.getUriInfo().getAbsolutePath());
             throw new NotFoundException("Application not found");
         }
-        
-        return request;
     }
 
-    @Override
-    public ContainerRequestFilter getRequestFilter()
-    {
-        return this;
-    }
-
-    @Override
-    public ContainerResponseFilter getResponseFilter()
-    {
-        return null;
-    }
+//    @Override
+//    public ContainerRequestFilter getRequestFilter()
+//    {
+//        return this;
+//    }
+//
+//    @Override
+//    public ContainerResponseFilter getResponseFilter()
+//    {
+//        return null;
+//    }
     
     public HttpServletRequest getHttpServletRequest()
     {

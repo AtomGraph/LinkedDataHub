@@ -17,17 +17,17 @@
 package com.atomgraph.linkeddatahub.client;
 
 import org.apache.jena.util.LocationMapper;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
 import java.net.URI;
 import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientRequestFilter;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.container.ResourceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +72,7 @@ public class DataManager extends com.atomgraph.client.util.DataManager
         return false; // by default, do not resolve URIs
     }
     
-    public ClientFilter getClientAuthFilter(SecurityContext securityContext)
+    public ClientRequestFilter getClientAuthFilter(SecurityContext securityContext)
     {
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext must be not null");
 
@@ -87,7 +87,7 @@ public class DataManager extends com.atomgraph.client.util.DataManager
     }
     
     /*
-    public ClientFilter getClientCertFilter(Context context, UserAccount userAccount)
+    public ClientRequestFilter getClientCertFilter(Context context, UserAccount userAccount)
     {
         if (context == null) throw new IllegalArgumentException("Context must be not null");
         if (userAccount == null) throw new IllegalArgumentException("UserAccount must be not null");
@@ -113,20 +113,20 @@ public class DataManager extends com.atomgraph.client.util.DataManager
     */
     
     @Override
-    public WebResource getEndpoint(URI uri)
+    public WebTarget getEndpoint(URI uri)
     {
         return getEndpoint(uri, true);
     }
     
-    public WebResource getEndpoint(URI uri, boolean delegateWebID)
+    public WebTarget getEndpoint(URI uri, boolean delegateWebID)
     {
-        WebResource endpoint = super.getEndpoint(uri);
+        WebTarget endpoint = super.getEndpoint(uri);
         
         if (delegateWebID && getSecurityContext() != null && getApplication() != null &&
                 !getApplication().getBaseURI().relativize(uri).isAbsolute())
         {
-            ClientFilter filter = getClientAuthFilter(getSecurityContext());
-            if (filter != null) endpoint.addFilter(filter);
+            ClientRequestFilter filter = getClientAuthFilter(getSecurityContext());
+            if (filter != null) endpoint.register(filter);
         }
         
         return endpoint;

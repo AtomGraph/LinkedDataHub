@@ -29,20 +29,16 @@ import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
-import com.sun.jersey.spi.container.ContainerResponseFilter;
-import com.sun.jersey.spi.container.ResourceFilter;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
@@ -64,7 +60,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilter
+public abstract class AuthFilter implements ContainerRequestFilter // ResourceFilter
 {
     
     private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
@@ -86,31 +82,31 @@ public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilt
 
     public abstract String getScheme();
     
-    public abstract void login(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequest request);
+    public abstract void login(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequestContext request);
 
-    public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequest request);
+    public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequestContext request);
 
-    public boolean isApplied(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequest request)
+    public boolean isApplied(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequestContext request)
     {
         return true;
     }
     
-    public abstract QuerySolutionMap getQuerySolutionMap(String realm, ContainerRequest request, URI absolutePath, Resource accessMode);
+    public abstract QuerySolutionMap getQuerySolutionMap(String realm, ContainerRequestContext request, URI absolutePath, Resource accessMode);
 
-    public abstract ContainerRequest authenticate(String realm, ContainerRequest request, Resource accessMode, UserAccount account, Resource agent);
+    public abstract ContainerRequestContext authenticate(String realm, ContainerRequestContext request, Resource accessMode, UserAccount account, Resource agent);
 
     @Override
-    public ContainerRequest filter(ContainerRequest request)
+    public void filter(ContainerRequestContext request) throws IOException
     {
-        if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
-        if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getRequestUri());
+        if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
+        if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
         // skip filter if user already authorized
-        if (request.getSecurityContext().getUserPrincipal() != null) return request;
+        if (request.getSecurityContext().getUserPrincipal() != null) return;
         
         com.atomgraph.linkeddatahub.apps.model.Application app = getApplicationProvider().getApplication(getHttpServletRequest());
         // skip filter if no application has matched
-        if (app == null) return request;
+        if (app == null) return;
             
         Resource accessMode = null;
         if (request.getMethod().equalsIgnoreCase("GET") || request.getMethod().equalsIgnoreCase("HEAD")) accessMode = ACL.Read;
@@ -122,13 +118,13 @@ public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilt
         if (accessMode == null)
         {
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
-            return request;
+            //return;
         }
         
-        return authorize(request, request.getAbsolutePath(), accessMode, app);
+        //return authorize(request, request.getAbsolutePath(), accessMode, app);
     }
     
-    public ContainerRequest authorize(ContainerRequest request, URI absolutePath, Resource accessMode, com.atomgraph.linkeddatahub.apps.model.Application app)
+    public void authorize(ContainerRequestContext request, URI absolutePath, Resource accessMode, com.atomgraph.linkeddatahub.apps.model.Application app)
     {
         if (!app.hasProperty(DCTerms.title) || !app.getProperty(DCTerms.title).getObject().isLiteral())
         {
@@ -178,12 +174,12 @@ public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilt
             Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
             if (authorization == null)
             {
-                if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {}", request.getAbsolutePath());
-                throw new AuthorizationException("Access not authorized", request.getAbsolutePath(), accessMode, null);
+                if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {}", request.getUriInfo().getAbsolutePath());
+                throw new AuthorizationException("Access not authorized", request.getUriInfo().getAbsolutePath(), accessMode, null);
             }
         }
         
-        return request;
+        //return request;
     }
 
     protected Resource getEndUserEndpoint(com.atomgraph.linkeddatahub.apps.model.Application app)
@@ -241,17 +237,15 @@ public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilt
         
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (adminService.getSPARQLClient() instanceof SesameProtocolClient)
-            return ((SesameProtocolClient)adminService.getSPARQLClient()).
-                addFilter(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+            return ((SesameProtocolClient)adminService.getSPARQLClient()).register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
                 query(pss.asQuery(), Model.class, qsm, null).
-                getEntity(Model.class);
+                readEntity(Model.class);
         else
         {
             pss.setParams(qsm);
-            return adminService.getSPARQLClient().
-                addFilter(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+            return adminService.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
                 query(pss.asQuery(), Model.class, null).
-                getEntity(Model.class);
+                readEntity(Model.class);
         }
     }
     
@@ -274,22 +268,22 @@ public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilt
         return null;
     }
      
-    public boolean isLoginForced(ContainerRequest request, String scheme)
+    public boolean isLoginForced(ContainerRequestContext request, String scheme)
     {
-        if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
+        if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         
-        if (request.getQueryParameters().getFirst(APLT.login.getLocalName()) != null)
-            return request.getQueryParameters().getFirst(APLT.login.getLocalName()).equalsIgnoreCase(scheme);
+        if (request.getUriInfo().getQueryParameters().getFirst(APLT.login.getLocalName()) != null)
+            return request.getUriInfo().getQueryParameters().getFirst(APLT.login.getLocalName()).equalsIgnoreCase(scheme);
         
         return false;
     }
     
-    public boolean isLogoutForced(ContainerRequest request, String scheme)
+    public boolean isLogoutForced(ContainerRequestContext request, String scheme)
     {
-        if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
+        if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
 
-        if (request.getQueryParameters().getFirst(APLT.logout.getLocalName()) != null)
-            return request.getQueryParameters().getFirst(APLT.logout.getLocalName()).equalsIgnoreCase(scheme);
+        if (request.getUriInfo().getQueryParameters().getFirst(APLT.logout.getLocalName()) != null)
+            return request.getUriInfo().getQueryParameters().getFirst(APLT.logout.getLocalName()).equalsIgnoreCase(scheme);
         
         return false;
     }
@@ -328,18 +322,18 @@ public abstract class AuthFilter implements ResourceFilter, ContainerRequestFilt
     {
         return ownerAuthQuery;
     }
-        
-    @Override
-    public ContainerRequestFilter getRequestFilter()
-    {
-        return this;
-    }
-
-    @Override
-    public ContainerResponseFilter getResponseFilter()
-    {
-        return null;
-    }
+//        
+//    @Override
+//    public ContainerRequestContextFilter getRequestFilter()
+//    {
+//        return this;
+//    }
+//
+//    @Override
+//    public ContainerResponseFilter getResponseFilter()
+//    {
+//        return null;
+//    }
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {

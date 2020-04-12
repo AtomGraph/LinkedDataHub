@@ -16,11 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.List;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.UriBuilder;
@@ -44,7 +44,7 @@ public class ClientUriInfo implements UriInfo
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
         
-        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> params = new MultivaluedHashMap();
         Iterator<String> it = qsm.varNames();
         while (it.hasNext())
         {
@@ -168,6 +168,18 @@ public class ClientUriInfo implements UriInfo
 
     @Override
     public List<Object> getMatchedResources()
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public URI resolve(URI uri)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public URI relativize(URI uri)
     {
         throw new UnsupportedOperationException();
     }

@@ -20,9 +20,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
-import com.sun.jersey.multipart.FormDataBodyPart;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,12 +42,16 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
-import com.sun.jersey.api.client.Client;
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,12 +64,13 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
+    @Inject
     public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes, 
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
+            Client client,
+            @Context SecurityContext securityContext,
             @Context DataManager dataManager, @Context Providers providers,
             @Context Application system)
     {
@@ -77,7 +79,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 system);
     }

@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.model.dydra.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
-import com.sun.jersey.api.client.Client;
+import javax.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;

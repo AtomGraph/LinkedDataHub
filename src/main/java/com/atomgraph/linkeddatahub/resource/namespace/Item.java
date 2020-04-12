@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.resource.namespace;
 
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -31,9 +29,11 @@ import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.server.provider.OntologyLoader;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.processor.util.TemplateCall;
-import com.sun.jersey.api.client.Client;
-import javax.annotation.PostConstruct;
+import com.atomgraph.processor.model.TemplateCall;
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -41,7 +41,6 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,12 +54,13 @@ public class Item extends ResourceBase
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    @Inject
     public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
+            Client client,
+            @Context SecurityContext securityContext,
             @Context DataManager dataManager, @Context Providers providers,
             @Context Application system)
     {
@@ -68,7 +68,7 @@ public class Item extends ResourceBase
                 service, application, ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 system);
     }

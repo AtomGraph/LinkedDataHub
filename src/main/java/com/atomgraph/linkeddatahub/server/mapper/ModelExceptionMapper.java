@@ -16,11 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper;
 
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import com.atomgraph.server.exception.ModelException;
 import com.atomgraph.server.model.QueriedResource;
+import javax.ws.rs.container.ResourceContext;
 
 /**
  * JAX-RS mapper for model exceptions.

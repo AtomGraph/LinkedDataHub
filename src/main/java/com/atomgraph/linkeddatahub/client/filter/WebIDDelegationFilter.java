@@ -17,17 +17,16 @@
 package com.atomgraph.linkeddatahub.client.filter;
 
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.filter.ClientFilter;
+import java.io.IOException;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 
 /**
  * Client filter that delegates WebID identity.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class WebIDDelegationFilter extends ClientFilter
+public class WebIDDelegationFilter implements ClientRequestFilter
 {
 
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
@@ -40,11 +39,11 @@ public class WebIDDelegationFilter extends ClientFilter
     }
     
     @Override
-    public ClientResponse handle(ClientRequest cr) throws ClientHandlerException
+    public void filter(ClientRequestContext cr) throws IOException
     {
         cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
 
-        return getNext().handle(cr);
+//        return getNext().handle(cr);
     }
     
     public Agent getAgent()

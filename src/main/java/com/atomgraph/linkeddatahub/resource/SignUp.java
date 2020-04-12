@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -43,13 +41,10 @@ import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.ConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.container.MappableContainerException;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -66,15 +61,20 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import javax.inject.Inject;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -96,6 +96,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.server.internal.process.MappableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spinrdf.constraints.ConstraintViolation;
@@ -131,12 +132,13 @@ public class SignUp extends ResourceBase
     private final boolean download;
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
-    public SignUp(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-                  @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-                  @Context Ontology ontology, @Context TemplateCall templateCall,
+    @Inject
+    public SignUp(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+                  Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+                  Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Context Client client,
-                  @Context HttpContext httpContext, @Context SecurityContext securityContext,
+                  Client client,
+                  @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   @Context Application system, @Context final ServletConfig servletConfig)
     {
@@ -145,7 +147,7 @@ public class SignUp extends ResourceBase
                 ontology, templateCall,
                 httpHeaders, resourceContext,
                 client,
-                httpContext, securityContext,
+                securityContext,
                 dataManager, providers,
                 (com.atomgraph.linkeddatahub.Application)system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
@@ -204,7 +206,7 @@ public class SignUp extends ResourceBase
     @Override
     public Response construct(InfModel infModel)
     {
-        if (!getTemplateCall().hasArgument(APLT.forClass))
+        if (!getTemplateCall().get().hasArgument(APLT.forClass))
             throw new WebApplicationException(new IllegalStateException("dh:forClass argument is mandatory for aplt:SignUp template"), BAD_REQUEST);
         
         Model model = infModel.getRawModel();
@@ -213,7 +215,7 @@ public class SignUp extends ResourceBase
             // need to skolemize early to build the agent URI
             model = new Skolemizer(getAdminOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
             
-            Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
+            Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
             ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
 
             try
@@ -299,7 +301,7 @@ public class SignUp extends ResourceBase
             }
             catch (Exception ex)
             {
-                throw new MappableContainerException(ex);
+                throw new MappableException(ex);
             }
             finally
             {
@@ -389,13 +391,13 @@ public class SignUp extends ResourceBase
     
     public com.atomgraph.linkeddatahub.server.model.Resource createAgentContainer(URI agentContainerURI, Resource forClass, SecurityContext securityContext)
     {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
         queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
         
         return new ResourceBase(
             new ClientUriInfo(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            getClient(), getHttpContext(), securityContext, getDataManager(), getProviders(),
+            getClient(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }
     
