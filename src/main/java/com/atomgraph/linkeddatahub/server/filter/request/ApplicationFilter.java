@@ -17,18 +17,19 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.core.exception.NotFoundException;
+import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Context;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
-import org.glassfish.jersey.server.ContainerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +38,15 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@PreMatching
 public class ApplicationFilter implements ContainerRequestFilter // ResourceFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationFilter.class);
 
     @Context HttpServletRequest httpServletRequest;
-    @Context Application system;
+    
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
     @Override
     public void filter(ContainerRequestContext request) throws IOException
@@ -62,6 +65,11 @@ public class ApplicationFilter implements ContainerRequestFilter // ResourceFilt
             getHttpServletRequest().setAttribute(LAPP.Application.getURI(), app);
 
             request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri());
+            
+//            DataManager dataManager = new DataManager(mapper, client, mediaTypes,
+//                    preemptiveAuth, resolvingUncached, application,
+//                    securityContext, resourceContext, httpServletRequest);
+//            FileManager.setStdLocators(dataManager);
         }
         else
         {
@@ -89,7 +97,7 @@ public class ApplicationFilter implements ContainerRequestFilter // ResourceFilt
 
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return (com.atomgraph.linkeddatahub.Application)system;
+        return system;
     }
     
 }

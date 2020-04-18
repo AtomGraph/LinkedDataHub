@@ -67,7 +67,6 @@ xmlns:nfo="&nfo;"
 xmlns:list="&list;"
 xmlns:geo="&geo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
 xmlns:url="java:java.net.URLDecoder"
 exclude-result-prefixes="#all">
 

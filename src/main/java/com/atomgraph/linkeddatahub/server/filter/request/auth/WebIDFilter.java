@@ -41,12 +41,13 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -76,6 +77,7 @@ import org.spinrdf.vocabulary.SPIN;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@PreMatching
 public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
 {
     
@@ -89,7 +91,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
-    @Context Application system;
+    
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery, webIDQuery;
 
@@ -402,7 +405,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return (com.atomgraph.linkeddatahub.Application)system;
+        return system;
     }
     
     public ParameterizedSparqlString getAuthQuery()

@@ -16,14 +16,14 @@
  */
 package com.atomgraph.linkeddatahub.server.provider;
 
-import com.atomgraph.core.MediaTypes;
+import com.atomgraph.client.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
+import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -42,16 +42,29 @@ import org.glassfish.hk2.api.Factory;
 public class OntologyProvider extends OntologyLoader implements Factory<Ontology> // extends OntologyLoader implements InjectableProvider<Context, Type>, ContextResolver<Ontology>
 {
 
+    private final com.atomgraph.linkeddatahub.Application system;
+    
     @Context Request request;
     @Context Providers providers;
+    //@Context javax.ws.rs.core.Application system;
     
-    private final Query query;
+    @Inject MediaTypes mediaTypes;
+    @Inject Application application;
     
-    public OntologyProvider(OntModelSpec ontModelSpec, Query query)
+    //private final Query query;
+
+    @Inject
+    public OntologyProvider(com.atomgraph.linkeddatahub.Application system)
     {
-        super(ontModelSpec);
-        this.query = query;
+        super(system.getOntModelSpec());
+        this.system = system;
     }
+    
+//    public OntologyProvider(OntModelSpec ontModelSpec, Query query)
+//    {
+//        super(ontModelSpec);
+//        this.query = query;
+//    }
 
     @Override
     public Ontology provide()
@@ -101,17 +114,20 @@ public class OntologyProvider extends OntologyLoader implements Factory<Ontology
     
     public Query getQuery()
     {
-        return query;
+        //return query;
+        return system.getSitemapQuery();
     }
     
     public Application getApplication()
     {
-        return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
+        //return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
+        return application;
     }
     
     public MediaTypes getMediaTypes()
     {
-        return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
+        //return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
+        return mediaTypes;
     }
     
     public Request getRequest()
@@ -119,10 +135,10 @@ public class OntologyProvider extends OntologyLoader implements Factory<Ontology
         return request;
     }
     
-    public Providers getProviders()
-    {
-        return providers;
-    }
+//    public Providers getProviders()
+//    {
+//        return providers;
+//    }
 
 //    @Override
 //    public ComponentScope getScope()

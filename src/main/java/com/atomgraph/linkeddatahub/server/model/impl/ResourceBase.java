@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.model.TemplateCall;
@@ -48,7 +49,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.MessageBodyReader;
@@ -98,24 +98,24 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     private final ClientUriInfo clientUriInfo;
     
     @Inject
-    public ResourceBase(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context Optional<TemplateCall> templateCall,
+    public ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
+            Client client,
             @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         this(uriInfo, clientUriInfo, request, mediaTypes,
-                uriInfo.getAbsolutePath(),
-                service, application,
-                ontology, templateCall,
-                httpHeaders, resourceContext,
-                client,
-                securityContext,
-                dataManager, providers,
-                (com.atomgraph.linkeddatahub.Application)system);
+            uriInfo.getAbsolutePath(),
+            service, application,
+            ontology, templateCall,
+            httpHeaders, resourceContext,
+            client,
+            securityContext,
+            dataManager, providers,
+            system);
     }
     
     protected ResourceBase(final UriInfo uriInfo, final ClientUriInfo clientUriInfo, final Request request, final MediaTypes mediaTypes, final URI uri, 

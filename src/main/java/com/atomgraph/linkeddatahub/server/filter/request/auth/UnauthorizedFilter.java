@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.net.URI;
 import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.PreMatching;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -39,6 +40,7 @@ import org.spinrdf.vocabulary.SPIN;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@PreMatching
 public class UnauthorizedFilter extends AuthFilter
 {
     private static final Logger log = LoggerFactory.getLogger(UnauthorizedFilter.class);

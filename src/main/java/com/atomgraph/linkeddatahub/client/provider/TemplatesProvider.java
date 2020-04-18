@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -58,6 +59,7 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
     
     private static final Logger log = LoggerFactory.getLogger(TemplatesProvider.class);
 
+    private final Templates templates;
     private final SAXTransformerFactory transformerFactory;
     private final Boolean cacheStylesheet;
     
@@ -65,15 +67,17 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
     @Context UriInfo uriInfo;
     @Context HttpHeaders httpHeaders;
     
+    @Inject Client client;
+    @Inject Application application;
+    
     private final Map<String, Templates> appTemplatesCache = new HashMap<>();
 
     public TemplatesProvider(final SAXTransformerFactory transformerFactory, final URIResolver uriResolver,
-            final Source stylesheet, final boolean cacheStylesheet)
+            final Templates templates, final boolean cacheStylesheet)
     {
-//        super(Templates.class);
+        this.templates = templates;
         this.transformerFactory = transformerFactory;
         this.cacheStylesheet = cacheStylesheet;
-
         this.transformerFactory.setURIResolver(uriResolver);
     }
 
@@ -114,7 +118,7 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
             if (getApplication() != null && getApplication().getStylesheet() != null)
                 return getTemplates(getApplication().getStylesheet().getURI(), getAppTemplatesCache());
             
-            return null;
+            return templates;
         }
         catch (TransformerConfigurationException ex)
         {
@@ -240,12 +244,14 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
 
     public Application getApplication()
     {
-        return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
+//        return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
+        return application;
     }
 
     public Client getClient()
     {
-        return getProviders().getContextResolver(Client.class, null).getContext(Client.class);
+//        return getProviders().getContextResolver(Client.class, null).getContext(Client.class);
+        return client;
     }
     
 }

@@ -41,7 +41,6 @@ xmlns:spl="&spl;"
 xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:javaee="http://java.sun.com/xml/ns/javaee"
-xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:nodeID = 'run']" mode="apl:logo">

@@ -27,12 +27,13 @@ import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.provider.OntologyLoader;
 import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.AgentContext;
+import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -72,7 +73,6 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -133,14 +133,14 @@ public class SignUp extends ResourceBase
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
-    public SignUp(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+    public SignUp(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
                   Client client,
                   @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
-                  @Context Application system, @Context final ServletConfig servletConfig)
+                  com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application,
@@ -149,7 +149,7 @@ public class SignUp extends ResourceBase
                 client,
                 securityContext,
                 dataManager, providers,
-                (com.atomgraph.linkeddatahub.Application)system);
+                system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
@@ -167,10 +167,10 @@ public class SignUp extends ResourceBase
         
         // get admin app ontology
         AdminApplication adminApp = application.as(AdminApplication.class);
-        OntologyLoader ontProv = new SPARQLClientOntologyLoader(((com.atomgraph.linkeddatahub.Application)system).getOntModelSpec(),
-                ((com.atomgraph.linkeddatahub.Application)system).getSitemapQuery(),
+        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(),
+                system.getSitemapQuery(),
                 client, mediaTypes,
-                ((com.atomgraph.linkeddatahub.Application)system).getMaxGetRequestSize(), ((com.atomgraph.linkeddatahub.Application)system).isRemoteVariableBindings());
+                system.getMaxGetRequestSize(), system.isRemoteVariableBindings());
         adminOntology = ontProv.getOntology(adminApp);
         
         // TO-DO: extract Agent container URI from ontology Restrictions
@@ -395,7 +395,7 @@ public class SignUp extends ResourceBase
         queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
         
         return new ResourceBase(
-            new ClientUriInfo(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
+            new ClientUriInfoImpl(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getClient(), securityContext, getDataManager(), getProviders(),
             getSystem());

@@ -21,7 +21,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ClientException;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
@@ -81,14 +81,14 @@ public class RequestAccess extends ResourceBase
     private final UriBuilder authRequestContainerUriBuilder;
 
     @Inject
-    public RequestAccess(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
+    public RequestAccess(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
                   Client client,
                   @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
-                  @Context Application system, @Context final ServletConfig servletConfig)
+                  com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application,
@@ -97,7 +97,7 @@ public class RequestAccess extends ResourceBase
                 client,
                 securityContext,
                 dataManager, providers,
-                (com.atomgraph.linkeddatahub.Application)system);
+                system);
         
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);

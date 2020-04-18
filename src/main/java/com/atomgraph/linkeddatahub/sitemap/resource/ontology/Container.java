@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.sitemap.resource.ontology;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
@@ -34,7 +34,6 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -69,14 +68,14 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     private final Query ontologyImportQuery;
 
     @Inject
-    public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
+    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
+            Client client,
             @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system, @Context final ServletConfig servletConfig)
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 
                 service, application,

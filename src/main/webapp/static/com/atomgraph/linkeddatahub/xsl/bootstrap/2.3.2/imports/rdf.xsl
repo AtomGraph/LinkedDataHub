@@ -40,7 +40,6 @@ xmlns:sp="&sp;"
 xmlns:void="&void;"
 xmlns:list="&list;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
 
     <!-- shortened version of @rdf:resource bs2:FormControl -->

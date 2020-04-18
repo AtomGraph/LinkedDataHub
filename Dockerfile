@@ -1,5 +1,15 @@
 FROM maven:3.5.3-jdk-8 as maven
 
+# download and extract Jena
+
+ARG JENA_VERSION=3.12.0
+
+ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
+
+RUN mkdir /jena && \
+    curl -SL "$JENA_TAR_URL" | \
+    tar -xzf - -C /jena
+
 # copy trust manager source code
 
 WORKDIR /usr/src/trust-manager
@@ -21,16 +31,6 @@ COPY pom.xml /usr/src/platform/pom.xml
 ARG MAVEN_PROFILE=prod
 
 RUN mvn -Pstandalone -P${MAVEN_PROFILE} clean install
-
-# download and extract Jena
-
-ARG JENA_VERSION=3.12.0
-
-ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
-
-RUN mkdir /jena && \
-    curl -SL "$JENA_TAR_URL" | \
-    tar -xzf - -C /jena
 
 # ==============================
 
@@ -116,6 +116,14 @@ ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
 
 ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
 
+# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
+
+RUN rm -rf webapps/* && \
+    apt-get update && \
+    apt-get install -y xmlstarlet && \
+    apt-get install -y gettext-base && \
+    apt-get install -y uuid-runtime
+
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
@@ -139,14 +147,6 @@ COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 # define upload container path
 
 ENV UPLOAD_CONTAINER_PATH=uploads
-
-# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
-
-RUN rm -rf webapps/* && \
-    apt-get update && \
-    apt-get install -y xmlstarlet && \
-    apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime
 
 # copy webapp config
 

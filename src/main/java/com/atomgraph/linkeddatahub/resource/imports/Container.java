@@ -24,7 +24,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.CSVImport;
@@ -35,7 +35,6 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
@@ -65,14 +64,14 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     private final HttpServletRequest httpServletRequest;
 
     @Inject
-    public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes, 
+    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             Client client,
             @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system,
             @Context HttpServletRequest httpServletRequest)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 

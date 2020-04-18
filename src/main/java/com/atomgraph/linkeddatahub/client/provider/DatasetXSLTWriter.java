@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.client.provider;
 
+import com.atomgraph.client.util.DataManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.ws.rs.Produces;
@@ -28,12 +29,11 @@ import javax.xml.transform.Templates;
 import com.atomgraph.client.util.XSLTBuilder;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.util.Link;
-import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.inject.Inject;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -69,7 +70,12 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     private static final Logger log = LoggerFactory.getLogger(DatasetXSLTWriter.class);
 
     @Context SecurityContext securityContext;
-    @Context javax.ws.rs.core.Application system;
+    
+    @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject Application application;
+    @Inject Ontology ontology;
+    @Inject Templates templates;
+    @Inject ClientUriInfo clientUriInfo;
 
     private static final Set<String> NAMESPACES;
     
@@ -80,9 +86,9 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
         NAMESPACES.add(APLT.NS);
     }
     
-    public DatasetXSLTWriter(Templates templates, OntModelSpec ontModelSpec)
+    public DatasetXSLTWriter(Templates templates, OntModelSpec ontModelSpec, DataManager dataManager)
     {
-        super(templates, ontModelSpec);
+        super(templates, ontModelSpec, dataManager);
     }
     
     @Override
@@ -185,7 +191,7 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return (com.atomgraph.linkeddatahub.Application)system;
+        return system;
     }
     
     @Override
@@ -201,18 +207,12 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     
     public Ontology getOntology()
     {
-        return getProviders().getContextResolver(Ontology.class, null).getContext(Ontology.class);
-    }
-    
-    @Override
-    public DataManager getDataManager()
-    {
-        return getProviders().getContextResolver(DataManager.class, null).getContext(DataManager.class);
+        return ontology;
     }
 
     public Application getApplication()
     {
-        return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
+        return application;
     }
 
     @Override
@@ -239,7 +239,7 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     @Override
     public UriInfo getUriInfo()
     {
-        return getProviders().getContextResolver(ClientUriInfo.class, null).getContext(ClientUriInfo.class);
+        return clientUriInfo;
     }
     
     @Override
@@ -257,14 +257,9 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     @Override
     public Templates getTemplates()
     {
-        // try to get current application's stylesheet, if any
-        Templates templates = getProviders().getContextResolver(Templates.class, null).getContext(Templates.class);
-        if (templates != null) return templates;
-        
-        // otherwise, fallback to system stylesheet
-        return super.getTemplates();
+        return templates;
     }
-   
+    
     public Link getLink(MultivaluedMap<String, Object> headerMap, String headerName, String rel) throws URISyntaxException
     {
         if (headerMap == null) throw new IllegalArgumentException("Header Map cannot be null");

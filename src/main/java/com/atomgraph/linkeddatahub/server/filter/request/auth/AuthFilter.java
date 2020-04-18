@@ -33,10 +33,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
@@ -65,11 +65,12 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
     
     private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
     
-    @Context Application system;
     @Context Providers providers;
     @Context UriInfo uriInfo;
     @Context Request request;
     @Context HttpServletRequest httpServletRequest;
+
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
@@ -337,7 +338,7 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return (com.atomgraph.linkeddatahub.Application)system;
+        return system;
     }
         
 }

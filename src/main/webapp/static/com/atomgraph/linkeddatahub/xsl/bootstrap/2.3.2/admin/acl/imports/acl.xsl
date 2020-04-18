@@ -30,7 +30,6 @@ xmlns:core="&c;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
     
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="bs2:FormControl" priority="1">

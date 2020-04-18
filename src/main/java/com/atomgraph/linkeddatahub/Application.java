@@ -30,7 +30,6 @@ import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
 import com.atomgraph.linkeddatahub.client.provider.DatasetXSLTWriter;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
@@ -46,8 +45,6 @@ import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestReader;
-import com.atomgraph.core.provider.ClientProvider;
-import com.atomgraph.core.provider.MediaTypesProvider;
 import com.atomgraph.linkeddatahub.client.provider.DataManagerProvider;
 import com.atomgraph.linkeddatahub.client.provider.TemplatesProvider;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
@@ -75,20 +72,23 @@ import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
+import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
 import com.atomgraph.linkeddatahub.server.provider.ClientUriInfoProvider;
-import com.atomgraph.linkeddatahub.server.provider.NoCertClientProvider;
-import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
 import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
-import com.atomgraph.linkeddatahub.server.provider.ServiceProvider;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
-import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
+import com.atomgraph.linkeddatahub.server.provider.ServiceProvider;
 import com.atomgraph.linkeddatahub.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.processor.model.Parameter;
 import com.atomgraph.processor.model.Template;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.model.impl.ParameterImpl;
 import com.atomgraph.processor.model.impl.TemplateImpl;
 import com.atomgraph.processor.vocabulary.AP;
@@ -99,8 +99,6 @@ import com.atomgraph.server.mapper.ParameterExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
 import com.atomgraph.server.mapper.jena.RiotExceptionMapper;
-import com.atomgraph.server.provider.TemplateCallProvider;
-import com.atomgraph.server.provider.TemplateProvider;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.apache.jena.enhanced.BuiltinPersonalities;
@@ -125,7 +123,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -165,7 +162,9 @@ import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.server.provider.TemplateCallProvider;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.TreeMap;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -175,9 +174,13 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.glassfish.hk2.api.TypeLiteral;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import org.glassfish.jersey.process.internal.RequestScoped;
+import org.glassfish.jersey.server.ResourceConfig;
 import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 
 /**
@@ -187,7 +190,7 @@ import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see <a href="https://jersey.github.io/documentation/1.19.1/jax-rs.html#d4e186">Deploying a RESTful Web Service</a>
  */
-public class Application extends javax.ws.rs.core.Application
+public class Application extends ResourceConfig // javax.ws.rs.core.Application
 {
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -196,8 +199,8 @@ public class Application extends javax.ws.rs.core.Application
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
     
-    private final Set<Class<?>> classes = new HashSet<>();
-    private final Set<Object> singletons = new HashSet<>();
+//    private final Set<Class<?>> classes = new HashSet<>();
+//    private final Set<Object> singletons = new HashSet<>();
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
@@ -545,57 +548,163 @@ public class Application extends javax.ws.rs.core.Application
     @PostConstruct
     public void init()
     {
-        classes.add(ResourceBase.class); // handles /
+        register(ResourceBase.class); // handles /
+        
+//        register(new HttpMethodOverrideFilter());
+        register(ClientUriInfoFilter.class);
+        register(ApplicationFilter.class);
+//        register(WebIDFilter.class);
+//        register(UnauthorizedFilter.class);
+//        register(new RDFPostCleanupInterceptor());
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        singletons.add(new ApplicationProvider());
-        singletons.add(new ServiceProvider(getMaxGetRequestSize()));
-        singletons.add(new OntologyProvider(getOntModelSpec(), getSitemapQuery()));
-        singletons.add(new ClientUriInfoProvider());
-        singletons.add(new TemplateProvider());
-        singletons.add(new TemplateCallProvider());
-        singletons.add(new com.atomgraph.core.provider.DataManagerProvider(getDataManager()));
-        singletons.add(new DataManagerProvider(isPreemptiveAuth(), isResolvingUncached()));
-        singletons.add(new ClientProvider(getClient()));
-        singletons.add(new NoCertClientProvider(getTrustStore()));
-        singletons.add(new SkolemizingDatasetProvider());
-        singletons.add(new SkolemizingModelProvider());
-        singletons.add(new ResultSetProvider());
-        singletons.add(new QueryParamProvider());
-        singletons.add(new UpdateRequestReader());
-        singletons.add(new MediaTypesProvider(getMediaTypes()));
-        singletons.add(new NotFoundExceptionMapper());
-        singletons.add(new ConfigurationExceptionMapper());
-        singletons.add(new OntologyExceptionMapper());
-        singletons.add(new ModelExceptionMapper());
-        singletons.add(new ConstraintViolationExceptionMapper());
-        singletons.add(new DatatypeFormatExceptionMapper());
-        singletons.add(new ParameterExceptionMapper());
-        singletons.add(new ClientExceptionMapper());
-        singletons.add(new QueryExecExceptionMapper());
-        singletons.add(new RiotExceptionMapper());
-        singletons.add(new RiotParseExceptionMapper()); // move to Processor?
-        singletons.add(new ClientErrorExceptionMapper());
-        singletons.add(new HttpHostConnectExceptionMapper());
-        singletons.add(new OntClassNotFoundExceptionMapper());
-        singletons.add(new InvalidWebIDPublicKeyExceptionMapper());
-        singletons.add(new InvalidWebIDURIExceptionMapper());
-        singletons.add(new WebIDCertificateExceptionMapper());
-        singletons.add(new WebIDDelegationExceptionMapper());
-        singletons.add(new WebIDLoadingExceptionMapper());
-        singletons.add(new ResourceExistsExceptionMapper());
-        singletons.add(new QueryParseExceptionMapper());
-        singletons.add(new AuthenticationExceptionMapper());
-        singletons.add(new AuthorizationExceptionMapper());
-        singletons.add(new MessagingExceptionMapper());
+        //register(new NoCertClientProvider(getTrustStore())); // TO-DO
+        register(new SkolemizingDatasetProvider());
+        register(new SkolemizingModelProvider());
+        register(new ResultSetProvider());
+        register(new QueryParamProvider());
+        register(new UpdateRequestReader());
+        register(NotFoundExceptionMapper.class);
+        register(ConfigurationExceptionMapper.class);
+        register(OntologyExceptionMapper.class);
+        register(ModelExceptionMapper.class);
+        register(ConstraintViolationExceptionMapper.class);
+        register(DatatypeFormatExceptionMapper.class);
+        register(ParameterExceptionMapper.class);
+        register(ClientExceptionMapper.class);
+        register(QueryExecExceptionMapper.class);
+        register(RiotExceptionMapper.class);
+        register(RiotParseExceptionMapper.class); // move to Processor?
+        register(ClientErrorExceptionMapper.class);
+        register(HttpHostConnectExceptionMapper.class);
+        register(OntClassNotFoundExceptionMapper.class);
+        register(InvalidWebIDPublicKeyExceptionMapper.class);
+        register(InvalidWebIDURIExceptionMapper.class);
+        register(WebIDCertificateExceptionMapper.class);
+        register(WebIDDelegationExceptionMapper.class);
+        register(WebIDLoadingExceptionMapper.class);
+        register(ResourceExistsExceptionMapper.class);
+        register(QueryParseExceptionMapper.class);
+        register(AuthenticationExceptionMapper.class);
+        register(AuthorizationExceptionMapper.class);
+        register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
-        singletons.add(new DatasetXSLTWriter(getTemplates(), getOntModelSpec())); // writes XHTML responses
-        singletons.add(new TemplatesProvider(((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)),
-                getDataManager(), getStylesheet(), isCacheStylesheet())); // loads XSLT stylesheet
+        register(new DatasetXSLTWriter(getTemplates(), getOntModelSpec(), getDataManager())); // writes XHTML responses
+//        register(new TemplatesProvider(((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)),
+//                getDataManager(), getStylesheet(), isCacheStylesheet())); // loads XSLT stylesheet
 
-        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
+        final com.atomgraph.linkeddatahub.Application system = this;
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(system).to(com.atomgraph.linkeddatahub.Application.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(new com.atomgraph.core.MediaTypes()).to(com.atomgraph.core.MediaTypes.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ServiceProvider.class).to(Service.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ApplicationProvider.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(OntologyProvider.class).to(Ontology.class). // new OntologyProvider(getOntModelSpec(), getSitemapQuery())
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(TemplateCallProvider.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(new com.atomgraph.core.provider.DataManagerProvider(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(DataManagerProvider.class).to(com.atomgraph.linkeddatahub.client.DataManager.class).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(client).to(Client.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ClientUriInfoProvider.class).to(ClientUriInfo.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(new TemplatesProvider(((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)),
+                    getDataManager(), getTemplates(), isCacheStylesheet())).to(Templates.class);
+            }
+        });
+        
+//        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
@@ -793,18 +902,18 @@ public class Application extends javax.ws.rs.core.Application
             register(new UpdateRequestReader()). // TO-DO: UpdateRequestProvider
             build();
     }
-    
-    @Override
-    public Set<Class<?>> getClasses()
-    {
-        return classes;
-    }
-
-    @Override
-    public Set<Object> getSingletons()
-    {
-        return singletons;
-    }
+//    
+//    @Override
+//    public Set<Class<?>> getClasses()
+//    {
+//        return classes;
+//    }
+//
+//    @Override
+//    public Set<Object> getSingletons()
+//    {
+//        return singletons;
+//    }
     
     public EventBus getEventBus()
     {

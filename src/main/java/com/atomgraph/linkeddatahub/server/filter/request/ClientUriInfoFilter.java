@@ -16,12 +16,14 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import java.io.IOException;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Context;
 
 /**
@@ -29,11 +31,13 @@ import javax.ws.rs.core.Context;
   * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@PreMatching
 public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFilter
 {
     
     @Context HttpServletRequest httpServletRequest;
-    @Context Application system;
+    
+    @Inject com.atomgraph.linkeddatahub.Application system;
 
 //    @Override
 //    public ContainerRequest filter(ContainerRequest request)
@@ -67,7 +71,7 @@ public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFi
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return (com.atomgraph.linkeddatahub.Application)system;
+        return system;
     }
 
     @Override
@@ -76,7 +80,7 @@ public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFi
         // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
         if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
         {
-            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());
+            ClientUriInfo clientUriInfo = new ClientUriInfoImpl(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());
             getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
         }
     }

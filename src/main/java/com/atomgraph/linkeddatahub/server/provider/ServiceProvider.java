@@ -16,15 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.server.provider;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.ext.Providers;
 import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +38,14 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
     private static final Logger log = LoggerFactory.getLogger(ServiceProvider.class);
 
     @Context HttpServletRequest httpServletRequest;
-    @Context Providers providers;
+//    @Context Providers providers;
     
-    private final Integer maxGetRequestSize;
-
-    public ServiceProvider(final Integer maxGetRequestSize)
-    {
-        this.maxGetRequestSize = maxGetRequestSize;
-    }
+//    private final Integer maxGetRequestSize;
+//
+//    public ServiceProvider(final Integer maxGetRequestSize)
+//    {
+//        this.maxGetRequestSize = maxGetRequestSize;
+//    }
     
     @Override
     public Service provide()
@@ -109,24 +106,24 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
         return httpServletRequest;
     }
     
-    public Integer getMaxGetRequestSize()
-    {
-        return maxGetRequestSize;
-    }
-    
-    public Client getClient()
-    {
-        return getProviders().getContextResolver(Client.class, null).getContext(Client.class);
-    }
-    
-    public MediaTypes getMediaTypes()
-    {
-        return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
-    }
-    
-    public Providers getProviders()
-    {
-        return providers;
-    }
+//    public Integer getMaxGetRequestSize()
+//    {
+//        return maxGetRequestSize;
+//    }
+//    
+//    public Client getClient()
+//    {
+//        return getProviders().getContextResolver(Client.class, null).getContext(Client.class);
+//    }
+//    
+//    public MediaTypes getMediaTypes()
+//    {
+//        return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
+//    }
+//    
+//    public Providers getProviders()
+//    {
+//        return providers;
+//    }
     
 }

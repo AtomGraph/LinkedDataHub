@@ -36,7 +36,6 @@ public class ApplicationProvider implements Factory<Application> // extends PerR
     private static final Logger log = LoggerFactory.getLogger(ApplicationProvider.class);
 
     @Context HttpServletRequest httpServletRequest;
-    
 
     @Override
     public Application provide()

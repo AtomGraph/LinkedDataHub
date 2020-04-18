@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
@@ -35,7 +36,7 @@ import org.apache.jena.riot.out.NodeFmtLib;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see UriInfo
  */
-public class ClientUriInfo implements UriInfo
+public class ClientUriInfoImpl implements ClientUriInfo
 {
     private final URI baseUri, requestUri;
     private final MultivaluedMap<String, String> queryParams; 
@@ -56,7 +57,7 @@ public class ClientUriInfo implements UriInfo
         return params;
     }
     
-    public ClientUriInfo(URI baseUri, URI requestUri, MultivaluedMap<String, String> queryParams)
+    public ClientUriInfoImpl(URI baseUri, URI requestUri, MultivaluedMap<String, String> queryParams)
     {
         this.baseUri = baseUri;
         this.requestUri = requestUri;

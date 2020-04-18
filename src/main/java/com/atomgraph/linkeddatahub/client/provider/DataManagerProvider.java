@@ -24,6 +24,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.DataManager;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.client.DataManager
  */
 @Provider
-public class DataManagerProvider implements Factory<DataManager>// extends PerRequestTypeInjectableProvider<Context, DataManager> implements ContextResolver<DataManager>
+public class DataManagerProvider implements Factory<DataManager>
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerProvider.class);
 
@@ -53,32 +54,20 @@ public class DataManagerProvider implements Factory<DataManager>// extends PerRe
     @Context HttpServletRequest httpServletRequest;
     @Context Providers providers;
     
-    public DataManagerProvider(boolean preemptiveAuth, boolean resolvingUncached)
+    @Inject MediaTypes mediaTypes;
+    @Inject Client client;
+    @Inject Application application;
+    
+    public DataManagerProvider()
     {
-//        super(DataManager.class);
-        
+        this(true, true); // TO-DO: make configurable
+    }
+    
+    public DataManagerProvider(boolean preemptiveAuth, boolean resolvingUncached)
+    {        
         this.preemptiveAuth = preemptiveAuth;
         this.resolvingUncached = resolvingUncached;
     }
-
-//    @Override
-//    public Injectable<DataManager> getInjectable(ComponentContext cc, Context a)
-//    {
-//        return new Injectable<DataManager>()
-//        {
-//            @Override
-//            public DataManager getValue()
-//            {
-//                return getDataManager();
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public DataManager getContext(Class<?> type)
-//    {
-//        return getDataManager();
-//    }
 
     @Override
     public DataManager provide()
@@ -111,25 +100,20 @@ public class DataManagerProvider implements Factory<DataManager>// extends PerRe
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", dataManager.getLocationMapper());
         return dataManager;
     }
-
-//    public com.atomgraph.platform.apps.model.Context getContext()
-//    {
-//        return getProviders().getContextResolver(com.atomgraph.platform.apps.model.Context.class, null).getContext(com.atomgraph.platform.apps.model.Context.class);
-//    }
     
     public Application getApplication()
     {
-        return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
+        return application;
     }
     
     public MediaTypes getMediaTypes()
     {
-        return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
+        return mediaTypes;
     }
     
     public Client getClient()
     {
-        return getProviders().getContextResolver(Client.class, null).getContext(Client.class);
+        return client;
     }
     
     public UriInfo getUriInfo()

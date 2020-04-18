@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.net.URI;
@@ -43,7 +43,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 {
 
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, @Context MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfoImpl clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             Client client, @Context HttpServletRequest httpServletRequest)
     {

@@ -34,7 +34,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.method.PATCH;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
@@ -50,7 +50,6 @@ import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PUT;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -76,14 +75,14 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
+    public Item(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             Client client,
             @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 
                 service, application,

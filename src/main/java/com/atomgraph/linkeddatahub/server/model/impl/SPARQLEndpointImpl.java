@@ -30,7 +30,7 @@ import javax.ws.rs.core.Request;
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
     
-    public SPARQLEndpointImpl(@Context Request request, @Context Service service, @Context MediaTypes mediaTypes)
+    public SPARQLEndpointImpl(@Context Request request, Service service, MediaTypes mediaTypes)
     {
         super(request, service, mediaTypes);
     }

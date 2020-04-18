@@ -27,7 +27,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
@@ -38,7 +38,6 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Resource;
@@ -57,14 +56,14 @@ public class Item extends ResourceBase
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
+    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             Client client,
             @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application, ontology, templateCall,
@@ -100,7 +99,7 @@ public class Item extends ResourceBase
             {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
                 
-                OntologyProvider ontProvider = new OntologyProvider(getSystem().getOntModelSpec(), getSystem().getSitemapQuery());
+                OntologyProvider ontProvider = new OntologyProvider(getSystem());
                 ontProvider.getOntology(getApplication(),
                         getApplication().getService(),
                         ontologyURI,

@@ -49,10 +49,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RDFPostCleanupFilter implements ReaderInterceptor // ResourceFilter
+public class RDFPostCleanupInterceptor implements ReaderInterceptor // ResourceFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(RDFPostCleanupFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(RDFPostCleanupInterceptor.class);
 
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
