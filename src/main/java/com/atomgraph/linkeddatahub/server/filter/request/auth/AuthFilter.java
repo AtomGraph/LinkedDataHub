@@ -71,6 +71,7 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
     @Context HttpServletRequest httpServletRequest;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
@@ -105,7 +106,6 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
         // skip filter if user already authorized
         if (request.getSecurityContext().getUserPrincipal() != null) return;
         
-        com.atomgraph.linkeddatahub.apps.model.Application app = getApplicationProvider().getApplication(getHttpServletRequest());
         // skip filter if no application has matched
         if (app == null) return;
             
@@ -340,5 +340,5 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
     {
         return system;
     }
-        
+
 }

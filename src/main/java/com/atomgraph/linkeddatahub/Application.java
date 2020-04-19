@@ -74,6 +74,7 @@ import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter;
 import com.atomgraph.linkeddatahub.server.provider.ClientUriInfoProvider;
 import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
@@ -168,6 +169,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -178,7 +180,7 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
@@ -199,12 +201,10 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
     
-//    private final Set<Class<?>> classes = new HashSet<>();
-//    private final Set<Object> singletons = new HashSet<>();
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
-    private final Client client;
+    private final Client client, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
     private final String postUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
@@ -434,7 +434,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(new ClientConfig(), keyStore, clientKeyStorePassword, trustStore);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore);
+            noCertClient = getNoCertClient(trustStore);
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
@@ -553,8 +554,9 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
 //        register(new HttpMethodOverrideFilter());
         register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
-//        register(WebIDFilter.class);
-//        register(UnauthorizedFilter.class);
+//        register(TestFilter.class);
+        register(WebIDFilter.class);
+        register(UnauthorizedFilter.class);
 //        register(new RDFPostCleanupInterceptor());
         
         eventBus.register(this); // this system application will be receiving events about context changes
@@ -673,6 +675,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             protected void configure()
             {
                 bindFactory(DataManagerProvider.class).to(com.atomgraph.linkeddatahub.client.DataManager.class).
+                proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
@@ -682,6 +685,14 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             protected void configure()
             {
                 bind(client).to(Client.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(noCertClient).to(Client.class).named("NoCertClient"); // used in WebIDFilter
             }
         });
         register(new AbstractBinder()
@@ -836,22 +847,12 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public static Client getClient(ClientConfig clientConfig, KeyStore keyStore, String keyStorePassword, KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
-        if (clientConfig == null) throw new IllegalArgumentException("ClientConfig cannot be null");
+//        if (clientConfig == null) throw new IllegalArgumentException("ClientConfig cannot be null");
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
-
-        clientConfig.connectorProvider(new HttpUrlConnectorProvider().useSetMethodWorkaround());
-        clientConfig.register(new ModelProvider());
-        clientConfig.register(new DatasetProvider());
-        clientConfig.register(new ResultSetProvider());
-        clientConfig.register(new QueryProvider());
-        clientConfig.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
-        // cannot register CSVReader with Client because it depends on request URI (AppUriInfo) as context
-        //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_CONNECTION_MANAGER, new ThreadSafeClientConnManager());
-        //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
 
         // for client authentication
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -875,7 +876,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             }
         };
 
-        // clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hv, ctx));
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         SSLSocketFactory ssf = new SSLSocketFactory(ctx);
         Scheme httpsScheme = new Scheme("https", 443, ssf);
@@ -884,24 +884,91 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         schemeRegistry.register(httpScheme);
         ThreadSafeClientConnManager conman = new ThreadSafeClientConnManager(schemeRegistry);
         conman.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
-//        HttpClient httpClient = new DefaultHttpClient(conman);
-//        ApacheHttpClient4Handler handler = new ApacheHttpClient4Handler(httpClient, null, false);
-//        Client client = new ApacheHttpClient4(handler, clientConfig);
-//        client.setFollowRedirects(true);
+//        client.setFollowRedirects(true); // TO-DO
         
 //        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
 
+        ClientConfig config = new ClientConfig();
+        config.connectorProvider(new ApacheConnectorProvider());
+        config.register(new ModelProvider());
+        config.register(new DatasetProvider());
+        config.register(new ResultSetProvider());
+        config.register(new QueryProvider());
+        config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+            
         return ClientBuilder.newBuilder().
+            withConfig(config).
             sslContext(ctx).
             hostnameVerifier(hv).
-            property(ApacheClientProperties.CONNECTION_MANAGER, conman).
-            register(new ModelProvider()).
-            register(new DatasetProvider()).
-            register(new ResultSetProvider()).
-            register(new QueryProvider()).
-            register(new UpdateRequestReader()). // TO-DO: UpdateRequestProvider
             build();
     }
+    
+    public static Client getNoCertClient(KeyStore trustStore)
+    {
+        try
+        {
+            // for trusting server certificate
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+            
+            SSLContext ctx = SSLContext.getInstance("TLSv1");
+            ctx.init(null, tmf.getTrustManagers(), null);
+
+            HostnameVerifier hv = new HostnameVerifier()
+            {
+                @Override
+                public boolean verify(String hostname, SSLSession session)
+                {
+                    if ( log.isDebugEnabled()) log.debug("Warning: URL Host: {} vs. {}", hostname, session.getPeerHost());
+
+                    return true;
+                }
+            };
+//
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            SSLSocketFactory ssf = new SSLSocketFactory(ctx);
+            Scheme httpsScheme = new Scheme("https", 443, ssf);
+            schemeRegistry.register(httpsScheme);
+            Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
+            schemeRegistry.register(httpScheme);
+            ClientConnectionManager conman = new ThreadSafeClientConnManager(schemeRegistry);
+            
+            ClientConfig config = new ClientConfig();
+            config.connectorProvider(new ApacheConnectorProvider());
+            config.register(new ModelProvider());
+            config.register(new DatasetProvider());
+            config.register(new ResultSetProvider());
+            config.register(new QueryProvider());
+            config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
+            config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+
+            return ClientBuilder.newBuilder().
+                withConfig(config).
+                sslContext(ctx).
+                hostnameVerifier(hv).
+                build();
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+        catch (KeyStoreException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("Key store error: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+        catch (KeyManagementException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+        
+        //client.setFollowRedirects(true); // TO-DO
+        //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
+    }
+    
 //    
 //    @Override
 //    public Set<Class<?>> getClasses()

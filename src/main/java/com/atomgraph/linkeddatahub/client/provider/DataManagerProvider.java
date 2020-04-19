@@ -24,6 +24,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
@@ -92,12 +93,13 @@ public class DataManagerProvider implements Factory<DataManager>
             Application application,
             SecurityContext securityContext, ResourceContext resourceContext, HttpServletRequest httpServletRequest)
     {
-        DataManager dataManager = new DataManager(mapper, client, mediaTypes,
-                preemptiveAuth, resolvingUncached, application,
+        DataManager dataManager = new DataManagerImpl(mapper, client, mediaTypes,
+                preemptiveAuth, resolvingUncached,
+                application,
                 securityContext, resourceContext, httpServletRequest);
-        FileManager.setStdLocators(dataManager);
+        FileManager.setStdLocators((FileManager)dataManager);
  
-        if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", dataManager.getLocationMapper());
+        if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
         return dataManager;
     }
     

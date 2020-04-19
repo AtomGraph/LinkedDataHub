@@ -26,6 +26,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.processor.model.TemplateCall;
@@ -141,7 +142,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     public DataManager getDataManager()
     {
         // create new DataManager with constructor-injected values instead provider proxies that are not visible in other threads
-        return new DataManager(LocationMapper.get(), getClient(), getMediaTypes(), true, false,
+        return new DataManagerImpl(LocationMapper.get(), getClient(), getMediaTypes(), true, false,
                 getApplication(), getSecurityContext(), getResourceContext(), getHttpServletRequest());
     }
     

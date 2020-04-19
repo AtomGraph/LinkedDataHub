@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
  */
 @Provider
 @Singleton
+@Deprecated
 public class NoCertClientProvider implements Factory<Client> // extends PerRequestTypeInjectableProvider<Context, NoCertClient> implements ContextResolver<NoCertClient>
 {
 

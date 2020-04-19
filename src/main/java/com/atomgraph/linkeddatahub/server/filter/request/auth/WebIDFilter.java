@@ -29,7 +29,6 @@ import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.exception.auth.WebIDDelegationException;
-import com.atomgraph.linkeddatahub.server.provider.ApplicationProvider;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.net.URI;
@@ -42,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
@@ -93,6 +93,9 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     @Context Providers providers;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject DataManager dataManager;
+    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
+    @Inject @Named("NoCertClient") Client noCertClient;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery, webIDQuery;
 
@@ -135,8 +138,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
             return; // request;
         }
-        
-        com.atomgraph.linkeddatahub.apps.model.Application app = getApplicationProvider().getApplication(getHttpServletRequest());
 
         // logout not really possible with HTTP certificates
         //if (isLogoutForced(request, getScheme())) logout(app, request);
@@ -159,8 +160,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 URI webID = getWebIDURI(webIDCert);
                 if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-//                try
-//                {
+                try
+                {
                     Resource agent = authenticate(loadWebID(webID), webID, publicKey);
                     if (agent == null)
                     {
@@ -190,12 +191,12 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                     }
 
                     //return; // request;
-//                }
-//                catch (ClientHandlerException ex)
-//                {
-//                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
-//                    return request; // default to unauthenticated access
-//                }
+                }
+                catch (Exception ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
+                    //return request; // default to unauthenticated access
+                }
             }
             catch (CertificateException ex)
             {
@@ -393,16 +394,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return httpServletRequest;
     }
     
-    public ApplicationProvider getApplicationProvider()
-    {
-        return ((ApplicationProvider)getProviders().getContextResolver(com.atomgraph.linkeddatahub.apps.model.Application.class, null));
-    }
-    
-    public Providers getProviders()
-    {
-        return providers;
-    }
-    
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
@@ -425,13 +416,12 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     
     public DataManager getDataManager()
     {
-        return getProviders().getContextResolver(DataManager.class, null).getContext(DataManager.class);
+        return dataManager;
     }
     
     public Client getNoCertClient()
     {
-        //return getProviders().getContextResolver(NoCertClient.class, null).getContext(NoCertClient.class);
-        return null;
+        return noCertClient;
     }
     
     public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()
