@@ -43,7 +43,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -140,13 +139,10 @@ public class RequestAccess extends ResourceBase
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application '" + getApplication().getURI() + "' does not have a maker (foaf:maker)");
 
-            Response cr = null;
-            try
-            {
-                cr = getDataManager().getEndpoint(URI.create(owner.getURI())).
+            try (Response cr = getDataManager().getEndpoint(URI.create(owner.getURI())).
                         request(MediaType.TEXT_NQUADS_TYPE).
-                        get(); // load maker's WebID model
-                
+                        get()) // load maker's WebID model)
+            {
                 owner = cr.readEntity(Dataset.class).getDefaultModel().getResource(owner.getURI());
                 
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -155,14 +151,11 @@ public class RequestAccess extends ResourceBase
                     throw new ClientException(cr);
                 }
 
-                Response cr1 = null;
-                try
-                {
-                    URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-                    cr1 = getDataManager().getEndpoint(authRequestContainerURI).
+                URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
+                try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
                         request(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
-                        post(Entity.entity(infModel.getRawModel(), MediaType.TEXT_NTRIPLES_TYPE));
-
+                        post(Entity.entity(infModel.getRawModel(), MediaType.TEXT_NTRIPLES_TYPE)))
+                {
                     if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr1.getLocation(), cr1.getStatusInfo().getReasonPhrase());
@@ -180,14 +173,6 @@ public class RequestAccess extends ResourceBase
 
                     return get();
                 }
-                finally
-                {
-                    if (cr1 != null) cr1.close();
-                }
-            }
-            finally
-            {
-                if (cr != null) cr.close();
             }
         }
         finally

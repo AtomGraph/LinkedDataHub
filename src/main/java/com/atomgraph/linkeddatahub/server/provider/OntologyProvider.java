@@ -77,24 +77,6 @@ public class OntologyProvider extends OntologyLoader implements Factory<Ontology
     {
     }
     
-//    public Injectable<Ontology> getInjectable(ComponentContext cc, Context context)
-//    {
-//        return new Injectable<Ontology>()
-//        {
-//            @Override
-//            public Ontology getValue()
-//            {
-//                return getOntology();
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public Ontology getContext(Class<?> type)
-//    {
-//        return getOntology();
-//    }
-    
     public Ontology getOntology()
     {
         Application app = getApplication();
@@ -120,13 +102,11 @@ public class OntologyProvider extends OntologyLoader implements Factory<Ontology
     
     public Application getApplication()
     {
-        //return getProviders().getContextResolver(Application.class, null).getContext(Application.class);
         return application;
     }
     
     public MediaTypes getMediaTypes()
     {
-        //return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
         return mediaTypes;
     }
     
@@ -134,24 +114,5 @@ public class OntologyProvider extends OntologyLoader implements Factory<Ontology
     {
         return request;
     }
-    
-//    public Providers getProviders()
-//    {
-//        return providers;
-//    }
-
-//    @Override
-//    public ComponentScope getScope()
-//    {
-//        return ComponentScope.PerRequest;
-//    }
-//
-//    @Override
-//    public Injectable getInjectable(ComponentContext ic, Context a, Type c)
-//    {
-//        if (c.equals(Ontology.class)) return getInjectable(ic, a);
-//
-//        return null;
-//    }
     
 }

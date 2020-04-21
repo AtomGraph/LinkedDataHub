@@ -103,33 +103,36 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 Resource provGraph = null;
                 QuerySolutionMap qsm = new QuerySolutionMap();
                 qsm.add(FOAF.Document.getLocalName(), document);
-                ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
+                
+                try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                         qsm, getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                        new MultivaluedHashMap()).
-                        readEntity(ResultSetRewindable.class);
-                if (resultSet.hasNext())
+                        new MultivaluedHashMap()))
                 {
-                    QuerySolution qs = resultSet.next();
-                    if (qs.contains("provGraph")) provGraph = qs.getResource("provGraph");
+                    ResultSet resultSet = cr.readEntity(ResultSetRewindable.class);
+                    if (resultSet.hasNext())
+                    {
+                        QuerySolution qs = resultSet.next();
+                        if (qs.contains("provGraph")) provGraph = qs.getResource("provGraph");
+                        else
+                        {
+                            if (log.isErrorEnabled()) log.error("Document provenance graph not found for CSVImport '{}'", topic);
+                            throw new IllegalStateException("Document provenance graph not found");
+                        }
+                    }
                     else
                     {
-                        if (log.isErrorEnabled()) log.error("Document provenance graph not found for CSVImport '{}'", topic);
-                        throw new IllegalStateException("Document provenance graph not found");
+                        if (log.isErrorEnabled()) log.error("Document provenance graph query returned no results for CSVImport '{}'", topic);
+                        throw new IllegalStateException("Document provenance graph query returned no results");
                     }
-                }
-                else
-                {
-                    if (log.isErrorEnabled()) log.error("Document provenance graph query returned no results for CSVImport '{}'", topic);
-                    throw new IllegalStateException("Document provenance graph query returned no results");
-                }
-                
-                // we need to load stored import to know its graph URI which we will append to
-                CSVImport csvImport = topic.as(CSVImport.class);
-                csvImport.setDataManager(getDataManager()).
-                        setValidator(new Validator(getOntResource().getOntModel())).
-                        setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
 
-                ImportListener.submit(csvImport, this, provGraph, getService().getDatasetAccessor()); // start the import asynchroniously
+                    // we need to load stored import to know its graph URI which we will append to
+                    CSVImport csvImport = topic.as(CSVImport.class);
+                    csvImport.setDataManager(getDataManager()).
+                            setValidator(new Validator(getOntResource().getOntModel())).
+                            setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
+
+                    ImportListener.submit(csvImport, this, provGraph, getService().getDatasetAccessor()); // start the import asynchroniously
+                }
             }
             else
                 if (log.isWarnEnabled()) log.warn("Topic '{}' cannot be cast to CSVImport", topic);

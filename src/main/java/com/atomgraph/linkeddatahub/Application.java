@@ -167,6 +167,7 @@ import com.atomgraph.server.provider.TemplateCallProvider;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.TreeMap;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import org.apache.http.conn.ClientConnectionManager;
@@ -551,7 +552,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     {
         register(ResourceBase.class); // handles /
         
-//        register(new HttpMethodOverrideFilter());
+//        register(new HttpMethodOverrideFilter(), 300);
         register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
 //        register(TestFilter.class);
@@ -606,20 +607,20 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
                 bind(system).to(com.atomgraph.linkeddatahub.Application.class);
             }
         });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bind(new com.atomgraph.core.MediaTypes()).to(com.atomgraph.core.MediaTypes.class);
+//            }
+//        });
         register(new AbstractBinder()
         {
             @Override
             protected void configure()
             {
-                bind(new com.atomgraph.core.MediaTypes()).to(com.atomgraph.core.MediaTypes.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class);
+                bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class).to(com.atomgraph.core.MediaTypes.class);
             }
         });
         register(new AbstractBinder()
@@ -862,7 +863,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         tmf.init(trustStore);
 
-        SSLContext ctx = SSLContext.getInstance("TLSv1");
+        SSLContext ctx = SSLContext.getInstance("SSL");
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         HostnameVerifier hv = new HostnameVerifier()
@@ -912,7 +913,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init(trustStore);
             
-            SSLContext ctx = SSLContext.getInstance("TLSv1");
+            SSLContext ctx = SSLContext.getInstance("SSL");
             ctx.init(null, tmf.getTrustManagers(), null);
 
             HostnameVerifier hv = new HostnameVerifier()

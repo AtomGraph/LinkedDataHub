@@ -17,10 +17,12 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.core.exception.NotFoundException;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -28,7 +30,6 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Context;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +40,13 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
+@Priority(700)
 public class ApplicationFilter implements ContainerRequestFilter // ResourceFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationFilter.class);
 
-    @Context HttpServletRequest httpServletRequest;
+    //@Context HttpServletRequest httpServletRequest;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
 
@@ -62,7 +64,8 @@ public class ApplicationFilter implements ContainerRequestFilter // ResourceFilt
             appResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
 
             com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-            getHttpServletRequest().setAttribute(LAPP.Application.getURI(), app);
+            //getHttpServletRequest().setAttribute(LAPP.Application.getURI(), app);
+            request.setProperty(LAPP.Application.getURI(), app);
 
             request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri());
             
@@ -90,10 +93,10 @@ public class ApplicationFilter implements ContainerRequestFilter // ResourceFilt
 //        return null;
 //    }
     
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
+//    public HttpServletRequest getHttpServletRequest()
+//    {
+//        return httpServletRequest;
+//    }
 
     public com.atomgraph.linkeddatahub.Application getSystem()
     {

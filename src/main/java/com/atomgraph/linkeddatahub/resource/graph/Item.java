@@ -143,39 +143,35 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         
         getService().getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
 
-        ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
+        try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                 getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                new MultivaluedHashMap()).
-                readEntity(ResultSetRewindable.class);
-        if (resultSet.hasNext())
-        {
-            QuerySolution qs = resultSet.next();
-            Resource document = qs.getResource(FOAF.Document.getLocalName());
-            Resource provGraph = qs.getResource("provGraph"); // TO-DO: use some constant instead of a hardcoded string
-            Resource container = qs.getResource(DH.Container.getLocalName());
-            
-            if (provGraph != null)
+                new MultivaluedHashMap()))
             {
-                // add dct:modified on ?doc where { ?doc void:inDataset ?this }
-                Model provModel = ModelFactory.createDefaultModel();
-                provModel.addLiteral(document, DCTerms.modified, provModel.createTypedLiteral(GregorianCalendar.getInstance()));
-                Dataset provDataset = DatasetFactory.create();
-                provDataset.addNamedModel(provGraph.getURI(), provModel);
-                getService().getDatasetQuadAccessor().add(provDataset);
-            }
-            
-            // attempt to purge ?doc where { ?doc void:inDataset ?this }
-            if (getSystem().isInvalidateCache() && document != null)
+            ResultSet resultSet = cr.readEntity(ResultSetRewindable.class);
+            if (resultSet.hasNext())
             {
-                Response banResponse = null;
-                try
+                QuerySolution qs = resultSet.next();
+                Resource document = qs.getResource(FOAF.Document.getLocalName());
+                Resource provGraph = qs.getResource("provGraph"); // TO-DO: use some constant instead of a hardcoded string
+                Resource container = qs.getResource(DH.Container.getLocalName());
+
+                if (provGraph != null)
                 {
-                    banResponse = ban(document, container);
-                    if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                    // add dct:modified on ?doc where { ?doc void:inDataset ?this }
+                    Model provModel = ModelFactory.createDefaultModel();
+                    provModel.addLiteral(document, DCTerms.modified, provModel.createTypedLiteral(GregorianCalendar.getInstance()));
+                    Dataset provDataset = DatasetFactory.create();
+                    provDataset.addNamedModel(provGraph.getURI(), provModel);
+                    getService().getDatasetQuadAccessor().add(provDataset);
                 }
-                finally
+
+                // attempt to purge ?doc where { ?doc void:inDataset ?this }
+                if (getSystem().isInvalidateCache() && document != null)
                 {
-                    if (banResponse != null) banResponse.close();
+                    try (Response banResponse = ban(document, container))
+                    {
+                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                    }
                 }
             }
         }
@@ -221,28 +217,24 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         // attempt to purge ?doc where { ?doc void:inDataset ?this }
         if (getSystem().isInvalidateCache())
         {
-            ResultSet resultSet = getService().getSPARQLClient().
+            try (Response cr = getService().getSPARQLClient().
                 query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                     getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                    new MultivaluedHashMap()).
-                readEntity(ResultSetRewindable.class);
-            if (resultSet.hasNext())
-            {
-                QuerySolution qs = resultSet.next();
-                Resource document = qs.getResource(FOAF.Document.getLocalName());
-                Resource container = qs.getResource(DH.Container.getLocalName());
-                
-                if (document != null)
+                    new MultivaluedHashMap()))
                 {
-                    Response banResponse = null;
-                    try
+                ResultSet resultSet = cr.readEntity(ResultSetRewindable.class);
+                if (resultSet.hasNext())
+                {
+                    QuerySolution qs = resultSet.next();
+                    Resource document = qs.getResource(FOAF.Document.getLocalName());
+                    Resource container = qs.getResource(DH.Container.getLocalName());
+
+                    if (document != null)
                     {
-                        banResponse = ban(document, container);
-                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
-                    }
-                    finally
-                    {
-                        if (banResponse != null) banResponse.close();
+                        try (Response banResponse = ban(document, container))
+                        {
+                            if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                        }
                     }
                 }
             }

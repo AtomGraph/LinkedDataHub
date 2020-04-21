@@ -65,17 +65,18 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
         
         CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(input.readEntity(InputStream.class), StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
 
-        Response cr = getDataManager().getEndpoint(URI.create(getURI())).
+        try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
             request(MediaType.TEXT_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
-            post(Entity.entity(rdfOutput, MediaType.TEXT_NTRIPLES));
-
-        if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            post(Entity.entity(rdfOutput, MediaType.TEXT_NTRIPLES)))
         {
-            //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
-            throw new ImportException(cr.toString(), cr.readEntity(Model.class));
-        }
+            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
+                throw new ImportException(cr.toString(), cr.readEntity(Model.class));
+            }
 
-        return rdfOutput;
+            return rdfOutput;
+        }
     }
 
     public String getURI()

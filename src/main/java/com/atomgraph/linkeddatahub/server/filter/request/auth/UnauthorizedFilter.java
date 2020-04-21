@@ -22,6 +22,8 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.net.URI;
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 import org.apache.jena.query.QuerySolutionMap;
@@ -41,6 +43,7 @@ import org.spinrdf.vocabulary.SPIN;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
+@Priority(Priorities.AUTHORIZATION + 100)
 public class UnauthorizedFilter extends AuthFilter
 {
     private static final Logger log = LoggerFactory.getLogger(UnauthorizedFilter.class);

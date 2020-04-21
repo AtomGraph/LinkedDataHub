@@ -52,9 +52,11 @@ public class QueryLoader implements Supplier<Query>
     @Override
     public Query get()
     {
-        Response cr = getDataManager().load(getURI());
-        Resource queryRes = cr.readEntity(Model.class).getResource(getURI());
-        return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI());
+        try (Response cr = getDataManager().load(getURI()))
+        {
+            Resource queryRes = cr.readEntity(Model.class).getResource(getURI());
+            return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI());
+        }
     }
 
     public String getURI()

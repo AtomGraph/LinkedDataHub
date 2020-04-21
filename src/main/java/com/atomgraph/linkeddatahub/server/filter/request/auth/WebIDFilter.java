@@ -40,10 +40,12 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -78,6 +80,7 @@ import org.spinrdf.vocabulary.SPIN;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
+@Priority(Priorities.AUTHORIZATION)
 public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
 {
     
@@ -160,8 +163,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 URI webID = getWebIDURI(webIDCert);
                 if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-                try
-                {
+//                try
+//                {
                     Resource agent = authenticate(loadWebID(webID), webID, publicKey);
                     if (agent == null)
                     {
@@ -191,12 +194,12 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                     }
 
                     //return; // request;
-                }
-                catch (Exception ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
-                    //return request; // default to unauthenticated access
-                }
+//                }
+//                catch (Exception ex)
+//                {
+//                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
+//                    //return request; // default to unauthenticated access
+//                }
             }
             catch (CertificateException ex)
             {
@@ -276,18 +279,20 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         {
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
-            Response cr = getNoCertClient().target(webIDDoc).
+            
+            try (Response cr = getNoCertClient().target(webIDDoc).
                     request(getAcceptableMediaTypes()).
-                    get();
-            
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    get())
             {
-                if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
-                throw new WebIDLoadingException(cr);
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                {
+                    if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
+                    throw new WebIDLoadingException(cr);
+                }
+                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
+
+                return cr.readEntity(Model.class);
             }
-            cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
-            
-            return cr.readEntity(Model.class);
         }
         catch (URISyntaxException ex)
         {
@@ -360,9 +365,11 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
 
-        return service.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(query, Model.class, null).
-                readEntity(Model.class);
+        try (Response cr = service.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(query, Model.class, null))
+        {
+            return cr.readEntity(Model.class);
+        }
     }
     
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)

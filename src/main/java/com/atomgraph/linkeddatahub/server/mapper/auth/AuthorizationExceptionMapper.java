@@ -28,11 +28,11 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
 import java.net.URI;
+import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.ext.ContextResolver;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
@@ -47,6 +47,8 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     @Context SecurityContext securityContext;
+    
+    @Inject Application application;
     
     @Override
     public Response toResponse(AuthorizationException ex)
@@ -91,8 +93,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
     
     public Application getApplication()
     {
-        ContextResolver<Application> cr = getProviders().getContextResolver(Application.class, null);
-        return cr.getContext(Application.class);
+        return application;
     }
     
 }

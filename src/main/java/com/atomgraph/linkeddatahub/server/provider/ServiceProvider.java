@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import org.glassfish.hk2.api.Factory;
@@ -37,8 +38,9 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
 
     private static final Logger log = LoggerFactory.getLogger(ServiceProvider.class);
 
-    @Context HttpServletRequest httpServletRequest;
-//    @Context Providers providers;
+//    @Context HttpServletRequest httpServletRequest;
+    @Context ContainerRequestContext crc;
+
     
 //    private final Integer maxGetRequestSize;
 //
@@ -50,7 +52,7 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
     @Override
     public Service provide()
     {
-        return getService(getHttpServletRequest());
+        return getService(crc);
     }
 
     @Override
@@ -58,35 +60,9 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
     {
     }
     
-//    public ServiceProvider(final Integer maxGetRequestSize)
-//    {
-//        super(Service.class);
-//        this.maxGetRequestSize = maxGetRequestSize;
-//    }
-//    
-//    @Override
-//    public Injectable<Service> getInjectable(ComponentContext ic, Context a)
-//    {
-//        return new Injectable<Service>()
-//        {
-//            @Override
-//            public Service getValue()
-//            {
-//                return getService(getHttpServletRequest());
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public Service getContext(Class<?> type)
-//    {
-//        return getService(getHttpServletRequest());
-//    }
-    
-    
-    public Service getService(HttpServletRequest httpServletRequest)
+    public Service getService(ContainerRequestContext crc) // HttpServletRequest httpServletRequest
     {
-        Application app = ((Application)httpServletRequest.getAttribute(LAPP.Application.getURI()));
+        Application app = ((Application)crc.getProperty(LAPP.Application.getURI()));
         
         if (app != null)
         {
@@ -101,29 +77,14 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
         return null;
     }
     
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
+//    public HttpServletRequest getHttpServletRequest()
+//    {
+//        return httpServletRequest;
+//    }
     
 //    public Integer getMaxGetRequestSize()
 //    {
 //        return maxGetRequestSize;
-//    }
-//    
-//    public Client getClient()
-//    {
-//        return getProviders().getContextResolver(Client.class, null).getContext(Client.class);
-//    }
-//    
-//    public MediaTypes getMediaTypes()
-//    {
-//        return getProviders().getContextResolver(MediaTypes.class, null).getContext(MediaTypes.class);
-//    }
-//    
-//    public Providers getProviders()
-//    {
-//        return providers;
 //    }
     
 }

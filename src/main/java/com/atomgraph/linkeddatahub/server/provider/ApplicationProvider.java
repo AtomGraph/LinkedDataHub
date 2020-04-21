@@ -20,7 +20,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +35,12 @@ public class ApplicationProvider implements Factory<Application> // extends PerR
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationProvider.class);
 
-    @Context HttpServletRequest httpServletRequest;
+    @Context ContainerRequestContext crc;
 
     @Override
     public Application provide()
     {
-        return getApplication(getHttpServletRequest());
+        return getApplication(crc);
     }
 
     @Override
@@ -72,14 +72,19 @@ public class ApplicationProvider implements Factory<Application> // extends PerR
 //        return getApplication(getHttpServletRequest());
 //    }
     
-    public Application getApplication(HttpServletRequest httpServletRequest)
+//    public Application getApplication(HttpServletRequest httpServletRequest)
+//    {
+//        return (Application)httpServletRequest.getAttribute(LAPP.Application.getURI());
+//    }
+    
+    public Application getApplication(ContainerRequestContext crc)
     {
-        return (Application)httpServletRequest.getAttribute(LAPP.Application.getURI());
+        return (Application)crc.getProperty(LAPP.Application.getURI());
     }
     
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
+//    public HttpServletRequest getHttpServletRequest()
+//    {
+//        return httpServletRequest;
+//    }
     
 }

@@ -217,7 +217,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
         
-        if (getTemplateCall() != null && getTemplateCall().get().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
+        if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
         {
             if (log.isDebugEnabled()) log.debug("Returning SPARQL query string as debug response");
             return Response.ok(getQuery().toString()).
@@ -780,16 +780,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(relative.toString(), UriComponent.Type.UNRESERVED));
                 }
 
-            Response cr = null;
-            try
-            {
-                cr = builder.method("BAN", Response.class);
-                return cr;
-            }
-            finally
-            {
-                if (cr != null) cr.close();
-            }
+            return builder.method("BAN", Response.class);
         }
 
         return null;
@@ -862,24 +853,24 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
         
-        final Dataset dataset;
-        
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
-            dataset = ((SesameProtocolClient)getService().
+            try (Response cr = ((SesameProtocolClient)getService().
                 getSPARQLClient()).
-                query(getQuery(), Dataset.class, getQuerySolutionMap(), null).
-                readEntity(Dataset.class);
+                query(getQuery(), Dataset.class, getQuerySolutionMap(), null))
+            {
+                return cr.readEntity(Dataset.class);
+            }
         else
         {
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getQuery().toString(), getQuerySolutionMap());
-            dataset = getService().
+            try (Response cr = getService().
                 getSPARQLClient().
-                query(pss.asQuery(), Dataset.class, null).
-                readEntity(Dataset.class);
+                query(pss.asQuery(), Dataset.class, null))
+            {
+                return cr.readEntity(Dataset.class);
+            }
         }
-        
-        return dataset;
     }
     
     /**

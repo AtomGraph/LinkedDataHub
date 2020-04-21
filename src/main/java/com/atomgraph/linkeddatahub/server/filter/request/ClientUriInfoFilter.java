@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import java.io.IOException;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -32,12 +33,13 @@ import javax.ws.rs.core.Context;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
+@Priority(500)
 public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFilter
 {
     
-    @Context HttpServletRequest httpServletRequest;
+    //@Context HttpServletRequest httpServletRequest;
     
-    @Inject com.atomgraph.linkeddatahub.Application system;
+//    @Inject com.atomgraph.linkeddatahub.Application system;
 
 //    @Override
 //    public ContainerRequest filter(ContainerRequest request)
@@ -64,24 +66,29 @@ public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFi
 //        return null;
 //    }
     
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
+//    public HttpServletRequest getHttpServletRequest()
+//    {
+//        return httpServletRequest;
+//    }
     
-    public com.atomgraph.linkeddatahub.Application getSystem()
-    {
-        return system;
-    }
+//    public com.atomgraph.linkeddatahub.Application getSystem()
+//    {
+//        return system;
+//    }
 
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
         // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
-        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
+//        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
+//        {
+//            ClientUriInfo clientUriInfo = new ClientUriInfoImpl(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());
+//            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
+//        }
+        if (request.getProperty(ClientUriInfo.class.getName()) == null)
         {
             ClientUriInfo clientUriInfo = new ClientUriInfoImpl(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());
-            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
+            request.setProperty(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
         }
     }
     

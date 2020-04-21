@@ -225,17 +225,17 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
                 builder = webResource.header(HttpHeaders.AUTHORIZATION, authHeaders.get(0));
             */
 
-            Response cr = builder.accept(MediaType.TEXT_XSL_TYPE). // MediaType.WILDCARD_TYPE
-                get();
-
-            if (!cr.getStatusInfo().getFamily().equals(Family.SUCCESSFUL))
-                throw new IOException("XSLT stylesheet could not be successfully loaded over HTTP");
-
-            // buffer the stylesheet stream so we can close Response
-            try (InputStream is = cr.readEntity(InputStream.class))
+            try (Response cr = builder.accept(MediaType.TEXT_XSL_TYPE).get())
             {
-                byte[] bytes = IOUtils.toByteArray(is);
-                return new StreamSource(new ByteArrayInputStream(bytes), uri.toString());
+                if (!cr.getStatusInfo().getFamily().equals(Family.SUCCESSFUL))
+                    throw new IOException("XSLT stylesheet could not be successfully loaded over HTTP");
+
+                // buffer the stylesheet stream so we can close Response
+                try (InputStream is = cr.readEntity(InputStream.class))
+                {
+                    byte[] bytes = IOUtils.toByteArray(is);
+                    return new StreamSource(new ByteArrayInputStream(bytes), uri.toString());
+                }
             }
         }
         

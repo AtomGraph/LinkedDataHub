@@ -96,7 +96,7 @@ public class Item extends ResourceBase
     
     public OntologyLoader getOntologyProvider()
     {
-        return (OntologyLoader)getProviders().getContextResolver(Ontology.class, null);
+        return (OntologyLoader)getProviders().getContextResolver(Ontology.class, null); // TO-DO
     }
     
 }

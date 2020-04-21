@@ -49,6 +49,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
@@ -173,9 +174,9 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
                 builder.parameter("{" + APL.access_to.getNameSpace() + "}" + APL.access_to.getLocalName(),
                     URI.create(getUriInfo().getQueryParameters().getFirst(APL.access_to.getLocalName())));
             
-            if (getHttpHeaders().getRequestHeader("Referer") != null)
+            if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
             {
-                URI referer = URI.create(getHttpHeaders().getRequestHeader("Referer").get(0));
+                URI referer = URI.create(getHttpHeaders().getRequestHeader(HttpHeaders.REFERER).get(0));
                 if (log.isDebugEnabled()) log.debug("Passing $Referer URI to XSLT: {}", referer);
                 builder.parameter("Referer", referer); // TO-DO: move to ac: namespace
             }

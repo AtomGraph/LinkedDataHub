@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.provider;
 
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import org.glassfish.hk2.api.Factory;
@@ -35,12 +36,13 @@ public class ClientUriInfoProvider implements Factory<ClientUriInfo> // extends 
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriInfoProvider.class);
 
-    @Context HttpServletRequest httpServletRequest;
+//    @Context HttpServletRequest httpServletRequest;
+    @Context ContainerRequestContext crc;
     
     @Override
     public ClientUriInfo provide()
     {
-        return getClientUriInfo(getHttpServletRequest());
+        return getClientUriInfo(crc);
     }
 
     @Override
@@ -73,14 +75,19 @@ public class ClientUriInfoProvider implements Factory<ClientUriInfo> // extends 
 //        return getClientUriInfo(getHttpServletRequest());
 //    }
     
-    public ClientUriInfo getClientUriInfo(HttpServletRequest httpServletRequest)
+    public ClientUriInfo getClientUriInfo(ContainerRequestContext crc)
     {
-        return (ClientUriInfo)httpServletRequest.getAttribute(ClientUriInfo.class.getName());
+        return (ClientUriInfo)crc.getProperty(ClientUriInfo.class.getName());
     }
     
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
+//    public ClientUriInfo getClientUriInfo(HttpServletRequest httpServletRequest)
+//    {
+//        return (ClientUriInfo)httpServletRequest.getAttribute(ClientUriInfo.class.getName());
+//    }
+    
+//    public HttpServletRequest getHttpServletRequest()
+//    {
+//        return httpServletRequest;
+//    }
     
 }

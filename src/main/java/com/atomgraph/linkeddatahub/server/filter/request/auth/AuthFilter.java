@@ -40,6 +40,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -65,10 +66,10 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
     
     private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
     
-    @Context Providers providers;
-    @Context UriInfo uriInfo;
-    @Context Request request;
-    @Context HttpServletRequest httpServletRequest;
+//    @Context Providers providers;
+//    @Context UriInfo uriInfo;
+//    @Context Request request;
+//    @Context HttpServletRequest httpServletRequest;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
@@ -119,10 +120,10 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
         if (accessMode == null)
         {
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
-            //return;
+            return;
         }
         
-        //return authorize(request, request.getAbsolutePath(), accessMode, app);
+        authorize(request, request.getUriInfo().getAbsolutePath(), accessMode, app);
     }
     
     public void authorize(ContainerRequestContext request, URI absolutePath, Resource accessMode, com.atomgraph.linkeddatahub.apps.model.Application app)
@@ -238,15 +239,19 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
         
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (adminService.getSPARQLClient() instanceof SesameProtocolClient)
-            return ((SesameProtocolClient)adminService.getSPARQLClient()).register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), Model.class, qsm, null).
-                readEntity(Model.class);
+            try (Response cr = ((SesameProtocolClient)adminService.getSPARQLClient()).register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(pss.asQuery(), Model.class, qsm, null))
+            {
+                return cr.readEntity(Model.class);
+            }
         else
         {
             pss.setParams(qsm);
-            return adminService.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), Model.class, null).
-                readEntity(Model.class);
+            try (Response cr = adminService.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(pss.asQuery(), Model.class, null))
+            {
+                return cr.readEntity(Model.class);
+            }
         }
     }
     
@@ -289,30 +294,31 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
         return false;
     }
     
-    public ApplicationProvider getApplicationProvider()
-    {
-        return ((ApplicationProvider)getProviders().getContextResolver(com.atomgraph.linkeddatahub.apps.model.Application.class, null));
-    }
+//    public ApplicationProvider getApplicationProvider()
+//    {
+//        return ((ApplicationProvider)getProviders().getContextResolver(com.atomgraph.linkeddatahub.apps.model.Application.class, null));
+//    }
     
-    public Ontology getOntology()
-    {
-        return getProviders().getContextResolver(Ontology.class, null).getContext(Ontology.class);
-    }
+//    public Ontology getOntology()
+//    {
+////        return getProviders().getContextResolver(Ontology.class, null).getContext(Ontology.class);
+//        return ontology;
+//    }
+//
+//    public Providers getProviders()
+//    {
+//        return providers;
+//    }
 
-    public Providers getProviders()
-    {
-        return providers;
-    }
-
-    public Request getRequest()
-    {
-        return request;
-    }
+//    public Request getRequest()
+//    {
+//        return request;
+//    }
     
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
+//    public HttpServletRequest getHttpServletRequest()
+//    {
+//        return httpServletRequest;
+//    }
     
     public ParameterizedSparqlString getAuthQuery()
     {
