@@ -19,11 +19,11 @@ package com.atomgraph.linkeddatahub.server.provider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,26 +33,18 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ServiceProvider implements Factory<Service> // extends PerRequestTypeInjectableProvider<Context, Service> implements ContextResolver<Service>
+public class ServiceProvider implements Factory<Service>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceProvider.class);
 
-//    @Context HttpServletRequest httpServletRequest;
-    @Context ContainerRequestContext crc;
-
-    
-//    private final Integer maxGetRequestSize;
-//
-//    public ServiceProvider(final Integer maxGetRequestSize)
-//    {
-//        this.maxGetRequestSize = maxGetRequestSize;
-//    }
+    @Context
+    private ServiceLocator serviceLocator;
     
     @Override
     public Service provide()
     {
-        return getService(crc);
+        return getService(getContainerRequestContext());
     }
 
     @Override
@@ -77,14 +69,9 @@ public class ServiceProvider implements Factory<Service> // extends PerRequestTy
         return null;
     }
     
-//    public HttpServletRequest getHttpServletRequest()
-//    {
-//        return httpServletRequest;
-//    }
-    
-//    public Integer getMaxGetRequestSize()
-//    {
-//        return maxGetRequestSize;
-//    }
-    
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return serviceLocator.getService(ContainerRequestContext.class);
+    }
+
 }

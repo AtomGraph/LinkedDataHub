@@ -17,11 +17,11 @@
 package com.atomgraph.linkeddatahub.server.provider;
 
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,18 +31,18 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ClientUriInfoProvider implements Factory<ClientUriInfo> // extends PerRequestTypeInjectableProvider<Context, ClientUriInfo> implements ContextResolver<ClientUriInfo>
+public class ClientUriInfoProvider implements Factory<ClientUriInfo>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ClientUriInfoProvider.class);
 
-//    @Context HttpServletRequest httpServletRequest;
-    @Context ContainerRequestContext crc;
+    @Context
+    private ServiceLocator serviceLocator;
     
     @Override
     public ClientUriInfo provide()
     {
-        return getClientUriInfo(crc);
+        return getClientUriInfo(getContainerRequestContext());
     }
 
     @Override
@@ -50,44 +50,14 @@ public class ClientUriInfoProvider implements Factory<ClientUriInfo> // extends 
     {
     }
     
-//
-//    public ClientUriInfoProvider()
-//    {
-//        super(ClientUriInfo.class);
-//    }
-//
-//    @Override
-//    public Injectable<ClientUriInfo> getInjectable(ComponentContext ic, Context a)
-//    {
-//        return new Injectable<ClientUriInfo>()
-//        {
-//            @Override
-//            public ClientUriInfo getValue()
-//            {
-//                return getClientUriInfo(getHttpServletRequest());
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public ClientUriInfo getContext(Class<?> type)
-//    {
-//        return getClientUriInfo(getHttpServletRequest());
-//    }
-    
     public ClientUriInfo getClientUriInfo(ContainerRequestContext crc)
     {
         return (ClientUriInfo)crc.getProperty(ClientUriInfo.class.getName());
     }
     
-//    public ClientUriInfo getClientUriInfo(HttpServletRequest httpServletRequest)
-//    {
-//        return (ClientUriInfo)httpServletRequest.getAttribute(ClientUriInfo.class.getName());
-//    }
-    
-//    public HttpServletRequest getHttpServletRequest()
-//    {
-//        return httpServletRequest;
-//    }
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return serviceLocator.getService(ContainerRequestContext.class);
+    }
     
 }

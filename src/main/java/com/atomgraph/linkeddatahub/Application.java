@@ -183,6 +183,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
@@ -867,32 +868,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         SSLContext ctx = SSLContext.getInstance("SSL");
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-//        HostnameVerifier hv = new HostnameVerifier()
-//        {
-//            @Override
-//            public boolean verify(String hostname, SSLSession session)
-//            {
-//                if ( log.isDebugEnabled()) log.debug("Warning: URL Host: {} vs. {}", hostname, session.getPeerHost());
-//
-//                return true;
-//            }
-//        };
-
-//        SslConfigurator sslConfig = SslConfigurator.newInstance().
-//                keyStore(keyStore).
-//                keyStorePassword(keyStorePassword).
-//                trustStore(trustStore);
-//
-//        SSLContext sslContext = sslConfig.createSSLContext();
-
-//        SchemeRegistry schemeRegistry = new SchemeRegistry();
-//        SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-//        Scheme httpsScheme = new Scheme("https", 443, ssf);
-//        schemeRegistry.register(httpsScheme);
-//        Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-//        schemeRegistry.register(httpScheme);
-//        ThreadSafeClientConnManager conman = new ThreadSafeClientConnManager(schemeRegistry);
-
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
             register("https", new SSLConnectionSocketFactory(ctx)).
             register("http", new PlainConnectionSocketFactory()).
@@ -913,7 +888,9 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-            
+        //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+//        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+        
         return ClientBuilder.newBuilder().
             withConfig(config).
             sslContext(ctx).
@@ -932,25 +909,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             SSLContext ctx = SSLContext.getInstance("SSL");
             ctx.init(null, tmf.getTrustManagers(), null);
 
-//            HostnameVerifier hv = new HostnameVerifier()
-//            {
-//                @Override
-//                public boolean verify(String hostname, SSLSession session)
-//                {
-//                    if ( log.isDebugEnabled()) log.debug("Warning: URL Host: {} vs. {}", hostname, session.getPeerHost());
-//
-//                    return true;
-//                }
-//            };
-//
-//            SchemeRegistry schemeRegistry = new SchemeRegistry();
-//            SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-//            Scheme httpsScheme = new Scheme("https", 443, ssf);
-//            schemeRegistry.register(httpsScheme);
-//            Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-//            schemeRegistry.register(httpScheme);
-//            ClientConnectionManager conman = new ThreadSafeClientConnManager(schemeRegistry);
-
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
                 register("https", new SSLConnectionSocketFactory(ctx)).
                 register("http", new PlainConnectionSocketFactory()).
@@ -968,6 +926,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+//            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
 
             return ClientBuilder.newBuilder().
                 withConfig(config).

@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
+import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,16 +32,19 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ApplicationProvider implements Factory<Application> // extends PerRequestTypeInjectableProvider<Context, Application> implements ContextResolver<Application>
+public class ApplicationProvider implements Factory<Application>
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationProvider.class);
 
-    @Context ContainerRequestContext crc;
-
+//    @Context ContainerRequestContext crc;
+    
+    @Context
+    private ServiceLocator serviceLocator;
+    
     @Override
     public Application provide()
     {
-        return getApplication(crc);
+        return getApplication(getContainerRequestContext());
     }
 
     @Override
@@ -48,43 +52,14 @@ public class ApplicationProvider implements Factory<Application> // extends PerR
     {
     }
     
-//    public ApplicationProvider()
-//    {
-//        super(Application.class);
-//    }
-//    
-//    @Override
-//    public Injectable<Application> getInjectable(ComponentContext ic, Context a)
-//    {
-//        return new Injectable<Application>()
-//        {
-//            @Override
-//            public Application getValue()
-//            {
-//                return getApplication(getHttpServletRequest());
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public Application getContext(Class<?> type)
-//    {
-//        return getApplication(getHttpServletRequest());
-//    }
-    
-//    public Application getApplication(HttpServletRequest httpServletRequest)
-//    {
-//        return (Application)httpServletRequest.getAttribute(LAPP.Application.getURI());
-//    }
-    
     public Application getApplication(ContainerRequestContext crc)
     {
         return (Application)crc.getProperty(LAPP.Application.getURI());
     }
     
-//    public HttpServletRequest getHttpServletRequest()
-//    {
-//        return httpServletRequest;
-//    }
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return serviceLocator.getService(ContainerRequestContext.class);
+    }
     
 }
