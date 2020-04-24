@@ -30,11 +30,11 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.provider.OntologyLoader;
-import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.AgentContext;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
-import com.atomgraph.linkeddatahub.util.WebIDCertGen;
+import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -137,7 +138,7 @@ public class SignUp extends ResourceBase
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  Client client,
+                  @Named("CertClient") Client client,
                   @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)

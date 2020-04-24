@@ -14,45 +14,44 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.provider;
+package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
+import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider of client URI information.
+ * JAX-RS provider of LinkedDataHub application.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ClientUriInfoProvider implements Factory<ClientUriInfo>
+public class ApplicationFactory implements Factory<Application>
 {
-
-    private static final Logger log = LoggerFactory.getLogger(ClientUriInfoProvider.class);
-
-    @Context
-    private ServiceLocator serviceLocator;
+    private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
+    
+    @Context private ServiceLocator serviceLocator;
     
     @Override
-    public ClientUriInfo provide()
+    public Application provide()
     {
-        return getClientUriInfo(getContainerRequestContext());
+        return getApplication(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(ClientUriInfo t)
+    public void dispose(Application t)
     {
     }
     
-    public ClientUriInfo getClientUriInfo(ContainerRequestContext crc)
+    public Application getApplication(ContainerRequestContext crc)
     {
-        return (ClientUriInfo)crc.getProperty(ClientUriInfo.class.getName());
+        return (Application)crc.getProperty(LAPP.Application.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()

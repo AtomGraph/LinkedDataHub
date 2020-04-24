@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -84,7 +85,7 @@ public class RequestAccess extends ResourceBase
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  Client client,
+                  @Named("CertClient") Client client,
                   @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)

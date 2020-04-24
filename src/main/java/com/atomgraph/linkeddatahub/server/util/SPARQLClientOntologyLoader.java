@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.provider;
+package com.atomgraph.linkeddatahub.server.util;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;

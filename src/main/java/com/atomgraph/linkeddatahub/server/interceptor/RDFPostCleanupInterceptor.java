@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.filter.request;
+package com.atomgraph.linkeddatahub.server.interceptor;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.riot.lang.TokenizerRDFPost;
@@ -29,8 +29,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.ext.ReaderInterceptor;
 import javax.ws.rs.ext.ReaderInterceptorContext;
 import nu.xom.Builder;
@@ -49,7 +50,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class RDFPostCleanupInterceptor implements ReaderInterceptor // ResourceFilter
+@Priority(Priorities.ENTITY_CODER)
+public class RDFPostCleanupInterceptor implements ReaderInterceptor
 {
 
     private static final Logger log = LoggerFactory.getLogger(RDFPostCleanupInterceptor.class);
@@ -57,8 +59,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor // ResourceF
     @Override
     public Object aroundReadFrom(ReaderInterceptorContext context) throws IOException, WebApplicationException
     {
-        if (context.getMediaType() != null &&
-                context.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
+        if (context.getMediaType() != null && context.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
         {
             StringWriter writer = new StringWriter();
             IOUtils.copy(context.getInputStream(), writer);;
@@ -115,7 +116,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor // ResourceF
                     context.setInputStream(new ByteArrayInputStream(rdfPost.getBytes(charsetName)));
                     
                     // replace generic Form URL-encoded media type with RDF/POST
-                    context.getHeaders().putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_RDF_URLENCODED);
+                    context.setMediaType(MediaType.APPLICATION_RDF_URLENCODED_TYPE);
                 }
                 catch (ParsingException | IOException ex)
                 {

@@ -14,47 +14,44 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.provider;
+package com.atomgraph.linkeddatahub.server.factory;
 
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider of LinkedDataHub application.
+ * JAX-RS provider of client URI information.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ApplicationProvider implements Factory<Application>
+public class ClientUriInfoFactory implements Factory<ClientUriInfo>
 {
-    private static final Logger log = LoggerFactory.getLogger(ApplicationProvider.class);
 
-//    @Context ContainerRequestContext crc;
-    
-    @Context
-    private ServiceLocator serviceLocator;
+    private static final Logger log = LoggerFactory.getLogger(ClientUriInfoFactory.class);
+
+    @Context private ServiceLocator serviceLocator;
     
     @Override
-    public Application provide()
+    public ClientUriInfo provide()
     {
-        return getApplication(getContainerRequestContext());
+        return getClientUriInfo(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Application t)
+    public void dispose(ClientUriInfo t)
     {
     }
     
-    public Application getApplication(ContainerRequestContext crc)
+    public ClientUriInfo getClientUriInfo(ContainerRequestContext crc)
     {
-        return (Application)crc.getProperty(LAPP.Application.getURI());
+        return (ClientUriInfo)crc.getProperty(ClientUriInfo.class.getName());
     }
     
     public ContainerRequestContext getContainerRequestContext()

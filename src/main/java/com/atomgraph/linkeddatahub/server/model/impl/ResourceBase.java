@@ -63,6 +63,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.client.Client;
@@ -102,7 +103,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            Client client,
+            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)

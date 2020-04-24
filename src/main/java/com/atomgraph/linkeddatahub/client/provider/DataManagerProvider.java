@@ -26,6 +26,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
@@ -56,7 +57,7 @@ public class DataManagerProvider implements Factory<DataManager>
     @Context Providers providers;
     
     @Inject MediaTypes mediaTypes;
-    @Inject Client client;
+    @Inject @Named("CertClient") Client client;
     @Inject Application application;
     
     public DataManagerProvider()

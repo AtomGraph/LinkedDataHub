@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.net.URI;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
@@ -45,7 +46,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Inject
     public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfoImpl clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            Client client, @Context HttpServletRequest httpServletRequest)
+            @Named("CertClient") Client client, @Context HttpServletRequest httpServletRequest)
     {
         super(clientUriInfo, request, httpHeaders, mediaTypes,
                 clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),

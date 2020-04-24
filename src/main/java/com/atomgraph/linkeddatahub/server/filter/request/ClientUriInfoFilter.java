@@ -20,12 +20,9 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import java.io.IOException;
 import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Context;
 
 /**
   * Request filter that sets request attribute with name <code>lapp:Context</code> and current context as the value
@@ -34,57 +31,13 @@ import javax.ws.rs.core.Context;
  */
 @PreMatching
 @Priority(500)
-public class ClientUriInfoFilter implements ContainerRequestFilter // ResourceFilter
+public class ClientUriInfoFilter implements ContainerRequestFilter
 {
-    
-    //@Context HttpServletRequest httpServletRequest;
-    
-//    @Inject com.atomgraph.linkeddatahub.Application system;
-
-//    @Override
-//    public ContainerRequest filter(ContainerRequest request)
-//    {
-//        // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
-//        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
-//        {
-//            ClientUriInfo clientUriInfo = new ClientUriInfo(request.getBaseUri(), request.getRequestUri(), request.getQueryParameters());
-//            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
-//        }
-//
-//        return request;
-//    }
-//
-//    @Override
-//    public ContainerRequestFilter getRequestFilter()
-//    {
-//        return this;
-//    }
-//
-//    @Override
-//    public ContainerResponseFilter getResponseFilter()
-//    {
-//        return null;
-//    }
-    
-//    public HttpServletRequest getHttpServletRequest()
-//    {
-//        return httpServletRequest;
-//    }
-    
-//    public com.atomgraph.linkeddatahub.Application getSystem()
-//    {
-//        return system;
-//    }
 
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
         // we need to save the current URI state somewhere, as it will be overridden by app base URI etc.
-//        if (getHttpServletRequest().getAttribute(ClientUriInfo.class.getName()) == null)
-//        {
-//            ClientUriInfo clientUriInfo = new ClientUriInfoImpl(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());
-//            getHttpServletRequest().setAttribute(ClientUriInfo.class.getName(), clientUriInfo); // used in ClientUriInfoProvider
-//        }
         if (request.getProperty(ClientUriInfo.class.getName()) == null)
         {
             ClientUriInfo clientUriInfo = new ClientUriInfoImpl(request.getUriInfo().getBaseUri(), request.getUriInfo().getRequestUri(), request.getUriInfo().getQueryParameters());

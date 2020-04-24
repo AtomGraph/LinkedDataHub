@@ -43,7 +43,7 @@ import org.spinrdf.vocabulary.SPIN;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
-@Priority(Priorities.AUTHORIZATION + 100)
+@Priority(Priorities.USER + 100) // has to execute after WebIDFilter
 public class UnauthorizedFilter extends AuthFilter
 {
     private static final Logger log = LoggerFactory.getLogger(UnauthorizedFilter.class);

@@ -35,7 +35,6 @@ import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.linkeddatahub.server.method.PATCH;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.processor.model.TemplateCall;
@@ -44,9 +43,11 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
@@ -79,7 +80,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            Client client,
+            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)

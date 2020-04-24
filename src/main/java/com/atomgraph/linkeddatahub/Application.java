@@ -67,7 +67,7 @@ import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
 import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDDelegationExceptionMapper;
-import com.atomgraph.linkeddatahub.server.provider.ApplicationProvider;
+import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
@@ -75,17 +75,21 @@ import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter;
-import com.atomgraph.linkeddatahub.server.provider.ClientUriInfoProvider;
-import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
+import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
-import com.atomgraph.linkeddatahub.server.provider.ServiceProvider;
-import com.atomgraph.linkeddatahub.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
+import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
+import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
+import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
+import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
+import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.processor.model.Parameter;
 import com.atomgraph.processor.model.Template;
@@ -129,10 +133,8 @@ import java.util.Map;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletContext;
 import javax.ws.rs.WebApplicationException;
@@ -158,7 +160,6 @@ import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.processor.vocabulary.LDT;
-import com.atomgraph.server.provider.TemplateCallProvider;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -183,9 +184,9 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
 import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 
 /**
@@ -554,13 +555,14 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     {
         register(ResourceBase.class); // handles /
         
-//        register(new HttpMethodOverrideFilter(), 300);
+        register(new HttpMethodOverrideFilter());
         register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
-//        register(TestFilter.class);
+        register(OntologyFilter.class);
+        register(TemplateCallFilter.class);
         register(WebIDFilter.class);
         register(UnauthorizedFilter.class);
-//        register(new RDFPostCleanupInterceptor());
+        register(new RDFPostCleanupInterceptor());
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
@@ -609,14 +611,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
                 bind(system).to(com.atomgraph.linkeddatahub.Application.class);
             }
         });
-//        register(new AbstractBinder()
-//        {
-//            @Override
-//            protected void configure()
-//            {
-//                bind(new com.atomgraph.core.MediaTypes()).to(com.atomgraph.core.MediaTypes.class);
-//            }
-//        });
         register(new AbstractBinder()
         {
             @Override
@@ -630,7 +624,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(ServiceProvider.class).to(Service.class).
+                bindFactory(ServiceFactory.class).to(Service.class).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -640,7 +634,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationProvider.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -650,7 +644,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(OntologyProvider.class).to(Ontology.class). // new OntologyProvider(getOntModelSpec(), getSitemapQuery())
+                bindFactory(OntologyFactory.class).to(Ontology.class). // new OntologyFactory(getOntModelSpec(), getSitemapQuery())
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -660,7 +654,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(TemplateCallProvider.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
+                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -687,7 +681,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bind(client).to(Client.class);
+                bind(client).to(Client.class).named("CertClient");
             }
         });
         register(new AbstractBinder()
@@ -703,7 +697,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(ClientUriInfoProvider.class).to(ClientUriInfo.class).
+                bindFactory(ClientUriInfoFactory.class).to(ClientUriInfo.class).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -888,7 +882,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-        //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+        config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
 //        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
         
         return ClientBuilder.newBuilder().
@@ -926,7 +920,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-            //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+            config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
 //            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
 
             return ClientBuilder.newBuilder().

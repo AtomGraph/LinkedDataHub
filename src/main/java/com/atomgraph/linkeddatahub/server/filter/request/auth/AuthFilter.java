@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.UserAccount;
-import com.atomgraph.linkeddatahub.server.provider.ApplicationProvider;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -34,16 +33,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.Providers;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
@@ -65,11 +58,6 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
 {
     
     private static final Logger log = LoggerFactory.getLogger(AuthFilter.class);
-    
-//    @Context Providers providers;
-//    @Context UriInfo uriInfo;
-//    @Context Request request;
-//    @Context HttpServletRequest httpServletRequest;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
@@ -294,32 +282,6 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
         return false;
     }
     
-//    public ApplicationProvider getApplicationProvider()
-//    {
-//        return ((ApplicationProvider)getProviders().getContextResolver(com.atomgraph.linkeddatahub.apps.model.Application.class, null));
-//    }
-    
-//    public Ontology getOntology()
-//    {
-////        return getProviders().getContextResolver(Ontology.class, null).getContext(Ontology.class);
-//        return ontology;
-//    }
-//
-//    public Providers getProviders()
-//    {
-//        return providers;
-//    }
-
-//    public Request getRequest()
-//    {
-//        return request;
-//    }
-    
-//    public HttpServletRequest getHttpServletRequest()
-//    {
-//        return httpServletRequest;
-//    }
-    
     public ParameterizedSparqlString getAuthQuery()
     {
         return authQuery;
@@ -329,18 +291,6 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
     {
         return ownerAuthQuery;
     }
-//        
-//    @Override
-//    public ContainerRequestContextFilter getRequestFilter()
-//    {
-//        return this;
-//    }
-//
-//    @Override
-//    public ContainerResponseFilter getResponseFilter()
-//    {
-//        return null;
-//    }
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {

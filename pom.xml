@@ -54,9 +54,9 @@
     
     <dependencies>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>4.0.3</version>
             <scope>provided</scope>
         </dependency>
         <!--
@@ -116,18 +116,18 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>2.2.10-SNAPSHOT</version>
+            <version>2.2.11-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.12-SNAPSHOT</version>
+            <version>2.1.13-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.12-SNAPSHOT</version>
+            <version>2.1.13-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>

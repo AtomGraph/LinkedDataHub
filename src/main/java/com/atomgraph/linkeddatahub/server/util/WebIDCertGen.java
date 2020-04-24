@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.util;
+package com.atomgraph.linkeddatahub.server.util;
 
 import java.nio.file.Path;
 

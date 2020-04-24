@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,77 +14,64 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.provider;
+package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.client.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.io.IOException;
+import javax.annotation.Priority;
 import javax.inject.Inject;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.ext.Provider;
-import javax.ws.rs.ext.Providers;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
-import org.glassfish.hk2.api.Factory;
 
 /**
- * JAX-RS provider of application ontology .
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ *
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-@Provider
-public class OntologyProvider extends OntologyLoader implements Factory<Ontology> // extends OntologyLoader implements InjectableProvider<Context, Type>, ContextResolver<Ontology>
+@PreMatching
+@Priority(800)
+public class OntologyFilter extends OntologyLoader implements ContainerRequestFilter
 {
-
+    
     private final com.atomgraph.linkeddatahub.Application system;
-    
-    @Context Request request;
-    @Context Providers providers;
-    //@Context javax.ws.rs.core.Application system;
-    
-    @Inject MediaTypes mediaTypes;
-    @Inject Application application;
-    
-    //private final Query query;
 
     @Inject
-    public OntologyProvider(com.atomgraph.linkeddatahub.Application system)
+    public OntologyFilter(com.atomgraph.linkeddatahub.Application system)
     {
         super(system.getOntModelSpec());
         this.system = system;
     }
     
-//    public OntologyProvider(OntModelSpec ontModelSpec, Query query)
-//    {
-//        super(ontModelSpec);
-//        this.query = query;
-//    }
-
     @Override
-    public Ontology provide()
+    public void filter(ContainerRequestContext crc) throws IOException
     {
-        return getOntology();
-    }
-
-    @Override
-    public void dispose(Ontology t)
-    {
+        crc.setProperty(OWL.Ontology.getURI(), getOntology(crc));
     }
     
-    public Ontology getOntology()
+    public Ontology getOntology(ContainerRequestContext crc)
     {
-        Application app = getApplication();
+        Application app = getApplication(crc);
         if (app == null) return null; // throw exception instead?
         
         return getOntology(app);
     }
     
+    public Application getApplication(ContainerRequestContext crc)
+    {
+        return (Application)crc.getProperty(LAPP.Application.getURI());
+    }
+
     @Override
     public Model getModel(Service service, String ontologyURI)
     {
@@ -96,23 +83,7 @@ public class OntologyProvider extends OntologyLoader implements Factory<Ontology
     
     public Query getQuery()
     {
-        //return query;
         return system.getSitemapQuery();
-    }
-    
-    public Application getApplication()
-    {
-        return application;
-    }
-    
-    public MediaTypes getMediaTypes()
-    {
-        return mediaTypes;
-    }
-    
-    public Request getRequest()
-    {
-        return request;
     }
     
 }

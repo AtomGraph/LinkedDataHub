@@ -27,11 +27,12 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.server.provider.OntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
@@ -58,7 +59,7 @@ public class Item extends ResourceBase
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            Client client,
+            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)

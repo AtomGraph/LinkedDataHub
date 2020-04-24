@@ -29,13 +29,14 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
+import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
@@ -60,7 +61,7 @@ public class Item extends ResourceBase
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            Client client,
+            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
@@ -98,13 +99,14 @@ public class Item extends ResourceBase
             if (OntDocumentManager.getInstance().getFileManager().hasCachedModel(ontologyURI))
             {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
-                
-                OntologyProvider ontProvider = new OntologyProvider(getSystem());
-                ontProvider.getOntology(getApplication(),
-                        getApplication().getService(),
-                        ontologyURI,
-                        getSystem().getOntModelSpec(),
-                        getOntology().getOntModel());
+  
+                // TO-DO
+//                OntologyFactory ontProvider = new OntologyFactory(getSystem());
+//                ontProvider.getOntology(getApplication(),
+//                        getApplication().getService(),
+//                        ontologyURI,
+//                        getSystem().getOntModelSpec(),
+//                        getOntology().getOntModel());
             }
             
             List<String> referers = getHttpHeaders().getRequestHeader("Referer");

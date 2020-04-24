@@ -25,6 +25,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -67,7 +68,7 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
     @Context UriInfo uriInfo;
     @Context HttpHeaders httpHeaders;
     
-    @Inject Client client;
+    @Inject @Named("CertClient") Client client;
     @Inject Application application;
     
     private final Map<String, Templates> appTemplatesCache = new HashMap<>();

@@ -80,7 +80,7 @@ import org.spinrdf.vocabulary.SPIN;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
-@Priority(Priorities.AUTHORIZATION)
+@Priority(Priorities.USER) // has to execute after HttpMethodOverrideFilter which has @Priority(Priorities.HEADER_DECORATOR + 50)
 public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
 {
     
@@ -132,14 +132,15 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         if (request.getMethod().equalsIgnoreCase(HttpMethod.GET) || request.getMethod().equalsIgnoreCase(HttpMethod.HEAD) ||
                 request.getMethod().equalsIgnoreCase("com.sun.jersey.MATCH_RESOURCE")) accessMode = ACL.Read;
         if (request.getMethod().equalsIgnoreCase(HttpMethod.POST)) accessMode = ACL.Append;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.PUT)) accessMode = ACL.Write;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.DELETE)) accessMode = ACL.Write;
-        if (request.getMethod().equalsIgnoreCase("PATCH")) accessMode = ACL.Write;
+        if (request.getMethod().equalsIgnoreCase(HttpMethod.PUT) ||
+            request.getMethod().equalsIgnoreCase(HttpMethod.DELETE) ||
+            request.getMethod().equalsIgnoreCase(HttpMethod.PATCH))
+            accessMode = ACL.Write;
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
         {
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
-            return; // request;
+            return;
         }
 
         // logout not really possible with HTTP certificates

@@ -33,6 +33,7 @@ import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
@@ -69,7 +70,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            Client client,
+            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system,

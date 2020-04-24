@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.provider;
+package com.atomgraph.linkeddatahub.server.factory;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -33,13 +33,12 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ServiceProvider implements Factory<Service>
+public class ServiceFactory implements Factory<Service>
 {
 
-    private static final Logger log = LoggerFactory.getLogger(ServiceProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(ServiceFactory.class);
 
-    @Context
-    private ServiceLocator serviceLocator;
+    @Context private ServiceLocator serviceLocator;
     
     @Override
     public Service provide()
@@ -52,7 +51,7 @@ public class ServiceProvider implements Factory<Service>
     {
     }
     
-    public Service getService(ContainerRequestContext crc) // HttpServletRequest httpServletRequest
+    public Service getService(ContainerRequestContext crc)
     {
         Application app = ((Application)crc.getProperty(LAPP.Application.getURI()));
         
