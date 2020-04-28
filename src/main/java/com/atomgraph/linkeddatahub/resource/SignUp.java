@@ -168,10 +168,7 @@ public class SignUp extends ResourceBase
         
         // get admin app ontology
         AdminApplication adminApp = application.as(AdminApplication.class);
-        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(),
-                system.getSitemapQuery(),
-                client, mediaTypes,
-                system.getMaxGetRequestSize(), system.isRemoteVariableBindings());
+        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
         adminOntology = ontProv.getOntology(adminApp);
         
         // TO-DO: extract Agent container URI from ontology Restrictions

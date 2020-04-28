@@ -16,12 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.core.exception.NotFoundException;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;

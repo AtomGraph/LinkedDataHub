@@ -16,24 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.client.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDFS;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
@@ -43,25 +32,12 @@ import org.glassfish.hk2.api.ServiceLocator;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class OntologyFactory implements Factory<Ontology> // extends OntologyLoader 
+public class OntologyFactory implements Factory<Ontology>
 {
 
     @Context private ServiceLocator serviceLocator;
 
-//    private final com.atomgraph.linkeddatahub.Application system;
-    
-//    @Context Request request;
-    @Context Providers providers;
-    
-//    @Inject MediaTypes mediaTypes;
     @Inject Application application;
-    
-//    @Inject
-//    public OntologyFactory(com.atomgraph.linkeddatahub.Application system)
-//    {
-//        super(system.getOntModelSpec());
-//        this.system = system;
-//    }
 
     @Override
     public Ontology provide()
@@ -83,42 +59,5 @@ public class OntologyFactory implements Factory<Ontology> // extends OntologyLoa
     {
         return serviceLocator.getService(ContainerRequestContext.class);
     }
-    
-//    public Ontology getOntology()
-//    {
-//        Application app = getApplication();
-//        if (app == null) return null; // throw exception instead?
-//        
-//        return getOntology(app);
-//    }
-//    
-//    @Override
-//    public Model getModel(Service service, String ontologyURI)
-//    {
-//        QuerySolutionMap qsm = new QuerySolutionMap();
-//        qsm.add(RDFS.isDefinedBy.getLocalName(), ResourceFactory.createResource(ontologyURI));
-//                
-//        return service.getSPARQLClient().loadModel(new ParameterizedSparqlString(getQuery().toString(), qsm).asQuery());
-//    }
-//    
-//    public Query getQuery()
-//    {
-//        return system.getSitemapQuery();
-//    }
-//    
-//    public Application getApplication()
-//    {
-//        return application;
-//    }
-    
-//    public MediaTypes getMediaTypes()
-//    {
-//        return mediaTypes;
-//    }
-    
-//    public Request getRequest()
-//    {
-//        return request;
-//    }
     
 }

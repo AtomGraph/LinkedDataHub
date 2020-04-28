@@ -29,8 +29,8 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
@@ -100,13 +100,7 @@ public class Item extends ResourceBase
             {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
   
-                // TO-DO
-//                OntologyFactory ontProvider = new OntologyFactory(getSystem());
-//                ontProvider.getOntology(getApplication(),
-//                        getApplication().getService(),
-//                        ontologyURI,
-//                        getSystem().getOntModelSpec(),
-//                        getOntology().getOntModel());
+                new SPARQLClientOntologyLoader(getSystem().getOntModelSpec(), getSystem().getSitemapQuery()).getOntology(getApplication());
             }
             
             List<String> referers = getHttpHeaders().getRequestHeader("Referer");

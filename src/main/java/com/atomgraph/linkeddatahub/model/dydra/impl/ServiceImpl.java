@@ -102,14 +102,11 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-//            ClientRequestFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-//            sparqlClient.register(authFilter);
-            
             HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
                 credentials(getAuthUser(), getAuthPwd()).
                 build();
             
-            sparqlClient.getWebTarget().register(authFeature);
+            sparqlClient.getEndpoint().register(authFeature);
         }
         if (getAccessToken() != null)
         {

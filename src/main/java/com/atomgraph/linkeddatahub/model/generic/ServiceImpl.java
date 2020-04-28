@@ -128,14 +128,11 @@ public class ServiceImpl extends ResourceImpl implements Service
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-//            ClientRequestFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-//            graphStoreClient.getWebTarget().register(authFilter);
-            
             HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
                 credentials(getAuthUser(), getAuthPwd()).
                 build();
             
-            sparqlClient.getWebTarget().register(authFeature);
+            sparqlClient.getEndpoint().register(authFeature);
         }
         
         return sparqlClient;
@@ -159,14 +156,11 @@ public class ServiceImpl extends ResourceImpl implements Service
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-//            ClientRequestFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-//            graphStoreClient.getWebTarget().register(authFilter);
-            
             HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
                 credentials(getAuthUser(), getAuthPwd()).
                 build();
             
-            graphStoreClient.getWebTarget().register(authFeature);
+            graphStoreClient.getEndpoint().register(authFeature);
         }
         
         return graphStoreClient;
@@ -197,7 +191,7 @@ public class ServiceImpl extends ResourceImpl implements Service
                 credentials(getAuthUser(), getAuthPwd()).
                 build();
             
-            quadStoreClient.getWebTarget().register(authFeature);
+            quadStoreClient.getEndpoint().register(authFeature);
         }
         
         return quadStoreClient;

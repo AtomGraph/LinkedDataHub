@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -54,6 +55,8 @@ public class Item extends ResourceBase
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    private final OntologyLoader ontLoader;
+    
     @Inject
     public Item(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
@@ -71,13 +74,8 @@ public class Item extends ResourceBase
                 securityContext,
                 dataManager, providers,
                 system);
+        ontLoader = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
     }
-    
-//    @PostConstruct
-//    public void init()
-//    {
-//        getOntResource().getOntModel().add(describe().getDefaultModel());
-//    }
     
     @Override
     public Response get()
@@ -88,16 +86,16 @@ public class Item extends ResourceBase
 
         final Model model;
         if (getApplication().canAs(EndUserApplication.class))
-            model = getOntologyProvider().getModel(getApplication().as(EndUserApplication.class).getAdminApplication().getService(), ontology.getURI());
+            model = getOntologyLoader().getModel(getApplication().as(EndUserApplication.class).getAdminApplication().getService(), ontology.getURI());
         else
-            model = getOntologyProvider().getModel(getApplication().getService(), ontology.getURI());
+            model = getOntologyLoader().getModel(getApplication().getService(), ontology.getURI());
         
         return getResponse(DatasetFactory.create(model));
     }
     
-    public OntologyLoader getOntologyProvider()
+    public OntologyLoader getOntologyLoader()
     {
-        return (OntologyLoader)getProviders().getContextResolver(Ontology.class, null); // TO-DO
+        return ontLoader;
     }
     
 }

@@ -116,6 +116,8 @@ ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
 
 ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
 
+ENV UPLOAD_CONTAINER_PATH=uploads
+
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN rm -rf webapps/* && \
@@ -143,10 +145,6 @@ COPY platform/root-owner.trig.template root-owner.trig.template
 COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
-
-# define upload container path
-
-ENV UPLOAD_CONTAINER_PATH=uploads
 
 # copy webapp config
 

@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
-import com.atomgraph.core.exception.AuthenticationException;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -33,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.CacheControl;
@@ -151,7 +151,7 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
                     authenticate(realm, request, accessMode, account, agent);
                     request.setSecurityContext(new UserAccountContext(account, getScheme()));
                 }
-                catch (AuthenticationException ex)
+                catch (NotAuthorizedException ex)
                 {
                     if (isLoginForced(request, getScheme())) login(app, realm, request); // allow login if password is bad
                     throw ex;

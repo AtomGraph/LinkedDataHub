@@ -24,12 +24,9 @@ import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.DataManager;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.container.ResourceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,20 +42,18 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManager imple
     
     private final Application application;
     private final SecurityContext securityContext;
-    private final ResourceContext resourceContext;
-    private final HttpServletRequest httpServletRequest;
+    private final URI rootContext;
     
     public DataManagerImpl(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
             Application application,
-            SecurityContext securityContext, ResourceContext resourceContext,
-            HttpServletRequest httpServletRequest)
+            SecurityContext securityContext,
+            URI rootContext)
     {
         super(mapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
         this.application = application;
         this.securityContext = securityContext;
-        this.resourceContext = resourceContext;
-        this.httpServletRequest = httpServletRequest;
+        this.rootContext = rootContext;
     }
     
     @Override
@@ -143,21 +138,10 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManager imple
     {
         return securityContext;
     }
-    
-    public ResourceContext getResourceContext()
-    {
-        return resourceContext;
-    }
-    
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
-    }
-    
+
     public URI getRootContextURI()
     {
-        return URI.create(getHttpServletRequest().getRequestURL().toString()).
-                resolve(getHttpServletRequest().getContextPath() + "/");
+        return rootContext;
     }
     
 }

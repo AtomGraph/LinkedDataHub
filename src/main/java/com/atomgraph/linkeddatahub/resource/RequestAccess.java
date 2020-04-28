@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.exception.ClientException;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
@@ -40,6 +39,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -149,7 +149,7 @@ public class RequestAccess extends ResourceBase
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
                     if (log.isErrorEnabled()) log.error("GET WebID profile: {} unsuccessful. Reason: {}", cr.getLocation(), cr.getStatusInfo().getReasonPhrase());
-                    throw new ClientException(cr);
+                    throw new ClientErrorException(cr);
                 }
 
                 URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
@@ -160,7 +160,7 @@ public class RequestAccess extends ResourceBase
                     if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr1.getLocation(), cr1.getStatusInfo().getReasonPhrase());
-                        throw new ClientException(cr1);
+                        throw new ClientErrorException(cr1);
                     }
 
                     try

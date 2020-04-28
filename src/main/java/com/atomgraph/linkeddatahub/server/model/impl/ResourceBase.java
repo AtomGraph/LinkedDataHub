@@ -133,7 +133,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 httpHeaders, resourceContext);
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext cannot be null");
-//        if (httpContext == null) throw new IllegalArgumentException("HttpContext cannot be null");
         if (dataManager == null) throw new IllegalArgumentException("DataManager cannot be null");
         if (client == null) throw new IllegalArgumentException("Client cannot be null");
         if (providers == null) throw new IllegalArgumentException("Providers cannot be null");
@@ -145,7 +144,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         this.dataManager = dataManager;
         this.client = client;
         this.securityContext = securityContext;
-//        this.httpContext = httpContext;
         this.providers = providers;
         this.system = system;
         if (log.isDebugEnabled()) log.debug("SecurityContext: {} UserPrincipal: {} ", securityContext, securityContext.getUserPrincipal());

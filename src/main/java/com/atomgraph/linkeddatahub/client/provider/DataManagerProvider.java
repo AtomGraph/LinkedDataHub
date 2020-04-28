@@ -25,6 +25,7 @@ import javax.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
+import java.net.URI;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -86,18 +87,21 @@ public class DataManagerProvider implements Factory<DataManager>
     {
         return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),
                 isPreemptiveAuth(), isResolvingUncached(),
-                getApplication(), getSecurityContext(), getResourceContext(), getHttpServletRequest());
+                getApplication(), getSecurityContext(),
+                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
     }
     
     public DataManager getDataManager(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
             Application application,
-            SecurityContext securityContext, ResourceContext resourceContext, HttpServletRequest httpServletRequest)
+            SecurityContext securityContext,
+            URI rootContext)
     {
         DataManager dataManager = new DataManagerImpl(mapper, client, mediaTypes,
-                preemptiveAuth, resolvingUncached,
-                application,
-                securityContext, resourceContext, httpServletRequest);
+            preemptiveAuth, resolvingUncached,
+            application,
+            securityContext,
+            rootContext);
         FileManager.setStdLocators((FileManager)dataManager);
  
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
@@ -127,11 +131,6 @@ public class DataManagerProvider implements Factory<DataManager>
     public SecurityContext getSecurityContext()
     {
         return securityContext;
-    }
-    
-    public ResourceContext getResourceContext()
-    {
-        return resourceContext;
     }
     
     public HttpServletRequest getHttpServletRequest()

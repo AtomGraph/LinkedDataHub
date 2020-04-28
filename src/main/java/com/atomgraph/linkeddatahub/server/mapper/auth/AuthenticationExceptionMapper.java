@@ -18,14 +18,13 @@ package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResourceFactory;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-import com.atomgraph.core.exception.AuthenticationException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
+import javax.ws.rs.NotAuthorizedException;
 import org.apache.jena.query.DatasetFactory;
 
 /**
@@ -34,18 +33,18 @@ import org.apache.jena.query.DatasetFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class AuthenticationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<AuthenticationException>
+public class AuthenticationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<NotAuthorizedException>
 {
 
     @Override
-    public Response toResponse(AuthenticationException ex)
+    public Response toResponse(NotAuthorizedException ex)
     {
         Model model = toResource(ex, Response.Status.UNAUTHORIZED,
                 ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#Unauthorized")).
             getModel();
         
         ResponseBuilder builder = getResponseBuilder(DatasetFactory.create(model));
-        if (ex.getRealm() != null) builder.header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + ex.getRealm() + "\"");
+        // if (ex.getRealm() != null) builder.header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + ex.getRealm() + "\""); // TO-DO
 
         return builder.status(Status.UNAUTHORIZED).build();
         

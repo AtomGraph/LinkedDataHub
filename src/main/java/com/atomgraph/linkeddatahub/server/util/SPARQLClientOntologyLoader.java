@@ -16,10 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.model.Service;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
@@ -37,20 +35,11 @@ public class SPARQLClientOntologyLoader extends OntologyLoader
 {
 
     private final Query query;
-    private final Client client;
-    private final MediaTypes mediaTypes;
-    private final Integer maxGetRequestSize;
-    private final boolean remoteBindings;
     
-    public SPARQLClientOntologyLoader(OntModelSpec ontModelSpec, Query sitemapQuery,
-            Client client, MediaTypes mediaTypes, Integer maxGetRequestSize, boolean remoteBindings)
+    public SPARQLClientOntologyLoader(OntModelSpec ontModelSpec, Query sitemapQuery)
     {
         super(ontModelSpec);
         this.query = sitemapQuery;
-        this.client = client;
-        this.mediaTypes = mediaTypes;
-        this.maxGetRequestSize = maxGetRequestSize;
-        this.remoteBindings = remoteBindings;
     }
 
     @Override
@@ -69,26 +58,6 @@ public class SPARQLClientOntologyLoader extends OntologyLoader
     public Query getQuery()
     {
         return query;
-    }
-    
-    public Client getClient()
-    {
-        return client;
-    }
-    
-    public MediaTypes getMediaTypes()
-    {
-        return mediaTypes;
-    }
-    
-    public Integer getMaxGetRequestSize()
-    {
-        return maxGetRequestSize;
-    }
-    
-    public boolean isRemoteBindings()
-    {
-        return remoteBindings;
     }
     
 }

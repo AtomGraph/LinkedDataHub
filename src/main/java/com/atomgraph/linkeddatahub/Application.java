@@ -97,7 +97,6 @@ import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.model.impl.ParameterImpl;
 import com.atomgraph.processor.model.impl.TemplateImpl;
 import com.atomgraph.processor.vocabulary.AP;
-import com.atomgraph.server.mapper.ClientExceptionMapper;
 import com.atomgraph.server.mapper.ConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.ParameterExceptionMapper;
@@ -468,8 +467,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             BuiltinPersonalities.model.add(AdminApplication.class, AdminApplicationImpl.factory);
             BuiltinPersonalities.model.add(EndUserApplication.class, EndUserApplicationImpl.factory);
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, ApplicationImpl.factory);
-            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(client, mediaTypes, maxGetRequestSize));
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(client, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
@@ -579,7 +578,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         register(ConstraintViolationExceptionMapper.class);
         register(DatatypeFormatExceptionMapper.class);
         register(ParameterExceptionMapper.class);
-        register(ClientExceptionMapper.class);
+        //register(ClientExceptionMapper.class);
         register(QueryExecExceptionMapper.class);
         register(RiotExceptionMapper.class);
         register(RiotParseExceptionMapper.class); // move to Processor?
@@ -599,8 +598,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
         register(new DatasetXSLTWriter(getTemplates(), getOntModelSpec(), getDataManager())); // writes XHTML responses
-//        register(new TemplatesProvider(((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)),
-//                getDataManager(), getStylesheet(), isCacheStylesheet())); // loads XSLT stylesheet
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -762,9 +759,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     
     public Ontology getOntology(com.atomgraph.linkeddatahub.apps.model.Application app)
     {
-        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery(),
-                getClient(), getMediaTypes(), getMaxGetRequestSize(), isRemoteVariableBindings()).
-                getOntology(app);
+        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery()).getOntology(app);
     }
 
     public Resource matchApp(URI absolutePath)
@@ -948,19 +943,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         //client.setFollowRedirects(true); // TO-DO
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
-    
-//    
-//    @Override
-//    public Set<Class<?>> getClasses()
-//    {
-//        return classes;
-//    }
-//
-//    @Override
-//    public Set<Object> getSingletons()
-//    {
-//        return singletons;
-//    }
     
     public EventBus getEventBus()
     {

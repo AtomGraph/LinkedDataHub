@@ -17,8 +17,7 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.io.IOException;
 import javax.annotation.Priority;
@@ -27,13 +26,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDFS;
 
 /**
  *
@@ -41,16 +34,13 @@ import org.apache.jena.vocabulary.RDFS;
  */
 @PreMatching
 @Priority(800)
-public class OntologyFilter extends OntologyLoader implements ContainerRequestFilter
+public class OntologyFilter extends SPARQLClientOntologyLoader implements ContainerRequestFilter
 {
     
-    private final com.atomgraph.linkeddatahub.Application system;
-
     @Inject
     public OntologyFilter(com.atomgraph.linkeddatahub.Application system)
     {
-        super(system.getOntModelSpec());
-        this.system = system;
+        super(system.getOntModelSpec(), system.getSitemapQuery());
     }
     
     @Override
@@ -70,20 +60,6 @@ public class OntologyFilter extends OntologyLoader implements ContainerRequestFi
     public Application getApplication(ContainerRequestContext crc)
     {
         return (Application)crc.getProperty(LAPP.Application.getURI());
-    }
-
-    @Override
-    public Model getModel(Service service, String ontologyURI)
-    {
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(RDFS.isDefinedBy.getLocalName(), ResourceFactory.createResource(ontologyURI));
-                
-        return service.getSPARQLClient().loadModel(new ParameterizedSparqlString(getQuery().toString(), qsm).asQuery());
-    }
-    
-    public Query getQuery()
-    {
-        return system.getSitemapQuery();
     }
     
 }

@@ -31,6 +31,7 @@ import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
+import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -147,7 +148,8 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     {
         // create new DataManager with constructor-injected values instead provider proxies that are not visible in other threads
         return new DataManagerImpl(LocationMapper.get(), getClient(), getMediaTypes(), true, false,
-                getApplication(), getSecurityContext(), getResourceContext(), getHttpServletRequest());
+                getApplication(), getSecurityContext(),
+                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
     }
     
     public HttpServletRequest getHttpServletRequest()
