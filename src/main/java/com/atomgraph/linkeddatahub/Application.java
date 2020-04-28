@@ -181,8 +181,10 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectionClosingStrategy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
@@ -200,7 +202,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    private static final int MAX_CONNECTIONS_PER_ROUTE = 5;
+    private static final int MAX_CONNECTIONS_PER_ROUTE = 10;
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
     
@@ -875,10 +877,11 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         config.register(new ResultSetProvider());
         config.register(new QueryProvider());
         config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
-        config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+        //config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
-//        config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+//        config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
         
         return ClientBuilder.newBuilder().
             withConfig(config).
@@ -913,10 +916,11 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             config.register(new ResultSetProvider());
             config.register(new QueryProvider());
             config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
-            config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-            config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
 //            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+            config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+            config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+//            config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
 
             return ClientBuilder.newBuilder().
                 withConfig(config).
