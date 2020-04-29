@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.processor.util.Validator;
 import java.util.List;
 import org.apache.jena.rdf.model.Resource;

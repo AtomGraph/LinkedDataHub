@@ -23,7 +23,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.client.DataManager;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class DataManagerImpl extends com.atomgraph.client.util.DataManager implements DataManager
+public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     

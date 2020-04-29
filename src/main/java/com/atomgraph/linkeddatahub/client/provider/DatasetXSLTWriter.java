@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.client.provider;
 
-import com.atomgraph.client.util.DataManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.ws.rs.Produces;
@@ -33,6 +32,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
@@ -77,6 +77,7 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     @Inject Ontology ontology;
     @Inject Templates templates;
     @Inject ClientUriInfo clientUriInfo;
+    @Inject DataManager dataManager;
 
     private static final Set<String> NAMESPACES;
     
@@ -87,9 +88,9 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
         NAMESPACES.add(APLT.NS);
     }
     
-    public DatasetXSLTWriter(Templates templates, OntModelSpec ontModelSpec, DataManager dataManager)
+    public DatasetXSLTWriter(Templates templates, OntModelSpec ontModelSpec)
     {
-        super(templates, ontModelSpec, dataManager);
+        super(templates, ontModelSpec);
     }
     
     @Override
@@ -214,6 +215,12 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     public Application getApplication()
     {
         return application;
+    }
+    
+    @Override
+    public DataManager getDataManager()
+    {
+        return dataManager;
     }
 
     @Override

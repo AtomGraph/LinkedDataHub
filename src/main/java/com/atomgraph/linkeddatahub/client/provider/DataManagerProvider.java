@@ -23,7 +23,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import java.net.URI;
 import javax.inject.Inject;
@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * JAX-RS provider for <code>DataManager</code>.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.client.DataManager
+ * @see com.atomgraph.client.util.DataManager
  */
 @Provider
 public class DataManagerProvider implements Factory<DataManager>

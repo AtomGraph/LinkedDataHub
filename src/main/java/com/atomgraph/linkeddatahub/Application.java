@@ -38,6 +38,7 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriterRegistry;
 import com.atomgraph.client.mapper.ClientErrorExceptionMapper;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.core.io.DatasetProvider;
@@ -181,10 +182,8 @@ import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectionClosingStrategy;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
-import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
@@ -474,9 +473,9 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
-            dataManager = new DataManager(locationMapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
-            FileManager.setStdLocators(dataManager);
-            FileManager.setGlobalFileManager(dataManager);
+            dataManager = new DataManagerImpl(locationMapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
+            FileManager.setStdLocators((FileManager)dataManager);
+            FileManager.setGlobalFileManager((FileManager)dataManager);
             if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
             
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
@@ -545,7 +544,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         }
         
         ontModelSpec.setImportModelGetter(dataManager);
-        OntDocumentManager.getInstance().setFileManager(dataManager);
+        OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
         if (log.isDebugEnabled()) log.debug("OntDocumentManager.getInstance().getFileManager(): {} Cache ontologies: {}", OntDocumentManager.getInstance().getFileManager(), cacheSitemap);
         ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
@@ -599,7 +598,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
-        register(new DatasetXSLTWriter(getTemplates(), getOntModelSpec(), getDataManager())); // writes XHTML responses
+        register(new DatasetXSLTWriter(getTemplates(), getOntModelSpec())); // writes XHTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -643,7 +642,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(OntologyFactory.class).to(Ontology.class). // new OntologyFactory(getOntModelSpec(), getSitemapQuery())
+                bindFactory(OntologyFactory.class).to(Ontology.class).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -670,7 +669,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             @Override
             protected void configure()
             {
-                bindFactory(DataManagerProvider.class).to(com.atomgraph.linkeddatahub.client.DataManager.class).
+                bindFactory(DataManagerProvider.class).to(com.atomgraph.client.util.DataManager.class).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }

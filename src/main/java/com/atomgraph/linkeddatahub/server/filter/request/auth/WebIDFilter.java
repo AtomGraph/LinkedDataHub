@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDURIException;

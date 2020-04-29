@@ -23,7 +23,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
@@ -489,9 +489,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             return getResourceContext().getResource(ProxyResourceBase.class).put(dataset);
         }
         
-        Response response = super.put(dataset);
-
-        return response;
+        return super.put(dataset);
     }
     
     /**

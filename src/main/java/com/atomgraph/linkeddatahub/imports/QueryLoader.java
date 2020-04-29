@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import java.util.function.Supplier;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;

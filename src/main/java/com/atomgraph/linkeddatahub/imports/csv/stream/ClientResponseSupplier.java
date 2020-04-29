@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports.csv.stream;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import java.util.function.Supplier;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;

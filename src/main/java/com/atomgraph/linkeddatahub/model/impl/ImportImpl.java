@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model.impl;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.processor.util.Validator;
