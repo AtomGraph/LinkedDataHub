@@ -63,7 +63,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.client.Client;
@@ -93,7 +92,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     private final com.atomgraph.linkeddatahub.Application system;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final DataManager dataManager;
-    private final Client client;
+//    private final Client client;
     private final SecurityContext securityContext;
     private final Providers providers;
     private final ClientUriInfo clientUriInfo;
@@ -103,7 +102,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
@@ -113,7 +111,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             service, application,
             ontology, templateCall,
             httpHeaders, resourceContext,
-            client,
             securityContext,
             dataManager, providers,
             system);
@@ -123,7 +120,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             final Service service, final com.atomgraph.linkeddatahub.apps.model.Application application,
             final Ontology ontology, final Optional<TemplateCall> templateCall,
             final HttpHeaders httpHeaders, final ResourceContext resourceContext,
-            final Client client,
             final SecurityContext securityContext,
             final DataManager dataManager, final Providers providers,
             final com.atomgraph.linkeddatahub.Application system)
@@ -134,7 +130,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext cannot be null");
         if (dataManager == null) throw new IllegalArgumentException("DataManager cannot be null");
-        if (client == null) throw new IllegalArgumentException("Client cannot be null");
+//        if (client == null) throw new IllegalArgumentException("Client cannot be null");
         if (providers == null) throw new IllegalArgumentException("Providers cannot be null");
         if (system == null) throw new IllegalArgumentException("System Application cannot be null");
 
@@ -142,7 +138,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         this.clientUriInfo = clientUriInfo;
         this.application = application;
         this.dataManager = dataManager;
-        this.client = client;
+//        this.client = client;
         this.securityContext = securityContext;
         this.providers = providers;
         this.system = system;
@@ -854,7 +850,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
             try (Response cr = ((SesameProtocolClient)getService().
                 getSPARQLClient()).
-                query(getQuery(), Dataset.class, getQuerySolutionMap(), null))
+                query(getQuery(), Dataset.class, getQuerySolutionMap(), new MultivaluedHashMap()))
             {
                 return cr.readEntity(Dataset.class);
             }
@@ -863,7 +859,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getQuery().toString(), getQuerySolutionMap());
             try (Response cr = getService().
                 getSPARQLClient().
-                query(pss.asQuery(), Dataset.class, null))
+                query(pss.asQuery(), Dataset.class, new MultivaluedHashMap()))
             {
                 return cr.readEntity(Dataset.class);
             }
@@ -969,7 +965,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
  
     public Client getClient()
     {
-        return client;
+        return getSystem().getClient();
     }
     
 }

@@ -201,7 +201,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    private static final int MAX_CONNECTIONS_PER_ROUTE = 10;
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
     
@@ -256,12 +255,14 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.postUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.postUpdate.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,            
+            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getResource("/").toString(),
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -291,6 +292,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             final String systemBase,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
+            final Integer maxConnPerRoute, final Integer maxTotalConn,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort)
     {
         if (clientKeyStoreURIString == null)
@@ -438,8 +440,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore);
-            noCertClient = getNoCertClient(trustStore);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn);
+            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
@@ -566,7 +568,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        //register(new NoCertClientProvider(getTrustStore())); // TO-DO
         register(new SkolemizingDatasetProvider());
         register(new SkolemizingModelProvider());
         register(new ResultSetProvider());
@@ -674,22 +675,24 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
                 in(RequestScoped.class);
             }
         });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bind(client).to(Client.class).named("CertClient");
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bind(noCertClient).to(Client.class).named("NoCertClient"); // used in WebIDFilter
-            }
-        });
+//        register(client);
+
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bind(client).to(Client.class).named("CertClient");
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bind(noCertClient).to(Client.class).named("NoCertClient"); // used in WebIDFilter
+//            }
+//        });
         register(new AbstractBinder()
         {
             @Override
@@ -840,7 +843,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
 //        if (clientConfig == null) throw new IllegalArgumentException("ClientConfig cannot be null");
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
@@ -864,9 +867,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             build();
 
         PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        conman.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
-//        client.setFollowRedirects(true); // TO-DO
-        
+        if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
+        if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 //        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
 
         ClientConfig config = new ClientConfig();
@@ -879,7 +881,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         //config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+        //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
 //        config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
         
         return ClientBuilder.newBuilder().
@@ -889,7 +891,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             build();
     }
     
-    public static Client getNoCertClient(KeyStore trustStore)
+    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
     {
         try
         {
@@ -906,7 +908,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
                 build();
         
             PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-            conman.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
+            if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
+            if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
@@ -918,7 +921,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
 //            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
+            //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
 //            config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
 
             return ClientBuilder.newBuilder().
@@ -1086,7 +1089,12 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     {
         return trustStore;
     }
-
+    
+    public Client getNoCertClient()
+    {
+        return noCertClient;
+    }
+    
     public final MessageBuilder getMessageBuilder()
     {
         if (authenticator != null) return MessageBuilder.fromPropertiesAndAuth(emailProperties, authenticator);

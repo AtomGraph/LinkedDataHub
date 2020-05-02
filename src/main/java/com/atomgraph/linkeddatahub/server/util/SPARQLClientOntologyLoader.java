@@ -16,9 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.model.Service;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.ParameterizedSparqlString;
@@ -48,8 +46,8 @@ public class SPARQLClientOntologyLoader extends OntologyLoader
         ParameterizedSparqlString paramQuery = new ParameterizedSparqlString(getQuery().toString());
         paramQuery.setIri(RDFS.isDefinedBy.getLocalName(), ontologyURI);
         
-        try (Response cr = service.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(paramQuery.asQuery(), Model.class, null))
+        try (Response cr = service.getSPARQLClient().// register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(paramQuery.asQuery(), Model.class))
         {
             return cr.readEntity(Model.class);
         }

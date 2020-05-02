@@ -106,4 +106,8 @@ public class APLC
     
     public static final DatatypeProperty ontologyImportQuery = m_model.createDatatypeProperty( NS + "ontologyImportQuery" ); 
 
+    public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" ); 
+    
+    public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" ); 
+
 }

@@ -68,19 +68,19 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         return false; // by default, do not resolve URIs
     }
     
-    public ClientRequestFilter getClientAuthFilter(SecurityContext securityContext)
-    {
-        if (securityContext == null) throw new IllegalArgumentException("SecurityContext must be not null");
-
-//        UserAccount userAccount = getUserAccount(securityContext);
-//        if (userAccount != null) return getClientCertFilter(context, userAccount);
-
-        if (securityContext.getUserPrincipal() instanceof Agent &&
-                getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-            return new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal());
-        
-        return null;
-    }
+//    public ClientRequestFilter getClientAuthFilter(SecurityContext securityContext)
+//    {
+//        if (securityContext == null) throw new IllegalArgumentException("SecurityContext must be not null");
+//
+////        UserAccount userAccount = getUserAccount(securityContext);
+////        if (userAccount != null) return getClientCertFilter(context, userAccount);
+//
+//        if (securityContext.getUserPrincipal() instanceof Agent &&
+//                getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+//            return new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal());
+//        
+//        return null;
+//    }
     
     /*
     public ClientRequestFilter getClientCertFilter(Context context, UserAccount userAccount)
@@ -108,25 +108,26 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     }
     */
     
-    @Override
-    public WebTarget getEndpoint(URI uri)
-    {
-        return getEndpoint(uri, true);
-    }
-    
-    public WebTarget getEndpoint(URI uri, boolean delegateWebID)
-    {
-        WebTarget endpoint = super.getEndpoint(uri);
-        
-        if (delegateWebID && getSecurityContext() != null && getApplication() != null &&
-                !getApplication().getBaseURI().relativize(uri).isAbsolute())
-        {
-            ClientRequestFilter filter = getClientAuthFilter(getSecurityContext());
-            if (filter != null) endpoint.register(filter);
-        }
-        
-        return endpoint;
-    }
+//    @Override
+//    public WebTarget getEndpoint(URI uri)
+//    {
+//        return getEndpoint(uri).
+//    }
+                
+//    
+//    public WebTarget getEndpoint(URI uri, boolean delegateWebID)
+//    {
+////        WebTarget endpoint = super.getEndpoint(uri);
+////        
+////        if (delegateWebID && getSecurityContext() != null && getApplication() != null &&
+////                !getApplication().getBaseURI().relativize(uri).isAbsolute())
+////        {
+////            ClientRequestFilter filter = getClientAuthFilter(getSecurityContext());
+////            if (filter != null) endpoint.register(filter);
+////        }
+//        
+//        return endpoint;
+//    }
 
     public Application getApplication()
     {

@@ -58,7 +58,8 @@ public class DataManagerProvider implements Factory<DataManager>
     @Context Providers providers;
     
     @Inject MediaTypes mediaTypes;
-    @Inject @Named("CertClient") Client client;
+//    @Inject Client client;
+    @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
     
     public DataManagerProvider()
@@ -120,7 +121,8 @@ public class DataManagerProvider implements Factory<DataManager>
     
     public Client getClient()
     {
-        return client;
+//        return client;
+        return system.getClient();
     }
     
     public UriInfo getUriInfo()

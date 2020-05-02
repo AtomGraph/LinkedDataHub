@@ -80,7 +80,6 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
@@ -89,7 +88,6 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
                 securityContext,
                 dataManager, providers,
                 system);

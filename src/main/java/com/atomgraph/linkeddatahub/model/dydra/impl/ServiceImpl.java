@@ -120,7 +120,7 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
     @Override
     public GraphStoreClient getGraphStoreClient(WebTarget resource)
     {
-        if (getAccessToken() != null) return super.getGraphStoreClient(resource).register(new AuthTokenFilter(getAccessToken()));
+        if (getAccessToken() != null) return super.getGraphStoreClient(resource).register(new AuthTokenFilter(getAccessToken())); // TO-DO
         
         return super.getGraphStoreClient(resource);
     }
@@ -128,7 +128,7 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
     @Override
     public QuadStoreClient getQuadStoreClient(WebTarget resource)
     {
-        if (getAccessToken() != null) return super.getQuadStoreClient(resource).register(new AuthTokenFilter(getAccessToken()));
+        if (getAccessToken() != null) return super.getQuadStoreClient(resource).register(new AuthTokenFilter(getAccessToken())); // TO-DO
         
         return super.getQuadStoreClient(resource);
     }

@@ -46,7 +46,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Inject
     public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfoImpl clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            @Named("CertClient") Client client, @Context HttpServletRequest httpServletRequest)
+            Client client, @Context HttpServletRequest httpServletRequest)
     {
         super(clientUriInfo, request, httpHeaders, mediaTypes,
                 clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
@@ -54,9 +54,10 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 mode, client, httpServletRequest);
         
-        if (securityContext.getUserPrincipal() instanceof Agent &&
-            securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+        // TO-DO:
+//        if (securityContext.getUserPrincipal() instanceof Agent &&
+//            securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+//            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
     }
     
 }

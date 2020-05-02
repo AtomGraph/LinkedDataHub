@@ -20,7 +20,6 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
-import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.UserAccount;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -35,7 +34,7 @@ import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
@@ -168,8 +167,6 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
                 throw new AuthorizationException("Access not authorized", request.getUriInfo().getAbsolutePath(), accessMode, null);
             }
         }
-        
-        //return request;
     }
 
     protected Resource getEndUserEndpoint(com.atomgraph.linkeddatahub.apps.model.Application app)
@@ -227,16 +224,16 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
         
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (adminService.getSPARQLClient() instanceof SesameProtocolClient)
-            try (Response cr = ((SesameProtocolClient)adminService.getSPARQLClient()).register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), Model.class, qsm, null))
+            try (Response cr = ((SesameProtocolClient)adminService.getSPARQLClient()). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(pss.asQuery(), Model.class, qsm))
             {
                 return cr.readEntity(Model.class);
             }
         else
         {
             pss.setParams(qsm);
-            try (Response cr = adminService.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(pss.asQuery(), Model.class, null))
+            try (Response cr = adminService.getSPARQLClient(). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(pss.asQuery(), Model.class))
             {
                 return cr.readEntity(Model.class);
             }

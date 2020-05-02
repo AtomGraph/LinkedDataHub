@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.exception.auth.WebIDCertificateException;
 import com.atomgraph.linkeddatahub.exception.auth.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.exception.auth.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -42,7 +41,6 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Priorities;
@@ -50,11 +48,9 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Providers;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -93,12 +89,11 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     private final javax.ws.rs.core.MediaType[] acceptedTypes;
     
     @Context HttpServletRequest httpServletRequest;
-    @Context Providers providers;
+//    @Context Providers providers;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject DataManager dataManager;
     @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
-    @Inject @Named("NoCertClient") Client noCertClient;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery, webIDQuery;
 
@@ -187,6 +182,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                     
                     // imitate type inference, otherwise we'll get Jena's polymorphism exception
                     request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
+//                    system.getThreadLocal().set(request.getSecurityContext()); // workaround because we can't use WebTarget.register(WebIDDelegationFilter.class): https://github.com/eclipse-ee4j/jersey/issues/4449
 
                     if (app != null)
                     {
@@ -366,8 +362,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
 
-        try (Response cr = service.getSPARQLClient().register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(query, Model.class, null))
+        try (Response cr = service.getSPARQLClient().// register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(query, Model.class))
         {
             return cr.readEntity(Model.class);
         }
@@ -429,7 +425,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     
     public Client getNoCertClient()
     {
-        return noCertClient;
+        return system.getNoCertClient();
     }
     
     public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()

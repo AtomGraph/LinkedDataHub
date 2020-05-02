@@ -23,6 +23,8 @@ xmlns:aplc="&aplc;"
     <xsl:param name="aplc:contextDataset"/>
     <xsl:param name="aplc:authQuery"/>
     <xsl:param name="aplc:ownerAuthQuery"/>
+    <xsl:param name="aplc:maxConnPerRoute"/>
+    <xsl:param name="aplc:maxTotalConn"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -73,6 +75,12 @@ xmlns:aplc="&aplc;"
             </xsl:if>
             <xsl:if test="$aplc:ownerAuthQuery">
                 <Parameter name="&aplc;ownerAuthQuery" value="{$aplc:ownerAuthQuery}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$aplc:maxConnPerRoute">
+                <Parameter name="&aplc;maxConnPerRoute" value="{$aplc:maxConnPerRoute}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$aplc:maxTotalConn">
+                <Parameter name="&aplc;maxTotalConn" value="{$aplc:maxTotalConn}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>

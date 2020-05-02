@@ -34,9 +34,7 @@ import com.atomgraph.processor.util.Validator;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
@@ -71,7 +69,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system,
@@ -81,7 +78,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
                 securityContext,
                 dataManager, providers,
                 system);

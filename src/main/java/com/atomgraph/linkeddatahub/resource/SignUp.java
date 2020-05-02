@@ -65,14 +65,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -138,7 +136,6 @@ public class SignUp extends ResourceBase
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Named("CertClient") Client client,
                   @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
@@ -147,7 +144,6 @@ public class SignUp extends ResourceBase
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
                 securityContext,
                 dataManager, providers,
                 system);
@@ -395,7 +391,7 @@ public class SignUp extends ResourceBase
         return new ResourceBase(
             new ClientUriInfoImpl(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            getClient(), securityContext, getDataManager(), getProviders(),
+            securityContext, getDataManager(), getProviders(),
             getSystem());
     }
     

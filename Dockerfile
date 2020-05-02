@@ -118,6 +118,10 @@ ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
 
 ENV UPLOAD_CONTAINER_PATH=uploads
 
+ENV MAX_CONN_PER_ROUTE=20
+
+ENV MAX_TOTAL_CONN=40
+
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN rm -rf webapps/* && \

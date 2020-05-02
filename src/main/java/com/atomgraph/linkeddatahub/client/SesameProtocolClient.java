@@ -62,6 +62,11 @@ public class SesameProtocolClient extends SPARQLClient
         return this;
     }
 
+    public Response query(final Query query, final Class clazz, final QuerySolutionMap qsm)
+    {
+        return query(query, clazz, qsm, new MultivaluedHashMap());
+    }
+    
     public Response query(final Query query, final Class clazz, final QuerySolutionMap qsm, final MultivaluedMap<String, String> params)
     {
         MultivaluedMap<String, String> mergedParams = new MultivaluedHashMap();

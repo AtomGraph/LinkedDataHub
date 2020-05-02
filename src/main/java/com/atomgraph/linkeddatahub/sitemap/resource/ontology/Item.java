@@ -36,8 +36,6 @@ import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -61,7 +59,6 @@ public class Item extends ResourceBase
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Named("CertClient") Client client,
             @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
@@ -69,7 +66,6 @@ public class Item extends ResourceBase
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application, ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
                 securityContext,
                 dataManager, providers,
                 system);
