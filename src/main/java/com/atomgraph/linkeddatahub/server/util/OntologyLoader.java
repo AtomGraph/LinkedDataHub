@@ -147,7 +147,7 @@ public abstract class OntologyLoader
             return getOntology(app, service, app.getPropertyResourceValue(LDT.ontology).getURI(), getOntModelSpec(), schema); // app.getOntology().getURI()
         }
         
-        return new com.atomgraph.server.provider.OntologyProvider(getOntModelSpec().getDocumentManager(), ontologyURI,
+        return new com.atomgraph.server.util.OntologyLoader(getOntModelSpec().getDocumentManager(), ontologyURI,
                     getOntModelSpec(), false). // do not materialize on subsequent requests
                 getOntology();
     }
@@ -176,7 +176,7 @@ public abstract class OntologyLoader
         ontModelSpec.setImportModelGetter(new ServiceModelGetter(app, service, ontModelSpec));
 
         // construct system provider to materialize inferenced model
-        return new com.atomgraph.server.provider.OntologyProvider(ontModelSpec.getDocumentManager(), ontologyURI, ontModelSpec, true).getOntology();
+        return new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), ontologyURI, ontModelSpec, true).getOntology();
     }
     
     public abstract Model getModel(Service service, String ontologyURI);

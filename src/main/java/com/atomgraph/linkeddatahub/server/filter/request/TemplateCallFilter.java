@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.model.impl.TemplateCallFactory;
+import com.atomgraph.processor.model.impl.TemplateCallImpl;
 import com.atomgraph.processor.util.TemplateMatcher;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class TemplateCallFilter implements ContainerRequestFilter
         if (queryParams == null) throw new IllegalArgumentException("MultivaluedMap cannot be null");
 
         //if (log.isDebugEnabled()) log.debug("Building Optional<TemplateCall> from Template {}", template);
-        TemplateCall templateCall = TemplateCallFactory.fromUri(absolutePath.toString(), ModelFactory.createDefaultModel(), template).
+        TemplateCall templateCall = new TemplateCallImpl(ModelFactory.createDefaultModel().createResource(absolutePath.toString()), template).
             applyArguments(queryParams). // apply URL query parameters
             applyDefaults().
             validateOptionals(); // validate (non-)optional arguments
