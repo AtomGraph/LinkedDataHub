@@ -96,7 +96,13 @@ public class Item extends ResourceBase
             {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
   
-                new SPARQLClientOntologyLoader(getSystem().getOntModelSpec(), getSystem().getSitemapQuery()).getOntology(getApplication());
+                // here be dragons! Without explicitly reloading the cleared ontology here, owl:import with its URI can lead to a request loopback later on
+                new SPARQLClientOntologyLoader(getSystem().getOntModelSpec(), getSystem().getSitemapQuery()).
+                    getOntology(getApplication(),
+                        getApplication().getService(),
+                        ontologyURI,
+                        getSystem().getOntModelSpec(),
+                        getOntology().getOntModel());
             }
             
             List<String> referers = getHttpHeaders().getRequestHeader("Referer");
