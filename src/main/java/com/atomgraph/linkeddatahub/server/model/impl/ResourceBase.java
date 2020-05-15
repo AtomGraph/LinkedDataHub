@@ -92,7 +92,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     private final com.atomgraph.linkeddatahub.Application system;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final DataManager dataManager;
-//    private final Client client;
     private final SecurityContext securityContext;
     private final Providers providers;
     private final ClientUriInfo clientUriInfo;
@@ -130,7 +129,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext cannot be null");
         if (dataManager == null) throw new IllegalArgumentException("DataManager cannot be null");
-//        if (client == null) throw new IllegalArgumentException("Client cannot be null");
         if (providers == null) throw new IllegalArgumentException("Providers cannot be null");
         if (system == null) throw new IllegalArgumentException("System Application cannot be null");
 
@@ -138,7 +136,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         this.clientUriInfo = clientUriInfo;
         this.application = application;
         this.dataManager = dataManager;
-//        this.client = client;
         this.securityContext = securityContext;
         this.providers = providers;
         this.system = system;
@@ -177,8 +174,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     public Response options()
     {
         ResponseBuilder rb = Response.ok().
-            header("Allow", HttpMethod.GET).
-            header("Allow", HttpMethod.POST);
+            header(HttpHeaders.ALLOW, HttpMethod.GET).
+            header(HttpHeaders.ALLOW, HttpMethod.POST);
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Dataset.class), ",");
         rb.header("Accept-Post", acceptWritable);

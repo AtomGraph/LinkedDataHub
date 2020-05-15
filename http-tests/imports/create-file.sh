@@ -23,7 +23,7 @@ echo "${file_url}"
 
 popd > /dev/null
 
-curl -k -w "%{http_code}\n" -f -s \
+curl --head -k -w "%{http_code}\n" -f -s \
   -E "${OWNER_CERT_FILE}":"${OWNER_CERT_PWD}" \
   -H "Accept: ${file_content_type}" \
   "${file_url}" \

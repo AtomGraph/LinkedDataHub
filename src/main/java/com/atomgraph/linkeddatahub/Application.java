@@ -184,6 +184,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
@@ -555,6 +556,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     @PostConstruct
     public void init()
     {
+        register(MultiPartFeature.class);
         register(ResourceBase.class); // handles /
         
         register(new HttpMethodOverrideFilter());
@@ -873,6 +875,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
 
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
+        config.register(MultiPartFeature.class);
         config.register(new ModelProvider());
         config.register(new DatasetProvider());
         config.register(new ResultSetProvider());
@@ -913,6 +916,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
 
             ClientConfig config = new ClientConfig();
             config.connectorProvider(new ApacheConnectorProvider());
+            config.register(MultiPartFeature.class);
             config.register(new ModelProvider());
             config.register(new DatasetProvider());
             config.register(new ResultSetProvider());
