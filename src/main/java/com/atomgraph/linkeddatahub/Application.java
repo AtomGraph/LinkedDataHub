@@ -582,7 +582,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         register(ConstraintViolationExceptionMapper.class);
         register(DatatypeFormatExceptionMapper.class);
         register(ParameterExceptionMapper.class);
-        //register(ClientExceptionMapper.class);
         register(QueryExecExceptionMapper.class);
         register(RiotExceptionMapper.class);
         register(RiotParseExceptionMapper.class); // move to Processor?
@@ -677,24 +676,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
                 in(RequestScoped.class);
             }
         });
-//        register(client);
-
-//        register(new AbstractBinder()
-//        {
-//            @Override
-//            protected void configure()
-//            {
-//                bind(client).to(Client.class).named("CertClient");
-//            }
-//        });
-//        register(new AbstractBinder()
-//        {
-//            @Override
-//            protected void configure()
-//            {
-//                bind(noCertClient).to(Client.class).named("NoCertClient"); // used in WebIDFilter
-//            }
-//        });
         register(new AbstractBinder()
         {
             @Override
@@ -847,7 +828,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
-//        if (clientConfig == null) throw new IllegalArgumentException("ClientConfig cannot be null");
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
@@ -880,12 +860,9 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         config.register(new DatasetProvider());
         config.register(new ResultSetProvider());
         config.register(new QueryProvider());
-        config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
+        config.register(new UpdateRequestReader());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-        //config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
-//        config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
         
         return ClientBuilder.newBuilder().
             withConfig(config).
@@ -923,10 +900,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             config.register(new QueryProvider());
             config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
-//            config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-            //config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true); // what does it really do??
-//            config.property(ApacheClientProperties.CONNECTION_CLOSING_STRATEGY, new ApacheConnectionClosingStrategy.GracefulClosingStrategy());
 
             return ClientBuilder.newBuilder().
                 withConfig(config).
@@ -950,7 +924,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             throw new WebApplicationException(ex);
         }
         
-        //client.setFollowRedirects(true); // TO-DO
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
