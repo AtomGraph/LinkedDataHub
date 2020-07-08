@@ -36,24 +36,21 @@ import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdf.model.RDFWriter;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.system.ParserProfile;
-import org.apache.jena.riot.system.RiotLib;
 import com.atomgraph.linkeddatahub.exception.RDFSyntaxException;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.ConstraintViolationException;
 import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
+import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
+import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.Set;
 import java.util.UUID;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.rdf.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.constraints.ConstraintViolation;
-import org.spinrdf.constraints.ObjectPropertyPath;
-import org.spinrdf.constraints.SimplePropertyPath;
-import org.spinrdf.util.JenaUtil;
-import org.spinrdf.vocabulary.SP;
 
 /**
  * JAX-RS provider that skolemizes blank node resources in the input RDF model.
@@ -74,8 +71,8 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
         if (lang == null) throw new IllegalArgumentException("Lang must be not null");
 
         CollectingErrorHandler errorHandler = new CollectingErrorHandler(); // collect parse errors. do not throw exceptions
-        ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
-        read(model, is, lang, baseURI, errorHandler, parserProfile);
+        //ParserProfile parserProfile = RiotLib.profile(baseURI, true, true, errorHandler);
+        read(model, is, lang, baseURI, errorHandler);
 
         if (!errorHandler.getViolations().isEmpty())
         {
@@ -138,7 +135,7 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
                 if (ontClass != null)
                 {
                     // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
-                    Set<Resource> superClasses = JenaUtil.getAllSuperClasses(ontClass);
+                    Set<OntClass> superClasses = ontClass.listSuperClasses().toSet(); // JenaUtil.getAllSuperClasses(ontClass);
                     if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
                         resource.addLiteral(DH.slug, UUID.randomUUID().toString());
                 }

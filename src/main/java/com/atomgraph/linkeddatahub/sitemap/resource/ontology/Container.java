@@ -27,6 +27,7 @@ import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
 import com.atomgraph.server.exception.ConstraintViolationException;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -53,7 +54,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.constraints.ConstraintViolation;
 
 /**
  * JAX-RS resource that handles ontology container requests.

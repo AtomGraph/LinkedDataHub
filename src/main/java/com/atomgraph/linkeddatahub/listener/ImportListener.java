@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
 import java.util.Calendar;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +53,6 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  * Data import listener.

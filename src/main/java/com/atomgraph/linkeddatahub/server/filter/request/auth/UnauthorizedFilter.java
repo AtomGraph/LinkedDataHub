@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.model.UserAccount;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -33,7 +34,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  * JAX-RS request filter that handles unauthorized requests.

@@ -75,7 +75,6 @@ import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.uri.UriComponent;
-import org.spinrdf.arq.ARQ2SPIN;
 
 /**
  * LinkedDataHub JAX-RS resource implementation.
@@ -584,7 +583,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
 
-        return new RDFPostReader().parse(keys, values);
+        return RDFPostReader.parse(keys, values);
     }
     
     /**
@@ -874,7 +873,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
             // if endpoint suports "Sesame protocol", send query solutions as URL parameters instead of setting in the query string
-            return new ParameterizedSparqlString(ARQ2SPIN.getTextOnly(getTemplateCall().get().getTemplate().getQuery()), getUriInfo().getBaseUri().toString()).asQuery();
+            return new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
+            getUriInfo().getBaseUri().toString()).asQuery();
         
         return super.getQuery();
     }

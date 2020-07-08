@@ -36,9 +36,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.DatasetAccessor;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -53,9 +51,6 @@ public class ServiceImpl extends ResourceImpl implements Service
 {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceImpl.class);
-
-    private static final Property AUTH_USER = ResourceFactory.createProperty(org.apache.jena.sparql.engine.http.Service.queryAuthUser.getSymbol());
-    private static final Property AUTH_PWD = ResourceFactory.createProperty(org.apache.jena.sparql.engine.http.Service.queryAuthPwd.getSymbol());
 
     private final Client client;
     private final MediaTypes mediaTypes;
@@ -96,7 +91,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public String getAuthUser()
     {
-        Statement authUser = getProperty(AUTH_USER);
+        Statement authUser = getProperty(A.authUser);
         if (authUser != null) return authUser.getString();
         
         return null;
@@ -105,7 +100,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public String getAuthPwd()
     {
-        Statement authPwd = getProperty(AUTH_PWD);
+        Statement authPwd = getProperty(A.authPwd);
         if (authPwd != null) return authPwd.getString();
         
         return null;

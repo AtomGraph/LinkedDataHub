@@ -103,7 +103,7 @@ public class DataManagerProvider implements Factory<DataManager>
             application,
             securityContext,
             rootContext);
-        FileManager.setStdLocators((FileManager)dataManager);
+//        FileManager.setStdLocators((FileManager)dataManager);
  
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
         return dataManager;

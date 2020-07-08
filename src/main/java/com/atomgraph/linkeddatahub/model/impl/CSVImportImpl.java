@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -28,7 +29,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  *

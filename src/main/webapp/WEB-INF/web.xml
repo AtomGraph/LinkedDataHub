@@ -528,14 +528,6 @@ support@linkeddatahub.com]]></param-value>
         <param-value>true</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/processor#sitemapRules</param-name>
-        <param-value><![CDATA[
-[inhClass: (?class rdf:type <http://www.w3.org/2000/01/rdf-schema#Class>), (?class ?p ?o), (?p rdf:type <https://www.w3.org/ns/ldt#InheritedProperty>), (?subClass rdfs:subClassOf ?class), (?subClass rdf:type <http://www.w3.org/2000/01/rdf-schema#Class>), noValue(?subClass ?p) -> (?subClass ?p ?o) ]
-[inhTemplate: (?template rdf:type <https://www.w3.org/ns/ldt#Template>), (?template ?p ?o), (?p rdf:type <https://www.w3.org/ns/ldt#InheritedProperty>), (?subTemplate <https://www.w3.org/ns/ldt#extends> ?template), (?subTemplate rdf:type <https://www.w3.org/ns/ldt#Template>), noValue(?subTemplate ?p) -> (?subTemplate ?p ?o) ]
-[rdfs9: (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y)]
-]]></param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#invalidateCache</param-name>
         <param-value>true</param-value>
     </context-param>
@@ -593,6 +585,9 @@ WHERE
     </listener>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.EMailListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
     </listener>
     <servlet-mapping>
         <servlet-name>default</servlet-name>

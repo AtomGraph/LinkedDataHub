@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.function.Supplier;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
@@ -25,7 +26,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SP;
 
 /**
  * SPIN query loader.

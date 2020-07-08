@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.exception.auth.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
@@ -67,7 +68,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  * WebID authentication request filter.

@@ -20,6 +20,11 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.processor.util.Validator;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
+import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
+import com.atomgraph.spinrdf.vocabulary.SP;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.util.List;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -27,11 +32,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDFS;
-import org.spinrdf.constraints.ConstraintViolation;
-import org.spinrdf.constraints.ObjectPropertyPath;
-import org.spinrdf.constraints.SimplePropertyPath;
-import org.spinrdf.vocabulary.SP;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  *

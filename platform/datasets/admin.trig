@@ -3881,7 +3881,7 @@ WHERE
 
 }
 
-<graphs/04aebf97-e217-4f9e-9112-8ed334b88442>
+<04aebf97-e217-4f9e-9112-8ed334b88442>
 {
 
     admt:SignUp a ldt:Template ;
@@ -3892,7 +3892,7 @@ WHERE
 
 }
 
-<graphs/47cfed27-b11c-46f0-9be7-3cdbab93a70f>
+<47cfed27-b11c-46f0-9be7-3cdbab93a70f>
 {
 
 
@@ -3959,7 +3959,7 @@ WHERE
 
 }
 
-<graphs/0d8ecbbf-36d6-48af-b95c-1a54ba7f93d9>
+<0d8ecbbf-36d6-48af-b95c-1a54ba7f93d9>
 {
 
     adm:MissingTitle a apl:MissingPropertyValue ;

@@ -46,6 +46,9 @@ import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.ConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
+import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -98,9 +101,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.server.internal.process.MappableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.constraints.ConstraintViolation;
-import org.spinrdf.constraints.ObjectPropertyPath;
-import org.spinrdf.constraints.SimplePropertyPath;
 
 /**
  * JAX-RS resource that handles signups.

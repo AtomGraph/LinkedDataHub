@@ -110,8 +110,6 @@ import org.apache.jena.enhanced.BuiltinPersonalities;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.slf4j.Logger;
-import org.spinrdf.arq.ARQFactory;
-import org.spinrdf.system.SPINModuleRegistry;
 import java.net.URI;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -128,7 +126,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.mail.Authenticator;
@@ -152,14 +149,13 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.reasoner.Reasoner;
-import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
-import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.spinrdf.vocabulary.SP;
+import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -188,7 +184,6 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
-import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 
 /**
  * JAX-RS 1.x application subclass.
@@ -197,7 +192,7 @@ import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see <a href="https://jersey.github.io/documentation/1.19.1/jax-rs.html#d4e186">Deploying a RESTful Web Service</a>
  */
-public class Application extends ResourceConfig // javax.ws.rs.core.Application
+public class Application extends ResourceConfig
 {
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -237,7 +232,6 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             new MediaTypes(),
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.parseInt(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
-            servletConfig.getServletContext().getInitParameter(AP.sitemapRules.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AP.sitemapRules.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI()) != null ? Boolean.valueOf(servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI())) : true,
             new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),            
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
@@ -281,7 +275,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
     
     public Application(final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean preemptiveAuth,
-            final String rulesString, boolean cacheSitemap,
+            boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
@@ -356,13 +350,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             throw new ConfigurationException(APLC.graphDocumentQuery);
         }
         this.graphDocumentQuery =  QueryFactory.create(graphDocumentQueryString);
-        
-        if (rulesString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Sitemap Rules (" + AP.sitemapRules.getURI() + ") not configured");
-            throw new ConfigurationException(AP.sitemapRules);
-        }
-        
+                
         if (uploadRootString == null)
         {
             if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", APLC.uploadRoot.getURI());
@@ -411,17 +399,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
         this.invalidateCache = invalidateCache;
         this.authCacheControl = authCacheControl;
 
-        List<Rule> rules = Rule.parseRules(rulesString);
-        OntModelSpec rulesSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
-        Reasoner reasoner = new GenericRuleReasoner(rules);
-        //reasoner.setDerivationLogging(true);
-        //reasoner.setParameter(ReasonerVocabulary.PROPtraceOn, Boolean.TRUE);
-        rulesSpec.setReasoner(reasoner);
-        this.ontModelSpec = rulesSpec;
-        
-        SPINModuleRegistry.get().init(); // needs to be called before any SPIN-related code
-        ARQFactory.get().setUseCaches(false); // enabled caching leads to unexpected QueryBuilder behaviour
-        
+        this.ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
+
         // add RDF/POST serialization
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
@@ -464,6 +443,7 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
                 throw new WebApplicationException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
             }
             
+            SP.init(BuiltinPersonalities.model);
             BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
             BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
@@ -477,8 +457,8 @@ public class Application extends ResourceConfig // javax.ws.rs.core.Application
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
             dataManager = new DataManagerImpl(locationMapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
-            FileManager.setStdLocators((FileManager)dataManager);
-            FileManager.setGlobalFileManager((FileManager)dataManager);
+//            FileManager.setStdLocators((FileManager)dataManager);
+//            FileManager.setGlobalFileManager((FileManager)dataManager);
             if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
             
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
