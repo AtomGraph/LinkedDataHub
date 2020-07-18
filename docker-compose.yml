@@ -54,7 +54,7 @@ services:
     volumes:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ./uploads:/var/www/linkeddatahub/uploads
-      - ./config/prod.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
+      - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   fuseki-admin:
     image: atomgraph/fuseki

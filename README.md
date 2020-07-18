@@ -100,7 +100,7 @@ If you need to start fresh and wipe the existing setup (e.g. after configuring a
 sudo rm -rf certs data && docker-compose down -v
 ```
 
-:warning: This will **remove the persisted data**, server and owner certificates as well as their Docker volumes.
+_:warning: This will **remove the persisted data**, server and owner certificates as well as their Docker volumes._
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
 
