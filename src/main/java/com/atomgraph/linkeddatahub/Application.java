@@ -169,11 +169,15 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.jena.query.QuerySolutionMap;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
+import org.apache.jena.vocabulary.ReasonerVocabulary;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
@@ -399,7 +403,16 @@ public class Application extends ResourceConfig
         this.invalidateCache = invalidateCache;
         this.authCacheControl = authCacheControl;
 
-        this.ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
+        OntModelSpec rdfsReasonerSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
+        Resource reasonerConfig = ModelFactory.createDefaultModel().
+            createResource().
+            addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
+        Reasoner reasoner = RDFSRuleReasonerFactory.theInstance().
+                create(reasonerConfig);
+        //reasoner.setDerivationLogging(true);
+        //reasoner.setParameter(ReasonerVocabulary.PROPtraceOn, Boolean.TRUE);
+        rdfsReasonerSpec.setReasoner(reasoner);
+        this.ontModelSpec = rdfsReasonerSpec;
 
         // add RDF/POST serialization
         RDFLanguages.register(RDFLanguages.RDFPOST);
@@ -526,11 +539,11 @@ public class Application extends ResourceConfig
             throw new WebApplicationException(ex);
         }
         
-        ontModelSpec.setImportModelGetter(dataManager);
+        rdfsReasonerSpec.setImportModelGetter(dataManager);
         OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
         if (log.isDebugEnabled()) log.debug("OntDocumentManager.getInstance().getFileManager(): {} Cache ontologies: {}", OntDocumentManager.getInstance().getFileManager(), cacheSitemap);
-        ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
+        rdfsReasonerSpec.setDocumentManager(OntDocumentManager.getInstance());
     }
     
     @PostConstruct

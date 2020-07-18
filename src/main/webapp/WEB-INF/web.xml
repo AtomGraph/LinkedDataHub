@@ -155,7 +155,7 @@ WHERE
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDQuery</param-name>
-        <param-value><![CDATA[
+<!--        <param-value><![CDATA[
 PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
             
 SELECT *
@@ -164,6 +164,19 @@ SELECT *
       cert:modulus ?mod ;
       cert:exponent ?exp
    ] .
+}
+]]></param-value>-->
+        <!-- we use this query version temporarily due to this Jena bug: https://issues.apache.org/jira/browse/JENA-1936 -->
+        <param-value><![CDATA[
+PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
+            
+SELECT *
+{
+   ?webid cert:key [
+      cert:modulus ?certMod ;
+      cert:exponent ?exp
+   ] .
+   FILTER (?certMod = ?mod)
 }
 ]]></param-value>
     </context-param>

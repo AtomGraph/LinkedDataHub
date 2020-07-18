@@ -10,7 +10,7 @@
    [ lm:name "https://www.w3.org/ns/ldt/named-graphs/templates#" ;              lm:altName "com/atomgraph/processor/ngt.ttl" ] ,
    [ lm:name "https://www.w3.org/ns/ldt/document-hierarchy/domain#" ;           lm:altName "com/atomgraph/processor/dh.ttl" ] ,
    [ lm:name "https://www.w3.org/ns/ldt/topic-hierarchy/templates#" ;           lm:altName "com/atomgraph/processor/tht.ttl" ] ,
-   [ lm:name "https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#" ;    lm:altName "com/atomgraph/platform/thg.templates.ttl" ] ,
+   [ lm:name "https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#" ;    lm:altName "com/atomgraph/processor/thgt.ttl" ] ,
    [ lm:name "http://www.w3.org/ns/sparql-service-description#" ;               lm:altName "com/atomgraph/processor/sparql-service.owl" ] ,
    [ lm:name "http://rdfs.org/sioc/ns#" ;                                       lm:altName "com/atomgraph/processor/sioc.owl" ] ,
    [ lm:name "http://rdfs.org/ns/void#" ;                                       lm:altName "com/atomgraph/processor/void.owl" ] ,
