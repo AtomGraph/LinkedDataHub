@@ -100,7 +100,7 @@ If you need to start fresh and wipe the existing setup (e.g. after configuring a
 sudo rm -rf certs data && docker-compose down -v
 ```
 
-This will remove the persisted data, server and owner certificates as well as their Docker volumes.
+:warning: This will **remove the persisted data**, server and owner certificates as well as their Docker volumes.
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
 
@@ -108,9 +108,33 @@ This will remove the persisted data, server and owner certificates as well as th
 * [Reference](https://linkeddatahub.com/linkeddatahub/docs/reference/)
 * [User guide](https://linkeddatahub.com/linkeddatahub/docs/user-guide/)
 
+## [Command line interface](https://linkeddatahub.com/linkeddatahub/docs/reference/command-line-interface/)
+
+LinkedDataHub CLI wraps the HTTP API into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the user interface, as well as easier to reproduce.
+
+The scripts can be found in the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder.
+
+:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts.
+
+An environment variable `JENA_HOME` is used by all the command line tools to configure the class path automatically for you. You can set this up as follows:
+
+**On Linux / Mac**
+
+    export JENA_HOME=the directory you downloaded Jena to
+    export PATH=$PATH:$JENA_HOME/bin
+
+**On Windows**
+
+    SET JENA_HOME =the directory you downloaded Jena to
+    SET PATH=%PATH%;%JENA_HOME%\bat
+
 ## [Demo applications](https://linkeddatahub.com/demo/)
 
-[Source code](https://github.com/AtomGraph/LinkedDataHub-Apps):
+[Source code](https://github.com/AtomGraph/LinkedDataHub-Apps)
+
+:warning: Before running scripts that use LinkedDataHub's CLI scripts ([for example, demo application installation scripts](#demo-applications)), set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone. For example:
+
+    export SCRIPT_ROOT="/c/Users/namedgraph/WebRoot/AtomGraph/LinkedDataHub/scripts"
 
 ## Test suite
 
