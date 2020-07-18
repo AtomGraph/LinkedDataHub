@@ -114,7 +114,7 @@ LinkedDataHub CLI wraps the HTTP API into a set of shell scripts with convenient
 
 The scripts can be found in the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder.
 
-:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts.
+_:warning: The CLI scripts internally use [Jena's CLI commands](https://jena.apache.org/documentation/tools/). Set up the Jena environment before running the scripts._
 
 An environment variable `JENA_HOME` is used by all the command line tools to configure the class path automatically for you. You can set this up as follows:
 
@@ -130,9 +130,9 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 
 ## [Demo applications](https://linkeddatahub.com/demo/)
 
-[Source code](https://github.com/AtomGraph/LinkedDataHub-Apps)
+**Get the [source code](https://github.com/AtomGraph/LinkedDataHub-Apps)**
 
-:warning: Before running scripts that use LinkedDataHub's CLI scripts ([for example, demo application installation scripts](#demo-applications)), set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone. For example:
+_:warning: Before running scripts that use LinkedDataHub's CLI scripts ([for example, demo application installation scripts](#demo-applications)), set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone._ For example:
 
     export SCRIPT_ROOT="/c/Users/namedgraph/WebRoot/AtomGraph/LinkedDataHub/scripts"
 
