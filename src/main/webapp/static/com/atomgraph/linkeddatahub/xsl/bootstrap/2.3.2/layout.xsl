@@ -108,7 +108,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:series" as="xs:string*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="dh:select" as="xs:string?"/>
-    <xsl:param name="lacl:mode" select="if ($ac:sitemap) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, apl:superClasses(key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, $ac:sitemap))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
+    <xsl:param name="lacl:mode" select="if ($ldt:ontology) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, apl:listSuperClasses(key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
 
     <xsl:variable name="root-containers" select="($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))" as="xs:anyURI*"/>
     
@@ -550,6 +550,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
         <xsl:variable name="create-or-edit" select="$ac:mode = '&ac;EditMode' or $ac:forClass" as="xs:boolean"/>
 
+AAA<xsl:copy-of select="document($ldt:ontology)"/>/AAA
+XXX
+        key('resources', $ac:uri)/rdf:type/@rdf:resource: <xsl:value-of select="key('resources', $ac:uri)/rdf:type/@rdf:resource"/>
+        apl:listSuperClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource): <xsl:value-of select="apl:listSuperClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource)"/>
+/XXX
+
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
@@ -584,7 +590,7 @@ exclude-result-prefixes="#all">
 
     <!-- CREATE -->
     
-    <xsl:template match="rdf:RDF[$lacl:Agent][$ac:sitemap]" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF[$lacl:Agent][$ldt:ontology]" mode="bs2:Create" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
@@ -597,12 +603,9 @@ exclude-result-prefixes="#all">
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="classes" select="$ac:sitemap/rdf:RDF/*[@rdf:about][not(apl:superClasses(@rdf:about, root(.)) = ('&dh;Document', '&apl;Service', '&apl;Query', '&apl;File', '&apl;Import', '&apl;Chart'))][key('resources', apl:superClasses(@rdf:about, root(.)), root(.))/spin:constructor]" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$ldt:ontology"/>
-                        <xsl:with-param name="sitemap" select="$ac:sitemap"/>
-                        <xsl:with-param name="classes" select="$classes[not(@rdf:about = $classes/rdfs:subClassOf/@rdf:resource)]"/>
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:copy-of select="$constructor-list"/>
@@ -612,11 +615,12 @@ exclude-result-prefixes="#all">
                         <li class="divider"></li>
                     </xsl:if>
 
-                    <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')), $ac:sitemap)" as="element()*"/>
+                    <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')))" as="element()*"/>
 
                     <xsl:if test="key('resources', $ac:uri)/rdf:type/@rdf:resource">
-                        <xsl:if test="apl:superClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource, $ac:sitemap) = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
-                            <xsl:for-each select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), $ac:sitemap)">
+                         <!--if the current resource is a Container, show Container and Item constructors--> 
+                        <xsl:if test="key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
+                            <xsl:for-each select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))">
                                 <xsl:sort select="ac:label(.)"/>
                                 <li>
                                     <xsl:apply-templates select="." mode="bs2:Constructor">
@@ -650,36 +654,52 @@ exclude-result-prefixes="#all">
 
     <xsl:template name="bs2:ConstructorList">
         <xsl:param name="ontology" as="xs:anyURI"/>
-        <xsl:param name="sitemap" as="document-node()"/>
-        <xsl:param name="classes" as="element()*"/>
+        <xsl:param name="visited-classes" as="element()*"/>
 
-        <xsl:variable name="constructor-list" as="element()*">
-            <xsl:apply-templates select="$classes[rdfs:isDefinedBy/@rdf:resource = $ontology]" mode="bs2:ConstructorListItem">
-                <xsl:sort select="ac:label(.)"/>
-                <xsl:with-param name="ontology" select="$ontology"/>
-                <xsl:with-param name="sitemap" select="$sitemap"/>
-            </xsl:apply-templates>
+        <!-- check if ontology document is available -->
+        <xsl:if test="doc-available(ac:document-uri($ontology))">
+            <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
 
-            <!-- apply to owl:imported ontologies recursively -->
-            <xsl:for-each select="key('resources', $ontology, $sitemap)/owl:imports/@rdf:resource">
-                <xsl:call-template name="bs2:ConstructorList">
-                    <xsl:with-param name="ontology" select="."/>
-                    <xsl:with-param name="sitemap" select="$sitemap"/>
-                    <xsl:with-param name="classes" select="$classes"/>
-                </xsl:call-template>
-            </xsl:for-each>
-        </xsl:variable>
-        <!-- avoid nesting lists without items (classes) -->
-        <xsl:if test="$constructor-list">
-            <ul>
-                <xsl:copy-of select="$constructor-list"/>
-            </ul>
+<!--    <xsl:message>
+    TTT<xsl:value-of select="apl:listSuperClasses(xs:anyURI('https://localhost:4443/ns/default#Select'))/../../@rdf:about"/>/TTT
+    QQQ<xsl:value-of select="$ontology"/>/QQQ
+    ZZZ<xsl:value-of select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]/@rdf:about"/>/ZZZ
+    </xsl:message>-->
+
+            <xsl:variable name="constructor-list" as="element()*">
+                <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+    <xsl:message>
+    <!--YYY<xsl:value-of select="($classes, $visited-classes)/@rdf:about"/>/YYY-->
+    </xsl:message>
+                <!-- do not show superclass constructor if we've already shown subclass constructor -->
+                <!-- [not(apl:listSuperClasses(@rdf:about)/../. = ('&dh;Document', '&apl;Service', '&apl;Query', '&apl;File', '&apl;Import', '&apl;Chart'))] -->
+                <xsl:apply-templates select="$classes[not(@rdf:about = ($classes, $visited-classes)/rdfs:subClassOf/@rdf:resource)][not(apl:listSuperClasses(@rdf:about) = ('&dh;Document'))]" mode="bs2:ConstructorListItem">
+                    <xsl:sort select="ac:label(.)"/>
+    <!--                <xsl:with-param name="ontology" select="$ontology"/>
+                    <xsl:with-param name="ont-doc" select="$ont-doc"/>-->
+                </xsl:apply-templates>
+
+                <!-- apply to owl:imported ontologies recursively -->
+                <xsl:for-each select="key('resources', $ontology, $ont-doc)/owl:imports/@rdf:resource">
+                    <xsl:call-template name="bs2:ConstructorList">
+                        <xsl:with-param name="ontology" select="."/>
+                        <!--<xsl:with-param name="ont-doc" select="document(ac:document-uri(.))"/>-->
+                        <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:variable>
+            <!-- avoid nesting lists without items (classes) -->
+            <xsl:if test="$constructor-list">
+                <ul>
+                    <xsl:copy-of select="$constructor-list"/>
+                </ul>
+            </xsl:if>
         </xsl:if>
     </xsl:template>
                 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ConstructorListItem">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        <xsl:param name="sitemap" as="document-node()"/>
+<!--        <xsl:param name="ontology" as="xs:anyURI"/>-->
+<!--        <xsl:param name="ont-doc" as="document-node()"/>-->
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
         
         <li>
@@ -874,61 +894,61 @@ exclude-result-prefixes="#all">
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&dh;Container'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&dh;Container']" mode="apl:logo" priority="1">
+    <xsl:template match="*[@rdf:about = '&dh;Container'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Container']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&dh;Item'] | *[@rdf:about][$ac:sitemap][ apl:superClasses(@rdf:about, $ac:sitemap) = '&dh;Item']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&dh;Item'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;Service'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Service']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Service'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Service']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;Construct'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Construct']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Construct'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Construct']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-construct')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;Describe'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Describe']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Describe'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Describe']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-describe')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;Select'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Select']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Select'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Select']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-select')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;Ask'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Ask']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Ask'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Ask']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-ask')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;File'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;File']" mode="apl:logo" priority="1">
+    <xsl:template match="*[@rdf:about = '&apl;File'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;File']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-file')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&apl;Import'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Import']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Import'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Import']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-import')"/>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about = '&apl;Chart'] | *[@rdf:about][$ac:sitemap][apl:superClasses(@rdf:about, $ac:sitemap) = '&apl;Chart']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&apl;Chart'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Chart']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-chart')"/>
@@ -1293,7 +1313,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" select="if ($ac:sitemap) then key('resources', key('resources', $ldt:template, $ac:sitemap)/aplt:consumes/@rdf:nodeID, $ac:sitemap)/aplt:mediaType else ()" as="xs:string?"/>
+        <xsl:param name="enctype" select="if (doc-available(ac:document-uri($ldt:template))) then key('resources', key('resources', $ldt:template, document(ac:document-uri($ldt:template)))/aplt:consumes/(@rdf:nodeID, @rdf:resource))/aplt:mediaType else ()" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="$modal">
@@ -1439,8 +1459,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="forClass" select="$ac:forClass" as="xs:anyURI"/>
 
         <xsl:choose>
-            <xsl:when test="key('resources', $forClass, $ac:sitemap)">
-                <xsl:for-each select="key('resources', $forClass, $ac:sitemap)">
+            <xsl:when test="key('resources', $forClass)">
+                <xsl:for-each select="key('resources', $forClass)">
                     <legend title="{@rdf:about}">
                         <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
                         <xsl:text> </xsl:text>
@@ -1499,7 +1519,7 @@ exclude-result-prefixes="#all">
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $ac:sitemap) then (key('resources', key('resources', (../rdf:type/@rdf:resource, apl:superClasses(../rdf:type/@rdf:resource, $ac:sitemap)), $ac:sitemap)/spin:constraint/(@rdf:resource|@rdf:nodeID), $ac:sitemap)[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
+                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $ldt:ontology) then (key('resources', key('resources', (../rdf:type/@rdf:resource, apl:listSuperClasses(../rdf:type/@rdf:resource)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="template-doc" select="$template-doc"/>
@@ -1520,7 +1540,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl"/>
     
     <!-- container/document types are hidden -->
-    <xsl:template match="*[rdf:type/@rdf:resource][$ac:sitemap][apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap) = ('&dh;Container', '&dh;Item')]" mode="bs2:TypeControl" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource][$ldt:ontology][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="bs2:TypeControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
@@ -1737,7 +1757,7 @@ exclude-result-prefixes="#all">
     <!-- BLOCK MODE -->
     
     <!-- hide only those documents (already shown in the breadcrumb bar) which types are subclasses of dh:Container/dh:Item -->
-    <xsl:template match="*[$ac:sitemap][@rdf:about = $ac:uri][apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap) = ('&dh;Container', '&dh;Item')]" mode="bs2:Block"/>
+    <xsl:template match="*[$ldt:ontology][@rdf:about = $ac:uri][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="bs2:Block"/>
 
     <!-- SERVER-SIDE BLOCK LIST -->
     

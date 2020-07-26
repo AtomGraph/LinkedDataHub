@@ -36,7 +36,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
-        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', $ac:sitemap)" as="element()*"/>
+        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document('&acl;'))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>

@@ -29,7 +29,7 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][$ac:sitemap][apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap) = '&lsm;Ontology']" mode="bs2:Actions">
+    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][$ldt:ontology][apl:listSuperClasses(rdf:type/@rdf:resource) = '&lsm;Ontology']" mode="bs2:Actions">
         <xsl:if test="$lacl:Agent//@rdf:about">
             <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $ldt:base)]}" method="get">
                 <input type="hidden" name="clear"/>

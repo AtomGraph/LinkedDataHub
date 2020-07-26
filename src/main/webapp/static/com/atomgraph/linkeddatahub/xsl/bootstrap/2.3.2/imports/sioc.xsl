@@ -38,18 +38,17 @@ exclude-result-prefixes="#all">
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
-            <xsl:when test="system-property('xsl:product-name') = 'SAXON' and not($forClass = '&rdfs;Resource')">
+            <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
                 <!-- add subclasses as forClass -->
-                <xsl:for-each select="distinct-values(apl:subClasses($forClass, $ac:sitemap))[not(. = $forClass)]">
+                <xsl:for-each select="distinct-values(apl:listSubClasses($forClass))[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
                 </xsl:for-each>
                 <!-- bs2:Constructor sets forClass -->
-                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="bs2:Constructor">
+                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
                     <xsl:with-param name="subclasses" select="true()"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <!-- $ac:sitemap not available for Saxon-CE -->
                 <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by ?Type FILTER -->
             </xsl:otherwise>
         </xsl:choose>
@@ -57,18 +56,18 @@ exclude-result-prefixes="#all">
         <xsl:if test="not($type = 'hidden') and $type-label">
             <span class="help-inline">
                 <xsl:choose>
-                    <xsl:when test="system-property('xsl:product-name') = 'SAXON'"> <!-- server-side Saxon has access to the sitemap ontology -->
+                    <xsl:when test="doc-available(ac:document-uri($forClass))">
                         <xsl:choose>
                             <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                            <xsl:when test="key('resources', $forClass, $ac:sitemap)">
-                                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="ac:label"/>
+                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
+                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:when>
-                    <xsl:otherwise> <!-- client-side Saxon-CE does not have access to the sitemap ontology -->
+                    <xsl:otherwise>
                         <xsl:value-of select="$forClass"/>
                     </xsl:otherwise>
                 </xsl:choose>

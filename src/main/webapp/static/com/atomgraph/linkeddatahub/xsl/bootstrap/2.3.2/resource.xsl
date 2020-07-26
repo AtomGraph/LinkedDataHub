@@ -33,13 +33,13 @@ exclude-result-prefixes="#all">
     
     <!-- CSS -->
     
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Container']" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Container']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Item']" mode="apl:logo">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
