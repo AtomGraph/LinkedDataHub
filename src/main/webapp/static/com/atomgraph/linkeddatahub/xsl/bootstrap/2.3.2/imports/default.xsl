@@ -485,6 +485,7 @@ exclude-result-prefixes="#all">
                                     </xsl:for-each>
                                 </xsl:for-each>
                             </xsl:when>
+                            <!-- TO-DO: constraints on superclasses of ../rdf:type/@rdf:resource -->
                             <xsl:otherwise>
                                 <xsl:sequence select="true()"/>
                             </xsl:otherwise>

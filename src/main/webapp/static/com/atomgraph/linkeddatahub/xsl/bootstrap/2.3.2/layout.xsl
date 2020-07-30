@@ -550,12 +550,6 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
         <xsl:variable name="create-or-edit" select="$ac:mode = '&ac;EditMode' or $ac:forClass" as="xs:boolean"/>
 
-AAA<xsl:copy-of select="document($ldt:ontology)"/>/AAA
-XXX
-        key('resources', $ac:uri)/rdf:type/@rdf:resource: <xsl:value-of select="key('resources', $ac:uri)/rdf:type/@rdf:resource"/>
-        apl:listSuperClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource): <xsl:value-of select="apl:listSuperClasses(key('resources', $ac:uri)/rdf:type/@rdf:resource)"/>
-/XXX
-
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
@@ -659,31 +653,18 @@ XXX
         <!-- check if ontology document is available -->
         <xsl:if test="doc-available(ac:document-uri($ontology))">
             <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
-
-<!--    <xsl:message>
-    TTT<xsl:value-of select="apl:listSuperClasses(xs:anyURI('https://localhost:4443/ns/default#Select'))/../../@rdf:about"/>/TTT
-    QQQ<xsl:value-of select="$ontology"/>/QQQ
-    ZZZ<xsl:value-of select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]/@rdf:about"/>/ZZZ
-    </xsl:message>-->
-
             <xsl:variable name="constructor-list" as="element()*">
                 <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-    <xsl:message>
-    <!--YYY<xsl:value-of select="($classes, $visited-classes)/@rdf:about"/>/YYY-->
-    </xsl:message>
                 <!-- do not show superclass constructor if we've already shown subclass constructor -->
                 <!-- [not(apl:listSuperClasses(@rdf:about)/../. = ('&dh;Document', '&apl;Service', '&apl;Query', '&apl;File', '&apl;Import', '&apl;Chart'))] -->
-                <xsl:apply-templates select="$classes[not(@rdf:about = ($classes, $visited-classes)/rdfs:subClassOf/@rdf:resource)][not(apl:listSuperClasses(@rdf:about) = ('&dh;Document'))]" mode="bs2:ConstructorListItem">
+                <xsl:apply-templates select="$classes[not(@rdf:about = ($classes, $visited-classes)/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
-    <!--                <xsl:with-param name="ontology" select="$ontology"/>
-                    <xsl:with-param name="ont-doc" select="$ont-doc"/>-->
                 </xsl:apply-templates>
 
                 <!-- apply to owl:imported ontologies recursively -->
                 <xsl:for-each select="key('resources', $ontology, $ont-doc)/owl:imports/@rdf:resource">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="."/>
-                        <!--<xsl:with-param name="ont-doc" select="document(ac:document-uri(.))"/>-->
                         <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
                     </xsl:call-template>
                 </xsl:for-each>
