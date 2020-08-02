@@ -108,7 +108,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:series" as="xs:string*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="dh:select" as="xs:string?"/>
-    <xsl:param name="lacl:mode" select="if ($ldt:ontology) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, apl:listSuperClasses(key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
+    <xsl:param name="lacl:mode" select="if (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, apl:listSuperClasses(key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
 
     <xsl:variable name="root-containers" select="($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))" as="xs:anyURI*"/>
     
