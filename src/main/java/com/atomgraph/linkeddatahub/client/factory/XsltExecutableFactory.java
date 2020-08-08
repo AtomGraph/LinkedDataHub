@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.provider;
+package com.atomgraph.linkeddatahub.client.factory;
 
 import com.atomgraph.linkeddatahub.MediaType;
 import com.atomgraph.linkeddatahub.apps.model.Application;
@@ -37,102 +37,76 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.ext.Providers;
 import javax.xml.transform.Source;
-import javax.xml.transform.Templates;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.URIResolver;
-import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.stream.StreamSource;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider which provides an XSLT stylesheet.
+ * JAX-RS provider which provides a compiled app-specific XSLT stylesheet.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.client.provider.DatasetXSLTWriter
  */
 @Provider
-public class TemplatesProvider implements Factory<Templates> // extends PerRequestTypeInjectableProvider<Context, Templates> implements ContextResolver<Templates>
+public class XsltExecutableFactory implements Factory<XsltExecutable>
 {
     
-    private static final Logger log = LoggerFactory.getLogger(TemplatesProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(XsltExecutableFactory.class);
 
-    private final Templates templates;
-    private final SAXTransformerFactory transformerFactory;
+    private final XsltCompiler xsltComp;
+    private final XsltExecutable defaultExec; // system stylesheet
     private final Boolean cacheStylesheet;
     
     @Context Providers providers;
     @Context UriInfo uriInfo;
     @Context HttpHeaders httpHeaders;
     
-    //@Inject Client client;
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
     
-    private final Map<String, Templates> appTemplatesCache = new HashMap<>();
+    private final Map<String, XsltExecutable> appXsltExecCache = new HashMap<>();
 
-    public TemplatesProvider(final SAXTransformerFactory transformerFactory, final URIResolver uriResolver,
-            final Templates templates, final boolean cacheStylesheet)
+    public XsltExecutableFactory(final XsltCompiler xsltComp, final XsltExecutable defaultExec, final boolean cacheStylesheet)
     {
-        this.templates = templates;
-        this.transformerFactory = transformerFactory;
+        this.defaultExec = defaultExec;
+        this.xsltComp = xsltComp;
         this.cacheStylesheet = cacheStylesheet;
-        this.transformerFactory.setURIResolver(uriResolver);
     }
 
     @Override
-    public Templates provide()
+    public XsltExecutable provide()
     {
-        return getTemplates();
+        return getXsltExecutable();
     }
 
     @Override
-    public void dispose(Templates t)
+    public void dispose(XsltExecutable xsltExec)
     {
     }
     
-//    @Override
-//    public Injectable<Templates> getInjectable(ComponentContext cc, Context a)
-//    {
-//        return new Injectable<Templates>()
-//        {
-//            @Override
-//            public Templates getValue()
-//            {
-//                return getTemplates();
-//            }
-//        };
-//    }
-//
-//    @Override
-//    public Templates getContext(Class<?> type)
-//    {
-//        return getTemplates();
-//    }
-    
-    public Templates getTemplates()
+    public XsltExecutable getXsltExecutable()
     {
         try
         {
             if (getApplication() != null && getApplication().getStylesheet() != null)
-                return getTemplates(getApplication().getStylesheet().getURI(), getAppTemplatesCache());
+                return getXsltExecutable(getApplication().getStylesheet().getURI(), getXsltExecutableCache());
             
-            return templates;
+            return defaultExec;
         }
-        catch (TransformerConfigurationException ex)
+        catch (SaxonApiException ex)
         {
             if (log.isErrorEnabled()) log.error("XSLT transformer not configured property", ex);
-            // XSLTException will not be mapped because of Jersey 1.x bug: https://java.net/jira/browse/JERSEY-920
-            //throw new XSLTException(ex);
-            throw new WebApplicationException(ex);
+            throw new WebApplicationException(ex); // TO-DO: throw new XSLTException(ex);
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("XSLT stylesheet not found or error reading it", ex);
-            //throw new XSLTException(ex);
-            throw new WebApplicationException(ex);
+            throw new WebApplicationException(ex); // TO-DO: throw new XSLTException(ex);
         }
     }
     
@@ -140,33 +114,33 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
      * Get compiled XSLT stylesheet. First look in the cache, if it's enabled; otherwise read from file.
      * 
      * @param stylesheetURI
-     * @param templatesCache
-     * @return Templates
+     * @param xsltExecCache
+     * @return XsltExecutable
      * @throws java.io.IOException
-     * @throws javax.xml.transform.TransformerConfigurationException
+     * @throws SaxonApiException
      */
-    public Templates getTemplates(String stylesheetURI, Map<String, Templates> templatesCache) throws IOException, TransformerConfigurationException
+    public XsltExecutable getXsltExecutable(String stylesheetURI, Map<String, XsltExecutable> xsltExecCache) throws IOException, SaxonApiException
     {
         if (isCacheStylesheet())
         {
             // create cache entry if it does not exist
-            if (!templatesCache.containsKey(stylesheetURI))
-                templatesCache.put(stylesheetURI, getTemplates(getSource(stylesheetURI)));
+            if (!xsltExecCache.containsKey(stylesheetURI))
+                xsltExecCache.put(stylesheetURI, getXsltExecutable(getSource(stylesheetURI)));
             
-            return templatesCache.get(stylesheetURI);
+            return xsltExecCache.get(stylesheetURI);
         }
         
-        return getTemplates(getSource(stylesheetURI));
+        return getXsltExecutable(getSource(stylesheetURI));
     }
 
-    public Templates getTemplates(Source source) throws TransformerConfigurationException
+    public XsltExecutable getXsltExecutable(Source source) throws SaxonApiException
     {
-        return getTransformerFactory().newTemplates(source);
+        return getXsltCompiler().compile(source);
     }
     
-    public SAXTransformerFactory getTransformerFactory()
+    public XsltCompiler getXsltCompiler()
     {
-        return transformerFactory;
+        return xsltComp;
     }
     
     public boolean isCacheStylesheet()
@@ -174,9 +148,9 @@ public class TemplatesProvider implements Factory<Templates> // extends PerReque
         return cacheStylesheet;
     }
     
-    public Map<String, Templates> getAppTemplatesCache()
+    public Map<String, XsltExecutable> getXsltExecutableCache()
     {
-        return appTemplatesCache;
+        return appXsltExecCache;
     }
     
     public Providers getProviders()

@@ -40,6 +40,8 @@ import com.atomgraph.client.mapper.ClientErrorExceptionMapper;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.client.writer.function.ConstructDocument;
+import com.atomgraph.client.writer.function.UUID;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.core.io.DatasetProvider;
 import com.atomgraph.core.io.ModelProvider;
@@ -47,7 +49,7 @@ import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestReader;
 import com.atomgraph.linkeddatahub.client.provider.DataManagerProvider;
-import com.atomgraph.linkeddatahub.client.provider.TemplatesProvider;
+import com.atomgraph.linkeddatahub.client.factory.XsltExecutableFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.core.riot.RDFLanguages;
@@ -137,10 +139,6 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
-import javax.xml.transform.Templates;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXTransformerFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -161,6 +159,10 @@ import java.util.Optional;
 import java.util.TreeMap;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -213,7 +215,9 @@ public class Application extends ResourceConfig
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final boolean remoteVariableBindings;
-    private final Templates templates;
+    private final Processor xsltProc = new Processor(false);
+    private final XsltCompiler xsltComp;
+    private final XsltExecutable xsltExec;
     private final OntModelSpec ontModelSpec;
     private final Source stylesheet;
     private final boolean cacheStylesheet;
@@ -494,9 +498,19 @@ public class Application extends ResourceConfig
             if (smtpPort == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
-            SAXTransformerFactory transformerFactory = ((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null));
-            transformerFactory.setURIResolver(dataManager);
-            this.templates = transformerFactory.newTemplates(stylesheet);
+            xsltProc.registerExtensionFunction(new UUID());
+            xsltProc.registerExtensionFunction(new ConstructDocument(xsltProc));
+
+            try
+            {
+                xsltComp = xsltProc.newXsltCompiler();
+                xsltExec = xsltComp.compile(stylesheet);
+            }
+            catch (SaxonApiException ex)
+            {
+                if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
+                throw new WebApplicationException(ex);
+            }
         }
         catch (FileNotFoundException ex)
         {
@@ -531,11 +545,6 @@ public class Application extends ResourceConfig
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI syntax error: {}", ex);
-            throw new WebApplicationException(ex);
-        }
-        catch (TransformerConfigurationException ex)
-        {
-            if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
             throw new WebApplicationException(ex);
         }
         
@@ -593,7 +602,7 @@ public class Application extends ResourceConfig
         register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
-        register(new DatasetXSLTWriter(getTemplates(), getOntModelSpec())); // writes XHTML responses
+        register(new DatasetXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes XHTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -684,8 +693,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(new TemplatesProvider(((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)),
-                    getDataManager(), getTemplates(), isCacheStylesheet())).to(Templates.class);
+                bindFactory(new XsltExecutableFactory(getXsltCompiler(), getXsltExecutable(), isCacheStylesheet())).to(XsltExecutable.class);
             }
         });
         
@@ -1005,9 +1013,14 @@ public class Application extends ResourceConfig
         return ontModelSpec;
     }
     
-    public Templates getTemplates()
+    public XsltCompiler getXsltCompiler()
     {
-        return templates;
+        return xsltComp;
+    }
+    
+    public XsltExecutable getXsltExecutable()
+    {
+        return xsltExec;
     }
     
     public Source getStylesheet()

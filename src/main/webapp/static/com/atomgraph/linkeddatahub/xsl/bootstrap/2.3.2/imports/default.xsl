@@ -394,7 +394,7 @@ exclude-result-prefixes="#all">
                                             </xsl:when>
                                             <xsl:otherwise>
                                                 <xsl:value-of use-when="system-property('xsl:product-name') = 'Saxon-CE'" select="resolve-uri(concat('/', ixsl:call(ixsl:window(), 'generateUUID')), $ac:uri)"/>
-                                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'" select="resolve-uri(concat('/', xs:string(uuid:randomUUID())), $ac:uri)"/>
+                                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'" select="resolve-uri(concat('/', ac:uuid()), $ac:uri)"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
                                     </xsl:attribute>

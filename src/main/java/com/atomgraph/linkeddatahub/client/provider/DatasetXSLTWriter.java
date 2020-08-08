@@ -24,8 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-import javax.xml.transform.Templates;
-import com.atomgraph.client.util.XSLTBuilder;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
@@ -41,14 +39,24 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmValue;
+import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
@@ -75,7 +83,7 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
     @Inject Ontology ontology;
-    @Inject Templates templates;
+//    @Inject Templates templates;
     @Inject ClientUriInfo clientUriInfo;
     @Inject DataManager dataManager;
 
@@ -88,15 +96,15 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
         NAMESPACES.add(APLT.NS);
     }
     
-    public DatasetXSLTWriter(Templates templates, OntModelSpec ontModelSpec)
+    @Inject
+    public DatasetXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec)
     {
-        super(templates, ontModelSpec);
+        super(xsltExec, ontModelSpec);
     }
     
     @Override
-    public XSLTBuilder setParameters(XSLTBuilder bld, Dataset dataset, MultivaluedMap<String, Object> headerMap) throws TransformerException
+    public void writeTo(Dataset dataset, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException
     {
-        if (bld == null) throw new IllegalArgumentException("XSLTBuilder cannot be null");
         if (headerMap == null) throw new IllegalArgumentException("MultivaluedMap cannot be null");
         
         // set request attributes based on response headers if they are not already set by Web-Client's ProxyResourceBase
@@ -115,20 +123,26 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not parse Link URI: {}", ex.getInput());
-            throw new TransformerException(ex);
+            throw new WebApplicationException(ex); // TO-DO: specific Exception and Mapper?
         }
-        
-        XSLTBuilder builder = super.setParameters(bld, dataset, headerMap);
+
+        super.writeTo(dataset, type, genericType, annotations, mediaType, headerMap, entityStream);
+    }
+    
+    @Override
+    public <T extends XdmValue> Map<QName, XdmValue> getParameters(Dataset dataset, MultivaluedMap<String, Object> headerMap) throws TransformerException
+    {
+        Map<QName, XdmValue> params = super.getParameters(dataset, headerMap);
 
         try
         {
-            if (getURI() != null) builder.parameter("{" + AC.uri.getNameSpace() + "}" + AC.uri.getLocalName(), getURI());
-            else builder.parameter("{" + AC.uri.getNameSpace() + "}" + AC.uri.getLocalName(), getAbsolutePath());
+            if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
+            else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
             Application app = getApplication();
             if (app != null)
             {
-                builder.parameter("{" + LDT.base.getNameSpace() + "}" + LDT.base.getLocalName(), getBaseUri());
+                params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
                 StmtIterator appStmts = app.listProperties();
@@ -156,7 +170,8 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
                 if (app.hasProperty(FOAF.isPrimaryTopicOf) && app.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
                     source.setSystemId(app.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
 
-                builder.parameter("{" + LAPP.Application.getNameSpace() + "}" + LAPP.Application.getLocalName(), source);
+                params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
+                    getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
                 
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
@@ -167,24 +182,25 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
                 if (agent.hasProperty(FOAF.isPrimaryTopicOf) && agent.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
                     source.setSystemId(agent.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lacl:Agent)
 
-                builder.parameter("{" + LACL.Agent.getNameSpace() + "}" + LACL.Agent.getLocalName(), source);
+                params.put(new QName("lacl", LACL.Agent.getNameSpace(), LACL.Agent.getLocalName()),
+                        getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
 
             // TO-DO: move to client-side?
             if (getUriInfo().getQueryParameters().containsKey(APL.access_to.getLocalName()))
-                builder.parameter("{" + APL.access_to.getNameSpace() + "}" + APL.access_to.getLocalName(),
-                    URI.create(getUriInfo().getQueryParameters().getFirst(APL.access_to.getLocalName())));
+                params.put(new QName("apl", APL.access_to.getNameSpace(), APL.access_to.getLocalName()),
+                    new XdmAtomicValue(URI.create(getUriInfo().getQueryParameters().getFirst(APL.access_to.getLocalName()))));
             
             if (getHttpHeaders().getRequestHeader(HttpHeaders.REFERER) != null)
             {
                 URI referer = URI.create(getHttpHeaders().getRequestHeader(HttpHeaders.REFERER).get(0));
                 if (log.isDebugEnabled()) log.debug("Passing $Referer URI to XSLT: {}", referer);
-                builder.parameter("Referer", referer); // TO-DO: move to ac: namespace
+                params.put(new QName("", "", "Referer"), new XdmAtomicValue(referer)); // TO-DO: move to ac: namespace
             }
 
-            return builder;
+            return params;
         }
-        catch (IOException | URISyntaxException ex)
+        catch (IOException | URISyntaxException | SaxonApiException ex)
         {
             if (log.isErrorEnabled()) log.error("Error reading Source stream");
             throw new TransformerException(ex);
@@ -260,12 +276,6 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     public Set<String> getSupportedNamespaces()
     {
         return NAMESPACES;
-    }
-    
-    @Override
-    public Templates getTemplates()
-    {
-        return templates;
     }
     
     public Link getLink(MultivaluedMap<String, Object> headerMap, String headerName, String rel) throws URISyntaxException
