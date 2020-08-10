@@ -579,19 +579,6 @@ WHERE
     </context-param>
     <servlet>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
-<!--        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>javax.ws.rs.Application</param-name>
-            <param-value>com.atomgraph.linkeddatahub.Application</param-value>
-        </init-param>-->
-<!--        <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
-            <param-value>com.atomgraph.client.filter.request.PostReplaceFilter;com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter,com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter,com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
-            <param-value>com.atomgraph.server.filter.response.HypermediaFilter</param-value>
-        </init-param>-->
     </servlet>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ImportListener</listener-class>

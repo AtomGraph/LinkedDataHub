@@ -116,16 +116,16 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :ServiceConstructor a sp:Construct ;
     sp:text """
+      PREFIX a:       <https://w3id.org/atomgraph/core#>
       PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-      PREFIX srv:     <http://jena.hpl.hp.com/Service#>
 
       CONSTRUCT {
           ?this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-              srv:queryAuthUser [ a xsd:string ] ;
-              srv:queryAuthPwd [ a xsd:string ] ;
+              a:authUser [ a xsd:string ] ;
+              a:authPwd [ a xsd:string ] ;
               lapp:proxy [ a rdfs:Resource ] .
       }
       WHERE {}""" ;

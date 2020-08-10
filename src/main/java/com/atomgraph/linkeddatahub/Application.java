@@ -501,16 +501,8 @@ public class Application extends ResourceConfig
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new ConstructDocument(xsltProc));
 
-            try
-            {
-                xsltComp = xsltProc.newXsltCompiler();
-                xsltExec = xsltComp.compile(stylesheet);
-            }
-            catch (SaxonApiException ex)
-            {
-                if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
-                throw new WebApplicationException(ex);
-            }
+            xsltComp = xsltProc.newXsltCompiler();
+            xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
         {
@@ -547,7 +539,12 @@ public class Application extends ResourceConfig
             if (log.isErrorEnabled()) log.error("URI syntax error: {}", ex);
             throw new WebApplicationException(ex);
         }
-        
+        catch (SaxonApiException ex)
+        {
+            if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+
         rdfsReasonerSpec.setImportModelGetter(dataManager);
         OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager

@@ -125,10 +125,10 @@ if [ -n "$graph_store" ] ; then
     turtle+="_:service a:graphStore <${graph_store}> .\n"
 fi
 if [ -n "$auth_user" ] ; then
-    turtle+="_:service srv:queryAuthUser \"${auth_user}\" .\n"
+    turtle+="_:service a:authUser \"${auth_user}\" .\n"
 fi
 if [ -n "$auth_pwd" ] ; then
-    turtle+="_:service srv:queryAuthPwd \"${auth_pwd}\" .\n"
+    turtle+="_:service a:authPwd \"${auth_pwd}\" .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"

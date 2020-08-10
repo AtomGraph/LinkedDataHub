@@ -83,7 +83,6 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
     @Inject Ontology ontology;
-//    @Inject Templates templates;
     @Inject ClientUriInfo clientUriInfo;
     @Inject DataManager dataManager;
 
@@ -166,7 +165,7 @@ public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWr
                     adminApp.close();
                 }
 
-                Source source = getSource(appModel);  // TO-DO: change hash code?
+                Source source = getSource(appModel); // TO-DO: change hash code?
                 if (app.hasProperty(FOAF.isPrimaryTopicOf) && app.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
                     source.setSystemId(app.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
 
