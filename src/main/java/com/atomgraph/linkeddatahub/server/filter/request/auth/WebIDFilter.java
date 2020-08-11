@@ -159,44 +159,33 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 URI webID = getWebIDURI(webIDCert);
                 if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-//                try
-//                {
-                    Resource agent = authenticate(loadWebID(webID), webID, publicKey);
-                    if (agent == null)
-                    {
-                        if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
-                        throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
-                    }
-                    getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
+                Resource agent = authenticate(loadWebID(webID), webID, publicKey);
+                if (agent == null)
+                {
+                    if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
+                    throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
+                }
+                getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
 
-                    String onBehalfOf = request.getHeaderString(ON_BEHALF_OF);
-                    if (onBehalfOf != null)
-                    {
-                        URI principalWebID = new URI(onBehalfOf);
-                        Model principalWebIDModel = loadWebID(principalWebID);
-                        Resource principal = principalWebIDModel.createResource(onBehalfOf);
-                        // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
-                        if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
-                        else throw new WebIDDelegationException(agent, principal);
-                    }
-                    
-                    // imitate type inference, otherwise we'll get Jena's polymorphism exception
-                    request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
-//                    system.getThreadLocal().set(request.getSecurityContext()); // workaround because we can't use WebTarget.register(WebIDDelegationFilter.class): https://github.com/eclipse-ee4j/jersey/issues/4449
+                String onBehalfOf = request.getHeaderString(ON_BEHALF_OF);
+                if (onBehalfOf != null)
+                {
+                    URI principalWebID = new URI(onBehalfOf);
+                    Model principalWebIDModel = loadWebID(principalWebID);
+                    Resource principal = principalWebIDModel.createResource(onBehalfOf);
+                    // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
+                    if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
+                    else throw new WebIDDelegationException(agent, principal);
+                }
 
-                    if (app != null)
-                    {
-                        Resource authorization = authorize(app, request, agent, accessMode);
-                        ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
-                    }
+                // imitate type inference, otherwise we'll get Jena's polymorphism exception
+                request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
 
-                    //return; // request;
-//                }
-//                catch (Exception ex)
-//                {
-//                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
-//                    //return request; // default to unauthenticated access
-//                }
+                if (app != null)
+                {
+                    Resource authorization = authorize(app, request, agent, accessMode);
+                    ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
+                }
             }
             catch (CertificateException ex)
             {
@@ -284,7 +273,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
                     if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
-                    throw new WebIDLoadingException(cr);
+                    throw new WebIDLoadingException(webID, cr);
                 }
                 cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
 

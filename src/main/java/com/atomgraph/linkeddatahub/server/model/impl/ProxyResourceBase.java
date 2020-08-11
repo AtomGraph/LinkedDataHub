@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.net.URI;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
@@ -54,10 +53,9 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 mode, client, httpServletRequest);
         
-        // TO-DO:
-//        if (securityContext.getUserPrincipal() instanceof Agent &&
-//            securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-//            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+        if (securityContext.getUserPrincipal() instanceof Agent &&
+            securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
     }
     
 }

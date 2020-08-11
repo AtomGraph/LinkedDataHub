@@ -21,9 +21,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
-import org.glassfish.hk2.api.ServiceLocator;
 
 /**
  * Client filter that delegates WebID identity.
@@ -34,20 +31,15 @@ public class WebIDDelegationFilter implements ClientRequestFilter
 {
 
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
-    
-    @Context SecurityContext securityContext;
-    
-    @Context private ServiceLocator serviceLocator;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     
+    private final Agent agent;
     
-//    private final Agent agent;
-//    
-//    public WebIDDelegationFilter(Agent agent)
-//    {
-//        this.agent = agent;
-//    }
+    public WebIDDelegationFilter(Agent agent)
+    {
+        this.agent = agent;
+    }
     
     @Override
     public void filter(ClientRequestContext cr) throws IOException
@@ -57,14 +49,7 @@ public class WebIDDelegationFilter implements ClientRequestFilter
 
     public Agent getAgent()
     {
-        if (securityContext != null) return (Agent)securityContext.getUserPrincipal();
-        
-        return null;
+        return agent;
     }
-    
-//    public Agent getAgent()
-//    {
-//        return agent;
-//    }
     
 }

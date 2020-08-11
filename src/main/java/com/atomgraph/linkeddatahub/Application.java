@@ -494,8 +494,8 @@ public class Application extends ResourceConfig
             else authenticator = null;
 
             if (smtpHost == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP host not configured"));
-            emailProperties.put("mail.smtp.host", smtpHost);
             if (smtpPort == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
+            emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
             xsltProc.registerExtensionFunction(new UUID());
@@ -558,14 +558,7 @@ public class Application extends ResourceConfig
         register(MultiPartFeature.class);
         register(ResourceBase.class); // handles /
         
-        register(new HttpMethodOverrideFilter());
-        register(ClientUriInfoFilter.class);
-        register(ApplicationFilter.class);
-        register(OntologyFilter.class);
-        register(TemplateCallFilter.class);
-        register(WebIDFilter.class);
-        register(UnauthorizedFilter.class);
-        register(new RDFPostCleanupInterceptor());
+        registerFilters();
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
@@ -697,6 +690,18 @@ public class Application extends ResourceConfig
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     
+    public void registerFilters()
+    {
+        register(new HttpMethodOverrideFilter());
+        register(ClientUriInfoFilter.class);
+        register(ApplicationFilter.class);
+        register(OntologyFilter.class);
+        register(TemplateCallFilter.class);
+        register(WebIDFilter.class);
+        register(UnauthorizedFilter.class);
+        register(new RDFPostCleanupInterceptor());
+    }
+    
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
     {
         String baseURI = servletContext.getResource("/").toString();
@@ -817,9 +822,11 @@ public class Application extends ResourceConfig
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(THIS_VAR_NAME, absolutePath);
         
-        QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm);
-        if (getAppQuery().isConstructType()) return qex.execConstruct();
-        if (getAppQuery().isDescribeType()) return qex.execDescribe();
+        try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))
+        {
+            if (getAppQuery().isConstructType()) return qex.execConstruct();
+            if (getAppQuery().isDescribeType()) return qex.execDescribe();
+        }
         
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
@@ -846,7 +853,25 @@ public class Application extends ResourceConfig
             register("http", new PlainConnectionSocketFactory()).
             build();
 
-        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        // https://github.com/eclipse-ee4j/jersey/issues/4449
+        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
+        {
+
+            @Override
+            public void close()
+            {
+                super.shutdown();
+            }
+
+            @Override
+            public void shutdown()
+            {
+                // Disable shutdown of the pool. This will be done later, when this factory is closed
+                // This is a workaround for finalize method on jerseys ClientRuntime which
+                // closes the client and shuts down the connection pool when it is garbage collected
+            };
+
+        };
         if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
         if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 //        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
@@ -885,7 +910,25 @@ public class Application extends ResourceConfig
                 register("http", new PlainConnectionSocketFactory()).
                 build();
         
-            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+            // https://github.com/eclipse-ee4j/jersey/issues/4449
+            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
+            {
+
+                @Override
+                public void close()
+                {
+                    super.shutdown();
+                }
+
+                @Override
+                public void shutdown()
+                {
+                    // Disable shutdown of the pool. This will be done later, when this factory is closed
+                    // This is a workaround for finalize method on jerseys ClientRuntime which
+                    // closes the client and shuts down the connection pool when it is garbage collected
+                };
+                
+            };
             if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
             if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
 
