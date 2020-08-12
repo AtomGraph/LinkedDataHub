@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.provider;
+package com.atomgraph.linkeddatahub.client.factory;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import org.apache.jena.util.FileManager;
@@ -27,7 +27,6 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import java.net.URI;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
@@ -44,9 +43,9 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.client.util.DataManager
  */
 @Provider
-public class DataManagerProvider implements Factory<DataManager>
+public class DataManagerFactory implements Factory<DataManager>
 {
-    private static final Logger log = LoggerFactory.getLogger(DataManagerProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(DataManagerFactory.class);
 
     private final boolean preemptiveAuth;
     private final boolean resolvingUncached;
@@ -62,12 +61,12 @@ public class DataManagerProvider implements Factory<DataManager>
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
     
-    public DataManagerProvider()
+    public DataManagerFactory()
     {
         this(true, true); // TO-DO: make configurable
     }
     
-    public DataManagerProvider(boolean preemptiveAuth, boolean resolvingUncached)
+    public DataManagerFactory(boolean preemptiveAuth, boolean resolvingUncached)
     {        
         this.preemptiveAuth = preemptiveAuth;
         this.resolvingUncached = resolvingUncached;
@@ -96,14 +95,11 @@ public class DataManagerProvider implements Factory<DataManager>
             boolean preemptiveAuth, boolean resolvingUncached,
             Application application,
             SecurityContext securityContext,
-            URI rootContext)
+            URI rootContextURI)
     {
         DataManager dataManager = new DataManagerImpl(mapper, client, mediaTypes,
             preemptiveAuth, resolvingUncached,
-            application,
-            securityContext,
-            rootContext);
-//        FileManager.setStdLocators((FileManager)dataManager);
+            rootContextURI, application, securityContext);
  
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
         return dataManager;

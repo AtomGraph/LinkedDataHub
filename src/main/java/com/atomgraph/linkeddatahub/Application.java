@@ -29,7 +29,7 @@ import com.atomgraph.client.locator.PrefixMapper;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
-import com.atomgraph.linkeddatahub.client.provider.DatasetXSLTWriter;
+import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
@@ -48,10 +48,10 @@ import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestReader;
-import com.atomgraph.linkeddatahub.client.provider.DataManagerProvider;
+import com.atomgraph.core.provider.QueryParamProvider;
+import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
-import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
 import com.atomgraph.core.vocabulary.A;
@@ -655,7 +655,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(new com.atomgraph.core.provider.DataManagerProvider(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
+                bindFactory(new com.atomgraph.core.factory.DataManagerFactory(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
             }
         });
         register(new AbstractBinder()
@@ -663,7 +663,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(DataManagerProvider.class).to(com.atomgraph.client.util.DataManager.class).
+                bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }

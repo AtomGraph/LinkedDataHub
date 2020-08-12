@@ -144,8 +144,8 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     {
         // create new DataManager with constructor-injected values instead provider proxies that are not visible in other threads
         return new DataManagerImpl(LocationMapper.get(), getClient(), getMediaTypes(), true, false,
-                getApplication(), getSecurityContext(),
-                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
+                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
+                getApplication(), getSecurityContext());
     }
     
     public HttpServletRequest getHttpServletRequest()

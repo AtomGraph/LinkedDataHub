@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.client.filter;
 
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.io.IOException;
-import javax.inject.Inject;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 
@@ -31,8 +30,6 @@ public class WebIDDelegationFilter implements ClientRequestFilter
 {
 
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
-
-    @Inject com.atomgraph.linkeddatahub.Application system;
     
     private final Agent agent;
     

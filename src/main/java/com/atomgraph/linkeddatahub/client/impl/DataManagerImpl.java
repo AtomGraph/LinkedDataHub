@@ -20,9 +20,9 @@ import org.apache.jena.util.LocationMapper;
 import java.net.URI;
 import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
@@ -39,26 +39,46 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     
-    private final Application application;
-    private final SecurityContext securityContext;
-    private final URI rootContext;
+//    private final Application application;
+//    private final SecurityContext securityContext;
+    private final URI rootContextURI;
+    private final URI baseURI;
+    private final String authScheme;
+    private final Agent agent;
+
+    public DataManagerImpl(LocationMapper mapper, Client client, MediaTypes mediaTypes,
+            boolean preemptiveAuth, boolean resolvingUncached,
+            URI rootContextURI, Application app,
+            SecurityContext securityContext)
+    {
+        this(mapper, client, mediaTypes,
+                preemptiveAuth, resolvingUncached,
+                rootContextURI,
+                app != null ? app.getBaseURI() : null,
+                securityContext != null ? securityContext.getAuthenticationScheme() : null,
+                (securityContext != null && securityContext.getUserPrincipal() instanceof Agent) ? (Agent)securityContext.getUserPrincipal() : null);
+    }
     
     public DataManagerImpl(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
-            Application application,
-            SecurityContext securityContext,
-            URI rootContext)
+//            Application application,
+//            SecurityContext securityContext,
+            URI rootContextURI, URI baseURI,
+            String authScheme, Agent agent)
     {
         super(mapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
-        this.application = application;
-        this.securityContext = securityContext;
-        this.rootContext = rootContext;
+//        this.application = application;
+//        this.securityContext = securityContext;
+        this.rootContextURI = rootContextURI;
+        this.baseURI = baseURI;
+        this.authScheme = authScheme;
+        this.agent = agent;
     }
     
     @Override
     public boolean resolvingUncached(String filenameOrURI)
     {
-        if (getApplication() != null && !isMapped(filenameOrURI))
+        if (getBaseURI() != null && !isMapped(filenameOrURI))
         {
             // always resolve URIs relative to the root Context base URI
             boolean relative = !getRootContextURI().relativize(URI.create(filenameOrURI)).isAbsolute();
@@ -68,17 +88,17 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         return false; // by default, do not resolve URIs
     }
     
-    public ClientRequestFilter getClientAuthFilter(SecurityContext securityContext)
+    public ClientRequestFilter getClientAuthFilter()
     {
-        if (securityContext == null) throw new IllegalArgumentException("SecurityContext must be not null");
-
 //        UserAccount userAccount = getUserAccount(securityContext);
 //        if (userAccount != null) return getClientCertFilter(context, userAccount);
 
-        if (securityContext.getUserPrincipal() instanceof Agent &&
-                getSecurityContext().getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-            return new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal());
+//        if (securityContext.getUserPrincipal() instanceof Agent &&
+//                getSecurityContext().getAuthScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+//            return new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal());
         
+        if (getAgent() != null && SecurityContext.CLIENT_CERT_AUTH.equals(getAuthScheme())) return new WebIDDelegationFilter(getAgent());
+            
         return null;
     }
     
@@ -119,29 +139,43 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         WebTarget endpoint = super.getEndpoint(uri);
         
-        if (delegateWebID && getSecurityContext() != null && getApplication() != null &&
-                !getApplication().getBaseURI().relativize(uri).isAbsolute())
+        if (delegateWebID && !getBaseURI().relativize(uri).isAbsolute())
         {
-            ClientRequestFilter filter = getClientAuthFilter(getSecurityContext());
+            ClientRequestFilter filter = getClientAuthFilter();
             if (filter != null) endpoint.register(filter);
         }
         
         return endpoint;
     }
 
-    public Application getApplication()
-    {
-        return application;
-    }
-    
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
-    }
+//    public Application getApplication()
+//    {
+//        return application;
+//    }
+//    
+//    public SecurityContext getSecurityContext()
+//    {
+//        return securityContext;
+//    }
 
     public URI getRootContextURI()
     {
-        return rootContext;
+        return rootContextURI;
+    }
+    
+    public URI getBaseURI()
+    {
+        return baseURI;
+    }
+    
+    public String getAuthScheme()
+    {
+        return authScheme;
+    }
+    
+    public Agent getAgent()
+    {
+        return agent;
     }
     
 }

@@ -204,8 +204,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 Resource agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
                 authorize(app, request, agent, accessMode);
             }
-            
-            //return; // request;
         }
     }
     
