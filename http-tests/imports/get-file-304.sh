@@ -9,15 +9,15 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 etag=$(
 ./get-document.sh \
-  -f "$OWNER_CERT_FILE" \
-  -p "$OWNER_CERT_PWD" \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
   --accept "text/csv" \
   "${file_url}" \
 | grep 'ETag' \
 | sed -En 's/^ETag: (.*)/\1/p')
 
 curl -k -w "%{http_code}\n" -f -v -G \
-  -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/csv" \
   "${file_url}" \
 -H "If-None-Match: $etag" \

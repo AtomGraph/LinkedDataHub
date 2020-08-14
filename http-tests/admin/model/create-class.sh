@@ -22,4 +22,4 @@ popd > /dev/null
 curl -k -f -s -N \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}ns/domain" \
-| grep -q ""${END_USER_BASE_URL}ns/domain#NewClass""
+| grep -q "${END_USER_BASE_URL}ns/domain#NewClass"

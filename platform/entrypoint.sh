@@ -420,13 +420,12 @@ fi
 # 3. initialize an Agent/PublicKey with secretary's metadata and key modulus
 # 4. import the secretary metadata metadata into the quad store
 
+SECRETARY_URI="${BASE_URI}${SECRETARY_REL_URI}"
+
 if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
     # generate secretary WebID certificate and extract its modulus
 
-    SECRETARY_KEY_PASSWORD="LinkedDataHub"
-
     secretary_dname="CN=LinkedDataHub,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Denmark,C=DK"
-    SECRETARY_URI="${BASE_URI}admin/acl/agents/e413f97b-15ee-47ea-ba65-4479aa7f1f9e/#this"
 
     printf "\n### Secretary's WebID URI: %s\n" "${SECRETARY_URI}"
 
@@ -442,6 +441,15 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
         -ext SAN=uri:"${SECRETARY_URI}" \
         -validity "${SECRETARY_CERT_VALIDITY}"
     printf "\n### Secretary WebID certificate's DName attributes: %s\n" "${secretary_dname}"
+
+    # convert secretary's certificate to PEM
+
+    openssl \
+        pkcs12 \
+        -in "${CLIENT_KEYSTORE}" \
+        -passin pass:"${SECRETARY_KEY_PASSWORD}" \
+        -out "${CLIENT_KEYSTORE}.pem" \
+        -passout pass:"${SECRETARY_KEY_PASSWORD}"
 
     secretary_cert_modulus=$(get_modulus "${CLIENT_KEYSTORE}" "${SECRETARY_KEY_PASSWORD}")
     export secretary_cert_modulus

@@ -1,14 +1,16 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage:   $0 cert_pem_file cert_password" >&2
-  echo "Example: $0 $PWD/../certs/owner.p12.pem Password" >&2
+if [ "$#" -ne 4 ]; then
+  echo "Usage:   $0 owner_pem_file owner_cert_password secretary_pem_file secretary_cert_password" >&2
+  echo "Example: $0 $PWD/../certs/owner.p12.pem OwnerPassword $PWD/../certs/secretary.p12.pem SecretaryPassword" >&2
   echo "Note: special characters such as $ need to be escaped in passwords!" >&2
   exit 1
 fi
 
 export OWNER_CERT_FILE="$1"
 export OWNER_CERT_PWD="$2"
+export SECRETARY_CERT_FILE="$3"
+export SECRETARY_CERT_PWD="$4"
 export SCRIPT_ROOT="$PWD/../scripts"
 
 export STATUS_OK=200
@@ -88,7 +90,7 @@ export AGENT_CERT_PWD="changeit"
 run_tests "signup.sh"
 (( error_count += $? ))
 
-export AGENT_WEBID_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
+export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
 
 # store the end-user and admin datasets
 export TMP_END_USER_DATASET=$(mktemp)
