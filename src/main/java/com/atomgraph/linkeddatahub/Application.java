@@ -47,7 +47,7 @@ import com.atomgraph.core.io.DatasetProvider;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
-import com.atomgraph.core.io.UpdateRequestReader;
+import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableFactory;
@@ -566,7 +566,7 @@ public class Application extends ResourceConfig
         register(new SkolemizingModelProvider());
         register(new ResultSetProvider());
         register(new QueryParamProvider());
-        register(new UpdateRequestReader());
+        register(new UpdateRequestProvider());
         register(NotFoundExceptionMapper.class);
         register(ConfigurationExceptionMapper.class);
         register(OntologyExceptionMapper.class);
@@ -883,7 +883,7 @@ public class Application extends ResourceConfig
         config.register(new DatasetProvider());
         config.register(new ResultSetProvider());
         config.register(new QueryProvider());
-        config.register(new UpdateRequestReader());
+        config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
         
@@ -939,7 +939,7 @@ public class Application extends ResourceConfig
             config.register(new DatasetProvider());
             config.register(new ResultSetProvider());
             config.register(new QueryProvider());
-            config.register(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
+            config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
             config.property(ClientProperties.FOLLOW_REDIRECTS, true);
             config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
 

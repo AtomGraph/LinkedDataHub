@@ -35,7 +35,6 @@ import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.AgentContext;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
-import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
@@ -86,6 +85,7 @@ import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -96,6 +96,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.server.internal.process.MappableException;
@@ -120,6 +121,18 @@ public class SignUp extends ResourceBase
     public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
+    // the following update has to match how platform/root-owner.trig.template stores acl:delegate for secretary
+    public static final String SECRETARY_DELEGATES_UPDATE = "PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>\n" +
+"\n" +
+"INSERT {\n" +
+"  GRAPH ?g {\n" +
+"    ?secretary acl:delegates ?Agent .\n" +
+"  }\n" +
+"}\n" +
+"WHERE\n" +
+"  { GRAPH ?g\n" +
+"      { ?Agent  ?p  ?o }\n" +
+"  }";
     
     private final Model countryModel;
     private final Ontology adminOntology;
@@ -248,7 +261,6 @@ public class SignUp extends ResourceBase
                     {
                         RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
                         agent.addProperty(Cert.key, createPublicKey(model, forClass.getNameSpace(), publicKey)); // add public key
-                        model.createResource(getSystem().getSecretaryWebIDURI().toString()).addProperty(ACL.delegates, agent); // add WebID delegation relationship
 
                         // skolemize once again to build the public key URI
                         model = new Skolemizer(getAdminOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
@@ -259,32 +271,40 @@ public class SignUp extends ResourceBase
                         SecurityContext securityContext = new AgentContext(agent.inModel(infModel).as(Agent.class), SecurityContext.CLIENT_CERT_AUTH);
                         // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
                         Dataset dataset = DatasetFactory.create(model);
-                        // remove secretary WebID from cache
-                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-                        Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).post(dataset);
-                        
-                        if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        try (Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).post(dataset))
                         {
-                            if (log.isErrorEnabled()) log.error("Cannot create Agent with URI: {}", agent.getURI());
-                            throw new WebApplicationException();
-                        }
-                        
-                        if (download)
-                        {
-                            return Response.ok(keyStoreBytes).
-                                type(PKCS12_MEDIA_TYPE).
-                                header("Content-Disposition", "attachment; filename=cert.p12").
-                                build();
-                        }
-                        else
-                        {
-                            LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                            sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+                            if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                            {
+                                if (log.isErrorEnabled()) log.error("Cannot create Agent with URI: {}", agent.getURI());
+                                throw new WebApplicationException("Cannot create Agent with URI: " + agent.getURI());
+                            }
 
-                            // append Agent data to response
-                            Dataset description = describe();
-                            description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
-                            return getResponseBuilder(description).build();
+                            Response updateResp = makeSecretaryDelegate(agent);
+                            if (!updateResp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                            {
+                                if (log.isErrorEnabled()) log.error("Could not add acl:delegate for Agent with URI: {}", agent.getURI());
+                                throw new WebApplicationException("Could not add acl:delegate for Agent with URI: " + agent.getURI());
+                            }
+                            // remove secretary WebID from cache
+                            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+        
+                            if (download)
+                            {
+                                return Response.ok(keyStoreBytes).
+                                    type(PKCS12_MEDIA_TYPE).
+                                    header("Content-Disposition", "attachment; filename=cert.p12").
+                                    build();
+                            }
+                            else
+                            {
+                                LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                                sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                                // append Agent data to response
+                                Dataset description = describe();
+                                description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
+                                return getResponseBuilder(description).build();
+                            }
                         }
                     }
                 }
@@ -393,6 +413,25 @@ public class SignUp extends ResourceBase
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             securityContext, getDataManager(), getProviders(),
             getSystem());
+    }
+    
+    public Response makeSecretaryDelegate(Resource agent)
+    {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(SECRETARY_DELEGATES_UPDATE);
+        pss.setIri("secretary", getSystem().getSecretaryWebIDURI().toString());
+        pss.setParam(FOAF.Agent.getLocalName(), agent);
+        UpdateRequest update = pss.asUpdate();
+
+        MultivaluedMap formData = new MultivaluedHashMap();
+        formData.putSingle("update", update.toString());
+
+        return getService().getSPARQLClient().post(formData, MediaType.APPLICATION_FORM_URLENCODED_TYPE, new MediaType[]{}, null);
+
+        // PATCH returns 403 because secretary agent does not have acl:Control auth to write to the admin app
+//        return getSystem().getClient().
+//                target(graph.getURI()).
+//                request().
+//                method("PATCH", Entity.entity(update, com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE_TYPE));
     }
     
     @Override

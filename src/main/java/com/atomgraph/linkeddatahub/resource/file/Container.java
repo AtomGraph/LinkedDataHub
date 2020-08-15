@@ -46,6 +46,7 @@ import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -115,10 +116,12 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         catch (NoSuchAlgorithmException ex)
         {
             if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
+            throw new WebApplicationException(ex);
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
+            throw new WebApplicationException(ex);
         }
         
         return null;

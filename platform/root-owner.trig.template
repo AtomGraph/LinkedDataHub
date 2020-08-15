@@ -45,6 +45,7 @@
         foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
         cert:key <acl/public-keys/${public_key_uuid}/#this> .
 
+    # this goes against the dataset pattern of grouping resource triples into the same named graph, but otherwise the secretary graph would end up having all the acl:delegates triples for all agents
     <acl/agents/e413f97b-15ee-47ea-ba65-4479aa7f1f9e/#this> acl:delegates <${OWNER_URI}> .
 
 }
