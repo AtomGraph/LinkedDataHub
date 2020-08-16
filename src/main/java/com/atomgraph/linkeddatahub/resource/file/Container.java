@@ -123,8 +123,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
             throw new WebApplicationException(ex);
         }
-        
-        return null;
     }
 
 }
