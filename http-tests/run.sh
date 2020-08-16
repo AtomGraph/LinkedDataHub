@@ -100,6 +100,8 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 run_tests $(find . -name 'get-namespace.sh')
 (( error_count += $? ))
+run_tests $(find . -name 'webid-delegation.sh')
+(( error_count += $? ))
 run_tests $(find ./admin/ -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./imports/ -name '*.sh')

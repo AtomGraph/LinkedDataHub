@@ -37,7 +37,7 @@ do
         shift # past value
         ;;
         --head)
-        head="--head"
+        head=true
         shift # past value
         ;;
         *)    # unknown option
@@ -71,4 +71,9 @@ fi
 target="$1"
 
 # GET RDF document
-curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}" -s "${head}"
+
+if [ -n "$head" ] ; then
+    curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}" --head
+else
+    curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}"
+fi
