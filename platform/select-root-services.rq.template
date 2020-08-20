@@ -12,7 +12,7 @@ SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQu
         ?adminApp ldt:service ?adminService ;
             ldt:base ?adminBaseUri .
         {
-            ?endUserService sd:endpoint ?endUserQuadStore .
+            ?endUserService a:quadStore ?endUserQuadStore .
         }
         UNION
         {
@@ -20,7 +20,7 @@ SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQu
             BIND (URI(CONCAT(STR(?endUserRepository), "service")) AS ?endUserQuadStore)
         }
         {
-            ?adminService sd:endpoint ?adminQuadStore .
+            ?adminService a:quadStore ?adminQuadStore .
         }
         UNION
         {

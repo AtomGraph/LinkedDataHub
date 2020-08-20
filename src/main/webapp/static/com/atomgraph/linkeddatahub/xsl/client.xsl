@@ -220,7 +220,7 @@ version="2.0"
             </xsl:for-each>
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <xsl:message>
-                <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will class with the HTML representation -->
+                <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
                 <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
                 <xsl:sequence select="ac:fetch(xs:anyURI(concat($ac:uri, '?param=dummy')), 'application/rdf+xml', 'onrdfBodyLoad')"/>
             </xsl:message>

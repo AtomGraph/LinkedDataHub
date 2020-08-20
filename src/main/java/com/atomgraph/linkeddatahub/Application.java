@@ -426,7 +426,7 @@ public class Application extends ResourceConfig
 
         // initialize mapping for locally stored vocabularies
         LocationMapper.setGlobalLocationMapper(locationMapper);
-        if (log.isDebugEnabled()) log.debug("LocationMapper.get(): {}", locationMapper);
+        if (log.isTraceEnabled()) log.trace("LocationMapper.get(): {}", locationMapper);
         
         
         try

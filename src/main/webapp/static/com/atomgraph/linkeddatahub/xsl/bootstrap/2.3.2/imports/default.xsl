@@ -17,7 +17,7 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
@@ -48,21 +48,21 @@ exclude-result-prefixes="#all">
     <xsl:param name="uri" as="xs:anyURI"/>
     <!-- <xsl:param name="lapp:Application" as="document-node()?"/> -->
 
-    <xsl:function name="apl:listSuperClasses" as="attribute()*">
-        <xsl:param name="uri" as="xs:anyURI"/>
+    <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
         
-        <xsl:sequence select="apl:listSuperClasses($uri, false())"/>
+        <xsl:sequence select="apl:listSuperClasses($class, false())"/>
     </xsl:function>
     
-    <xsl:function name="apl:listSuperClasses" as="attribute()*">
-        <xsl:param name="uri" as="xs:anyURI"/>
+    <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
         
-        <xsl:if test="doc-available(ac:document-uri($uri))">
-            <xsl:variable name="document" select="document(ac:document-uri($uri))" as="document-node()"/>
+        <xsl:if test="doc-available(ac:document-uri($class))">
+            <xsl:variable name="document" select="document(ac:document-uri($class))" as="document-node()"/>
 
             <xsl:for-each select="$document">
-                <xsl:variable name="superclasses" select="key('resources', $uri)/rdfs:subClassOf/@rdf:resource" as="node()*"/>
+                <xsl:variable name="superclasses" select="key('resources', $class)/rdfs:subClassOf/@rdf:resource" as="attribute()*"/>
                 <xsl:sequence select="$superclasses"/>
 
                 <xsl:if test="not($direct)">
@@ -73,31 +73,69 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:if>
     </xsl:function>
-
-    <xsl:function name="apl:listSubClasses" as="attribute()*">
-        <xsl:param name="uri" as="xs:anyURI"/>
+    
+    <xsl:function name="apl:ontologyImports" as="attribute()*" cache="yes">
+        <xsl:param name="ontology" as="xs:anyURI"/>
         
-        <xsl:sequence select="apl:listSubClasses($uri, false())"/>
+        <xsl:sequence select="apl:ontologyImports($ontology, false())"/>
     </xsl:function>
     
-    <xsl:function name="apl:listSubClasses" as="attribute()*">
-        <xsl:param name="uri" as="xs:anyURI"/>
+    <xsl:function name="apl:ontologyImports" as="attribute()*" cache="yes">
+        <xsl:param name="ontology" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
-        
-        <xsl:if test="doc-available(ac:document-uri($uri))">
-            <xsl:variable name="document" select="document(ac:document-uri($uri))" as="document-node()"/>
 
+        <xsl:if test="doc-available($ontology)">
+            <xsl:variable name="document" select="document($ontology)" as="document-node()"/>
             <xsl:for-each select="$document">
-                <xsl:variable name="subclasses" select="key('resources-by-subclass', $uri)/@rdf:about" as="node()*"/>
-                <xsl:sequence select="$subclasses"/>
-
+                <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
+                <xsl:sequence select="$imports"/>
+                
                 <xsl:if test="not($direct)">
-                    <xsl:for-each select="$subclasses">
-                        <xsl:sequence select="apl:listSubClasses(., $direct)"/>
+                    <xsl:for-each select="$imports">
+                        <xsl:sequence select="apl:ontologyImports(., $direct)"/>
                     </xsl:for-each>
                 </xsl:if>
             </xsl:for-each>
         </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+
+        <xsl:sequence select="apl:listSubClasses($class, false())"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+        
+        <xsl:variable name="ontologies" select="$ldt:ontology, apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
+        <xsl:variable name="ontology-docs" as="document-node()*">
+            <xsl:for-each select="$ontologies">
+                <xsl:if test="doc-available(.)">
+                    <xsl:sequence select="document(.)"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+        
+        <xsl:sequence select="apl:listSubClasses($class, $direct, $ontology-docs)"/>
+    </xsl:function>
+    
+    <!-- this is a different, not follow-your-nose Linked Data search as in apl:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
+    <!-- start with the $ldt:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
+    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+        <xsl:param name="ontology-docs" as="document-node()*"/>
+
+        <xsl:for-each select="$ontology-docs">
+            <xsl:variable name="subclasses" select="key('resources-by-subclass', $class, .)/@rdf:about[not(. = $class)]" as="attribute()*"/>
+            <xsl:sequence select="$subclasses"/>
+
+            <xsl:for-each select="$subclasses">
+                <xsl:sequence select="apl:listSubClasses(., $direct, $ontology-docs)"/>
+            </xsl:for-each>
+        </xsl:for-each>
     </xsl:function>
     
     <!-- CLIENT-SIDE FUNCTIONS -->
@@ -858,7 +896,7 @@ exclude-result-prefixes="#all">
         <!-- this is used for typeahead FILTER ?Type -->
         <input type="hidden" class="forClass" value="{$forClass}"/>
 
-        <xsl:choose>
+<!--        <xsl:choose>
             <xsl:when test="$subclasses and apl:listSubClasses($forClass)">
                 <div class="btn-group">
                     <button type="button">
@@ -880,11 +918,11 @@ exclude-result-prefixes="#all">
                     <ul class="dropdown-menu">
                         <xsl:variable name="self-and-subclasses" select="(@rdf:about, apl:listSubClasses($forClass))" as="attribute()*"/>
 
-                        <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
+                         apply on the "deepest" subclass of $forClass and its subclasses 
                         <xsl:for-each select="$self-and-subclasses[not(. = $self-and-subclasses/../rdfs:subClassOf/@rdf:resource)]">
                             <xsl:sort select="ac:label(..)" order="ascending" lang="{$ldt:lang}"/>
                             
-                            <!-- submit the form to the owl:allValuesFrom restricted container --> <!-- TO-DO: refactor -->
+                             submit the form to the owl:allValuesFrom restricted container   TO-DO: refactor 
                             <xsl:variable name="action" as="xs:anyURI?">
                                 <xsl:value-of select="key('resources', key('resources', key('resources', key('resources', @rdf:about)/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
                             </xsl:variable>
@@ -903,7 +941,7 @@ exclude-result-prefixes="#all">
                     </ul>
                 </div>
             </xsl:when>
-            <xsl:otherwise>
+            <xsl:otherwise>-->
                 <xsl:variable name="action" as="xs:anyURI?">
 <!--                    <xsl:for-each select="$ac:sitemap">
                         <xsl:value-of select="key('resources', key('resources', key('resources', key('resources', $forClass)/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
@@ -931,8 +969,8 @@ exclude-result-prefixes="#all">
 
                     <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
                 </button>
-            </xsl:otherwise>
-        </xsl:choose>
+<!--            </xsl:otherwise>
+        </xsl:choose>-->
     </xsl:template>
     
     <!-- WYSIWYG editor for XMLLiteral objects -->

@@ -259,7 +259,7 @@ else
     fi
 fi
 
-printf "\n### Base URI: %s\n" "${BASE_URI}"
+printf "\n### Base URI: %s\n" "$BASE_URI"
 
 # create AtomGraph upload root
 
@@ -273,17 +273,17 @@ wait_for_host()
     local counter="$2"
     i=1
 
-    while [ "$i" -le "$counter" ] && ! ping -c1 "${host}" >/dev/null 2>&1
+    while [ "$i" -le "$counter" ] && ! ping -c1 "$host" >/dev/null 2>&1
     do
         sleep 1 ;
         i=$(( i+1 ))
     done
 
-    if ! ping -c1 "${host}" >/dev/null 2>&1 ; then
-        printf "\n### Host ${host} not responding after ${counter} retries, exiting..."
+    if ! ping -c1 "$host" >/dev/null 2>&1 ; then
+        printf "\n### Host %s not responding after ${counter} retries, exiting..." "$host"
         exit 1
     else
-        printf "\n### Host ${host} responded\n"
+        printf "\n### Host %s responded\n" "$host"
     fi
 }
 
@@ -298,30 +298,30 @@ wait_for_url()
 
     # use HTTP Basic auth if username/password are provided
     if [ -n "$auth_user" ] && [ -n "$auth_pwd" ] ; then
-        while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" --user "${auth_user}":"${auth_pwd}" -H "Accept: ${accept}" >/dev/null 2>&1
+        while [ "$i" -le "$counter" ] && ! curl -s -f --head "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1
         do
             sleep 1 ;
             i=$(( i+1 ))
         done
 
-        if ! curl -s -f --head "${url}" --user "${auth_user}":"${auth_pwd}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-            printf "\n### URL ${url} not responding after ${counter} retries, exiting...\n"
+        if ! curl -s -f --head "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL %s not responding after ${counter} retries, exiting...\n" "$url"
             exit 1
         else
-            printf "\n### URL ${url} responded\n"
+            printf "\n### URL %s responded\n" "$url"
         fi
     else
-        while [ "$i" -le "$counter" ] && ! curl -s -f --head "${url}" -H "Accept: ${accept}"
+        while [ "$i" -le "$counter" ] && ! curl -s -f --head "$url" -H "Accept: ${accept}"
         do
             sleep 1 ;
             i=$(( i+1 ))
         done
 
-        if ! curl -s -f --head "${url}" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-            printf "\n### URL ${url} not responding after ${counter} retries, exiting...\n"
+        if ! curl -s -f --head "$url" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL %s not responding after ${counter} retries, exiting...\n" "$url"
             exit 1
         else
-            printf "\n### URL ${url} responded\n"
+            printf "\n### URL %s responded\n" "$url"
         fi
     fi
 }
@@ -335,7 +335,7 @@ get_modulus()
 
     modulus_string=$(openssl pkcs12 -in "$cert" -nodes -passin pass:"$password" 2>/dev/null | openssl x509 -noout -modulus)
     modulus="${modulus_string##*Modulus=}" # cut Modulus= text
-    echo "${modulus}" | tr '[:upper:]' '[:lower:]' # lowercase
+    echo "$modulus" | tr '[:upper:]' '[:lower:]' # lowercase
 }
 
 # function to append quad data to an RDF graph store
@@ -353,16 +353,16 @@ append_quads()
         curl \
             -f \
             --basic \
-            --user "${auth_user}":"${auth_pwd}" \
-            "${quad_store_url}" \
+            --user "$auth_user":"$auth_pwd" \
+            "$quad_store_url" \
             -H "Content-Type: ${content_type}" \
-            --data-binary @"${filename}"
+            --data-binary @"$filename"
     else
         curl \
             -f \
-            "${quad_store_url}" \
+            "$quad_store_url" \
             -H "Content-Type: ${content_type}" \
-            --data-binary @"${filename}"
+            --data-binary @"$filename"
     fi
 }
 
@@ -370,25 +370,33 @@ append_quads()
 
 envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
 
-sparql --data="${PWD}/webapps/ROOT${CONTEXT_DATASET}" --query="select-root-services.rq" --results=XML > root_admin_service_metadata.xml
+sparql --data="${PWD}/webapps/ROOT${CONTEXT_DATASET}" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 
-root_end_user_quad_store_url=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
-root_end_user_service_auth_user=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
-root_end_user_service_auth_pwd=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
-root_admin_base_uri=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
-root_admin_quad_store_url=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
-root_admin_service_auth_user=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
-root_admin_service_auth_pwd=$(cat root_admin_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
+root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
+root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
+root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
+root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
+root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
+root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
+root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
 
-rm -f root_admin_service_metadata.xml
+rm -f root_service_metadata.xml
 rm -f select-root-services.rq
 
-if [ -z "$root_admin_base_uri" ] || [ -z "$root_admin_quad_store_url" ] ; then
-    printf "\nAdmin base URI and/or admin quad store could not be extracted from ${CONTEXT_DATASET} for root app with base URI ${BASE_URI}. Exiting...\n"
+if [ -z "$root_end_user_quad_store_url" ] ; then
+    printf "\nEnd-user quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+if [ -z "$root_admin_base_uri" ] ; then
+    printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+if [ -z "$root_admin_quad_store_url" ] ; then
+    printf "\nAdmin quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
     exit 1
 fi
 
-printf "\n### Quad store URL of the root admin service: %s\n" "${root_admin_quad_store_url}"
+printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
 
 if [ -z "$LOAD_DATASETS" ]; then
     if [ ! -d /var/linkeddatahub/based-datasets ]; then
@@ -407,11 +415,11 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/based.end-user.nq
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/based.admin.nq
 
-    wait_for_url "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
-    append_quads "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.end-user.nq "application/n-quads"
+    wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+    append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/based.end-user.nq "application/n-quads"
 
-    wait_for_url "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
-    append_quads "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" /var/linkeddatahub/based-datasets/based.admin.nq "application/n-quads"
+    wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/based.admin.nq "application/n-quads"
 fi
 
 # if CLIENT_TRUSTSTORE does not exist:
@@ -422,51 +430,51 @@ fi
 
 SECRETARY_URI="${BASE_URI}${SECRETARY_REL_URI}"
 
-if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
+if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     # generate secretary WebID certificate and extract its modulus
 
     secretary_dname="CN=LinkedDataHub,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Denmark,C=DK"
 
-    printf "\n### Secretary's WebID URI: %s\n" "${SECRETARY_URI}"
+    printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
     keytool \
         -genkeypair \
-        -alias "${SECRETARY_CERT_ALIAS}" \
+        -alias "$SECRETARY_CERT_ALIAS" \
         -keyalg RSA \
         -storetype PKCS12 \
-        -keystore "${CLIENT_KEYSTORE}" \
-        -storepass "${CLIENT_KEYSTORE_PASSWORD}" \
-        -keypass "${SECRETARY_KEY_PASSWORD}" \
-        -dname "${secretary_dname}" \
-        -ext SAN=uri:"${SECRETARY_URI}" \
-        -validity "${SECRETARY_CERT_VALIDITY}"
-    printf "\n### Secretary WebID certificate's DName attributes: %s\n" "${secretary_dname}"
+        -keystore "$CLIENT_KEYSTORE" \
+        -storepass "$CLIENT_KEYSTORE_PASSWORD" \
+        -keypass "$SECRETARY_KEY_PASSWORD" \
+        -dname "$secretary_dname" \
+        -ext SAN=uri:"$SECRETARY_URI" \
+        -validity "$SECRETARY_CERT_VALIDITY"
+    printf "\n### Secretary WebID certificate's DName attributes: %s\n" "$secretary_dname"
 
     # convert secretary's certificate to PEM
 
     openssl \
         pkcs12 \
-        -in "${CLIENT_KEYSTORE}" \
-        -passin pass:"${SECRETARY_KEY_PASSWORD}" \
+        -in "$CLIENT_KEYSTORE" \
+        -passin pass:"$SECRETARY_KEY_PASSWORD" \
         -out "${CLIENT_KEYSTORE}.pem" \
-        -passout pass:"${SECRETARY_KEY_PASSWORD}"
+        -passout pass:"$SECRETARY_KEY_PASSWORD"
 
-    secretary_cert_modulus=$(get_modulus "${CLIENT_KEYSTORE}" "${SECRETARY_KEY_PASSWORD}")
+    secretary_cert_modulus=$(get_modulus "$CLIENT_KEYSTORE" "$SECRETARY_KEY_PASSWORD")
     export secretary_cert_modulus
-    printf "\n### Secretary WebID certificate's modulus: %s\n" "${secretary_cert_modulus}"
+    printf "\n### Secretary WebID certificate's modulus: %s\n" "$secretary_cert_modulus"
 
     # append secretary metadata to the root admin dataset
 
     envsubst < root-secretary.trig.template > root-secretary.trig
-    trig --base="${root_admin_base_uri}" --output=nq root-secretary.trig > root-secretary.nq
+    trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
 
-    printf "\n### Waiting for ${root_admin_quad_store_url}...\n"
+    printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
 
-    wait_for_url "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
+    wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
     printf "\n### Uploading the metadata of the secretary agent...\n\n"
 
-    append_quads "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "root-secretary.nq" "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "root-secretary.nq" "application/n-quads"
 
     rm -f root-secretary.trig
     rm -f root-secretary.nq
@@ -488,7 +496,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
       keytool -importcert \
         -alias "$KEY_ALIAS" \
         -file letsencrypt.cer \
-        -keystore "${CLIENT_TRUSTSTORE}" \
+        -keystore "$CLIENT_TRUSTSTORE" \
         -noprompt \
         -storepass "$CLIENT_KEYSTORE_PASSWORD" \
         -storetype PKCS12 \
@@ -500,7 +508,7 @@ if [ ! -f "${CLIENT_TRUSTSTORE}" ]; then
     export CACERTS="${JAVA_HOME}/jre/lib/security/cacerts"
 
     keytool -importkeystore \
-      -destkeystore "${CLIENT_TRUSTSTORE}" \
+      -destkeystore "$CLIENT_TRUSTSTORE" \
       -deststorepass "$CLIENT_KEYSTORE_PASSWORD" \
       -deststoretype PKCS12 \
       -noprompt \
@@ -510,7 +518,7 @@ fi
 
 # generate root owner WebID certificate if $OWNER_KEYSTORE does not exist
 
-if [ ! -f "${OWNER_KEYSTORE}" ]; then
+if [ ! -f "$OWNER_KEYSTORE" ]; then
     if [ -z "$OWNER_MBOX" ] ; then
         echo '$OWNER_MBOX not set'
         exit 1
@@ -557,38 +565,38 @@ if [ ! -f "${OWNER_KEYSTORE}" ]; then
     fi
 
     root_owner_dname="CN=${OWNER_GIVEN_NAME} ${OWNER_FAMILY_NAME},OU=${OWNER_ORG_UNIT},O=${OWNER_ORGANIZATION},L=${OWNER_LOCALITY},ST=${OWNER_STATE_OR_PROVINCE},C=${OWNER_COUNTRY_NAME}"
-    printf "\n### Root owner WebID certificate's DName attributes: %s\n" "${root_owner_dname}"
+    printf "\n### Root owner WebID certificate's DName attributes: %s\n" "$root_owner_dname"
 
     root_owner_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
     OWNER_DOC_URI="${BASE_URI}admin/acl/agents/${root_owner_uuid}/"
     OWNER_URI="${OWNER_DOC_URI}#this"
 
-    printf "\n### Root owner's WebID URI: %s\n" "${OWNER_URI}"
+    printf "\n### Root owner's WebID URI: %s\n" "$OWNER_URI"
 
     keytool \
         -genkeypair \
-        -alias "${OWNER_CERT_ALIAS}" \
+        -alias "$OWNER_CERT_ALIAS" \
         -keyalg RSA \
         -storetype PKCS12 \
-        -keystore "${OWNER_KEYSTORE}" \
-        -storepass "${OWNER_KEY_PASSWORD}" \
-        -keypass "${OWNER_KEY_PASSWORD}" \
-        -dname "${root_owner_dname}" \
-        -ext SAN=uri:"${OWNER_URI}" \
-        -validity "${OWNER_CERT_VALIDITY}"
+        -keystore "$OWNER_KEYSTORE" \
+        -storepass "$OWNER_KEY_PASSWORD" \
+        -keypass "$OWNER_KEY_PASSWORD" \
+        -dname "$root_owner_dname" \
+        -ext SAN=uri:"$OWNER_URI" \
+        -validity "$OWNER_CERT_VALIDITY"
 
     # convert owner's certificate to PEM
 
     openssl \
         pkcs12 \
-        -in "${OWNER_KEYSTORE}" \
-        -passin pass:"${OWNER_KEY_PASSWORD}" \
+        -in "$OWNER_KEYSTORE" \
+        -passin pass:"$OWNER_KEY_PASSWORD" \
         -out "${OWNER_KEYSTORE}.pem" \
-        -passout pass:"${OWNER_KEY_PASSWORD}"
+        -passout pass:"$OWNER_KEY_PASSWORD"
 
-    owner_cert_modulus=$(get_modulus "${OWNER_KEYSTORE}" "${OWNER_KEY_PASSWORD}")
+    owner_cert_modulus=$(get_modulus "$OWNER_KEYSTORE" "$OWNER_KEY_PASSWORD")
     export owner_cert_modulus
-    printf "\n### Root owner WebID certificate's modulus: %s\n" "${owner_cert_modulus}"
+    printf "\n### Root owner WebID certificate's modulus: %s\n" "$owner_cert_modulus"
 
     # generate unique UUIDs for RDF graph URIs
 
@@ -606,11 +614,11 @@ if [ ! -f "${OWNER_KEYSTORE}" ]; then
     # append root owner metadata to the root admin dataset
 
     envsubst < root-owner.trig.template > root-owner.trig
-    trig --base="${root_admin_base_uri}" --output=nq root-owner.trig > root-owner.nq
+    trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
 
     printf "\n### Uploading the metadata of the owner agent...\n\n"
 
-    append_quads "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "root-owner.nq" "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "root-owner.nq" "application/n-quads"
 
     rm -f root-owner.trig
     rm -f root-owner.nq
@@ -701,25 +709,25 @@ java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize
 
 # wait for the end-user GSP service
 
-printf "\n### Waiting for ${root_end_user_quad_store_url}...\n"
+printf "\n### Waiting for %s...\n" "$root_end_user_quad_store_url"
 
-wait_for_url "${root_end_user_quad_store_url}" "${root_end_user_service_auth_user}" "${root_end_user_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
+wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
 # wait for the admin GSP service
 
-printf "\n### Waiting for ${root_admin_quad_store_url}...\n"
+printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
 
-wait_for_url "${root_admin_quad_store_url}" "${root_admin_service_auth_user}" "${root_admin_service_auth_pwd}" "${TIMEOUT}" "application/n-quads"
+wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
 # wait for the proxy server
 
-printf "\n### Waiting for ${PROXY_HOST}...\n"
+printf "\n### Waiting for %s...\n" "$PROXY_HOST"
 
-wait_for_host "${PROXY_HOST}" "${TIMEOUT}"
+wait_for_host "$PROXY_HOST" "$TIMEOUT"
 
 # set localhost to the nginx IP address - we want to loopback to it
 
-proxy_ip=$(getent hosts "${PROXY_HOST}" | awk '{ print $1 }')
+proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
 
 echo "${proxy_ip} localhost" >> /etc/hosts
 

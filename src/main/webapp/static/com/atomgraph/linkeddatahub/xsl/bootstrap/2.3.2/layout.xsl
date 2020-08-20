@@ -102,7 +102,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:requestUri" as="xs:anyURI?"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
-    <xsl:param name="ac:mode" as="xs:anyURI*"/>
+    <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:chart-type" as="xs:anyURI?"/>
     <xsl:param name="ac:category" as="xs:string?"/>
     <xsl:param name="ac:series" as="xs:string*"/>

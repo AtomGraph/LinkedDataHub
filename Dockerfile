@@ -86,7 +86,7 @@ ENV HTTPS_CLIENT_AUTH=want
 
 ENV HTTPS_COMPRESSION=on
 
-ENV P12_FILE=/var/linkeddatahub/server.p12
+ENV P12_FILE=/var/linkeddatahub/certs/server.p12
 
 ENV PKCS12_KEY_PASSWORD=
 
@@ -174,6 +174,6 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 
 # persist certificates in a volume
 
-VOLUME /var/linkeddatahub "$CATALINA_HOME/webapps/ROOT/certs"
+VOLUME /var/linkeddatahub/certs "$CATALINA_HOME/webapps/ROOT/certs"
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
