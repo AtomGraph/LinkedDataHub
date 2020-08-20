@@ -73,6 +73,12 @@ function initialize_dataset()
       "${3}" > /dev/null
 }
 
+export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")"
+echo "### Owner agent URI: ${OWNER_URI}\n"
+
+export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE" "$SECRETARY_CERT_PWD")"
+echo "### Secretary agent URI: ${SECRETARY_URI}\n"
+
 export -f initialize_dataset
 
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
@@ -91,6 +97,7 @@ run_tests "signup.sh"
 (( error_count += $? ))
 
 export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
+echo "### Signed up agent URI: ${AGENT_URI}\n"
 
 # store the end-user and admin datasets
 export TMP_END_USER_DATASET=$(mktemp)

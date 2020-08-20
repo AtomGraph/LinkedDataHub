@@ -3,10 +3,6 @@
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 
-container_id=$(docker ps -a -q  --filter ancestor=atomgraph/linkeddatahub)
-SECRETARY_REL_URI=$(docker exec "$container_id" bash -c 'echo "$SECRETARY_REL_URI"')
-SECRETARY_URI="${END_USER_BASE_URL}${SECRETARY_REL_URI}"
-
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 # check that the acl:delegates triple exists in the agent's description
