@@ -119,18 +119,18 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>2.3.25-SNAPSHOT</version>
+            <version>2.3.26-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.40-SNAPSHOT</version>
+            <version>2.1.41-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.40-SNAPSHOT</version>
+            <version>2.1.41-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>

@@ -11,7 +11,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${AGENT_URI}" \
+  "$AGENT_URI" \
 | grep "<${SECRETARY_URI}> <http://www.w3.org/ns/auth/acl#delegates> <${AGENT_URI}>"
 
 popd

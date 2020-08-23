@@ -15,7 +15,7 @@ before_install:
 
 install:
   - ./http-tests/print-env-file.sh > .env
-  - docker-compose up -d # run in the background
+  -  docker-compose -f docker-compose.yml up -d # do not use docker-compose.override.yml with Varnish for tests; run in the background
 
 before_script:
   - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start

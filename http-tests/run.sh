@@ -105,15 +105,19 @@ export TMP_ADMIN_DATASET=$(mktemp)
 download_dataset "$END_USER_ENDPOINT_URL" > "$TMP_END_USER_DATASET"
 download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
-run_tests $(find . -name 'get-namespace.sh')
+run_tests $(find . -type f -name 'get-namespace.sh')
 (( error_count += $? ))
-run_tests $(find . -name 'webid-delegation.sh')
+run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
-run_tests $(find . -name 'accept.sh')
+run_tests $(find . -type f -name 'accept.sh')
 (( error_count += $? ))
-run_tests $(find ./admin/ -name '*.sh')
+#run_tests $(find . -type f -name 'created-modified.sh')
+#(( error_count += $? ))
+run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))
-run_tests $(find ./imports/ -name '*.sh')
+run_tests $(find ./imports/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
 (( error_count += $? ))
 
 ### Exit

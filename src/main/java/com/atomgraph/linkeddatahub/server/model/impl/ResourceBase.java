@@ -384,12 +384,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         {
             URI uri = URI.create(document.getURI());
             document = ResourceUtils.renameResource(document, null); // turn the skolemized URI into blank node again
-            if (log.isDebugEnabled()) log.debug("Bad request - resource already exists");
+            if (log.isDebugEnabled()) log.debug("Bad request - resource '" + uri + "' already exists");
             throw new ResourceExistsException(uri, document, infModel.getRawModel());
         }
 
         super.post(splitDefaultModel(infModel.getRawModel())); // append description
 
+        if (getSystem().isInvalidateCache()) ban(getOntResource()); // ban this (container) resource from Varnish cache so we don't get stale response after a child document has been created
+        
         Variant variant = getRequest().selectVariant(getVariants(getWritableMediaTypes(Dataset.class)));
         if (variant == null)  // if quads are not acceptable, fallback to responding with the default graph
             return getResponseBuilder(infModel.getRawModel()).
@@ -760,13 +762,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             for (Resource resource : resources)
                 if (resource != null)
                 {
-                    // make URIs relative as this is how they will appear in SPARQL queries with BASE
-                    URI absolute = URI.create(resource.getURI());
-                    URI relative = getApplication().getBaseURI().relativize(absolute);
+                    // make URIs relative *iff* they will appear in SPARQL queries with BASE
+                    URI uri = URI.create(resource.getURI());
+//                    uri = getApplication().getBaseURI().relativize(uri);
 
-                    // String escapedURI = NodeFmtLib.str(resource.asNode()); // no need to have <uri> syntax as in RDF?
                     // encode the URI, because that is how it will appear in SPARQL Protocol URLs cached by the backend proxy
-                    builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(relative.toString(), UriComponent.Type.UNRESERVED));
+                    builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(uri.toString(), UriComponent.Type.UNRESERVED));
                 }
 
             return builder.method("BAN", Response.class);

@@ -93,7 +93,7 @@ version="2.0"
     </xsl:param>
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
-    <xsl:param name="ac:sitemap" as="document-node()?"/>
+<!--    <xsl:param name="ac:sitemap" as="document-node()?"/>-->
     <xsl:param name="ac:endpoint" select="if (ac:query-param('endpoint')) then xs:anyURI(ac:query-param('endpoint')) else ()" as="xs:anyURI?"/>
     <xsl:param name="ac:limit" select="if (ac:query-param('limit')) then xs:integer(ac:query-param('limit')) else $page-size" as="xs:integer"/>
     <xsl:param name="ac:offset" select="if (ac:query-param('offset')) then xs:integer(ac:query-param('offset')) else 0" as="xs:integer"/>

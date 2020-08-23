@@ -113,7 +113,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     @Override
     public Response get()
     {
-        return getResponseBuilder(DatasetFactory.create(getService().getDatasetAccessor().getModel(getURI().toString()))).build();
+        return getResponseBuilder(getService().getDatasetAccessor().getModel(getURI().toString())).build();
     }
 
     @Override
@@ -169,7 +169,8 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
                 {
                     try (Response banResponse = ban(document, container))
                     {
-                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                        if (banResponse != null)
+                            if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
                     }
                 }
             }
@@ -232,7 +233,8 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
                     {
                         try (Response banResponse = ban(document, container))
                         {
-                            if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                            if (banResponse != null)
+                                if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
                         }
                     }
                 }

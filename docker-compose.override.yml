@@ -1,0 +1,20 @@
+version: "2.3"
+services:
+  linkeddatahub:
+    environment:
+      - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system-varnish.trig
+    volumes:
+      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system-varnish.trig:ro
+  varnish-end-user:
+    image: atomgraph/varnish
+    depends_on:
+      - linkeddatahub
+    environment:
+      - BACKEND_HOST=fuseki-end-user
+      - BACKEND_PORT=3030
+      - CLIENT_HOST=linkeddatahub
+      - VARNISH_TTL=86400
+    privileged: true
+    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /bin/sh ./entrypoint.sh"
+    volumes:
+      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
