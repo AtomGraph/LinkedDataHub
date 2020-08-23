@@ -74,10 +74,10 @@ function initialize_dataset()
 }
 
 export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")"
-echo "### Owner agent URI: ${OWNER_URI}\n"
+printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
 export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE" "$SECRETARY_CERT_PWD")"
-echo "### Secretary agent URI: ${SECRETARY_URI}\n"
+printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
 
@@ -97,7 +97,7 @@ run_tests "signup.sh"
 (( error_count += $? ))
 
 export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
-echo "### Signed up agent URI: ${AGENT_URI}\n"
+printf "### Signed up agent URI: %s\n" "$AGENT_URI"
 
 # store the end-user and admin datasets
 export TMP_END_USER_DATASET=$(mktemp)
@@ -111,8 +111,8 @@ run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'accept.sh')
 (( error_count += $? ))
-#run_tests $(find . -type f -name 'created-modified.sh')
-#(( error_count += $? ))
+run_tests $(find . -type f -name 'created-modified.sh')
+(( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))
 run_tests $(find ./imports/ -type f -name '*.sh')
