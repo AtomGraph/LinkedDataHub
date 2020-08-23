@@ -14,6 +14,7 @@ before_install:
   - docker build -t atomgraph/linkeddatahub .
 
 install:
+  - sudo apt-get install -qq raptor2-utils
   - ./http-tests/print-env-file.sh > .env
   -  docker-compose -f docker-compose.yml up -d # do not use docker-compose.override.yml with Varnish for tests; run in the background
 
