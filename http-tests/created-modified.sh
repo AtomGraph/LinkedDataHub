@@ -74,7 +74,7 @@ updated_container_ntriples=$(./get-document.sh \
 
 popd > /dev/null
 
-# check that dct:created was added but dct:modified
+# check that dct:created was added but dct:modified is not there
 
 updated_created=$(echo "$updated_container_ntriples" \
 | grep '<http://purl.org/dc/terms/created>' \
