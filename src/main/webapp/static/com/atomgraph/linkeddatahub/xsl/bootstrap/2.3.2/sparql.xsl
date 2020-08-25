@@ -40,7 +40,7 @@ xmlns:core="&c;"
 xmlns:spl="&spl;"
 xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:javaee="http://java.sun.com/xml/ns/javaee"
+xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:nodeID = 'run']" mode="apl:logo">
@@ -151,7 +151,7 @@ exclude-result-prefixes="#all">
     
     <!-- service endpoint dropdown -->
     
-    <xsl:template match="ixsl:window()" mode="ixsl:onServiceLoad" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:template match="." mode="ixsl:onServiceLoad" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="services-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>

@@ -38,6 +38,7 @@ xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:uuid="java:java.util.UUID"
+xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
     <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
@@ -140,8 +141,8 @@ exclude-result-prefixes="#all">
     
     <!-- CLIENT-SIDE FUNCTIONS -->
     
-    <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString') to get SPARQL string -->
-    <xsl:function name="ac:paginate" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString', []) to get SPARQL string -->
+    <xsl:function name="ac:paginate" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="select-builder"/> <!-- as SelectBuilder -->
         <xsl:param name="limit" as="xs:integer?"/>
         <xsl:param name="offset" as="xs:integer?"/>
@@ -150,25 +151,25 @@ exclude-result-prefixes="#all">
 
         <xsl:choose>
             <xsl:when test="$order-by and not(empty($desc))">
-                <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', $limit), 'offset', $offset), 'orderBy', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $order-by), $desc))"/>
+                <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ]), 'orderBy', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering',  [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]), $desc ]) ])"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:call($select-builder, 'limit', $limit), 'offset', $offset)"/>
+                <xsl:sequence select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
     <!-- format external URLs in DataTable as HTML links with ?uri= indirection (which leads back to the app in LD browser mode -->
-    <xsl:template match="@rdf:*[local-name() = 'about'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'about'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'" priority="1">
+    <xsl:template match="@rdf:*[local-name() = 'about'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'about'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="1">
         "&lt;a href=\"?uri=<xsl:value-of select="encode-for-uri(.)"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
 
     <!-- format URLs in DataTable as HTML links -->
-    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         "&lt;a href=\"<xsl:value-of select="."/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
     
-    <xsl:function name="ac:rdf-data-table" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:function name="ac:rdf-data-table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -198,7 +199,7 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
-    <xsl:function name="ac:sparql-results-data-table" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:function name="ac:sparql-results-data-table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -218,7 +219,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
     
     <!-- TO-DO: make 'data-table' configurable -->
-    <xsl:template name="ac:draw-chart" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:template name="ac:draw-chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -431,7 +432,7 @@ exclude-result-prefixes="#all">
                                                 <xsl:attribute name="value" select="."/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <xsl:value-of use-when="system-property('xsl:product-name') = 'Saxon-CE'" select="resolve-uri(concat('/', ixsl:call(ixsl:window(), 'generateUUID')), $ac:uri)"/>
+                                                <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select="resolve-uri(concat('/', ixsl:call(ixsl:window(), 'generateUUID', [])), $ac:uri)"/>
                                                 <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'" select="resolve-uri(concat('/', ac:uuid()), $ac:uri)"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
@@ -573,7 +574,7 @@ exclude-result-prefixes="#all">
                         </xsl:otherwise>
                     </xsl:choose>
 
-                    <xsl:value-of use-when="system-property('xsl:product-name') = 'Saxon-CE'" select="local-name()"/>
+                    <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select="local-name()"/>
                 </label>
             </xsl:if>
             
@@ -866,7 +867,7 @@ exclude-result-prefixes="#all">
                                 </option>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:for-each use-when="system-property('xsl:product-name') = 'Saxon-CE'" select=".">
+                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select=".">
                             <option value="{current-grouping-key()}">
                                 <xsl:value-of select="local-name()"/>
                             </option>

@@ -98,7 +98,7 @@ version="2.0"
     <xsl:param name="ac:limit" select="if (ac:query-param('limit')) then xs:integer(ac:query-param('limit')) else $page-size" as="xs:integer"/>
     <xsl:param name="ac:offset" select="if (ac:query-param('offset')) then xs:integer(ac:query-param('offset')) else 0" as="xs:integer"/>
     <xsl:param name="ac:order-by" select="ac:query-param('order-by')" as="xs:string?"/>
-    <xsl:param name="ac:desc" select="xs:boolean(ixsl:call(ac:query-params(), 'has', 'desc'))" as="xs:boolean?"/>
+    <xsl:param name="ac:desc" select="xs:boolean(ixsl:call(ac:query-params(), 'has', [ 'desc' ]))" as="xs:boolean?"/>
     <xsl:param name="ac:mode" select="if (ac:query-param('mode')) then xs:anyURI(ac:query-param('mode')) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:container-mode" select="if (ac:query-param('container-mode')) then xs:anyURI(ac:query-param('container-mode')) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
@@ -236,7 +236,7 @@ version="2.0"
         <xsl:for-each select="id('query-form', ixsl:page())/..">
             <xsl:result-document href="?select=." method="ixsl:append-content">
                 <xsl:call-template name="bs2:SaveQueryForm">
-                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue')" as="xs:string"/> <!-- get query string from YASQE -->
+                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
@@ -255,7 +255,7 @@ version="2.0"
         <xsl:param name="accept" as="xs:string"/>
         <xsl:param name="handler-name" as="xs:string"/>
 
-        <xsl:sequence select="ixsl:call(js:fetch($uri, ixsl:eval(concat('{ ''headers'': { ''Accept'': ''', $accept, ''' } }'))), 'then', ixsl:eval(concat('function(response) { fetchCallback(response, ''', $handler-name, '''); }')))"/>
+        <xsl:sequence select="ixsl:call(js:fetch($uri, ixsl:eval(concat('{ ''headers'': { ''Accept'': ''', $accept, ''' } }'))), 'then', [ ixsl:eval(concat('function(response) { fetchCallback(response, ''', $handler-name, '''); }')) ])"/>
     </xsl:function>
 
     <xsl:function name="ac:new-url">
@@ -280,7 +280,7 @@ version="2.0"
     
     <xsl:function name="ac:query-param" as="xs:string?">
         <xsl:param name="name" as="xs:string"/>
-        <xsl:sequence select="ixsl:call(ac:query-params(), 'get', $name)"/>
+        <xsl:sequence select="ixsl:call(ac:query-params(), 'get', [ $name ] )"/>
     </xsl:function>
     
     <xsl:function name="ac:build-describe" as="xs:string">
@@ -290,12 +290,12 @@ version="2.0"
         <xsl:param name="order-by" as="xs:string?"/>
         <xsl:param name="desc" as="xs:boolean"/>
 
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', $select-string)"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <!-- ignore ORDER BY variable name if it's not present in the query -->
-        <xsl:variable name="order-by" select="if (ixsl:call($select-builder, 'isProjected', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $order-by))) then $order-by else ()" as="xs:string?"/>
+        <xsl:variable name="order-by" select="if (ixsl:call($select-builder, 'isProjected', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]) ])) then $order-by else ()" as="xs:string?"/>
         <xsl:variable name="select-builder" select="ac:paginate($select-builder, $limit, $offset, $order-by, $desc)"/>
-        <xsl:variable name="describe-builder" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'DescribeBuilder'), 'new'), 'where', ixsl:call($select-builder, 'build'))"/>
-        <xsl:sequence select="ixsl:call($describe-builder, 'toString')"/>
+        <xsl:variable name="describe-builder" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'DescribeBuilder'), 'new', []), 'where', [ ixsl:call($select-builder, 'build', []) ])"/>
+        <xsl:sequence select="ixsl:call($describe-builder, 'toString', [ ])"/>
     </xsl:function>
     
     <!-- TEMPLATES -->
@@ -461,7 +461,7 @@ version="2.0"
         <xsl:message>ConstructMode</xsl:message>
         
         <xsl:variable name="target-id" select="$constructor-form/input[@class = 'target-id']/@value" as="xs:string?"/>
-        <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID'))" as="xs:string"/>
+        <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
         <xsl:variable name="modal-form" as="element()">
             <xsl:apply-templates select="$constructor-doc//xhtml:form[@class = 'form-horizontal']" mode="modal">
                 <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
@@ -490,7 +490,7 @@ version="2.0"
         
         <!-- remove modal constructor form -->
         <xsl:message>
-            <xsl:value-of select="ixsl:call($constructor-form/.., 'remove')"/>
+            <xsl:value-of select="ixsl:call($constructor-form/.., 'remove', [])"/>
         </xsl:message>
         
         <!-- $target-id is of "Create" button, need to replace the preceding typeahead input instead -->
@@ -517,16 +517,16 @@ version="2.0"
     <!-- CALLBACKS -->
 
     <!-- ontology loaded -->
-<!--    <xsl:template match="ixsl:window()" mode="ixsl:onOntologyLoad">
+<!--    <xsl:template match="." mode="ixsl:onOntologyLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>
 
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', ixsl:get($response, 'statusText'))"/>
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get($response, 'statusText') ])"/>
     </xsl:template>-->
         
     <!-- when RDF/XML of current document loads, fetch its dh:select (container SELECT) query -->
-    <xsl:template match="ixsl:window()" mode="ixsl:onrdfBodyLoad">
+    <xsl:template match="." mode="ixsl:onrdfBodyLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="this-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>
@@ -600,7 +600,7 @@ version="2.0"
     </xsl:template>
     
     <!-- when container SELECT query loads, wrap it into DESCRIBE and fetch RDF/XML results -->
-    <xsl:template match="ixsl:window()" mode="ixsl:onContainerQueryLoad">
+    <xsl:template match="." mode="ixsl:onContainerQueryLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="select-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>
@@ -639,7 +639,7 @@ version="2.0"
     </xsl:template>
 
     <!-- when container RDF/XML results load, render them -->
-    <xsl:template match="ixsl:window()" mode="ixsl:onContainerResultsLoad">
+    <xsl:template match="." mode="ixsl:onContainerResultsLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>
@@ -867,7 +867,7 @@ version="2.0"
         </div>
     </xsl:template>
 
-    <xsl:template match="ixsl:window()" mode="ixsl:onChartQueryLoad">
+    <xsl:template match="." mode="ixsl:onChartQueryLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="query-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>
@@ -900,7 +900,7 @@ version="2.0"
         </xsl:message>
     </xsl:template>
     
-    <xsl:template match="ixsl:window()" mode="ixsl:onSPARQLResultsLoad">
+    <xsl:template match="." mode="ixsl:onSPARQLResultsLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
         <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>
@@ -989,7 +989,7 @@ version="2.0"
         <!-- remove the hero-unit -->
         <xsl:for-each select="..">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'remove')"/>
+                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
             </xsl:message>
         </xsl:for-each>
         <!-- set a cookie to never show it again -->
@@ -1012,10 +1012,10 @@ version="2.0"
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', $select-string)"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term(QueryBuilder.str($text))))) -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', 'label')), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', ac:escape-regex($text)), true())))"/>
-        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex($text) ]), true() ] ) ] ) ])"/>
+        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
         <xsl:variable name="describe-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
         <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
@@ -1086,7 +1086,7 @@ version="2.0"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-query']" mode="ixsl:onclick">
         <!-- get query string from YASQE -->
-        <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue')" as="xs:string"/>
+        <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/>
         <xsl:for-each select="id('save-query-string')"> <!-- using a different ID from 'query-string' which is the visible YasQE textarea -->
             <ixsl:set-attribute name="value" select="$query"/>
         </xsl:for-each>
@@ -1097,7 +1097,7 @@ version="2.0"
         </xsl:for-each>
         
         <!-- prompt for title before form proceeds to submit -->
-        <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', 'Title')" as="xs:string"/>
+        <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', [ 'Title' ])" as="xs:string"/>
         <xsl:choose>
             <xsl:when test="$title">
                 <xsl:for-each select="id('query-title')">
@@ -1108,7 +1108,7 @@ version="2.0"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault')"/> <!-- does not work :/ -->
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- does not work :/ -->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1117,7 +1117,7 @@ version="2.0"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-chart']" mode="ixsl:onclick">
         <!-- prompt for title before form proceeds to submit -->
-        <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', 'Title')" as="xs:string"/>
+        <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', [ 'Title' ])" as="xs:string"/>
         <xsl:choose>
             <xsl:when test="$title">
                 <xsl:for-each select="id('chart-title')">
@@ -1128,7 +1128,7 @@ version="2.0"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault')"/>
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1136,7 +1136,7 @@ version="2.0"
     <!-- run SPARQL query in editor -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-run-query']" mode="ixsl:onclick">
-        <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue')" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <!-- <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/> -->
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(id('endpoint-uri'), 'value'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query)))" as="xs:anyURI"/>
@@ -1329,7 +1329,7 @@ version="2.0"
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="value-uris" select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'of')"/>
+        <xsl:variable name="value-uris" select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'of', [])"/>
         <xsl:for-each select="$resource-types[not(. = '&rdfs;Resource')]">
             <xsl:message>
                 <xsl:value-of select="ixsl:call($value-uris, 'push', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', current()))"/>
@@ -1337,10 +1337,10 @@ version="2.0"
         </xsl:for-each>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', $select-string)"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', 'label')), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', ac:escape-regex(@prop:value)), true())))"/>
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(@prop:value) ]), true() ]) ]) ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
-        <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = '&rdfs;Resource')])) then $select-builder else ixsl:call($select-builder, 'where', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', 'Type'), $value-uris)))"/>
-        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = 'http://www.w3.org/2000/01/rdf-schema#Resource')])) then $select-builder else ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
+        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
         <xsl:variable name="describe-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
         <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
@@ -1354,7 +1354,7 @@ version="2.0"
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'active']">
-                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault')"/> <!-- prevent form submit -->
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
                     <xsl:variable name="resource-uri" select="input[@name = 'ou']/@prop:value"/>
                     <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
@@ -1443,7 +1443,7 @@ version="2.0"
         <xsl:for-each select="id($id, ixsl:page())/preceding-sibling::div[1]/button[tokenize(@class, ' ') = 'btn-remove']">
             <!-- TO-DO: refactor into apl:PostConstructMode -->
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick'))"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
             </xsl:message>
         </xsl:for-each>
     </xsl:template>
@@ -1451,7 +1451,7 @@ version="2.0"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-type']" mode="ixsl:onclick" priority="1">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID')" as="xs:string"/>
+        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
         <xsl:result-document href="?select=.." method="ixsl:replace-content">
             <xsl:call-template name="bs2:Lookup">
@@ -1482,7 +1482,7 @@ version="2.0"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-typeahead']" mode="ixsl:onclick">
         <xsl:param name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID')" as="xs:string"/>
+        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
         <xsl:result-document href="?select=.." method="ixsl:replace-content">
             <xsl:call-template name="bs2:Lookup">
@@ -1504,8 +1504,8 @@ version="2.0"
         
         <xsl:for-each select="id($id, ixsl:page())">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur'))"/>
-                <xsl:value-of select="ixsl:call(., 'focus')"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur') ])"/>
+                <xsl:value-of select="ixsl:call(., 'focus', [])"/>
             </xsl:message>
         </xsl:for-each>
     </xsl:template>
@@ -1516,7 +1516,7 @@ version="2.0"
         <xsl:message>Constructor URI: <xsl:value-of select="$constructor-uri"/></xsl:message>
 
         <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'loadRDFXML', ixsl:event(), string($constructor-uri), ixsl:get(ixsl:window(), 'onaddValueCallback'))"/>
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'loadRDFXML', [ ixsl:event(), string($constructor-uri), ixsl:get(ixsl:window(), 'onaddValueCallback') ])"/>
         </xsl:message>
         <!-- replace button content with loading indicator -->
         <xsl:result-document href="?select=.." method="ixsl:replace-content">
@@ -1536,7 +1536,7 @@ version="2.0"
             <ixsl:set-attribute name="style:cursor" select="'progress'"/>
         </xsl:for-each>
         <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', ixsl:event(), string($action), ixsl:get(ixsl:window(), 'onaddModalFormCallback'))"/>
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($action), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
         </xsl:message>
     </xsl:template>
 
@@ -1547,14 +1547,14 @@ version="2.0"
         <xsl:for-each select="ixsl:page()//body">
             <ixsl:set-attribute name="style:cursor" select="'progress'"/>
         </xsl:for-each>
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', ixsl:event(), string($graph-uri), ixsl:get(ixsl:window(), 'onaddModalFormCallback'))"/>
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($graph-uri), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
     </xsl:template>
     
     <xsl:template match="div[tokenize(@class, ' ') = 'modal']//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
         <!-- remove modal constructor form -->
         <xsl:for-each select="ancestor::div[tokenize(@class, ' ') = 'modal']">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'remove')"/>
+                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
             </xsl:message>
         </xsl:for-each>
     </xsl:template>
@@ -1602,7 +1602,7 @@ version="2.0"
     <xsl:template match="input[@name = 'ol'][ancestor::div[@class = 'controls']/preceding-sibling::input[@name = 'pu']/@value = '&dh;slug']" mode="modal" priority="1">
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
-            <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID')"/>
+            <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
         </xsl:copy>
     </xsl:template>
     
@@ -1614,13 +1614,13 @@ version="2.0"
 
     <!-- CALLBACKS -->
     
-    <xsl:template match="ixsl:window()" mode="ixsl:ontypeTypeaheadCallback">
+    <xsl:template match="." mode="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="resolve-uri('ns/domain', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="ixsl:window()" mode="ixsl:onresourceTypeaheadCallback">
+    <xsl:template match="." mode="ixsl:onresourceTypeaheadCallback">
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')" as="element()"/>
@@ -1638,11 +1638,11 @@ version="2.0"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="ixsl:window()" mode="ixsl:onaddModalFormCallback">
+    <xsl:template match="." mode="ixsl:onaddModalFormCallback">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
-        <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID'))" as="xs:string"/>
+        <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
         <xsl:variable name="modal-div" as="element()">
             <xsl:apply-templates select="$constructor-doc//xhtml:div[tokenize(@class, ' ') = 'modal-constructor']" mode="modal">
                 <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
@@ -1668,7 +1668,7 @@ version="2.0"
         </ixsl:schedule-action>
     </xsl:template>
     
-    <xsl:template match="ixsl:window()" mode="ixsl:onaddValueCallback">
+    <xsl:template match="." mode="ixsl:onaddValueCallback">
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
         <!-- ancestor-or-self axis needed because either <button> or its child <img> can be event target -->
@@ -1723,7 +1723,7 @@ version="2.0"
         <xsl:for-each select="id($id, ixsl:page())">
             <xsl:apply-templates select="." mode="apl:PostConstructMode"/>
             
-            <xsl:value-of select="ixsl:call(., 'focus')"/>
+            <xsl:value-of select="ixsl:call(., 'focus', [])"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1744,7 +1744,7 @@ version="2.0"
 
     <xsl:template match="div[tokenize(@class, ' ') = 'modal']/form" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', 'submit', ixsl:get(ixsl:window(), 'onModalFormSubmit'))"/>
+            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'submit', ixsl:get(ixsl:window(), 'onModalFormSubmit') ])"/>
         </xsl:message>
         
         <xsl:apply-templates mode="#current"/>
@@ -1753,21 +1753,21 @@ version="2.0"
     <!-- remove property button -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick'))"/>
+            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
         </xsl:message>
     </xsl:template>
 
     <!-- subject type change -->
     <xsl:template match="select[tokenize(@class, ' ') = 'subject-type']" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange'))"/>
+            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])"/>
         </xsl:message>
     </xsl:template>
         
     <!-- constructor dropdown -->
     <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', 'click', ixsl:get(ixsl:window(), 'onDropdownClick'))"/>
+            <xsl:value-of select="ixsl:call(., 'addEventListener',  ['click', ixsl:get(ixsl:window(), 'onDropdownClick') ])"/>
         </xsl:message>
     </xsl:template>
     
@@ -1775,7 +1775,7 @@ version="2.0"
         <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
         <xsl:message>
             <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:value-of select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', .), 'wymeditor')"/>
+            <xsl:value-of select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])"/>
         </xsl:message>
     </xsl:template>
 
@@ -1783,19 +1783,19 @@ version="2.0"
         <!-- subject value change -->
         <xsl:if test="tokenize(@class, ' ') = 'subject'">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange'))"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])"/>
             </xsl:message>
         </xsl:if>
         <!-- object onmouseover (tooltip) -->
         <xsl:if test="@name = ('ou', 'ob', 'ol')">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', 'mouseover', ixsl:get(ixsl:window(), 'onInputMouseOver'))"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'mouseover', ixsl:get(ixsl:window(), 'onInputMouseOver') ])"/>
             </xsl:message>
         </xsl:if>
         <!-- typeahead blur -->
         <xsl:if test="tokenize(@class, ' ') = 'resource-typeahead'">
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur'))"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur') ])"/>
             </xsl:message>
         </xsl:if>
         <!-- prepended/appended input -->
@@ -1806,7 +1806,7 @@ version="2.0"
             <ixsl:set-property object="../input[@type = 'hidden']" name="value" select="$value"/>
 
             <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', 'change', ixsl:get(ixsl:window(), 'onPrependedAppendedInputChange'))"/>
+                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onPrependedAppendedInputChange') ])"/>
             </xsl:message>
         </xsl:if>
         

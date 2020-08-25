@@ -90,7 +90,7 @@ version="2.0"
         <xsl:param name="callback"/>
         <!-- if the value hasn't changed during the delay -->
         <xsl:if test="$query = $element/@prop:value">
-            <xsl:value-of select="ixsl:call(ixsl:window(), $js-function, ixsl:event(), $uri, $callback)"/>
+            <xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>
         </xsl:if>
     </xsl:template>
 

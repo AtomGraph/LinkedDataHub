@@ -1,0 +1,18 @@
+{
+    "name": "LinkedDataHub",
+    "author": {
+        "name": "Martynas Jusevičius",
+        "email": "martynas@atomgraph.com",
+        "url": "https://github.com/AtomGraph"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AtomGraph/LinkedDataHub.git"
+    },
+    "license": "Apache-2.0",
+    "dependencies": {
+        "saxon-js": "2.0.2",
+        "xslt3": "2.0.2"
+    },
+    "devDependencies": {}
+}

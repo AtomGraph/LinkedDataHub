@@ -29,6 +29,7 @@ xmlns:sioc="&sioc;"
 xmlns:sp="&sp;"
 xmlns:geo="&geo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
     
     <!-- CSS -->
@@ -45,13 +46,13 @@ exclude-result-prefixes="#all">
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
@@ -206,7 +207,7 @@ exclude-result-prefixes="#all">
         <ul class="inline">
             <xsl:for-each select="rdf:type/@rdf:resource">
                 <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') = 'Saxon-CE'"/>
+                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
 
                 <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
                     <xsl:when test="doc-available(ac:document-uri(.))">
@@ -217,7 +218,7 @@ exclude-result-prefixes="#all">
                     </xsl:otherwise>
                 </xsl:choose>
                 
-                <xsl:value-of select="." use-when="system-property('xsl:product-name') = 'Saxon-CE'"/>
+                <xsl:value-of select="." use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
             </xsl:for-each>
         </ul>
     </xsl:template>

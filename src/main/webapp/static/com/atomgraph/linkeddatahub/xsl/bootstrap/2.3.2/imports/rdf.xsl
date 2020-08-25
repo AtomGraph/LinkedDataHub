@@ -40,6 +40,7 @@ xmlns:sp="&sp;"
 xmlns:void="&void;"
 xmlns:list="&list;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
     <!-- shortened version of @rdf:resource bs2:FormControl -->
@@ -83,7 +84,7 @@ exclude-result-prefixes="#all">
                         <span>
                             <button type="button" class="btn add-type">
                                 <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="apl:logo"/>
-                                <xsl:text use-when="system-property('xsl:product-name') = 'Saxon-CE'">&#x2715;</xsl:text>
+                                <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">&#x2715;</xsl:text>
                             </button>
                         </span>
                         -->
