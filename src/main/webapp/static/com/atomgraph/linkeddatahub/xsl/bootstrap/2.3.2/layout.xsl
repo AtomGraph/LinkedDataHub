@@ -266,10 +266,10 @@ exclude-result-prefixes="#all">
     <!-- SCRIPT -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
-        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl', $ac:contextUri)" as="xs:anyURI"/>
+        <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-ce-log-level" select="'FINE'" as="xs:string"/>
         <xsl:param name="load-wymeditor" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean"/>
-        <xsl:param name="load-saxon-ce" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
@@ -290,29 +290,21 @@ exclude-result-prefixes="#all">
         <xsl:if test="$load-wymeditor">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}"></script>
         </xsl:if>
-        <xsl:if test="$load-saxon-ce">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-ce/Saxonce.nocache.js', $ac:contextUri)}"></script>
+        <xsl:if test="$load-saxon-js">
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}"></script>
             <script type="text/javascript">
                 <![CDATA[
-                    var xslt2proc; // global Saxon-CE processor instance
-        
-                    var onSaxonLoad = function()
-                    {
-                        // namespaced parameters such as {https://www.w3.org/ns/ldt#}baseUri do not seem to work
-                        // also not possible to pass xs:anyURI values, only xs:string
-                        xslt2proc = Saxon.run(
-                        {
-                            stylesheet: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
-                            parameters: {
+                    window.onload = function() {
+                       SaxonJS.transform({
+                          stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
+                          initialTemplate: "main",
+                          stylesheetParams: {
                                 "context-uri-string": contextUri, // servlet context URI
                                 "base-uri-string": baseUri,
                                 "ontology-uri-string": ontologyUri
-                                },
-                            initialTemplate: "main",
-                            //source: baseUri,
-                            logLevel: "]]><xsl:value-of select="$saxon-ce-log-level"/><![CDATA["
-                        });
-                     }
+                                }
+                       }, "async");
+                    }
                 ]]>
             </script>
         </xsl:if>

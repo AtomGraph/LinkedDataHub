@@ -200,7 +200,7 @@ version="2.0"
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?select=." method="ixsl:append-content">
+                <xsl:result-document href="?." method="ixsl:append-content">
                     <xsl:call-template name="first-time-message"/>
                 </xsl:result-document>
             </xsl:for-each>
@@ -210,7 +210,7 @@ version="2.0"
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
             <!-- show progress bar -->
             <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?select=." method="ixsl:append-content">
+                <xsl:result-document href="?." method="ixsl:append-content">
                     <div id="progress-bar">
                         <div class="progress progress-striped active">
                             <div class="bar" style="width: 20%;"></div>
@@ -234,7 +234,7 @@ version="2.0"
         </xsl:for-each>
         <!--  append Save form to Query form -->
         <xsl:for-each select="id('query-form', ixsl:page())/..">
-            <xsl:result-document href="?select=." method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:call-template name="bs2:SaveQueryForm">
                     <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
                 </xsl:call-template>
@@ -242,7 +242,7 @@ version="2.0"
         </xsl:for-each>
         <!-- append typeahead list after search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
-            <xsl:result-document href="?select=." method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:append-content">
                 <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
             </xsl:result-document>
         </xsl:for-each>
@@ -470,8 +470,8 @@ version="2.0"
         </xsl:variable>
         <xsl:variable name="form-id" select="$modal-form/@id" as="xs:string"/>
         
-        <xsl:for-each select="$constructor-form">
-            <xsl:result-document href="?select=.." method="ixsl:replace-content">
+        <xsl:for-each select="$constructor-form/..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <!-- append modal div to body -->
                 <xsl:copy-of select="$modal-form"/>
             </xsl:result-document>
@@ -495,7 +495,7 @@ version="2.0"
         
         <!-- $target-id is of "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:for-each select="id($target-id, ixsl:page())/ancestor::div[@class = 'controls']/span[input]">
-            <xsl:result-document href="?select=." method="ixsl:replace-content">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
             </xsl:result-document>
         </xsl:for-each>
@@ -542,7 +542,7 @@ version="2.0"
 
                     <!-- container progress bar -->
                     <xsl:for-each select="id('progress-bar', ixsl:page())">
-                        <xsl:result-document href="?select=." method="ixsl:replace-content">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 40%;"></div>
                             </div>
@@ -551,7 +551,7 @@ version="2.0"
 
                     <!-- append filters to left-nav. TO-DO: filters may be visible before the container query is loaded -->
                     <xsl:for-each select="id('left-nav', ixsl:page())">
-                        <xsl:result-document href="?select=." method="ixsl:append-content">
+                        <xsl:result-document href="?." method="ixsl:append-content">
                             <xsl:call-template name="bs2:FilterIn"/>
                         </xsl:result-document>
                     </xsl:for-each>
@@ -559,7 +559,7 @@ version="2.0"
                 <xsl:otherwise>
                     <!-- container progress bar -->
                     <xsl:for-each select="id('progress-bar', ixsl:page())">
-                        <xsl:result-document href="?select=." method="ixsl:replace-content">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
                             <!-- do not show progress bar for Items - only for Containers -->
                         </xsl:result-document>
                     </xsl:for-each>
@@ -584,7 +584,7 @@ version="2.0"
 
                     <!-- query progress bar -->
                     <xsl:for-each select="id('progress-bar', ixsl:page())">
-                        <xsl:result-document href="?select=." method="ixsl:replace-content">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 40%;"></div>
                             </div>
@@ -626,7 +626,7 @@ version="2.0"
         
         <!-- container progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="progress progress-striped active">
                     <div class="bar" style="width: 60%;"></div>
                 </div>
@@ -646,7 +646,7 @@ version="2.0"
 
         <!-- container progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="progress progress-striped active">
                     <div class="bar" style="width: 80%;"></div>
                 </div>
@@ -680,14 +680,14 @@ version="2.0"
         
         <!-- remove container progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+            <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
         </xsl:for-each>
         
         <xsl:choose>
             <!-- container results are already rendered -->
             <xsl:when test="id('container-pane', ixsl:page())">
                 <xsl:for-each select="id('container-pane', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="results" select="$results"/>
                             <!-- <xsl:with-param name="order-by" select="$order-by"/> -->
@@ -699,7 +699,7 @@ version="2.0"
             <!-- first time rendering the container results -->
             <xsl:otherwise>
                 <xsl:for-each select="id('main-content', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:append-content">
+                    <xsl:result-document href="?." method="ixsl:append-content">
                         <div id="container-pane">
                             <xsl:call-template name="container-mode">
                                 <xsl:with-param name="results" select="$results"/>
@@ -718,14 +718,14 @@ version="2.0"
 
         <!-- remove container progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+            <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
         </xsl:for-each>
         
         <xsl:choose>
             <!-- container results are already rendered -->
             <xsl:when test="id('container-pane', ixsl:page())">
                 <xsl:for-each select="id('container-pane', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Error during query execution:</strong>
                             <pre>
@@ -738,7 +738,7 @@ version="2.0"
             <!-- first time rendering the container results -->
             <xsl:otherwise>
                 <xsl:for-each select="id('main-content', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:append-content">
+                    <xsl:result-document href="?." method="ixsl:append-content">
                         <div id="container-pane">
                             <div class="alert alert-block">
                                 <strong>Error during query execution:</strong>
@@ -882,7 +882,7 @@ version="2.0"
 
         <!-- query progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <div class="progress progress-striped active">
                     <div class="bar" style="width: 60%;"></div>
                 </div>
@@ -890,7 +890,7 @@ version="2.0"
         </xsl:for-each>
         
         <xsl:for-each select="id('main-content', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:append-content">
                 <div id="sparql-results"/>
             </xsl:result-document>
         </xsl:for-each>
@@ -912,7 +912,7 @@ version="2.0"
 
                 <!-- query progress bar -->
                 <xsl:for-each select="id('progress-bar', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="progress progress-striped active">
                             <div class="bar" style="width: 80%;"></div>
                         </div>
@@ -929,7 +929,7 @@ version="2.0"
                 </xsl:choose>
 
                 <xsl:for-each select="id('sparql-results', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
                         <!-- values may already be initialized from chart properties in ixsl:onrdfBodyLoad -->
                         <xsl:variable name="chart-type" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
                         <xsl:variable name="category" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.category')) then ixsl:get(ixsl:window(), 'LinkedDataHub.category') else (if ($results/srx:sparql) then $results/srx:sparql/srx:head/srx:variable[1]/@name else ())" as="xs:string?"/>
@@ -946,12 +946,12 @@ version="2.0"
             <xsl:otherwise>
                 <!-- remove query progress bar -->
                 <xsl:for-each select="id('progress-bar', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+                    <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
                 </xsl:for-each>
         
                 <!-- error response - could not load query results -->
                 <xsl:for-each select="id('sparql-results', ixsl:page())">
-                    <xsl:result-document href="?select=." method="ixsl:replace-content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Error during query execution:</strong>
                             <pre>
@@ -972,7 +972,7 @@ version="2.0"
         
         <!-- remove query progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?select=." method="ixsl:replace-content"></xsl:result-document>
+            <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
         </xsl:for-each>
         
         <xsl:call-template name="ac:draw-chart">
@@ -1144,7 +1144,7 @@ version="2.0"
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id('sparql-results', ixsl:page()))">
             <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?select=." method="ixsl:append-content">
+                <xsl:result-document href="?." method="ixsl:append-content">
                     <div id="sparql-results"/>
                 </xsl:result-document>
             </xsl:for-each>
@@ -1361,11 +1361,13 @@ version="2.0"
                     <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
                     <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
 
-                    <xsl:result-document href="?select=../.." method="ixsl:replace-content">
-                        <xsl:apply-templates select="$resource" mode="apl:Typeahead">
-                            <xsl:with-param name="class" select="$typeahead-class"/>
-                        </xsl:apply-templates>
-                    </xsl:result-document>
+                    <xsl:for-each select="../..">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$resource" mode="apl:Typeahead">
+                                <xsl:with-param name="class" select="$typeahead-class"/>
+                            </xsl:apply-templates>
+                        </xsl:result-document>
+                    </xsl:for-each>
 
                     <ixsl:schedule-action wait="0">
                         <xsl:call-template name="resource-typeahead">
@@ -1424,11 +1426,13 @@ version="2.0"
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
         <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
 
-        <xsl:result-document href="?select=../.." method="ixsl:replace-content">
-            <xsl:apply-templates select="$resource" mode="apl:Typeahead">
-                <xsl:with-param name="class" select="$typeahead-class"/>
-            </xsl:apply-templates>
-        </xsl:result-document>
+        <xsl:for-each select="../..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:apply-templates select="$resource" mode="apl:Typeahead">
+                    <xsl:with-param name="class" select="$typeahead-class"/>
+                </xsl:apply-templates>
+            </xsl:result-document>
+        </xsl:for-each>
 
         <ixsl:schedule-action wait="0">
             <xsl:call-template name="resource-typeahead">
@@ -1453,16 +1457,20 @@ version="2.0"
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
-        <xsl:result-document href="?select=.." method="ixsl:replace-content">
-            <xsl:call-template name="bs2:Lookup">
-                <xsl:with-param name="class" select="$lookup-class"/>
-                <xsl:with-param name="id" select="concat('input-', $uuid)"/>
-                <xsl:with-param name="list-class" select="$lookup-list-class"/>
-            </xsl:call-template>
-        </xsl:result-document>
-        <xsl:result-document href="?select=../.." method="ixsl:append-content">
-            <xsl:copy-of select=".."/>
-        </xsl:result-document>
+        <xsl:for-each select="..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="$lookup-class"/>
+                    <xsl:with-param name="id" select="concat('input-', $uuid)"/>
+                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
+        <xsl:for-each select="../..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:copy-of select=".."/>
+            </xsl:result-document>
+        </xsl:for-each>
 
         <ixsl:schedule-action wait="0">
             <xsl:call-template name="add-typeahead">
@@ -1484,13 +1492,15 @@ version="2.0"
         <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         
-        <xsl:result-document href="?select=.." method="ixsl:replace-content">
-            <xsl:call-template name="bs2:Lookup">
-                <xsl:with-param name="class" select="$lookup-class"/>
-                <xsl:with-param name="id" select="concat('input-', $uuid)"/>
-                <xsl:with-param name="list-class" select="$lookup-list-class"/>
-            </xsl:call-template>
-        </xsl:result-document>
+        <xsl:for-each select="..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:call-template name="bs2:Lookup">
+                    <xsl:with-param name="class" select="$lookup-class"/>
+                    <xsl:with-param name="id" select="concat('input-', $uuid)"/>
+                    <xsl:with-param name="list-class" select="$lookup-list-class"/>
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
 
         <ixsl:schedule-action wait="0">
             <xsl:call-template name="add-typeahead">
@@ -1519,13 +1529,15 @@ version="2.0"
             <xsl:value-of select="ixsl:call(ixsl:window(), 'loadRDFXML', [ ixsl:event(), string($constructor-uri), ixsl:get(ixsl:window(), 'onaddValueCallback') ])"/>
         </xsl:message>
         <!-- replace button content with loading indicator -->
-        <xsl:result-document href="?select=.." method="ixsl:replace-content">
-            <xsl:copy>
-                <xsl:copy-of select="@*"/>
-                <xsl:attribute name="disabled" select="'disabled'"/>
-                <xsl:text>Loading...</xsl:text>
-            </xsl:copy>
-        </xsl:result-document>
+        <xsl:for-each select="..">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+                    <xsl:attribute name="disabled" select="'disabled'"/>
+                    <xsl:text>Loading...</xsl:text>
+                </xsl:copy>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
@@ -1652,7 +1664,7 @@ version="2.0"
         <xsl:variable name="form-id" select="$modal-div/xhtml:form/@id" as="xs:string"/>
 
         <xsl:for-each select="ixsl:page()//body">
-            <xsl:result-document href="?select=." method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:append-content">
                 <!-- append modal div to body -->
                 <xsl:copy-of select="$modal-div"/>
             </xsl:result-document>
@@ -1679,33 +1691,37 @@ version="2.0"
         <xsl:variable name="for" select="generate-id($template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]/(@rdf:*[local-name() = ('resource', 'nodeID')], node())[1])" as="xs:string"/>
 
         <xsl:for-each select="$button">
-            <xsl:result-document href="?select=../.." method="ixsl:replace-content">
-                <xsl:for-each select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]">
-                    <xsl:apply-templates select="." mode="xhtml:Input">
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:apply-templates>
+            <xsl:for-each select="../..">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:for-each select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]">
+                        <xsl:apply-templates select="." mode="xhtml:Input">
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:apply-templates>
 
-                    <label class="control-label" for="{$for}" title="{$selected-property}">
-                        <xsl:apply-templates select="." mode="ac:property-label"/>
-                    </label>
+                        <label class="control-label" for="{$for}" title="{$selected-property}">
+                            <xsl:apply-templates select="." mode="ac:property-label"/>
+                        </label>
 
-                    <div class="controls">
-                        <div class="btn-group pull-right">
-                            <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement"></button>
+                        <div class="controls">
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement"></button>
+                            </div>
+
+                            <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
                         </div>
-                        
-                        <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
-                    </div>
-                </xsl:for-each>
-            </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:result-document>
+            </xsl:for-each>
             
             <!-- move property creation control group down, by appending it to the parent fieldset -->
-            <xsl:result-document href="?select=../../.." method="ixsl:append-content">
-                <xsl:apply-templates select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)][1]" mode="bs2:PropertyControl">
-                    <xsl:with-param name="template" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]"/>
-                    <xsl:with-param name="forClass" select="$forClass"/>
-                </xsl:apply-templates>
-            </xsl:result-document>
+            <xsl:for-each select="../../..">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <xsl:apply-templates select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)][1]" mode="bs2:PropertyControl">
+                        <xsl:with-param name="template" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]"/>
+                        <xsl:with-param name="forClass" select="$forClass"/>
+                    </xsl:apply-templates>
+                </xsl:result-document>
+            </xsl:for-each>
 
             <!-- apply WYMEditor on textarea if object is XMLLiteral -->
             <ixsl:schedule-action wait="0">
