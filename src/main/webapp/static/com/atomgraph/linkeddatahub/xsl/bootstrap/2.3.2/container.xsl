@@ -466,7 +466,9 @@ exclude-result-prefixes="#all">
                                     <xsl:if test="true()"  use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
                                         <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
                                         <xsl:message>
-                                            <xsl:sequence select="ac:fetch(resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'application/rdf+xml', 'onchartModeServiceLoad')"/>
+                                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                                <xsl:call-template name="onchartModeServiceLoad"/>
+                                            </ixsl:schedule-action>
                                         </xsl:message> 
                                     </xsl:if>
                             </select>
@@ -814,7 +816,9 @@ exclude-result-prefixes="#all">
                                     <xsl:if test="true()"  use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
                                         <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
                                         <xsl:message>
-                                            <xsl:sequence select="ac:fetch(resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'application/rdf+xml', 'onchartModeServiceLoad')"/>
+                                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                                <xsl:call-template name="onchartModeServiceLoad"/>
+                                            </ixsl:schedule-action>
                                         </xsl:message> 
                                     </xsl:if>
                             </select>
@@ -1019,7 +1023,10 @@ exclude-result-prefixes="#all">
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:message>
-                    <xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>
+                    <!--<xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onContainerResultsLoad"/>
+                    </ixsl:schedule-action>
                 </xsl:message>
             </xsl:when>
             <!-- if not, execute original query -->
@@ -1035,7 +1042,10 @@ exclude-result-prefixes="#all">
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:message>
-                    <xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>
+<!--                    <xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onContainerResultsLoad"/>
+                    </ixsl:schedule-action>
                 </xsl:message>
             </xsl:otherwise>
         </xsl:choose>

@@ -298,6 +298,7 @@ exclude-result-prefixes="#all">
                        SaxonJS.transform({
                           stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
                           initialTemplate: "main",
+                          logLevel: 10,
                           stylesheetParams: {
                                 "context-uri-string": contextUri, // servlet context URI
                                 "base-uri-string": baseUri,
