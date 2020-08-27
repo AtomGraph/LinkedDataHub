@@ -1023,7 +1023,6 @@ exclude-result-prefixes="#all">
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:message>
-                    <!--<xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContainerResultsLoad"/>
                     </ixsl:schedule-action>
@@ -1042,7 +1041,6 @@ exclude-result-prefixes="#all">
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:message>
-<!--                    <xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContainerResultsLoad"/>
                     </ixsl:schedule-action>

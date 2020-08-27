@@ -204,7 +204,6 @@ version="2.0"
             <xsl:message>
                 <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
                 <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-<!--                <xsl:sequence select="ac:fetch(xs:anyURI(concat($ac:uri, '?param=dummy')), 'application/rdf+xml', 'onrdfBodyLoad')"/>-->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ac:uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onrdfBodyLoad"/>
                 </ixsl:schedule-action>
@@ -214,7 +213,6 @@ version="2.0"
         <xsl:for-each select="id('endpoint-uri', ixsl:page())">
             <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
             <xsl:message>
-                <!--<xsl:sequence select="ac:fetch(resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'application/rdf+xml', 'onServiceLoad')"/>-->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onServiceLoad"/>
                 </ixsl:schedule-action>
@@ -237,14 +235,6 @@ version="2.0"
     </xsl:template>
 
     <!-- FUNCTIONS -->
-    
-<!--    <xsl:function name="ac:fetch">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="accept" as="xs:string"/>
-        <xsl:param name="handler-name" as="xs:string"/>
-
-        <xsl:sequence select="ixsl:call(js:fetch($uri, ixsl:eval(concat('{ ''headers'': { ''Accept'': ''', $accept, ''' } }'))), 'then', [ ixsl:eval(concat('function(response) { fetchCallback(response, ''', $handler-name, '''); }')) ])"/>
-    </xsl:function>-->
 
     <xsl:function name="ac:new-url">
         <xsl:param name="href" as="xs:anyURI"/>
@@ -506,20 +496,16 @@ version="2.0"
 
     <!-- ontology loaded -->
 <!--    <xsl:template match="." mode="ixsl:onOntologyLoad">
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
-        <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>
+        <xsl:context-item as="map(*)" use="required"/>
 
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get($response, 'statusText') ])"/>
+        <xsl:for-each select="?status">
+            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ . ])"/>
+        </xsl:for-each>
     </xsl:template>-->
         
     <!-- when RDF/XML of current document loads, fetch its dh:select (container SELECT) query -->
     <xsl:template name="onrdfBodyLoad">
         <xsl:context-item as="map(*)" use="required"/>
-
-<!--        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
-        <xsl:variable name="this-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>-->
 
         <xsl:for-each select="?body">
             <!-- container SELECT query -->
@@ -528,7 +514,6 @@ version="2.0"
                 <xsl:choose>
                     <xsl:when test="$select-uri">
                         <xsl:message>
-                            <!--<xsl:sequence select="ac:fetch($select-uri, 'application/rdf+xml', 'onContainerQueryLoad')"/>-->
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onContainerQueryLoad">
                                     <xsl:with-param name="select-uri" select="$select-uri"/>
@@ -588,7 +573,6 @@ version="2.0"
                         </xsl:for-each>
 
                         <xsl:message>
-                            <!--<xsl:sequence select="ac:fetch($query-uri, 'application/rdf+xml', 'onChartQueryLoad')"/>-->
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $query-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onChartQueryLoad">
                                     <xsl:with-param name="query-uri" select="$query-uri"/>
@@ -636,7 +620,6 @@ version="2.0"
             </xsl:for-each>
 
             <xsl:message>
-                <!--<xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onContainerResultsLoad"/>
                 </ixsl:schedule-action>
@@ -647,10 +630,6 @@ version="2.0"
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-
-<!--        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
-        <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>-->
 
         <!-- container progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
@@ -892,9 +871,6 @@ version="2.0"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
 
-        <!--        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
-        <xsl:variable name="query-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>-->
         <xsl:for-each select="?body">
             <xsl:variable name="query-type" select="xs:anyURI(key('resources', $query-uri)/rdf:type/@rdf:resource)" as="xs:anyURI"/>
             <xsl:variable name="query-string" select="key('resources', $query-uri)/sp:text" as="xs:string"/>
@@ -919,7 +895,6 @@ version="2.0"
             </xsl:for-each>
 
             <xsl:message>
-                <!--<xsl:sequence select="ac:fetch($results-uri, 'application/sparql-results+xml,application/rdf+xml;q=0.9', 'onSPARQLResultsLoad')"/>-->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                     <xsl:call-template name="onSPARQLResultsLoad"/>
                 </ixsl:schedule-action>
@@ -930,10 +905,6 @@ version="2.0"
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
 
-<!--        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
-        <xsl:variable name="response" select="ixsl:get($detail, 'response')"/>-->
-        
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <!--<xsl:variable name="results" select="ixsl:get($detail, 'body')" as="document-node()"/>-->
@@ -1182,7 +1153,6 @@ version="2.0"
         </xsl:if>
         
         <xsl:message>
-            <!--<xsl:sequence select="ac:fetch($results-uri, 'application/sparql-results+xml,application/rdf+xml;q=0.9', 'onSPARQLResultsLoad')"/>-->
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                 <xsl:call-template name="onSPARQLResultsLoad"/>
             </ixsl:schedule-action>
@@ -1318,7 +1288,6 @@ version="2.0"
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
         <xsl:message>
-            <!--<xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContainerResultsLoad"/>
             </ixsl:schedule-action>
@@ -1341,7 +1310,6 @@ version="2.0"
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
         <xsl:message>
-            <!--<xsl:sequence select="ac:fetch($results-uri, 'application/rdf+xml', 'onContainerResultsLoad')"/>-->
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContainerResultsLoad"/>
             </ixsl:schedule-action>

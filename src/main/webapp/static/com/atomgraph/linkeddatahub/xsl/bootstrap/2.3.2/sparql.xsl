@@ -154,9 +154,6 @@ exclude-result-prefixes="#all">
     <xsl:template name="onServiceLoad" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:context-item as="map(*)" use="required"/>
         
-<!--        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="detail" select="ixsl:get($event, 'detail')"/>
-        <xsl:variable name="services-doc" select="ixsl:get($detail, 'body')" as="document-node()"/>-->
         <xsl:variable name="id" select="'endpoint-uri'" as="xs:string"/>
         
         <xsl:result-document href="#{$id}">
