@@ -22,7 +22,7 @@
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
 ]>
-<xsl:stylesheet
+<xsl:stylesheet version="2.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
@@ -52,7 +52,6 @@ xmlns:skos="&skos;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="xs prop"
 extension-element-prefixes="ixsl"
-version="2.0"
 >
 
     <xsl:import href="../../../../com/atomgraph/client/xsl/converters/RDFXML2DataTable.xsl"/>
@@ -441,7 +440,7 @@ version="2.0"
         <xsl:variable name="target-id" select="$constructor-form/input[@class = 'target-id']/@value" as="xs:string?"/>
         <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
         <xsl:variable name="modal-form" as="element()">
-            <xsl:apply-templates select="$constructor-doc//xhtml:form[@class = 'form-horizontal']" mode="modal">
+            <xsl:apply-templates select="$constructor-doc//form[@class = 'form-horizontal']" mode="modal">
                 <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                 <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
             </xsl:apply-templates>
@@ -455,11 +454,11 @@ version="2.0"
             </xsl:result-document>
         </xsl:for-each>
 
-        <ixsl:schedule-action wait="0">
+<!--        <ixsl:schedule-action wait="0">-->
             <xsl:call-template name="add-form-listeners">
                 <xsl:with-param name="id" select="$form-id"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
     
     <xsl:template match="/" mode="CreatedMode">
@@ -495,7 +494,7 @@ version="2.0"
     <!-- CALLBACKS -->
 
     <!-- ontology loaded -->
-<!--    <xsl:template match="." mode="ixsl:onOntologyLoad">
+<!--    <xsl:template name="ixsl:onOntologyLoad">
         <xsl:context-item as="map(*)" use="required"/>
 
         <xsl:for-each select="?status">
@@ -675,7 +674,6 @@ version="2.0"
         <xsl:choose>
             <!-- container results are already rendered -->
             <xsl:when test="id('container-pane', ixsl:page())">
-<xsl:message>AAA</xsl:message>
                 <xsl:for-each select="id('container-pane', ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
@@ -688,7 +686,6 @@ version="2.0"
             </xsl:when>
             <!-- first time rendering the container results -->
             <xsl:otherwise>
-<xsl:message>BBB</xsl:message>
                 <xsl:for-each select="id('main-content', ixsl:page())">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div id="container-pane">
@@ -751,8 +748,6 @@ version="2.0"
         <xsl:param name="order-by" select="ixsl:get(ixsl:window(), 'LinkedDataHub.order-by')" as="xs:string?"/>
         <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
         
-<xsl:message>CONTAINER MODE!!!</xsl:message>
-
         <div>
             <ul class="nav nav-tabs">
                 <li class="read-mode">
@@ -1001,7 +996,7 @@ version="2.0"
     <!-- trigger typeahead in the search bar -->
     
     <xsl:template match="input[@id = 'uri']" mode="ixsl:onkeyup" priority="1">
-        <xsl:param name="text" select="@prop:value" as="xs:string?"/>
+        <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>
@@ -1032,7 +1027,7 @@ version="2.0"
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:if test="$menu/li[tokenize(@class, ' ') = 'active']">
                     <!-- redirect to the resource URI selected in the typeahead -->
-                    <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/@prop:value" as="xs:anyURI"/>
+                    <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <xsl:call-template name="redirect">
                         <xsl:with-param name="uri" select="$resource-uri"/>
                     </xsl:call-template>
@@ -1049,7 +1044,7 @@ version="2.0"
                 </xsl:call-template>
             </xsl:when>
             <!-- ignore URIs in the input -->
-            <xsl:when test="@prop:value[not(starts-with(., 'http://'))][not(starts-with(., 'https://'))]">
+            <xsl:when test="not(starts-with(ixsl:get(., 'value'), 'http://')) and not(starts-with(ixsl:get(., 'value'), 'https://'))">
                 <ixsl:schedule-action wait="$delay">
                     <xsl:call-template name="typeahead:load-xml">
                         <xsl:with-param name="element" select="."/>
@@ -1071,7 +1066,7 @@ version="2.0"
     <!-- navbar search typeahead item selected -->
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']//ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:variable name="resource-uri" select="input[@name = 'ou']/@prop:value" as="xs:anyURI"/>
+        <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:call-template name="redirect">
             <xsl:with-param name="uri" select="$resource-uri"/>
@@ -1179,14 +1174,14 @@ version="2.0"
                 </xsl:when>
             </xsl:choose>
             
-            <ixsl:schedule-action wait="0">
+            <!--<ixsl:schedule-action wait="0">-->
                 <xsl:call-template name="render-chart">
                     <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
                 </xsl:call-template>
-            </ixsl:schedule-action>
+            <!--</ixsl:schedule-action>-->
         </xsl:if>
     </xsl:template>
 
@@ -1210,14 +1205,14 @@ version="2.0"
                 </xsl:when>
             </xsl:choose>
             
-            <ixsl:schedule-action wait="0">
+<!--            <ixsl:schedule-action wait="0">-->
                 <xsl:call-template name="render-chart">
                     <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
                 </xsl:call-template>
-            </ixsl:schedule-action>
+            <!--</ixsl:schedule-action>-->
         </xsl:if>
     </xsl:template>
     
@@ -1248,21 +1243,20 @@ version="2.0"
                 </xsl:when>
             </xsl:choose>
             
-            <ixsl:schedule-action wait="0">
+<!--            <ixsl:schedule-action wait="0">-->
                 <xsl:call-template name="render-chart">
                     <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
                 </xsl:call-template>
-            </ixsl:schedule-action>
+<!--            </ixsl:schedule-action>-->
         </xsl:if>
     </xsl:template>
     
     <!-- container mode tabs -->
     
     <xsl:template match="*[@id = 'container-pane']/div/ul[@class = 'nav nav-tabs']/li/a" mode="ixsl:onclick">
-<xsl:message>CONTAINER ONCLICK!</xsl:message>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
 
         <ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1346,7 +1340,7 @@ version="2.0"
         </xsl:for-each>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', $select-string)"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(@prop:value) ]), true() ]) ]) ])"/>
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
         <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = 'http://www.w3.org/2000/01/rdf-schema#Resource')])) then $select-builder else ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
@@ -1365,9 +1359,9 @@ version="2.0"
                 <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'active']">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
-                    <xsl:variable name="resource-uri" select="input[@name = 'ou']/@prop:value"/>
+                    <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
-                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
+                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')" as="document-node()"/>
                     <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
 
                     <xsl:for-each select="../..">
@@ -1378,11 +1372,11 @@ version="2.0"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <ixsl:schedule-action wait="0">
+<!--                    <ixsl:schedule-action wait="0">-->
                         <xsl:call-template name="resource-typeahead">
                             <xsl:with-param name="id" select="generate-id($resource)"/>
                         </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <!--</ixsl:schedule-action>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -1396,11 +1390,11 @@ version="2.0"
                 </xsl:call-template>
             </xsl:when>
             <!-- ignore URIs in the input -->
-            <xsl:when test="@prop:value[not(starts-with(., 'http://'))][not(starts-with(., 'https://'))]">
+            <xsl:when test="not(starts-with(ixsl:get(., 'value'), 'http://')) and not(starts-with(ixsl:get(., 'value'), 'https://'))">
                 <ixsl:schedule-action wait="$delay">
                     <xsl:call-template name="typeahead:load-xml">
                         <xsl:with-param name="element" select="."/>
-                        <xsl:with-param name="query" select="@prop:value"/>
+                        <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
                         <xsl:with-param name="js-function" select="$js-function"/>
                         <xsl:with-param name="callback" select="ixsl:get(ixsl:window(), 'onresourceTypeaheadCallback')"/>
@@ -1430,7 +1424,7 @@ version="2.0"
     </xsl:template>
     
     <xsl:template match="ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown">
-        <xsl:param name="resource-uri" select="input[@name = 'ou']/@prop:value"/>
+        <xsl:param name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')"/>
         <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
         <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
@@ -1443,11 +1437,11 @@ version="2.0"
             </xsl:result-document>
         </xsl:for-each>
 
-        <ixsl:schedule-action wait="0">
+        <!--<ixsl:schedule-action wait="0">-->
             <xsl:call-template name="resource-typeahead">
                 <xsl:with-param name="id" select="generate-id($resource)"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
 
     <xsl:template name="resource-typeahead">
@@ -1481,11 +1475,11 @@ version="2.0"
             </xsl:result-document>
         </xsl:for-each>
 
-        <ixsl:schedule-action wait="0">
+        <!--<ixsl:schedule-action wait="0">-->
             <xsl:call-template name="add-typeahead">
                 <xsl:with-param name="id" select="concat('input-', $uuid)"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
 
     <!-- special case for rdf:type lookups -->
@@ -1511,11 +1505,11 @@ version="2.0"
             </xsl:result-document>
         </xsl:for-each>
 
-        <ixsl:schedule-action wait="0">
+<!--        <ixsl:schedule-action wait="0">-->
             <xsl:call-template name="add-typeahead">
                 <xsl:with-param name="id" select="concat('input-', $uuid)"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
     
     <xsl:template name="add-typeahead">
@@ -1554,11 +1548,14 @@ version="2.0"
         <xsl:message>Action URI: <xsl:value-of select="$action"/></xsl:message>
 
         <xsl:for-each select="ixsl:page()//body">
-            <ixsl:set-attribute name="style:cursor" select="'progress'"/>
+            <ixsl:set-style name="cursor" select="'progress'"/>
         </xsl:for-each>
-        <xsl:message>
+<!--        <xsl:message>
             <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($action), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
-        </xsl:message>
+        </xsl:message>-->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onaddModalFormCallback"/>
+        </ixsl:schedule-action>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
@@ -1566,7 +1563,7 @@ version="2.0"
         <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
         
         <xsl:for-each select="ixsl:page()//body">
-            <ixsl:set-attribute name="style:cursor" select="'progress'"/>
+            <ixsl:set-style name="cursor" select="'progress'"/>
         </xsl:for-each>
         <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($graph-uri), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
     </xsl:template>
@@ -1635,13 +1632,13 @@ version="2.0"
 
     <!-- CALLBACKS -->
     
-    <xsl:template match="." mode="ixsl:ontypeTypeaheadCallback">
+    <xsl:template name="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="resolve-uri('ns/domain', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="." mode="ixsl:onresourceTypeaheadCallback">
+    <xsl:template name="ixsl:onresourceTypeaheadCallback">
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="target" select="ixsl:get($event, 'target')" as="element()"/>
@@ -1659,34 +1656,45 @@ version="2.0"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="." mode="ixsl:onaddModalFormCallback">
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
-        <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
-        <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-        <xsl:variable name="modal-div" as="element()">
-            <xsl:apply-templates select="$constructor-doc//xhtml:div[tokenize(@class, ' ') = 'modal-constructor']" mode="modal">
-                <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:variable name="form-id" select="$modal-div/xhtml:form/@id" as="xs:string"/>
+    <xsl:template name="onaddModalFormCallback">
+        <xsl:context-item as="map(*)" use="required"/>
 
-        <xsl:for-each select="ixsl:page()//body">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <!-- append modal div to body -->
-                <xsl:copy-of select="$modal-div"/>
-            </xsl:result-document>
-            
-            <ixsl:set-attribute name="style:cursor" select="'default'"/>
-        </xsl:for-each>
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="event" select="ixsl:event()"/>
+                    <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
+                    <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
+                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
+                    <xsl:variable name="modal-div" as="element()">
+                        <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="modal">
+                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>
 
-        <!-- add event listeners to the descendants of modal form -->
-        <ixsl:schedule-action wait="0">
-            <xsl:call-template name="add-form-listeners">
-                <xsl:with-param name="id" select="$form-id"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+                    <xsl:for-each select="ixsl:page()//body">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <!-- append modal div to body -->
+                            <xsl:copy-of select="$modal-div"/>
+                        </xsl:result-document>
+
+                        <ixsl:set-style name="cursor" select="'default'"/>
+                    </xsl:for-each>
+
+                    <!-- add event listeners to the descendants of modal form -->
+            <!--        <ixsl:schedule-action wait="0">-->
+                        <xsl:call-template name="add-form-listeners">
+                            <xsl:with-param name="id" select="$form-id"/>
+                        </xsl:call-template>
+                    <!--</ixsl:schedule-action>-->
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template match="." mode="ixsl:onaddValueCallback">
@@ -1696,7 +1704,7 @@ version="2.0"
         <xsl:variable name="forClass" select="$target/ancestor-or-self::button/@value" as="xs:anyURI"/>
         <xsl:variable name="button" select="id($target/ancestor-or-self::button/@id, ixsl:page())" as="element()"/>
         <xsl:variable name="template-doc" select="ixsl:get(ixsl:window(), 'rdfXml')" as="document-node()"/>
-        <xsl:variable name="selected-property" select="$button/../preceding-sibling::*/select/option[@prop:selected = true()]/@value" as="xs:anyURI"/>
+        <xsl:variable name="selected-property" select="$button/../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="for" select="generate-id($template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]/(@rdf:*[local-name() = ('resource', 'nodeID')], node())[1])" as="xs:string"/>
 
         <xsl:for-each select="$button">
@@ -1733,12 +1741,12 @@ version="2.0"
             </xsl:for-each>
 
             <!-- apply WYMEditor on textarea if object is XMLLiteral -->
-            <ixsl:schedule-action wait="0">
+<!--            <ixsl:schedule-action wait="0">-->
                 <xsl:call-template name="add-value-listeners">
                     <xsl:with-param name="id" select="$for"/>
                     <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
                 </xsl:call-template>
-            </ixsl:schedule-action>
+            <!--</ixsl:schedule-action>-->
         </xsl:for-each>
     </xsl:template>
 

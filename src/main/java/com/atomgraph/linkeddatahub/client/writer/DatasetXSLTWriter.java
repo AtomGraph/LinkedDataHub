@@ -73,7 +73,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-@Produces({MediaType.TEXT_HTML + ";charset=UTF-8"}) // MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8", 
+@Produces({MediaType.TEXT_HTML + ";charset=UTF-8", MediaType.APPLICATION_XHTML_XML + ";charset=UTF-8"})
 public class DatasetXSLTWriter extends com.atomgraph.client.writer.DatasetXSLTWriter
 {
     private static final Logger log = LoggerFactory.getLogger(DatasetXSLTWriter.class);

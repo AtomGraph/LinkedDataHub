@@ -129,13 +129,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.46-SNAPSHOT</version>
+            <version>2.1.48-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.46-SNAPSHOT</version>
+            <version>2.1.48-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>
@@ -312,7 +312,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <arguments>xslt3 -t -xsl:${project.build.directory}/${build.warName}${saxon-js.stylesheet} -export:${project.build.directory}/${build.warName}${saxon-js.stylesheet}.sef.json -nogo</arguments>
+                            <arguments>xslt3 -t -xsl:${project.build.directory}/${build.warName}${saxon-js.stylesheet} -export:${project.build.directory}/${build.warName}${saxon-js.stylesheet}.sef.json -nogo -ns:##html5</arguments>
                         </configuration>
                     </execution>
                 </executions>

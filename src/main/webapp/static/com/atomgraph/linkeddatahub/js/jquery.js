@@ -18,24 +18,24 @@ function loadRDFXML(event, url, callback)
     });
 }
 
-function loadXHTML(event, url, callback)
-{
-    $.ajax({url: url,
-        "headers": { "Accept": "text/html" }
-    }).
-    done(function(data, textStatus, jqXHR)
-    {
-        var parser = new DOMParser();
-        var html = parser.parseFromString(jqXHR.responseText, "text/html");
-        xslt2proc.setParameter(null, "constructor-doc", html);
-        callback(event); // TO-DO: replace with xslt2proc.updateHTMLDocument() ?
-    } ).
-    fail(function(jqXHR, textStatus, errorThrown)
-    {
-        var error = $($.parseXML(jqXHR.responseText)).find(".alert-error h2").text();
-        alert(errorThrown + "\n\n" + error);
-    });
-}
+//function loadXHTML(event, url, callback)
+//{
+//    $.ajax({url: url,
+//        "headers": { "Accept": "text/html" }
+//    }).
+//    done(function(data, textStatus, jqXHR)
+//    {
+//        var parser = new DOMParser();
+//        var html = parser.parseFromString(jqXHR.responseText, "text/html");
+//        xslt2proc.setParameter(null, "constructor-doc", html);
+//        callback(event); // TO-DO: replace with xslt2proc.updateHTMLDocument() ?
+//    } ).
+//    fail(function(jqXHR, textStatus, errorThrown)
+//    {
+//        var error = $($.parseXML(jqXHR.responseText)).find(".alert-error h2").text();
+//        alert(errorThrown + "\n\n" + error);
+//    });
+//}
 
 var onTypeaheadInputBlur = function()
 {

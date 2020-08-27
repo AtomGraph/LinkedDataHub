@@ -36,7 +36,8 @@ xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"
 extension-element-prefixes="ixsl"
-exclude-result-prefixes="#all">
+exclude-result-prefixes="#all"
+>
    
     <!-- FILTERS -->
     
@@ -251,22 +252,22 @@ exclude-result-prefixes="#all">
         
         <div id="{$canvas-id}"></div>
         
-        <ixsl:schedule-action wait="0">
+        <!--<ixsl:schedule-action wait="0">-->
             <xsl:call-template name="create-google-map">
                 <xsl:with-param name="map" select="ac:create-map('map-canvas', 56, 10, 4)"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
 
-        <ixsl:schedule-action wait="0">
+        <!--<ixsl:schedule-action wait="0">-->
             <xsl:call-template name="create-geo-object">
                 <!-- use container's SELECT query to build a geo query -->
                 <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, resolve-uri('sparql', $ldt:base), ixsl:get(ixsl:window(), 'LinkedDataHub.select-query'), 'thing')"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
 
-        <ixsl:schedule-action wait="0">
+        <!--<ixsl:schedule-action wait="0">-->
             <xsl:call-template name="add-geo-listener"/>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
 
     <xsl:function name="ac:create-map">
@@ -340,14 +341,14 @@ exclude-result-prefixes="#all">
         <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <ixsl:schedule-action wait="0">
+<!--        <ixsl:schedule-action wait="0">-->
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="canvas-id" select="$canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
@@ -554,9 +555,7 @@ exclude-result-prefixes="#all">
                                             <xsl:attribute name="selected">selected</xsl:attribute>
                                         </xsl:if>
                                         
-                                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label">
-                                            <xsl:sort select="ac:object-label(@rdf:resource)" order="ascending"/>
-                                        </xsl:apply-templates>
+                                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
                                     </option>
                                 </xsl:for-each-group>
                             </select>
@@ -580,9 +579,7 @@ exclude-result-prefixes="#all">
                                             <xsl:attribute name="selected">selected</xsl:attribute>
                                         </xsl:if>
                                         
-                                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label">
-                                            <xsl:sort select="ac:object-label(@rdf:resource)" order="ascending"/>
-                                        </xsl:apply-templates>
+                                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
                                     </option>
                                 </xsl:for-each-group>
                             </select>
@@ -659,7 +656,7 @@ exclude-result-prefixes="#all">
                 </fieldset>
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="submit">
-                        <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
                         </xsl:apply-templates>
                     </button>
@@ -690,14 +687,14 @@ exclude-result-prefixes="#all">
         <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <ixsl:schedule-action wait="0">
+<!--        <ixsl:schedule-action wait="0">-->
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="canvas-id" select="$canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
-        </ixsl:schedule-action>
+        <!--</ixsl:schedule-action>-->
     </xsl:template>
     
     <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
@@ -983,7 +980,7 @@ exclude-result-prefixes="#all">
                 </fieldset>
                 <div class="form-actions">
                     <button class="btn btn-primary btn-save-chart" type="submit">
-                        <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
                         </xsl:apply-templates>
                     </button>
@@ -997,7 +994,7 @@ exclude-result-prefixes="#all">
     <!-- filter onchange -->
     
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//input[@type = 'checkbox']" mode="ixsl:onchange">
-        <xsl:variable name="values" select="ancestor::ul//input[@name = 'Type'][@prop:checked = true()]/@prop:value" as="xs:string*"/>
+        <xsl:variable name="values" select="ancestor::ul//input[@name = 'Type'][ixsl:get(., 'checked') = true()]/ixsl:get(., 'value')" as="xs:string*"/>
         <xsl:choose>
             <!-- apply FILTER if any values were selected -->
             <xsl:when test="count($values) &gt; 0">

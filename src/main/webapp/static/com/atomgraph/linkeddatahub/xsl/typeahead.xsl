@@ -89,7 +89,7 @@ version="2.0"
         <xsl:param name="js-function" as="xs:string"/>
         <xsl:param name="callback"/>
         <!-- if the value hasn't changed during the delay -->
-        <xsl:if test="$query = $element/@prop:value">
+        <xsl:if test="$query = $element/ixsl:get(., 'value')">
             <xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>
         </xsl:if>
     </xsl:template>
@@ -130,7 +130,7 @@ version="2.0"
         
         <xsl:result-document href="#{$menu/@id}" method="ixsl:replace-content">
             <xsl:apply-templates select="$items" mode="ac:TypeaheadOptionMode">
-                <xsl:with-param name="query" select="$element/@prop:value"/>
+                <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
                 <xsl:with-param name="name" select="$name"/>
                 <xsl:sort select="rdfs:label[1]"/>
                 <xsl:sort select="dct:title[1]"/>
@@ -147,9 +147,9 @@ version="2.0"
         <xsl:param name="menu" as="element()"/>
         
         <xsl:for-each select="$menu">
-            <ixsl:set-attribute name="style:display" select="'block'"/>
-            <ixsl:set-attribute name="style:top" select="concat($element/@prop:offsetTop + $element/@prop:offsetHeight, 'px')"/>
-            <ixsl:set-attribute name="style:left" select="concat($element/@prop:offsetLeft, 'px')"/>
+            <ixsl:set-style name="display" select="'block'"/>
+            <ixsl:set-style name="top" select="concat($element/ixsl:get(., 'offsetTop') + $element/ixsl:get(., 'offsetHeight'), 'px')"/>
+            <ixsl:set-style name="left" select="concat($element/ixsl:get(., 'offsetLeft'), 'px')"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -157,7 +157,7 @@ version="2.0"
         <xsl:param name="menu" as="element()"/>
 
         <xsl:for-each select="$menu">
-            <ixsl:set-attribute name="style:display" select="'none'"/>
+            <ixsl:set-style name="display" select="'none'"/>
         </xsl:for-each>
     </xsl:template>
     
