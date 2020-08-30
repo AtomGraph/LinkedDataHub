@@ -50,7 +50,7 @@ xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:skos="&skos;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-exclude-result-prefixes="xs prop"
+exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
 
@@ -454,11 +454,9 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:for-each>
 
-<!--        <ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="add-form-listeners">
-                <xsl:with-param name="id" select="$form-id"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
+        <xsl:call-template name="add-form-listeners">
+            <xsl:with-param name="id" select="$form-id"/>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template match="/" mode="CreatedMode">
@@ -645,26 +643,23 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-<!--                    <ixsl:schedule-action wait="0">-->
-                        <xsl:call-template name="render-container">
-                            <xsl:with-param name="results" select="."/>
-                        </xsl:call-template>
-<!--                    </ixsl:schedule-action>-->
+                    <xsl:call-template name="render-container">
+                        <xsl:with-param name="results" select="."/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
-<!--                <ixsl:schedule-action wait="0">-->
-                    <xsl:call-template name="render-container-error">
-                        <xsl:with-param name="message" select="?message"/>
-                    </xsl:call-template>
-<!--                </ixsl:schedule-action>-->
+                <xsl:call-template name="render-container-error">
+                    <xsl:with-param name="message" select="?message"/>
+                </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
     <xsl:template name="render-container">
         <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
 
         <!-- remove container progress bar -->
         <xsl:for-each select="id('progress-bar', ixsl:page())">
@@ -699,6 +694,39 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
+
+        <!-- after we've created the map or chart container element, create the JS objects using it -->
+        <xsl:if test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
+            <!-- TO-DO: check if window.LinkedDataHub.map already exists? -->
+            <xsl:call-template name="create-google-map">
+                <xsl:with-param name="map" select="ac:create-map('map-canvas', 56, 10, 4)"/>
+            </xsl:call-template>
+
+            <xsl:call-template name="create-geo-object">
+                <!-- use container's SELECT query to build a geo query -->
+                <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, resolve-uri('sparql', $ldt:base), ixsl:get(ixsl:window(), 'LinkedDataHub.select-query'), 'thing')"/>
+            </xsl:call-template>
+
+            <xsl:call-template name="add-geo-listener"/>
+        </xsl:if>
+        <xsl:if test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
+            <xsl:variable name="canvas-id" select="'chart-canvas'" as="xs:string"/>
+            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+            <xsl:variable name="category" as="xs:string?"/>
+            <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        
+            <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template name="render-container-error">
@@ -902,7 +930,6 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="?status = 200">
-                <!--<xsl:variable name="results" select="ixsl:get($detail, 'body')" as="document-node()"/>-->
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
@@ -999,10 +1026,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>
+        <!--<xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>-->
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
-        <xsl:param name="callback" select="'onresourceTypeaheadCallback'" as="xs:string"/>
+        <!--<xsl:param name="callback" select="'onresourceTypeaheadCallback'" as="xs:string"/>-->
         <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
@@ -1050,8 +1077,8 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="$text"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
-                        <xsl:with-param name="js-function" select="$js-function"/>
-                        <xsl:with-param name="callback" select="ixsl:get(ixsl:window(), 'onresourceTypeaheadCallback')"/>
+                        <!--<xsl:with-param name="js-function" select="$js-function"/>-->
+                        <!--<xsl:with-param name="callback" select="apl:resource-typeahead-callback#3"/>-->
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -1174,14 +1201,12 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
             </xsl:choose>
             
-            <!--<ixsl:schedule-action wait="0">-->
-                <xsl:call-template name="render-chart">
-                    <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
-                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                    <xsl:with-param name="category" select="$category"/>
-                    <xsl:with-param name="series" select="$series"/>
-                </xsl:call-template>
-            <!--</ixsl:schedule-action>-->
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
         </xsl:if>
     </xsl:template>
 
@@ -1205,14 +1230,12 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
             </xsl:choose>
             
-<!--            <ixsl:schedule-action wait="0">-->
-                <xsl:call-template name="render-chart">
-                    <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
-                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                    <xsl:with-param name="category" select="$category"/>
-                    <xsl:with-param name="series" select="$series"/>
-                </xsl:call-template>
-            <!--</ixsl:schedule-action>-->
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
         </xsl:if>
     </xsl:template>
     
@@ -1243,14 +1266,12 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
             </xsl:choose>
             
-<!--            <ixsl:schedule-action wait="0">-->
-                <xsl:call-template name="render-chart">
-                    <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
-                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                    <xsl:with-param name="category" select="$category"/>
-                    <xsl:with-param name="series" select="$series"/>
-                </xsl:call-template>
-<!--            </ixsl:schedule-action>-->
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
         </xsl:if>
     </xsl:template>
     
@@ -1322,23 +1343,23 @@ extension-element-prefixes="ixsl"
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>
+        <!--<xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>-->
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
-        <xsl:param name="callback" select="'onresourceTypeaheadCallback'" as="xs:string"/>
+        <!--<xsl:param name="callback" select="'onresourceTypeaheadCallback'" as="xs:string"/>-->
         <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="value-uris" select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'of', [])"/>
-        <xsl:for-each select="$resource-types[not(. = '&rdfs;Resource')]">
+        <xsl:variable name="value-uris" select="array { $resource-types[not(. = '&rdfs;Resource')] }" as="array(xs:anyURI)"/>
+<!--        <xsl:for-each select="$resource-types[not(. = '&rdfs;Resource')]">
             <xsl:message>
                 <xsl:value-of select="ixsl:call($value-uris, 'push', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', current()))"/>
             </xsl:message>
-        </xsl:for-each>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', $select-string)"/>
+        </xsl:for-each>-->
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
@@ -1361,7 +1382,7 @@ extension-element-prefixes="ixsl"
                 
                     <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
-                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')" as="document-node()"/>
+                    <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/> <!-- set by typeahead:xml-loaded -->
                     <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
 
                     <xsl:for-each select="../..">
@@ -1372,11 +1393,9 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:for-each>
 
-<!--                    <ixsl:schedule-action wait="0">-->
-                        <xsl:call-template name="resource-typeahead">
-                            <xsl:with-param name="id" select="generate-id($resource)"/>
-                        </xsl:call-template>
-                    <!--</ixsl:schedule-action>-->
+                    <xsl:call-template name="resource-typeahead">
+                        <xsl:with-param name="id" select="generate-id($resource)"/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -1396,8 +1415,9 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
-                        <xsl:with-param name="js-function" select="$js-function"/>
-                        <xsl:with-param name="callback" select="ixsl:get(ixsl:window(), 'onresourceTypeaheadCallback')"/>
+<!--                        <xsl:with-param name="js-function" select="$js-function"/>-->
+<!--                        <xsl:with-param name="callback" select="ixsl:get(ixsl:window(), 'onresourceTypeaheadCallback')"/>-->
+                        <!--<xsl:with-param name="callback" select="apl:resource-typeahead-callback#3"/>-->
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -1423,10 +1443,12 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
+    <!-- select typeahead item -->
+    
     <xsl:template match="ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown">
         <xsl:param name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')"/>
         <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
-        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
+        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')"/>
         <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
 
         <xsl:for-each select="../..">
@@ -1437,11 +1459,9 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!--<ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="resource-typeahead">
-                <xsl:with-param name="id" select="generate-id($resource)"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
+        <xsl:call-template name="resource-typeahead">
+            <xsl:with-param name="id" select="generate-id($resource)"/>
+        </xsl:call-template>
     </xsl:template>
 
     <xsl:template name="resource-typeahead">
@@ -1475,11 +1495,9 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:for-each>
 
-        <!--<ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="add-typeahead">
-                <xsl:with-param name="id" select="concat('input-', $uuid)"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
+        <xsl:call-template name="add-typeahead">
+            <xsl:with-param name="id" select="concat('input-', $uuid)"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- special case for rdf:type lookups -->
@@ -1505,11 +1523,9 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:for-each>
 
-<!--        <ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="add-typeahead">
-                <xsl:with-param name="id" select="concat('input-', $uuid)"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
+        <xsl:call-template name="add-typeahead">
+            <xsl:with-param name="id" select="concat('input-', $uuid)"/>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template name="add-typeahead">
@@ -1638,24 +1654,6 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template name="ixsl:onresourceTypeaheadCallback">
-        <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="target" select="ixsl:get($event, 'target')" as="element()"/>
-        <xsl:variable name="menu" select="$target/following-sibling::ul" as="element()"/>
-        <!--<xsl:message>CALLBACK! Typeahead &lt;select&gt; @id: <xsl:value-of select="$menu/@id"/></xsl:message> -->
-
-        <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'rdfXml')"/>
-        
-        <xsl:call-template name="typeahead:process">
-            <xsl:with-param name="menu" select="$menu"/>
-            <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
-            <xsl:with-param name="items" select="$typeahead-doc/rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(core:stateOf)][not(core:viewOf)][not(dh:pageOf)][not(ldt:paramName)]"/>
-            <xsl:with-param name="element" select="$target"/>
-            <xsl:with-param name="name" select="'ou'"/>
-        </xsl:call-template>
-    </xsl:template>
-    
     <xsl:template name="onaddModalFormCallback">
         <xsl:context-item as="map(*)" use="required"/>
 
@@ -1684,11 +1682,9 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
 
                     <!-- add event listeners to the descendants of modal form -->
-            <!--        <ixsl:schedule-action wait="0">-->
-                        <xsl:call-template name="add-form-listeners">
-                            <xsl:with-param name="id" select="$form-id"/>
-                        </xsl:call-template>
-                    <!--</ixsl:schedule-action>-->
+                    <xsl:call-template name="add-form-listeners">
+                        <xsl:with-param name="id" select="$form-id"/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1703,7 +1699,7 @@ extension-element-prefixes="ixsl"
         <!-- ancestor-or-self axis needed because either <button> or its child <img> can be event target -->
         <xsl:variable name="forClass" select="$target/ancestor-or-self::button/@value" as="xs:anyURI"/>
         <xsl:variable name="button" select="id($target/ancestor-or-self::button/@id, ixsl:page())" as="element()"/>
-        <xsl:variable name="template-doc" select="ixsl:get(ixsl:window(), 'rdfXml')" as="document-node()"/>
+        <xsl:variable name="template-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
         <xsl:variable name="selected-property" select="$button/../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="for" select="generate-id($template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]/(@rdf:*[local-name() = ('resource', 'nodeID')], node())[1])" as="xs:string"/>
 
@@ -1741,12 +1737,10 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
 
             <!-- apply WYMEditor on textarea if object is XMLLiteral -->
-<!--            <ixsl:schedule-action wait="0">-->
-                <xsl:call-template name="add-value-listeners">
-                    <xsl:with-param name="id" select="$for"/>
-                    <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
-                </xsl:call-template>
-            <!--</ixsl:schedule-action>-->
+            <xsl:call-template name="add-value-listeners">
+                <xsl:with-param name="id" select="$for"/>
+                <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
+            </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
 

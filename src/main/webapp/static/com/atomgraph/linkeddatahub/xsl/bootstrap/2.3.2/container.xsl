@@ -38,9 +38,9 @@ xmlns:saxon="http://saxon.sf.net/"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
-   
+
     <!-- FILTERS -->
-    
+
     <xsl:template name="bs2:FilterIn">
         <div class="sidebar-nav faceted-nav">
             <h2 class="nav-header btn">Types</h2>
@@ -116,12 +116,12 @@ exclude-result-prefixes="#all"
             </ul>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- BLOCK LIST MODE -->
-    
+
     <xsl:template match="rdf:RDF" mode="bs2:BlockList" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-        
+
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))"/>
             <xsl:with-param name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))"/>
@@ -129,9 +129,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="desc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.desc')"/>
             <xsl:with-param name="result-count" select="$result-count"/>
         </xsl:call-template>
-            
+
         <xsl:next-match/>
-        
+
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))"/>
             <xsl:with-param name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))"/>
@@ -140,7 +140,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="result-count" select="$result-count"/>
         </xsl:call-template>
     </xsl:template>
-    
+
     <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:BlockList" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'well'" as="xs:string?"/>
@@ -154,17 +154,17 @@ exclude-result-prefixes="#all"
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:Actions"/>
-            
+
             <xsl:apply-templates select="." mode="bs2:TypeList"/>
-            
+
             <xsl:apply-templates select="." mode="apl:logo">
                 <xsl:with-param name="class" select="'well'"/>
             </xsl:apply-templates>
-                        
+
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
             <xsl:text> </xsl:text>
             <xsl:apply-templates select="." mode="xhtml:Anchor"/>
-            
+
             <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
                 <xsl:with-param name="class" select="'well well-small'"/>
             </xsl:apply-templates>
@@ -176,12 +176,12 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:BlockList" priority="0.8">
         <xsl:apply-templates select="." mode="bs2:Header"/>
     </xsl:template>
-    
+
     <!-- GRID MODE -->
-    
+
     <xsl:template match="rdf:RDF" mode="bs2:Grid" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-        
+
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))"/>
             <xsl:with-param name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))"/>
@@ -189,9 +189,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="desc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.desc')"/>
             <xsl:with-param name="result-count" select="$result-count"/>
         </xsl:call-template>
-        
+
         <xsl:next-match/>
-        
+
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))"/>
             <xsl:with-param name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))"/>
@@ -200,12 +200,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="result-count" select="$result-count"/>
         </xsl:call-template>
     </xsl:template>
-    
+
     <!-- TABLE MODE -->
-    
+
     <xsl:template match="rdf:RDF" mode="xhtml:Table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
-        
+
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))"/>
             <xsl:with-param name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))"/>
@@ -213,9 +213,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="desc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.desc')"/>
             <xsl:with-param name="result-count" select="$result-count"/>
         </xsl:call-template>
-        
+
         <xsl:next-match/>
-        
+
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))"/>
             <xsl:with-param name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))"/>
@@ -224,7 +224,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="result-count" select="$result-count"/>
         </xsl:call-template>
     </xsl:template>
-    
+
     <!-- GRAPH MODE -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Graph">
@@ -234,10 +234,10 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="spring-length" select="100" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
-    
+
     <!-- do not show system named graph resources with provenance metadata as SVG nodes, also hide links to them -->
     <xsl:template match="*[starts-with(@rdf:about, resolve-uri('graphs/', xs:string($ldt:base)))] | void:inDataset[starts-with(@rdf:resource, resolve-uri('graphs/', xs:string($ldt:base)))] | @rdf:resource[starts-with(., resolve-uri('graphs/', xs:string($ldt:base)))]" mode="ac:SVG" priority="1"/>
-    
+
     <!-- MAP MODE -->
 
     <!-- TO-DO: improve match pattern -->
@@ -246,28 +246,11 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="container-uri" select="()"/>
         </xsl:next-match>
     </xsl:template>
-    
+
     <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
-        
+
         <div id="{$canvas-id}"></div>
-        
-        <!--<ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="create-google-map">
-                <xsl:with-param name="map" select="ac:create-map('map-canvas', 56, 10, 4)"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
-
-        <!--<ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="create-geo-object">
-                <!-- use container's SELECT query to build a geo query -->
-                <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, resolve-uri('sparql', $ldt:base), ixsl:get(ixsl:window(), 'LinkedDataHub.select-query'), 'thing')"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
-
-        <!--<ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="add-geo-listener"/>
-        <!--</ixsl:schedule-action>-->
     </xsl:template>
 
     <xsl:function name="ac:create-map">
@@ -281,10 +264,10 @@ exclude-result-prefixes="#all"
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
-    
+
     <xsl:template name="create-google-map">
         <xsl:param name="map"/>
-        
+
         <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
 
@@ -306,10 +289,10 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="create-geo-object">
         <xsl:param name="geo"/>
-        
+
         <ixsl:set-property name="geo" select="$geo" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
-    
+
     <xsl:template name="add-geo-listener">
         <xsl:variable name="js-statement" as="element()">
             <root statement="window.LinkedDataHub.map.addListener('idle', function() {{ window.LinkedDataHub.geo.loadMarkers(window.LinkedDataHub.geo.addMarkers); }})"/> <!-- use template literal because the query string is multi-line -->
@@ -335,22 +318,8 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
 
         <div id="{$canvas-id}"></div>
-        
-        <ixsl:set-property name="data-table" select="ac:rdf-data-table(root(.), $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-<!--        <ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="render-chart">
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
     </xsl:template>
-    
+
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
@@ -450,15 +419,15 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;endpoint'"/>
                             </xsl:call-template>
-                    
+
                             <label for="endpoint-uri">Endpoint</label>
                             <xsl:text> </xsl:text>
                                 <select id="endpoint-uri" name="ou" class="input-xxlarge">
                                     <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
-                                    
+
                                     <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
                                         <xsl:sort select="ac:label(.)"/>
-                                        
+
                                         <xsl:apply-templates select="." mode="xhtml:Option">
                                             <xsl:with-param name="value" select="sd:endpoint/@rdf:resource"/>
                                             <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
@@ -470,7 +439,7 @@ exclude-result-prefixes="#all"
                                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                                 <xsl:call-template name="onchartModeServiceLoad"/>
                                             </ixsl:schedule-action>
-                                        </xsl:message> 
+                                        </xsl:message>
                                     </xsl:if>
                             </select>
                         </div>
@@ -482,7 +451,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;chartType'"/>
                             </xsl:call-template>
-                
+
                             <label for="{$chart-type-id}">
                                 <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
@@ -494,35 +463,35 @@ exclude-result-prefixes="#all"
                                     <xsl:if test="$chart-type = '&ac;Table'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Table</xsl:text>
                                 </option>
                                 <option value="&ac;ScatterChart">
                                     <xsl:if test="$chart-type = '&ac;ScatterChart'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Scatter chart</xsl:text>
                                 </option>
                                 <option value="&ac;LineChart">
                                     <xsl:if test="$chart-type = '&ac;LineChart'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Line chart</xsl:text>
                                 </option>
                                 <option value="&ac;BarChart">
                                     <xsl:if test="$chart-type = '&ac;BarChart'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Bar chart</xsl:text>
                                 </option>
                                 <option value="&ac;Timeline">
                                     <xsl:if test="$chart-type = '&ac;Timeline'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Timeline</xsl:text>
                                 </option>
                             </select>
@@ -533,7 +502,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;categoryProperty'"/>
                             </xsl:call-template>
-                            
+
                             <label for="{$category-id}">Category</label>
                             <br/>
                             <select id="{$category-id}" name="ou" class="input-large">
@@ -554,7 +523,7 @@ exclude-result-prefixes="#all"
                                         <xsl:if test="$category = current-grouping-key()">
                                             <xsl:attribute name="selected">selected</xsl:attribute>
                                         </xsl:if>
-                                        
+
                                         <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
                                     </option>
                                 </xsl:for-each-group>
@@ -566,7 +535,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;seriesProperty'"/>
                             </xsl:call-template>
-                            
+
                             <label for="{$series-id}">Series</label>
                             <br/>
                             <select id="{$series-id}" name="ou" multiple="multiple" class="input-large">
@@ -578,7 +547,7 @@ exclude-result-prefixes="#all"
                                         <xsl:if test="$series = current-grouping-key()">
                                             <xsl:attribute name="selected">selected</xsl:attribute>
                                         </xsl:if>
-                                        
+
                                         <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
                                     </option>
                                 </xsl:for-each-group>
@@ -666,7 +635,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- table chart (for SPARQL XML results) -->
-    
+
     <xsl:template match="srx:sparql" mode="bs2:Chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -681,22 +650,8 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
 
         <div id="{$canvas-id}"></div>
-        
-        <ixsl:set-property name="data-table" select="ac:sparql-results-data-table(root(.), $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-<!--        <ixsl:schedule-action wait="0">-->
-            <xsl:call-template name="render-chart">
-                <xsl:with-param name="canvas-id" select="$canvas-id"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
-        <!--</ixsl:schedule-action>-->
     </xsl:template>
-    
+
     <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
@@ -788,7 +743,7 @@ exclude-result-prefixes="#all"
                         <xsl:with-param name="type" select="'hidden'"/>
                         <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
                     </xsl:call-template>
-                    
+
 <!--                    <div class="row-fluid">
                         <div class="span12">
                             <xsl:call-template name="xhtml:Input">
@@ -796,15 +751,15 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;endpoint'"/>
                             </xsl:call-template>
-                    
+
                             <label for="endpoint-uri">Endpoint</label>
                             <xsl:text> </xsl:text>
                                 <select id="endpoint-uri" name="ou" class="input-xxlarge">
                                     <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
-                                    
+
                                     <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
                                         <xsl:sort select="ac:label(.)"/>
-                                        
+
                                         <xsl:apply-templates select="." mode="xhtml:Option">
                                             <xsl:with-param name="value" select="sd:endpoint/@rdf:resource"/>
                                             <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
@@ -816,7 +771,7 @@ exclude-result-prefixes="#all"
                                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                                 <xsl:call-template name="onchartModeServiceLoad"/>
                                             </ixsl:schedule-action>
-                                        </xsl:message> 
+                                        </xsl:message>
                                     </xsl:if>
                             </select>
                         </div>
@@ -828,7 +783,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;chartType'"/>
                             </xsl:call-template>
-                
+
                             <label for="{$chart-type-id}">
                                 <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
@@ -839,35 +794,35 @@ exclude-result-prefixes="#all"
                                     <xsl:if test="$chart-type = '&ac;Table'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Table</xsl:text>
                                 </option>
                                 <option value="&ac;ScatterChart">
                                     <xsl:if test="$chart-type = '&ac;ScatterChart'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Scatter chart</xsl:text>
                                 </option>
                                 <option value="&ac;LineChart">
                                     <xsl:if test="$chart-type = '&ac;LineChart'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Line chart</xsl:text>
                                 </option>
                                 <option value="&ac;BarChart">
                                     <xsl:if test="$chart-type = '&ac;BarChart'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Bar chart</xsl:text>
                                 </option>
                                 <option value="&ac;Timeline">
                                     <xsl:if test="$chart-type = '&ac;Timeline'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
                                     </xsl:if>
-                                    
+
                                     <xsl:text>Timeline</xsl:text>
                                 </option>
                             </select>
@@ -878,7 +833,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;categoryVarName'"/>
                             </xsl:call-template>
-                            
+
                             <label for="{$category-id}">Category</label>
                             <br/>
                             <select id="{$category-id}" name="ol" class="input-large">
@@ -901,7 +856,7 @@ exclude-result-prefixes="#all"
                                 <xsl:with-param name="type" select="'hidden'"/>
                                 <xsl:with-param name="value" select="'&apl;seriesVarName'"/>
                             </xsl:call-template>
-                                
+
                             <label for="{$series-id}">Series</label>
                             <br/>
                             <select id="{$series-id}" name="ol" multiple="multiple" class="input-large">
@@ -988,11 +943,11 @@ exclude-result-prefixes="#all"
             </form>
         </xsl:if>
     </xsl:template>
-    
+
     <!-- EVENT LISTENERS -->
-    
+
     <!-- filter onchange -->
-    
+
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//input[@type = 'checkbox']" mode="ixsl:onchange">
         <xsl:variable name="values" select="ancestor::ul//input[@name = 'Type'][ixsl:get(., 'checked') = true()]/ixsl:get(., 'value')" as="xs:string*"/>
         <xsl:choose>
@@ -1018,7 +973,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
 
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                
+
                 <xsl:message>
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContainerResultsLoad"/>
@@ -1036,7 +991,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
 
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                
+
                 <xsl:message>
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContainerResultsLoad"/>
@@ -1045,5 +1000,5 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
+
 </xsl:stylesheet>

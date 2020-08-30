@@ -29,7 +29,7 @@ xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
-exclude-result-prefixes="xs prop"
+exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 version="2.0"
 >
@@ -86,14 +86,53 @@ version="2.0"
         <xsl:param name="element" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
-        <xsl:param name="js-function" as="xs:string"/>
-        <xsl:param name="callback"/>
+        <!--<xsl:param name="js-function" as="xs:string"/>-->
+        <!--<xsl:param name="callback" as="function(*)"/>-->
+        
         <!-- if the value hasn't changed during the delay -->
         <xsl:if test="$query = $element/ixsl:get(., 'value')">
-            <xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>
+            <!--<xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>-->
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="typeahead:xml-loaded">
+                    <!--<xsl:with-param name="action" select="$callback" as="function(*)" />-->
+                    <xsl:with-param name="element" select="$element" as="element()"/>
+                    <xsl:with-param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:if>
     </xsl:template>
 
+    <xsl:template name="typeahead:xml-loaded">
+        <xsl:context-item as="map(*)" use="required"/>
+        
+        <xsl:param name="element" as="element()"/>
+        <xsl:param name="container-uri" as="xs:anyURI"/>
+        
+        <xsl:variable name="menu" select="$element/following-sibling::ul" as="element()"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200">
+                <xsl:for-each select="?body">
+                    <xsl:if test="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.typeahead'))">
+                        <ixsl:set-property name="LinkedDataHub.typeahead" select="array {}"/> <!-- empty array -->
+                    </xsl:if>
+                    <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
+
+                    <xsl:call-template name="typeahead:process">
+                        <xsl:with-param name="menu" select="$menu"/>
+                        <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
+                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(core:stateOf)][not(core:viewOf)][not(dh:pageOf)][not(ldt:paramName)]"/>
+                        <xsl:with-param name="element" select="$element"/>
+                        <xsl:with-param name="name" select="'ou'"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <xsl:template name="typeahead:process">
         <xsl:param name="menu" as="element()"/>
         <xsl:param name="items" as="element()*"/>
