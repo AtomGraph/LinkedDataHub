@@ -331,9 +331,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <!-- table is the default chart type -->
-        <xsl:param name="chart-type" select="if (ac:query-param('chart-type')) then xs:anyURI(ac:query-param('chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-        <xsl:param name="category" select="ac:query-param('category')" as="xs:string?"/>
-        <xsl:param name="series" select="ac:query-param('series')" as="xs:string*"/>
+        <xsl:param name="chart-type" select="if (ixsl:query-params()?chart-type) then xs:anyURI(ixsl:query-params()?chart-type) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" select="ixsl:query-params()?category" as="xs:string?"/>
+        <xsl:param name="series" select="ixsl:query-params()?series" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
@@ -341,7 +341,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="height" select="'480'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <!-- <xsl:param name="mode" as="xs:anyURI*"/> -->
-        <xsl:param name="endpoint" select="xs:anyURI(ac:query-param('endpoint'))" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" select="xs:anyURI(ixsl:query-params()?endpoint)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
 
@@ -663,9 +663,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <!-- table is the default chart type -->
-        <xsl:param name="chart-type" select="if (ac:query-param('chart-type')) then xs:anyURI(ac:query-param('chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-        <xsl:param name="category" select="ac:query-param('category')" as="xs:string?"/>
-        <xsl:param name="series" select="ac:query-param('series')" as="xs:string*"/>
+        <xsl:param name="chart-type" select="if (ixsl:query-params()?chart-type) then xs:anyURI(ixsl:query-params()?chart-type) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" select="ixsl:query-params()?category" as="xs:string?"/>
+        <xsl:param name="series" select="ixsl:query-params()?series" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
@@ -673,7 +673,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="height" select="'480'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="endpoint" select="xs:anyURI(ac:query-param('endpoint'))" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" select="xs:anyURI(ixsl:query-params()?endpoint)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
 

@@ -30,6 +30,7 @@ xmlns:prop="http://saxonica.com/ns/html-property"
 xmlns:style="http://saxonica.com/ns/html-style-property"
 xmlns:js="http://saxonica.com/ns/globalJS"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:typeahead="&typeahead;"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
@@ -74,13 +75,13 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:base" select="xs:anyURI($base-uri-string)" as="xs:anyURI"/>
     <xsl:param name="ontology-uri-string" as="xs:string"/>
     <xsl:param name="ldt:ontology" select="xs:anyURI($ontology-uri-string)" as="xs:anyURI"/>
-    <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/> <!-- ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'document'), 'documentElement'), 'lang') -->
+    <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <!-- this is the document URI as absolute path - hash and query string are removed -->
     <xsl:param name="ac:uri" as="xs:anyURI">
         <xsl:choose>
             <!-- override with ?uri= query param value, if any -->
-            <xsl:when test="ac:query-param('uri')">
-                <xsl:sequence select="xs:anyURI(ac:query-param('uri'))"/>
+            <xsl:when test="ixsl:query-params()?uri">
+                <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- remove #hash part, if any -->
@@ -93,13 +94,13 @@ extension-element-prefixes="ixsl"
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
 <!--    <xsl:param name="ac:sitemap" as="document-node()?"/>-->
-    <xsl:param name="ac:endpoint" select="if (ac:query-param('endpoint')) then xs:anyURI(ac:query-param('endpoint')) else ()" as="xs:anyURI?"/>
-    <xsl:param name="ac:limit" select="if (ac:query-param('limit')) then xs:integer(ac:query-param('limit')) else $page-size" as="xs:integer"/>
-    <xsl:param name="ac:offset" select="if (ac:query-param('offset')) then xs:integer(ac:query-param('offset')) else 0" as="xs:integer"/>
-    <xsl:param name="ac:order-by" select="ac:query-param('order-by')" as="xs:string?"/>
-    <xsl:param name="ac:desc" select="xs:boolean(ixsl:call(ac:query-params(), 'has', [ 'desc' ]))" as="xs:boolean?"/>
-    <xsl:param name="ac:mode" select="if (ac:query-param('mode')) then xs:anyURI(ac:query-param('mode')) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
-    <xsl:param name="ac:container-mode" select="if (ac:query-param('container-mode')) then xs:anyURI(ac:query-param('container-mode')) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
+    <xsl:param name="ac:endpoint" select="if (ixsl:query-params()?endpoint) then xs:anyURI(ixsl:query-params()?endpoint) else ()" as="xs:anyURI?"/>
+    <xsl:param name="ac:limit" select="if (ixsl:query-params()?limit) then xs:integer(ixsl:query-params()?limit) else $page-size" as="xs:integer"/>
+    <xsl:param name="ac:offset" select="if (ixsl:query-params()?offset) then xs:integer(ixsl:query-params()?offset) else 0" as="xs:integer"/>
+    <xsl:param name="ac:order-by" select="ixsl:query-params()?order-by" as="xs:string?"/>
+    <xsl:param name="ac:desc" select="map:contains(ixsl:query-params(), 'desc')" as="xs:boolean?"/>
+    <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
+    <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="default-order-by" select="'title'" as="xs:string?"/>
 
@@ -251,15 +252,6 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
 
-    <xsl:function name="ac:query-params">
-        <xsl:sequence select="ixsl:get(ac:new-url(xs:anyURI(ixsl:get(ixsl:get(ixsl:window(), 'location'), 'href'))), 'searchParams')"/>
-    </xsl:function>
-    
-    <xsl:function name="ac:query-param" as="xs:string?">
-        <xsl:param name="name" as="xs:string"/>
-        <xsl:sequence select="ixsl:call(ac:query-params(), 'get', [ $name ] )"/>
-    </xsl:function>
-    
     <xsl:function name="ac:build-describe" as="xs:string">
         <xsl:param name="select-string" as="xs:string"/> <!-- already with ?this value set -->
         <xsl:param name="limit" as="xs:integer?"/>
