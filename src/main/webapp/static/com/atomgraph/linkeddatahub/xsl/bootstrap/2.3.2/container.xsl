@@ -953,13 +953,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- apply FILTER if any values were selected -->
             <xsl:when test="count($values) &gt; 0">
-                <!-- build an array of SPARQL.js URIs from string values -->
-                <xsl:variable name="value-uris" select="ixsl:call(ixsl:get(ixsl:window(), 'Array'), 'of', [])"/>
-                <xsl:for-each select="$values">
-                    <xsl:message>
-                        <xsl:value-of select="ixsl:call($value-uris, 'push', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', [ current() ]) ])"/>
-                    </xsl:message>
-                </xsl:for-each>
+                <xsl:variable name="value-uris" select="array { $values }" as="array(xs:anyURI)"/>
                 <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString',  [ $select-string ])"/>
                 <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
