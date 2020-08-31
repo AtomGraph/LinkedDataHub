@@ -300,9 +300,9 @@ exclude-result-prefixes="#all">
                           initialTemplate: "main",
                           logLevel: 10,
                           stylesheetParams: {
-                                "context-uri-string": contextUri, // servlet context URI
-                                "base-uri-string": baseUri,
-                                "ontology-uri-string": ontologyUri
+                                "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
+                                "Q{https://www.w3.org/ns/ldt#}base": baseUri,
+                                "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri
                                 }
                        }, "async");
                     }

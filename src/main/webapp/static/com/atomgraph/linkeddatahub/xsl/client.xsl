@@ -69,12 +69,9 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/sparql.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
-    <xsl:param name="context-uri-string" as="xs:string"/>
-    <xsl:param name="ac:contextUri" select="xs:anyURI($context-uri-string)" as="xs:anyURI"/>
-    <xsl:param name="base-uri-string" as="xs:string"/>
-    <xsl:param name="ldt:base" select="xs:anyURI($base-uri-string)" as="xs:anyURI"/>
-    <xsl:param name="ontology-uri-string" as="xs:string"/>
-    <xsl:param name="ldt:ontology" select="xs:anyURI($ontology-uri-string)" as="xs:anyURI"/>
+    <xsl:param name="ac:contextUri" as="xs:anyURI"/>
+    <xsl:param name="ldt:base" as="xs:anyURI"/>
+    <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <!-- this is the document URI as absolute path - hash and query string are removed -->
     <xsl:param name="ac:uri" as="xs:anyURI">
@@ -1018,10 +1015,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <!--<xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>-->
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
-        <!--<xsl:param name="callback" select="'onresourceTypeaheadCallback'" as="xs:string"/>-->
         <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
@@ -1335,10 +1330,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <!--<xsl:param name="js-function" select="'loadRDFXML'" as="xs:string"/>-->
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
-        <!--<xsl:param name="callback" select="'onresourceTypeaheadCallback'" as="xs:string"/>-->
         <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
@@ -1346,11 +1339,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="limit" select="100" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <xsl:variable name="value-uris" select="array { $resource-types[not(. = '&rdfs;Resource')] }" as="array(xs:anyURI)"/>
-<!--        <xsl:for-each select="$resource-types[not(. = '&rdfs;Resource')]">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call($value-uris, 'push', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', current()))"/>
-            </xsl:message>
-        </xsl:for-each>-->
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>
@@ -1407,9 +1395,6 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
-<!--                        <xsl:with-param name="js-function" select="$js-function"/>-->
-<!--                        <xsl:with-param name="callback" select="ixsl:get(ixsl:window(), 'onresourceTypeaheadCallback')"/>-->
-                        <!--<xsl:with-param name="callback" select="apl:resource-typeahead-callback#3"/>-->
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
