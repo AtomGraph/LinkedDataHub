@@ -1540,9 +1540,8 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="action" select="input[@class = 'action']/@value" as="xs:anyURI"/>
         <xsl:message>Action URI: <xsl:value-of select="$action"/></xsl:message>
 
-        <xsl:for-each select="ixsl:page()//body">
-            <ixsl:set-style name="cursor" select="'progress'"/>
-        </xsl:for-each>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
 <!--        <xsl:message>
             <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($action), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
         </xsl:message>-->
@@ -1555,10 +1554,12 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
         
-        <xsl:for-each select="ixsl:page()//body">
-            <ixsl:set-style name="cursor" select="'progress'"/>
-        </xsl:for-each>
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($graph-uri), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+<!--        <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($graph-uri), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>-->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onaddModalFormCallback"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template match="div[tokenize(@class, ' ') = 'modal']//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
