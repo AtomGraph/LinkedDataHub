@@ -98,10 +98,10 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     public Response options()
     {
         ResponseBuilder rb = Response.ok().
-            header("Allow", HttpMethod.GET).
-            header("Allow", HttpMethod.POST).
-            header("Allow", HttpMethod.PUT).
-            header("Allow", HttpMethod.DELETE);
+            header(HttpHeaders.ALLOW, HttpMethod.GET).
+            header(HttpHeaders.ALLOW, HttpMethod.POST).
+            header(HttpHeaders.ALLOW, HttpMethod.PUT).
+            header(HttpHeaders.ALLOW, HttpMethod.DELETE);
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);

@@ -69,6 +69,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
+import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDDelegationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
@@ -592,6 +593,7 @@ public class Application extends ResourceConfig
         register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
+        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes (X)HTML responses
         register(new DatasetXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes XHTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
