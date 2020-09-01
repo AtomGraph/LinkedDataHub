@@ -39,8 +39,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     
-//    private final Application application;
-//    private final SecurityContext securityContext;
     private final URI rootContextURI;
     private final URI baseURI;
     private final String authScheme;
@@ -61,14 +59,10 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     
     public DataManagerImpl(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
-//            Application application,
-//            SecurityContext securityContext,
             URI rootContextURI, URI baseURI,
             String authScheme, Agent agent)
     {
         super(mapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
-//        this.application = application;
-//        this.securityContext = securityContext;
         this.rootContextURI = rootContextURI;
         this.baseURI = baseURI;
         this.authScheme = authScheme;
@@ -147,16 +141,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         
         return endpoint;
     }
-
-//    public Application getApplication()
-//    {
-//        return application;
-//    }
-//    
-//    public SecurityContext getSecurityContext()
-//    {
-//        return securityContext;
-//    }
 
     public URI getRootContextURI()
     {

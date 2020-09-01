@@ -160,10 +160,13 @@ import java.util.Optional;
 import java.util.TreeMap;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.xml.transform.TransformerException;
+import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
+import nu.xom.XPathException;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -174,12 +177,14 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
+import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -429,7 +434,6 @@ public class Application extends ResourceConfig
         LocationMapper.setGlobalLocationMapper(locationMapper);
         if (log.isTraceEnabled()) log.trace("LocationMapper.get(): {}", locationMapper);
         
-        
         try
         {
             keyStore = KeyStore.getInstance("PKCS12");
@@ -501,7 +505,29 @@ public class Application extends ResourceConfig
             
             xsltProc.registerExtensionFunction(new UUID());
             xsltProc.registerExtensionFunction(new ConstructDocument(xsltProc));
-
+            
+            Model mappingModel = locationMapper.toModel();
+            ResIterator altLocationIt = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
+            try
+            {
+                while (altLocationIt.hasNext())
+                {
+                    Resource altLocation = altLocationIt.next();
+                    String prefix = altLocation.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
+                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
+                }
+            }
+            catch (XPathException | TransformerException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
+                throw new WebApplicationException(ex);
+            }
+            finally
+            {
+                altLocationIt.close();
+            }
+            
             xsltComp = xsltProc.newXsltCompiler();
             xsltExec = xsltComp.compile(stylesheet);
         }
@@ -545,7 +571,7 @@ public class Application extends ResourceConfig
             if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
             throw new WebApplicationException(ex);
         }
-
+        
         rdfsReasonerSpec.setImportModelGetter(dataManager);
         OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
