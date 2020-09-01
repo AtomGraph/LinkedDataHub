@@ -1294,7 +1294,8 @@ extension-element-prefixes="ixsl"
 
         <!-- descrease OFFSET to get the previous page -->
         <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
-        <ixsl:set-property name="offset" select="$offset - $page-size" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:variable name="offset" select="$offset - $page-size" as="xs:integer"/>
+        <ixsl:set-property name="offset" select="$offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
         <!-- <xsl:variable name="order-by" select="if ($ac:order-by) then $ac:order-by else if (ixsl:call($select-builder, 'isProjected', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $default-order-by))) then $default-order-by else ()" as="xs:string?"/> -->
@@ -1315,7 +1316,8 @@ extension-element-prefixes="ixsl"
 
         <!-- increase OFFSET to get the next page -->
         <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
-        <ixsl:set-property name="offset" select="$offset + $page-size" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:variable name="offset" select="$offset + $page-size" as="xs:integer"/>
+        <ixsl:set-property name="offset" select="$offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
         <!-- <xsl:variable name="order-by" select="if ($ac:order-by) then $ac:order-by else if (ixsl:call($select-builder, 'isProjected', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $default-order-by))) then $default-order-by else ()" as="xs:string?"/> -->
