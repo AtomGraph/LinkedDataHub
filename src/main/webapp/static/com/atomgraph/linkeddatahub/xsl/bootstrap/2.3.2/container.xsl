@@ -344,6 +344,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" select="xs:anyURI(ixsl:query-params()?endpoint)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-save" select="ixsl:contains(ixsl:window(), 'LinkedDataHub.select-uri')" as="xs:boolean"/>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -361,56 +362,58 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <fieldset>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'rdf'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'sb'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'chart'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&rdf;type'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="$type"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&spin;query'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-uri')"/> <!-- SELECT URI -->
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ob'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'this'"/>
-                    </xsl:call-template>
+                    <xsl:if test="$show-save">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'rdf'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'sb'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'chart'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&rdf;type'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="$type"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&spin;query'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-uri')"/> <!-- SELECT URI -->
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ob'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'this'"/>
+                        </xsl:call-template>
 
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&apl;endpoint'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
-                    </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&apl;endpoint'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
+                        </xsl:call-template>
+                    </xsl:if>
 
 <!--                    <div class="row-fluid">
                         <div class="span12">
@@ -446,11 +449,13 @@ exclude-result-prefixes="#all"
                     </div>-->
                     <div class="row-fluid">
                         <div class="span4">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;chartType'"/>
-                            </xsl:call-template>
+                            <xsl:if test="$show-save">
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'pu'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="'&apl;chartType'"/>
+                                </xsl:call-template>
+                            </xsl:if>
 
                             <label for="{$chart-type-id}">
                                 <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
@@ -497,11 +502,13 @@ exclude-result-prefixes="#all"
                             </select>
                         </div>
                         <div class="span4">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;categoryProperty'"/>
-                            </xsl:call-template>
+                            <xsl:if test="$show-save">
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'pu'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="'&apl;categoryProperty'"/>
+                                </xsl:call-template>
+                            </xsl:if>
 
                             <label for="{$category-id}">Category</label>
                             <br/>
@@ -530,11 +537,13 @@ exclude-result-prefixes="#all"
                             </select>
                         </div>
                         <div class="span4">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;seriesProperty'"/>
-                            </xsl:call-template>
+                            <xsl:if test="$show-save">
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'pu'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="'&apl;seriesProperty'"/>
+                                </xsl:call-template>
+                            </xsl:if>
 
                             <label for="{$series-id}">Series</label>
                             <br/>
@@ -554,82 +563,86 @@ exclude-result-prefixes="#all"
                             </select>
                         </div>
                     </div>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&dct;title'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="id" select="'chart-title'"/>
-                        <xsl:with-param name="name" select="'ol'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ob'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'this'"/>
-                    </xsl:call-template>
+                    <xsl:if test="$show-save">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&dct;title'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="id" select="'chart-title'"/>
+                            <xsl:with-param name="name" select="'ol'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ob'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'this'"/>
+                        </xsl:call-template>
 
-                    <!-- ChartItem -->
+                        <!-- ChartItem -->
 
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'sb'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'this'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&sioc;has_container'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="resolve-uri('charts/', $ldt:base)"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&dct;title'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="id" select="'chart-doc-title'"/>
-                        <xsl:with-param name="name" select="'ol'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&rdf;type'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="$doc-type"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&foaf;primaryTopic'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ob'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'chart'"/>
-                    </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'sb'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'this'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&sioc;has_container'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="resolve-uri('charts/', $ldt:base)"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&dct;title'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="id" select="'chart-doc-title'"/>
+                            <xsl:with-param name="name" select="'ol'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&rdf;type'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="$doc-type"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&foaf;primaryTopic'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ob'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'chart'"/>
+                        </xsl:call-template>
+                    </xsl:if>
                 </fieldset>
-                <div class="form-actions">
-                    <button class="btn btn-primary btn-save-chart" type="submit">
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
-                        </xsl:apply-templates>
-                    </button>
-                </div>
+                <xsl:if test="$show-save">
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-save-chart" type="submit">
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                            </xsl:apply-templates>
+                        </button>
+                    </div>
+                </xsl:if>
             </form>
         </xsl:if>
     </xsl:template>
@@ -676,6 +689,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="endpoint" select="xs:anyURI(ixsl:query-params()?endpoint)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-save" select="ixsl:contains(ixsl:window(), 'LinkedDataHub.select-uri')" as="xs:boolean"/>
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -693,56 +707,58 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <fieldset>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'rdf'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'sb'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'chart'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&rdf;type'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="$type"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&spin;query'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-uri')"/> <!-- SELECT URI -->
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ob'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'this'"/>
-                    </xsl:call-template>
+                    <xsl:if test="$show-save">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'rdf'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'sb'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'chart'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&rdf;type'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="$type"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&spin;query'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-uri')"/> <!-- SELECT URI -->
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ob'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'this'"/>
+                        </xsl:call-template>
 
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&apl;endpoint'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
-                    </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&apl;endpoint'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
+                        </xsl:call-template>
+                    </xsl:if>
 
 <!--                    <div class="row-fluid">
                         <div class="span12">
@@ -778,11 +794,13 @@ exclude-result-prefixes="#all"
                     </div>-->
                     <div class="row-fluid">
                         <div class="span4">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;chartType'"/>
-                            </xsl:call-template>
+                            <xsl:if test="$show-save">
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'pu'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="'&apl;chartType'"/>
+                                </xsl:call-template>
+                            </xsl:if>
 
                             <label for="{$chart-type-id}">
                                 <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
@@ -851,11 +869,13 @@ exclude-result-prefixes="#all"
                             </select>
                         </div>
                         <div class="span4">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;seriesVarName'"/>
-                            </xsl:call-template>
+                            <xsl:if test="$show-save">
+                                <xsl:call-template name="xhtml:Input">
+                                    <xsl:with-param name="name" select="'pu'"/>
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                    <xsl:with-param name="value" select="'&apl;seriesVarName'"/>
+                                </xsl:call-template>
+                            </xsl:if>
 
                             <label for="{$series-id}">Series</label>
                             <br/>
@@ -874,72 +894,77 @@ exclude-result-prefixes="#all"
                             </select>
                         </div>
                     </div>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&dct;title'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="id" select="'chart-title'"/>
-                        <xsl:with-param name="name" select="'ol'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ob'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'this'"/>
-                    </xsl:call-template>
+                    
+                    <xsl:if test="$show-save">
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&dct;title'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="id" select="'chart-title'"/>
+                            <xsl:with-param name="name" select="'ol'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ob'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'this'"/>
+                        </xsl:call-template>
 
-                    <!-- ChartItem -->
+                        <!-- ChartItem -->
 
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'sb'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'this'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&dct;title'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="id" select="'chart-doc-title'"/>
-                        <xsl:with-param name="name" select="'ol'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&rdf;type'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="$doc-type"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&foaf;primaryTopic'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ob'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'chart'"/>
-                    </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'sb'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'this'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&dct;title'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="id" select="'chart-doc-title'"/>
+                            <xsl:with-param name="name" select="'ol'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&rdf;type'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ou'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="$doc-type"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'pu'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'&foaf;primaryTopic'"/>
+                        </xsl:call-template>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'ob'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                            <xsl:with-param name="value" select="'chart'"/>
+                        </xsl:call-template>
+                    </xsl:if>
                 </fieldset>
-                <div class="form-actions">
-                    <button class="btn btn-primary btn-save-chart" type="submit">
-                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                            <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
-                        </xsl:apply-templates>
-                    </button>
-                </div>
+                <xsl:if test="$show-save">
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-save-chart" type="submit">
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                            </xsl:apply-templates>
+                        </button>
+                    </div>
+                </xsl:if>
             </form>
         </xsl:if>
     </xsl:template>
@@ -968,11 +993,9 @@ exclude-result-prefixes="#all"
 
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                <xsl:message>
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onContainerResultsLoad"/>
-                    </ixsl:schedule-action>
-                </xsl:message>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
             </xsl:when>
             <!-- if not, execute original query -->
             <xsl:otherwise>
@@ -986,11 +1009,9 @@ exclude-result-prefixes="#all"
 
                 <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                <xsl:message>
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onContainerResultsLoad"/>
-                    </ixsl:schedule-action>
-                </xsl:message>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

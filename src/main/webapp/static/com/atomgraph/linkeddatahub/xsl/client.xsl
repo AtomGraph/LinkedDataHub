@@ -167,11 +167,9 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="endpoint" select="resolve-uri('sparql', $ldt:base)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- load application's ontology RDF document -->
-<!--        <xsl:message>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContainerResultsLoad"/>
-            </ixsl:schedule-action>
-        </xsl:message>-->
+<!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad"/>
+        </ixsl:schedule-action>-->
         <!-- disable SPARQL editor's server-side submission -->
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]">
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
@@ -703,7 +701,8 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
             <xsl:variable name="category" as="xs:string?"/>
             <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        
+
+            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -931,6 +930,7 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:for-each>
 
+                    <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
                     <xsl:choose>
                         <xsl:when test="rdf:RDF">
                             <ixsl:set-property name="data-table" select="ac:rdf-data-table(., (), ())" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -940,20 +940,32 @@ extension-element-prefixes="ixsl"
                         </xsl:when>
                     </xsl:choose>
 
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <!-- values may already be initialized from chart properties in onrdfBodyLoad -->
+                    <xsl:variable name="chart-type" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.chart-type')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+                    <xsl:variable name="category" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.category')) then ixsl:get(ixsl:window(), 'LinkedDataHub.category') else (if (srx:sparql) then srx:sparql/srx:head/srx:variable[1]/@name else ())" as="xs:string?"/>
+                    <xsl:variable name="series" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.series')) then ixsl:get(ixsl:window(), 'LinkedDataHub.series') else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
+
+                    <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
                     <xsl:for-each select="id('sparql-results', ixsl:page())">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <!-- values may already be initialized from chart properties in onrdfBodyLoad -->
-                            <xsl:variable name="chart-type" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-                            <xsl:variable name="category" select="if (ixsl:get(ixsl:window(), 'LinkedDataHub.category')) then ixsl:get(ixsl:window(), 'LinkedDataHub.category') else (if (srx:sparql) then srx:sparql/srx:head/srx:variable[1]/@name else ())" as="xs:string?"/>
-                            <xsl:variable name="series" select="if (not(empty(ixsl:get(ixsl:window(), 'LinkedDataHub.series')))) then ixsl:get(ixsl:window(), 'LinkedDataHub.series') else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
-
-                            <xsl:apply-templates select="." mode="bs2:Chart">
+                            <xsl:apply-templates select="$results" mode="bs2:Chart">
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
+
+                    <xsl:call-template name="render-chart">
+                        <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                        <xsl:with-param name="chart-type" select="$chart-type"/>
+                        <xsl:with-param name="category" select="$category"/>
+                        <xsl:with-param name="series" select="$series"/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1161,11 +1173,9 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:if>
         
-        <xsl:message>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                <xsl:call-template name="onSPARQLResultsLoad"/>
-            </ixsl:schedule-action>
-        </xsl:message>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+            <xsl:call-template name="onSPARQLResultsLoad"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- chart-type onchange -->
@@ -1179,6 +1189,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and not(empty($series))">
+            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
                     <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1208,6 +1219,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and not(empty($series))">
+            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
                     <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1244,6 +1256,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and not(empty($series))">
+            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
                     <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1289,11 +1302,10 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="describe-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), $offset, ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
-        <xsl:message>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContainerResultsLoad"/>
-            </ixsl:schedule-action>
-        </xsl:message>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad"/>
+        </ixsl:schedule-action>
     </xsl:template>
 
     <!-- pager next links -->
@@ -1311,11 +1323,10 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="describe-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), $offset, ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
-        <xsl:message>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContainerResultsLoad"/>
-            </ixsl:schedule-action>
-        </xsl:message>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
@@ -1542,9 +1553,6 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-<!--        <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'loadXHTML', [ ixsl:event(), string($action), ixsl:get(ixsl:window(), 'onaddModalFormCallback') ])"/>
-        </xsl:message>-->
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onaddModalFormCallback"/>
         </ixsl:schedule-action>
@@ -1574,21 +1582,13 @@ extension-element-prefixes="ixsl"
     <!-- content tabs (markup from Bootstrap) -->
     <xsl:template match="div[tokenize(@class, ' ') = 'tabbable']/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
-        <xsl:for-each select="../../li">
-            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
-        </xsl:for-each>
+        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')" object="../../li"/>
         <!-- activate this tab -->
-        <xsl:for-each select="..">
-            <ixsl:set-attribute name="class" select="'active'"/>
-        </xsl:for-each>
+        <ixsl:set-attribute name="class" select="'active'" object=".."/>
         <!-- deactivate other tab panes -->
-        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']">
-            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
-        </xsl:for-each>
+        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')" object="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']"/>
         <!-- activate this tab -->
-        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]">
-            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
-        </xsl:for-each>
+        <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')" object="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]"/>
     </xsl:template>
     
     <!-- MODAL IDENTITY TRANSFORM -->
