@@ -20,11 +20,11 @@ import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -43,15 +43,15 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 {
 
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfoImpl clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            Client client, @Context HttpServletRequest httpServletRequest)
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest)
     {
         super(clientUriInfo, request, httpHeaders, mediaTypes,
                 clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
                 clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
                 clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
-                mode, client, httpServletRequest);
+                mode, system.getClient(), httpServletRequest);
         
         if (securityContext.getUserPrincipal() instanceof Agent &&
             securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))

@@ -658,6 +658,10 @@ if [ -n "$CACHE_STYLESHEET" ] ; then
     CACHE_STYLESHEET_PARAM="--stringparam ac:cacheStylesheet '$CACHE_STYLESHEET' "
 fi
 
+if [ -n "$RESOLVING_UNCACHED" ] ; then
+    RESOLVING_UNCACHED_PARAM="--stringparam ac:resolvingUncached '$RESOLVING_UNCACHED' "
+fi
+
 if [ -n "$AUTH_QUERY" ] ; then
     AUTH_QUERY_PARAM="--stringparam aplc:authQuery '$AUTH_QUERY' "
 fi
@@ -682,6 +686,7 @@ transform="xsltproc \
   --output conf/Catalina/localhost/ROOT.xml \
   $STYLESHEET_PARAM \
   $CACHE_STYLESHEET_PARAM \
+  $RESOLVING_UNCACHED_PARAM \
   $CLIENT_KEYSTORE_PARAM \
   $SECRETARY_CERT_ALIAS_PARAM \
   $CLIENT_TRUSTSTORE_PARAM \

@@ -47,9 +47,6 @@ public class DataManagerFactory implements Factory<DataManager>
 {
     private static final Logger log = LoggerFactory.getLogger(DataManagerFactory.class);
 
-    private final boolean preemptiveAuth;
-    private final boolean resolvingUncached;
-
     @Context UriInfo uriInfo;
     @Context SecurityContext securityContext;
     @Context ResourceContext resourceContext;
@@ -57,21 +54,9 @@ public class DataManagerFactory implements Factory<DataManager>
     @Context Providers providers;
     
     @Inject MediaTypes mediaTypes;
-//    @Inject Client client;
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
     
-    public DataManagerFactory()
-    {
-        this(true, true); // TO-DO: make configurable
-    }
-    
-    public DataManagerFactory(boolean preemptiveAuth, boolean resolvingUncached)
-    {        
-        this.preemptiveAuth = preemptiveAuth;
-        this.resolvingUncached = resolvingUncached;
-    }
-
     @Override
     public DataManager provide()
     {
@@ -143,12 +128,12 @@ public class DataManagerFactory implements Factory<DataManager>
     
     public boolean isPreemptiveAuth()
     {
-        return preemptiveAuth;
+        return system.isPreemptiveAuth();
     }
 
     public boolean isResolvingUncached()
     {
-        return resolvingUncached;
+        return system.isResolvingUncached();
     }
     
 }
