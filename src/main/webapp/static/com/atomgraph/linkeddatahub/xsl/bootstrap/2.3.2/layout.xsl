@@ -590,37 +590,39 @@ exclude-result-prefixes="#all">
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
+                <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')), document(ac:document-uri($ldt:ontology)))" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$ldt:ontology"/>
+                        <xsl:with-param name="visited-classes" select="$default-classes"/>
                     </xsl:call-template>
                 </xsl:variable>
-                <xsl:copy-of select="$constructor-list"/>
 
+                <xsl:copy-of select="$constructor-list"/>
+                
                 <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
-                    <xsl:if test="$constructor-list">
-                        <li class="divider"></li>
+                    <!--if the current resource is a Container, show Container and Item constructors--> 
+                    <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
+                    <!-- current resource is a container -->
+                    <xsl:if test="not(empty($document-classes)) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
+                        <xsl:if test="$constructor-list">
+                            <li class="divider"></li>
+                        </xsl:if>
+
+                        <xsl:for-each select="$document-classes">
+                            <xsl:sort select="ac:label(.)"/>
+
+                            <li>
+                                <xsl:apply-templates select="." mode="bs2:Constructor">
+                                    <xsl:with-param name="id" select="()"/>
+                                    <xsl:with-param name="with-label" select="true()"/>
+                                </xsl:apply-templates>
+                            </li>
+                        </xsl:for-each>
                     </xsl:if>
 
-                    <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')))" as="element()*"/>
-
-                    <xsl:if test="key('resources', $ac:uri)/rdf:type/@rdf:resource">
-                         <!--if the current resource is a Container, show Container and Item constructors--> 
-                        <xsl:if test="key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
-                            <xsl:for-each select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))">
-                                <xsl:sort select="ac:label(.)"/>
-                                <li>
-                                    <xsl:apply-templates select="." mode="bs2:Constructor">
-                                        <xsl:with-param name="id" select="()"/>
-                                        <xsl:with-param name="with-label" select="true()"/>
-                                    </xsl:apply-templates>
-                                </li>
-                            </xsl:for-each>
-
-                            <xsl:if test="$constructor-list or $default-classes">
-                                <li class="divider"></li>
-                            </xsl:if>
-                        </xsl:if>
+                    <xsl:if test="$constructor-list or $default-classes">
+                        <li class="divider"></li>
                     </xsl:if>
 
                     <xsl:for-each select="$default-classes">
@@ -648,9 +650,7 @@ exclude-result-prefixes="#all">
             <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
             <xsl:variable name="constructor-list" as="element()*">
                 <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-                <!-- do not show superclass constructor if we've already shown subclass constructor -->
-                <!-- [not(apl:listSuperClasses(@rdf:about)/../. = ('&dh;Document', '&apl;Service', '&apl;Query', '&apl;File', '&apl;Import', '&apl;Chart'))] -->
-                <xsl:apply-templates select="$classes[not(@rdf:about = ($classes, $visited-classes)/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
+                <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][not(@rdf:about = ($classes, $visited-classes)/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
 

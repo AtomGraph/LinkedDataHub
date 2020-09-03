@@ -1029,6 +1029,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
+        <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
         <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
@@ -1334,8 +1335,7 @@ extension-element-prefixes="ixsl"
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
     <xsl:template match="input[tokenize(@class, ' ') = 'type-typeahead']" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="container-uri" select="resolve-uri('ns/domain', $ldt:base)"/>
-            <xsl:with-param name="callback" select="'ontypeTypeaheadCallback'"/>
+            <xsl:with-param name="results-uri" select="resolve-uri('ns/domain', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -1343,13 +1343,16 @@ extension-element-prefixes="ixsl"
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
+        <xsl:param name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="results-uri" as="xs:anyURI?"/>
+        <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI?"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
-        <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
-        <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
-        <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()"/>
-        <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
-        <xsl:param name="limit" select="100" as="xs:integer"/>
+        <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
+        <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()?"/>
+        <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI?"/>
+        <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()?"/>
+        <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string?"/>
+        <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <xsl:variable name="value-uris" select="array { $resource-types[not(. = '&rdfs;Resource')] }" as="array(xs:anyURI)"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -1357,10 +1360,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
         <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = 'http://www.w3.org/2000/01/rdf-schema#Resource')])) then $select-builder else ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
-        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
-        <xsl:variable name="describe-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
-        <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
+        <xsl:variable name="describe-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
+        <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
         <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
         
         <xsl:choose>
@@ -1408,6 +1410,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
+                        <xsl:with-param name="resource-types" select="$resource-types"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>

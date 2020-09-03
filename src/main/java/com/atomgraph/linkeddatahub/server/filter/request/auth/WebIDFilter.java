@@ -289,7 +289,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     public QuerySolutionMap getQuerySolutionMap(com.atomgraph.linkeddatahub.apps.model.Application app, Resource absolutePath, Resource agent, Resource accessMode)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
-        if (app.canAs(EndUserApplication.class)) qsm.add(SD.endpoint.getLocalName(), app.getService().getSPARQLEndpoint()); // needed for federation with the end-user endpoint        
+        if (app.canAs(EndUserApplication.class)) qsm.add(SD.endpoint.getLocalName(), app.getService().getSPARQLEndpoint()); // needed for federation with the end-user endpoint
         qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
         qsm.add("agent", agent);
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);

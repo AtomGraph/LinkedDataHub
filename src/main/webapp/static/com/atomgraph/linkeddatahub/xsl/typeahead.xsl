@@ -86,8 +86,7 @@ version="2.0"
         <xsl:param name="element" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
-        <!--<xsl:param name="js-function" as="xs:string"/>-->
-        <!--<xsl:param name="callback" as="function(*)"/>-->
+        <xsl:param name="resource-types" as="xs:anyURI*"/>
         
         <!-- if the value hasn't changed during the delay -->
         <xsl:if test="$query = $element/ixsl:get(., 'value')">
@@ -97,6 +96,7 @@ version="2.0"
                     <!--<xsl:with-param name="action" select="$callback" as="function(*)" />-->
                     <xsl:with-param name="element" select="$element" as="element()"/>
                     <xsl:with-param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
+                    <xsl:with-param name="resource-types" select="$resource-types"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:if>
@@ -107,6 +107,7 @@ version="2.0"
         
         <xsl:param name="element" as="element()"/>
         <xsl:param name="container-uri" as="xs:anyURI"/>
+        <xsl:param name="resource-types" as="xs:anyURI*"/>
         
         <xsl:variable name="menu" select="$element/following-sibling::ul" as="element()"/>
         
@@ -122,6 +123,7 @@ version="2.0"
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
                         <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(core:stateOf)][not(core:viewOf)][not(dh:pageOf)][not(ldt:paramName)]"/>
+                        <xsl:with-param name="resource-types" select="$resource-types"/>
                         <xsl:with-param name="element" select="$element"/>
                         <xsl:with-param name="name" select="'ou'"/>
                     </xsl:call-template>
@@ -138,12 +140,15 @@ version="2.0"
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="element" as="element()"/>
         <xsl:param name="name" as="xs:string"/>
+        <xsl:param name="resource-types" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="$items">
                 <xsl:call-template name="typeahead:render">
                     <xsl:with-param name="menu" select="$menu"/>
-                    <xsl:with-param name="items" select="$items"/>
+                    <!-- we're filtering here because data might not come pre-FILTERed from a SPARQL result, e.g. from an ontology document -->
+                    <!-- TO-DO: filtering properties by literal text() containing $query -->
+                    <xsl:with-param name="items" select="$items[if (not(empty($resource-types))) then (rdf:type/@rdf:resource = $resource-types) else true()]"/>
                     <xsl:with-param name="element" select="$element"/>
                     <xsl:with-param name="name" select="$name"/>
                 </xsl:call-template>
