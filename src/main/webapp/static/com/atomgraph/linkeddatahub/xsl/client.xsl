@@ -626,13 +626,30 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="?status = 200">
-                <!--<xsl:variable name="results" select="ixsl:get($detail, 'body')" as="document-node()"/>-->
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="results" select="."/>
                     </xsl:call-template>
+
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <!-- create a container for parallax controls in the right-nav, if they doesn't exist yet -->
+                    <xsl:if test="not(id('parallax-nav', ixsl:page()))">
+                        <xsl:for-each select="id('right-nav', ixsl:page())">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <div id="parallax-nav"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:if>
+                    
+                    <xsl:for-each select="id('parallax-nav', ixsl:page())">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:call-template name="bs2:Parallax">
+                                <xsl:with-param name="results" select="$results"/>
+                            </xsl:call-template>
+                        </xsl:result-document>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1354,7 +1371,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="value-uris" select="array { $resource-types[not(. = '&rdfs;Resource')] }" as="array(xs:anyURI)"/>
+        <xsl:variable name="value-uris" select="[ $resource-types[not(. = '&rdfs;Resource')] ]" as="array(xs:anyURI)"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>

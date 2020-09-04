@@ -39,6 +39,48 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <!-- PARALLAX -->
+    
+    <xsl:template name="bs2:Parallax">
+        <xsl:param name="results" as="document-node()"/>
+        
+        <div class="sidebar-nav parallax-nav">
+            <h2 class="nav-header btn">Navigation</h2>
+            
+            <ul class="well well-small nav nav-list">
+                <xsl:for-each-group select="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
+                    <xsl:sort select="current-grouping-key()"/>
+                    
+                    <li>
+                        <a>
+                            <input name="ou" type="hidden" value="{current-grouping-key()}"/>
+                            <xsl:value-of select="ac:property-label(current-group()[1])"/>
+                        </a>
+                    </li>
+                </xsl:for-each-group>
+            </ul>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
+        <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
+        <xsl:variable name="var-name" select="'child'" as="xs:string"/>
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="{{ subject: SPARQLBuilder.SelectBuilder.var('{$var-name}'), predicate: SPARQLBuilder.SelectBuilder.var('{$predicate}'), object: SPARQLBuilder.SelectBuilder.var('whatever') }}"/>
+        </xsl:variable>
+        <xsl:variable name="bgp" select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString',  [ $select-string ])"/>
+        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).bgpTriple({ subject: SelectBuilder.var("child"), predicate: SelectBuilder.var($preducate), object: SelectBuilder.var("whatever") }) -->
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'bgpTriple', [ $bgp ])"/>
+        <!-- pseudo JS code: SelectBuilder.fromString(query).projection([ SelectBuilder.var("child") ]).build(); -->
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'projection', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $var-name ]) ] ])"/>
+        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
+
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $select-string ])"/>
+    </xsl:template>
+
+    
     <!-- FILTERS -->
 
     <xsl:template name="bs2:FilterIn">
@@ -978,7 +1020,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- apply FILTER if any values were selected -->
             <xsl:when test="count($values) &gt; 0">
-                <xsl:variable name="value-uris" select="array { $values }" as="array(xs:anyURI)"/>
+                <xsl:variable name="value-uris" select="[ $values ]" as="array(xs:anyURI)"/>
                 <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString',  [ $select-string ])"/>
                 <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->

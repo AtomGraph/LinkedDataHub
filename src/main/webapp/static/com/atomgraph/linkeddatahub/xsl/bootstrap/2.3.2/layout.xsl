@@ -67,7 +67,6 @@ xmlns:nfo="&nfo;"
 xmlns:list="&list;"
 xmlns:geo="&geo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:url="java:java.net.URLDecoder"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
@@ -731,6 +730,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri]" mode="bs2:Right">
         <xsl:apply-imports>
+            <xsl:with-param name="id" select="'right-nav'"/>
             <xsl:with-param name="class" select="'span3'"/>
         </xsl:apply-imports>
     </xsl:template>

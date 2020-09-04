@@ -129,13 +129,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.54-SNAPSHOT</version>
+            <version>2.1.55-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.54-SNAPSHOT</version>
+            <version>2.1.55-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>
@@ -306,7 +306,7 @@
                         <phase>package</phase>
                     </execution>
                     <execution>
-                        <id>generate SEF</id>
+                        <id>generate-sef</id>
                         <goals>
                             <goal>npx</goal>
                         </goals>
