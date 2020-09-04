@@ -64,9 +64,10 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
-        <xsl:variable name="var-name" select="'child'" as="xs:string"/>
+        <xsl:variable name="projected-var-name" select="'child'" as="xs:string"/>
+        <xsl:variable name="new-projected-var-name" select="'whatever'" as="xs:string"/>
         <xsl:variable name="js-statement" as="element()">
-            <root statement="{{ subject: SPARQLBuilder.SelectBuilder.var('{$var-name}'), predicate: SPARQLBuilder.SelectBuilder.var('{$predicate}'), object: SPARQLBuilder.SelectBuilder.var('whatever') }}"/>
+            <root statement="{{ subject: SPARQLBuilder.SelectBuilder.var('{$projected-var-name}'), predicate: SPARQLBuilder.SelectBuilder.uri('{$predicate}'), object: SPARQLBuilder.SelectBuilder.var('whatever') }}"/>
         </xsl:variable>
         <xsl:variable name="bgp" select="ixsl:eval(string($js-statement/@statement))"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
@@ -74,7 +75,7 @@ exclude-result-prefixes="#all"
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).bgpTriple({ subject: SelectBuilder.var("child"), predicate: SelectBuilder.var($preducate), object: SelectBuilder.var("whatever") }) -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'bgpTriple', [ $bgp ])"/>
         <!-- pseudo JS code: SelectBuilder.fromString(query).projection([ SelectBuilder.var("child") ]).build(); -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'projection', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $var-name ]) ] ])"/>
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'projection', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-projected-var-name ]) ] ])"/>
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
 
         <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $select-string ])"/>
