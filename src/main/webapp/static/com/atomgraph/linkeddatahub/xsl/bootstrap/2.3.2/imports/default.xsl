@@ -37,8 +37,6 @@ xmlns:spin="&spin;"
 xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
-xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
     <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>

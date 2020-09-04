@@ -63,9 +63,7 @@ services:
       - ./src/main/resources/com/atomgraph/linkeddatahub/lapp.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/lapp.ttl:ro
       - ./src/main/resources/com/atomgraph/linkeddatahub/app/admin/lsm.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/admin/lsm.ttl:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/client.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl:ro
-      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/typeahead.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/typeahead.xsl:ro
-      #- ./RDFXML2SVG.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/client/xsl/converters/RDFXML2SVG.xsl:ro
+      - ./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json:ro
   fuseki-admin:
     image: atomgraph/fuseki
     ports:
