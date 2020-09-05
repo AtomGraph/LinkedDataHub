@@ -298,27 +298,27 @@ wait_for_url()
 
     # use HTTP Basic auth if username/password are provided
     if [ -n "$auth_user" ] && [ -n "$auth_pwd" ] ; then
-        while [ "$i" -le "$counter" ] && ! curl -s -f --head "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1
+        while [ "$i" -le "$counter" ] && ! curl -s -f -X OPTIONS "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1
         do
             sleep 1 ;
             i=$(( i+1 ))
         done
 
-        if ! curl -s -f --head "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-            printf "\n### URL %s not responding after ${counter} retries, exiting...\n" "$url"
+        if ! curl -s -f -X OPTIONS "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL %s not responding after %s retries, exiting...\n" "$url" "$counter"
             exit 1
         else
             printf "\n### URL %s responded\n" "$url"
         fi
     else
-        while [ "$i" -le "$counter" ] && ! curl -s -f --head "$url" -H "Accept: ${accept}"
+        while [ "$i" -le "$counter" ] && ! curl -s -f -X OPTIONS "$url" -H "Accept: ${accept}"
         do
             sleep 1 ;
             i=$(( i+1 ))
         done
 
-        if ! curl -s -f --head "$url" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
-            printf "\n### URL %s not responding after ${counter} retries, exiting...\n" "$url"
+        if ! curl -s -f -X OPTIONS "$url" -H "Accept: ${accept}" >/dev/null 2>&1 ; then
+            printf "\n### URL %s not responding after %s retries, exiting...\n" "$url" "$counter"
             exit 1
         else
             printf "\n### URL %s responded\n" "$url"
