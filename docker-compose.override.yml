@@ -1,10 +1,8 @@
 version: "2.3"
 services:
   linkeddatahub:
-    environment:
-      - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system-varnish.trig
     volumes:
-      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system-varnish.trig:ro
+      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   varnish-end-user:
     image: atomgraph/varnish
     depends_on:
