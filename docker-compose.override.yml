@@ -2,7 +2,7 @@ version: "2.3"
 services:
   linkeddatahub:
     volumes:
-      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
+      - ./config/system-varnish.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   varnish-end-user:
     image: atomgraph/varnish
     depends_on:
