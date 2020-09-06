@@ -3,7 +3,6 @@ services:
   linkeddatahub:
     volumes:
       - ./config/system-varnish.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
-      - ./target/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json:ro
   varnish-end-user:
     image: atomgraph/varnish
     depends_on:
