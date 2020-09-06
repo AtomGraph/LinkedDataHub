@@ -338,6 +338,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public Response post(Dataset dataset)
     {
+        if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
+        {
+            if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
+            ban(getOntResource());
+        }
+
         if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
         {
             String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource

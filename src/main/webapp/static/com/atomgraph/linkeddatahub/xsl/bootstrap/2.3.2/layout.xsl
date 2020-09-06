@@ -1600,8 +1600,8 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
             
             <div class="pull-right">
-                <form action="" method="get"> <!-- TO-DO: change to POST -->
-                    <input type="hidden" name="ban" value="true"/>
+                <form action="{$ac:uri}?ban=true" method="post">
+                    <!--<input type="hidden" name="ban" value="true"/>-->
                     <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&aplt;Ban', document('&aplt;'))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
