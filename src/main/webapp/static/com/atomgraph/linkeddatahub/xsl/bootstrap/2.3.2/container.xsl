@@ -66,21 +66,20 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <xsl:variable name="projected-var-name" select="'child'" as="xs:string"/>
         <xsl:variable name="new-projected-var-name" select="'whatever'" as="xs:string"/>
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="{{ subject: SPARQLBuilder.SelectBuilder.var('{$projected-var-name}'), predicate: SPARQLBuilder.SelectBuilder.uri('{$predicate}'), object: SPARQLBuilder.SelectBuilder.var('whatever') }}"/>
-        </xsl:variable>
-        <xsl:variable name="bgp" select="ixsl:eval(string($js-statement/@statement))"/>
+        <xsl:variable name="triple" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'triple', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $projected-var-name ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', [ $predicate ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-projected-var-name ]) ])"/>
+        <xsl:variable name="bgp" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'bgp', [ [ $triple ] ])"/>
+        <!-- pseudo JS code: QueryBuilder.graph(QueryBuilder.var("g"), [ bgp ]) -->
+        <xsl:variable name="graph" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'graph', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'xxxGraph' ]), [ $bgp ] ])"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString',  [ $select-string ])"/>
-        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).bgpTriple({ subject: SelectBuilder.var("child"), predicate: SelectBuilder.var($preducate), object: SelectBuilder.var("whatever") }) -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'bgpTriple', [ $bgp ])"/>
-        <!-- pseudo JS code: SelectBuilder.fromString(query).projection([ SelectBuilder.var("child") ]).build(); -->
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(graph) -->
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ $graph ])"/>
+        <!-- pseudo JS code: SelectBuilder.fromString(query).projection([ SelectBuilder.var("whatever") ]).build(); -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'projection', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-projected-var-name ]) ] ])"/>
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
 
         <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $select-string ])"/>
     </xsl:template>
-
     
     <!-- FILTERS -->
 
