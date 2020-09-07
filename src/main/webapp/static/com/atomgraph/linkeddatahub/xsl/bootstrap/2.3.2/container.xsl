@@ -44,41 +44,24 @@ exclude-result-prefixes="#all"
     <xsl:template name="bs2:Parallax">
         <xsl:param name="results" as="document-node()"/>
         
-        <div class="sidebar-nav parallax-nav">
-            <h2 class="nav-header btn">Navigation</h2>
-            
-            <ul class="well well-small nav nav-list">
-                <xsl:for-each-group select="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
-                    <xsl:sort select="current-grouping-key()"/>
-                    
-                    <li>
-                        <a>
-                            <input name="ou" type="hidden" value="{current-grouping-key()}"/>
-                            <xsl:value-of select="ac:property-label(current-group()[1])"/>
-                        </a>
-                    </li>
-                </xsl:for-each-group>
-            </ul>
-        </div>
-    </xsl:template>
-    
-    <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
-        <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
-        <xsl:variable name="projected-var-name" select="'child'" as="xs:string"/>
-        <xsl:variable name="new-projected-var-name" select="'whatever'" as="xs:string"/>
-        <xsl:variable name="triple" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'triple', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $projected-var-name ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', [ $predicate ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-projected-var-name ]) ])"/>
-        <xsl:variable name="bgp" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'bgp', [ [ $triple ] ])"/>
-        <!-- pseudo JS code: QueryBuilder.graph(QueryBuilder.var("g"), [ bgp ]) -->
-        <xsl:variable name="graph" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'graph', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'xxxGraph' ]), [ $bgp ] ])"/>
-        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(graph) -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ $graph ])"/>
-        <!-- pseudo JS code: SelectBuilder.fromString(query).projection([ SelectBuilder.var("whatever") ]).build(); -->
-        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'projection', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-projected-var-name ]) ] ])"/>
-        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
+        <xsl:if test="$results/rdf:RDF/*/*">
+            <div class="sidebar-nav parallax-nav">
+                <h2 class="nav-header btn">Navigation</h2>
 
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $select-string ])"/>
+                <ul class="well well-small nav nav-list">
+                    <xsl:for-each-group select="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
+                        <xsl:sort select="current-grouping-key()"/>
+
+                        <li>
+                            <a>
+                                <input name="ou" type="hidden" value="{current-grouping-key()}"/>
+                                <xsl:value-of select="ac:property-label(current-group()[1])"/>
+                            </a>
+                        </li>
+                    </xsl:for-each-group>
+                </ul>
+            </div>
+        </xsl:if>
     </xsl:template>
     
     <!-- FILTERS -->
@@ -1023,8 +1006,8 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="value-uris" select="[ $values ]" as="array(xs:anyURI)"/>
                 <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
                 <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString',  [ $select-string ])"/>
-                <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString($select-builder).where(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
-                <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'where', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
+                <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
+                <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
                 <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
                  <!-- set ?this variable value -->
                 <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
@@ -1056,6 +1039,43 @@ exclude-result-prefixes="#all"
                 </ixsl:schedule-action>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+
+    <!-- parallax onclick -->
+    
+    <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
+        <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="var-name" select="substring-after(ixsl:get(ixsl:call($select-builder, 'build', []), 'variables')[1], '?')"/>
+        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:variable name="new-var-name" select="'subject' || translate($uuid, '-', '_')" as="xs:string"/>
+        <xsl:variable name="triple" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'triple', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $var-name ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', [ $predicate ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-var-name ]) ])"/>
+        <xsl:variable name="bgp" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'bgp', [ [ $triple ] ])"/>
+        <!-- pseudo JS code: QueryBuilder.graph(QueryBuilder.var("g" + generateUUID()), [ bgp ]) -->
+        <xsl:variable name="graph" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'graph', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'graph' || translate($uuid, '-', '_') ]), [ $bgp ] ])"/>
+        <!-- pseudo JS code: QueryBuilder.union([ bgp, graph ]) -->
+        <xsl:variable name="union" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'union', [ [ $bgp, $graph ] ])"/>
+        <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).where(graph) -->
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ $union ])"/>
+        <!-- pseudo JS code: SelectBuilder.fromString(query).variables([ SelectBuilder.var("whatever") ]).build(); -->
+        <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'variables', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-var-name ]) ] ])"/>
+        <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
+        <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
+        <xsl:variable name="describe-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
+
+        <!-- set global SELECT query (without modifiers) -->
+        <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- set global DESCRIBE query (without modifiers) -->
+        <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+        <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $select-string ])"/>-->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad"/>
+            <!-- TO-DO: set-property select-query/describe-query only when $response?status = 200 -->
+        </ixsl:schedule-action>
     </xsl:template>
 
 </xsl:stylesheet>

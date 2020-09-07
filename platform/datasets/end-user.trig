@@ -333,13 +333,11 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 SELECT DISTINCT  ?child ?title ?thing
 WHERE
-  { GRAPH ?childGraphGraph
+  { GRAPH ?childGraph
       {   { ?child  sioc:has_parent  ?this }
         UNION
           { ?child  sioc:has_container  ?this }
-      }
-    GRAPH ?childGraph
-      { ?child  a                     ?Type
+        ?child  a                     ?Type
         OPTIONAL
           { ?child  dct:title  ?title }
         OPTIONAL
