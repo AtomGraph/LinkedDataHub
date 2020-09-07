@@ -341,7 +341,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
         {
             if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
-            ban(getOntResource()).close();
+            Response response = ban(getOntResource());
+            if (response != null) response.close();
         }
 
         if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
@@ -396,7 +397,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
         super.post(splitDefaultModel(infModel.getRawModel())); // append description
 
-        if (getSystem().isInvalidateCache()) ban(getOntResource()).close(); // ban this (container) resource from Varnish cache so we don't get stale response after a child document has been created
+        if (getSystem().isInvalidateCache())
+        {
+            // ban this (container) resource from Varnish cache so we don't get stale response after a child document has been created
+            Response response = ban(getOntResource());
+            if (response != null) response.close();
+        }
         
         Variant variant = getRequest().selectVariant(getVariants(getWritableMediaTypes(Dataset.class)));
         if (variant == null)  // if quads are not acceptable, fallback to responding with the default graph
