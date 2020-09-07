@@ -241,7 +241,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             }
         }
         
-        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()); // TO-DO: remove named graph about named graph
+        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()).close(); // TO-DO: remove named graph about named graph
         getService().getDatasetAccessor().deleteModel(getURI().toString());
 
         return Response.noContent().build();

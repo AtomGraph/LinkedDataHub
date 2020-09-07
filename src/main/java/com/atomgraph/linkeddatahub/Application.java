@@ -347,7 +347,7 @@ public class Application extends ResourceConfig
         {
             if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.appQuery.getURI());
             throw new ConfigurationException(APLC.appQuery);
-        }        
+        }
         appQuery = QueryFactory.create(appQueryString, systemBase);
         appQuery.setBaseURI(systemBase); // for some reason the above is not enough
         
