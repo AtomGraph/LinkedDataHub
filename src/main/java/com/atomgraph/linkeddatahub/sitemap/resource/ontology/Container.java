@@ -112,7 +112,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
                 transformedModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(transformedModel);
 
-                super.post(DatasetFactory.create(transformedModel));
+                super.post(DatasetFactory.create(transformedModel)).close();
             }
             
             return get();

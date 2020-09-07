@@ -338,6 +338,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public Response post(Dataset dataset)
     {
+        if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
+        {
+            if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
+            ban(getOntResource()).close();
+        }
+
         if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
         {
             String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource
@@ -390,7 +396,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
         super.post(splitDefaultModel(infModel.getRawModel())); // append description
 
-        if (getSystem().isInvalidateCache()) ban(getOntResource()); // ban this (container) resource from Varnish cache so we don't get stale response after a child document has been created
+        if (getSystem().isInvalidateCache()) ban(getOntResource()).close(); // ban this (container) resource from Varnish cache so we don't get stale response after a child document has been created
         
         Variant variant = getRequest().selectVariant(getVariants(getWritableMediaTypes(Dataset.class)));
         if (variant == null)  // if quads are not acceptable, fallback to responding with the default graph
