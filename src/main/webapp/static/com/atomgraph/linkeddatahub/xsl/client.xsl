@@ -210,15 +210,19 @@ extension-element-prefixes="ixsl"
             </ixsl:schedule-action>
         </xsl:for-each>
         <!--  append Save form to Query form -->
-        <xsl:result-document href="#query-form" method="ixsl:append-content">
-            <xsl:call-template name="bs2:SaveQueryForm">
-                <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-            </xsl:call-template>
-        </xsl:result-document>
+        <xsl:for-each select="id('query-form', ixsl:page())/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:call-template name="bs2:SaveQueryForm">
+                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+                </xsl:call-template>
+            </xsl:result-document>
+        </xsl:for-each>
         <!-- append typeahead list after search/URI input -->
-        <xsl:result-document href="#uri" method="ixsl:append-content">
-            <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
-        </xsl:result-document>
+        <xsl:for-each select="id('uri', ixsl:page())/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- FUNCTIONS -->
@@ -877,7 +881,6 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="select-uri" select="key('resources', $ldt:base)/dh:select/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$select-uri">
-                        <xsl:message>SELECT URI: <xsl:value-of select="$select-uri"/> ?this: <xsl:value-of select="$ldt:base"/></xsl:message>
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="apl:RootChildrenSelectLoad">
                                 <xsl:with-param name="this-uri" select="$ldt:base" as="xs:anyURI"/>
