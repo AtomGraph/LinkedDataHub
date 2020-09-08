@@ -697,27 +697,35 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <xsl:if test="$ldt:base"> <!-- $lacl:Agent//@rdf:about -->
-                <xsl:apply-templates select="." mode="bs2:RootChildrenList"/>
+                <div id="root-children-nav">
+                    <!-- placeholder for client.xsl callbacks -->
+                </div>
+                
+                <div id="container-nav">
+                    <div class="well well-small">
+                        <ul class="nav nav-list">
+                            <xsl:for-each select="$root-containers[not(. = $ldt:base)]">
+                                <li>
+                                    <xsl:if test="starts-with($ac:uri, .)">
+                                        <xsl:attribute name="class">active</xsl:attribute>
+                                    </xsl:if>
 
-                <div class="well well-small">
-                    <ul class="nav nav-list">
-                        <xsl:for-each select="$root-containers[not(. = $ldt:base)]">
-                            <li>
-                                <xsl:if test="starts-with($ac:uri, .)">
-                                    <xsl:attribute name="class">active</xsl:attribute>
-                                </xsl:if>
-                                
-                                <!-- TO-DO: resolve as Linked Data resources? -->
-                                <a href="{.}">
-                                    <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document('translations.rdf'))">
-                                        <xsl:apply-templates select="." mode="apl:logo"/>
-                                        <xsl:text> </xsl:text>
-                                        <xsl:apply-templates select="." mode="ac:label"/>
-                                    </xsl:for-each>
-                                </a>
-                            </li>
-                        </xsl:for-each>
-                    </ul>
+                                    <!-- TO-DO: resolve as Linked Data resources? -->
+                                    <a href="{.}">
+                                        <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document('translations.rdf'))">
+                                            <xsl:apply-templates select="." mode="apl:logo"/>
+                                            <xsl:text> </xsl:text>
+                                            <xsl:apply-templates select="." mode="ac:label"/>
+                                        </xsl:for-each>
+                                    </a>
+                                </li>
+                            </xsl:for-each>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div id="faceted-nav">
+                    <!-- placeholder for client.xsl callbacks -->
                 </div>
             </xsl:if>
         </div>
@@ -743,72 +751,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Right"/>
-    
-    <!-- ROOT CHILDREN MODE -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:RootChildrenList">
-        <xsl:if test="doc-available($ldt:base)">
-            <xsl:variable name="root-doc" select="document($ldt:base)" as="document-node()"/>
-            <xsl:variable name="select" select="key('resources', $ldt:base, $root-doc)/dh:select/@rdf:resource" as="xs:anyURI?"/>
-            <xsl:if test="$select">
-                <xsl:if test="doc-available(ac:document-uri($select))">
-                    <xsl:variable name="query" select="key('resources', $select, document(ac:document-uri($select)))" as="element()?"/>
-                    <xsl:variable name="query-string" select="$query/sp:text" as="xs:string?"/>
-                    <xsl:if test="$query-string">
-                        <xsl:variable name="container-list" as="element()*">
-                            <xsl:variable name="query-string" select="replace($query-string, 'DISTINCT', '')" as="xs:string"/>
-                            <xsl:variable name="query-string" select="replace($query-string, 'SELECT', 'DESCRIBE')" as="xs:string"/>
-                            <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', $ldt:base, '&gt;'))" as="xs:string"/>
-                            <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
-                            <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query-string)))" as="xs:anyURI"/>
-
-                            <xsl:choose>
-                                <xsl:when test="doc-available($results-uri)">
-                                    <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
-
-                                    <xsl:for-each select="key('resources-by-container', $ldt:base, $results)">
-                                        <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                        <xsl:apply-templates select="." mode="bs2:List">
-                                            <xsl:with-param name="active" select="starts-with($ac:uri, @rdf:about)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:for-each>
-                                </xsl:when>
-                                <!-- show error if results could not be loaded -->
-                                <xsl:otherwise>
-                                    <div class="alert alert-block">
-                                        <strong>
-                                            <a href="{$select}">
-                                                <xsl:apply-templates select="$query" mode="ac:label"/>
-                                            </a>
-                                            <xsl:text> result could not be loaded</xsl:text>
-                                        </strong>
-                                        <p>
-                                            <a href="{concat(resolve-uri('admin/request%20access', $ldt:base), '?', 'forClass=', encode-for-uri(resolve-uri('admin/ns#AuthorizationRequest', $ldt:base)), '&amp;access-to=', encode-for-uri(resolve-uri('sparql', $ldt:base)))}" class="btn btn-small">Request access</a>
-                                        </p>
-                                    </div>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:variable>
-
-                        <xsl:if test="$container-list">
-                            <div class="well well-small">
-                                <h2 class="nav-header">
-                                    <a href="{$ldt:base}" title="{$ldt:base}">
-                                        <xsl:apply-templates select="key('resources', 'root', document('translations.rdf'))" mode="ac:label"/>
-                                    </a>
-                                </h2>
-                                <ul class="nav nav-list">
-                                    <xsl:copy-of select="$container-list"/>
-                                </ul>
-                            </div>
-                        </xsl:if>
-                    </xsl:if>
-                </xsl:if>
-            </xsl:if>
-        </xsl:if>
-    </xsl:template>
-    
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:RootChildrenList"/>
     
     <!-- MODE LIST -->
         

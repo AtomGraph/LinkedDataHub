@@ -90,6 +90,7 @@ extension-element-prefixes="ixsl"
     </xsl:param>
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
+    <xsl:param name="ac:forClass" as="xs:anyURI?"/>
     <xsl:param name="ac:endpoint" select="if (ixsl:query-params()?endpoint) then xs:anyURI(ixsl:query-params()?endpoint) else ()" as="xs:anyURI?"/>
     <xsl:param name="ac:limit" select="if (ixsl:query-params()?limit) then xs:integer(ixsl:query-params()?limit) else $page-size" as="xs:integer"/>
     <xsl:param name="ac:offset" select="if (ixsl:query-params()?offset) then xs:integer(ixsl:query-params()?offset) else 0" as="xs:integer"/>
@@ -176,31 +177,24 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
-            <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:call-template name="first-time-message"/>
-                </xsl:result-document>
-            </xsl:for-each>
+            <xsl:result-document href="#main-content" method="ixsl:append-content">
+                <xsl:call-template name="first-time-message"/>
+            </xsl:result-document>
         </xsl:if>
-        <!-- cannot show root children list due to Saxon-JS bug :/ -->
-        <!--
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="apl:RootLoad"/>
         </ixsl:schedule-action>
-        -->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
             <!-- show progress bar -->
-            <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <div id="progress-bar">
-                        <div class="progress progress-striped active">
-                            <div class="bar" style="width: 20%;"></div>
-                        </div>
+            <xsl:result-document href="#main-content" method="ixsl:append-content">
+                <div id="progress-bar">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 20%;"></div>
                     </div>
-                </xsl:result-document>
-            </xsl:for-each>
+                </div>
+            </xsl:result-document>
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
             <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
@@ -216,19 +210,15 @@ extension-element-prefixes="ixsl"
             </ixsl:schedule-action>
         </xsl:for-each>
         <!--  append Save form to Query form -->
-        <xsl:for-each select="id('query-form', ixsl:page())/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:call-template name="bs2:SaveQueryForm">
-                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-                </xsl:call-template>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="#query-form" method="ixsl:append-content">
+            <xsl:call-template name="bs2:SaveQueryForm">
+                <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+            </xsl:call-template>
+        </xsl:result-document>
         <!-- append typeahead list after search/URI input -->
-        <xsl:for-each select="id('uri', ixsl:page())/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="#uri" method="ixsl:append-content">
+            <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
+        </xsl:result-document>
     </xsl:template>
 
     <!-- FUNCTIONS -->
@@ -508,28 +498,21 @@ extension-element-prefixes="ixsl"
                         </ixsl:schedule-action>
 
                         <!-- container progress bar -->
-                        <xsl:for-each select="id('progress-bar', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <div class="progress progress-striped active">
-                                    <div class="bar" style="width: 40%;"></div>
-                                </div>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 40%;"></div>
+                            </div>
+                        </xsl:result-document>
 
-                        <!-- append filters to left-nav. TO-DO: filters may be visible before the container query is loaded -->
-                        <xsl:for-each select="id('left-nav', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:call-template name="bs2:FilterIn"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:result-document href="#faceted-nav" method="ixsl:replace-content">
+                            <xsl:call-template name="bs2:FilterIn"/>
+                        </xsl:result-document>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- container progress bar -->
-                        <xsl:for-each select="id('progress-bar', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <!-- do not show progress bar for Items - only for Containers -->
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                            <!-- do not show progress bar for Items - only for Containers -->
+                        </xsl:result-document>
                     </xsl:otherwise>
                 </xsl:choose>
 
@@ -550,13 +533,11 @@ extension-element-prefixes="ixsl"
                         <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                         <!-- query progress bar -->
-                        <xsl:for-each select="id('progress-bar', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <div class="progress progress-striped active">
-                                    <div class="bar" style="width: 40%;"></div>
-                                </div>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 40%;"></div>
+                            </div>
+                        </xsl:result-document>
 
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $query-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onChartQueryLoad">
@@ -598,13 +579,11 @@ extension-element-prefixes="ixsl"
                             <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                             <!-- container progress bar -->
-                            <xsl:for-each select="id('progress-bar', ixsl:page())">
-                                <xsl:result-document href="?." method="ixsl:replace-content">
-                                    <div class="progress progress-striped active">
-                                        <div class="bar" style="width: 60%;"></div>
-                                    </div>
-                                </xsl:result-document>
-                            </xsl:for-each>
+                            <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                                <div class="progress progress-striped active">
+                                    <div class="bar" style="width: 60%;"></div>
+                                </div>
+                            </xsl:result-document>
 
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onContainerResultsLoad"/>
@@ -627,13 +606,11 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
 
         <!-- container progress bar -->
-        <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <div class="progress progress-striped active">
-                    <div class="bar" style="width: 80%;"></div>
-                </div>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+            <div class="progress progress-striped active">
+                <div class="bar" style="width: 80%;"></div>
+            </div>
+        </xsl:result-document>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -647,20 +624,16 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <!-- create a container for parallax controls in the right-nav, if they doesn't exist yet -->
                     <xsl:if test="not(id('parallax-nav', ixsl:page()))">
-                        <xsl:for-each select="id('right-nav', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <div id="parallax-nav"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
+                        <xsl:result-document href="#right-nav" method="ixsl:append-content">
+                            <div id="parallax-nav"/>
+                        </xsl:result-document>
                     </xsl:if>
                     
-                    <xsl:for-each select="id('parallax-nav', ixsl:page())">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:call-template name="bs2:Parallax">
-                                <xsl:with-param name="results" select="$results"/>
-                            </xsl:call-template>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:result-document href="#parallax-nav" method="ixsl:replace-content">
+                        <xsl:call-template name="bs2:Parallax">
+                            <xsl:with-param name="results" select="$results"/>
+                        </xsl:call-template>
+                    </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -677,36 +650,30 @@ extension-element-prefixes="ixsl"
         <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
 
         <!-- remove container progress bar -->
-        <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:choose>
             <!-- container results are already rendered -->
             <xsl:when test="id('container-pane', ixsl:page())">
-                <xsl:for-each select="id('container-pane', ixsl:page())">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:result-document href="#container-pane" method="ixsl:replace-content">
+                    <xsl:call-template name="container-mode">
+                        <xsl:with-param name="results" select="$results"/>
+                        <!-- <xsl:with-param name="order-by" select="$order-by"/> -->
+                        <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
+                    </xsl:call-template>
+                </xsl:result-document>
+            </xsl:when>
+            <!-- first time rendering the container results -->
+            <xsl:otherwise>
+                <xsl:result-document href="#main-content" method="ixsl:append-content">
+                    <div id="container-pane">
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="results" select="$results"/>
                             <!-- <xsl:with-param name="order-by" select="$order-by"/> -->
                             <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
                         </xsl:call-template>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- first time rendering the container results -->
-            <xsl:otherwise>
-                <xsl:for-each select="id('main-content', ixsl:page())">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="container-pane">
-                            <xsl:call-template name="container-mode">
-                                <xsl:with-param name="results" select="$results"/>
-                                <!-- <xsl:with-param name="order-by" select="$order-by"/> -->
-                                <!-- <xsl:with-param name="active-class" select="$active-class"/> -->
-                            </xsl:call-template>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                    </div>
+                </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -749,38 +716,32 @@ extension-element-prefixes="ixsl"
         <xsl:param name="message" as="xs:string"/>
 
         <!-- remove container progress bar -->
-        <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:choose>
             <!-- container results are already rendered -->
             <xsl:when test="id('container-pane', ixsl:page())">
-                <xsl:for-each select="id('container-pane', ixsl:page())">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:result-document href="#container-pane" method="ixsl:replace-content">
+                    <div class="alert alert-block">
+                        <strong>Error during query execution:</strong>
+                        <pre>
+                            <xsl:value-of select="$message"/>
+                        </pre>
+                    </div>
+                </xsl:result-document>
+            </xsl:when>
+            <!-- first time rendering the container results -->
+            <xsl:otherwise>
+                <xsl:result-document href="#main-content" method="ixsl:append-content">
+                    <div id="container-pane">
                         <div class="alert alert-block">
                             <strong>Error during query execution:</strong>
                             <pre>
                                 <xsl:value-of select="$message"/>
                             </pre>
                         </div>
-                    </xsl:result-document>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- first time rendering the container results -->
-            <xsl:otherwise>
-                <xsl:for-each select="id('main-content', ixsl:page())">
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <div id="container-pane">
-                            <div class="alert alert-block">
-                                <strong>Error during query execution:</strong>
-                                <pre>
-                                    <xsl:value-of select="$message"/>
-                                </pre>
-                            </div>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                    </div>
+                </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -916,11 +877,11 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="select-uri" select="key('resources', $ldt:base)/dh:select/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$select-uri">
-                        <xsl:message>SELECT URI: <xsl:value-of select="$select-uri"/></xsl:message>
+                        <xsl:message>SELECT URI: <xsl:value-of select="$select-uri"/> ?this: <xsl:value-of select="$ldt:base"/></xsl:message>
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="apl:RootChildrenSelectLoad">
-                                <xsl:with-param name="this-uri" select="$ldt:base"/>
-                                <xsl:with-param name="select-uri" select="$select-uri"/>
+                                <xsl:with-param name="this-uri" select="$ldt:base" as="xs:anyURI"/>
+                                <xsl:with-param name="select-uri" select="$select-uri" as="xs:anyURI"/>
                                 <xsl:with-param name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
@@ -938,23 +899,24 @@ extension-element-prefixes="ixsl"
         <xsl:param name="this-uri" as="xs:anyURI"/>
         <xsl:param name="select-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
-
+        <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="select" select="key('resources', $select-uri)" as="element()?"/>
                     <xsl:variable name="select-string" select="$select/sp:text" as="xs:string?"/>
                     <xsl:if test="$select-string">
-                        <!-- turn SELECT into DESCRIBE - no point in using ac:build-describe() as we don't want pagination here -->
-                        <!-- TO-DO: use CONSTRUCT to only pull dct:titles? -->
+                        <!--turn SELECT into DESCRIBE - no point in using ac:build-describe() as we don't want pagination here--> 
+                        <!--TO-DO: use CONSTRUCT to only pull dct:titles?--> 
                         <xsl:variable name="describe-string" select="replace($select-string, 'DISTINCT', '')" as="xs:string"/>
                         <xsl:variable name="describe-string" select="replace($describe-string, 'SELECT', 'DESCRIBE')" as="xs:string"/>
-                        <!-- set ?this variable value -->
+                         <!--set ?this variable value--> 
                         <xsl:variable name="describe-string" select="replace($describe-string, '\?this', concat('&lt;', $this-uri, '&gt;'))" as="xs:string"/>
                         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
 
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="apl:RootChildrenSelectLoad"/>
+                            <xsl:call-template name="apl:RootChildrenResultsLoad"/>
                         </ixsl:schedule-action>
                     </xsl:if>
                 </xsl:for-each>
@@ -967,16 +929,35 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:RootChildrenResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="id" select="'root-children-nav'" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:for-each select="key('resources-by-container', $ldt:base)">
-                        <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                        <xsl:apply-templates select="." mode="bs2:List">
-                            <xsl:with-param name="active" select="starts-with($ac:uri, @rdf:about)"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                        <xsl:variable name="container-list" as="element()*">
+                            <xsl:for-each select="key('resources-by-container', $ldt:base, $results)">
+                                <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:apply-templates select="." mode="bs2:List">
+                                    <xsl:with-param name="active" select="starts-with($ac:uri, @rdf:about)"/>
+                                </xsl:apply-templates>
+                            </xsl:for-each>
+                        </xsl:variable>
+
+                        <xsl:result-document href="#{$id}" method="ixsl:replace-content">
+                            <xsl:if test="$container-list">
+                                <div class="well well-small">
+                                    <h2 class="nav-header">
+                                        <a href="{$ldt:base}" title="{$ldt:base}">
+                                            <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                        </a>
+                                    </h2>
+                                    <ul class="nav nav-list">
+                                        <xsl:copy-of select="$container-list"/>
+                                    </ul>
+                                </div>
+                            </xsl:if>
+                        </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1000,19 +981,15 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query-string)))" as="xs:anyURI"/>
 
             <!-- query progress bar -->
-            <xsl:for-each select="id('progress-bar', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <div class="progress progress-striped active">
-                        <div class="bar" style="width: 60%;"></div>
-                    </div>
-                </xsl:result-document>
-            </xsl:for-each>
+            <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                <div class="progress progress-striped active">
+                    <div class="bar" style="width: 60%;"></div>
+                </div>
+            </xsl:result-document>
 
-            <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <div id="sparql-results"/>
-                </xsl:result-document>
-            </xsl:for-each>
+            <xsl:result-document href="#main-content" method="ixsl:append-content">
+                <div id="sparql-results"/>
+            </xsl:result-document>
 
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                 <xsl:call-template name="onSPARQLResultsLoad"/>
@@ -1030,13 +1007,11 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <!-- query progress bar -->
-                    <xsl:for-each select="id('progress-bar', ixsl:page())">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 80%;"></div>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                        <div class="progress progress-striped active">
+                            <div class="bar" style="width: 80%;"></div>
+                        </div>
+                    </xsl:result-document>
 
                     <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
                     <xsl:choose>
@@ -1058,15 +1033,13 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <xsl:for-each select="id('sparql-results', ixsl:page())">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results" mode="bs2:Chart">
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                            </xsl:apply-templates>
-                        </xsl:result-document>
-                    </xsl:for-each>
+                    <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
+                        <xsl:apply-templates select="$results" mode="bs2:Chart">
+                            <xsl:with-param name="chart-type" select="$chart-type"/>
+                            <xsl:with-param name="category" select="$category"/>
+                            <xsl:with-param name="series" select="$series"/>
+                        </xsl:apply-templates>
+                    </xsl:result-document>
 
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
@@ -1078,21 +1051,17 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <!-- remove query progress bar -->
-                <xsl:for-each select="id('progress-bar', ixsl:page())">
-                    <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
-                </xsl:for-each>
+                <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
                 <!-- error response - could not load query results -->
-                <xsl:for-each select="id('sparql-results', ixsl:page())">
-                    <xsl:result-document href="?." method="ixsl:replace-content">
-                        <div class="alert alert-block">
-                            <strong>Error during query execution:</strong>
-                            <pre>
-                                <xsl:value-of select="$response?message"/>
-                            </pre>
-                        </div>
-                    </xsl:result-document>
-                </xsl:for-each>
+                <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
+                    <div class="alert alert-block">
+                        <strong>Error during query execution:</strong>
+                        <pre>
+                            <xsl:value-of select="$response?message"/>
+                        </pre>
+                    </div>
+                </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1104,9 +1073,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="series" as="xs:string*"/>
         
         <!-- remove query progress bar -->
-        <xsl:for-each select="id('progress-bar', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:replace-content"></xsl:result-document>
-        </xsl:for-each>
+        <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:call-template name="ac:draw-chart">
              <xsl:with-param name="canvas-id" select="$canvas-id"/>
@@ -1272,11 +1239,9 @@ extension-element-prefixes="ixsl"
 
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id('sparql-results', ixsl:page()))">
-            <xsl:for-each select="id('main-content', ixsl:page())">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <div id="sparql-results"/>
-                </xsl:result-document>
-            </xsl:for-each>
+            <xsl:result-document href="#main-content" method="ixsl:append-content">
+                <div id="sparql-results"/>
+            </xsl:result-document>
         </xsl:if>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
