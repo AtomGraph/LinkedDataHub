@@ -112,10 +112,10 @@ version="2.0"
         <xsl:variable name="menu" select="$element/following-sibling::ul" as="element()"/>
         
         <xsl:choose>
-            <xsl:when test="?status = 200">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:if test="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.typeahead'))">
-                        <ixsl:set-property name="LinkedDataHub.typeahead" select="array {}"/> <!-- empty array -->
+                        <ixsl:set-property name="LinkedDataHub.typeahead" select="[]"/> <!-- empty array -->
                     </xsl:if>
                     <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
 

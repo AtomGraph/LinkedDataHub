@@ -38,13 +38,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --endpoint)
-        endpoint="$2"
+        --repository)
+        repository="$2"
         shift # past argument
         shift # past value
         ;;
-        --graph-store)
-        graph_store="$2"
+        --auth-token)
+        auth_token="$2"
         shift # past argument
         shift # past value
         ;;
@@ -77,8 +77,8 @@ if [ -z "$base" ] ; then
     echo '-b|--base not set'
     exit 1
 fi
-if [ -z "$endpoint" ] ; then
-    echo '--endpoint not set'
+if [ -z "$repository" ] ; then
+    echo '--repository not set'
     exit 1
 fi
 if [ -z "$title" ] ; then
@@ -98,7 +98,7 @@ args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
 args+=("-c")
-args+=("${base}ns#GenericService") # class
+args+=("${base}ns#DydraService") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
@@ -106,12 +106,13 @@ turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix dydra: <http://dydra.com/ns#> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:service a ns:GenericService .\n"
+turtle+="_:service a ns:DydraService .\n"
 turtle+="_:service dct:title \"${title}\" .\n"
-turtle+="_:service sd:endpoint <${endpoint}> .\n"
+turtle+="_:service dydra:repository <${repository}> .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Query .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Update .\n"
 turtle+="_:service foaf:isPrimaryTopicOf _:item .\n"
@@ -120,8 +121,8 @@ turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:service .\n"
 
-if [ -n "$graph_store" ] ; then
-    turtle+="_:service a:graphStore <${graph_store}> .\n"
+if [ -n "$auth_token" ] ; then
+    turtle+="_:service <urn:dydra:accessToken> \"${auth_token}\" .\n"
 fi
 if [ -n "$auth_user" ] ; then
     turtle+="_:service a:authUser \"${auth_user}\" .\n"
