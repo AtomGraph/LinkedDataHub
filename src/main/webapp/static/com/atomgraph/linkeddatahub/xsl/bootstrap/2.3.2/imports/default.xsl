@@ -586,7 +586,7 @@ exclude-result-prefixes="#all">
                 <xsl:if test="not($required)">
                     <div class="btn-group pull-right">
                         <button type="button" title="Remove this statement">
-                            <xsl:apply-templates select="key('resources', 'remove', document('../translations.rdf'))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                             </xsl:apply-templates>
                         </button>
@@ -876,7 +876,7 @@ exclude-result-prefixes="#all">
 
             <div class="controls">
                 <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
-                    <xsl:apply-templates select="key('resources', 'add', document('../translations.rdf'))" mode="apl:logo">
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>
                 </button>

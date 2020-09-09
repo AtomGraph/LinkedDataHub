@@ -192,8 +192,8 @@ version="2.0"
         
         <xsl:for-each select="$menu">
             <ixsl:set-style name="display" select="'block'"/>
-            <ixsl:set-style name="top" select="concat($element/ixsl:get(., 'offsetTop') + $element/ixsl:get(., 'offsetHeight'), 'px')"/>
-            <ixsl:set-style name="left" select="concat($element/ixsl:get(., 'offsetLeft'), 'px')"/>
+            <ixsl:set-style name="top" select="($element/ixsl:get(., 'offsetTop') + $element/ixsl:get(., 'offsetHeight')) || 'px'"/>
+            <ixsl:set-style name="left" select="($element/ixsl:get(., 'offsetLeft')) || 'px'"/>
         </xsl:for-each>
     </xsl:template>
 

@@ -1427,12 +1427,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
-        <xsl:variable name="value-uris" select="[ $resource-types[not(. = '&rdfs;Resource')] ]" as="array(xs:anyURI)"/>
+        <!-- convert resource type URIs to SPARQLBuilder URIs -->
+        <xsl:variable name="value-uris" select="for $uri in $resource-types[not(. = '&rdfs;Resource')] return ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'uri', [ $uri ])"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.regex(QueryBuilder.var("label"), QueryBuilder.term($value)))) -->
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'regex', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'str', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'label' ]) ]), ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'term', [ ac:escape-regex(ixsl:get(., 'value')) ]), true() ]) ]) ])"/>
         <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var("Type"), [ $value ]))) -->
-        <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = 'http://www.w3.org/2000/01/rdf-schema#Resource')])) then $select-builder else ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
+        <xsl:variable name="select-builder" select="if (empty($resource-types[not(. = '&rdfs;Resource')])) then $select-builder else ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ 'Type' ]), $value-uris ]) ]) ])"/>
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
         <xsl:variable name="describe-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
@@ -1607,21 +1608,27 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'add-value']" mode="ixsl:onclick">
         <xsl:message>Adding property for class: <xsl:value-of select="@value"/></xsl:message>
-        <xsl:variable name="constructor-uri" select="resolve-uri(concat('?forClass=', encode-for-uri(@value), '&amp;', 'mode=', encode-for-uri('&ac;ConstructMode')), $ac:uri)" as="xs:anyURI"/>
+        <xsl:variable name="button" select="." as="element()"/>
+        <xsl:variable name="control-group" select="$button/../.." as="element()"/>
+        <xsl:variable name="property" select="$button/../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="@value" as="xs:anyURI"/>
+        <xsl:variable name="constructor-uri" select="resolve-uri(concat('?forClass=', encode-for-uri($forClass), '&amp;', 'mode=', encode-for-uri('&ac;ConstructMode')), $ac:uri)" as="xs:anyURI"/>
         <xsl:message>Constructor URI: <xsl:value-of select="$constructor-uri"/></xsl:message>
+        
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $constructor-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onaddValueCallback">
+                <xsl:with-param name="forClass" select="$forClass"/>
+                <xsl:with-param name="control-group" select="$control-group"/>
+                <xsl:with-param name="property" select="$property"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
 
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(ixsl:window(), 'loadRDFXML', [ ixsl:event(), string($constructor-uri), ixsl:get(ixsl:window(), 'onaddValueCallback') ])"/>
-        </xsl:message>
         <!-- replace button content with loading indicator -->
         <xsl:for-each select="..">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy>
-                    <xsl:copy-of select="@*"/>
-                    <xsl:attribute name="disabled" select="'disabled'"/>
-                    <xsl:text>Loading...</xsl:text>
-                </xsl:copy>
+                <xsl:text>Loading...</xsl:text>
             </xsl:result-document>
+            <ixsl:set-attribute name="disabled" select="'disabled'"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1666,6 +1673,52 @@ extension-element-prefixes="ixsl"
         <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')" object="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']"/>
         <!-- activate this tab -->
         <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')" object="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]"/>
+    </xsl:template>
+    
+    <!-- simplified version of Bootstrap's tooltip() -->
+    
+    <xsl:template match="fieldset//input" mode="ixsl:onmouseover">
+        <xsl:choose>
+            <!-- show existing tooltip -->
+            <xsl:when test="../div[tokenize(@class, ' ') = 'tooltip']">
+                <ixsl:set-style name="display" select="'block'" object="../div[tokenize(@class, ' ') = 'tooltip']"/>
+            </xsl:when>
+            <!-- append new tooltip -->
+            <xsl:otherwise>
+                <xsl:variable name="description-span" select="ancestor::*[tokenize(@class, ' ') = 'control-group']//*[tokenize(@class, ' ') = 'description']" as="element()?"/>
+                <xsl:if test="$description-span">
+                    <xsl:variable name="input-offset-width" select="ixsl:get(., 'offsetWidth')" as="xs:integer"/>
+                    <xsl:variable name="input-offset-height" select="ixsl:get(., 'offsetHeight')" as="xs:integer"/>
+                    <xsl:for-each select="..">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <div class="tooltip fade top in">
+                                <div class="tooltip-arrow"></div>
+                                <div class="tooltip-inner">
+                                    <xsl:sequence select="$description-span/text()"/>
+                                </div>
+                            </div>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:otherwise>
+        </xsl:choose>
+        <!-- adjust the position of the tooltip relative to the input -->
+        <xsl:variable name="input-top" select="ixsl:get(., 'offsetTop')" as="xs:double"/>
+        <xsl:variable name="input-left" select="ixsl:get(., 'offsetLeft')" as="xs:double"/>
+        <xsl:variable name="input-width" select="ixsl:get(., 'offsetWidth')" as="xs:double"/>
+        <xsl:for-each select="../div[tokenize(@class, ' ') = 'tooltip']">
+            <xsl:variable name="tooltip-height" select="ixsl:get(., 'offsetHeight')" as="xs:double"/>
+            <xsl:variable name="tooltip-width" select="ixsl:get(., 'offsetWidth')" as="xs:double"/>
+            
+            <ixsl:set-style name="top" select="($input-top - $tooltip-height) || 'px'"/>
+            <ixsl:set-style name="left" select="($input-left + ($input-width - $tooltip-width) div 2) || 'px'"/>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <xsl:template match="fieldset//input" mode="ixsl:onmouseout">
+        <xsl:for-each select="../div[tokenize(@class, ' ') = 'tooltip']">
+            <ixsl:set-style name="display" select="'none'"/>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- MODAL IDENTITY TRANSFORM -->
@@ -1748,55 +1801,61 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="." mode="ixsl:onaddValueCallback">
-        <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
-        <!-- ancestor-or-self axis needed because either <button> or its child <img> can be event target -->
-        <xsl:variable name="forClass" select="$target/ancestor-or-self::button/@value" as="xs:anyURI"/>
-        <xsl:variable name="button" select="id($target/ancestor-or-self::button/@id, ixsl:page())" as="element()"/>
-        <xsl:variable name="template-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
-        <xsl:variable name="selected-property" select="$button/../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="for" select="generate-id($template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]/(@rdf:*[local-name() = ('resource', 'nodeID')], node())[1])" as="xs:string"/>
+    <xsl:template name="onaddValueCallback">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="control-group" as="element()"/>
+        <xsl:param name="property" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="template-doc" select="." as="document-node()"/>
+                    <xsl:variable name="for" select="generate-id($template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property][1]/(@rdf:*[local-name() = ('resource', 'nodeID')], node())[1])" as="xs:string"/>
 
-        <xsl:for-each select="$button">
-            <xsl:for-each select="../..">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:for-each select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property][1]">
-                        <xsl:apply-templates select="." mode="xhtml:Input">
-                            <xsl:with-param name="type" select="'hidden'"/>
-                        </xsl:apply-templates>
+                    <xsl:for-each select="$control-group">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:for-each select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property][1]">
+                                <xsl:apply-templates select="." mode="xhtml:Input">
+                                    <xsl:with-param name="type" select="'hidden'"/>
+                                </xsl:apply-templates>
 
-                        <label class="control-label" for="{$for}" title="{$selected-property}">
-                            <xsl:apply-templates select="." mode="ac:property-label"/>
-                        </label>
+                                <label class="control-label" for="{$for}" title="{$property}">
+                                    <xsl:apply-templates select="." mode="ac:property-label"/>
+                                </label>
 
-                        <div class="controls">
-                            <div class="btn-group pull-right">
-                                <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement"></button>
-                            </div>
+                                <div class="controls">
+                                    <div class="btn-group pull-right">
+                                        <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement"></button>
+                                    </div>
 
-                            <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
-                        </div>
+                                    <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
+                                </div>
+                            </xsl:for-each>
+                            </xsl:result-document>
+
+                        <!-- move property creation control group down, by appending it to the parent fieldset -->
+                        <xsl:for-each select="$control-group/..">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <xsl:apply-templates select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)][1]" mode="bs2:PropertyControl">
+                                    <xsl:with-param name="template" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]"/>
+                                    <xsl:with-param name="forClass" select="$forClass"/>
+                                </xsl:apply-templates>
+                            </xsl:result-document>
+                        </xsl:for-each>
+
+                        <!-- apply WYMEditor on textarea if object is XMLLiteral -->
+                        <xsl:call-template name="add-value-listeners">
+                            <xsl:with-param name="id" select="$for"/>
+                            <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
+                        </xsl:call-template>
                     </xsl:for-each>
-                </xsl:result-document>
-            </xsl:for-each>
-            
-            <!-- move property creation control group down, by appending it to the parent fieldset -->
-            <xsl:for-each select="../../..">
-                <xsl:result-document href="?." method="ixsl:append-content">
-                    <xsl:apply-templates select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)][1]" mode="bs2:PropertyControl">
-                        <xsl:with-param name="template" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]"/>
-                        <xsl:with-param name="forClass" select="$forClass"/>
-                    </xsl:apply-templates>
-                </xsl:result-document>
-            </xsl:for-each>
-
-            <!-- apply WYMEditor on textarea if object is XMLLiteral -->
-            <xsl:call-template name="add-value-listeners">
-                <xsl:with-param name="id" select="$for"/>
-                <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $selected-property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
-            </xsl:call-template>
-        </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template name="add-value-listeners">
@@ -1857,7 +1916,7 @@ extension-element-prefixes="ixsl"
         <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
         <xsl:message>
             <!-- call .wymeditor() on textarea to show WYMEditor -->
-            <xsl:value-of select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])"/>
+            <xsl:sequence select="ixsl:call(ixsl:call(ixsl:window(), 'jQuery', [ . ]), 'wymeditor', [])"/>
         </xsl:message>
     </xsl:template>
 
@@ -1869,11 +1928,11 @@ extension-element-prefixes="ixsl"
             </xsl:message>
         </xsl:if>
         <!-- object onmouseover (tooltip) -->
-        <xsl:if test="@name = ('ou', 'ob', 'ol')">
+<!--        <xsl:if test="@name = ('ou', 'ob', 'ol')">
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'mouseover', ixsl:get(ixsl:window(), 'onInputMouseOver') ])"/>
             </xsl:message>
-        </xsl:if>
+        </xsl:if>-->
         <!-- typeahead blur -->
         <xsl:if test="tokenize(@class, ' ') = 'resource-typeahead'">
             <xsl:message>

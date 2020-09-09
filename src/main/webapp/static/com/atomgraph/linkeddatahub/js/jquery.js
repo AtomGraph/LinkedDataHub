@@ -24,16 +24,6 @@ var onTypeaheadInputBlur = function()
     $(this).nextAll("ul.typeahead").hide().empty();
 };
 
-var onInputMouseOver = function()
-{
-    // use description text of the property in control-group label, if any
-    var descSpan = $(this).closest(".control-group").find(".control-label .description");
-    if (descSpan.length)
-    {
-        $(this).tooltip({ "placement": "top", "title": descSpan.text() });
-    } 
-};
-
 var onModalFormSubmit = function(event)
 {    
     if ($(this).find("input[name=rdf]").length)
@@ -281,7 +271,6 @@ $(document).ready(function()
     $(".input-prepend.input-append input[type=text]").on("change", onPrependedAppendedInputChange).change();
     
     $("input.typeahead").on("blur", onTypeaheadInputBlur);
-    $("fieldset input").on("mouseover", onInputMouseOver);
     
     $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
 
