@@ -1,22 +1,4 @@
-/* global Saxon, stylesheetUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder */
-
-var rdfXml = null; // TO-DO: set as xsl:param instead
-
-function loadRDFXML(event, url, callback)
-{
-    $.ajax({url: url,
-        headers: { "Accept": "application/rdf+xml" }
-    }).
-    done(function(data, textStatus, jqXHR)
-    {
-        rdfXml = jqXHR.responseXML;
-        callback(event); // TO-DO: replace with xslt2proc.updateHTMLDocument() ?
-    } ).
-    fail(function(jqXHR, textStatus, errorThrown)
-    {
-        alert(errorThrown);
-    });
-}
+/* global stylesheetUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
 var onTypeaheadInputBlur = function()
 {
@@ -101,17 +83,21 @@ var onModalFormSubmit = function(event)
                     "headers": { "Accept": "application/rdf+xml, */*;q=0.1" } // RDF/XML response
                 }
             ).
-            done(function(responseXML, textStatus, jqXHR)
+            done(function(rdfXml, textStatus, jqXHR)
             {
                 // render typeahead with XSLT if RDF/XML is returned
                 if (jqXHR.getResponseHeader("Content-Type") === "application/rdf+xml;charset=UTF-8")
                 {
-                    // TO-DO: extract following block into a function
-                    xslt2proc.setInitialTemplate(null);
-                    xslt2proc.setInitialMode("{http://graphity.org/xsl/bootstrap/2.3.2}CreatedMode"); // namespace ignored
-                    xslt2proc.setParameter(null, "constructor-form", form);
-                    xslt2proc.setParameter(null, "created-uri", location);
-                    xslt2proc.updateHTMLDocument(responseXML);
+                    SaxonJS.transform({
+                        "stylesheetLocation": "https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
+                        "initialMode": "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ConstructedTypeaheadValue",
+                        "logLevel": 10,
+                        "sourceNode": html,
+                        "templateParams": {
+                            "constructor-form": form,
+                            "created-uri": location
+                        }
+                    }, "async");
                 }
                 else
                 {
@@ -136,13 +122,17 @@ var onModalFormSubmit = function(event)
                 var parser = new DOMParser();
                 var html = parser.parseFromString(jqXHR.responseText, "text/html");
                 
-                // TO-DO: extract following block into a function
-                xslt2proc.setInitialTemplate(null);
-                xslt2proc.setInitialMode("{http://graphity.org/xsl/bootstrap/2.3.2}ConstructMode");  // namespace ignored
-                xslt2proc.setParameter(null, "constructor-form", form);
-                xslt2proc.setParameter(null, "constructor-doc", html);
-                xslt2proc.updateHTMLDocument(html);
-
+                SaxonJS.transform({
+                    "stylesheetLocation": "https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
+                    "initialMode": "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ConstructViolation",
+                    "logLevel": 10,
+                    "sourceNode": html,
+                    "templateParams": {
+                        "constructor-form": form,
+                        "constructor-doc": html
+                    }
+                }, "async");
+                
                 $(form).css("cursor", "default"); // data processing done
             }
             else // otherwise, show error

@@ -176,17 +176,21 @@ extension-element-prefixes="ixsl"
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
-        <xsl:if test="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+        <xsl:if test="id('main-content', ixsl:page()) and not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:result-document href="#main-content" method="ixsl:append-content">
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
         </xsl:if>
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="apl:RootLoad"/>
-        </ixsl:schedule-action>
+        <xsl:if test="id('root-children-nav', ixsl:page())">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="apl:RootLoad">
+                    <xsl:with-param name="id" select="'root-children-nav'"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:if>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
-        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
+        <xsl:if test="id('main-content', ixsl:page()) and not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
             <!-- show progress bar -->
             <xsl:result-document href="#main-content" method="ixsl:append-content">
                 <div id="progress-bar">
@@ -417,8 +421,12 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
     </xsl:template>
 
-    <xsl:template match="/" mode="ConstructMode">
-        <xsl:message>ConstructMode</xsl:message>
+    <!-- is invoked from jquery.js after a failed form onsubmit event. Replaces the current model form with the content of the form with rendered errors from the response HML -->
+    <xsl:template match="html" mode="apl:ConstructViolation">
+        <xsl:param name="constructor-form" as="element()"/>
+        <xsl:param name="constructor-doc" as="document-node()"/>
+
+        <xsl:message>apl:ConstructViolation</xsl:message>
         
         <xsl:variable name="target-id" select="$constructor-form/input[@class = 'target-id']/@value" as="xs:string?"/>
         <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
@@ -442,8 +450,14 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="/" mode="CreatedMode">
-        <xsl:variable name="resource" select="key('resources', $created-uri)"/>
+    <!-- is invoked from jquery.js after a successful form onsubmit event. Renders RDF/XML of the newly constructed resource as the value of a typeahead -->
+    <xsl:template match="rdf:RDF" mode="apl:ConstructedTypeaheadValue">
+        <xsl:param name="constructor-form" as="element()"/>
+        <xsl:param name="created-uri" as="xs:anyURI"/>
+        
+        <xsl:message>apl:ConstructedTypeaheadValue</xsl:message>
+
+        <xsl:variable name="resource" select="key('resources', $created-uri)" as="element()"/>
         <xsl:variable name="target-id" select="$constructor-form//input[@class = 'target-id']/@value" as="xs:string?"/>
         
         <!-- remove modal constructor form -->
@@ -875,6 +889,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:RootLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="id" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -883,8 +898,9 @@ extension-element-prefixes="ixsl"
                     <xsl:if test="$select-uri">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="apl:RootChildrenSelectLoad">
-                                <xsl:with-param name="this-uri" select="$ldt:base" as="xs:anyURI"/>
-                                <xsl:with-param name="select-uri" select="$select-uri" as="xs:anyURI"/>
+                                <xsl:with-param name="id" select="$id"/>
+                                <xsl:with-param name="this-uri" select="$ldt:base"/>
+                                <xsl:with-param name="select-uri" select="$select-uri"/>
                                 <xsl:with-param name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
@@ -899,6 +915,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:RootChildrenSelectLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="id" as="xs:string"/>
         <xsl:param name="this-uri" as="xs:anyURI"/>
         <xsl:param name="select-uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
@@ -919,7 +936,9 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
 
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="apl:RootChildrenResultsLoad"/>
+                            <xsl:call-template name="apl:RootChildrenResultsLoad">
+                                <xsl:with-param name="id" select="$id"/>
+                            </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:if>
                 </xsl:for-each>
@@ -932,7 +951,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:RootChildrenResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="id" select="'root-children-nav'" as="xs:string"/>
+        <xsl:param name="id" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
