@@ -39,6 +39,7 @@ xmlns:ldt="&ldt;"
 xmlns:core="&c;"
 xmlns:spl="&spl;"
 xmlns:void="&void;"
+xmlns:dydra="urn:dydra:"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
@@ -161,7 +162,7 @@ exclude-result-prefixes="#all">
                 <xsl:sort select="ac:label(.)"/>
                 
                 <xsl:apply-templates select="." mode="xhtml:Option">
-                    <xsl:with-param name="value" select="sd:endpoint/@rdf:resource"/>
+                    <xsl:with-param name="value" select="if (dydra:accessToken) then sd:endpoint/@rdf:resource || '?auth_token=' || dydra:accessToken else sd:endpoint/@rdf:resource"/>
                     <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $ac:endpoint"/>
                 </xsl:apply-templates>
             </xsl:for-each>

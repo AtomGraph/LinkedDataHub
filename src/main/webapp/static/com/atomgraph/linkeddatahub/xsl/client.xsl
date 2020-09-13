@@ -208,7 +208,26 @@ extension-element-prefixes="ixsl"
         </xsl:if>
         <!-- initialize SPARQL endpoint dropdown -->
         <xsl:for-each select="id('endpoint-uri', ixsl:page())">
-            <xsl:variable name="query" select="'CONSTRUCT { ?service &lt;&dct;title&gt; ?title ; &lt;&sd;endpoint&gt; ?endpoint } WHERE { GRAPH ?g { ?service &lt;&dct;title&gt; ?title . { ?service &lt;&sd;endpoint&gt; ?endpoint } UNION { ?service &lt;http://dydra.com/ns#repository&gt; ?repository . BIND (URI(CONCAT(STR(?repository), ''sparql'')) AS ?endpoint) } } }'" as="xs:string"/>
+            <xsl:variable name="query" as="xs:string">
+                CONSTRUCT 
+                  { 
+                    ?service &lt;&dct;title&gt; ?title .
+                    ?service &lt;&sd;endpoint&gt; ?endpoint .
+                    ?service &lt;urn:dydra:accessToken&gt; ?authToken .
+                  }
+                WHERE
+                  { GRAPH ?g
+                      { ?service  &lt;&dct;title&gt;  ?title
+                          { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
+                        UNION
+                          { ?service  &lt;http://dydra.com/ns#repository&gt;  ?repository
+                            BIND(uri(concat(str(?repository), "sparql")) AS ?endpoint)
+                            OPTIONAL
+                              { ?service  &lt;urn:dydra:accessToken&gt;  ?authToken }
+                          }
+                      }
+                  }
+            </xsl:variable>
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad"/>
             </ixsl:schedule-action>
@@ -419,35 +438,6 @@ extension-element-prefixes="ixsl"
     <!-- if document has a topic, show it as the typeahead value instead -->
     <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="apl:Typeahead" priority="1">
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
-    </xsl:template>
-
-    <!-- is invoked from jquery.js after a failed form onsubmit event. Replaces the current model form with the content of the form with rendered errors from the response HML -->
-    <xsl:template match="html" mode="apl:ConstructViolation">
-        <xsl:param name="constructor-form" as="element()"/>
-        <xsl:param name="constructor-doc" as="document-node()"/>
-
-        <xsl:message>apl:ConstructViolation</xsl:message>
-        
-        <xsl:variable name="target-id" select="$constructor-form/input[@class = 'target-id']/@value" as="xs:string?"/>
-        <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-        <xsl:variable name="modal-form" as="element()">
-            <xsl:apply-templates select="$constructor-doc//form[@class = 'form-horizontal']" mode="modal">
-                <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-            </xsl:apply-templates>
-        </xsl:variable>
-        <xsl:variable name="form-id" select="$modal-form/@id" as="xs:string"/>
-        
-        <xsl:for-each select="$constructor-form/..">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- append modal div to body -->
-                <xsl:copy-of select="$modal-form"/>
-            </xsl:result-document>
-        </xsl:for-each>
-
-        <xsl:call-template name="add-form-listeners">
-            <xsl:with-param name="id" select="$form-id"/>
-        </xsl:call-template>
     </xsl:template>
     
     <!-- is invoked from jquery.js after a successful form onsubmit event. Renders RDF/XML of the newly constructed resource as the value of a typeahead -->
@@ -1028,12 +1018,14 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <!-- query progress bar -->
-                    <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                        <div class="progress progress-striped active">
-                            <div class="bar" style="width: 80%;"></div>
-                        </div>
-                    </xsl:result-document>
+                    <!-- update progress bar, if it's present -->
+                    <xsl:if test="id('progress-bar', ixsl:page())">
+                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 80%;"></div>
+                            </div>
+                        </xsl:result-document>
+                    </xsl:if>
 
                     <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
                     <xsl:choose>
@@ -1106,6 +1098,100 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- EVENT LISTENERS -->
+    
+    <xsl:template match="form[tokenize(../@class, ' ') = 'modal']" mode="ixsl:onsubmit">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="form" select="." as="element()"/>
+        <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
+        <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
+        <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
+
+        <xsl:message>
+            ON SUBMIT! ID: <xsl:value-of select="$id"/> ENCTYPE: <xsl:value-of select="$enctype"/>
+        </xsl:message>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!-- remove names of RDF/POST inputs with empty values -->
+        <xsl:for-each select=".//input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]">
+            <xsl:message>Removing attribute</xsl:message>
+            <ixsl:remove-attribute name="name"/>
+        </xsl:for-each>
+        
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
+        </xsl:variable>
+        <xsl:variable name="form-data-string" select="ixsl:call(ixsl:eval(string($js-statement/@statement)), 'toString', [])" as="xs:string"/>
+
+        <xsl:message>
+            FORM DATA: <xsl:value-of select="$form-data-string"/>
+        </xsl:message>
+        
+        <!-- TO-DO: override $action with the container typeahead value -->
+        
+        <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data-string, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onModalFormLoad">
+                <xsl:with-param name="form-id" select="$id"/>
+                <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
+    <xsl:template name="onModalFormLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="form-id" as="xs:string"/>
+        <xsl:param name="target-id" as="xs:string?"/>
+
+        <xsl:message>
+            FORM LOAD! ID: <xsl:value-of select="$form-id"/>
+        </xsl:message>
+        
+        <xsl:choose>
+            <!-- PUT updated graph successfully -->
+            <xsl:when test="?status = 200">
+                <!-- refresh page to see changes from Edit mode -->
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
+                <xsl:message>
+                    GRAPH UPDATED
+                </xsl:message>
+            </xsl:when>
+            <!-- POST created new resource successfully -->
+            <xsl:when test="?status = 201 and ?headers?location">
+                <xsl:message>
+                    RESOURCE CREATED Location: <xsl:value-of select="?headers?location"/> <!-- keys are lower-case -->
+                </xsl:message>
+
+                <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
+                <xsl:if test="not($target-id)">
+                    <ixsl:set-property name="location.href" select="?headers?location"/>
+                </xsl:if>
+            </xsl:when>
+            <!-- POST or PUT constraint violation response is 400 Bad Request -->
+            <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
+                    <xsl:variable name="violation-form" as="element()">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="modal">
+                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    <!--<xsl:variable name="form-id" select="$violation-form/@id" as="xs:string"/>-->
+
+                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
+                        <xsl:copy-of select="$violation-form/*"/>
+                    </xsl:result-document>
+
+                    <xsl:call-template name="add-form-listeners">
+                        <xsl:with-param name="id" select="$form-id"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
     
     <xsl:template match="div[tokenize(@class, ' ') = 'hero-unit']/button[tokenize(@class, ' ') = 'close']" mode="ixsl:onclick" priority="1">
         <!-- remove the hero-unit -->
@@ -1257,7 +1343,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-run-query']" mode="ixsl:onclick">
         <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(id('endpoint-uri'), 'value'))" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query)))" as="xs:anyURI"/>
+        <!-- check if the endpoint URL already contains a query string, e.g. ?auth_token= -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if (contains($endpoint, '?')) then $endpoint || '&amp;query=' || encode-for-uri($query) else $endpoint || '?query=' || encode-for-uri($query))" as="xs:anyURI"/>
 
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id('sparql-results', ixsl:page()))">
@@ -1902,13 +1989,13 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="text()" mode="apl:PostConstructMode"/>
 
-    <xsl:template match="div[tokenize(@class, ' ') = 'modal']/form" mode="apl:PostConstructMode" priority="1">
+<!--    <xsl:template match="div[tokenize(@class, ' ') = 'modal']/form" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'submit', ixsl:get(ixsl:window(), 'onModalFormSubmit') ])"/>
         </xsl:message>
         
         <xsl:apply-templates mode="#current"/>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- remove property button -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="apl:PostConstructMode" priority="1">
