@@ -2676,8 +2676,8 @@ WHERE
     <graphs/1855d876-92aa-4689-bbcc-5c62ca4726ca/#this> a apl:Dataset ;
         foaf:isPrimaryTopicOf <graphs/1855d876-92aa-4689-bbcc-5c62ca4726ca/> .
 
-    <sitemap/templates/default/item/> sioc:has_space <> ;
-        dh:slug "item" ;
+    <sitemap/templates/default/document/> sioc:has_space <> ;
+        dh:slug "document" ;
         void:inDataset <graphs/1855d876-92aa-4689-bbcc-5c62ca4726ca/#this> .
 
 }
@@ -2685,16 +2685,16 @@ WHERE
 <graphs/1855d876-92aa-4689-bbcc-5c62ca4726ca>
 {
 
-    <sitemap/templates/default/item/> a adm:TemplateItem ;
+    <sitemap/templates/default/document/> a adm:TemplateItem ;
         sioc:has_container <sitemap/templates/default/> ;
-        dct:title "Item" ;
-        foaf:primaryTopic nst:Item .
+        dct:title "Document" ;
+        foaf:primaryTopic nst:Document .
 
-    nst:Item a adm:Template ;
-        foaf:isPrimaryTopicOf <sitemap/templates/default/item/> ;
+    nst:Document a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/default/document/> ;
         ldt:extends aplt:Document ;
         ldt:cacheControl "public, max-age=3600" ;
-        rdfs:label "Item" ;
+        rdfs:label "Document" ;
         rdfs:isDefinedBy nst: .
 
 }

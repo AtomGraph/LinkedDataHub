@@ -441,7 +441,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- is invoked from jquery.js after a successful form onsubmit event. Renders RDF/XML of the newly constructed resource as the value of a typeahead -->
-    <xsl:template match="rdf:RDF" mode="apl:ConstructedTypeaheadValue">
+<!--    <xsl:template match="rdf:RDF" mode="apl:ConstructedTypeaheadValue">
         <xsl:param name="constructor-form" as="element()"/>
         <xsl:param name="created-uri" as="xs:anyURI"/>
         
@@ -450,18 +450,18 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="resource" select="key('resources', $created-uri)" as="element()"/>
         <xsl:variable name="target-id" select="$constructor-form//input[@class = 'target-id']/@value" as="xs:string?"/>
         
-        <!-- remove modal constructor form -->
+         remove modal constructor form 
         <xsl:message>
             <xsl:value-of select="ixsl:call($constructor-form/.., 'remove', [])"/>
         </xsl:message>
         
-        <!-- $target-id is of "Create" button, need to replace the preceding typeahead input instead -->
+         $target-id is of "Create" button, need to replace the preceding typeahead input instead 
         <xsl:for-each select="id($target-id, ixsl:page())/ancestor::div[@class = 'controls']/span[input]">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
             </xsl:result-document>
         </xsl:for-each>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template name="first-time-message">
         <div class="hero-unit">
@@ -1112,26 +1112,51 @@ extension-element-prefixes="ixsl"
         </xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
         <!-- remove names of RDF/POST inputs with empty values -->
         <xsl:for-each select=".//input[@name = ('ob', 'ou', 'ol')][not(ixsl:get(., 'value'))]">
-            <xsl:message>Removing attribute</xsl:message>
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
         
         <xsl:variable name="js-statement" as="element()">
-            <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
+            <xsl:choose>
+                <xsl:when test="$enctype = 'multipart/form-data'">
+                    <root statement="new FormData(document.getElementById('{$id}'))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
-        <xsl:variable name="form-data-string" select="ixsl:call(ixsl:eval(string($js-statement/@statement)), 'toString', [])" as="xs:string"/>
+<!--        <xsl:variable name="form-data-string" select="ixsl:call(ixsl:eval(string($js-statement/@statement)), 'toString', [])" as="xs:string"/>-->
+        <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
 
         <xsl:message>
-            FORM DATA: <xsl:value-of select="$form-data-string"/>
+            FORM DATA: <xsl:value-of select="$form-data"/>
         </xsl:message>
         
         <!-- TO-DO: override $action with the container typeahead value -->
         
-        <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data-string, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+        <xsl:variable name="request-params" as="map(*)">
+            <xsl:map>
+                <xsl:map-entry key="'method'" select="$method"/>
+                <xsl:map-entry key="'href'" select="$action"/>
+                <xsl:choose>
+                    <!-- we do not want to set explicit Content-Type because the browser will set 'boundary' on a multipart/form-data request -->
+                    <xsl:when test="$enctype = 'multipart/form-data'">
+                        <xsl:map-entry key="'media-type'" select="()"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:map-entry key="'media-type'" select="$enctype"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <xsl:map-entry key="'body'" select="$form-data"/>
+                <xsl:map-entry key="'headers'" select="map{ 'Accept': 'application/xhtml+xml' }"/>
+            </xsl:map>
+        </xsl:variable>
+        <ixsl:schedule-action http-request="$request-params">
             <xsl:call-template name="onModalFormLoad">
-                <xsl:with-param name="form-id" select="$id"/>
+                <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -1139,8 +1164,11 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onModalFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="form-id" as="xs:string"/>
+        <xsl:param name="form" as="element()"/>
         <xsl:param name="target-id" as="xs:string?"/>
+        <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
+        <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']/span[input] else ()" as="element()?"/>
+        <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
 
         <xsl:message>
             FORM LOAD! ID: <xsl:value-of select="$form-id"/>
@@ -1151,9 +1179,6 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 200">
                 <!-- refresh page to see changes from Edit mode -->
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
-                <xsl:message>
-                    GRAPH UPDATED
-                </xsl:message>
             </xsl:when>
             <!-- POST created new resource successfully -->
             <xsl:when test="?status = 201 and ?headers?location">
@@ -1161,10 +1186,35 @@ extension-element-prefixes="ixsl"
                     RESOURCE CREATED Location: <xsl:value-of select="?headers?location"/> <!-- keys are lower-case -->
                 </xsl:message>
 
-                <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
-                <xsl:if test="not($target-id)">
-                    <ixsl:set-property name="location.href" select="?headers?location"/>
-                </xsl:if>
+                <xsl:choose>
+                    <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
+                    <xsl:when test="not($target-id)">
+                        <ixsl:set-property name="location.href" select="?headers?location"/>
+                    </xsl:when>
+                    <!-- otherwise, render the created resource as a typeahead input -->
+                    <xsl:otherwise>
+                        <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
+                        
+                        <!-- TO-DO: request $created-uri 'application/rdf+xml' -->
+                        
+                        <xsl:for-each select="?body">
+                            <xsl:variable name="resource" select="key('resources', $created-uri)" as="element()"/>
+
+                            <!-- remove modal constructor form -->
+                            <xsl:message>
+                                <xsl:sequence select="ixsl:call($form/.., 'remove', [])"/>
+                            </xsl:message>
+
+                            <xsl:for-each select="$typeahead-span">
+                                <xsl:result-document href="?." method="ixsl:replace-content">
+                                    <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:for-each>
+                        
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
@@ -1185,9 +1235,12 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="add-form-listeners">
                         <xsl:with-param name="id" select="$form-id"/>
                     </xsl:call-template>
+                    
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>

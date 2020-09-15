@@ -71,8 +71,9 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:label "Chart type" ;
     rdfs:isDefinedBy : .
 
-:endpoint a owl:ObjectProperty ;
-    rdfs:label "Endpoint" ;
+:service a owl:ObjectProperty ;
+    rdfs:label "Service" ;
+    rdfs:range :Service ;
     rdfs:isDefinedBy : .
 
 :categoryProperty a owl:ObjectProperty ;
@@ -261,7 +262,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
       CONSTRUCT {
           ?this sp:text [ a xsd:string ] ;
-            :endpoint [ a rdfs:Resource ] .
+            :service [ a :Service ] .
       }
       WHERE {}""" ;
     rdfs:label "Query constructor" ;
@@ -343,7 +344,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     spin:constructor :ChartConstructor ;
-    spin:constraint :MissingQuery, :MissingEndpoint, :MissingChartType ;
+    spin:constraint :MissingQuery, :MissingService, :MissingChartType ;
     rdfs:isDefinedBy : .
 
 :ChartConstructor a sp:Construct ;
@@ -353,8 +354,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
       PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
 
       CONSTRUCT {
-          ?this :endpoint [ a rdfs:Resource ] ;
-            :chartType  [ a rdfs:Resource ] .
+          ?this :chartType  [ a rdfs:Resource ] . # :service [ a :Service ] ; - we have this on :Query
       }
       WHERE {}""" ;
     rdfs:label "Chart constructor" ;
@@ -512,9 +512,9 @@ WHERE
     sp:arg1 :delimiter ;
     rdfs:isDefinedBy : .
 
-:MissingEndpoint a :MissingPropertyValue ;
-    rdfs:label "Missing endpoint" ;
-    sp:arg1 :endpoint ;
+:MissingService a :MissingPropertyValue ;
+    rdfs:label "Missing service" ;
+    sp:arg1 :service ;
     rdfs:isDefinedBy : .
 
 :MissingChartType a :MissingPropertyValue ;

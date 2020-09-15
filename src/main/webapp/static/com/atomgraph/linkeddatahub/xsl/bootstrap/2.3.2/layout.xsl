@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY java   "http://xml.apache.org/xalan/java/">
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
@@ -598,6 +597,10 @@ exclude-result-prefixes="#all">
 
                 <xsl:copy-of select="$constructor-list"/>
                 
+                <xsl:if test="$constructor-list and $default-classes">
+                    <li class="divider"></li>
+                </xsl:if>
+
                 <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
                     <!--if the current resource is a Container, show Container and Item constructors--> 
                     <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
@@ -617,10 +620,10 @@ exclude-result-prefixes="#all">
                                 </xsl:apply-templates>
                             </li>
                         </xsl:for-each>
-                    </xsl:if>
-
-                    <xsl:if test="$constructor-list or $default-classes">
-                        <li class="divider"></li>
+                        
+                        <xsl:if test="$default-classes">
+                            <li class="divider"></li>
+                        </xsl:if>
                     </xsl:if>
 
                     <xsl:for-each select="$default-classes">
@@ -1228,7 +1231,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" select="if (doc-available(ac:document-uri($ldt:template))) then key('resources', key('resources', $ldt:template, document(ac:document-uri($ldt:template)))/aplt:consumes/(@rdf:nodeID, @rdf:resource))/aplt:mediaType else ()" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?">
+            <xsl:for-each select="apl:listSuperTemplates($ldt:template)/../../aplt:consumes[1]">
+                <xsl:sequence select="key('resources', (@rdf:nodeID, @rdf:resource))/aplt:mediaType"/>
+            </xsl:for-each>
+        </xsl:param>
 
         <xsl:choose>
             <xsl:when test="$modal">
