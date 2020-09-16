@@ -20,6 +20,7 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
+    <!ENTITY dydra  "http://dydra.com/ns#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -39,7 +40,7 @@ xmlns:ldt="&ldt;"
 xmlns:core="&c;"
 xmlns:spl="&spl;"
 xmlns:void="&void;"
-xmlns:dydra="urn:dydra:"
+xmlns:dydra="&dydra;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
@@ -75,7 +76,6 @@ exclude-result-prefixes="#all">
             <xsl:call-template name="bs2:QueryForm">
                 <xsl:with-param name="uri" select="$ac:uri"/>
                 <xsl:with-param name="mode" select="$ac:mode"/>
-                <xsl:with-param name="endpoint" select="if ($ac:endpoint) then $ac:endpoint else resolve-uri('sparql', $ldt:base)"/>
                 <xsl:with-param name="query" select="$ac:query"/>
                 <xsl:with-param name="default-query" select="$default-query"/>
             </xsl:call-template>
@@ -91,6 +91,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="default-query" as="xs:string?"/>
@@ -110,10 +111,10 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <fieldset>
-                <label for="endpoint-uri">Endpoint</label>
+                <label for="service">Service</label>
                 <xsl:text> </xsl:text>
-                    <select id="endpoint-uri" name="endpoint" class="input-xxlarge">
-                        <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
+                    <select id="service" name="service" class="input-xxlarge">
+                        <option value="">[SPARQL service]</option>
                 </select>
         
                 <textarea id="query-string" name="query" class="span12" rows="15">
@@ -133,8 +134,8 @@ exclude-result-prefixes="#all">
                     <xsl:if test="$ac:uri">
                         <input type="hidden" name="uri" value="{$ac:uri}"/>
                     </xsl:if>
-                    <xsl:if test="$endpoint">
-                        <input type="hidden" name="endpoint" value="{$endpoint}"/>
+                    <xsl:if test="$service">
+                        <input type="hidden" name="service" value="{$service}"/>
                     </xsl:if>
                     <xsl:for-each select="$mode">
                         <input type="hidden" name="mode" value="{.}"/>
@@ -150,29 +151,41 @@ exclude-result-prefixes="#all">
         </form>
     </xsl:template>
     
-    <!-- service endpoint dropdown -->
+    <!-- render dropdown from SPARQL service results -->
     
     <xsl:template name="onServiceLoad" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:context-item as="map(*)" use="required"/>
-        
-        <xsl:variable name="id" select="'endpoint-uri'" as="xs:string"/>
-        
-        <xsl:result-document href="#{$id}">
-            <xsl:for-each select="?body//*[sd:endpoint/@rdf:resource]">
-                <xsl:sort select="ac:label(.)"/>
-                
-                <xsl:apply-templates select="." mode="xhtml:Option">
-                    <xsl:with-param name="value" select="if (dydra:accessToken) then sd:endpoint/@rdf:resource || '?auth_token=' || dydra:accessToken else sd:endpoint/@rdf:resource"/>
-                    <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $ac:endpoint"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-        </xsl:result-document>
+        <xsl:param name="service-select" as="element()"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    
+                    <xsl:for-each select="$service-select">
+                        <xsl:result-document href="?.">
+                            <xsl:for-each select="$results//*[@rdf:about]">
+                                <xsl:sort select="ac:label(.)"/>
+
+                                <xsl:apply-templates select="." mode="xhtml:Option">
+                                    <xsl:with-param name="value" select="@rdf:about"/>
+                                    <!--<xsl:with-param name="selected" select="(sd:endpoint/@rdf:resource, dydra:repository/@rdf:resource) = $ac:endpoint"/>-->
+                                </xsl:apply-templates>
+                            </xsl:for-each>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template name="bs2:SaveQueryForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="query" as="xs:string"/>
-        <xsl:param name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
         <!-- brittle string-based query type heuristic -->
         <xsl:param name="type" as="xs:anyURI">
             <xsl:choose>
@@ -257,13 +270,13 @@ exclude-result-prefixes="#all">
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
-                <xsl:with-param name="value" select="'&apl;endpoint'"/>
+                <xsl:with-param name="value" select="'&apl;service'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="id" select="'query-endpoint'"/>
+                <xsl:with-param name="id" select="'query-service'"/>
                 <xsl:with-param name="name" select="'ou'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
-                <xsl:with-param name="value" select="$endpoint"/>
+                <xsl:with-param name="value" select="$service"/>
             </xsl:call-template>
             
             <xsl:call-template name="xhtml:Input">

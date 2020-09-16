@@ -344,7 +344,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     spin:constructor :ChartConstructor ;
-    spin:constraint :MissingQuery, :MissingService, :MissingChartType ;
+    spin:constraint :MissingQuery, :MissingChartType ; # :MissingService, 
     rdfs:isDefinedBy : .
 
 :ChartConstructor a sp:Construct ;

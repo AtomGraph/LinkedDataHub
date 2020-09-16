@@ -44,7 +44,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="bs2:Parallax">
         <xsl:param name="results" as="document-node()"/>
         
-        <xsl:if test="$results/rdf:RDF/*/*">
+        <!-- only show if the result contains object resources -->
+        <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]">
             <div class="sidebar-nav parallax-nav">
                 <h2 class="nav-header btn">Navigation</h2>
 
@@ -366,7 +367,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="height" select="'480'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <!-- <xsl:param name="mode" as="xs:anyURI*"/> -->
-        <xsl:param name="endpoint" select="xs:anyURI(ixsl:query-params()?endpoint)" as="xs:anyURI?"/>
+        <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="ixsl:contains(ixsl:window(), 'LinkedDataHub.select-uri')" as="xs:boolean"/>
@@ -431,7 +432,7 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'pu'"/>
                             <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&apl;endpoint'"/>
+                            <xsl:with-param name="value" select="'&apl;service'"/>
                         </xsl:call-template>
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'ou'"/>
@@ -709,7 +710,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="height" select="'480'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="endpoint" select="xs:anyURI(ixsl:query-params()?endpoint)" as="xs:anyURI?"/>
+        <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="ixsl:contains(ixsl:window(), 'LinkedDataHub.select-uri')" as="xs:boolean"/>
@@ -774,12 +775,12 @@ exclude-result-prefixes="#all"
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'pu'"/>
                             <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&apl;endpoint'"/>
+                            <xsl:with-param name="value" select="'&apl;service'"/>
                         </xsl:call-template>
                         <xsl:call-template name="xhtml:Input">
                             <xsl:with-param name="name" select="'ou'"/>
                             <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
+                            <xsl:with-param name="value" select="$service"/>
                         </xsl:call-template>
                     </xsl:if>
 
@@ -1059,12 +1060,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
         <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
         <xsl:variable name="describe-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-        <xsl:variable name="endpoint" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($describe-string)))" as="xs:anyURI"/>
+        <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($describe-string)) else ($endpoint || '?query=' || encode-for-uri($describe-string)))" as="xs:anyURI"/>
 
         <!-- set global SELECT query (without modifiers) -->
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- set global DESCRIBE query (without modifiers) -->
+        <!-- set global DESCRIBE query -->
         <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">

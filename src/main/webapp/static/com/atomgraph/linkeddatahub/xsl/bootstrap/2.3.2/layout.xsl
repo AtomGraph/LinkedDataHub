@@ -1739,9 +1739,9 @@ exclude-result-prefixes="#all">
                     <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
                 </xsl:if>
 
-                <xsl:if test="apl:endpoint/@rdf:resource">
-                    <input type="hidden" name="endpoint" value="{apl:endpoint/@rdf:resource}"/>
-                </xsl:if>
+                <xsl:for-each select="apl:service/@rdf:resource">
+                    <input type="hidden" name="service" value="{.}"/>
+                </xsl:for-each>
                 <input type="hidden" name="mode" value="&ac;QueryEditorMode"/>
                 <input type="hidden" name="query" value="{sp:text}"/>
 
@@ -1813,7 +1813,7 @@ exclude-result-prefixes="#all">
                     <xsl:with-param name="type" select="'hidden'"/>
                     <xsl:with-param name="value" select="$type"/>
                 </xsl:call-template>
-                <xsl:if test="$ac:endpoint">
+<!--                <xsl:if test="$ac:endpoint">
                     <xsl:call-template name="xhtml:Input">
                         <xsl:with-param name="name" select="'pu'"/>
                         <xsl:with-param name="type" select="'hidden'"/>
@@ -1824,7 +1824,7 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="type" select="'hidden'"/>
                         <xsl:with-param name="value" select="$ac:endpoint"/>
                     </xsl:call-template>
-                </xsl:if>
+                </xsl:if>-->
                 <xsl:call-template name="xhtml:Input">
                     <xsl:with-param name="name" select="'pu'"/>
                     <xsl:with-param name="type" select="'hidden'"/>
