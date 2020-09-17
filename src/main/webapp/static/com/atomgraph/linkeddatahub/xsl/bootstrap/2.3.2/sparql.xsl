@@ -156,6 +156,7 @@ exclude-result-prefixes="#all">
     <xsl:template name="onServiceLoad" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="service-select" as="element()"/>
+        <xsl:param name="selected-service" as="xs:anyURI?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -169,7 +170,7 @@ exclude-result-prefixes="#all">
 
                                 <xsl:apply-templates select="." mode="xhtml:Option">
                                     <xsl:with-param name="value" select="@rdf:about"/>
-                                    <!--<xsl:with-param name="selected" select="(sd:endpoint/@rdf:resource, dydra:repository/@rdf:resource) = $ac:endpoint"/>-->
+                                    <xsl:with-param name="selected" select="@rdf:about = $selected-service"/>
                                 </xsl:apply-templates>
                             </xsl:for-each>
                         </xsl:result-document>

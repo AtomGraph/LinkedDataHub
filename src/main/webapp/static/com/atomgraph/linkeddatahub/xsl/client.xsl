@@ -94,7 +94,8 @@ extension-element-prefixes="ixsl"
     </xsl:param>
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
-    <xsl:param name="ac:forClass" as="xs:anyURI?"/>
+    <xsl:param name="ac:forClass" select="if (ixsl:query-params()?forClass) then xs:anyURI(ixsl:query-params()?forClass) else ()" as="xs:anyURI?"/>
+    <xsl:param name="ac:service" select="if (ixsl:query-params()?service) then xs:anyURI(ixsl:query-params()?service) else ()" as="xs:anyURI?"/>
     <xsl:param name="ac:endpoint" select="if (ixsl:query-params()?endpoint) then xs:anyURI(ixsl:query-params()?endpoint) else resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="ac:limit" select="if (ixsl:query-params()?limit) then xs:integer(ixsl:query-params()?limit) else $page-size" as="xs:integer"/>
     <xsl:param name="ac:offset" select="if (ixsl:query-params()?offset) then xs:integer(ixsl:query-params()?offset) else 0" as="xs:integer"/>
@@ -105,9 +106,9 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="default-order-by" select="'title'" as="xs:string?"/>
 
-    <xsl:param name="constructor-form" as="element()?"/>
+<!--    <xsl:param name="constructor-form" as="element()?"/>
     <xsl:param name="created-uri" as="xs:string?"/>
-    <xsl:param name="constructor-doc" as="document-node()?"/>
+    <xsl:param name="constructor-doc" as="document-node()?"/>-->
                 
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
     <xsl:key name="violations-by-value" match="*" use="apl:violationValue/text()"/>
@@ -153,6 +154,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:uri: <xsl:value-of select="$ac:uri"/></xsl:message>
+        <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
         <xsl:message>Search container URI: <xsl:value-of select="$search-container-uri"/></xsl:message>
         <xsl:message>$ac:limit: <xsl:value-of select="$ac:limit"/></xsl:message>
         <xsl:message>$ac:offset: <xsl:value-of select="$ac:offset"/></xsl:message>
@@ -230,6 +232,7 @@ extension-element-prefixes="ixsl"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad">
                     <xsl:with-param name="service-select" select="$service-select"/>
+                    <xsl:with-param name="selected-service" select="$ac:service"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
@@ -497,8 +500,8 @@ extension-element-prefixes="ixsl"
             <xsl:for-each select="key('resources', $ac:uri)">
                 <xsl:variable name="select-uri" select="xs:anyURI(dh:select/@rdf:resource)" as="xs:anyURI?"/>
                 <xsl:choose>
-                    <!-- current resource is a Container (only containers have select-uri) -->
-                    <xsl:when test="$select-uri">
+                    <!-- current resource is a Container (only containers have select-uri) - show results unless we're showing a constructed resource -->
+                    <xsl:when test="$select-uri and not($ac:forClass)">
                         <xsl:variable name="body" select="." as="document-node()"/>
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onContainerQueryLoad">
@@ -1486,16 +1489,26 @@ ENDPOINT!!! <xsl:value-of select="$endpoint"/>
     <!-- prompt for query title (also reused for its document) -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-query']" mode="ixsl:onclick">
-        <!-- get query string from YASQE -->
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('service'), 'value'))" as="xs:anyURI?"/>
+        <!-- get query string from YASQE and set the hidden input value in the query save form -->
         <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/>
         <xsl:for-each select="id('save-query-string')"> <!-- using a different ID from 'query-string' which is the visible YasQE textarea -->
             <ixsl:set-attribute name="value" select="$query"/>
         </xsl:for-each>
-        <!-- get SPARQL service URI from dropdown -->
-        <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
-        <xsl:for-each select="id('query-service')">
-            <ixsl:set-attribute name="value" select="$service/@rdf:about"/>
-        </xsl:for-each>
+        <!-- get SPARQL service URI if it has been selected, and set the hidden input in the query save form to its value -->
+        <xsl:choose>
+            <xsl:when test="$service-uri">
+                <xsl:for-each select="id('query-service')">
+                    <ixsl:set-attribute name="value" select="$service-uri"/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- remove the name of the hidden service input so it doesn't get submitted -->
+                <xsl:for-each select="id('query-service')">
+                    <ixsl:remove-attribute name="name"/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
         
         <!-- prompt for title before form proceeds to submit -->
         <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', [ 'Title' ])" as="xs:string"/>
