@@ -496,8 +496,9 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
 
         <xsl:for-each select="?body">
-            <!-- container SELECT query -->
+            <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $ac:uri)">
+                <!-- container SELECT query -->
                 <xsl:variable name="select-uri" select="xs:anyURI(dh:select/@rdf:resource)" as="xs:anyURI?"/>
                 <xsl:choose>
                     <!-- current resource is a Container (only containers have select-uri) - show results unless we're showing a constructed resource -->
@@ -527,6 +528,28 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:otherwise>
                 </xsl:choose>
+
+                <!-- breadcrumbs -->
+                <xsl:if test="id('breadcrumb-nav', ixsl:page())">
+                    <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                        <ul class="breadcrumb">
+                            <xsl:apply-templates select="." mode="bs2:BreadCrumbListItem">
+                                <xsl:with-param name="leaf" select="true()"/>
+                            </xsl:apply-templates>
+                        </ul>
+                    </xsl:result-document>
+
+                    <xsl:variable name="parent-uri" select="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+                    <xsl:if test="$parent-uri">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                                <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                                <xsl:with-param name="this-uri" select="$parent-uri"/>
+                                <xsl:with-param name="leaf" select="false()"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:if>
+                </xsl:if>
 
                 <!-- chart query -->
                 <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
@@ -636,10 +659,6 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
-
-<xsl:message>
-ENDPOINT!!! <xsl:value-of select="$endpoint"/>
-</xsl:message>
 
                     <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <!-- TO-DO: unify dydra: and dydra-urn: ? -->
@@ -1027,6 +1046,63 @@ ENDPOINT!!! <xsl:value-of select="$endpoint"/>
         </xsl:choose>
     </xsl:template>
     
+    <!-- breadcrumbs -->
+    
+    <xsl:template name="apl:BreadCrumbResourceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="id" as="xs:string"/>
+        <xsl:param name="this-uri" as="xs:anyURI"/>
+        <xsl:param name="leaf" as="xs:boolean"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="resource" select="key('resources', $this-uri)" as="element()?"/>
+                    <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
+                    <xsl:if test="$parent-uri">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                                <xsl:with-param name="id" select="$id"/>
+                                <xsl:with-param name="this-uri" select="$parent-uri"/>
+                                <xsl:with-param name="leaf" select="$leaf"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:if>
+
+                    <!-- append to the breadcrumb list -->
+                    <xsl:for-each select="id($id, ixsl:page())/ul">
+                        <xsl:variable name="content" select="*" as="element()*"/>
+                        <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
+                                <xsl:with-param name="leaf" select="$leaf"/>
+                            </xsl:apply-templates>
+                            
+                            <xsl:copy-of select="$content"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
+        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
+        
+        <li>
+            <xsl:apply-templates select="." mode="apl:logo"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+
+            <xsl:if test="not($leaf)">
+                <span class="divider">/</span>
+            </xsl:if>
+        </li>
+    </xsl:template>
+
     <!-- chart -->
     
     <xsl:template name="onChartServiceLoad">
@@ -1164,6 +1240,8 @@ ENDPOINT!!! <xsl:value-of select="$endpoint"/>
                             <ixsl:set-property name="data-table" select="ac:sparql-results-data-table(., $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                         </xsl:when>
                     </xsl:choose>
+
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
                     <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
@@ -1552,6 +1630,8 @@ ENDPOINT!!! <xsl:value-of select="$endpoint"/>
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-run-query']" mode="ixsl:onclick">
         <xsl:variable name="query-string" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('service'), 'value'))" as="xs:anyURI?"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id('sparql-results', ixsl:page()))">

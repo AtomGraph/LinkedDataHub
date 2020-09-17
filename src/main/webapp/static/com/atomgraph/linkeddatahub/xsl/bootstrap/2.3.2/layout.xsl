@@ -397,7 +397,10 @@ exclude-result-prefixes="#all">
             
             <xsl:apply-templates select="." mode="bs2:ContentToggle"/>
             
-            <xsl:apply-templates select="." mode="bs2:BreadCrumbList"/>
+<!--            <xsl:apply-templates select="." mode="bs2:BreadCrumbList"/>-->
+            <div id="breadcrumb-nav">
+                <!-- placeholder for client.xsl callbacks -->
+            </div>
         </div>
     </xsl:template>
     
