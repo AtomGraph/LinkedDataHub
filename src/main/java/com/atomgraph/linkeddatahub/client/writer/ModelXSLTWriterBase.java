@@ -133,7 +133,8 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             Application app = getApplication();
             if (app != null)
             {
-                params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
+                // base URI can be null when writing SPARQL results?
+                if (getBaseUri() != null) params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
                 StmtIterator appStmts = app.listProperties();

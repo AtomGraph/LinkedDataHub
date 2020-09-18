@@ -2,7 +2,7 @@ PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-PREFIX dydra:   <http://dydra.com/ns#>
+PREFIX dydra:   <https://w3id.org/atomgraph/linkeddatahub/services/dydra#>
 
 SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd
 {

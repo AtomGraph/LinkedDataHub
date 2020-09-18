@@ -20,7 +20,7 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
-    <!ENTITY dydra  "http://dydra.com/ns#">
+    <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"

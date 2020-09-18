@@ -21,7 +21,7 @@
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
-    <!ENTITY dydra      "http://dydra.com/ns#">
+    <!ENTITY dydra      "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -225,7 +225,7 @@ extension-element-prefixes="ixsl"
                       { ?service  &lt;&dct;title&gt;  ?title
                           { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
                         UNION
-                          { ?service  &lt;http://dydra.com/ns#repository&gt;  ?repository }
+                          { ?service  &lt;&dydra;#repository&gt;  ?repository }
                       }
                   }
             </xsl:variable>
