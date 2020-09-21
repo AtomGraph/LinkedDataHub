@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
+    <!ENTITY dydra      "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
     <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY a          "https://w3id.org/atomgraph/core#">
@@ -21,7 +22,6 @@
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
-    <!ENTITY dydra      "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
