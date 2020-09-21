@@ -2086,13 +2086,21 @@ extension-element-prefixes="ixsl"
     <!-- content tabs (markup from Bootstrap) -->
     <xsl:template match="div[tokenize(@class, ' ') = 'tabbable']/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
-        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')" object="../../li"/>
+        <xsl:for-each select="../../li">
+            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+        </xsl:for-each>
         <!-- activate this tab -->
-        <ixsl:set-attribute name="class" select="'active'" object=".."/>
+        <xsl:for-each select="..">
+            <ixsl:set-attribute name="class" select="'active'"/>
+        </xsl:for-each>
         <!-- deactivate other tab panes -->
-        <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')" object="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']"/>
+        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']">
+            <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
+        </xsl:for-each>
         <!-- activate this tab -->
-        <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')" object="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]"/>
+        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]">
+            <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- simplified version of Bootstrap's tooltip() -->
