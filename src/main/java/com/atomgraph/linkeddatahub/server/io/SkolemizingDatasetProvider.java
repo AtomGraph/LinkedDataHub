@@ -66,13 +66,10 @@ public class SkolemizingDatasetProvider extends com.atomgraph.server.io.Skolemiz
                 OntClass ontClass = getOntology().getOntModel().getOntClass(typeStmt.getResource().getURI());
                 if (ontClass != null)
                 {
-                    // switch off strict mode while doing listSuperClasses(), otherwise we'll get ConversionException if the object of rdfs:subClassOf is not an owl:Class
-                    ontClass.getOntModel().setStrictMode(false);
                     // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
                     Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
                     if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
                         resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-                    ontClass.getOntModel().setStrictMode(true);
                 }
             }
         }
