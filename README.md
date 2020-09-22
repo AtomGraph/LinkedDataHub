@@ -160,5 +160,6 @@ Commercial consulting, development, and support are available from [AtomGraph](h
 
 ## Community
 
+* [linkeddatahub@groups.io](https://groups.io/g/linkeddatahub) (mailing list)
 * [@atomgraphhq](https://twitter.com/atomgraphhq)
 * W3C [Declarative Linked Data Apps Community Group](http://www.w3.org/community/declarative-apps/)
