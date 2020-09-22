@@ -1791,14 +1791,25 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:variable name="order-by" select="if ($ac:order-by) then $ac:order-by else if (ixsl:call($select-builder, 'isVariable', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $default-order-by))) then $default-order-by else ()" as="xs:string?"/> -->
         <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
         <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), $offset, ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-        <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
-        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
-        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+        <xsl:choose>
+            <xsl:when test="ixsl:contains(ixsl:window(), 'LinkedDataHub.service')">
+                <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
+                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
+                <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+                <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onContainerResultsLoad"/>
-        </ixsl:schedule-action>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="results-uri" select="xs:anyURI($ac:endpoint || '?query=' || encode-for-uri($query-string))" as="xs:anyURI"/>
+                
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <!-- pager next links -->
@@ -1815,14 +1826,25 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:variable name="order-by" select="if ($ac:order-by) then $ac:order-by else if (ixsl:call($select-builder, 'isVariable', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $default-order-by))) then $default-order-by else ()" as="xs:string?"/> -->
         <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
         <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), $offset, ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-        <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
-        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
-        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+        <xsl:choose>
+            <xsl:when test="ixsl:contains(ixsl:window(), 'LinkedDataHub.service')">
+                <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
+                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
+                <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+                <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onContainerResultsLoad"/>
-        </ixsl:schedule-action>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="results-uri" select="xs:anyURI($ac:endpoint || '?query=' || encode-for-uri($query-string))" as="xs:anyURI"/>
+                
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->

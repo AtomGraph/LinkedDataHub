@@ -1059,20 +1059,32 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'variables', [ [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $new-var-name ]) ] ])"/>
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
         <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
-        <xsl:variable name="describe-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-        <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
-        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
-        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($describe-string)) else ($endpoint || '?query=' || encode-for-uri($describe-string)))" as="xs:anyURI"/>
-
+        <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
+        
         <!-- set global SELECT query (without modifiers) -->
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- set global DESCRIBE query -->
-        <ixsl:set-property name="describe-query" select="$describe-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="describe-query" select="$query-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onContainerResultsLoad"/>
-        </ixsl:schedule-action>
+        <xsl:choose>
+            <xsl:when test="ixsl:contains(ixsl:window(), 'LinkedDataHub.service')">
+                <xsl:variable name="service" select="ixsl:get(ixsl:window(), 'LinkedDataHub.service')" as="element()"/>
+                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, ($service/dydra:repository/@rdf:resource || 'sparql'))[1])" as="xs:anyURI"/>
+                <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+                <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="results-uri" select="xs:anyURI($ac:endpoint || '?query=' || encode-for-uri($query-string))" as="xs:anyURI"/>
+                
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerResultsLoad"/>
+                </ixsl:schedule-action>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
 </xsl:stylesheet>
