@@ -24,9 +24,9 @@ constraint="${END_USER_BASE_URL}ns/domain#NewConstraint"
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 -b "$ADMIN_BASE_URL" \
---uri "${END_USER_BASE_URL}ns/domain#NewClass" \
---label "New class" \
---slug new-class \
+--uri "${END_USER_BASE_URL}ns/domain#ConstrainedClass" \
+--label "Constrained class" \
+--slug constrained-class \
 --constraint "$constraint" \
 --sub-class-of "${END_USER_BASE_URL}ns/default#Item"
 
@@ -56,7 +56,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:item a <${END_USER_BASE_URL}ns/domain#NewClass> .\n"
+turtle+="_:item a <${END_USER_BASE_URL}ns/domain#ConstrainedClass> .\n"
 turtle+="_:item dct:title \"Failure\" .\n"
 turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 
@@ -65,7 +65,7 @@ response=$(echo -e "$turtle" \
 | ./create-document.sh \
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
---class "${END_USER_BASE_URL}ns/domain#NewClass" \
+--class "${END_USER_BASE_URL}ns/domain#ConstrainedClass" \
 --content-type "text/turtle" \
 "${END_USER_BASE_URL}" \
 2>&1) # redirect output from stderr to stdout
