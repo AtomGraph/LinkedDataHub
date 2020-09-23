@@ -292,16 +292,31 @@ exclude-result-prefixes="#all">
             <script type="text/javascript">
                 <![CDATA[
                     window.onload = function() {
-                       SaxonJS.transform({
-                          stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
-                          initialTemplate: "main",
-                          logLevel: 10,
-                          stylesheetParams: {
-                                "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                                "Q{https://www.w3.org/ns/ldt#}base": baseUri,
-                                "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri
-                                }
-                       }, "async");
+                        const locationMapping = [ 
+                            { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
+                            { name: "https://w3id.org/atomgraph/client", altName: baseUri + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") }
+                        ];
+                        const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
+    
+                        Promise.all(docPromises)
+                        .then(resources => {
+                            const cache = {};
+                            for (var i = 0; i < resources.length; i++) {
+                                cache[locationMapping[i].name] = resources[i]
+                            };
+                            return SaxonJS.transform({
+                                documentPool: cache,
+                                stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
+                                initialTemplate: "main",
+                                logLevel: 10,
+                                stylesheetParams: {
+                                    "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
+                                    "Q{https://www.w3.org/ns/ldt#}base": baseUri,
+                                    "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri
+                                    }
+                            }, "async");
+                        })
+                        .catch(err => console.log("Transformation failed: " + err));
                     }
                 ]]>
             </script>

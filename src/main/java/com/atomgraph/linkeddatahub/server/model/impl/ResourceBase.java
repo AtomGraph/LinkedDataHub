@@ -851,7 +851,9 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             if (getUriInfo().getBaseUri().relativize(uri).isAbsolute()) // external URI resource (not relative to the base URI)
             {
                 if (log.isDebugEnabled()) log.debug("GET request URI overridden with: {}", uri);
-                return (Dataset)getResourceContext().getResource(ProxyResourceBase.class).get().getEntity();
+                Object entity = getResourceContext().getResource(ProxyResourceBase.class).get().getEntity();
+                if (entity instanceof Model) return DatasetFactory.create((Model)entity);
+                return (Dataset)entity;
             }
         }
         

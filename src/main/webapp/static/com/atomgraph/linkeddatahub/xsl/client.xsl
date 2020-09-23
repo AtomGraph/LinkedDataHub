@@ -32,6 +32,7 @@ xmlns:style="http://saxonica.com/ns/html-style-property"
 xmlns:js="http://saxonica.com/ns/globalJS"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:typeahead="&typeahead;"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
@@ -106,45 +107,11 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="default-order-by" select="'title'" as="xs:string?"/>
 
-<!--    <xsl:param name="constructor-form" as="element()?"/>
-    <xsl:param name="created-uri" as="xs:string?"/>
-    <xsl:param name="constructor-doc" as="document-node()?"/>-->
-                
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
     <xsl:key name="violations-by-value" match="*" use="apl:violationValue/text()"/>
     <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
     
     <xsl:strip-space elements="*"/>
-    
-    <!-- embedding mode descriptions here because currently the AC vocabulary is not resolvable from the client-side -->
-    
-    <rdf:Description rdf:about="&ac;ReadMode">
-        <rdfs:label>Properties</rdfs:label>
-    </rdf:Description>
-
-    <rdf:Description rdf:about="&ac;ListMode">
-        <rdfs:label>List</rdfs:label>
-    </rdf:Description>
-
-    <rdf:Description rdf:about="&ac;TableMode">
-        <rdfs:label>Table</rdfs:label>
-    </rdf:Description>
-
-    <rdf:Description rdf:about="&ac;GridMode">
-        <rdfs:label>Grid</rdfs:label>
-    </rdf:Description>
-
-    <rdf:Description rdf:about="&ac;ChartMode">
-        <rdfs:label>Chart</rdfs:label>
-    </rdf:Description>
-
-    <rdf:Description rdf:about="&ac;MapMode">
-        <rdfs:label>Map</rdfs:label>
-    </rdf:Description>
-
-    <rdf:Description rdf:about="&ac;GraphMode">
-        <rdfs:label>Graph</rdfs:label>
-    </rdf:Description>
 
     <!-- INITIAL TEMPLATE -->
     
@@ -253,15 +220,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- FUNCTIONS -->
-
-    <xsl:function name="ac:new-url">
-        <xsl:param name="href" as="xs:anyURI"/>
-        
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new URL('{$href}')"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:function>
     
     <xsl:function name="ac:new-object">
         <xsl:variable name="js-statement" as="element()">
@@ -603,6 +561,16 @@ extension-element-prefixes="ixsl"
                             <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
                             <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
                             <xsl:variable name="service-uri" select="$select-resource/apl:service/@rdf:resource" as="xs:anyURI?"/>
+                            <!--
+                            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                            <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+                            <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                            <xsl:for-each select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'object'], '?')]">
+                                <xsl:message>
+                                predicate: <xsl:value-of select="json:string[@key = 'predicate']"/> object: <xsl:value-of select="json:string[@key = 'object']"/>
+                                </xsl:message>
+                            </xsl:for-each>
+                            -->
                             
                             <!-- set global SELECT URI-->
                             <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -837,8 +805,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        Read
+                        <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="list-mode">
@@ -847,8 +814,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        List
+                        <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="table-mode">
@@ -857,8 +823,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        Table
+                        <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="grid-mode">
@@ -867,8 +832,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        Grid
+                        <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="chart-mode">
@@ -877,8 +841,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        Chart
+                        <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="map-mode">
@@ -887,8 +850,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        Map
+                        <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
                 <li class="graph-mode">
@@ -897,8 +859,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <a>
-                        <!--<xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>-->
-                        Graph
+                        <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
                     </a>
                 </li>
             </ul>
@@ -1342,48 +1303,38 @@ extension-element-prefixes="ixsl"
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
         
-        <xsl:variable name="js-statement" as="element()">
-            <xsl:choose>
-                <xsl:when test="$enctype = 'multipart/form-data'">
-                    <root statement="new FormData(document.getElementById('{$id}'))"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-<!--        <xsl:variable name="form-data-string" select="ixsl:call(ixsl:eval(string($js-statement/@statement)), 'toString', [])" as="xs:string"/>-->
-        <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
-
-        <xsl:message>
-            FORM DATA: <xsl:value-of select="$form-data"/>
-        </xsl:message>
-        
         <!-- TO-DO: override $action with the container typeahead value -->
-        
-        <xsl:variable name="request-params" as="map(*)">
-            <xsl:map>
-                <xsl:map-entry key="'method'" select="$method"/>
-                <xsl:map-entry key="'href'" select="$action"/>
-                <xsl:choose>
-                    <!-- we do not want to set explicit Content-Type because the browser will set 'boundary' on a multipart/form-data request -->
-                    <xsl:when test="$enctype = 'multipart/form-data'">
-                        <xsl:map-entry key="'media-type'" select="()"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:map-entry key="'media-type'" select="$enctype"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-                <xsl:map-entry key="'body'" select="$form-data"/>
-                <xsl:map-entry key="'headers'" select="map{ 'Accept': 'application/xhtml+xml' }"/>
-            </xsl:map>
-        </xsl:variable>
-        <ixsl:schedule-action http-request="$request-params">
-            <xsl:call-template name="onModalFormLoad">
-                <xsl:with-param name="form" select="$form"/>
-                <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+
+        <xsl:choose>
+            <!-- we do not want to set explicit Content-Type because the browser will set 'boundary' on a multipart/form-data request -->
+            <xsl:when test="$enctype = 'multipart/form-data'">
+                <xsl:message>
+                    MULTIPART FORM REQUEST
+                </xsl:message>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'multipartFormRequest', [ $form ])"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="new URLSearchParams(new FormData(document.getElementById('{$id}')))"/>
+                </xsl:variable>
+                <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
+
+                <xsl:message>
+                    FORM DATA: <xsl:value-of select="$form-data"/>
+                </xsl:message>
+
+                <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onModalFormLoad">
+                        <xsl:with-param name="form" select="$form"/>
+                        <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="WTF">
+        <xsl:message>WTF!!! CALLBACK</xsl:message>
     </xsl:template>
     
     <xsl:template name="onModalFormLoad">
@@ -1450,7 +1401,6 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <!--<xsl:variable name="form-id" select="$violation-form/@id" as="xs:string"/>-->
 
                     <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
                         <xsl:copy-of select="$violation-form/*"/>
@@ -1503,6 +1453,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
         <xsl:variable name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query-string)))" as="xs:anyURI"/>
+        <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
 
         <xsl:choose>
@@ -1865,6 +1816,7 @@ extension-element-prefixes="ixsl"
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:param name="container-doc" select="document(concat($container-uri, '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()?"/>
         <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI?"/>
+        <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:param name="select-doc" select="document(concat(ac:document-uri($select-uri), '?accept=', encode-for-uri('application/rdf+xml')))" as="document-node()?"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
@@ -1879,6 +1831,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else xs:anyURI(concat($endpoint, '?query=', encode-for-uri($query-string)))" as="xs:anyURI"/>
+        <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
         
         <xsl:choose>
