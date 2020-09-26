@@ -684,13 +684,14 @@ exclude-result-prefixes="#all">
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
                                     <xsl:when test="doc-available(ac:document-uri($forClass))">
+                                        <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
                                         <xsl:for-each select="distinct-values(apl:listSubClasses($forClass))[not(. = $forClass)]">
                                             <input type="hidden" class="forClass" value="{.}"/>
                                         </xsl:for-each>
                                         <!-- bs2:Constructor sets forClass -->
                                         <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
-                                            <xsl:with-param name="subclasses" select="true()"/>
+                                            <xsl:with-param name="subclasses" select="$subclasses"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
@@ -824,13 +825,14 @@ exclude-result-prefixes="#all">
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
+                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
-                <xsl:for-each select="distinct-values(apl:listSubClasses($forClass))[not(. = $forClass)]">
+                <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
                 </xsl:for-each>
                 <!-- bs2:Constructor sets forClass -->
                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
-                    <xsl:with-param name="subclasses" select="true()"/>
+                    <xsl:with-param name="subclasses" select="$subclasses"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -913,42 +915,82 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about]" mode="bs2:Constructor">
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
-        <xsl:param name="subclasses" select="false()" as="xs:boolean"/>
+        <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
         <!-- this is used for typeahead's FILTER ?Type -->
         <input type="hidden" class="forClass" value="{$forClass}"/>
 
-        <xsl:variable name="action" as="xs:anyURI?">
-            <!-- attempt to look up the owl:allValuesFrom restriction which links the $forClass class to a container (in which its instances are stored by default) -->
-            <!-- TO-DO: currently lookup will break down if the restriction is in another ontology document -->
-            <xsl:if test="doc-available(ac:document-uri($forClass))">
-                <xsl:sequence select="key('resources', key('resources', key('resources', key('resources', $forClass, document(ac:document-uri($forClass)))/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
-            </xsl:if>
-        </xsl:variable>
-        <button type="button" title="{@rdf:about}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id" select="$id"/>
-            </xsl:if>
+        <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
+        <xsl:choose>
+            <xsl:when test="not(empty($subclasses))">
+                <div class="btn-group">
+                    <button type="button">
+                        <xsl:choose>
+                            <xsl:when test="$with-label">
+                                <xsl:apply-templates select="." mode="apl:logo">
+                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                </xsl:apply-templates>
+                                <xsl:text> </xsl:text>
+                                <xsl:apply-templates select="." mode="ac:label"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
 
-            <xsl:choose>
-                <xsl:when test="$with-label">
-                    <xsl:apply-templates select="." mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn add-constructor'"/>
-                    </xsl:apply-templates>
+                        <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
+                        <xsl:for-each select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]">
+                            <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                            
+                            <xsl:variable name="action" select="$self-and-subclasses/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
+                            <li>
+                                <button type="button" class="btn add-constructor" title="{@rdf:about}">
+                                    <xsl:if test="$id">
+                                        <xsl:attribute name="id" select="$id"/>
+                                    </xsl:if>
+                                    <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about), '&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
 
-                    <xsl:apply-templates select="." mode="ac:label"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn add-constructor'"/>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
+                                    <xsl:apply-templates select="." mode="ac:label"/>
+                                </button>
+                            </li>
+                        </xsl:for-each>
+                    </ul>
+                </div>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="self" select="key('resources', $forClass, document(ac:document-uri($forClass)))" as="element()*"/>
+                <xsl:variable name="action" select="$self/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
+                <button type="button" title="{@rdf:about}">
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id" select="$id"/>
+                    </xsl:if>
 
-            <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
-        </button>
+                    <xsl:choose>
+                        <xsl:when test="$with-label">
+                            <xsl:apply-templates select="." mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn add-constructor'"/>
+                            </xsl:apply-templates>
+
+                            <xsl:apply-templates select="." mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn add-constructor'"/>
+                            </xsl:apply-templates>
+                        </xsl:otherwise>
+                    </xsl:choose>
+
+                    <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
+                </button>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- WYSIWYG editor for XMLLiteral objects -->

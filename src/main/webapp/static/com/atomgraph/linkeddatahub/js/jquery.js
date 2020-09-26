@@ -6,109 +6,32 @@ var onTypeaheadInputBlur = function()
     $(this).nextAll("ul.typeahead").hide().empty();
 };
 
-var multipartFormRequest = function(form)
+var fetchDispatchXML = function(url, method, headers, body, eventName)
 {
-    var settings = 
-        {
-            "method": form.method,
-            "data": new FormData(form),
-            "processData": false,
-            "contentType": false,
-            "headers": { "Accept": "text/html" }
-        };
-
-    $.ajax(form.action, settings).
-    done(function(responseXML, textStatus, jqXHR)
+    let request = new Request(url, { "method": method, "headers": headers, "body": body });
+    
+    fetch(request).
+    then(function(response)
     {
-        if (jqXHR.status === 200) // OK response to PUT
+        response.text().
+        then(function(xmlString)
         {
-            window.location.reload(); // refresh page to see changes from EditMode
-            return true;
-        }
-
-        var location = jqXHR.getResponseHeader("Location"); // from 201 Created response
-        console.log("Location: " + jqXHR.getResponseHeader("Location") + " Status: " + textStatus);
-        if (location === null || jqXHR.status !== 201) // Created response to POST
-        {
-            alert("Could not create resource. Response status: " + textStatus);
-            return false;
-        }
-
-        // if form submit did not originate from a typeahead (target), redirect to the created resource
-        var targetId = $(form).find("input.target-id").val();
-        if (targetId.length === 0) window.location = location;
-
-        $.ajax(location,
-            {
-                "method": "GET",
-                "headers": { "Accept": "application/rdf+xml, */*;q=0.1" } // RDF/XML response
-            }
-        ).
-        done(function(rdfXml, textStatus, jqXHR)
-        {
-            // render typeahead with XSLT if RDF/XML is returned
-            if (jqXHR.getResponseHeader("Content-Type") === "application/rdf+xml;charset=UTF-8")
-            {
-                console.log("jquery.js: WTF AAA");
-
-                SaxonJS.transform({
-                    "stylesheetLocation": "https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
-//                    "initialMode": "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ConstructedTypeaheadValue",
-                    "initialTemplate": "WTF",
-                    "logLevel": 10,
-                    "sourceNode": rdfXml,
-//                    "templateParams": {
-//                        "constructor-form": form,
-//                        "created-uri": location
-//                    }
-                    "nonInteractive": true
-                }, "async");
-            }
-            else
-            {
-                // cannot render typeahead without RDF/XML, simply display URI value and remove form
-                $("#" + targetId).closest("div[class = 'controls']").find("span").find("input").val(location);
-                $(form).remove();
-            }
-
-            $(form).css("cursor", "default"); // data processing done
-        }).
-        fail(function(jqXHR, textStatus, errorThrown)
-        {
-            $(form).css("cursor", "default"); // data processing done
-            alert(textStatus + " " + errorThrown);
+            let xml = new DOMParser().parseFromString(xmlString, "text/xml");
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml } } );
+            // no need to add event listeners here, that is done by IXSL
+            document.dispatchEvent(event);
         });
     }).
-    fail(function(jqXHR, textStatus, errorThrown)
+    catch(function(response)
     {
-        // if 4xx error (URISyntax/Constraint/SkolemizationViolations or ResourceExistsException), execute XSLT transformation
-        if (jqXHR.status === 400 || jqXHR.status === 409) // TO-DO: a more precise check based on exception type?
+        response.text().
+        then(function(xmlString)
         {
-            var parser = new DOMParser();
-            var html = parser.parseFromString(jqXHR.responseText, "text/html");
-
-            console.log("jquery.js: WTF BBB");
-
-            SaxonJS.transform({
-                "stylesheetLocation": "https://localhost:4443/static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
-//                "initialMode": "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ConstructViolation",
-                "initialTemplate": "WTF",
-                "logLevel": 10,
-                "sourceNode": html,
-//                "templateParams": {
-//                    "submitted-form": form
-//                },
-//                "destination": "raw",
-                "nonInteractive": true
-            });
-
-            $(form).css("cursor", "default"); // data processing done
-        }
-        else // otherwise, show error
-        {
-            $(form).css("cursor", "default"); // data processing done
-            alert(errorThrown);
-        }
+            let xml = new DOMParser().parseFromString(xmlString, "text/xml");
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml } } );
+            // no need to add event listeners here, that is done by IXSL
+            document.dispatchEvent(event);
+        });
     });
 };
 
