@@ -1304,7 +1304,7 @@ extension-element-prefixes="ixsl"
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
         
-        <!-- TO-DO: override $action with the container typeahead value -->
+        <!-- TO-DO: override $action with the sioc:has_container/sioc:has_parent typeahead value? -->
 
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
@@ -1318,7 +1318,7 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
                 <xsl:variable name="headers" select="ixsl:eval(string($js-statement/@statement))"/>
                 
-                <xsl:sequence select="js:fetchDispatchXML($action, $method, $headers, $form-data, 'multipartFormLoad')"/>
+                <xsl:sequence select="js:fetchDispatchXML($action, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="js-statement" as="element()">
@@ -1339,23 +1339,60 @@ extension-element-prefixes="ixsl"
     <!-- the same logic as onModalFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
     <xsl:template match="." mode="ixsl:onmultipartFormLoad">
         <xsl:variable name="event" select="ixsl:event()"/>
+        <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
+        <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>
+        <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
+        <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>        
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
         <xsl:variable name="html" select="if (ixsl:contains(ixsl:get($event, 'detail'), 'xml')) then ixsl:get(ixsl:get($event, 'detail'), 'xml') else ()" as="document-node()?"/>
-        
+
         <xsl:choose>
             <xsl:when test="ixsl:get($response, 'status') = 200">
                 <!-- refresh page to see changes from Edit mode -->
                 <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
             </xsl:when>
             <!-- POST created new resource successfully -->
-            <xsl:when test="ixsl:get($response, 'status') = 201 and ixsl:contains(ixsl:get($response, 'headers'), 'Location')">
-                
+            <xsl:when test="ixsl:get($response, 'status') = 201 and ixsl:call(ixsl:get($response, 'headers'), 'has', [ 'Location' ])">
+                <xsl:variable name="created-uri" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Location' ])" as="xs:anyURI"/>
+                        
+                <xsl:choose>
+                    <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
+                    <xsl:when test="not($typeahead-span)">
+                        <ixsl:set-property name="location.href" select="$created-uri"/>
+                    </xsl:when>
+                    <!-- otherwise, render the created resource as a typeahead input -->
+                    <xsl:otherwise>
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="onTypeaheadResourceLoad">
+                                <xsl:with-param name="resource-uri" select="$created-uri"/>
+                                <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
+                                <xsl:with-param name="form" select="$form"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <xsl:when test="ixsl:get($response, 'status') = 400 and $html">
+                <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
+                
                 <xsl:for-each select="$html">
-                    <xsl:message>
-                        HTML!!!
-                    </xsl:message>
+                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
+                    <xsl:variable name="violation-form" as="element()">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="modal">
+                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+
+                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
+                        <xsl:copy-of select="$violation-form/*"/>
+                    </xsl:result-document>
+
+                    <xsl:call-template name="add-form-listeners">
+                        <xsl:with-param name="id" select="$form-id"/>
+                    </xsl:call-template>
+                    
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1370,7 +1407,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
-        <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
 
         <xsl:choose>
             <!-- PUT updated graph successfully -->
@@ -1380,15 +1416,15 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- POST created new resource successfully -->
             <xsl:when test="?status = 201 and ?headers?location">
+                <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
+                        
                 <xsl:choose>
                     <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
                     <xsl:when test="not($typeahead-span)">
-                        <ixsl:set-property name="location.href" select="?headers?location"/>
+                        <ixsl:set-property name="location.href" select="$created-uri"/>
                     </xsl:when>
                     <!-- otherwise, render the created resource as a typeahead input -->
                     <xsl:otherwise>
-                        <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
-                        
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onTypeaheadResourceLoad">
                                 <xsl:with-param name="resource-uri" select="$created-uri"/>
@@ -1401,6 +1437,8 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
+                <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
+                
                 <xsl:for-each select="?body">
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="violation-form" as="element()">

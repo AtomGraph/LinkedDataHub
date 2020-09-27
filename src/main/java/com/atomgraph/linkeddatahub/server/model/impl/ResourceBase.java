@@ -435,10 +435,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             {
                 Resource created = it.next();
                 
-                 // special case that handles apl:File creation
-                 // a file has a apl:FileItem attached via foaf:isPrimaryTopicOf, but since it is a document itself and not a "thing", it can be returned directly
-                if (created.hasProperty(RDF.type, FOAF.Document)) return created;
-                
                 // handle creation of "things"- they are not documents themselves, so we return the attached document instead
                 if (created.hasProperty(FOAF.isPrimaryTopicOf))
                     return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
