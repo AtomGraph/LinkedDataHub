@@ -23,7 +23,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/imports"
 
 file_content_type="text/csv"
 
-file_url=$(./create-file.sh \
+file_doc=$(./create-file.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
@@ -31,12 +31,26 @@ file_url=$(./create-file.sh \
 --file "$pwd/test.csv" \
 --file-content-type "${file_content_type}")
 
-echo "${file_url}"
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+file_ntriples=$(./get-document.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$file_doc")
 
 popd > /dev/null
+
+file=$(echo "$file_ntriples" \
+| grep '<http://xmlns.com/foaf/0.1/primaryTopic>' \
+| cut -d " " -f 3 \
+| cut -d "<" -f 2 \
+| cut -d ">" -f 1) # cut < > to get URI
+
+echo "$file" # file URL used in other tests
 
 curl --head -k -w "%{http_code}\n" -f -v \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: ${file_content_type}" \
-  "${file_url}" \
-| grep -q "${STATUS_OK}"
+  "$file" \
+| grep -q "$STATUS_OK"
