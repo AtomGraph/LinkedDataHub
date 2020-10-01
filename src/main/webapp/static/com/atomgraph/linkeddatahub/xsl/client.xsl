@@ -403,29 +403,6 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
-    <!-- is invoked from jquery.js after a successful form onsubmit event. Renders RDF/XML of the newly constructed resource as the value of a typeahead -->
-<!--    <xsl:template match="rdf:RDF" mode="apl:ConstructedTypeaheadValue">
-        <xsl:param name="constructor-form" as="element()"/>
-        <xsl:param name="created-uri" as="xs:anyURI"/>
-        
-        <xsl:message>apl:ConstructedTypeaheadValue</xsl:message>
-
-        <xsl:variable name="resource" select="key('resources', $created-uri)" as="element()"/>
-        <xsl:variable name="target-id" select="$constructor-form//input[@class = 'target-id']/@value" as="xs:string?"/>
-        
-         remove modal constructor form 
-        <xsl:message>
-            <xsl:value-of select="ixsl:call($constructor-form/.., 'remove', [])"/>
-        </xsl:message>
-        
-         $target-id is of "Create" button, need to replace the preceding typeahead input instead 
-        <xsl:for-each select="id($target-id, ixsl:page())/ancestor::div[@class = 'controls']/span[input]">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
-            </xsl:result-document>
-        </xsl:for-each>
-    </xsl:template>-->
-    
     <xsl:template name="first-time-message">
         <div class="hero-unit">
             <button type="button" class="close">×</button>
@@ -667,9 +644,12 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="results" select="$grouped-results"/>
                     </xsl:call-template>
 
-                    <xsl:call-template name="render-facets">
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                    </xsl:call-template>
+                    <!-- only append facets if they are not already present -->
+                    <xsl:if test="not(id('faceted-nav', ixsl:page())/*)">
+                        <xsl:call-template name="render-facets">
+                            <xsl:with-param name="select-string" select="$select-string"/>
+                        </xsl:call-template>
+                    </xsl:if>
 
                     <!-- create a container for parallax controls in the right-nav, if they doesn't exist yet -->
                     <xsl:if test="not(id('parallax-nav', ixsl:page()))">
@@ -806,7 +786,11 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="value-select-string" as="xs:string"><![CDATA[
             SELECT  ?object (COUNT(?subject) AS ?count)
             WHERE
-              { ?subject  ?predicate  ?object }
+              {
+                { ?subject  ?predicate  ?object }
+                UNION
+                { GRAPH ?graph { ?subject  ?predicate  ?object } }
+              }
             GROUP BY ?object
             HAVING ( COUNT(?subject) > 1 )
             ORDER BY DESC(?count)

@@ -63,6 +63,8 @@ services:
       - ./src/main/resources/com/atomgraph/linkeddatahub/lapp.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/lapp.ttl:ro
       - ./src/main/resources/com/atomgraph/linkeddatahub/app/admin/lsm.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/app/admin/lsm.ttl:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
+      - ./src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/js/jquery.js:ro
   fuseki-admin:
     image: atomgraph/fuseki
     ports:

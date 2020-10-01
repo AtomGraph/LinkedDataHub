@@ -22,6 +22,8 @@ xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:prop="http://saxonica.com/ns/html-property"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:json="http://www.w3.org/2005/xpath-functions"
+xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
@@ -1004,13 +1006,31 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- apply FILTER if any values were selected -->
             <xsl:when test="count($values) &gt; 0">
-                <xsl:variable name="value-uris" select="[ $values ]" as="array(xs:anyURI)"/>
+                <!-- sequence of length > 1 will be converted to JS array: https://www.saxonica.com/saxon-js/documentation/index.html#!xdm/conversions -->
+                <xsl:variable name="value-uris" select="if (count($values) eq 1) then [ $values ] else array { $values }" as="array(xs:string)"/>
                 <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
-                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString',  [ $select-string ])"/>
+                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+                <!-- add FILTER IN () if not present, and set IN () values -->
+                <xsl:variable name="select-xml" as="element()">
+                    <xsl:apply-templates select="json-to-xml($select-json-string)" mode="apl:add-or-append-filter-in">
+                        <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                        <xsl:with-param name="values" select="$value-uris" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+                <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+<xsl:message>
+SELECT JSON: <xsl:value-of select="$select-json-string"/>
+</xsl:message>
+                
+                <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+                <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+
                 <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var(varName), [ $value ]))) -->
-                <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $var-name ]), $value-uris ]) ]) ])"/>
-                <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
-                 <!-- set ?this variable value -->
+<!--                <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $var-name ]), $value-uris ]) ]) ])"/>
+                <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>-->
+
+                <!-- set ?this variable value -->
                 <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
                 <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
                 <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
@@ -1056,6 +1076,73 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="@* | node()" mode="apl:add-or-append-filter-in">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="json:array[@key = 'where']" mode="apl:add-or-append-filter-in" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
+        <xsl:variable name="var-filter" select="json:map[json:string[@key = 'type'] = 'filter'][json:map[@key = 'expression']/json:array[@key = 'args']/json:string eq '?' || $var-name]" as="element()?"/>
+        <xsl:variable name="where" as="element()">
+            <xsl:choose>
+                <xsl:when test="$var-filter">
+                    <xsl:copy-of select="."/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy>
+                        <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+                        <!-- append FILTER (?var IN ()) to WHERE-->
+                        <json:map>
+                            <json:string key="type">filter</json:string>
+                            <json:map key="expression">
+                                <json:string key="type">operation</json:string>
+                                <json:string key="operator">in</json:string>
+                                <json:array key="args">
+                                    <json:string><xsl:text>?</xsl:text><xsl:value-of select="$var-name"/></json:string>
+                                    <json:array>
+                                        <!-- values -->
+                                    </json:array>
+                                </json:array>
+                            </json:map>
+                        </json:map>
+                    </xsl:copy>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        
+        <!-- append value to IN() -->
+        <xsl:apply-templates select="$where" mode="apl:append-filter-in-value">
+            <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+            <xsl:with-param name="values" select="$values" tunnel="yes"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="@* | node()" mode="apl:append-filter-in-value">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="apl:append-filter-in-value" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
+        
+        <xsl:copy>
+            <xsl:if test="../json:string eq '?' || $var-name">
+                <xsl:for-each select="1 to array:size($values)">
+                    <xsl:variable name="pos" select="position()"/>
+                    <json:string>
+                        <xsl:value-of select="array:get($values, $pos)"/>
+                    </json:string>
+                </xsl:for-each>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- parallax onclick -->
     
     <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
