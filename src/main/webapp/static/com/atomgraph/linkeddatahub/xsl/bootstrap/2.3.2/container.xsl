@@ -1013,16 +1013,12 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                 <!-- add FILTER IN () if not present, and set IN () values -->
                 <xsl:variable name="select-xml" as="element()">
-                    <xsl:apply-templates select="json-to-xml($select-json-string)" mode="apl:add-or-append-filter-in">
+                    <xsl:apply-templates select="json-to-xml($select-json-string)" mode="apl:filter-in">
                         <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
                         <xsl:with-param name="values" select="$value-uris" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:variable>
                 <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
-<xsl:message>
-SELECT JSON: <xsl:value-of select="$select-json-string"/>
-</xsl:message>
-                
                 <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
                 <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
 
@@ -1076,13 +1072,15 @@ SELECT JSON: <xsl:value-of select="$select-json-string"/>
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="@* | node()" mode="apl:add-or-append-filter-in">
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:filter-in">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:array[@key = 'where']" mode="apl:add-or-append-filter-in" priority="1">
+    <!-- append FILTER (?varName IN ()) to WHERE, if it's not present yet, and replace IN() values -->
+    <xsl:template match="json:array[@key = 'where']" mode="apl:filter-in" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
         <xsl:variable name="var-filter" select="json:map[json:string[@key = 'type'] = 'filter'][json:map[@key = 'expression']/json:array[@key = 'args']/json:string eq '?' || $var-name]" as="element()?"/>
@@ -1095,7 +1093,7 @@ SELECT JSON: <xsl:value-of select="$select-json-string"/>
                     <xsl:copy>
                         <xsl:apply-templates select="@* | node()" mode="#current"/>
 
-                        <!-- append FILTER (?var IN ()) to WHERE-->
+                        <!-- append FILTER (?varName IN ()) to WHERE-->
                         <json:map>
                             <json:string key="type">filter</json:string>
                             <json:map key="expression">
@@ -1115,19 +1113,21 @@ SELECT JSON: <xsl:value-of select="$select-json-string"/>
         </xsl:variable>
         
         <!-- append value to IN() -->
-        <xsl:apply-templates select="$where" mode="apl:append-filter-in-value">
+        <xsl:apply-templates select="$where" mode="apl:set-filter-in-values">
             <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
             <xsl:with-param name="values" select="$values" tunnel="yes"/>
         </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="@* | node()" mode="apl:append-filter-in-value">
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:set-filter-in-values">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="apl:append-filter-in-value" priority="1">
+    <!-- replace IN () values for the FILTER with matching variable name -->
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="apl:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
         

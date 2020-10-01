@@ -781,29 +781,15 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <!-- use the BGPs where the predicate is a URI value and the object is a variable -->
-        <xsl:variable name="facet-bgps" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-        <xsl:variable name="value-select-string" as="xs:string"><![CDATA[
-            SELECT  ?object (COUNT(?subject) AS ?count)
-            WHERE
-              {
-                { ?subject  ?predicate  ?object }
-                UNION
-                { GRAPH ?graph { ?subject  ?predicate  ?object } }
-              }
-            GROUP BY ?object
-            HAVING ( COUNT(?subject) > 1 )
-            ORDER BY DESC(?count)
-            LIMIT 50
-            ]]>
-        </xsl:variable>
+        <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
+        <xsl:variable name="facet-bgps" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
 
         <xsl:for-each select="$facet-bgps">
             <xsl:sort select="ac:property-label(json:string[@key = 'predicate'])"/>
             <xsl:call-template name="render-facets-despatch">
                 <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="value-select-string" select="$value-select-string"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="service" select="$service"/>
             </xsl:call-template>
         </xsl:for-each>
@@ -811,31 +797,129 @@ extension-element-prefixes="ixsl"
     
     <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
     <xsl:template name="render-facets-despatch">
+        <xsl:context-item as="element()" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="value-select-string" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="service" as="element()?"/>
         <xsl:variable name="bgp" select="." as="element()"/>
-        <xsl:variable name="query-string" select="replace($value-select-string, '\?predicate', concat('&lt;', json:string[@key = 'predicate'], '&gt;'))" as="xs:string"/>
+        <!-- the subject is a variable - trim the leading question mark -->
+        <xsl:variable name="subject-var-name" select="substring-after($bgp/json:string[@key = 'subject'], '?')" as="xs:string"/>
+        <!-- the object is a variable - trim the leading question mark -->
+        <xsl:variable name="object-var-name" select="substring-after($bgp/json:string[@key = 'object'], '?')" as="xs:string"/>
+        <!-- generate unique variable name for COUNT(?subject) -->
+        <xsl:variable name="count-var-name" select="'count' || $subject-var-name || generate-id()" as="xs:string"/>
+        
+<xsl:message>
+SUBJECT VAR NAME: <xsl:value-of select="$subject-var-name"/>
+OBJECT VAR NAME: <xsl:value-of select="$object-var-name"/>
+COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
+</xsl:message>
+        
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:bgp-value-counts">
+                    <xsl:with-param name="subject-var-name" select="$subject-var-name" tunnel="yes"/>
+                    <xsl:with-param name="object-var-name" select="$object-var-name" tunnel="yes"/>
+                    <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
+        <!-- load facet values and their counts (TO-DO: labels) -->
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onFacetValueResultsLoad">
                 <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="bgp" select="$bgp"/>
+                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                <xsl:with-param name="count-var-name" select="$count-var-name"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
 
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:bgp-value-counts">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- replace query variables with ?varName (COUNT(DISTINCT ?varName) AS ?countVarName) -->
+    <xsl:template match="json:map/json:array[@key = 'variables']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="subject-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+            
+            <json:string><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+            <json:map>
+                <json:map key="expression">
+                    <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$subject-var-name"/></json:string>
+                    <json:string key="type">aggregate</json:string>
+                    <json:string key="aggregation">count</json:string>
+                    <json:boolean key="distinct">true</json:boolean>
+                </json:map>
+                <json:string key="variable"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- add GROUP BY ?varName and ORDER BY DESC(?varName) after the WHERE -->
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'query']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <!-- TO-DO: will fail on queries with existing GROUP BY -->
+            <json:array key="group">
+                <json:map>
+                    <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                </json:map>
+            </json:array>
+            <!-- create ORDER BY if it doesn't exist -->
+            <xsl:if test="not(json:array[@key = 'order'])">
+                <json:array key="order">
+                    <json:map>
+                        <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+                        <json:boolean key="descending"><xsl:value-of select="$descending"/></json:boolean>
+                    </json:map>
+                </json:array>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="json:map/json:array[@key = 'order']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <json:map>
+                <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+                <json:boolean key="descending"><xsl:value-of select="$descending"/></json:boolean>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+    
     <xsl:template name="onFacetValueResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
+        <xsl:param name="count-var-name" as="xs:string"/>
         <xsl:param name="bgp" as="element()"/>
         <!-- the predicate is a URI -->
         <xsl:variable name="predicate" select="$bgp/json:string[@key = 'predicate']" as="xs:anyURI"/>
-        <!-- the object is a variable - trim the leading question mark -->
-        <xsl:variable name="var-name" select="substring-after($bgp/json:string[@key = 'object'], '?')" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
@@ -852,15 +936,15 @@ extension-element-prefixes="ixsl"
                                     <xsl:for-each select="$results//srx:result">
                                         <li>
                                             <label class="checkbox">
-                                                <input type="checkbox" name="{$var-name}" value="{srx:binding[@name = 'object']/srx:uri | srx:binding[@name = 'object']/srx:literal}"> <!-- {@rdf:about | @rdf:nodeID} -->
+                                                <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"> <!-- can be srx:literal -->
                         <!--                                    <xsl:if test="$filter/*/@rdf:resource = @rdf:about">
                                                         <xsl:attribute name="checked" select="'checked'"/>
                                                     </xsl:if>-->
                                                 </input>
                                                 <span title="">
-                                                    <xsl:value-of select="srx:binding[@name = 'object']/srx:uri | srx:binding[@name = 'object']/srx:literal"/>
+                                                    <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/> <!-- can be srx:literal -->
                                                     <xsl:text> (</xsl:text>
-                                                    <xsl:value-of select="srx:binding[@name = 'count']/srx:literal"/>
+                                                    <xsl:value-of select="srx:binding[@name = $count-var-name]/srx:literal"/>
                                                     <xsl:text>)</xsl:text>
                                                 </span>
                                             </label>
