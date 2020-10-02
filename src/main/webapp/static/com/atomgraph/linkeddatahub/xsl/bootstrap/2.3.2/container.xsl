@@ -1001,75 +1001,40 @@ exclude-result-prefixes="#all"
         <!-- collect the values of all inputs with the same name as this one (in a single facet) -->
         <xsl:variable name="values" select="ancestor::ul//input[@name = current()/@name][ixsl:get(., 'checked') = true()]/ixsl:get(., 'value')" as="xs:string*"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
+        <!-- sequence of length > 1 will be converted to JS array: https://www.saxonica.com/saxon-js/documentation/index.html#!xdm/conversions -->
+        <xsl:variable name="value-uris" select="if (count($values) eq 1) then [ $values ] else array { $values }" as="array(xs:string)"/>
+        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <!-- add FILTER IN () if not present, and set IN () values -->
+        <xsl:variable name="select-xml" as="element()">
+            <xsl:apply-templates select="json-to-xml($select-json-string)" mode="apl:filter-in">
+                <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                <xsl:with-param name="values" select="$value-uris" tunnel="yes"/>
+            </xsl:apply-templates>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <!-- set ?this variable value -->
+        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
+        <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
+        <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
-        <!-- TO-DO: unify? -->
-        <xsl:choose>
-            <!-- apply FILTER if any values were selected -->
-            <xsl:when test="count($values) &gt; 0">
-                <!-- sequence of length > 1 will be converted to JS array: https://www.saxonica.com/saxon-js/documentation/index.html#!xdm/conversions -->
-                <xsl:variable name="value-uris" select="if (count($values) eq 1) then [ $values ] else array { $values }" as="array(xs:string)"/>
-                <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
-                <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                <!-- add FILTER IN () if not present, and set IN () values -->
-                <xsl:variable name="select-xml" as="element()">
-                    <xsl:apply-templates select="json-to-xml($select-json-string)" mode="apl:filter-in">
-                        <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-                        <xsl:with-param name="values" select="$value-uris" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:variable>
-                <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
-                <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-                <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <!-- set global SELECT query (without modifiers) -->
+        <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- set global DESCRIBE query -->
+        <ixsl:set-property name="describe-query" select="$query-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                <!-- pseudo JS code: SPARQLBuilder.SelectBuilder.fromString(select-builder).wherePattern(SPARQLBuilder.QueryBuilder.filter(SPARQLBuilder.QueryBuilder.in(QueryBuilder.var(varName), [ $value ]))) -->
-<!--                <xsl:variable name="select-builder" select="ixsl:call($select-builder, 'wherePattern', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'filter', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'in', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'QueryBuilder'), 'var', [ $var-name ]), $value-uris ]) ]) ])"/>
-                <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>-->
-
-                <!-- set ?this variable value -->
-                <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
-                <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
-                <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-                <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
-                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
-                <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-                <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
-
-                <!-- set global SELECT query (without modifiers) -->
-                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- set global DESCRIBE query -->
-                <ixsl:set-property name="describe-query" select="$query-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onContainerResultsLoad">
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <!-- if not, execute original query -->
-            <xsl:otherwise>
-                <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
-                 <!-- set ?this variable value -->
-                <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
-                <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
-                <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-                <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
-                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
-                <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-                <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
-
-                <!-- set global SELECT query (without modifiers) -->
-                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- set global DESCRIBE query -->
-                <ixsl:set-property name="describe-query" select="$query-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onContainerResultsLoad">
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:otherwise>
-        </xsl:choose>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="select-string" select="$select-string"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
 
     <!-- identity transform -->
@@ -1126,20 +1091,39 @@ exclude-result-prefixes="#all"
         </xsl:copy>
     </xsl:template>
 
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']" mode="apl:set-filter-in-values" priority="1">
+        <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
+        
+        <!-- remove the FILTER ($varName) if there are no values -->
+        <xsl:if test="not(json:map[@key = 'expression']/json:array[@key = 'args']/json:string = '?' || $var-name and array:size($values) = 0)">
+            <xsl:copy>
+                <xsl:apply-templates select="@* | node()" mode="#current"/>
+            </xsl:copy>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- replace IN () values for the FILTER with matching variable name -->
     <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="apl:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
         
         <xsl:copy>
-            <xsl:if test="../json:string eq '?' || $var-name">
-                <xsl:for-each select="1 to array:size($values)">
-                    <xsl:variable name="pos" select="position()"/>
-                    <json:string>
-                        <xsl:value-of select="array:get($values, $pos)"/>
-                    </json:string>
-                </xsl:for-each>
-            </xsl:if>
+            <xsl:choose>
+                <!-- replace IN() values if $varName matches -->
+                <xsl:when test="../json:string eq '?' || $var-name">
+                    <xsl:for-each select="1 to array:size($values)">
+                        <xsl:variable name="pos" select="position()"/>
+                        <json:string>
+                            <xsl:value-of select="array:get($values, $pos)"/>
+                        </json:string>
+                    </xsl:for-each>
+                </xsl:when>
+                <!-- otherwise, retain existing values -->
+                <xsl:otherwise>
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:copy>
     </xsl:template>
     
