@@ -998,11 +998,9 @@ exclude-result-prefixes="#all"
     <!-- facet onchange -->
 
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//input[@type = 'checkbox']" mode="ixsl:onchange">
-        <!-- collect the values of all inputs with the same name as this one (in a single facet) -->
-        <xsl:variable name="values" select="ancestor::ul//input[@name = current()/@name][ixsl:get(., 'checked') = true()]/ixsl:get(., 'value')" as="xs:string*"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
-        <!-- sequence of length > 1 will be converted to JS array: https://www.saxonica.com/saxon-js/documentation/index.html#!xdm/conversions -->
-        <xsl:variable name="value-uris" select="if (count($values) eq 1) then [ $values ] else array { $values }" as="array(xs:string)"/>
+        <!-- collect the values/types/datatypes of all checked inputs within this facet and build an array of maps -->
+        <xsl:variable name="values" select="array { for $label in ancestor::ul//label[input[@type = 'checkbox'][ixsl:get(., 'checked')]] return map { 'value' : string($label/input[@type = 'checkbox']/@value), 'type': string($label/input[@name = 'type']/@value), 'datatype': string($label/input[@name = 'datatype']/@value) } }" as="array(map(xs:string, xs:string))"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
@@ -1010,7 +1008,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" as="element()">
             <xsl:apply-templates select="json-to-xml($select-json-string)" mode="apl:filter-in">
                 <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-                <xsl:with-param name="values" select="$value-uris" tunnel="yes"/>
+                <xsl:with-param name="values" select="$values" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
@@ -1047,7 +1045,7 @@ exclude-result-prefixes="#all"
     <!-- append FILTER (?varName IN ()) to WHERE, if it's not present yet, and replace IN() values -->
     <xsl:template match="json:array[@key = 'where']" mode="apl:filter-in" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
-        <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
+        <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         <xsl:variable name="var-filter" select="json:map[json:string[@key = 'type'] = 'filter'][json:map[@key = 'expression']/json:array[@key = 'args']/json:string eq '?' || $var-name]" as="element()?"/>
         <xsl:variable name="where" as="element()">
             <xsl:choose>
@@ -1093,7 +1091,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']" mode="apl:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
-        <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
+        <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         
         <!-- remove the FILTER ($varName) if there are no values -->
         <xsl:if test="not(json:map[@key = 'expression']/json:array[@key = 'args']/json:string = '?' || $var-name and array:size($values) = 0)">
@@ -1106,7 +1104,7 @@ exclude-result-prefixes="#all"
     <!-- replace IN () values for the FILTER with matching variable name -->
     <xsl:template match="json:map[json:string[@key = 'type'] = 'filter']/json:map[@key = 'expression']/json:array[@key = 'args']/json:array" mode="apl:set-filter-in-values" priority="1">
         <xsl:param name="var-name" as="xs:string" tunnel="yes"/>
-        <xsl:param name="values" as="array(xs:string)" tunnel="yes"/>
+        <xsl:param name="values" as="array(map(xs:string, xs:string))" tunnel="yes"/>
         
         <xsl:copy>
             <xsl:choose>
@@ -1114,8 +1112,23 @@ exclude-result-prefixes="#all"
                 <xsl:when test="../json:string eq '?' || $var-name">
                     <xsl:for-each select="1 to array:size($values)">
                         <xsl:variable name="pos" select="position()"/>
+                        
                         <json:string>
-                            <xsl:value-of select="array:get($values, $pos)"/>
+                            <xsl:choose>
+                                <!-- literal value - wrap in quotes: "literal" -->
+                                <xsl:when test="array:get($values, $pos)?type = 'literal'">
+                                    <xsl:text>&quot;</xsl:text><xsl:value-of select="array:get($values, $pos)?value"/><xsl:text>&quot;</xsl:text>
+                                    <!-- add datatype URI, if any -->
+                                    <xsl:if test="array:get($values, $pos)?datatype">
+                                        <xsl:text>^^</xsl:text>
+                                        <xsl:value-of select="array:get($values, $pos)?datatype"/>
+                                    </xsl:if>
+                                </xsl:when>
+                                <!-- URI value -->
+                                <xsl:otherwise>
+                                    <xsl:value-of select="array:get($values, $pos)?value"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </json:string>
                     </xsl:for-each>
                 </xsl:when>

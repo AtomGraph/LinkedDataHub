@@ -937,11 +937,17 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                                         <li>
                                             <label class="checkbox">
                                                 <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"> <!-- can be srx:literal -->
+                                                <!-- TO-DO: reload state from URL query params -->
                         <!--                                    <xsl:if test="$filter/*/@rdf:resource = @rdf:about">
                                                         <xsl:attribute name="checked" select="'checked'"/>
                                                     </xsl:if>-->
                                                 </input>
-                                                <span title="">
+                                                <!-- store value type ('uri'/'literal') in a hidden input -->
+                                                <input type="hidden" name="type" value="{srx:binding[@name = $object-var-name]/srx:*/local-name()}"/>
+                                                <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
+                                                    <input type="hidden" name="datatype" value="{srx:binding[@name = $object-var-name]/srx:literal/@datatype}"/>
+                                                </xsl:if>
+                                                <span>
                                                     <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/> <!-- can be srx:literal -->
                                                     <xsl:text> (</xsl:text>
                                                     <xsl:value-of select="srx:binding[@name = $count-var-name]/srx:literal"/>
@@ -2517,14 +2523,6 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
     
     <xsl:template match="text()" mode="apl:PostConstructMode"/>
 
-<!--    <xsl:template match="div[tokenize(@class, ' ') = 'modal']/form" mode="apl:PostConstructMode" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'submit', ixsl:get(ixsl:window(), 'onModalFormSubmit') ])"/>
-        </xsl:message>
-        
-        <xsl:apply-templates mode="#current"/>
-    </xsl:template>-->
-
     <!-- remove property button -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
@@ -2561,12 +2559,6 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])"/>
             </xsl:message>
         </xsl:if>
-        <!-- object onmouseover (tooltip) -->
-<!--        <xsl:if test="@name = ('ou', 'ob', 'ol')">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'mouseover', ixsl:get(ixsl:window(), 'onInputMouseOver') ])"/>
-            </xsl:message>
-        </xsl:if>-->
         <!-- typeahead blur -->
         <xsl:if test="tokenize(@class, ' ') = 'resource-typeahead'">
             <xsl:message>
