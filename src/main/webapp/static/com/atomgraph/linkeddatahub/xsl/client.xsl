@@ -193,7 +193,7 @@ extension-element-prefixes="ixsl"
                       { ?service  &lt;&dct;title&gt;  ?title
                           { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
                         UNION
-                          { ?service  &lt;&dydra;#repository&gt;  ?repository }
+                          { ?service  &lt;&dydra;repository&gt;  ?repository }
                       }
                   }
             </xsl:variable>
