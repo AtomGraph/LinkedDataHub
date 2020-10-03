@@ -808,13 +808,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="object-var-name" select="substring-after($bgp/json:string[@key = 'object'], '?')" as="xs:string"/>
         <!-- generate unique variable name for COUNT(?subject) -->
         <xsl:variable name="count-var-name" select="'count' || $subject-var-name || generate-id()" as="xs:string"/>
-        
-<xsl:message>
-SUBJECT VAR NAME: <xsl:value-of select="$subject-var-name"/>
-OBJECT VAR NAME: <xsl:value-of select="$object-var-name"/>
-COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
-</xsl:message>
-        
+        <!-- generate unique variable name for ?label -->
+        <xsl:variable name="label-var-name" select="'label' || $object-var-name || generate-id()" as="xs:string"/>
+        <xsl:variable name="label-sample-var-name" select="$label-var-name || 'sample'" as="xs:string"/>
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
@@ -822,6 +818,8 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                     <xsl:with-param name="subject-var-name" select="$subject-var-name" tunnel="yes"/>
                     <xsl:with-param name="object-var-name" select="$object-var-name" tunnel="yes"/>
                     <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
+                    <xsl:with-param name="label-var-name" select="$label-var-name" tunnel="yes"/>
+                    <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
@@ -838,6 +836,7 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                 <xsl:with-param name="bgp" select="$bgp"/>
                 <xsl:with-param name="object-var-name" select="$object-var-name"/>
                 <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -854,11 +853,14 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
         <xsl:param name="subject-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-sample-var-name" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
             
             <json:string><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+            <!-- COUNT() of subjects -->
             <json:map>
                 <json:map key="expression">
                     <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$subject-var-name"/></json:string>
@@ -867,6 +869,16 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                     <json:boolean key="distinct">true</json:boolean>
                 </json:map>
                 <json:string key="variable"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+            </json:map>
+            <!-- SAMPLE() of ?labels -->
+            <json:map>
+                <json:map key="expression">
+                    <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+                    <json:string key="type">aggregate</json:string>
+                    <json:string key="aggregation">sample</json:string>
+                    <json:boolean key="distinct">false</json:boolean>
+                </json:map>
+                <json:string key="variable"><xsl:text>?</xsl:text><xsl:value-of select="$label-sample-var-name"/></json:string>
             </json:map>
         </xsl:copy>
     </xsl:template>
@@ -898,6 +910,166 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
         </xsl:copy>
     </xsl:template>
 
+    <!-- append OPTIONAL pattern with ?label property paths -->
+    <xsl:template match="json:array[@key = 'where']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-graph-var-name" select="$label-var-name || 'graph'" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+            
+            <json:map>
+                <json:string key="type">optional</json:string>
+                <json:array key="patterns">
+                    <json:map>
+                        <json:string key="type">union</json:string>
+                        <json:array key="patterns">
+                            <json:map>
+                                <json:string key="type">bgp</json:string>
+                                <json:array key="triples">
+                                    <json:map>
+                                        <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                                        <json:map key="predicate">
+                                            <json:string key="type">path</json:string>
+                                            <json:string key="pathType">|</json:string>
+                                            <json:array key="items">
+                                                <json:map>
+                                                    <json:string key="type">path</json:string>
+                                                    <json:string key="pathType">|</json:string>
+                                                    <json:array key="items">
+                                                        <json:map>
+                                                            <json:string key="type">path</json:string>
+                                                            <json:string key="pathType">|</json:string>
+                                                            <json:array key="items">
+                                                                <json:map>
+                                                                    <json:string key="type">path</json:string>
+                                                                    <json:string key="pathType">|</json:string>
+                                                                    <json:array key="items">
+                                                                        <json:map>
+                                                                            <json:string key="type">path</json:string>
+                                                                            <json:string key="pathType">|</json:string>
+                                                                            <json:array key="items">
+                                                                                <json:map>
+                                                                                    <json:string key="type">path</json:string>
+                                                                                    <json:string key="pathType">|</json:string>
+                                                                                    <json:array key="items">
+                                                                                        <json:map>
+                                                                                            <json:string key="type">path</json:string>
+                                                                                            <json:string key="pathType">|</json:string>
+                                                                                            <json:array key="items">
+                                                                                                <json:map>
+                                                                                                    <json:string key="type">path</json:string>
+                                                                                                    <json:string key="pathType">|</json:string>
+                                                                                                    <json:array key="items">
+                                                                                                        <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
+                                                                                                        <json:string>http://purl.org/dc/elements/1.1/title</json:string>
+                                                                                                    </json:array>
+                                                                                                </json:map>
+                                                                                                <json:string>http://purl.org/dc/terms/title</json:string>
+                                                                                            </json:array>
+                                                                                        </json:map>
+                                                                                        <json:string>http://xmlns.com/foaf/0.1/name</json:string>
+                                                                                    </json:array>
+                                                                                </json:map>
+                                                                                <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
+                                                                            </json:array>
+                                                                        </json:map>
+                                                                        <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
+                                                                    </json:array>
+                                                                </json:map>
+                                                                <json:string>http://rdfs.org/sioc/ns#name</json:string>
+                                                            </json:array>
+                                                        </json:map>
+                                                        <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
+                                                    </json:array>
+                                                </json:map>
+                                                <json:string>http://rdfs.org/sioc/ns#content</json:string>
+                                            </json:array>
+                                        </json:map>
+                                        <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+                                    </json:map>
+                                </json:array>
+                            </json:map>
+                            <json:map>
+                                <json:string key="type">graph</json:string>
+                                <json:array key="patterns">
+                                    <json:map>
+                                        <json:string key="type">bgp</json:string>
+                                        <json:array key="triples">
+                                            <json:map>
+                                                <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                                                <json:map key="predicate">
+                                                    <json:string key="type">path</json:string>
+                                                    <json:string key="pathType">|</json:string>
+                                                    <json:array key="items">
+                                                        <json:map>
+                                                            <json:string key="type">path</json:string>
+                                                            <json:string key="pathType">|</json:string>
+                                                            <json:array key="items">
+                                                                <json:map>
+                                                                    <json:string key="type">path</json:string>
+                                                                    <json:string key="pathType">|</json:string>
+                                                                    <json:array key="items">
+                                                                        <json:map>
+                                                                            <json:string key="type">path</json:string>
+                                                                            <json:string key="pathType">|</json:string>
+                                                                            <json:array key="items">
+                                                                                <json:map>
+                                                                                    <json:string key="type">path</json:string>
+                                                                                    <json:string key="pathType">|</json:string>
+                                                                                    <json:array key="items">
+                                                                                        <json:map>
+                                                                                            <json:string key="type">path</json:string>
+                                                                                            <json:string key="pathType">|</json:string>
+                                                                                            <json:array key="items">
+                                                                                                <json:map>
+                                                                                                    <json:string key="type">path</json:string>
+                                                                                                    <json:string key="pathType">|</json:string>
+                                                                                                    <json:array key="items">
+                                                                                                        <json:map>
+                                                                                                            <json:string key="type">path</json:string>
+                                                                                                            <json:string key="pathType">|</json:string>
+                                                                                                            <json:array key="items">
+                                                                                                                <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
+                                                                                                                <json:string>http://purl.org/dc/elements/1.1/title</json:string>
+                                                                                                            </json:array>
+                                                                                                        </json:map>
+                                                                                                        <json:string>http://purl.org/dc/terms/title</json:string>
+                                                                                                    </json:array>
+                                                                                                </json:map>
+                                                                                                <json:string>http://xmlns.com/foaf/0.1/name</json:string>
+                                                                                            </json:array>
+                                                                                        </json:map>
+                                                                                        <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
+                                                                                    </json:array>
+                                                                                </json:map>
+                                                                                <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
+                                                                            </json:array>
+                                                                        </json:map>
+                                                                        <json:string>http://rdfs.org/sioc/ns#name</json:string>
+                                                                    </json:array>
+                                                                </json:map>
+                                                                <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
+                                                            </json:array>
+                                                        </json:map>
+                                                        <json:string>http://rdfs.org/sioc/ns#content</json:string>
+                                                    </json:array>
+                                                </json:map>
+                                                <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+                                            </json:map>
+                                        </json:array>
+                                    </json:map>
+                                </json:array>
+                                <json:string key="name"><xsl:text>?</xsl:text><xsl:value-of select="$label-graph-var-name"/></json:string>
+                            </json:map>
+                        </json:array>
+                    </json:map>
+                </json:array>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+    
     <xsl:template match="json:map/json:array[@key = 'order']" mode="apl:bgp-value-counts" priority="1">
         <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
         <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
@@ -917,6 +1089,7 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
         <xsl:param name="count-var-name" as="xs:string"/>
+        <xsl:param name="label-sample-var-name" as="xs:string"/>
         <xsl:param name="bgp" as="element()"/>
         <!-- the predicate is a URI -->
         <xsl:variable name="predicate" select="$bgp/json:string[@key = 'predicate']" as="xs:anyURI"/>
@@ -925,7 +1098,7 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
             <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    <xsl:if test="$results//srx:result">
+                    <xsl:if test="$results//srx:result[srx:binding[@name = $object-var-name]]">
                         <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                             <div class="sidebar-nav faceted-nav">
                                 <h2 class="nav-header btn">
@@ -933,7 +1106,11 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                                     <xsl:value-of select="$predicate"/>
                                 </h2>
                                 <ul class="well well-small nav nav-list">
-                                    <xsl:for-each select="$results//srx:result">
+                                    <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                                        <xsl:sort select="srx:binding[@name = $count-var-name]/srx:literal"/>
+                                        <xsl:sort select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
+                                        <xsl:sort select="srx:binding[@name = $object-var-name]/srx:*"/>
+                                        
                                         <li>
                                             <label class="checkbox">
                                                 <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"> <!-- can be srx:literal -->
@@ -947,8 +1124,17 @@ COUNT VAR NAME: <xsl:value-of select="$count-var-name"/>
                                                 <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
                                                     <input type="hidden" name="datatype" value="{srx:binding[@name = $object-var-name]/srx:literal/@datatype}"/>
                                                 </xsl:if>
-                                                <span>
-                                                    <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/> <!-- can be srx:literal -->
+                                                <span title="{srx:binding[@name = $object-var-name]/srx:*}">
+                                                    <xsl:choose>
+                                                        <!-- there is a separate ?label value - show it -->
+                                                        <xsl:when test="srx:binding[@name = $label-sample-var-name]/srx:literal">
+                                                            <xsl:value-of select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
+                                                        </xsl:when>
+                                                        <!-- show the raw value -->
+                                                        <xsl:otherwise>
+                                                            <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
                                                     <xsl:text> (</xsl:text>
                                                     <xsl:value-of select="srx:binding[@name = $count-var-name]/srx:literal"/>
                                                     <xsl:text>)</xsl:text>
