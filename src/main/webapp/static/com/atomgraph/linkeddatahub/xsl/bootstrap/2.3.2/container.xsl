@@ -995,6 +995,28 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
+    <!-- facet header on click -->
+    
+    <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//*[tokenize(@class, ' ') = 'nav-header']" mode="ixsl:onclick">
+        <!-- is the current facet hidden? -->
+        <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[tokenize(@class, ' ') = 'nav'])?display = 'none'" as="xs:boolean"/>
+
+        <!-- toggle the caret direction -->
+        <xsl:for-each select="span[tokenize(@class, ' ') = 'caret']">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <!-- toggle the value list visibility -->
+        <xsl:choose>
+            <xsl:when test="$hidden">
+                <ixsl:set-style name="display" select="'block'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- facet onchange -->
 
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//input[@type = 'checkbox']" mode="ixsl:onchange">

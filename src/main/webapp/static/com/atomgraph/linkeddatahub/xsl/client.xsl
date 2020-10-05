@@ -1104,6 +1104,7 @@ extension-element-prefixes="ixsl"
                                 <h2 class="nav-header btn">
                     <!--                        <xsl:value-of select="ac:property-label($bgp/json:string[@key = 'predicate'])"/>-->
                                     <xsl:value-of select="$predicate"/>
+                                    <span class="caret pull-right"></span>
                                 </h2>
                                 <ul class="well well-small nav nav-list">
                                     <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
