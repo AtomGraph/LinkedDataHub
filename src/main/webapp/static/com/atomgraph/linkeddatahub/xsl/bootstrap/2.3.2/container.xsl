@@ -44,11 +44,20 @@ exclude-result-prefixes="#all"
     <!-- PARALLAX -->
     
     <xsl:template name="bs2:Parallax">
+        <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
         
         <!-- only show if the result contains object resources -->
         <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]">
-            <div class="sidebar-nav parallax-nav">
+            <div>
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                </xsl:if>
+
                 <h2 class="nav-header btn">Navigation</h2>
 
                 <ul class="well well-small nav nav-list">
@@ -69,32 +78,28 @@ exclude-result-prefixes="#all"
     
     <!-- FILTERS -->
 
-    <xsl:template name="bs2:FilterIn">
-        <div class="sidebar-nav faceted-nav">
-            <h2 class="nav-header btn">Types</h2>
+    <!-- transform SPARQL BGP triple into facet header and placeholder -->
+    <xsl:template match="json:map" mode="bs2:FilterIn">
+        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:variable name="bgp-id" select="generate-id()" as="xs:string"/>
+        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
 
-            <ul class="well well-small nav nav-list">
-                <li>
-                    <label class="checkbox">
-                        <input type="checkbox" name="Type" value="{resolve-uri('ns/default#Container', $ldt:base)}"> <!-- {@rdf:about | @rdf:nodeID} -->
-<!--                                    <xsl:if test="$filter/*/@rdf:resource = @rdf:about">
-                                <xsl:attribute name="checked" select="'checked'"/>
-                            </xsl:if>-->
-                        </input>
-                        <span title="Container">Container</span>
-                    </label>
-                </li>
-                <li>
-                    <label class="checkbox">
-                        <input type="checkbox" name="Type" value="{resolve-uri('ns/default#Item', $ldt:base)}"> <!-- {@rdf:about | @rdf:nodeID} -->
-<!--                                    <xsl:if test="$filter/*/@rdf:resource = @rdf:about">
-                                <xsl:attribute name="checked" select="'checked'"/>
-                            </xsl:if>-->
-                        </input>
-                        <span title="Item">Item</span>
-                    </label>
-                </li>
-            </ul>
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <h2 class="nav-header btn">
+                <xsl:value-of select="$predicate"/>
+                <span class="caret pull-right"></span>
+                <input type="hidden" name="bgp-id" value="{$bgp-id}"/>
+            </h2>
+            
+            <!-- facet values will be loaded into an <ul> here -->
         </div>
     </xsl:template>
 
@@ -998,23 +1003,415 @@ exclude-result-prefixes="#all"
     <!-- facet header on click -->
     
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//*[tokenize(@class, ' ') = 'nav-header']" mode="ixsl:onclick">
-        <!-- is the current facet hidden? -->
-        <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[tokenize(@class, ' ') = 'nav'])?display = 'none'" as="xs:boolean"/>
+        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'faceted-nav']" as="element()"/>
+        <xsl:variable name="bgp-id" select="input[@name = 'bgp-id']/@value" as="xs:string"/>
+        <xsl:variable name="select-xml" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-xml')" as="document-node()"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[generate-id() = $bgp-id]" as="element()"/> <!-- TO-DO: use key()? -->
 
-        <!-- toggle the caret direction -->
-        <xsl:for-each select="span[tokenize(@class, ' ') = 'caret']">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-
-        <!-- toggle the value list visibility -->
+        <!-- is the current facet loaded? -->
+        <xsl:variable name="loaded" select="not(empty(following-sibling::ul))" as="xs:boolean"/>
         <xsl:choose>
-            <xsl:when test="$hidden">
-                <ixsl:set-style name="display" select="'block'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+            <!-- if not, load and render its values -->
+            <xsl:when test="not($loaded)">
+                <xsl:for-each select="$container">
+                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                    <xsl:call-template name="render-facets-despatch">
+                        <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="service" select="$service"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+                <!-- is the current facet hidden? -->
+                <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[tokenize(@class, ' ') = 'nav'])?display = 'none'" as="xs:boolean"/>
+
+                <!-- toggle the caret direction -->
+                <xsl:for-each select="span[tokenize(@class, ' ') = 'caret']">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <!-- toggle the value list visibility -->
+                <xsl:choose>
+                    <xsl:when test="$hidden">
+                        <ixsl:set-style name="display" select="'block'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <ixsl:set-style name="display" select="'none'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
+    <xsl:template name="render-facets-despatch">
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container-id" select="@id" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="service" as="element()?"/>
+        <xsl:param name="bgp-triples-map" as="element()"/>
+        <!-- the subject is a variable - trim the leading question mark -->
+        <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
+        <!-- the object is a variable - trim the leading question mark -->
+        <xsl:variable name="object-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'object'], '?')" as="xs:string"/>
+        <!-- generate unique variable name for COUNT(?subject) -->
+        <xsl:variable name="count-var-name" select="'count' || $subject-var-name || generate-id()" as="xs:string"/>
+        <!-- generate unique variable name for ?label -->
+        <xsl:variable name="label-var-name" select="'label' || $object-var-name || generate-id()" as="xs:string"/>
+        <xsl:variable name="label-sample-var-name" select="$label-var-name || 'sample'" as="xs:string"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- generate the XML structure of a SPARQL query which is used to load facet values, their counts and labels -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:bgp-value-counts">
+                    <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map" tunnel="yes"/>
+                    <xsl:with-param name="subject-var-name" select="$subject-var-name" tunnel="yes"/>
+                    <xsl:with-param name="object-var-name" select="$object-var-name" tunnel="yes"/>
+                    <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
+                    <xsl:with-param name="label-var-name" select="$label-var-name" tunnel="yes"/>
+                    <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+        <!-- load facet values, their counts and optional labels -->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+            <xsl:call-template name="onFacetValueResultsLoad">
+                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:bgp-value-counts">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- replace query variables with ?varName (COUNT(DISTINCT ?varName) AS ?countVarName) -->
+    <xsl:template match="json:map/json:array[@key = 'variables']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="subject-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-sample-var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+            
+            <json:string><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+            <!-- COUNT() of subjects -->
+            <json:map>
+                <json:map key="expression">
+                    <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$subject-var-name"/></json:string>
+                    <json:string key="type">aggregate</json:string>
+                    <json:string key="aggregation">count</json:string>
+                    <json:boolean key="distinct">true</json:boolean>
+                </json:map>
+                <json:string key="variable"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+            </json:map>
+            <!-- SAMPLE() of ?labels -->
+            <json:map>
+                <json:map key="expression">
+                    <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+                    <json:string key="type">aggregate</json:string>
+                    <json:string key="aggregation">sample</json:string>
+                    <json:boolean key="distinct">false</json:boolean>
+                </json:map>
+                <json:string key="variable"><xsl:text>?</xsl:text><xsl:value-of select="$label-sample-var-name"/></json:string>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- add GROUP BY ?varName and ORDER BY DESC(?varName) after the WHERE -->
+    <xsl:template match="json:map[json:string[@key = 'type'] = 'query']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <!-- TO-DO: will fail on queries with existing GROUP BY -->
+            <json:array key="group">
+                <json:map>
+                    <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                </json:map>
+            </json:array>
+            <!-- create ORDER BY if it doesn't exist -->
+            <xsl:if test="not(json:array[@key = 'order'])">
+                <json:array key="order">
+                    <json:map>
+                        <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+                        <json:boolean key="descending"><xsl:value-of select="$descending"/></json:boolean>
+                    </json:map>
+                </json:array>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- append OPTIONAL pattern with ?label property paths after the BGP with object var name -->
+    <xsl:template match="json:*[json:map[json:string[@key = 'type'] = 'bgp']]" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="bgp-triples-map" as="element()" tunnel="yes"/>
+        <xsl:param name="object-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="label-graph-var-name" select="$label-var-name || 'graph'" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <!-- one of the triple patterns in this BGP equals the one supplied as param - append ?label pattern to this BGP -->
+            <xsl:if test="json:map[json:string[@key = 'type'] = 'bgp']//json:map[. is $bgp-triples-map]">
+                <json:map>
+                    <json:string key="type">optional</json:string>
+                    <json:array key="patterns">
+                        <json:map>
+                            <json:string key="type">union</json:string>
+                            <json:array key="patterns">
+                                <json:map>
+                                    <json:string key="type">bgp</json:string>
+                                    <json:array key="triples">
+                                        <json:map>
+                                            <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                                            <json:map key="predicate">
+                                                <json:string key="type">path</json:string>
+                                                <json:string key="pathType">|</json:string>
+                                                <json:array key="items">
+                                                    <json:map>
+                                                        <json:string key="type">path</json:string>
+                                                        <json:string key="pathType">|</json:string>
+                                                        <json:array key="items">
+                                                            <json:map>
+                                                                <json:string key="type">path</json:string>
+                                                                <json:string key="pathType">|</json:string>
+                                                                <json:array key="items">
+                                                                    <json:map>
+                                                                        <json:string key="type">path</json:string>
+                                                                        <json:string key="pathType">|</json:string>
+                                                                        <json:array key="items">
+                                                                            <json:map>
+                                                                                <json:string key="type">path</json:string>
+                                                                                <json:string key="pathType">|</json:string>
+                                                                                <json:array key="items">
+                                                                                    <json:map>
+                                                                                        <json:string key="type">path</json:string>
+                                                                                        <json:string key="pathType">|</json:string>
+                                                                                        <json:array key="items">
+                                                                                            <json:map>
+                                                                                                <json:string key="type">path</json:string>
+                                                                                                <json:string key="pathType">|</json:string>
+                                                                                                <json:array key="items">
+                                                                                                    <json:map>
+                                                                                                        <json:string key="type">path</json:string>
+                                                                                                        <json:string key="pathType">|</json:string>
+                                                                                                        <json:array key="items">
+                                                                                                            <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
+                                                                                                            <json:string>http://purl.org/dc/elements/1.1/title</json:string>
+                                                                                                        </json:array>
+                                                                                                    </json:map>
+                                                                                                    <json:string>http://purl.org/dc/terms/title</json:string>
+                                                                                                </json:array>
+                                                                                            </json:map>
+                                                                                            <json:string>http://xmlns.com/foaf/0.1/name</json:string>
+                                                                                        </json:array>
+                                                                                    </json:map>
+                                                                                    <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
+                                                                                </json:array>
+                                                                            </json:map>
+                                                                            <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
+                                                                        </json:array>
+                                                                    </json:map>
+                                                                    <json:string>http://rdfs.org/sioc/ns#name</json:string>
+                                                                </json:array>
+                                                            </json:map>
+                                                            <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
+                                                        </json:array>
+                                                    </json:map>
+                                                    <json:string>http://rdfs.org/sioc/ns#content</json:string>
+                                                </json:array>
+                                            </json:map>
+                                            <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+                                        </json:map>
+                                    </json:array>
+                                </json:map>
+                                <json:map>
+                                    <json:string key="type">graph</json:string>
+                                    <json:array key="patterns">
+                                        <json:map>
+                                            <json:string key="type">bgp</json:string>
+                                            <json:array key="triples">
+                                                <json:map>
+                                                    <json:string key="subject"><xsl:text>?</xsl:text><xsl:value-of select="$object-var-name"/></json:string>
+                                                    <json:map key="predicate">
+                                                        <json:string key="type">path</json:string>
+                                                        <json:string key="pathType">|</json:string>
+                                                        <json:array key="items">
+                                                            <json:map>
+                                                                <json:string key="type">path</json:string>
+                                                                <json:string key="pathType">|</json:string>
+                                                                <json:array key="items">
+                                                                    <json:map>
+                                                                        <json:string key="type">path</json:string>
+                                                                        <json:string key="pathType">|</json:string>
+                                                                        <json:array key="items">
+                                                                            <json:map>
+                                                                                <json:string key="type">path</json:string>
+                                                                                <json:string key="pathType">|</json:string>
+                                                                                <json:array key="items">
+                                                                                    <json:map>
+                                                                                        <json:string key="type">path</json:string>
+                                                                                        <json:string key="pathType">|</json:string>
+                                                                                        <json:array key="items">
+                                                                                            <json:map>
+                                                                                                <json:string key="type">path</json:string>
+                                                                                                <json:string key="pathType">|</json:string>
+                                                                                                <json:array key="items">
+                                                                                                    <json:map>
+                                                                                                        <json:string key="type">path</json:string>
+                                                                                                        <json:string key="pathType">|</json:string>
+                                                                                                        <json:array key="items">
+                                                                                                            <json:map>
+                                                                                                                <json:string key="type">path</json:string>
+                                                                                                                <json:string key="pathType">|</json:string>
+                                                                                                                <json:array key="items">
+                                                                                                                    <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
+                                                                                                                    <json:string>http://purl.org/dc/elements/1.1/title</json:string>
+                                                                                                                </json:array>
+                                                                                                            </json:map>
+                                                                                                            <json:string>http://purl.org/dc/terms/title</json:string>
+                                                                                                        </json:array>
+                                                                                                    </json:map>
+                                                                                                    <json:string>http://xmlns.com/foaf/0.1/name</json:string>
+                                                                                                </json:array>
+                                                                                            </json:map>
+                                                                                            <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
+                                                                                        </json:array>
+                                                                                    </json:map>
+                                                                                    <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
+                                                                                </json:array>
+                                                                            </json:map>
+                                                                            <json:string>http://rdfs.org/sioc/ns#name</json:string>
+                                                                        </json:array>
+                                                                    </json:map>
+                                                                    <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
+                                                                </json:array>
+                                                            </json:map>
+                                                            <json:string>http://rdfs.org/sioc/ns#content</json:string>
+                                                        </json:array>
+                                                    </json:map>
+                                                    <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
+                                                </json:map>
+                                            </json:array>
+                                        </json:map>
+                                    </json:array>
+                                    <json:string key="name"><xsl:text>?</xsl:text><xsl:value-of select="$label-graph-var-name"/></json:string>
+                                </json:map>
+                            </json:array>
+                        </json:map>
+                    </json:array>
+                </json:map>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="json:map/json:array[@key = 'order']" mode="apl:bgp-value-counts" priority="1">
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+        <xsl:param name="descending" select="true()" as="xs:boolean" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+
+            <json:map>
+                <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$count-var-name"/></json:string>
+                <json:boolean key="descending"><xsl:value-of select="$descending"/></json:boolean>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template name="onFacetValueResultsLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
+        <xsl:param name="count-var-name" as="xs:string"/>
+        <xsl:param name="label-sample-var-name" as="xs:string"/>
+
+        <xsl:variable name="response" select="." as="map(*)"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <xsl:if test="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                            <ul class="well well-small nav nav-list">
+                                <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
+                                    <xsl:sort select="srx:binding[@name = $count-var-name]/srx:literal"/>
+                                    <xsl:sort select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
+                                    <xsl:sort select="srx:binding[@name = $object-var-name]/srx:*"/>
+
+                                    <li>
+                                        <label class="checkbox">
+                                            <!-- store value type ('uri'/'literal') in a hidden input -->
+                                            <input type="hidden" name="type" value="{srx:binding[@name = $object-var-name]/srx:*/local-name()}"/>
+                                            <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
+                                                <input type="hidden" name="datatype" value="{srx:binding[@name = $object-var-name]/srx:literal/@datatype}"/>
+                                            </xsl:if>
+
+                                            <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"> <!-- can be srx:literal -->
+                                            <!-- TO-DO: reload state from URL query params -->
+                    <!--                                    <xsl:if test="$filter/*/@rdf:resource = @rdf:about">
+                                                    <xsl:attribute name="checked" select="'checked'"/>
+                                                </xsl:if>-->
+                                            </input>
+                                            <span title="{srx:binding[@name = $object-var-name]/srx:*}">
+                                                <xsl:choose>
+                                                    <!-- there is a separate ?label value - show it -->
+                                                    <xsl:when test="srx:binding[@name = $label-sample-var-name]/srx:literal">
+                                                        <xsl:value-of select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
+                                                    </xsl:when>
+                                                    <!-- show the raw value -->
+                                                    <xsl:otherwise>
+                                                        <xsl:value-of select="srx:binding[@name = $object-var-name]/srx:*"/>
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                                <xsl:text> (</xsl:text>
+                                                <xsl:value-of select="srx:binding[@name = $count-var-name]/srx:literal"/>
+                                                <xsl:text>)</xsl:text>
+                                            </span>
+                                        </label>
+                                    </li>
+                                </xsl:for-each>
+                            </ul>
+                        </xsl:result-document>
+                    </xsl:if>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- error response - could not load query results -->
+                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                    <div class="alert alert-block">
+                        <strong>Error during query execution:</strong>
+                        <pre>
+                            <xsl:value-of select="$response?message"/>
+                        </pre>
+                    </div>
+                </xsl:result-document>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <!-- done loading, restore normal cursor -->
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- facet onchange -->

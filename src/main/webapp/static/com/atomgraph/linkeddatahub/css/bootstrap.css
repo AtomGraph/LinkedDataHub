@@ -55,9 +55,9 @@ ul.dropdown-menu ul { margin: 0; }
 .dropdown-menu > li > a.btn-map { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-graph { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
 .dropdown-menu > li > a.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding: 5px 5px 5px 40px; }
-.sidebar-nav .nav { max-height: 20em; overflow: auto; }
+#left-nav .nav, #right-nav .nav { max-height: 20em; overflow: auto; }
 .caret.caret-reversed { border-bottom: 4px solid #000000; border-top-width: 0; }
-.faceted-nav input[type=checkbox]:checked ~ span { color: #ffffff; text-shadow: none; background-color: #007fff; }
+.faceted-nav input[type=checkbox]:checked + span { font-weight: bold; }
 .parallax-nav a { cursor: pointer; }
 #content-body { min-height: calc(100% - 14em); }
 .list-mode.active { background-image: url('../icons/ic_navigate_before_black_24px.svg'); }
