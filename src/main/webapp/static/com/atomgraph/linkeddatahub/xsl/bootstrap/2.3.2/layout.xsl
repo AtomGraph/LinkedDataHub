@@ -412,7 +412,6 @@ exclude-result-prefixes="#all">
             
             <xsl:apply-templates select="." mode="bs2:ContentToggle"/>
             
-<!--            <xsl:apply-templates select="." mode="bs2:BreadCrumbList"/>-->
             <div id="breadcrumb-nav">
                 <!-- placeholder for client.xsl callbacks -->
             </div>
@@ -605,7 +604,7 @@ exclude-result-prefixes="#all">
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')), document(ac:document-uri($ldt:ontology)))" as="element()*"/>
+                <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'RDFImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')), document(ac:document-uri($ldt:ontology)))" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$ldt:ontology"/>
@@ -624,10 +623,6 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
                     <!-- current resource is a container -->
                     <xsl:if test="not(empty($document-classes)) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
-                        <xsl:if test="$constructor-list">
-                            <li class="divider"></li>
-                        </xsl:if>
-
                         <xsl:for-each select="$document-classes">
                             <xsl:sort select="ac:label(.)"/>
 

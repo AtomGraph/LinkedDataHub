@@ -1290,10 +1290,6 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
 
-        <xsl:message>
-            ON SUBMIT! ID: <xsl:value-of select="$id"/> ENCTYPE: <xsl:value-of select="$enctype"/>
-        </xsl:message>
-
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- remove names of RDF/POST inputs with empty values -->
