@@ -29,6 +29,8 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.CSVImport;
+import com.atomgraph.linkeddatahub.model.Import;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
 import java.net.URI;
@@ -96,7 +98,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
             Resource document = getCreatedDocument(infModel);
             Resource topic = document.getPropertyResourceValue(FOAF.primaryTopic);
             
-            if (topic != null && topic.canAs(CSVImport.class))
+            if (topic != null && topic.canAs(Import.class))
             {
                 Resource provGraph = null;
                 QuerySolutionMap qsm = new QuerySolutionMap();
@@ -113,27 +115,44 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         if (qs.contains("provGraph")) provGraph = qs.getResource("provGraph");
                         else
                         {
-                            if (log.isErrorEnabled()) log.error("Document provenance graph not found for CSVImport '{}'", topic);
+                            if (log.isErrorEnabled()) log.error("Document provenance graph not found for Import '{}'", topic);
                             throw new IllegalStateException("Document provenance graph not found");
                         }
                     }
                     else
                     {
-                        if (log.isErrorEnabled()) log.error("Document provenance graph query returned no results for CSVImport '{}'", topic);
+                        if (log.isErrorEnabled()) log.error("Document provenance graph query returned no results for Import '{}'", topic);
                         throw new IllegalStateException("Document provenance graph query returned no results");
                     }
 
-                    // we need to load stored import to know its graph URI which we will append to
-                    CSVImport csvImport = topic.as(CSVImport.class);
-                    csvImport.setDataManager(getDataManager()).
-                            setValidator(new Validator(getOntResource().getOntModel())).
-                            setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
+                     // start the import asynchroniously
+                    if (topic.canAs(CSVImport.class))
+                    {
+                        // we need to load stored import to know its graph URI which we will append to
+                        CSVImport csvImport = topic.as(CSVImport.class);
+                        csvImport.setDataManager(getDataManager()).
+                                setValidator(new Validator(getOntResource().getOntModel())).
+                                setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
 
-                    ImportListener.submit(csvImport, this, provGraph, getService().getDatasetAccessor()); // start the import asynchroniously
+                        ImportListener.submit(csvImport, this, provGraph, getService().getDatasetAccessor());
+                    }
+                    if (topic.canAs(RDFImport.class))
+                    {
+                        // we need to load stored import to know its graph URI which we will append to
+                        RDFImport rdfImport = topic.as(RDFImport.class);
+                        rdfImport.setDataManager(getDataManager()).
+                                setValidator(new Validator(getOntResource().getOntModel())).
+                                setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
+
+                        ImportListener.submit(rdfImport, this, provGraph, getService().getDatasetAccessor());
+                    }
+                    
+                    if (log.isErrorEnabled()) log.error("Type of this not import is supported: {}", topic.getURI());
+                    throw new IllegalStateException("Import type not supported");
                 }
             }
             else
-                if (log.isWarnEnabled()) log.warn("Topic '{}' cannot be cast to CSVImport", topic);
+                if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
         }
         
         return constructor;

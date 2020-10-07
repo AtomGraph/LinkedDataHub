@@ -24,6 +24,7 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,4 +72,10 @@ public class XMLImportImpl extends ImportImpl implements XMLImport
         super(n, g);
     }
 
+    @Override
+    public Resource getStylesheet()
+    {
+        throw new UnsupportedOperationException();
+    }
+    
 }

@@ -306,21 +306,24 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     spin:constraint :MissingQuery, :MissingDelimiter ;
     rdfs:isDefinedBy : .
 
+:RDFImport a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Import ; # restriction on media type?
+    rdfs:label "RDF import" ;
+    spin:constructor :RDFImportConstructor ;
+    spin:constraint :MissingQuery ;
+    rdfs:isDefinedBy : .
+
 #:XMLImport a rdfs:Class, owl:Class ;
 #    rdfs:subClassOf :Import ; # restriction on media type?
 #    rdfs:label "XML import" ;
 #    rdfs:isDefinedBy : .
 
 :ImportConstructor a sp:Construct ;
-    sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
-        PREFIX sp:      <http://spinrdf.org/sp#>
-        PREFIX spin:    <http://spinrdf.org/spin#>
+    sp:text """PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
         PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
 
         CONSTRUCT {
             ?this :action [ a dh:Container ] ;
-                spin:query [ a :Construct ] ;
                 :file [ a :File ] .
         }
         WHERE {}""" ;
@@ -329,9 +332,22 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :CSVImportConstructor a sp:Construct ;
     sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this :delimiter "," .
+            ?this spin:query [ a :Construct ] ;
+                :delimiter "," .
+        }
+        WHERE {}""" ;
+    rdfs:label "CSV import constructor" ;
+    rdfs:isDefinedBy : .
+
+:RDFImportConstructor a sp:Construct ;
+    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
+
+        CONSTRUCT {
+            ?this spin:query [ a :Construct ] .
         }
         WHERE {}""" ;
     rdfs:label "CSV import constructor" ;

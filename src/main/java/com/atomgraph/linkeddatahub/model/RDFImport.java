@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@ package com.atomgraph.linkeddatahub.model;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * XML data import.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ *
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public interface XMLImport extends Import
+public interface RDFImport extends Import
 {
-    
-    Resource getStylesheet();
-    
+
+    Resource getQuery();
+
 }

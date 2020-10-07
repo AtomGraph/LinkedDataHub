@@ -1757,6 +1757,43 @@ WHERE
 
 }
 
+# RDF import
+
+<graphs/1e90d1de-87ec-4f82-bc6a-604c6852a5e6/>
+{
+
+    <graphs/874181fd-3740-45b2-8547-ddcc97290085/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/874181fd-3740-45b2-8547-ddcc97290085/#this> .
+
+    <graphs/874181fd-3740-45b2-8547-ddcc97290085/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/874181fd-3740-45b2-8547-ddcc97290085/> .
+
+    <model/classes/default/rdf-import/> sioc:has_space <> ;
+        dh:slug "rdf-import" ;
+        void:inDataset <graphs/874181fd-3740-45b2-8547-ddcc97290085/#this> .
+
+}
+
+<graphs/874181fd-3740-45b2-8547-ddcc97290085/>
+{
+
+    <model/classes/default/rdf-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "RDF import" ;
+        foaf:primaryTopic def:RDFImport .
+
+    def:RDFImport a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/rdf-import/> ;
+        rdfs:subClassOf apl:RDFImport ;
+        spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
+        spin:constraint def:MissingTitle ;
+        rdfs:label "RDF import" ;
+        rdfs:isDefinedBy def: .
+
+}
+
 # CSV import
 
 <graphs/8875ccb7-4f3f-4da8-a137-d6ac30d199af/>
@@ -3102,6 +3139,41 @@ WHERE
         foaf:isPrimaryTopicOf <model/classes/namespace/file-item/> ;
         rdfs:subClassOf def:Item, ns:ItemOfFilesContainer ;
         rdfs:label "File item" ;
+        rdfs:isDefinedBy ns: .
+
+}
+
+# RDF import
+
+<graphs/6da0ef29-fc40-4e3d-a52d-d59d05687a47/>
+{
+
+    <graphs/5d427434-21a2-445a-9b9d-6cea9a655b65/> a dh:Item ;
+        sioc:has_space <> ;
+        sioc:has_container <graphs/> ;
+        foaf:primaryTopic <graphs/5d427434-21a2-445a-9b9d-6cea9a655b65/#this> .
+
+    <graphs/5d427434-21a2-445a-9b9d-6cea9a655b65/#this> a apl:Dataset ;
+        foaf:isPrimaryTopicOf <graphs/5d427434-21a2-445a-9b9d-6cea9a655b65/> .
+
+    <model/classes/namespace/rdf-import/> sioc:has_space <> ;
+        dh:slug "rdf-import" ;
+        void:inDataset <graphs/5d427434-21a2-445a-9b9d-6cea9a655b65/#this> .
+
+}
+
+<graphs/5d427434-21a2-445a-9b9d-6cea9a655b65/>
+{
+
+    <model/classes/namespace/rdf-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/namespace/> ;
+        dct:title "RDF import" ;
+        foaf:primaryTopic ns:RDFImport .
+
+    ns:RDFImport a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/namespace/rdf-import/> ;
+        rdfs:subClassOf def:RDFImport, ns:TopicOfImportItem ;
+        rdfs:label "RDF import" ;
         rdfs:isDefinedBy ns: .
 
 }

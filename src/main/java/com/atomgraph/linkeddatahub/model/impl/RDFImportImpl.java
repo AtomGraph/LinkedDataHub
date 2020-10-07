@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model.impl;
 
-import com.atomgraph.linkeddatahub.model.CSVImport;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import org.apache.jena.enhanced.EnhGraph;
@@ -26,18 +26,14 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public class CSVImportImpl extends ImportImpl implements CSVImport
+public class RDFImportImpl extends ImportImpl implements RDFImport
 {
-
-    private static final Logger log = LoggerFactory.getLogger(CSVImportImpl.class);
-
+    
     public static Implementation factory = new Implementation() 
     {
         
@@ -46,11 +42,11 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
         {
             if (canWrap(node, enhGraph))
             {
-                return new CSVImportImpl(node, enhGraph);
+                return new RDFImportImpl(node, enhGraph);
             }
             else
             {
-                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type apl:CSVImport or equivalent");
+                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type apl:RDFImport or equivalent");
             }
         }
 
@@ -59,11 +55,11 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
         {
             if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
 
-            return eg.asGraph().contains(node, RDF.type.asNode(), APL.CSVImport.asNode());
+            return eg.asGraph().contains(node, RDF.type.asNode(), APL.RDFImport.asNode());
         }
     };
-
-    public CSVImportImpl(Node n, EnhGraph g)
+    
+    public RDFImportImpl(Node n, EnhGraph g)
     {
         super(n, g);
     }
@@ -74,10 +70,4 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
         return getPropertyResourceValue(SPIN.query);
     }
 
-    @Override
-    public char getDelimiter()
-    {
-        return getRequiredProperty(APL.delimiter).getChar();
-    }
-    
 }

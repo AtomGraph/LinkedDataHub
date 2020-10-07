@@ -70,11 +70,15 @@ import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.model.Import;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDDelegationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
+import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
+import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
@@ -471,6 +475,8 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, ApplicationImpl.factory);
             BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
+            BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         

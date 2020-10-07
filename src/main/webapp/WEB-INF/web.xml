@@ -581,13 +581,13 @@ WHERE
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
     </servlet>
     <listener>
+        <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
+    </listener>
+    <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ImportListener</listener-class>
     </listener>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.EMailListener</listener-class>
-    </listener>
-    <listener>
-        <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
     </listener>
     <servlet-mapping>
         <servlet-name>default</servlet-name>

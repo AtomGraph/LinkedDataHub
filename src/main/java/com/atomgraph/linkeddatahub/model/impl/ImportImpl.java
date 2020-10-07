@@ -27,10 +27,14 @@ import com.atomgraph.spinrdf.vocabulary.SP;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.util.List;
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
+import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 
 /**
@@ -44,6 +48,31 @@ public class ImportImpl extends ResourceImpl implements Import
     private Validator validator;
     private List<ConstraintViolation> constraintViolations;
     private Resource baseUri;
+    
+    public static Implementation factory = new Implementation() 
+    {
+        
+        @Override
+        public EnhNode wrap(Node node, EnhGraph enhGraph)
+        {
+            if (canWrap(node, enhGraph))
+            {
+                return new ImportImpl(node, enhGraph);
+            }
+            else
+            {
+                throw new ConversionException( "Cannot convert node " + node.toString() + " to Import: it does not have rdf:type apl:RDFImport or equivalent");
+            }
+        }
+
+        @Override
+        public boolean canWrap(Node node, EnhGraph eg)
+        {
+            if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
+
+            return eg.asGraph().contains(node, RDF.type.asNode(), APL.Import.asNode());
+        }
+    };
     
     public ImportImpl(Node n, EnhGraph g)
     {

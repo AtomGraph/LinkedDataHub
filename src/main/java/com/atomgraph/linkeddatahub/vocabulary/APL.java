@@ -57,6 +57,8 @@ public class APL
     public static final OntClass CSVImport = m_model.createClass(NS + "CSVImport");
 
     public static final OntClass XMLImport = m_model.createClass(NS + "XMLImport");
+    
+    public static final OntClass RDFImport = m_model.createClass(NS + "RDFImport");
 
     public static final OntClass ImportRun = m_model.createClass(NS + "ImportRun");
     
