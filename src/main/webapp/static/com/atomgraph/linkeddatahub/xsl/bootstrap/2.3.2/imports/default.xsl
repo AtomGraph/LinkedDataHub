@@ -100,14 +100,15 @@ exclude-result-prefixes="#all">
     <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
 
-        <xsl:sequence select="apl:listSubClasses($class, false())"/>
+        <xsl:sequence select="apl:listSubClasses($class, false(), $ldt:ontology)"/>
     </xsl:function>
     
     <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
+        <xsl:param name="ontology" as="xs:anyURI"/>
         
-        <xsl:variable name="ontologies" select="$ldt:ontology, apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
+        <xsl:variable name="ontologies" select="$ontology, apl:ontologyImports($ontology)" as="xs:anyURI*"/>
         <xsl:variable name="ontology-docs" as="document-node()*">
             <xsl:for-each select="$ontologies">
                 <xsl:if test="doc-available(.)">
@@ -116,12 +117,12 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:variable>
         
-        <xsl:sequence select="apl:listSubClasses($class, $direct, $ontology-docs)"/>
+        <xsl:sequence select="apl:listSubClassesInDocuments($class, $direct, $ontology-docs)"/>
     </xsl:function>
     
     <!-- this is a different, not follow-your-nose Linked Data search as in apl:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
     <!-- start with the $ldt:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
-    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+    <xsl:function name="apl:listSubClassesInDocuments" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
         <xsl:param name="ontology-docs" as="document-node()*"/>
@@ -131,7 +132,7 @@ exclude-result-prefixes="#all">
             <xsl:sequence select="$subclasses"/>
 
             <xsl:for-each select="$subclasses">
-                <xsl:sequence select="apl:listSubClasses(., $direct, $ontology-docs)"/>
+                <xsl:sequence select="apl:listSubClassesInDocuments(., $direct, $ontology-docs)"/>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:function>
@@ -531,31 +532,18 @@ exclude-result-prefixes="#all">
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="required" as="xs:boolean">
+            <xsl:variable name="type" select="../rdf:type/@rdf:resource" as="xs:anyURI?"/>
             <xsl:choose>
-                <xsl:when test="doc-available(ac:document-uri(../rdf:type/@rdf:resource))">
-                    <xsl:for-each select="document(ac:document-uri(../rdf:type/@rdf:resource))">
-                        <xsl:choose>
-                            <xsl:when test="key('resources', key('resources', ../rdf:type/@rdf:resource)/spin:constraint/(@rdf:nodeID, @rdf:resource))">
-                                <xsl:sequence select="key('resources', key('resources', ../rdf:type/@rdf:resource)/spin:constraint/(@rdf:nodeID, @rdf:resource))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue' and sp:arg1/@rdf:resource = $this]"/>
-                            </xsl:when>
-                            <xsl:when test="key('resources', key('resources', ../rdf:type/@rdf:resource)/spin:constraint/@rdf:resource)">
-                                <xsl:variable name="constraint-uris" select="key('resources', ../rdf:type/@rdf:resource)/spin:constraint/@rdf:resource" as="xs:anyURI*"/>
-                                <xsl:for-each select="$constraint-uris">
-                                    <xsl:variable name="constraint-uri" select="." as="xs:anyURI"/>
-                                    <xsl:for-each select="document($constraint-uris[doc-available(ac:document-uri(.))])">
-                                        <xsl:sequence select="key('resources', $constraint-uri)[rdf:type/@rdf:resource = '&apl;MissingPropertyValue' and sp:arg1/@rdf:resource = $this]"/>
-                                    </xsl:for-each>
-                                </xsl:for-each>
-                            </xsl:when>
-                            <!-- TO-DO: constraints on superclasses of ../rdf:type/@rdf:resource -->
-                            <xsl:otherwise>
-                                <xsl:sequence select="true()"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                <xsl:when test="$type and doc-available(ac:document-uri($type))">
+                    <!-- constraint (sub)classes are in the admin ontology -->
+                    <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
+                    <xsl:for-each select="document(ac:document-uri($type))">
+                        <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
+                        <xsl:sequence select="not(empty(apl:listSuperClasses($type)/key('resources', ., document(ac:document-uri(.)))/spin:constraint/@rdf:resource/key('resources', ., document(ac:document-uri(.)))[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:sequence select="true()"/>
+                    <xsl:sequence select="false()"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
