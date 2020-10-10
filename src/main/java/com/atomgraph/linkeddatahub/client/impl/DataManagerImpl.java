@@ -23,9 +23,18 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,25 +53,28 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     private final String authScheme;
     private final Agent agent;
 
-    public DataManagerImpl(LocationMapper mapper, Client client, MediaTypes mediaTypes,
-            boolean preemptiveAuth, boolean resolvingUncached,
+    public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
+            Client client, MediaTypes mediaTypes,
+            boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
             URI rootContextURI, Application app,
             SecurityContext securityContext)
     {
-        this(mapper, client, mediaTypes,
-                preemptiveAuth, resolvingUncached,
+        this(mapper, modelCache,
+                client, mediaTypes,
+                cacheModelLoads, preemptiveAuth, resolvingUncached,
                 rootContextURI,
                 app != null ? app.getBaseURI() : null,
                 securityContext != null ? securityContext.getAuthenticationScheme() : null,
                 (securityContext != null && securityContext.getUserPrincipal() instanceof Agent) ? (Agent)securityContext.getUserPrincipal() : null);
     }
     
-    public DataManagerImpl(LocationMapper mapper, Client client, MediaTypes mediaTypes,
-            boolean preemptiveAuth, boolean resolvingUncached,
+    public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache, 
+            Client client, MediaTypes mediaTypes,
+            boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
             URI rootContextURI, URI baseURI,
             String authScheme, Agent agent)
     {
-        super(mapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
+        super(mapper, modelCache, client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
         this.baseURI = baseURI;
         this.authScheme = authScheme;
@@ -126,11 +138,42 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     */
     
     @Override
+    public Source resolve(String href, String base) throws TransformerException
+    {
+        URI uriBase = URI.create(base);
+        URI uri = href.isEmpty() ? uriBase : uriBase.resolve(href);
+        
+        if (!(hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))) // read mapped URIs (such as system ontologies) from a file
+        {
+            // if document is not cached, construct ontology URI - they are cached under different URIs than their documents. TO-DO: refactor
+            uri = href.isEmpty() ? uriBase : uriBase.resolve(href + "#");
+            if (hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))
+                return super.resolve(href + "#", base);
+        }
+        
+        return super.resolve(href, base);
+    }
+    
+//    @Override
+//    public Source getSource(Model model, String systemId) throws IOException
+//    {
+//        if (log.isDebugEnabled()) log.debug("Number of Model stmts read: {}", model.size());
+//        try (ByteArrayOutputStream stream = new ByteArrayOutputStream())
+//        {
+//            // if the model uses inference, discard the inferred statements - XSLT functions will be traversing ontology documents as Linked Data anyway
+//            if (model instanceof InfModel) model = ((InfModel)model).getRawModel();
+//            
+//            model.write(stream);
+//            if (log.isDebugEnabled()) log.debug("RDF/XML bytes written: {}", stream.toByteArray().length);
+//            return new StreamSource(new ByteArrayInputStream(stream.toByteArray()), systemId);
+//        }
+//    }
+    
+    @Override
     public WebTarget getEndpoint(URI uri)
     {
         return getEndpoint(uri, true);
     }
-              
     
     public WebTarget getEndpoint(URI uri, boolean delegateWebID)
     {

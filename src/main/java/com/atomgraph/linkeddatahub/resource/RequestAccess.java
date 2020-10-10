@@ -38,6 +38,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
@@ -83,7 +84,7 @@ public class RequestAccess extends ResourceBase
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Context SecurityContext securityContext,
+                  @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
@@ -91,7 +92,7 @@ public class RequestAccess extends ResourceBase
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
         

@@ -28,6 +28,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.UriInfo;
@@ -51,14 +52,14 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context SecurityContext securityContext,
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application, ontology, templateCall,
                 httpHeaders, resourceContext,
-                securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
     }

@@ -46,6 +46,7 @@ import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
@@ -68,7 +69,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context SecurityContext securityContext,
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
     {
@@ -76,7 +77,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
     }
@@ -102,8 +103,11 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
                 resource.removeAll(DH.slug).
                     addLiteral(DH.slug, sha1Hash).
-                    addLiteral(FOAF.sha1, sha1Hash).
-                    addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+                    addLiteral(FOAF.sha1, sha1Hash);
+                
+                // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
+                if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+                
                 URI sha1Uri = new Skolemizer(getOntology(),
                         getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).
                         build(resource);

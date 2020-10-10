@@ -64,26 +64,22 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
-    private final HttpServletRequest httpServletRequest;
-
     @Inject
     public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context SecurityContext securityContext,
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system,
-            @Context HttpServletRequest httpServletRequest)
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
-        this.httpServletRequest = httpServletRequest;
     }
 
     @Override
@@ -146,9 +142,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
                         ImportListener.submit(rdfImport, this, provGraph, getService().getDatasetAccessor());
                     }
-                    
-                    if (log.isErrorEnabled()) log.error("Type of this not import is supported: {}", topic.getURI());
-                    throw new IllegalStateException("Import type not supported");
                 }
             }
             else
@@ -162,14 +155,10 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     public DataManager getDataManager()
     {
         // create new DataManager with constructor-injected values instead provider proxies that are not visible in other threads
-        return new DataManagerImpl(LocationMapper.get(), getClient(), getMediaTypes(), true, false,
+        // TO-DO: move inside construct()? Use config properties
+        return new DataManagerImpl(LocationMapper.get(), super.getDataManager().getModelCache(), getClient(), getMediaTypes(), true, true, false,
                 URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
                 getApplication(), getSecurityContext());
-    }
-    
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpServletRequest;
     }
     
 }

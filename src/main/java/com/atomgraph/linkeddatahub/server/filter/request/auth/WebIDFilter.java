@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDURIException;
@@ -89,10 +88,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     private final javax.ws.rs.core.MediaType[] acceptedTypes;
     
     @Context HttpServletRequest httpServletRequest;
-//    @Context Providers providers;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject DataManager dataManager;
     @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery, webIDQuery;
@@ -405,11 +402,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return webIDQuery;
     }
     
-    public DataManager getDataManager()
-    {
-        return dataManager;
-    }
-    
+
     public Client getNoCertClient()
     {
         return system.getNoCertClient();

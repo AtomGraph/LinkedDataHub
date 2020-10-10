@@ -63,6 +63,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.client.Client;
@@ -95,12 +96,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     private final Providers providers;
     private final ClientUriInfo clientUriInfo;
     
+    @Inject HttpServletRequest httpServletRequest;
+
     @Inject
     public ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context SecurityContext securityContext,
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
     {
@@ -109,7 +112,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             service, application,
             ontology, templateCall,
             httpHeaders, resourceContext,
-            securityContext,
+            httpServletRequest, securityContext,
             dataManager, providers,
             system);
     }
@@ -118,7 +121,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             final Service service, final com.atomgraph.linkeddatahub.apps.model.Application application,
             final Ontology ontology, final Optional<TemplateCall> templateCall,
             final HttpHeaders httpHeaders, final ResourceContext resourceContext,
-            final SecurityContext securityContext,
+            final HttpServletRequest httpServletRequest, final SecurityContext securityContext,
             final DataManager dataManager, final Providers providers,
             final com.atomgraph.linkeddatahub.Application system)
     {
@@ -135,6 +138,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         this.clientUriInfo = clientUriInfo;
         this.application = application;
         this.dataManager = dataManager;
+        this.httpServletRequest = httpServletRequest;
         this.securityContext = securityContext;
         this.providers = providers;
         this.system = system;
@@ -847,7 +851,17 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             if (getUriInfo().getBaseUri().relativize(uri).isAbsolute()) // external URI resource (not relative to the base URI)
             {
                 if (log.isDebugEnabled()) log.debug("GET request URI overridden with: {}", uri);
-                Object entity = getResourceContext().getResource(ProxyResourceBase.class).get().getEntity();
+                // TO-DO: MediaTypes???
+                Object entity = new ProxyResourceBase(getUriInfo(), getClientUriInfo(), getRequest(), getHttpHeaders(), getSystem().getMediaTypes(), getSecurityContext(),
+                    uri,
+                    getUriInfo().getQueryParameters().containsKey(AC.endpoint.getLocalName()) ? URI.create(getUriInfo().getQueryParameters().getFirst(AC.endpoint.getLocalName())) : null,
+                    getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()) ? MediaType.valueOf(getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName())) : null,
+                    getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) ? URI.create(getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName())) : null,
+                    getSystem(),
+                    getHttpServletRequest(),
+                    getDataManager()).
+                getClientResponse().getEntity();
+                
                 if (entity instanceof Model) return DatasetFactory.create((Model)entity);
                 return (Dataset)entity;
             }
@@ -942,6 +956,11 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     public DataManager getDataManager()
     {
         return dataManager;
+    }
+    
+    public HttpServletRequest getHttpServletRequest()
+    {
+        return httpServletRequest;
     }
     
     public SecurityContext getSecurityContext()

@@ -480,7 +480,8 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
-            dataManager = new DataManagerImpl(locationMapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
+            // TO-DO: config property for cacheModelLoads
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, true, preemptiveAuth, resolvingUncached);
 //            FileManager.setStdLocators((FileManager)dataManager);
 //            FileManager.setGlobalFileManager((FileManager)dataManager);
             if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);

@@ -26,12 +26,14 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import java.net.URI;
+import java.util.HashMap;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import org.apache.jena.ontology.OntDocumentManager;
 import org.glassfish.hk2.api.Factory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,8 +84,10 @@ public class DataManagerFactory implements Factory<DataManager>
             SecurityContext securityContext,
             URI rootContextURI)
     {
-        DataManager dataManager = new DataManagerImpl(mapper, client, mediaTypes,
-            preemptiveAuth, resolvingUncached,
+        // copy cached models over from the main ontology cache
+        DataManager dataManager = new DataManagerImpl(mapper, new HashMap<>(((DataManager)OntDocumentManager.getInstance().getFileManager()).getModelCache()),
+            client, mediaTypes,
+            true, preemptiveAuth, resolvingUncached,
             rootContextURI, application, securityContext);
  
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
@@ -102,7 +106,6 @@ public class DataManagerFactory implements Factory<DataManager>
     
     public Client getClient()
     {
-//        return client;
         return system.getClient();
     }
     

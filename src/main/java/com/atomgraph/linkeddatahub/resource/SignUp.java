@@ -72,6 +72,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MediaType;
@@ -149,7 +150,7 @@ public class SignUp extends ResourceBase
                   Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
                   Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Context SecurityContext securityContext,
+                  @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
                   com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
@@ -157,7 +158,7 @@ public class SignUp extends ResourceBase
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
@@ -411,7 +412,7 @@ public class SignUp extends ResourceBase
         return new ResourceBase(
             new ClientUriInfoImpl(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            securityContext, getDataManager(), getProviders(),
+            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }
     

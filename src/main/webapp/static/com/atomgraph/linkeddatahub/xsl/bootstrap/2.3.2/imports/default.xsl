@@ -60,7 +60,7 @@ exclude-result-prefixes="#all">
             <xsl:variable name="document" select="document(ac:document-uri($class))" as="document-node()"/>
 
             <xsl:for-each select="$document">
-                <xsl:variable name="superclasses" select="key('resources', $class)/rdfs:subClassOf/@rdf:resource" as="attribute()*"/>
+                <xsl:variable name="superclasses" select="key('resources', $class)/rdfs:subClassOf/@rdf:resource[not(. = $class)]" as="attribute()*"/>
                 <xsl:sequence select="$superclasses"/>
 
                 <xsl:if test="not($direct)">
@@ -539,7 +539,7 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
                     <xsl:for-each select="document(ac:document-uri($type))">
                         <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
-                        <xsl:sequence select="not(empty(apl:listSuperClasses($type)/key('resources', ., document(ac:document-uri(.)))/spin:constraint/@rdf:resource/key('resources', ., document(ac:document-uri(.)))[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
+                        <xsl:sequence select="not(empty(apl:listSuperClasses($type)/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
@@ -954,7 +954,8 @@ exclude-result-prefixes="#all">
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="self" select="key('resources', $forClass, document(ac:document-uri($forClass)))" as="element()*"/>
-                <xsl:variable name="action" select="$self/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
+                <!-- won't traverse blank nodes, only URI resources -->
+                <xsl:variable name="action" select="$self/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
                 <button type="button" title="{@rdf:about}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
