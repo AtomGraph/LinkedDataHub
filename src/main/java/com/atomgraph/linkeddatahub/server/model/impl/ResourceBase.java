@@ -464,6 +464,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
+        if (log.isDebugEnabled()) log.debug("Splitting the POSTed Model into named graphs");
         // clone request Model to avoid clearing it during UpdateAction
         Model defaultModel = ModelFactory.createDefaultModel().add(model);
         ParameterizedSparqlString updateString = new ParameterizedSparqlString(
@@ -852,18 +853,20 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             {
                 if (log.isDebugEnabled()) log.debug("GET request URI overridden with: {}", uri);
                 // TO-DO: MediaTypes???
-                Object entity = new ProxyResourceBase(getUriInfo(), getClientUriInfo(), getRequest(), getHttpHeaders(), getSystem().getMediaTypes(), getSecurityContext(),
+                ProxyResourceBase proxy = new ProxyResourceBase(getUriInfo(), getClientUriInfo(), getRequest(), getHttpHeaders(), getSystem().getMediaTypes(), getSecurityContext(),
                     uri,
                     getUriInfo().getQueryParameters().containsKey(AC.endpoint.getLocalName()) ? URI.create(getUriInfo().getQueryParameters().getFirst(AC.endpoint.getLocalName())) : null,
                     getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()) ? MediaType.valueOf(getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName())) : null,
                     getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) ? URI.create(getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName())) : null,
                     getSystem(),
                     getHttpServletRequest(),
-                    getDataManager()).
-                getClientResponse().getEntity();
+                    getDataManager());
                 
-                if (entity instanceof Model) return DatasetFactory.create((Model)entity);
-                return (Dataset)entity;
+                try (Response cr = proxy.getClientResponse())
+                {
+                    if (cr.getEntity() instanceof Model) return DatasetFactory.create((Model)cr.getEntity());
+                    return (Dataset)cr.getEntity();
+                }
             }
         }
         

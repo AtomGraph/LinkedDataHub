@@ -171,13 +171,16 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
+import org.apache.http.HttpResponse;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
@@ -215,7 +218,7 @@ public class Application extends ResourceConfig
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
-    private final Client client, noCertClient;
+    private final Client client, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
     private final String postUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
@@ -237,6 +240,7 @@ public class Application extends ResourceConfig
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final Map<URI, Model> webIDmodelCache = new HashMap<>();
+    private final ConnectionKeepAliveStrategy importKeepAliveStrategy = (HttpResponse response, HttpContext context) -> 300 * 1000; // timeout in milliseconds. TO-DO: configurable
     
     private Dataset contextDataset;
     
@@ -442,7 +446,8 @@ public class Application extends ResourceConfig
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
@@ -864,7 +869,7 @@ public class Application extends ResourceConfig
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
@@ -919,7 +924,8 @@ public class Application extends ResourceConfig
         config.register(new UpdateRequestProvider());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
-        
+        if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
+
         return ClientBuilder.newBuilder().
             withConfig(config).
             sslContext(ctx).
@@ -1145,7 +1151,12 @@ public class Application extends ResourceConfig
     {
         return trustStore;
     }
-    
+
+    public Client getImportClient()
+    {
+        return importClient;
+    }
+
     public Client getNoCertClient()
     {
         return noCertClient;
@@ -1160,6 +1171,11 @@ public class Application extends ResourceConfig
     public Map<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
+    }
+    
+    public ConnectionKeepAliveStrategy getImportKeepAliveStrategy()
+    {
+        return importKeepAliveStrategy;
     }
     
 }

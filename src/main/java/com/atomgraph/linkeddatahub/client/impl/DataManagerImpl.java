@@ -146,9 +146,13 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         if (!(hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))) // read mapped URIs (such as system ontologies) from a file
         {
             // if document is not cached, construct ontology URI - they are cached under different URIs than their documents. TO-DO: refactor
-            uri = href.isEmpty() ? uriBase : uriBase.resolve(href + "#");
+            String ontologyHref = href + "#";
+            uri = href.isEmpty() ? uriBase : uriBase.resolve(ontologyHref);
             if (hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))
-                return super.resolve(href + "#", base);
+            {
+                if (log.isDebugEnabled()) log.debug("Resolving ontology URI '{}' from model cache instead of dereferencing its document '{}'", ontologyHref, href);
+                return super.resolve(ontologyHref, base);
+            }
         }
         
         return super.resolve(href, base);

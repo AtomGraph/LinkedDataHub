@@ -43,10 +43,10 @@ public class StreamRDFOutput implements StreamingOutput
     private final Query query;
     private final Lang lang;
     
-    public StreamRDFOutput(InputStream reader, String base, Query query, Lang lang)
+    public StreamRDFOutput(InputStream input, String base, Query query, Lang lang)
     {
         this.base = base;
-        this.input = reader;
+        this.input = input;
         this.query = query;
         this.lang = lang;
     }
@@ -59,10 +59,14 @@ public class StreamRDFOutput implements StreamingOutput
     
     public void write(StreamRDF stream)
     {
+        if (getBase() != null) stream.base(getBase());
+        
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, getInputStream(), getBase(), getLang());
-        model = new ModelTransformer().apply(getQuery(), model); // transform row
+        model = new ModelTransformer().apply(getQuery(), model);
         StreamRDFOps.sendTriplesToStream(model.getGraph(), stream); // send the transformed RDF to the stream
+        
+        stream.finish(); // flush the statements into the stream
     }
     
     public InputStream getInputStream()

@@ -47,8 +47,10 @@ import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.Set;
 import java.util.UUID;
+import javax.ws.rs.core.MediaType;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,6 +142,13 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
                         resource.addLiteral(DH.slug, UUID.randomUUID().toString());
                 }
             }
+        }
+
+        if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
+        {
+            Resource format = resource.getProperty(DCTerms.format).
+                changeObject(com.atomgraph.linkeddatahub.MediaType.toResource(MediaType.valueOf(resource.getProperty(DCTerms.format).getString()))).getResource();
+            if (log.isDebugEnabled()) log.debug("Resource: {} Format: {}", resource, format);
         }
 
         if (resource.hasProperty(FOAF.mbox) && resource.getProperty(FOAF.mbox).getObject().isLiteral())

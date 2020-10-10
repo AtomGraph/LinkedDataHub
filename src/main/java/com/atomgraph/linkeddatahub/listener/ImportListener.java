@@ -157,7 +157,7 @@ public class ImportListener implements ServletContextListener
         };
     }
     
-    public static Consumer<StreamRDFOutput> success(final RDFImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
+    public static Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
     {
         return (StreamRDFOutput output) ->
         {
@@ -180,7 +180,7 @@ public class ImportListener implements ServletContextListener
             @Override
             public Void apply(Throwable t)
             {
-                if (log.isErrorEnabled()) log.error("Could not write CSVImport: {}", importInst, t);
+                if (log.isErrorEnabled()) log.error("Could not write Import: {}", importInst, t);
                 
                 if (t instanceof CompletionException)
                 {
@@ -199,10 +199,13 @@ public class ImportListener implements ServletContextListener
                     {
                         ImportException ie = (ImportException)t.getCause();
                         Model excModel = ie.getModel();
-                        Resource response = getResource(excModel, RDF.type, HTTP.Response); // find Response
-                        provImport.getModel().add(ResourceUtils.reachableClosure(response));
-                        response = getResource(provImport.getModel(), RDF.type, HTTP.Response); // find again in prov Model
-                        response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
+                        if (excModel != null)
+                        {
+                            Resource response = getResource(excModel, RDF.type, HTTP.Response); // find Response
+                            provImport.getModel().add(ResourceUtils.reachableClosure(response));
+                            response = getResource(provImport.getModel(), RDF.type, HTTP.Response); // find again in prov Model
+                            response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
+                        }
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
                         appendProvGraph(provImport, provGraph, accessor);
                     }

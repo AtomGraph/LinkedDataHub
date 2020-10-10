@@ -90,6 +90,10 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
             if (log.isErrorEnabled()) log.error("Error reading CSV InputStream: {}", ex);
             throw new WebApplicationException(ex);
         }
+        finally
+        {
+            input.close(); // close response
+        }
     }
 
     public String getURI()

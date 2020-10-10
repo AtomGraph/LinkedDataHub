@@ -72,6 +72,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/apl.xsl"/>
+    <xsl:import href="imports/dct.xsl"/>
     <xsl:import href="imports/dh.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>

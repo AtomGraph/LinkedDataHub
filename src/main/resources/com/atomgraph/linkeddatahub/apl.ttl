@@ -280,9 +280,12 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 :FileConstructor a sp:Construct ;
     sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     PREFIX nfo:     <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX dct:     <http://purl.org/dc/terms/>
 
     CONSTRUCT {
-        ?this nfo:fileName [ a xsd:string ] .
+        ?this nfo:fileName [ a xsd:string ] ;
+            dct:format [ a rdfs:Resource ] .
     }
     WHERE {}""" ;
     rdfs:label "File constructor" ;
@@ -360,7 +363,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     spin:constructor :ChartConstructor ;
-    spin:constraint :MissingQuery, :MissingChartType ; # :MissingService, 
+    spin:constraint :MissingQuery, :MissingChartType ;
     rdfs:isDefinedBy : .
 
 :ChartConstructor a sp:Construct ;
@@ -370,7 +373,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
       PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
 
       CONSTRUCT {
-          ?this :chartType  [ a rdfs:Resource ] . # :service [ a :Service ] ; - we have this on :Query
+          ?this :chartType [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Chart constructor" ;

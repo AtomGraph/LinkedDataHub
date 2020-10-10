@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import javax.ws.rs.core.MediaType;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
@@ -37,6 +38,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +74,13 @@ public class SkolemizingDatasetProvider extends com.atomgraph.server.io.Skolemiz
                         resource.addLiteral(DH.slug, UUID.randomUUID().toString());
                 }
             }
+        }
+
+        if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
+        {
+            Resource format = resource.getProperty(DCTerms.format).
+                changeObject(com.atomgraph.linkeddatahub.MediaType.toResource(MediaType.valueOf(resource.getProperty(DCTerms.format).getString()))).getResource();
+            if (log.isDebugEnabled()) log.debug("Resource: {} Format: {}", resource, format);
         }
 
         if (resource.hasProperty(FOAF.mbox) && resource.getProperty(FOAF.mbox).getObject().isLiteral())

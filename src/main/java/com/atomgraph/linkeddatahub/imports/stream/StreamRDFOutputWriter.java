@@ -91,6 +91,10 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
             if (log.isErrorEnabled()) log.error("Error reading RDF InputStream: {}", ex);
             throw new WebApplicationException(ex);
         }
+        finally
+        {
+            input.close(); // close response
+        }
     }
     
     public String getURI()
