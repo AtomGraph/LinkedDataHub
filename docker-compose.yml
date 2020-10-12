@@ -39,6 +39,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig
+      - IMPORT_KEEPALIVE=300000
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost

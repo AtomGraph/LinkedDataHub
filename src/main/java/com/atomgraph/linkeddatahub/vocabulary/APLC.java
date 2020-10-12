@@ -94,7 +94,7 @@ public class APLC
 
     public static final DatatypeProperty requestAccessEMailSubject = m_model.createDatatypeProperty( NS + "requestAccessEMailSubject" );
     
-    public static final DatatypeProperty requestAccessEMailText = m_model.createDatatypeProperty( NS + "requestAccessEMailText" ); 
+    public static final DatatypeProperty requestAccessEMailText = m_model.createDatatypeProperty( NS + "requestAccessEMailText" );
     
     public static final DatatypeProperty signUpCertValidity = m_model.createDatatypeProperty( NS + "signUpCertValidity" );
 
@@ -104,10 +104,12 @@ public class APLC
     
     public static final DatatypeProperty insertOwnerUpdate = m_model.createDatatypeProperty( NS + "insertOwnerUpdate" );
     
-    public static final DatatypeProperty ontologyImportQuery = m_model.createDatatypeProperty( NS + "ontologyImportQuery" ); 
+    public static final DatatypeProperty ontologyImportQuery = m_model.createDatatypeProperty( NS + "ontologyImportQuery" );
 
-    public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" ); 
+    public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" );
     
-    public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" ); 
+    public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" );
 
+    public static final DatatypeProperty importKeepAlive = m_model.createDatatypeProperty( NS + "importKeepAlive" );
+    
 }

@@ -649,6 +649,10 @@ MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
 
+if [ -n "$CACHE_MODEL_LOADS" ] ; then
+    CACHE_MODEL_LOADS_PARAM="--stringparam a:cacheModelLoads '$CACHE_MODEL_LOADS' "
+fi
+
 # stylesheet URL must be relative to the base context URL
 if [ -n "$STYLESHEET" ] ; then
     STYLESHEET_PARAM="--stringparam ac:stylesheet '$STYLESHEET' "
@@ -678,12 +682,17 @@ if [ -n "$MAX_TOTAL_CONN" ] ; then
     MAX_TOTAL_CONN_PARAM="--stringparam aplc:maxTotalConn '$MAX_TOTAL_CONN' "
 fi
 
+if [ -n "$IMPORT_KEEPALIVE" ] ; then
+    IMPORT_KEEPALIVE_PARAM="--stringparam aplc:importKeepAlive '$IMPORT_KEEPALIVE' "
+fi
+
 if [ -n "$MAIL_PASSWORD" ] ; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
 
 transform="xsltproc \
   --output conf/Catalina/localhost/ROOT.xml \
+  $CACHE_MODEL_LOADS_PARAM \
   $STYLESHEET_PARAM \
   $CACHE_STYLESHEET_PARAM \
   $RESOLVING_UNCACHED_PARAM \
@@ -699,6 +708,7 @@ transform="xsltproc \
   $OWNER_AUTH_QUERY_PARAM \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
+  $IMPORT_KEEPALIVE_PARAM \
   $MAIL_SMTP_HOST_PARAM \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \

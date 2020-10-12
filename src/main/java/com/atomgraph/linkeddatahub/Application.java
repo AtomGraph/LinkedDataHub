@@ -240,7 +240,6 @@ public class Application extends ResourceConfig
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final Map<URI, Model> webIDmodelCache = new HashMap<>();
-    private final ConnectionKeepAliveStrategy importKeepAliveStrategy = (HttpResponse response, HttpContext context) -> 300 * 1000; // timeout in milliseconds. TO-DO: configurable
     
     private Dataset contextDataset;
     
@@ -248,7 +247,8 @@ public class Application extends ResourceConfig
     {
         this(
             new MediaTypes(),
-            servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.parseInt(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI()) != null ? Boolean.valueOf(servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI())) : true,
             new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),
@@ -276,6 +276,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
+            // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
+            servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI())) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -292,8 +294,7 @@ public class Application extends ResourceConfig
     }
     
     public Application(final MediaTypes mediaTypes,
-            final Integer maxGetRequestSize, final boolean preemptiveAuth,
-            boolean cacheSitemap,
+            final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
@@ -305,7 +306,7 @@ public class Application extends ResourceConfig
             final String systemBase,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
-            final Integer maxConnPerRoute, final Integer maxTotalConn,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort)
     {
         if (clientKeyStoreURIString == null)
@@ -417,17 +418,6 @@ public class Application extends ResourceConfig
         this.invalidateCache = invalidateCache;
         this.authCacheControl = authCacheControl;
 
-//        OntModelSpec rdfsReasonerSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
-//        Resource reasonerConfig = ModelFactory.createDefaultModel().
-//            createResource().
-//            addProperty(ReasonerVocabulary.PROPsetRDFSLevel, "simple");
-//        Reasoner reasoner = RDFSRuleReasonerFactory.theInstance().
-//                create(reasonerConfig);
-//        //reasoner.setDerivationLogging(true);
-//        //reasoner.setParameter(ReasonerVocabulary.PROPtraceOn, Boolean.TRUE);
-//        rdfsReasonerSpec.setReasoner(reasoner);
-//        this.ontModelSpec = rdfsReasonerSpec;
-
         // add RDF/POST serialization
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
@@ -486,7 +476,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
             // TO-DO: config property for cacheModelLoads
-            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, true, preemptiveAuth, resolvingUncached);
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
 //            FileManager.setStdLocators((FileManager)dataManager);
 //            FileManager.setGlobalFileManager((FileManager)dataManager);
             if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
@@ -1171,11 +1161,6 @@ public class Application extends ResourceConfig
     public Map<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
-    }
-    
-    public ConnectionKeepAliveStrategy getImportKeepAliveStrategy()
-    {
-        return importKeepAliveStrategy;
     }
     
 }

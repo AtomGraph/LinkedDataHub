@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY aplc   "https://w3id.org/atomgraph/linkeddatahub/config#">
 ]>
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:a="&a;"
 xmlns:ac="&ac;"
 xmlns:aplc="&aplc;"
 >
   
     <xsl:output method="xml" indent="yes"/>
   
+    <xsl:param name="a:cacheModelLoads"/>
     <xsl:param name="ac:stylesheet"/>
     <xsl:param name="ac:cacheStylesheet"/>
     <xsl:param name="ac:resolvingUncached"/>
@@ -26,6 +29,7 @@ xmlns:aplc="&aplc;"
     <xsl:param name="aplc:ownerAuthQuery"/>
     <xsl:param name="aplc:maxConnPerRoute"/>
     <xsl:param name="aplc:maxTotalConn"/>
+    <xsl:param name="aplc:importKeepAlive"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -41,6 +45,9 @@ xmlns:aplc="&aplc;"
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
 
+            <xsl:if test="$a:cacheModelLoads">
+                <Parameter name="&a;cacheModelLoads" value="{$a:cacheModelLoads}" override="false"/>
+            </xsl:if>
             <xsl:if test="$ac:stylesheet">
                 <Parameter name="&ac;stylesheet" value="{$ac:stylesheet}" override="false"/>
             </xsl:if>
@@ -85,6 +92,9 @@ xmlns:aplc="&aplc;"
             </xsl:if>
             <xsl:if test="$aplc:maxTotalConn">
                 <Parameter name="&aplc;maxTotalConn" value="{$aplc:maxTotalConn}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$aplc:importKeepAlive">
+                <Parameter name="&aplc;importKeepAlive" value="{$aplc:importKeepAlive}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>

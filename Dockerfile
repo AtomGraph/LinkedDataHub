@@ -56,6 +56,8 @@ COPY platform/context.xsl conf/context.xsl
 
 COPY --from=maven /usr/src/trust-manager/target/trust-manager-1.0.0-SNAPSHOT.jar lib/ldh-trust-manager.jar
 
+ENV CACHE_MODEL_LOADS=true
+
 ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
 
 ENV CACHE_STYLESHEET=true
@@ -123,6 +125,8 @@ ENV UPLOAD_CONTAINER_PATH=uploads
 ENV MAX_CONN_PER_ROUTE=20
 
 ENV MAX_TOTAL_CONN=40
+
+ENV IMPORT_KEEPALIVE=
 
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
