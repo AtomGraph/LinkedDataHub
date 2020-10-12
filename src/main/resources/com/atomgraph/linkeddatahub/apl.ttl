@@ -353,7 +353,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
             ?this spin:query [ a :Construct ] .
         }
         WHERE {}""" ;
-    rdfs:label "CSV import constructor" ;
+    rdfs:label "RDF import constructor" ;
     rdfs:isDefinedBy : .
 
 # charts

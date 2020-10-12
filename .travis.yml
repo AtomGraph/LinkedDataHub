@@ -19,7 +19,7 @@ install:
   -  docker-compose -f docker-compose.yml up -d # do not use docker-compose.override.yml with Varnish for tests; run in the background
 
 before_script:
-  - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+  - while ! curl -w "%{http_code}\n" -k -s "$BASE_URI" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
   - openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_CERT_PWD" -passout pass:"$OWNER_CERT_PWD" # re-generate the owner PEM cert - seems to differ with different openssl versions?
   - openssl pkcs12 -in ./certs/secretary.p12 -out ./http-tests/secretary.p12.pem -passin pass:"$SECRETARY_CERT_PWD" -passout pass:"$SECRETARY_CERT_PWD" # re-generate the secretary PEM cert - seems to differ with different openssl versions?
   - pushd .

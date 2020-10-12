@@ -25,35 +25,36 @@ container=$(./create-container.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
---title "Test" \
---slug "test" \
+--title "Concepts" \
+--slug "concepts" \
 --parent "$END_USER_BASE_URL" \
 "$END_USER_BASE_URL")
 
-# import CSV
+# import RDF
 
 cd imports
 
-./import-csv.sh \
+./import-rdf.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
 --title "Test" \
---query-file "$pwd/csv-test.rq" \
---file "$pwd/test.csv" \
+--query-file "$pwd/rdf-test.rq" \
+--file "$pwd/test.ttl" \
+--file-content-type "text/turtle" \
 --action "$container"
 
 popd > /dev/null
 
-csv_id="test-item"
-csv_value="42"
+rdf_id="concept7367"
+rdf_value="http://vocabularies.unesco.org/thesaurus/concept7367"
 
 # wait until the imported item appears (since import is executed asynchronously)
 
 counter=20
 i=0
 
-while [ "$i" -lt "$counter" ] && ! curl -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "${container}${csv_id}/" -H "Accept: application/n-triples" >/dev/null 2>&1
+while [ "$i" -lt "$counter" ] && ! curl -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "${container}${rdf_id}/" -H "Accept: application/n-triples" >/dev/null 2>&1
 do
     sleep 1 ;
     i=$(( i+1 ))
@@ -66,5 +67,5 @@ done
 curl -k -f -v -N \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${container}${csv_id}/" \
-| grep -q "<${container}${csv_id}/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#value> \"${csv_value}\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+  "${container}${rdf_id}/" \
+| grep -q "<${container}${rdf_id}/> <http://xmlns.com/foaf/0.1/primaryTopic> <${rdf_value}>"

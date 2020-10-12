@@ -1,0 +1,55 @@
+@prefix : <http://vocabularies.unesco.org/thesaurus/> .
+@prefix ann: <http://art.uniroma2.it/ontologies/annotation#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix geo-ont: <http://www.geonames.org/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix geo-pos: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix unescovoc: <http://vocabularies.unesco.org/ontology#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+
+:concept7367 a skos:Concept ;
+	dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+	skos:broader :concept934 , :concept935 , :concept942 , :concept956 , :concept3557 ;
+	skos:inScheme <http://vocabularies.unesco.org/thesaurus> ;
+	skos:prefLabel "Denmark"@en , "Danemark"@fr , "Dinamarca"@es , "Дания"@ru ;
+	skos:related :concept7623 , :concept17070 .
+
+:concept3557 a skos:Concept ;
+	dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+	skos:broader :concept928 ;
+	skos:inScheme <http://vocabularies.unesco.org/thesaurus> ;
+	skos:narrower :concept7367 , :concept7623 , :concept17070 , :concept10480 , :concept10481 , :concept12132 , :concept14609 ;
+	skos:prefLabel "Northern Europe"@en , "Europe du Nord"@fr , "Europa del Norte"@es , "Северная Европа"@ru ;
+	skos:related :concept949 , :concept956 .
+
+:concept17070 a skos:Concept ;
+	dcterms:created "2009-09-18T00:00:00"^^xsd:dateTime ;
+	dcterms:modified "2010-02-11T00:00:00"^^xsd:dateTime ;
+	skos:altLabel "Faeroe Islands"@en , "Faroe Islands"@en ;
+	skos:broader :concept3557 ;
+	skos:inScheme <http://vocabularies.unesco.org/thesaurus> ;
+	skos:prefLabel "Faroes"@en , "Iles Féroé"@fr , "Islas Feroe"@es ;
+	skos:related :concept7367 .
+
+:concept949 a skos:Concept ;
+	dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+	skos:altLabel "País báltico"@es ;
+	skos:inScheme <http://vocabularies.unesco.org/thesaurus> ;
+	skos:narrower :concept900 , :concept911 , :concept912 ;
+	skos:prefLabel "Baltic States"@en , "État baltique"@fr , "Estado Báltico"@es , "Балтийские государства"@ru ;
+	skos:related :concept899 , :concept3545 , :concept3547 , :concept3553 , :concept3557 ;
+	skos:topConceptOf <http://vocabularies.unesco.org/thesaurus> .
+
+:concept956 a skos:Concept ;
+	dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+	skos:altLabel "Nordic countries"@en , "Países nórdicos"@es , "Северные страны"@ru ;
+	skos:inScheme <http://vocabularies.unesco.org/thesaurus> ;
+	skos:narrower :concept7367 , :concept10481 , :concept14609 ;
+	skos:prefLabel "Scandinavia"@en , "Scandinavie"@fr , "Escandinavia"@es , "Скандинавия"@ru ;
+	skos:related :concept928 , :concept3557 ;
+	skos:topConceptOf <http://vocabularies.unesco.org/thesaurus> .
