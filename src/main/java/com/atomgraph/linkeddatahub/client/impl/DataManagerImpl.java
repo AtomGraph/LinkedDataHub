@@ -137,26 +137,26 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     }
     */
     
-    @Override
-    public Source resolve(String href, String base) throws TransformerException
-    {
-        URI uriBase = URI.create(base);
-        URI uri = href.isEmpty() ? uriBase : uriBase.resolve(href);
-        
-        if (!(hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))) // read mapped URIs (such as system ontologies) from a file
-        {
-            // if document is not cached, construct ontology URI - they are cached under different URIs than their documents. TO-DO: refactor
-            String ontologyHref = href + "#";
-            uri = href.isEmpty() ? uriBase : uriBase.resolve(ontologyHref);
-            if (hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))
-            {
-                if (log.isDebugEnabled()) log.debug("Resolving ontology URI '{}' from model cache instead of dereferencing its document '{}'", ontologyHref, href);
-                return super.resolve(ontologyHref, base);
-            }
-        }
-        
-        return super.resolve(href, base);
-    }
+//    @Override
+//    public Source resolve(String href, String base) throws TransformerException
+//    {
+//        URI uriBase = URI.create(base);
+//        URI uri = href.isEmpty() ? uriBase : uriBase.resolve(href);
+//        
+//        if (!(hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))) // read mapped URIs (such as system ontologies) from a file
+//        {
+//            // if document is not cached, construct ontology URI - they are cached under different URIs than their documents. TO-DO: refactor
+//            String ontologyHref = href + "#";
+//            uri = href.isEmpty() ? uriBase : uriBase.resolve(ontologyHref);
+//            if (hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))
+//            {
+//                if (log.isDebugEnabled()) log.debug("Resolving ontology URI '{}' from model cache instead of dereferencing its document '{}'", ontologyHref, href);
+//                return super.resolve(ontologyHref, base);
+//            }
+//        }
+//        
+//        return super.resolve(href, base);
+//    }
     
 //    @Override
 //    public Source getSource(Model model, String systemId) throws IOException
