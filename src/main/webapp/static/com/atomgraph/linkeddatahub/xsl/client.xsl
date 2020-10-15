@@ -651,11 +651,9 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:if>
                     
-                    <xsl:result-document href="#parallax-nav" method="ixsl:replace-content">
-                        <xsl:call-template name="bs2:Parallax">
-                            <xsl:with-param name="results" select="$grouped-results"/>
-                        </xsl:call-template>
-                    </xsl:result-document>
+                    <xsl:call-template name="bs2:Parallax">
+                        <xsl:with-param name="results" select="$grouped-results"/>
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -775,16 +773,33 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-        <xsl:variable name="facet-bgps" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
         <!-- $select-xml is used by facet onclick -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-            <xsl:apply-templates select="$facet-bgps" mode="bs2:FilterIn">
-                <!--<xsl:sort select="ac:property-label(json:string[@key = 'predicate'])"/>-->
-            </xsl:apply-templates>
-        </xsl:result-document>
+        <xsl:for-each select="$bgp-triples-map">
+            <xsl:call-template name="render-facet-headers-despatch">
+                <xsl:with-param name="container-id" select="$container-id"/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
+    <xsl:template name="render-facet-headers-despatch">
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="resolve-uri('?uri=' || encode-for-uri($predicate) || '&amp;accept=' || encode-for-uri('application/rdf+xml') || '&amp;mode=' || encode-for-uri('fragment'), $ldt:base)" as="xs:anyURI"/>
+        
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="bs2:FilterIn">
+                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="id" select="$id"/>
+                <xsl:with-param name="predicate" select="$predicate"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- container results layout -->
@@ -862,13 +877,16 @@ extension-element-prefixes="ixsl"
             </ul>
         
             <div id="container-results">
+<xsl:message>
+    local-name() = $order-by??? <xsl:value-of select="$results/rdf:RDF/*/*[local-name() = $order-by]/concat(namespace-uri(), local-name())"/>
+</xsl:message>
                 <xsl:variable name="sorted-results" as="document-node()">
                     <xsl:document>
                         <xsl:for-each select="$results/rdf:RDF">
                             <xsl:copy>
                                 <xsl:perform-sort select="*">
                                     <!-- sort by $order-by if it is set, by URI/bnode ID otherwise -->
-                                    <xsl:sort select="if ($order-by) then *[local-name() = $order-by] else if (@rdf:about) then @rdf:about else @rdf:nodeID"/>
+                                    <!--<xsl:sort select="if ($order-by) then *[local-name() = $order-by] else if (@rdf:about) then @rdf:about else @rdf:nodeID"/>-->
                                 </xsl:perform-sort>
                             </xsl:copy>
                         </xsl:for-each>

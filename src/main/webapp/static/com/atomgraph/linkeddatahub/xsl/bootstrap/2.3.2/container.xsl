@@ -44,12 +44,150 @@ exclude-result-prefixes="#all"
     <!-- PARALLAX -->
     
     <xsl:template name="bs2:Parallax">
+        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
         
-        <!-- only show if the result contains object resources -->
+        <xsl:result-document href="#parallax-nav" method="ixsl:replace-content">
+            <!-- only show if the result contains object resources -->
+            <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]"> <!-- can't use bnodes because labels accross DESCRIBE and SELECT results won't match -->
+                <div>
+                    <xsl:if test="$id">
+                        <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                    </xsl:if>
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                    </xsl:if>
+
+                    <h2 class="nav-header btn">Navigation</h2>
+
+                    <ul class="well well-small nav nav-list" id="parallax-properties">
+                        <!-- <li> with properties will go here -->
+                    </ul>
+                </div>
+            </xsl:if>
+        </xsl:result-document>
+        
         <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]">
+            <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+            <xsl:variable name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))" as="xs:integer"/>
+            <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+            <xsl:variable name="var-name" select="substring-after(ixsl:get(ixsl:call($select-builder, 'build', []), 'variables')[1], '?')"/>
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
+            <xsl:variable name="query-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
+            <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+            <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+            <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+            <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="onParallaxSelectLoad">
+                    <xsl:with-param name="container-id" select="'parallax-properties'"/>
+                    <xsl:with-param name="var-name" select="$var-name"/>
+                    <xsl:with-param name="results" select="$results"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template name="onParallaxSelectLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="var-name" as="xs:string"/>
+        <xsl:param name="results" as="document-node()"/>
+        
+        <xsl:variable name="response" select="." as="map(*)"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="var-name-resources" select="//srx:binding[@name = $var-name]/srx:uri" as="xs:anyURI*"/>
+
+                    <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
+                        <xsl:call-template name="parallax-property-load-despatch">
+                            <xsl:with-param name="container-id" select="$container-id"/>
+                        </xsl:call-template>
+                    </xsl:for-each-group>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- error response - could not load query results -->
+                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                    <div class="alert alert-block">
+                        <strong>Error during query execution:</strong>
+                        <pre>
+                            <xsl:value-of select="$response?message"/>
+                        </pre>
+                    </div>
+                </xsl:result-document>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
+    <xsl:template name="parallax-property-load-despatch">
+        <xsl:context-item as="element()" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="predicate" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="resolve-uri('?uri=' || encode-for-uri($predicate) || '&amp;accept=' || encode-for-uri('application/rdf+xml') || '&amp;mode=' || encode-for-uri('fragment'), $ldt:base)" as="xs:anyURI"/>
+        
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onParallaxPropertyLoad">
+                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="predicate" select="$predicate"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
+    <xsl:template name="onParallaxPropertyLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="predicate" as="xs:anyURI"/>
+        <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
+        <xsl:variable name="existing-items" select="id($container-id, ixsl:page())/li" as="element()*"/>
+        <xsl:variable name="new-item" as="element()">
+            <li>
+                <a>
+                    <input name="ou" type="hidden" value="{$predicate}"/>
+                    
+                    <xsl:choose>
+                        <xsl:when test="$results">
+                            <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$predicate"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </a>
+            </li>
+        </xsl:variable>
+        <xsl:variable name="items" as="element()*">
+            <!-- sort the existing <li> items together with the new item -->
+            <xsl:perform-sort select="($existing-items, $new-item)">
+                <!-- sort by the link text content (property label) -->
+                <xsl:sort select="a/text()" lang="{$ldt:lang}"/>
+            </xsl:perform-sort>
+        </xsl:variable>
+
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <xsl:sequence select="$items"/>
+        </xsl:result-document>
+    </xsl:template>
+    
+    <!-- FILTERS -->
+
+    <!-- transform SPARQL BGP triple into facet header and placeholder -->
+    <xsl:template name="bs2:FilterIn">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="predicate" as="xs:anyURI"/>
+        <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
+
+        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
             <div>
                 <xsl:if test="$id">
                     <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
@@ -58,49 +196,23 @@ exclude-result-prefixes="#all"
                     <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
                 </xsl:if>
 
-                <h2 class="nav-header btn">Navigation</h2>
+                <h2 class="nav-header btn">
+                    <xsl:choose>
+                        <xsl:when test="$results">
+                            <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$predicate"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    
+                    <span class="caret pull-right"></span>
+                    <input type="hidden" name="bgp-id" value="{$id}"/>
+                </h2>
 
-                <ul class="well well-small nav nav-list">
-                    <xsl:for-each-group select="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:sort select="current-grouping-key()"/>
-
-                        <li>
-                            <a>
-                                <input name="ou" type="hidden" value="{current-grouping-key()}"/>
-                                <xsl:value-of select="ac:property-label(current-group()[1])"/>
-                            </a>
-                        </li>
-                    </xsl:for-each-group>
-                </ul>
+                <!-- facet values will be loaded into an <ul> here -->
             </div>
-        </xsl:if>
-    </xsl:template>
-    
-    <!-- FILTERS -->
-
-    <!-- transform SPARQL BGP triple into facet header and placeholder -->
-    <xsl:template match="json:map" mode="bs2:FilterIn">
-        <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
-        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:variable name="bgp-id" select="generate-id()" as="xs:string"/>
-        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <h2 class="nav-header btn">
-                <xsl:value-of select="$predicate"/>
-                <span class="caret pull-right"></span>
-                <input type="hidden" name="bgp-id" value="{$bgp-id}"/>
-            </h2>
-            
-            <!-- facet values will be loaded into an <ul> here -->
-        </div>
+        </xsl:result-document>
     </xsl:template>
 
     <!-- PAGER -->
@@ -1017,7 +1129,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:call-template name="render-facets-despatch">
+                    <xsl:call-template name="render-facet-values-despatch">
                         <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
@@ -1047,7 +1159,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
-    <xsl:template name="render-facets-despatch">
+    <xsl:template name="render-facet-values-despatch">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="container-id" select="@id" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>

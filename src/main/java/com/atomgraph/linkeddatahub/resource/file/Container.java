@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -50,6 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.jena.ontology.Ontology;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.slf4j.Logger;
@@ -63,6 +63,8 @@ import org.slf4j.LoggerFactory;
 public class Container extends com.atomgraph.linkeddatahub.server.model.impl.ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
+    
+    private final DigestUtils digestUtils;
     
     @Inject
     public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
@@ -80,6 +82,16 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
+        
+        try
+        {
+            digestUtils = new DigestUtils(MessageDigest.getInstance("SHA1"));
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
+            throw new WebApplicationException(ex);
+        }
     }
 
     @Override
@@ -91,14 +103,13 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
         try
         {
-            MessageDigest md = MessageDigest.getInstance("SHA1");
             try (InputStream is = bodyPart.getEntityAs(InputStream.class);
-                DigestInputStream dis = new DigestInputStream(is, md))
+                DigestInputStream dis = new DigestInputStream(is, getDigestUtils().getMessageDigest()))
             {
                 File tempFile = File.createTempFile("tmp", null);
                 FileChannel destination = new FileOutputStream(tempFile).getChannel();
                 destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
-                String sha1Hash = new BigInteger(1, dis.getMessageDigest().digest()).toString(16);
+                String sha1Hash = new DigestUtils(dis.getMessageDigest()).digestAsHex(dis.getMessageDigest().digest());
                 if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
                 resource.removeAll(DH.slug).
@@ -117,16 +128,16 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 return super.writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
             }
         }
-        catch (NoSuchAlgorithmException ex)
-        {
-            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-            throw new WebApplicationException(ex);
-        }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
             throw new WebApplicationException(ex);
         }
+    }
+    
+    public DigestUtils getDigestUtils()
+    {
+        return digestUtils;
     }
 
 }

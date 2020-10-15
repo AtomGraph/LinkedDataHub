@@ -177,7 +177,7 @@ DESCRIBE ?this
     ldt:match "/imports/" ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.imports.Container> ;
     rdfs:label "Imports" ;
-    rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
+    rdfs:comment "Provides CSV and RDF import capability to matching containers" ;
     rdfs:isDefinedBy : .
 
 :ImportItem a ldt:Template ;

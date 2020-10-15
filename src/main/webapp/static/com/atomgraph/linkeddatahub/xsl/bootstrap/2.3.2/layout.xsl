@@ -296,6 +296,24 @@ exclude-result-prefixes="#all">
                         const locationMapping = [ 
                             { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
                             { name: "https://w3id.org/atomgraph/client", altName: baseUri + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") }
+                            ]]>
+                            <!--
+                            <xsl:variable name="ontology-imports" select="apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
+                            <xsl:if test="not(empty($ontology-imports))">
+                                <xsl:text>,</xsl:text>
+                                <xsl:for-each select="apl:ontologyImports($ldt:ontology)">
+                                    <xsl:text>{ name: "</xsl:text>
+                                    <xsl:value-of select="ac:document-uri(.)"/>
+                                    <xsl:text>", altName: baseUri + "?uri=" + encodeURIComponent("</xsl:text>
+                                    <xsl:value-of select="ac:document-uri(.)"/>
+                                    <xsl:text>") + "&amp;accept=" + encodeURIComponent("application/rdf+xml") }</xsl:text>
+                                    <xsl:if test="position() != last()">
+                                        <xsl:text>, </xsl:text>
+                                    </xsl:if>
+                                </xsl:for-each>
+                            </xsl:if>
+                            -->
+                            <![CDATA[
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
     

@@ -65,6 +65,7 @@ import java.util.*;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -864,8 +865,20 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 
                 try (Response cr = proxy.getClientResponse())
                 {
-                    if (cr.getEntity() instanceof Model) return DatasetFactory.create((Model)cr.getEntity());
-                    return (Dataset)cr.getEntity();
+                    if (cr.getEntity() instanceof Model)
+                    {
+                        Model model = (Model)cr.getEntity();
+
+                        // do not return the whole document if only a single resource (fragment) is requested
+                        if (getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && 
+                                getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()).equals("fragment")) // used in client.xsl
+                        {
+                            model = ModelFactory.createDefaultModel().add(model.getResource(uri.toString()).listProperties());
+                        }
+
+                        return DatasetFactory.create(model);
+                    }
+                    else throw new NotFoundException("RDF document not available at '" + uri + " '");
                 }
             }
         }
