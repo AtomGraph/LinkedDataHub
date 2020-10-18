@@ -97,6 +97,7 @@ import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
+import com.atomgraph.linkeddatahub.server.io.TypedInputStreamReader;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.processor.model.Parameter;
@@ -589,8 +590,9 @@ public class Application extends ResourceConfig
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        register(new SkolemizingDatasetProvider());
-        register(new SkolemizingModelProvider());
+//        register(new SkolemizingDatasetProvider());
+//        register(new SkolemizingModelProvider());
+        register(new TypedInputStreamReader());
         register(new ResultSetProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());

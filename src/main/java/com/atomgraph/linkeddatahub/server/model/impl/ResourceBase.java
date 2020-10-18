@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.server.io.StreamRDFSplitter;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
@@ -37,8 +38,6 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.update.UpdateAction;
-import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
@@ -72,7 +71,15 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.atlas.lib.StreamOps;
+import org.apache.jena.atlas.web.TypedInputStream;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.riot.RDFParser;
+import org.apache.jena.riot.system.StreamRDF;
+import org.apache.jena.riot.system.StreamRDFLib;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -340,8 +347,9 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * @param dataset the RDF payload
      * @return response
      */
-    @Override
-    public Response post(Dataset dataset)
+    //@Override
+    @POST
+    public Response post(TypedInputStream stream)
     {
         if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
         {
@@ -350,19 +358,23 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             if (response != null) response.close();
         }
 
-        if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
-        {
-            String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource
-            if (log.isDebugEnabled()) log.debug("POST request URI overridden with: {}", uri);
-            return getResourceContext().getResource(ProxyResourceBase.class).post(dataset);
-        }
+//        if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
+//        {
+//            String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource
+//            if (log.isDebugEnabled()) log.debug("POST request URI overridden with: {}", uri);
+//            return getResourceContext().getResource(ProxyResourceBase.class).post(dataset);
+//        }
         
         if (getTemplateCall().get().hasArgument(APLT.forClass)) // resource instance
         {
+            Model model = ModelFactory.createDefaultModel();
+            RDFDataMgr.read(model, stream, RDFLanguages.contentTypeToLang(stream.getContentType()));
+
             // we need inference to support subclasses
-            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), dataset.getDefaultModel());
+            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
             return construct(infModel);
         }
+  
         
         if (getService().getDatasetQuadAccessor() != null)
         {
@@ -370,8 +382,11 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             
             return Response.ok().build();
         }
-        
-        return super.post(splitDefaultModel(dataset.getDefaultModel())); // append dataset to service
+                
+        Model model = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(model, stream, RDFLanguages.contentTypeToLang(stream.getContentType()));
+        // TO-DO: SPLIT!!!
+        return super.post(DatasetFactory.create(model)); // append dataset to service
     }
     
     /**
@@ -400,7 +415,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             throw new ResourceExistsException(uri, document, infModel.getRawModel());
         }
 
-        super.post(splitDefaultModel(infModel.getRawModel())); // append description
+        super.post(splitTriples(infModel.getRawModel())); // append description
 
         if (getSystem().isInvalidateCache())
         {
@@ -461,25 +476,33 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * @param model RDF input graph
      * @return RDF dataset
      */
-    public Dataset splitDefaultModel(Model model)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-
-        if (log.isDebugEnabled()) log.debug("Splitting the POSTed Model into named graphs");
-        // clone request Model to avoid clearing it during UpdateAction
-        Model defaultModel = ModelFactory.createDefaultModel().add(model);
-        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-                getSystem().getPostUpdate(getUriInfo().getBaseUri().toString()).toString(),
-                getQuerySolutionMap());
-        UpdateRequest update = updateString.asUpdate();
-        Dataset dataset = DatasetFactory.create();
-        dataset.setDefaultModel(defaultModel);
-        UpdateAction.execute(update, dataset);
-        dataset.getDefaultModel().removeAll(); // we don't want to store anything in the default graph
-        
-        return dataset;
-    }
+//    public Dataset splitDefaultModel(Model model)
+//    {
+//        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+//
+//        if (log.isDebugEnabled()) log.debug("Splitting the POSTed Model into named graphs");
+//        // clone request Model to avoid clearing it during UpdateAction
+//        Model defaultModel = ModelFactory.createDefaultModel().add(model);
+//        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
+//                getSystem().getPostUpdate(getUriInfo().getBaseUri().toString()).toString(),
+//                getQuerySolutionMap());
+//        UpdateRequest update = updateString.asUpdate();
+//        Dataset dataset = DatasetFactory.create();
+//        dataset.setDefaultModel(defaultModel);
+//        UpdateAction.execute(update, dataset);
+//        dataset.getDefaultModel().removeAll(); // we don't want to store anything in the default graph
+//        
+//        return dataset;
+//    }
     
+    public void splitTriples(TypedInputStream tis)
+    {
+        StreamRDF sink = new StreamRDFSplitter(StreamRDFLib.writer(System.out), true);
+        Lang lang = RDFLanguages.contentTypeToLang(tis.getContentType()); // convert media type to RDF language
+        
+        RDFParser.source(tis).base(base).lang(lang).parse(sink);
+
+    }
 
     /**
      * Handles <code>PUT</code> requests, stores the input RDF data in the application's dataset, and returns response.
