@@ -97,7 +97,7 @@ public class ClientUriInfoImpl implements ClientUriInfo
     @Override
     public UriBuilder getRequestUriBuilder()
     {
-        throw new UnsupportedOperationException();
+        return UriBuilder.fromUri(getRequestUri());
     }
 
     @Override
@@ -128,7 +128,7 @@ public class ClientUriInfoImpl implements ClientUriInfo
     @Override
     public UriBuilder getBaseUriBuilder()
     {
-        throw new UnsupportedOperationException();
+        return UriBuilder.fromUri(getBaseUri());
     }
 
     @Override

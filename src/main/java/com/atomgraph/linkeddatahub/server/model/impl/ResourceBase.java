@@ -363,11 +363,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         }
         
         if (getTemplateCall().get().hasArgument(APLT.forClass)) // resource instance
-        {
-            // we need inference to support subclasses
-            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), dataset.getDefaultModel());
-            return construct(infModel);
-        }
+            return construct(dataset.getDefaultModel());
         
         if (getService().getDatasetQuadAccessor() != null)
         {
@@ -379,13 +375,20 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return super.post(splitDefaultModel(dataset.getDefaultModel())); // append dataset to service
     }
     
+    @Override
+    public Response construct(Model model)
+    {
+        // we need inference to support subclasses
+        InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
+        return construct(infModel);
+    }
+
     /**
      * Constructs an individual RDF resource for a given ontology class.
      * 
      * @param infModel ontology model with inference (to infer subclass hierarchies)
      * @return HTTP response
      */
-    @Override
     public Response construct(InfModel infModel)
     {
         if (infModel == null) throw new IllegalArgumentException("InfModel cannot be null");

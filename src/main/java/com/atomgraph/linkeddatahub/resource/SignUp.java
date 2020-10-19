@@ -55,7 +55,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -85,7 +84,6 @@ import javax.ws.rs.core.UriInfo;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
@@ -246,7 +244,7 @@ public class SignUp extends ResourceBase
 
                 String uuid = UUID.randomUUID().toString();
                 String keyStoreFileName = uuid + ".p12";
-                Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
+                java.nio.file.Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
 
                 new WebIDCertGen("RSA", STORE_TYPE).generate(keyStorePath, password, password, KEY_ALIAS,
                     fullName, null, orgName, null, null, countryName, agent.getURI(), getValidityDays());
@@ -271,8 +269,7 @@ public class SignUp extends ResourceBase
                         URI agentContainerURI = getAgentContainerUriBuilder(). queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
                         SecurityContext securityContext = new AgentContext(agent.inModel(infModel).as(Agent.class), SecurityContext.CLIENT_CERT_AUTH);
                         // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                        Dataset dataset = DatasetFactory.create(model);
-                        try (Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).post(dataset))
+                        try (Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).construct(model))
                         {
                             if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                             {
@@ -293,7 +290,7 @@ public class SignUp extends ResourceBase
                             {
                                 return Response.ok(keyStoreBytes).
                                     type(PKCS12_MEDIA_TYPE).
-                                    header("Content-Disposition", "attachment; filename=cert.p12").
+                                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
                                     build();
                             }
                             else
@@ -403,7 +400,7 @@ public class SignUp extends ResourceBase
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
             build());
     }
-    
+
     public com.atomgraph.linkeddatahub.server.model.Resource createAgentContainer(URI agentContainerURI, Resource forClass, SecurityContext securityContext)
     {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
@@ -427,12 +424,6 @@ public class SignUp extends ResourceBase
         formData.putSingle("update", update.toString());
 
         return getService().getSPARQLClient().post(formData, MediaType.APPLICATION_FORM_URLENCODED_TYPE, new MediaType[]{}, null);
-
-        // PATCH returns 403 because secretary agent does not have acl:Control auth to write to the admin app
-//        return getSystem().getClient().
-//                target(graph.getURI()).
-//                request().
-//                method("PATCH", Entity.entity(update, com.atomgraph.core.MediaType.APPLICATION_SPARQL_UPDATE_TYPE));
     }
     
     @Override
