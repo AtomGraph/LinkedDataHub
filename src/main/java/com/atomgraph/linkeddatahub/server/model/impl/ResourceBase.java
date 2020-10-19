@@ -30,15 +30,19 @@ import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
+import com.atomgraph.linkeddatahub.vocabulary.PROV;
+import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.processor.model.TemplateCall;
+import com.atomgraph.processor.vocabulary.DH;
+import com.atomgraph.processor.vocabulary.SIOC;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.update.UpdateAction;
-import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
@@ -71,6 +75,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.glassfish.jersey.media.multipart.BodyPart;
@@ -456,7 +461,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     }
 
     /**
-     * Uses system "<code>POST</code> update" to split input graph into multiple RDF graphs within a dataset.
+     * Splits the input graph into multiple RDF graphs based on the hash of the subject URI or bnode ID.
      * 
      * @param model RDF input graph
      * @return RDF dataset
@@ -465,17 +470,61 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
-        if (log.isDebugEnabled()) log.debug("Splitting the POSTed Model into named graphs");
-        // clone request Model to avoid clearing it during UpdateAction
-        Model defaultModel = ModelFactory.createDefaultModel().add(model);
-        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-                getSystem().getPostUpdate(getUriInfo().getBaseUri().toString()).toString(),
-                getQuerySolutionMap());
-        UpdateRequest update = updateString.asUpdate();
         Dataset dataset = DatasetFactory.create();
-        dataset.setDefaultModel(defaultModel);
-        UpdateAction.execute(update, dataset);
-        dataset.getDefaultModel().removeAll(); // we don't want to store anything in the default graph
+
+        StmtIterator it = model.listStatements();
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                
+                String docURI = null;
+                final String hash;
+                if (stmt.getSubject().isURIResource())
+                {
+                    docURI = stmt.getSubject().getURI();
+                    if (docURI.contains("#")) docURI = docURI.substring(0, docURI.indexOf("#")); // strip the fragment, leaving only document URIs
+                    hash = DigestUtils.sha1Hex(docURI);
+                }
+                else hash = DigestUtils.sha1Hex(stmt.getSubject().getId().getBlankNodeId().toString());
+                
+                String graphURI = getUriInfo().getBaseUriBuilder().path("graphs/{hash}/").build(hash).toString(); // TO-DO: use the apl:GraphItem ldt:path value
+                Model namedModel = dataset.getNamedModel(graphURI);
+                namedModel.add(stmt);
+
+                // create the meta-graph with provenance metadata
+                String graphHash = DigestUtils.sha1Hex(graphURI);
+                String graphDocURI = getUriInfo().getBaseUriBuilder().path("graphs/{hash}/").build(graphHash).toString();
+                Model namedMetaModel = dataset.getNamedModel(graphDocURI);
+                if (namedMetaModel.isEmpty())
+                {
+                    Resource graph = namedMetaModel.createResource(graphDocURI + "#this");
+                    Resource graphDoc = namedMetaModel.createResource(graphDocURI).
+                        addProperty(RDF.type, DH.Item).
+                        addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
+                        addProperty(SIOC.HAS_CONTAINER, getUriInfo().getBaseUriBuilder().path("graphs/").toString()).
+                        addProperty(FOAF.maker, getAgent()).
+                        addProperty(ACL.owner, getAgent()).
+                        addProperty(FOAF.primaryTopic, graph).
+                        addLiteral(PROV.generatedAtTime, namedMetaModel.createTypedLiteral(Calendar.getInstance()));
+                    graph.addProperty(RDF.type, APL.Dataset).
+                        addProperty(FOAF.isPrimaryTopicOf, graphDoc);
+
+                    if (docURI != null)
+                        namedMetaModel.createResource(docURI).
+                            addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
+                            addProperty(FOAF.maker, getAgent()).
+                            addProperty(ACL.owner, getAgent()).
+                            addLiteral(DCTerms.created, Calendar.getInstance()).
+                            addProperty(VoID.inDataset, graph);
+                }
+            }
+        }
+        finally
+        {
+            it.close();
+        }
         
         return dataset;
     }
@@ -538,7 +587,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         try
         {
             Model model = parseModel(multiPart);
-            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.TEXT_NTRIPLES_TYPE);
+            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof SkolemizingModelProvider) model = ((SkolemizingModelProvider)reader).process(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {} Model: {}", model.size(), model);
 

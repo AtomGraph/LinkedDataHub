@@ -73,8 +73,8 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
                 StreamRDFOutput rdfOutput = new StreamRDFOutput(is, getBaseURI(), getQuery(), lang);
 
                 try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
-                    request(MediaType.TEXT_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
-                    post(Entity.entity(rdfOutput, MediaType.TEXT_NTRIPLES)))
+                    request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
+                    post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
                 {
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {

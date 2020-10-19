@@ -61,5 +61,7 @@ public class PROV {
     public static final DatatypeProperty startedAtTime = m_model.createDatatypeProperty( NS + "startedAtTime" );
 
     public static final DatatypeProperty endedAtTime = m_model.createDatatypeProperty( NS + "endedAtTime" );
+    
+    public static final DatatypeProperty generatedAtTime = m_model.createDatatypeProperty( NS + "generatedAtTime" );
 
 }

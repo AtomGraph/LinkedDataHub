@@ -72,8 +72,8 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
                 CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
 
                 try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
-                    request(MediaType.TEXT_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
-                    post(Entity.entity(rdfOutput, MediaType.TEXT_NTRIPLES)))
+                    request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
+                    post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
                 {
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {

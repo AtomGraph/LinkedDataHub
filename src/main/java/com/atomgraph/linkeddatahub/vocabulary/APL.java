@@ -48,6 +48,8 @@ public class APL
 
     // DOMAIN
 
+    public static final OntClass Dataset = m_model.createClass(NS + "Dataset");
+
     public static final OntClass GenericService = m_model.createClass(NS + "GenericService");
     
     public static final OntClass DydraService = m_model.createClass(NS + "DydraService");

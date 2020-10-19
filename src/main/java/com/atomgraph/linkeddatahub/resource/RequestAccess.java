@@ -152,7 +152,7 @@ public class RequestAccess extends ResourceBase
                 URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
                 try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
                         request(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
-                        post(Entity.entity(infModel.getRawModel(), MediaType.TEXT_NTRIPLES_TYPE)))
+                        post(Entity.entity(infModel.getRawModel(), MediaType.APPLICATION_NTRIPLES_TYPE)))
                 {
                     if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
