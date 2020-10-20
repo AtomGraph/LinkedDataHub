@@ -62,8 +62,6 @@ public class APLC
     
     public static final DatatypeProperty restrictionsQuery = m_model.createDatatypeProperty( NS + "restrictionsQuery" );
     
-    public static final DatatypeProperty postUpdate = m_model.createDatatypeProperty( NS + "postUpdate" );
-    
     public static final DatatypeProperty deleteUpdate = m_model.createDatatypeProperty( NS + "deleteUpdate" );
     
     public static final ObjectProperty uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );

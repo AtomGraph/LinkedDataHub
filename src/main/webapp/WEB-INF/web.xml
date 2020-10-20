@@ -285,7 +285,7 @@ SELECT DISTINCT *
 }
 ]]></param-value>
     </context-param>
-    <context-param>
+<!--    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#postUpdate</param-name>
         <param-value><![CDATA[
 PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
@@ -366,7 +366,7 @@ WHERE
     }
 }
 ]]></param-value>
-    </context-param>
+    </context-param>-->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#deleteUpdate</param-name>
         <param-value><![CDATA[

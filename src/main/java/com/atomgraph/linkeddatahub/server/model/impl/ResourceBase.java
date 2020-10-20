@@ -498,12 +498,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
                 // create the meta-graph with provenance metadata
                 String graphHash = DigestUtils.sha1Hex(graphURI);
-                String graphDocURI = getUriInfo().getBaseUriBuilder().path("graphs/{hash}/").build(graphHash).toString();
-                Model namedMetaModel = dataset.getNamedModel(graphDocURI);
+                String metaGraphURI = getUriInfo().getBaseUriBuilder().path("graphs/{hash}/").build(graphHash).toString();
+                Model namedMetaModel = dataset.getNamedModel(metaGraphURI);
                 if (namedMetaModel.isEmpty())
                 {
-                    Resource graph = namedMetaModel.createResource(graphDocURI + "#this");
-                    Resource graphDoc = namedMetaModel.createResource(graphDocURI).
+                    Resource graph = namedMetaModel.createResource(graphURI + "#this");
+                    Resource graphDoc = namedMetaModel.createResource(graphURI).
                         addProperty(RDF.type, DH.Item).
                         addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
                         addProperty(SIOC.HAS_CONTAINER, getUriInfo().getBaseUriBuilder().path("graphs/").toString()).
@@ -531,7 +531,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return dataset;
     }
-    
 
     /**
      * Handles <code>PUT</code> requests, stores the input RDF data in the application's dataset, and returns response.
