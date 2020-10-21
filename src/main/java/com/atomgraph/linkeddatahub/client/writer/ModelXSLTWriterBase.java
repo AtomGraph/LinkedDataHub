@@ -22,6 +22,7 @@ import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -40,6 +41,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -88,6 +90,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject Ontology ontology;
     @Inject ClientUriInfo clientUriInfo;
     @Inject DataManager dataManager;
+    @Inject XsltExecutableSupplier xsltExecSupplier;
 
     @Inject
     public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec)
@@ -252,6 +255,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return null;
     }
 
+    @Override
+    public XsltExecutable getXsltExecutable()
+    {
+        return xsltExecSupplier.get();
+    }
+    
     @Override
     public UriInfo getUriInfo()
     {

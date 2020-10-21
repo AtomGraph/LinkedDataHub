@@ -21,6 +21,7 @@ import com.atomgraph.processor.vocabulary.LDT;
 import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.ext.Provider;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
@@ -28,6 +29,7 @@ import org.glassfish.hk2.api.ServiceLocator;
  *
  * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
+@Provider
 public class TemplateCallFactory implements Factory<Optional<TemplateCall>>
 {
 

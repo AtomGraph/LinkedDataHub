@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -30,12 +29,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.ext.Providers;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -47,48 +44,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider which provides a compiled app-specific XSLT stylesheet.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
- * @see com.atomgraph.linkeddatahub.client.provider.DatasetXSLTWriter
+ *
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
 @Provider
-public class XsltExecutableFactory implements Factory<XsltExecutable>
+public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupplier>
 {
     
-    private static final Logger log = LoggerFactory.getLogger(XsltExecutableFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(XsltExecutableSupplierFactory.class);
 
-    private final XsltCompiler xsltComp;
-    private final XsltExecutable defaultExec; // system stylesheet
-    private final Boolean cacheStylesheet;
+    private final com.atomgraph.linkeddatahub.Application system;
+    private final Application application;
     
-    @Context Providers providers;
     @Context UriInfo uriInfo;
-    @Context HttpHeaders httpHeaders;
-    
-    @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Application application;
-    
-    private final Map<String, XsltExecutable> appXsltExecCache = new HashMap<>();
 
-    public XsltExecutableFactory(final XsltCompiler xsltComp, final XsltExecutable defaultExec, final boolean cacheStylesheet)
+    @Inject
+    public XsltExecutableSupplierFactory(com.atomgraph.linkeddatahub.Application system, Application application)
     {
-        this.defaultExec = defaultExec;
-        this.xsltComp = xsltComp;
-        this.cacheStylesheet = cacheStylesheet;
+        this.system = system;
+        this.application = application;
+    }
+    
+    @Override
+    public XsltExecutableSupplier provide()
+    {
+        return new XsltExecutableSupplierImpl(getXsltExecutable());
     }
 
     @Override
-    public XsltExecutable provide()
+    public void dispose(XsltExecutableSupplier instance)
     {
-        return getXsltExecutable();
-    }
 
-    @Override
-    public void dispose(XsltExecutable xsltExec)
-    {
     }
-    
+        
     public XsltExecutable getXsltExecutable()
     {
         try
@@ -96,7 +84,7 @@ public class XsltExecutableFactory implements Factory<XsltExecutable>
             if (getApplication() != null && getApplication().getStylesheet() != null)
                 return getXsltExecutable(getApplication().getStylesheet().getURI(), getXsltExecutableCache());
             
-            return defaultExec;
+            return getSystem().getXsltExecutable();
         }
         catch (SaxonApiException ex)
         {
@@ -111,7 +99,7 @@ public class XsltExecutableFactory implements Factory<XsltExecutable>
     }
     
     /**
-     * Get compiled XSLT stylesheet. First look in the cache, if it's enabled; otherwise read from file.
+     * Get compiled XSLT stylesheet. First look in the cache, if it's enabled; otherwise read from URL.
      * 
      * @param stylesheetURI
      * @param xsltExecCache
@@ -132,40 +120,10 @@ public class XsltExecutableFactory implements Factory<XsltExecutable>
         
         return getXsltExecutable(getSource(stylesheetURI));
     }
-
+    
     public XsltExecutable getXsltExecutable(Source source) throws SaxonApiException
     {
         return getXsltCompiler().compile(source);
-    }
-    
-    public XsltCompiler getXsltCompiler()
-    {
-        return xsltComp;
-    }
-    
-    public boolean isCacheStylesheet()
-    {
-        return cacheStylesheet;
-    }
-    
-    public Map<String, XsltExecutable> getXsltExecutableCache()
-    {
-        return appXsltExecCache;
-    }
-    
-    public Providers getProviders()
-    {
-        return providers;
-    }
-    
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
-    }
-    
-    public HttpHeaders getHttpHeaders()
-    {
-        return httpHeaders;
     }
     
     /**
@@ -217,14 +175,39 @@ public class XsltExecutableFactory implements Factory<XsltExecutable>
         return null;
     }
 
+    public Client getClient()
+    {
+        return getSystem().getClient();
+    }
+
+    public XsltCompiler getXsltCompiler()
+    {
+        return getSystem().getXsltCompiler();
+    }
+
+    public boolean isCacheStylesheet()
+    {
+        return getSystem().isCacheStylesheet();
+    }
+    
+    public Map<String, XsltExecutable> getXsltExecutableCache()
+    {
+        return getSystem().getXsltExecutableCache();
+    }
+    
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+    
     public Application getApplication()
     {
         return application;
     }
-
-    public Client getClient()
+    
+    public UriInfo getUriInfo()
     {
-        return system.getClient();
+        return uriInfo;
     }
     
 }

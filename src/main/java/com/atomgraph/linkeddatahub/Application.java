@@ -29,7 +29,6 @@ import com.atomgraph.client.locator.PrefixMapper;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
-import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
@@ -50,7 +49,6 @@ import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
-import com.atomgraph.linkeddatahub.client.factory.XsltExecutableFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
@@ -69,6 +67,9 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
+import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
+import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
@@ -240,6 +241,7 @@ public class Application extends ResourceConfig
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final Map<URI, Model> webIDmodelCache = new HashMap<>();
+    private final Map<String, XsltExecutable> xsltExecutableCache = new HashMap<>();
     
     private Dataset contextDataset;
     
@@ -520,6 +522,7 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
+            xsltComp.setURIResolver(dataManager); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
@@ -703,7 +706,9 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(new XsltExecutableFactory(getXsltCompiler(), getXsltExecutable(), isCacheStylesheet())).to(XsltExecutable.class);
+                bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
             }
         });
         
@@ -1148,6 +1153,11 @@ public class Application extends ResourceConfig
     public Map<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
+    }
+    
+    public Map<String, XsltExecutable> getXsltExecutableCache()
+    {
+        return xsltExecutableCache;
     }
     
 }
