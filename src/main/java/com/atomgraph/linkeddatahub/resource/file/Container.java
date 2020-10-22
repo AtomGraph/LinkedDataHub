@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.ontology.Ontology;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.slf4j.Logger;
@@ -64,7 +64,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
-    private final DigestUtils digestUtils;
+    private final MessageDigest messageDigest;
     
     @Inject
     public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
@@ -85,7 +85,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         
         try
         {
-            digestUtils = new DigestUtils(MessageDigest.getInstance("SHA1"));
+            this.messageDigest = MessageDigest.getInstance("SHA1");
         }
         catch (NoSuchAlgorithmException ex)
         {
@@ -103,13 +103,15 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
         try
         {
+            ;
             try (InputStream is = bodyPart.getEntityAs(InputStream.class);
-                DigestInputStream dis = new DigestInputStream(is, getDigestUtils().getMessageDigest()))
+                DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
             {
+                dis.getMessageDigest().reset();
                 File tempFile = File.createTempFile("tmp", null);
                 FileChannel destination = new FileOutputStream(tempFile).getChannel();
                 destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
-                String sha1Hash = new DigestUtils(dis.getMessageDigest()).digestAsHex(dis.getMessageDigest().digest());
+                String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
                 if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
                 resource.removeAll(DH.slug).
@@ -134,10 +136,10 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
             throw new WebApplicationException(ex);
         }
     }
-    
-    public DigestUtils getDigestUtils()
-    {
-        return digestUtils;
-    }
 
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
+    }
+    
 }
