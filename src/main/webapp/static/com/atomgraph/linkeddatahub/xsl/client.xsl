@@ -616,6 +616,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-string" as="xs:string"/>
+        <xsl:param name="expression-var-name" as="xs:string?"/>
 
         <!-- container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
@@ -637,10 +638,24 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="results" select="$grouped-results"/>
                     </xsl:call-template>
 
+                    <!-- set LinkedDataHub.select-xml which is used by facets as well as result counts -->
+                    <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                    <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+                    <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                    <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
                     <!-- only append facets if they are not already present -->
                     <xsl:if test="not(id('faceted-nav', ixsl:page())/*)">
                         <xsl:call-template name="render-facets">
-                            <xsl:with-param name="select-string" select="$select-string"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
+                        </xsl:call-template>
+                    </xsl:if>
+
+                    <!-- result counts -->
+                    <xsl:if test="id('result-counts', ixsl:page())">
+                        <xsl:call-template name="apl:ResultCounts">
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="expression-var-name" select="$expression-var-name"/>
                         </xsl:call-template>
                     </xsl:if>
 
@@ -767,16 +782,11 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template name="render-facets">
-        <xsl:param name="select-string" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" select="'faceted-nav'" as="xs:string"/>
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-
-        <!-- $select-xml is used by facet onclick -->
-        <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:for-each select="$bgp-triples-map">
             <xsl:call-template name="render-facet-headers-despatch">

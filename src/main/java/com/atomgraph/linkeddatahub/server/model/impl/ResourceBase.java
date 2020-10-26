@@ -506,7 +506,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     Resource graphDoc = namedMetaModel.createResource(graphURI).
                         addProperty(RDF.type, DH.Item).
                         addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
-                        addProperty(SIOC.HAS_CONTAINER, getUriInfo().getBaseUriBuilder().path("graphs/").toString()).
+                        addProperty(SIOC.HAS_CONTAINER, namedMetaModel.createResource(getUriInfo().getBaseUriBuilder().path("graphs/").toString())).
                         addProperty(FOAF.maker, getAgent()).
                         addProperty(ACL.owner, getAgent()).
                         addProperty(FOAF.primaryTopic, graph).

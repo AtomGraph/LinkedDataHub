@@ -1707,8 +1707,102 @@ exclude-result-prefixes="#all"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="expression-var-name" select="$new-var-name" as="xs:string?"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
 
+    <!-- result counts -->
+    
+    <xsl:template name="apl:ResultCounts">
+        <xsl:param name="expression-var-name" as="xs:string?"/>
+        <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:result-count">
+                    <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
+                    <xsl:with-param name="expression-var-name" select="$expression-var-name" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+        <!-- load result count -->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+            <xsl:call-template name="apl:ResultCountResultsLoad">
+                <xsl:with-param name="container-id" select="'result-counts'"/>
+                <xsl:with-param name="count-var-name" select="$count-var-name"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:result-count">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- replace query variables with (COUNT(DISTINCT *) AS ?count) -->
+    <xsl:template match="json:map/json:array[@key = 'variables']" mode="apl:result-count" priority="1">
+        <xsl:param name="expression-var-name" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="count-var-name" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@*" mode="#current"/>
+            
+            <json:map>
+                <json:map key="expression">
+                    <json:string key="expression">
+                        <xsl:choose>
+                            <xsl:when test="$expression-var-name">
+                                <xsl:text>?</xsl:text>
+                                <xsl:value-of select="$expression-var-name"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:text>*</xsl:text>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </json:string>
+                    <json:string key="type">aggregate</json:string>
+                    <json:string key="aggregation">count</json:string>
+                    <json:boolean key="distinct">true</json:boolean>
+                </json:map>
+                <json:string key="variable">?<xsl:value-of select="$count-var-name"/></json:string>
+            </json:map>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template name="apl:ResultCountResultsLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="count-var-name" as="xs:string"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/sparql-results+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                        <p>
+                            <xsl:text>Total results </xsl:text>
+                            <span class="badge badge-inverse">
+                                <xsl:value-of select="$results//srx:binding[@name = $count-var-name]/srx:literal"/>
+                            </span>
+                        </p>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
 </xsl:stylesheet>

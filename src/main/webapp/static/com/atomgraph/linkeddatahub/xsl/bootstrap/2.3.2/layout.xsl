@@ -419,7 +419,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarMain">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span6'" as="xs:string?"/>
+        <xsl:param name="class" select="'span7'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -430,7 +430,11 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:ContentToggle"/>
-            
+
+            <div id="result-counts">
+                <!-- placeholder for client.xsl callbacks -->
+            </div>
+
             <div id="breadcrumb-nav">
                 <!-- placeholder for client.xsl callbacks -->
             </div>
@@ -439,7 +443,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarRight">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span4'" as="xs:string?"/>
+        <xsl:param name="class" select="'span3'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
