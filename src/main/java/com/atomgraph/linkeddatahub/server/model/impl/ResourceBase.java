@@ -514,7 +514,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     graph.addProperty(RDF.type, APL.Dataset).
                         addProperty(FOAF.isPrimaryTopicOf, graphDoc);
 
-                    if (docURI != null)
+                    // only add provenance metadata for documents under the namespace of this app (relative to the base URI)
+                    if (docURI != null && !getUriInfo().getBaseUri().relativize(URI.create(docURI)).isAbsolute())
                         namedMetaModel.createResource(docURI).
                             addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
                             addProperty(FOAF.maker, getAgent()).
@@ -901,7 +902,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
         {
             URI uri = URI.create(getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            if (getUriInfo().getBaseUri().relativize(uri).isAbsolute()) // external URI resource (not relative to the base URI)
+//            if (getUriInfo().getBaseUri().relativize(uri).isAbsolute()) // external URI resource (not relative to the base URI)
             {
                 if (log.isDebugEnabled()) log.debug("GET request URI overridden with: {}", uri);
                 // TO-DO: MediaTypes???
