@@ -594,10 +594,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         ParameterizedSparqlString updateString = new ParameterizedSparqlString(
                 getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
                 getQuerySolutionMap());
+        updateString.setLiteral(DCTerms.created.getLocalName(), created); // only match the dct:created value we had before this request, not the one we just added
         
         if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
         getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
 
+        Response banResponse = ban(getOntResource());
+        if (banResponse != null) banResponse.close();
+            
         return response;
     }
     

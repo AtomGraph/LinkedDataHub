@@ -298,7 +298,9 @@ INSERT {
 }
 WHERE
   { GRAPH ?graphGraphDoc
-      { ?this  void:inDataset  ?graph }
+      { ?this  void:inDataset  ?graph ;
+               dct:created     ?created
+      }
     BIND(now() AS ?modified)
   }
 ]]></param-value>
