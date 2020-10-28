@@ -221,7 +221,7 @@ public class Application extends ResourceConfig
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
-    private final String deleteUpdateString;
+    private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final boolean remoteVariableBindings;
@@ -269,6 +269,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getResource("/").toString(),
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
@@ -303,7 +304,7 @@ public class Application extends ResourceConfig
             final boolean remoteVariableBindings,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString,
             final String appQueryString, final String sitemapQueryString,
-            final String graphDocumentQueryString, final String deleteUpdateString,
+            final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
             final String systemBase,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
@@ -376,6 +377,13 @@ public class Application extends ResourceConfig
             if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", APLC.uploadRoot.getURI());
             throw new ConfigurationException(APLC.uploadRoot);
         }
+        
+        if (putUpdateString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.putUpdate);
+            throw new ConfigurationException(APLC.putUpdate);
+        }
+        this.putUpdateString = putUpdateString;
         
         if (deleteUpdateString == null)
         {
@@ -1047,6 +1055,11 @@ public class Application extends ResourceConfig
     public Query getGraphDocumentQuery()
     {
         return graphDocumentQuery;
+    }
+
+    public UpdateRequest getPutUpdate(String baseURI)
+    {
+        return UpdateFactory.create(putUpdateString, baseURI);
     }
     
     public UpdateRequest getDeleteUpdate(String baseURI)

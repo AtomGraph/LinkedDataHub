@@ -13,7 +13,6 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
-    <!ENTITY sparql "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sc     "http://www.w3.org/2011/http-statusCodes#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
@@ -31,7 +30,6 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
-    <!ENTITY list   "http://jena.hpl.hp.com/ARQ/list#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -47,7 +45,6 @@ xmlns:rdf="&rdf;"
 xmlns:xhv="&xhv;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
-xmlns:sparql="&sparql;"
 xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:cert="&cert;"
@@ -63,7 +60,6 @@ xmlns:sp="&sp;"
 xmlns:spl="&spl;"
 xmlns:void="&void;"
 xmlns:nfo="&nfo;"
-xmlns:list="&list;"
 xmlns:geo="&geo;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
@@ -93,19 +89,13 @@ exclude-result-prefixes="#all">
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="lacl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
-    <xsl:param name="spin:query" as="xs:string?"/>
-    <xsl:param name="ldt:query" as="document-node()?"/>
     <xsl:param name="ldt:template" as="xs:anyURI?"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:requestUri" as="xs:anyURI?"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
-    <xsl:param name="ac:chart-type" as="xs:anyURI?"/>
-    <xsl:param name="ac:category" as="xs:string?"/>
-    <xsl:param name="ac:series" as="xs:string*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="dh:select" as="xs:string?"/>
     <xsl:param name="lacl:mode" select="if (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, apl:listSuperClasses(key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
 
     <xsl:variable name="root-containers" select="($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))" as="xs:anyURI*"/>
@@ -1784,224 +1774,6 @@ exclude-result-prefixes="#all">
                 <button type="submit" class="btn btn-primary">Open</button>
             </form>
         </div>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about][sp:text][$ac:chart-type][$ac:series][$ac:category or ends-with(rdf:type/@rdf:resource, 'Construct') or ends-with(rdf:type/@rdf:resource, 'Describe')]" mode="bs2:SaveAs" priority="1">
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="type" select="if (ends-with(rdf:type/@rdf:resource, 'Construct') or ends-with(rdf:type/@rdf:resource, 'Describe')) then resolve-uri('ns/default#GraphChart', $ldt:base) else resolve-uri('ns/default#ResultSetChart', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="query" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:param name="chart-type" select="$ac:chart-type" as="xs:anyURI"/>
-        <xsl:param name="category" select="$ac:category" as="xs:string"/>
-        <xsl:param name="series" select="$ac:series" as="xs:string"/>
-        <xsl:param name="action" select="resolve-uri(concat('charts/?forClass=', encode-for-uri(resolve-uri($type, $ldt:base))), $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="id" select="'query-form'" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/>
-
-        <form method="{$method}" action="{$action}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$enctype">
-                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
-            </xsl:if>
-        
-            <p>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'rdf'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'sb'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'chart'"/>
-                </xsl:call-template>
-
-                <label>
-                    <xsl:apply-templates select="key('resources', '&dct;title', document('&dct;title'))" mode="ac:label"/>
-                </label>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&dct;title'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="'text'"/>
-                </xsl:call-template>
-
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&rdf;type'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ou'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="$type"/>
-                </xsl:call-template>
-<!--                <xsl:if test="$ac:endpoint">
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'pu'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="'&apl;endpoint'"/>
-                    </xsl:call-template>
-                    <xsl:call-template name="xhtml:Input">
-                        <xsl:with-param name="name" select="'ou'"/>
-                        <xsl:with-param name="type" select="'hidden'"/>
-                        <xsl:with-param name="value" select="$ac:endpoint"/>
-                    </xsl:call-template>
-                </xsl:if>-->
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&spin;query'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ou'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="$query"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&apl;chartType'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ou'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="$chart-type"/>
-                </xsl:call-template>
-
-                <xsl:for-each select="$category">
-                    <xsl:choose>
-                        <xsl:when test="$type = resolve-uri('ns/default#GraphChart', $ldt:base)">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;categoryProperty'"/>
-                            </xsl:call-template>
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'ou'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="."/>
-                            </xsl:call-template>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;categoryVarName'"/>
-                            </xsl:call-template>
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'ol'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="."/>
-                            </xsl:call-template>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-
-                <xsl:for-each select="$series">
-                    <xsl:choose>
-                        <xsl:when test="$type = resolve-uri('ns/default#GraphChart', $ldt:base)">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;seriesProperty'"/>
-                            </xsl:call-template>
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'ou'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="."/>
-                            </xsl:call-template>
-                        </xsl:when>
-                        <xsl:otherwise>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'pu'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                    <xsl:with-param name="value" select="'&apl;seriesVarName'"/>
-                                </xsl:call-template>
-                                <xsl:call-template name="xhtml:Input">
-                                    <xsl:with-param name="name" select="'ol'"/>
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                    <xsl:with-param name="value" select="."/>
-                                </xsl:call-template>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-                        
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ob'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'this'"/>
-                </xsl:call-template>
-
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'sb'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'this'"/>
-                </xsl:call-template>
-
-                <label>
-                    Document <xsl:apply-templates select="key('resources', '&dct;title', document('&dct;title'))" mode="ac:label"/>
-                </label>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&dct;title'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ol'"/>
-                    <xsl:with-param name="type" select="'text'"/>
-                </xsl:call-template>
-
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&rdf;type'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ou'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="$doc-type"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'pu'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'&foaf;primaryTopic'"/>
-                </xsl:call-template>
-                <xsl:call-template name="xhtml:Input">
-                    <xsl:with-param name="name" select="'ob'"/>
-                    <xsl:with-param name="type" select="'hidden'"/>
-                    <xsl:with-param name="value" select="'chart'"/>
-                </xsl:call-template>
-            </p>
-        
-            <p>
-                <button type="submit">
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn btn-primary'"/>
-                    </xsl:apply-templates>
-
-                    <xsl:text> Save</xsl:text> <!-- to do: use query class in apl:logo mode -->
-                </button>
-            </p>
-        </form>
     </xsl:template>
 
     <!-- FOOTER -->

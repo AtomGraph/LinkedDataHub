@@ -40,7 +40,7 @@ created=$(echo "$container_ntriples" \
 | grep '<http://purl.org/dc/terms/created>' \
 | cut -d " " -f 3)
 
-[ -z "$created" ] && exit 1 # fail if dct:modified value is missing
+[ -z "$created" ] && exit 1 # fail if dct:created value is missing
 
 # get the named graph URI
 

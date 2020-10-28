@@ -348,6 +348,11 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public Response post(Dataset dataset)
     {
+        return post(dataset, getAgent(), Calendar.getInstance());
+    }
+    
+    public Response post(Dataset dataset, Agent agent, Calendar created)
+    {
         if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
         {
             if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
@@ -367,12 +372,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         if (getService().getDatasetQuadAccessor() != null)
         {
-            getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel()));
+            getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), agent, created));
             
             return Response.ok().build();
         }
         
-        return super.post(splitDefaultModel(dataset.getDefaultModel())); // append dataset to service
+        return super.post(splitDefaultModel(dataset.getDefaultModel(), agent, created)); // append dataset to service
     }
     
     @Override
@@ -469,7 +474,13 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * @param model RDF input graph
      * @return RDF dataset
      */
+    
     public Dataset splitDefaultModel(Model model)
+    {
+        return splitDefaultModel(model, getAgent(), Calendar.getInstance());
+    }
+    
+    public Dataset splitDefaultModel(Model model, Agent agent, Calendar created)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
@@ -516,12 +527,16 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
                     // only add provenance metadata for documents under the namespace of this app (relative to the base URI)
                     if (docURI != null && !getUriInfo().getBaseUri().relativize(URI.create(docURI)).isAbsolute())
-                        namedMetaModel.createResource(docURI).
+                    {
+                        Resource doc = namedMetaModel.createResource(docURI).
                             addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
-                            addProperty(FOAF.maker, getAgent()).
-                            addProperty(ACL.owner, getAgent()).
-                            addLiteral(DCTerms.created, Calendar.getInstance()).
                             addProperty(VoID.inDataset, graph);
+                    
+                        if (agent != null) doc.addProperty(FOAF.maker, agent).
+                            addProperty(ACL.owner, agent);
+                        
+                        if (created != null) doc.addLiteral(DCTerms.created, created);
+                    }
                 }
             }
         }
@@ -549,7 +564,41 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             return getResourceContext().getResource(ProxyResourceBase.class).put(dataset);
         }
         
-        return super.put(dataset);
+        //Response response = super.put(dataset);
+
+        Calendar created = null;
+        Response response;
+        try
+        {
+            // workaround in order to retain the dct:created value in the meta-graph - without it delete() will wipe all statements about the current resource
+            Dataset description = describe();
+            Statement createdStmt = description.getDefaultModel().createResource(getURI().toString()).getProperty(DCTerms.created);
+            if (createdStmt != null)
+            {
+                RDFNode object = createdStmt.getObject();
+                if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
+                    created = (((XSDDateTime)object.asLiteral().getValue()).asCalendar());
+            }
+            
+            delete();
+            
+            response = post(dataset, getAgent(), created); // add the original dct:created value to the meta-graph
+        }
+        catch (NotFoundException ex)
+        {
+            post(dataset);
+            
+            response = Response.created(getURI()).build();
+        }
+        
+        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
+                getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
+                getQuerySolutionMap());
+        
+        if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
+        getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+
+        return response;
     }
     
     /**
@@ -567,8 +616,11 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 getSystem().getDeleteUpdate(getUriInfo().getBaseUri().toString()).toString(),
                 getQuerySolutionMap());
         
-        if (log.isDebugEnabled()) log.debug("DELETE meta-graphs: {}", updateString);
-        getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        if (getRequest().getMethod().equals(HttpMethod.DELETE)) // don't delete the meta-graph if it's a PUT request
+        {
+            if (log.isDebugEnabled()) log.debug("Delete meta-graph: {}", updateString);
+            getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        }
         
         return response;
     }

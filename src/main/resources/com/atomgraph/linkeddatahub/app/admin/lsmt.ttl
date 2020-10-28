@@ -13,7 +13,7 @@
     owl:imports aplt: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "Sitemap templates" ;
-    rdfs:comment "AtomGraph Sitemap templates" .
+    rdfs:comment "LinkedDataHub sitemap templates" .
 
 # ontology
 

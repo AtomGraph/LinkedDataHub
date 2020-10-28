@@ -14,7 +14,7 @@
 : a owl:Ontology ;
     owl:imports apl:, ldt:, sp:, spin: ;
     owl:versionInfo "1.1.4" ;
-    rdfs:label "AtomGraph Sitemap ontology" ;
+    rdfs:label "LinkedDataHub sitemap ontology" ;
     rdfs:comment "Ontology of resource templates" .
 
 :Class a rdfs:Class ;

@@ -286,6 +286,24 @@ SELECT DISTINCT *
 ]]></param-value>
     </context-param>
     <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#putUpdate</param-name>
+        <param-value><![CDATA[
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  void: <http://rdfs.org/ns/void#>
+
+INSERT {
+  GRAPH ?graphGraphDoc {
+    ?this dct:modified ?modified .
+  }
+}
+WHERE
+  { GRAPH ?graphGraphDoc
+      { ?this  void:inDataset  ?graph }
+    BIND(now() AS ?modified)
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#deleteUpdate</param-name>
         <param-value><![CDATA[
 PREFIX  void: <http://rdfs.org/ns/void#>
