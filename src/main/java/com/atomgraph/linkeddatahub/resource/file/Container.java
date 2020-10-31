@@ -103,7 +103,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
         try
         {
-            ;
             try (InputStream is = bodyPart.getEntityAs(InputStream.class);
                 DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
             {

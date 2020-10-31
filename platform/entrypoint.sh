@@ -568,6 +568,7 @@ if [ ! -f "$OWNER_KEYSTORE" ]; then
     printf "\n### Root owner WebID certificate's DName attributes: %s\n" "$root_owner_dname"
 
     root_owner_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    export root_owner_uuid
     OWNER_DOC_URI="${BASE_URI}admin/acl/agents/${root_owner_uuid}/"
     OWNER_URI="${OWNER_DOC_URI}#this"
 
