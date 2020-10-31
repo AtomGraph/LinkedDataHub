@@ -9,7 +9,7 @@ Welcome to LinkedDataHub. We are building it for:
 * developers who are looking for a declarative full stack framework for web application and API development
 * data engineers who need an open-source RDF platform that can be customized for a variety of use cases
 
-What makes LinkedDataHub unique is that it can meet all of those goals because of its completely data-driven architecture: applications and documents are defined as data, managed using a single generic HTTP API and presented using declarative technologies. The default application structure and user interface are provided, but they can be completely overridden and customized. Unless a custom server-side processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
+What makes LinkedDataHub unique is its completely data-driven architecture: applications and documents are defined as data, managed using a single generic HTTP API and presented using declarative technologies. The default application structure and user interface are provided, but they can be completely overridden and customized. Unless a custom server-side processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
 
 **Follow the [Get started](https://linkeddatahub.com/linkeddatahub/docs/get-started/) guide to build your first application on LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
 
