@@ -4,7 +4,9 @@
 
 ![AtomGraph LinkedDataHub screenshot](https://raw.github.com/AtomGraph/LinkedDataHub/master/screenshot.png)
 
-Welcome to LinkedDataHub. We are building it for:
+Welcome to LinkedDataHub. We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built with a multi-purpose data-driven platform.
+
+We are building LinkedDataHub for:
 * domain experts who work with RDF data and need an accessible low-code publishing, exploration and management tool
 * developers who are looking for a declarative full stack framework for web application and API development
 * data engineers who need an open-source RDF platform that can be customized for a variety of use cases
