@@ -87,11 +87,12 @@ if [ "$created" != "$updated_created" ]; then
     exit 1
 fi
 
-# check that dct:modified was added
+# get dct:modified value
 
 modified=$(echo "$updated_container_ntriples" \
 | grep '<http://purl.org/dc/terms/modified>' \
-| cut -d " " -f 3)
+| cut -d " " -f 3 \
+| cut -d "\"" -f 2) # cut quotes and datatype
 
 # fail if dct:modified value is missing
 
@@ -99,4 +100,13 @@ if [ -z "$modified" ]; then
     exit 1
 fi
 
-# TO-DO: check that "$modified" is actually later than "$created"
+created=$(echo "$created" | cut -d "\"" -f 2) # cut quotes and datatype
+
+# check that "$modified" is actually later than "$created"
+
+created_date=$(date --date="$created" +%s)
+modified_date=$(date --date="$modified" +%s)
+
+if [ "$created_date" -gt "$modified_date" ]; then
+    exit 1
+fi
