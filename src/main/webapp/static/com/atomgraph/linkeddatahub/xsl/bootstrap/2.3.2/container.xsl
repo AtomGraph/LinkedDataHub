@@ -44,27 +44,18 @@ exclude-result-prefixes="#all"
     <!-- PARALLAX -->
     
     <xsl:template name="bs2:Parallax">
-        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="id" select="'parallax-nav'" as="xs:string?"/>
         <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
         
-        <xsl:result-document href="#parallax-nav" method="ixsl:replace-content">
+        <xsl:result-document href="#{$id}" method="ixsl:replace-content">
             <!-- only show if the result contains object resources -->
             <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]"> <!-- can't use bnodes because labels accross DESCRIBE and SELECT results won't match -->
-                <div>
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-                    </xsl:if>
-                    <xsl:if test="$class">
-                        <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-                    </xsl:if>
+                <h2 class="nav-header btn">Related results</h2>
 
-                    <h2 class="nav-header btn">Navigation</h2>
-
-                    <ul class="well well-small nav nav-list" id="parallax-properties">
-                        <!-- <li> with properties will go here -->
-                    </ul>
-                </div>
+                <ul class="well well-small nav nav-list" id="parallax-properties">
+                    <!-- <li> with properties will go here -->
+                </ul>
             </xsl:if>
         </xsl:result-document>
         
@@ -156,6 +147,15 @@ exclude-result-prefixes="#all"
                         <xsl:when test="$results">
                             <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
                         </xsl:when>
+                        <!-- attempt to use the fragment as label -->
+                        <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
+                            <xsl:value-of select="substring-after($predicate, '#')"/>
+                        </xsl:when>
+                        <!-- attempt to use the last path segment as label -->
+                        <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
+                            <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
+                        </xsl:when>
+                        <!-- fallback to simply displaying the full URI -->
                         <xsl:otherwise>
                             <xsl:value-of select="$predicate"/>
                         </xsl:otherwise>
@@ -201,12 +201,20 @@ exclude-result-prefixes="#all"
                         <xsl:when test="$results">
                             <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
                         </xsl:when>
+                        <!-- attempt to use the fragment as label -->
+                        <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
+                            <xsl:value-of select="substring-after($predicate, '#')"/>
+                        </xsl:when>
+                        <!-- attempt to use the last path segment as label -->
+                        <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
+                            <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
+                        </xsl:when>
                         <xsl:otherwise>
                             <xsl:value-of select="$predicate"/>
                         </xsl:otherwise>
                     </xsl:choose>
                     
-                    <span class="caret pull-right"></span>
+                    <span class="caret caret-reversed pull-right"></span>
                     <input type="hidden" name="bgp-id" value="{$id}"/>
                 </h2>
 
@@ -1328,33 +1336,26 @@ exclude-result-prefixes="#all"
                                                                                                 <json:string key="type">path</json:string>
                                                                                                 <json:string key="pathType">|</json:string>
                                                                                                 <json:array key="items">
-                                                                                                    <json:map>
-                                                                                                        <json:string key="type">path</json:string>
-                                                                                                        <json:string key="pathType">|</json:string>
-                                                                                                        <json:array key="items">
-                                                                                                            <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
-                                                                                                            <json:string>http://purl.org/dc/elements/1.1/title</json:string>
-                                                                                                        </json:array>
-                                                                                                    </json:map>
-                                                                                                    <json:string>http://purl.org/dc/terms/title</json:string>
+                                                                                                    <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
+                                                                                                    <json:string>http://purl.org/dc/elements/1.1/title</json:string>
                                                                                                 </json:array>
                                                                                             </json:map>
-                                                                                            <json:string>http://xmlns.com/foaf/0.1/name</json:string>
+                                                                                            <json:string>http://purl.org/dc/terms/title</json:string>
                                                                                         </json:array>
                                                                                     </json:map>
-                                                                                    <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
+                                                                                    <json:string>http://xmlns.com/foaf/0.1/name</json:string>
                                                                                 </json:array>
                                                                             </json:map>
-                                                                            <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
+                                                                            <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
                                                                         </json:array>
                                                                     </json:map>
-                                                                    <json:string>http://rdfs.org/sioc/ns#name</json:string>
+                                                                    <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
                                                                 </json:array>
                                                             </json:map>
-                                                            <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
+                                                            <json:string>http://rdfs.org/sioc/ns#name</json:string>
                                                         </json:array>
                                                     </json:map>
-                                                    <json:string>http://rdfs.org/sioc/ns#content</json:string>
+                                                    <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
                                                 </json:array>
                                             </json:map>
                                             <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
@@ -1397,33 +1398,26 @@ exclude-result-prefixes="#all"
                                                                                                         <json:string key="type">path</json:string>
                                                                                                         <json:string key="pathType">|</json:string>
                                                                                                         <json:array key="items">
-                                                                                                            <json:map>
-                                                                                                                <json:string key="type">path</json:string>
-                                                                                                                <json:string key="pathType">|</json:string>
-                                                                                                                <json:array key="items">
-                                                                                                                    <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
-                                                                                                                    <json:string>http://purl.org/dc/elements/1.1/title</json:string>
-                                                                                                                </json:array>
-                                                                                                            </json:map>
-                                                                                                            <json:string>http://purl.org/dc/terms/title</json:string>
+                                                                                                            <json:string>http://www.w3.org/2000/01/rdf-schema#label</json:string>
+                                                                                                            <json:string>http://purl.org/dc/elements/1.1/title</json:string>
                                                                                                         </json:array>
                                                                                                     </json:map>
-                                                                                                    <json:string>http://xmlns.com/foaf/0.1/name</json:string>
+                                                                                                    <json:string>http://purl.org/dc/terms/title</json:string>
                                                                                                 </json:array>
                                                                                             </json:map>
-                                                                                            <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
+                                                                                            <json:string>http://xmlns.com/foaf/0.1/name</json:string>
                                                                                         </json:array>
                                                                                     </json:map>
-                                                                                    <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
+                                                                                    <json:string>http://xmlns.com/foaf/0.1/givenName</json:string>
                                                                                 </json:array>
                                                                             </json:map>
-                                                                            <json:string>http://rdfs.org/sioc/ns#name</json:string>
+                                                                            <json:string>http://xmlns.com/foaf/0.1/familyName</json:string>
                                                                         </json:array>
                                                                     </json:map>
-                                                                    <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
+                                                                    <json:string>http://rdfs.org/sioc/ns#name</json:string>
                                                                 </json:array>
                                                             </json:map>
-                                                            <json:string>http://rdfs.org/sioc/ns#content</json:string>
+                                                            <json:string>http://www.w3.org/2004/02/skos/core#prefLabel</json:string>
                                                         </json:array>
                                                     </json:map>
                                                     <json:string key="object"><xsl:text>?</xsl:text><xsl:value-of select="$label-var-name"/></json:string>
@@ -1481,19 +1475,26 @@ exclude-result-prefixes="#all"
                                     <xsl:variable name="value-result" select="." as="element()"/>
 
                                     <xsl:call-template name="facet-value-type-load-despatch">
-                                            <xsl:with-param name="container-id" select="$container-id"/>
-                                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                                            <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                                            <xsl:with-param name="object-type" select="$object-type"/>
+                                        <xsl:with-param name="container-id" select="$container-id"/>
+                                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                                        <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                                        <xsl:with-param name="object-type" select="$object-type"/>
                                         <xsl:with-param name="value-result" select="$value-result"/>
                                     </xsl:call-template>
                                 </xsl:for-each>
                             </xsl:when>
                             <xsl:otherwise>
+                                <!-- toggle the caret direction -->
+                                <xsl:for-each select="id($container-id, ixsl:page())/h2/span[tokenize(@class, ' ') = 'caret']">
+                                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+                                </xsl:for-each>
+                
                                 <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                                     <ul class="well well-small nav nav-list">
                                         <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
-                                            <xsl:sort select="srx:binding[@name = $count-var-name]/srx:literal"/>
+                                            <!-- order by count first -->
+                                            <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>
+                                            <!-- order by label second -->
                                             <xsl:sort select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
                                             <xsl:sort select="srx:binding[@name = $object-var-name]/srx:*"/>
 
@@ -1561,6 +1562,8 @@ exclude-result-prefixes="#all"
                 <xsl:if test="srx:binding[@name = $object-var-name]/srx:literal/@datatype">
                     <input type="hidden" name="datatype" value="{srx:binding[@name = $object-var-name]/srx:literal/@datatype}"/>
                 </xsl:if>
+                <!-- store count in a hidden input -->
+                <input type="hidden" name="count" value="{srx:binding[@name = $count-var-name]/srx:literal}"/>
 
                 <input type="checkbox" name="{$object-var-name}" value="{srx:binding[@name = $object-var-name]/srx:*}"> <!-- can be srx:literal -->
                 <!-- TO-DO: reload state from URL query params -->
@@ -1624,7 +1627,9 @@ exclude-result-prefixes="#all"
         <xsl:variable name="items" as="element()*">
             <!-- sort the existing <li> items together with the new item -->
             <xsl:perform-sort select="($existing-items, $new-item)">
-                <!-- sort by the link text content (property label) -->
+                <!-- sort by count in a hidden input first -->
+                <xsl:sort select="xs:integer(input[@name = 'count']/@value)" order="descending"/>
+                <!-- sort by the link text content (value label) -->
                 <xsl:sort select="a/text()" lang="{$ldt:lang}"/>
             </xsl:perform-sort>
         </xsl:variable>

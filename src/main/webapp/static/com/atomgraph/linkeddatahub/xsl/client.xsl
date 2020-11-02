@@ -658,13 +658,6 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="expression-var-name" select="$expression-var-name"/>
                         </xsl:call-template>
                     </xsl:if>
-
-                    <!-- create a container for parallax controls in the right-nav, if they doesn't exist yet -->
-                    <xsl:if test="not(id('parallax-nav', ixsl:page()))">
-                        <xsl:result-document href="#right-nav" method="ixsl:append-content">
-                            <div id="parallax-nav"/>
-                        </xsl:result-document>
-                    </xsl:if>
                     
                     <xsl:call-template name="bs2:Parallax">
                         <xsl:with-param name="results" select="$grouped-results"/>
@@ -783,10 +776,12 @@ extension-element-prefixes="ixsl"
 
     <xsl:template name="render-facets">
         <xsl:param name="select-xml" as="document-node()"/>
+        <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables -->
+        <xsl:param name="facet-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:param name="container-id" select="'faceted-nav'" as="xs:string"/>
 
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $facet-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
         <xsl:for-each select="$bgp-triples-map">
             <xsl:call-template name="render-facet-headers-despatch">
