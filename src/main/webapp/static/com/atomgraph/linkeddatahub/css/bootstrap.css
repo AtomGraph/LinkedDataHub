@@ -101,6 +101,7 @@ button.add-typeahead { width: 219px; }
 .description { display: none; }
 object { width: 100%; height: 400px; overflow: hidden; }
 #chart-canvas { width: 100%; height: 400px; }
+#chart-canvas .google-visualization-table { width: 100%; }
 .table { display: table ; }
 .row { display: table-row ; }
 .cell { display: table-cell ; }

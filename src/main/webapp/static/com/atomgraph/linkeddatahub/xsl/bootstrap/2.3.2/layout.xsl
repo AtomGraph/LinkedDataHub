@@ -726,9 +726,12 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <xsl:if test="$ldt:base"> <!-- $lacl:Agent//@rdf:about -->
-                <div id="faceted-nav" class="well well-small">
-                    <!-- placeholder for client.xsl callbacks -->
-                </div>
+                <!-- only show parallax navigation on containers -->
+                <xsl:if test="$ac:uri = $ldt:base or key('resources', $ac:uri)/sioc:has_parent/@rdf:resource">
+                    <div id="faceted-nav" class="well well-small">
+                        <!-- placeholder for client.xsl callbacks -->
+                    </div>
+                </xsl:if>
 
                 <div id="root-children-nav">
                     <!-- placeholder for client.xsl callbacks -->
@@ -776,9 +779,12 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <div id="parallax-nav" class="well well-small sidebar-nav parallax-nav">
-                <!-- placeholder for client.xsl callbacks -->
-            </div>
+            <!-- only show parallax navigation on containers -->
+            <xsl:if test="$ac:uri = $ldt:base or key('resources', $ac:uri)/sioc:has_parent/@rdf:resource">
+                <div id="parallax-nav" class="well well-small sidebar-nav parallax-nav">
+                    <!-- placeholder for client.xsl callbacks -->
+                </div>
+            </xsl:if>
 
             <xsl:apply-templates mode="#current"/>
         </div>
@@ -1060,40 +1066,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:ContentToggle"/>
-
-    <!-- BREADCRUMB MODE -->
-
-    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:BreadCrumbList" priority="1"/>
-
-    <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
-        <xsl:param name="leaf" select="true()" as="xs:boolean" tunnel="yes"/>
-
-        <xsl:choose>
-            <xsl:when test="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)">
-                <xsl:apply-templates select="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)" mode="#current">
-                    <xsl:with-param name="leaf" select="false()" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:when test="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource">
-                <xsl:if test="doc-available((sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)[1])">
-                    <xsl:variable name="parent-doc" select="document(sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource)" as="document-node()?"/>
-                    <xsl:apply-templates select="key('resources', sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource, $parent-doc)" mode="#current">
-                        <xsl:with-param name="leaf" select="false()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-            </xsl:when>
-        </xsl:choose>
-        
-        <li>
-            <xsl:apply-templates select="." mode="apl:logo"/>
-
-            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
 
     <!-- HEADER MODE -->
         

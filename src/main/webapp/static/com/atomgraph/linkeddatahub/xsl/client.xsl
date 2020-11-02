@@ -1129,8 +1129,8 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="query-type" select="xs:anyURI(key('resources', $query-uri)/rdf:type/@rdf:resource)" as="xs:anyURI"/>
                     <xsl:variable name="query-string" select="key('resources', $query-uri)/sp:text" as="xs:string"/>
                     <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
-                    <xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>
-                    <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI"/>
+                    <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
+                    <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI?"/>
 
                     <!-- query progress bar -->
                     <xsl:result-document href="#progress-bar" method="ixsl:replace-content">

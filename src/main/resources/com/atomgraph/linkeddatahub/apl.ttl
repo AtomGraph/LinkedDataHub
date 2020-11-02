@@ -531,11 +531,6 @@ WHERE
     sp:arg1 :delimiter ;
     rdfs:isDefinedBy : .
 
-:MissingService a :MissingPropertyValue ;
-    rdfs:label "Missing service" ;
-    sp:arg1 :service ;
-    rdfs:isDefinedBy : .
-
 :MissingChartType a :MissingPropertyValue ;
     rdfs:label "Missing chart type" ;
     sp:arg1 :chartType ;

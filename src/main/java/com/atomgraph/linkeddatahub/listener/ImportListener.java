@@ -73,7 +73,7 @@ public class ImportListener implements ServletContextListener
 
     private static final Logger log = LoggerFactory.getLogger(ImportListener.class);
     
-    private static final int MAX_THREADS = 10; // TO-DO: move to config?
+    private static final int MAX_THREADS = 1; // Graph Store Protocol cannot accept concurrent write requests TO-DO: make configurable
     private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(MAX_THREADS);
     public static final javax.ws.rs.core.MediaType TEXT_CSV_TYPE = MediaType.valueOf("text/csv");
     public static final javax.ws.rs.core.MediaType VNDMS_EXCEL_TYPE = MediaType.valueOf("application/vnd.ms-excel; q=0.4");
