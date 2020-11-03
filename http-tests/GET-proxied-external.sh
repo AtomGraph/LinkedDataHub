@@ -17,21 +17,20 @@ popd > /dev/null
 
 # load the RDF vocabulary using LDH as a proxy
 
-proxied_triple_count=$(curl -k -f -v \
+proxied_triple_count=$(curl -k -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
-  --data-urlencode "uri=${END_USER_BASE_URL}" \
+  --data-urlencode "uri=http://www.w3.org/1999/02/22-rdf-syntax-ns" \
   "${END_USER_BASE_URL}" \
 | rapper -q --input ntriples --output ntriples /dev/stdin - \
 | wc -l)
 
 # load the RDF vocabulary directly
 
-direct_triple_count=$(curl -k -f -v \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+direct_triple_count=$(curl -f -s \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}" \
+  "http://www.w3.org/1999/02/22-rdf-syntax-ns" \
 | rapper -q --input turtle --output ntriples /dev/stdin -\
 | wc -l)
 

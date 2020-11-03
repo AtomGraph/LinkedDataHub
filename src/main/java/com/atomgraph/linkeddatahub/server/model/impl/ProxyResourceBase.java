@@ -30,10 +30,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,21 +65,6 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         if (securityContext.getUserPrincipal() instanceof Agent &&
             securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
             super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
-    }
-    
-    @Override
-    public Response getClientResponse()
-    {
-        // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-        if (((FileManager)getDataManager()).hasCachedModel(getWebTarget().getUri().toString()) ||
-                (getDataManager().isResolvingMapped() && getDataManager().isMapped(getWebTarget().getUri().toString()))) // read mapped URIs (such as system ontologies) from a file
-        {
-            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", getWebTarget().getUri(), ((FileManager)getDataManager()).hasCachedModel(getWebTarget().getUri().toString()));
-            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", getWebTarget().getUri(), getDataManager().isMapped(getWebTarget().getUri().toString()));
-            return Response.ok(getDataManager().loadModel(getWebTarget().getUri().toString())).build();
-        }
-        
-        return super.getClientResponse();
     }
     
     public DataManager getDataManager()
