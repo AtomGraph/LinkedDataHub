@@ -148,7 +148,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         this.securityContext = securityContext;
         this.providers = providers;
         this.system = system;
-        if (log.isDebugEnabled()) log.debug("SecurityContext: {} UserPrincipal: {} ", securityContext, securityContext.getUserPrincipal());
+        if (log.isDebugEnabled()) log.debug("UserPrincipal: {} ", securityContext.getUserPrincipal());
     }
 
     /**
@@ -986,7 +986,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
                         return DatasetFactory.create(model);
                     }
-                    else throw new NotFoundException("RDF document not available at '" + uri + " '");
+                    else throw new NotFoundException("RDF document not available at '" + uri + "'");
                 }
             }
         }
