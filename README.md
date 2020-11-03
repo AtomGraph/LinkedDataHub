@@ -4,7 +4,7 @@
 
 ![AtomGraph LinkedDataHub screenshot](https://raw.github.com/AtomGraph/LinkedDataHub/master/screenshot.png)
 
-Welcome to LinkedDataHub. We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built with a multi-purpose data-driven platform.
+Welcome to LinkedDataHub. We started the project with the intention to use it for Linked Data publishing, but gradually realized that we've built a multi-purpose data-driven platform.
 
 We are building LinkedDataHub for:
 * domain experts who work with RDF data and need an accessible low-code publishing, exploration and management tool
@@ -133,6 +133,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 * contribute a new LDH application or modify [one of ours](https://github.com/AtomGraph/LinkedDataHub-Apps)
 * work on [good first issues](contribute)
 * work on the features in our [Roadmap](wiki/Roadmap)
+* join our [community](#community)
 
 ## Test suite
 
@@ -159,4 +160,5 @@ Commercial consulting, development, and support are available from [AtomGraph](h
 ## Community
 
 * [@atomgraphhq](https://twitter.com/atomgraphhq)
+* [AtomGraph](https://www.linkedin.com/company/atomgraph/) on LinkedIn
 * W3C [Declarative Linked Data Apps Community Group](http://www.w3.org/community/declarative-apps/)
