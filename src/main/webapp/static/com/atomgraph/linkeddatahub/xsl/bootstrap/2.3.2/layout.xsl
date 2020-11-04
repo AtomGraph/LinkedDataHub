@@ -726,17 +726,6 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <xsl:if test="$ldt:base"> <!-- $lacl:Agent//@rdf:about -->
-                <!-- only show parallax navigation on containers -->
-                <xsl:if test="$ac:uri = $ldt:base or key('resources', $ac:uri)/sioc:has_parent/@rdf:resource">
-                    <div id="faceted-nav" class="well well-small">
-                        <!-- placeholder for client.xsl callbacks -->
-                    </div>
-                </xsl:if>
-
-                <div id="root-children-nav">
-                    <!-- placeholder for client.xsl callbacks -->
-                </div>
-                
                 <div id="container-nav">
                     <div class="well well-small">
                         <ul class="nav nav-list">
@@ -768,26 +757,10 @@ exclude-result-prefixes="#all">
     <!-- RIGHT NAV MODE -->
     
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri]" mode="bs2:Right">
-        <xsl:param name="id" select="'right-nav'" as="xs:string?"/>
-        <xsl:param name="class" select="'span3'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-
-            <!-- only show parallax navigation on containers -->
-            <xsl:if test="$ac:uri = $ldt:base or key('resources', $ac:uri)/sioc:has_parent/@rdf:resource">
-                <div id="parallax-nav" class="well well-small sidebar-nav parallax-nav">
-                    <!-- placeholder for client.xsl callbacks -->
-                </div>
-            </xsl:if>
-
-            <xsl:apply-templates mode="#current"/>
-        </div>
+        <xsl:apply-imports>
+            <xsl:with-param name="id" select="'right-nav'"/>
+            <xsl:with-param name="class" select="'span3'"/>
+        </xsl:apply-imports>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about = $ac:uri]" mode="bs2:Right" priority="1">

@@ -1,6 +1,6 @@
 # The Knowledge Graph management system
 
-**_LinkedDataHub_ (LDH) is open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
+**_LinkedDataHub_ (LDH) is an open source software you can use to manage data, create visualizations and build apps on RDF Knowledge Graphs.**
 
 ![AtomGraph LinkedDataHub screenshot](https://raw.github.com/AtomGraph/LinkedDataHub/master/screenshot.png)
 

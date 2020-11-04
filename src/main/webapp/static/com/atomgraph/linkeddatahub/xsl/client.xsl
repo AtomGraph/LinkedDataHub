@@ -155,13 +155,20 @@ extension-element-prefixes="ixsl"
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
         </xsl:if>
-        <xsl:if test="id('root-children-nav', ixsl:page())">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="apl:RootLoad">
-                    <xsl:with-param name="id" select="'root-children-nav'"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+        <!-- create a container for top-level document navigation, if it doesn't exist yet -->
+        <xsl:if test="not(id('root-children-nav', ixsl:page()))">
+            <xsl:result-document href="#left-nav" method="ixsl:replace-content">
+                <div id="root-children-nav"/>
+
+                <xsl:copy-of select="id('left-nav', ixsl:page())/*"/>
+            </xsl:result-document>
         </xsl:if>
+        <!-- load the top-level documents (children of root) -->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="apl:RootLoad">
+                <xsl:with-param name="id" select="'root-children-nav'"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="id('main-content', ixsl:page()) and not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
@@ -659,9 +666,29 @@ extension-element-prefixes="ixsl"
                         </xsl:call-template>
                     </xsl:if>
                     
-                    <xsl:call-template name="bs2:Parallax">
-                        <xsl:with-param name="results" select="$grouped-results"/>
-                    </xsl:call-template>
+                    <!-- create a container for facet controls in the left-nav, if it doesn't exist yet -->
+                    <xsl:if test="not(id('faceted-nav', ixsl:page()))">
+                        <xsl:result-document href="#left-nav" method="ixsl:replace-content">
+                            <div id="faceted-nav" class="well well-small"/>
+                            
+                            <xsl:copy-of select="id('left-nav', ixsl:page())/*"/>
+                        </xsl:result-document>
+                    </xsl:if>
+                    <!-- only show parallax navigation if the RDF result contains object resources -->
+                    <xsl:if test="$grouped-results/rdf:RDF/*/*[@rdf:resource]">
+                        <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
+                        <xsl:if test="not(id('parallax-nav', ixsl:page()))">
+                            <xsl:result-document href="#right-nav" method="ixsl:replace-content">
+                                <div id="parallax-nav" class="well well-small sidebar-nav parallax-nav"/>
+
+                                <xsl:copy-of select="id('right-nav', ixsl:page())/*"/>
+                            </xsl:result-document>
+                        </xsl:if>
+                        
+                        <xsl:call-template name="bs2:Parallax">
+                            <xsl:with-param name="results" select="$grouped-results"/>
+                        </xsl:call-template>
+                    </xsl:if>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>

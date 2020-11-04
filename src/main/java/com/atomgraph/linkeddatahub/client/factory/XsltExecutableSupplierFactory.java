@@ -16,6 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.client.factory;
 
+import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplierImpl;
+import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.MediaType;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import java.io.ByteArrayInputStream;

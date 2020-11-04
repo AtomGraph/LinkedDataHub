@@ -49,37 +49,32 @@ exclude-result-prefixes="#all"
         <xsl:param name="results" as="document-node()"/>
         
         <xsl:result-document href="#{$id}" method="ixsl:replace-content">
-            <!-- only show if the result contains object resources -->
-            <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource]"> <!-- can't use bnodes because labels accross DESCRIBE and SELECT results won't match -->
-                <h2 class="nav-header btn">Related results</h2>
+            <h2 class="nav-header btn">Related results</h2>
 
-                <ul class="well well-small nav nav-list" id="parallax-properties">
-                    <!-- <li> with properties will go here -->
-                </ul>
-            </xsl:if>
+            <ul class="well well-small nav nav-list" id="parallax-properties">
+                <!-- <li> with properties will go here -->
+            </ul>
         </xsl:result-document>
         
-        <xsl:if test="$results/rdf:RDF/*/*[@rdf:resource or @rdf:nodeID]">
-            <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
-            <xsl:variable name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))" as="xs:integer"/>
-            <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
-            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-            <xsl:variable name="var-name" select="substring-after(ixsl:get(ixsl:call($select-builder, 'build', []), 'variables')[1], '?')"/>
-            <xsl:variable name="select-builder" select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
-            <xsl:variable name="query-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
-            <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
-            <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
-            <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-            <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+        <xsl:variable name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))" as="xs:integer"/>
+        <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="var-name" select="substring-after(ixsl:get(ixsl:call($select-builder, 'build', []), 'variables')[1], '?')"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
+        <xsl:variable name="query-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                <xsl:call-template name="onParallaxSelectLoad">
-                    <xsl:with-param name="container-id" select="'parallax-properties'"/>
-                    <xsl:with-param name="var-name" select="$var-name"/>
-                    <xsl:with-param name="results" select="$results"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:if>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+            <xsl:call-template name="onParallaxSelectLoad">
+                <xsl:with-param name="container-id" select="'parallax-properties'"/>
+                <xsl:with-param name="var-name" select="$var-name"/>
+                <xsl:with-param name="results" select="$results"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template name="onParallaxSelectLoad">

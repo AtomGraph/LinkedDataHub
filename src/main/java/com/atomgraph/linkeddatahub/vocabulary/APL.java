@@ -76,6 +76,8 @@ public class APL
 
     public static final OntClass URISyntaxViolation = m_model.createClass(NS + "URISyntaxViolation");
     
+    public static final ObjectProperty baseUri = m_model.createObjectProperty( NS + "baseUri" );
+    
     public static final ObjectProperty violation = m_model.createObjectProperty( NS + "violation" );
     
     public static final ObjectProperty file = m_model.createObjectProperty( NS + "file" );

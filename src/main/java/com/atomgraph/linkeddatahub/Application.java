@@ -67,7 +67,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
-import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
@@ -99,6 +99,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.processor.model.Parameter;
 import com.atomgraph.processor.model.Template;
@@ -168,7 +169,9 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.xml.transform.TransformerException;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import nu.xom.XPathException;
@@ -232,7 +235,7 @@ public class Application extends ResourceConfig
     private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI uploadRoot;
+    private final URI baseURI, uploadRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
@@ -271,7 +274,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
-            servletConfig.getServletContext().getResource("/").toString(),
+            servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
@@ -305,7 +308,7 @@ public class Application extends ResourceConfig
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString,
             final String appQueryString, final String sitemapQueryString,
             final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
-            final String systemBase,
+            final String baseURIString,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
@@ -350,19 +353,26 @@ public class Application extends ResourceConfig
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
         
+        if (baseURIString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Base URI property '{}' not configured", APLC.baseUri.getURI());
+            throw new ConfigurationException(APLC.baseUri);
+        }
+        baseURI = URI.create(baseURIString);
+
         if (appQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.appQuery.getURI());
             throw new ConfigurationException(APLC.appQuery);
         }
-        appQuery = QueryFactory.create(appQueryString, systemBase);
-        appQuery.setBaseURI(systemBase); // for some reason the above is not enough
+        appQuery = QueryFactory.create(appQueryString, baseURIString);
+        appQuery.setBaseURI(baseURIString); // for some reason the above is not enough
         
         if (sitemapQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.sitemapQuery.getURI());
             throw new ConfigurationException(APLC.sitemapQuery);
-        }        
+        }
         sitemapQuery = QueryFactory.create(sitemapQueryString);
         
         if (graphDocumentQueryString == null)
@@ -530,6 +540,7 @@ public class Application extends ResourceConfig
             }
             
             xsltComp = xsltProc.newXsltCompiler();
+            xsltComp.setParameter(new QName("apl", APL.baseUri.getNameSpace(), APL.baseUri.getLocalName()), new XdmAtomicValue(baseURI));
             xsltComp.setURIResolver(dataManager); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }

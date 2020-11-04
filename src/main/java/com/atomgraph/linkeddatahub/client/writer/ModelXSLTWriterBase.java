@@ -22,7 +22,7 @@ import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APL;

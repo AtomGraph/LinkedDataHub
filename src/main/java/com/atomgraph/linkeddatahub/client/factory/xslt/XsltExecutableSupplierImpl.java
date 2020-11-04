@@ -14,16 +14,28 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.factory;
+package com.atomgraph.linkeddatahub.client.factory.xslt;
 
-import java.util.function.Supplier;
 import net.sf.saxon.s9api.XsltExecutable;
 
 /**
  *
  * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public interface XsltExecutableSupplier extends Supplier<XsltExecutable>
+public class XsltExecutableSupplierImpl implements XsltExecutableSupplier
 {
+    
+    private final XsltExecutable xsltExec;
+    
+    public XsltExecutableSupplierImpl(XsltExecutable xsltExec)
+    {
+        this.xsltExec = xsltExec;
+    }
+    
+    @Override
+    public XsltExecutable get()
+    {
+        return xsltExec;
+    }
     
 }
