@@ -301,13 +301,14 @@ exclude-result-prefixes="#all"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="bs2:Actions"/>
-
-            <xsl:apply-templates select="." mode="bs2:TypeList"/>
-
             <xsl:apply-templates select="." mode="apl:logo">
                 <xsl:with-param name="class" select="'well'"/>
             </xsl:apply-templates>
+            
+            <!-- don't show actions on the document that wraps a thing -->
+            <!--<xsl:apply-templates select="." mode="bs2:Actions"/>-->
+
+            <xsl:apply-templates select="." mode="bs2:TypeList"/>
 
             <xsl:apply-templates select="." mode="bs2:Timestamp"/>
             <xsl:text> </xsl:text>

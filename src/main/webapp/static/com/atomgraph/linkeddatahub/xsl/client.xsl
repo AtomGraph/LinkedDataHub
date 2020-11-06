@@ -2226,6 +2226,14 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
     
+    <!-- copy resource's URI into clipboard -->
+    
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-copy-uri']" mode="ixsl:onclick">
+        <!-- get resource URI from its heading title attribute -->
+        <xsl:variable name="uri" select="../../h2/a/@title" as="xs:anyURI"/>
+        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri ])"/>
+    </xsl:template>
+    
     <!-- MODAL IDENTITY TRANSFORM -->
     
     <xsl:template match="@for | @id" mode="modal" priority="1">

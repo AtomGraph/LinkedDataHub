@@ -526,8 +526,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     graph.addProperty(RDF.type, APL.Dataset).
                         addProperty(FOAF.isPrimaryTopicOf, graphDoc);
 
-                    // only add provenance metadata for documents under the namespace of this app (relative to the base URI)
-                    if (docURI != null && !getUriInfo().getBaseUri().relativize(URI.create(docURI)).isAbsolute())
+                    // add provenance metadata for documents
+                    if (docURI != null)
                     {
                         Resource doc = namedMetaModel.createResource(docURI).
                             addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).

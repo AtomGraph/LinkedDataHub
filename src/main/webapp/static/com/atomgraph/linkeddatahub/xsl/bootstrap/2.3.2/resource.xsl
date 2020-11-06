@@ -12,6 +12,7 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
+    <!ENTITY void   "http://rdfs.org/ns/void#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -28,6 +29,7 @@ xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:sp="&sp;"
 xmlns:geo="&geo;"
+xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
@@ -189,6 +191,45 @@ exclude-result-prefixes="#all">
     </xsl:template>
         
     <!-- ACTIONS -->
+
+    <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
+        <div class="pull-right">
+            <button>
+                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+                
+                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </button>
+        </div>
+
+        <!-- show action buttons for resources with URIs not relative to the base of the current app (as their graphs will not be reachable via navbar edit button) -->
+        <xsl:if test="not(starts-with(@rdf:about, $ldt:base))">
+            <div class="pull-right">
+                <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
+                    <button class="btn btn-delete" type="submit">
+                        <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                        <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
+                    </button>
+                </form>
+            </div>
+            
+            <xsl:for-each select="key('resources', @rdf:about)/void:inDataset/@rdf:resource">
+                <xsl:if test="not($ac:mode = '&ac;EditMode')">
+                    <div class="pull-right">
+                        <xsl:variable name="graph-uri" select="xs:anyURI(concat(ac:document-uri(.), '?mode=', encode-for-uri('&ac;EditMode'), '&amp;mode=', encode-for-uri('&ac;ModalMode')))" as="xs:anyURI"/>
+                        <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn'"/>
+                            </xsl:apply-templates>
+                            
+                            <input type="hidden" value="{$graph-uri}"/>
+                        </button>
+                    </div>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
     
     <xsl:template match="*" mode="bs2:Actions"/>
     
@@ -209,16 +250,22 @@ exclude-result-prefixes="#all">
                 <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                 <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
 
-                <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
-                    <xsl:when test="doc-available(ac:document-uri(.))">
+                <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
+                <!--
+                <xsl:choose>
+                    <xsl:when test="doc-available(resolve-uri('?uri=' || encode-for-uri(ac:document-uri(.)), $ldt:base))">
                         <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:TypeListItem"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="."/>
+                        <li>
+                            <xsl:apply-templates select="."/>
+                        </li>
                     </xsl:otherwise>
                 </xsl:choose>
-                
-                <xsl:value-of select="." use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+                -->
+                <li>
+                    <xsl:apply-templates select="."/>
+                </li>
             </xsl:for-each>
         </ul>
     </xsl:template>

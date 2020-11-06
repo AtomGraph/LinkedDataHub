@@ -273,9 +273,15 @@ exclude-result-prefixes="#all">
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:when>
-            <xsl:otherwise>
+            <xsl:when test="$chart-type = '&ac;BarChart'">
                 <xsl:variable name="js-statement" as="element()">
                     <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }})"/>
+                </xsl:variable>
+                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$category}' }}, vAxis: {{ title: '{$series}' }} }})"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:otherwise>
@@ -348,7 +354,20 @@ exclude-result-prefixes="#all">
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove')"/>
     </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
         
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID = 'copy-uri']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-copy-uri')"/>
+    </xsl:template>
+    
     <xsl:template match="*" mode="apl:logo" priority="0">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -367,6 +386,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- ANCHOR -->
+    <!-- TO-DO: move to external.xsl -->
 
     <!-- add ?uri= indirection on external HTTP(S) links -->
     <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
@@ -383,6 +403,20 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
+    <xsl:template match="@rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]">
+        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(if (contains(., '#')) then substring-before(., '#') else .), if (substring-after(., '#')) then concat('#', substring-after(., '#')) else ()))" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="." as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- LOOKUP -->
     
     <xsl:template name="bs2:Lookup">
@@ -532,15 +566,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="required" as="xs:boolean">
-            <xsl:variable name="type" select="../rdf:type/@rdf:resource" as="xs:anyURI?"/>
+            <xsl:variable name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
             <xsl:choose>
-                <xsl:when test="$type and doc-available(ac:document-uri($type))">
+                <xsl:when test="not(empty($types))">
                     <!-- constraint (sub)classes are in the admin ontology -->
                     <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
-                    <xsl:for-each select="document(ac:document-uri($type))">
-                        <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
-                        <xsl:sequence select="not(empty(apl:listSuperClasses($type)/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
-                    </xsl:for-each>
+                    <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
+                    <xsl:sequence select="not(empty(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="false()"/>
@@ -858,7 +890,6 @@ exclude-result-prefixes="#all">
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <div class="control-group">
             <span class="control-label">
@@ -890,7 +921,7 @@ exclude-result-prefixes="#all">
             </span>
 
             <div class="controls">
-                <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
+                <button type="button" id="button-{generate-id()}" class="btn add-value">
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>

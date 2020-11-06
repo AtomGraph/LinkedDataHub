@@ -908,7 +908,7 @@ exclude-result-prefixes="#all">
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-toggle-content')"/>
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
-
+    
     <xsl:template match="*[@rdf:about = '&aplt;Ban']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -980,13 +980,6 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-read')"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>
-
-    <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
@@ -1425,7 +1418,7 @@ exclude-result-prefixes="#all">
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $ldt:ontology) then (key('resources', key('resources', (../rdf:type/@rdf:resource, apl:listSuperClasses(../rdf:type/@rdf:resource)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
+                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $ldt:ontology) then (key('resources', key('resources', (../rdf:type/@rdf:resource, ../rdf:type/@rdf:resource/apl:listSuperClasses(.)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="template-doc" select="$template-doc"/>
@@ -1434,7 +1427,7 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="$template/*[1]" mode="bs2:PropertyControl"> <!-- [not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)] -->
                 <xsl:with-param name="template" select="$template"/>
-                <xsl:with-param name="forClass" select="$forClass"/>
+                <!--<xsl:with-param name="forClass" select="$forClass"/>-->
                 <xsl:with-param name="required" select="true()"/>
             </xsl:apply-templates>
         </fieldset>
@@ -1732,6 +1725,8 @@ exclude-result-prefixes="#all">
                 <button type="submit" class="btn btn-primary">Open</button>
             </form>
         </div>
+        
+        <xsl:next-match/>
     </xsl:template>
 
     <!-- FOOTER -->
