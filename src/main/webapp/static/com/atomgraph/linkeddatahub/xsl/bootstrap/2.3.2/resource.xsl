@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -18,8 +19,9 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:ac="&ac;"
+xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
+xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
@@ -31,9 +33,13 @@ xmlns:sp="&sp;"
 xmlns:geo="&geo;"
 xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:saxon="http://saxon.sf.net/"
-exclude-result-prefixes="#all">
+xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
+exclude-result-prefixes="#all"
+extension-element-prefixes="ixsl"
+>
     
+    <xsl:param name="lacl:Agent" as="document-node()?"/>
+
     <!-- CSS -->
     
     <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Container']" mode="apl:logo" priority="1">
@@ -203,17 +209,21 @@ exclude-result-prefixes="#all">
             </button>
         </div>
 
-        <!-- show action buttons for resources with URIs not relative to the base of the current app (as their graphs will not be reachable via navbar edit button) -->
-        <xsl:if test="not(starts-with(@rdf:about, $ldt:base))">
-            <div class="pull-right">
-                <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
-                    <button class="btn btn-delete" type="submit">
-                        <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                        <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
-                    </button>
-                </form>
-            </div>
-            
+        <xsl:variable name="logged-in" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+        <xsl:if test="$logged-in">
+            <!-- show delete button only for document resources -->
+            <xsl:if test="ac:document-uri(@rdf:about) = @rdf:about">
+                <div class="pull-right">
+                    <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
+                        <button class="btn btn-delete" type="submit">
+                            <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
+                        </button>
+                    </form>
+                </div>
+            </xsl:if>
+
             <xsl:for-each select="key('resources', @rdf:about)/void:inDataset/@rdf:resource">
                 <xsl:if test="not($ac:mode = '&ac;EditMode')">
                     <div class="pull-right">
@@ -222,7 +232,7 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
                             </xsl:apply-templates>
-                            
+
                             <input type="hidden" value="{$graph-uri}"/>
                         </button>
                     </div>

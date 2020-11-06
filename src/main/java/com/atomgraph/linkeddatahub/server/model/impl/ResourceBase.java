@@ -39,6 +39,7 @@ import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
@@ -962,7 +963,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 //            if (getUriInfo().getBaseUri().relativize(uri).isAbsolute()) // external URI resource (not relative to the base URI)
             {
             
-                // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+                // #1 check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
                 if (((FileManager)getDataManager()).hasCachedModel(uri.toString()) ||
                         (getDataManager().isResolvingMapped() && getDataManager().isMapped(uri.toString()))) // read mapped URIs (such as system ontologies) from a file
                 {
@@ -970,7 +971,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     if (log.isDebugEnabled()) log.debug("isMapped({}): {}", uri, getDataManager().isMapped(uri.toString()));
                     return DatasetFactory.create(getDataManager().loadModel(uri.toString()));
                 }
-        
+                
+                // #2 load description from local service
+                Dataset description = describe(uri);
+                if (!description.isEmpty()) return description;
+                
+                // #3 load description from the remote service
                 if (log.isDebugEnabled()) log.debug("GET request URI overridden with: {}", uri);
                 // TO-DO: MediaTypes???
                 ProxyResourceBase proxy = new ProxyResourceBase(getUriInfo(), getClientUriInfo(), getRequest(), getHttpHeaders(), getSystem().getMediaTypes(), getSecurityContext(),
@@ -1003,41 +1009,47 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
         
+        return describe(getURI());
+    }
+    
+    public Dataset describe(URI uri)
+    {
+        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
+
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
-            try (Response cr = ((SesameProtocolClient)getService().
-                getSPARQLClient()).
-                query(getQuery(), Dataset.class, getQuerySolutionMap(), new MultivaluedHashMap()))
-            {
-                return cr.readEntity(Dataset.class);
-            }
-        else
         {
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(getQuery().toString(), getQuerySolutionMap());
-            try (Response cr = getService().
-                getSPARQLClient().
-                query(pss.asQuery(), Dataset.class, new MultivaluedHashMap()))
+            // get the original query string without applied bindings
+            Query query = new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
+                getUriInfo().getBaseUri().toString()).asQuery();
+            
+            QuerySolutionMap qsm = getQuerySolutionMap();
+            if (!uri.equals(getURI())) qsm.add(SPIN.THIS_VAR_NAME, ResourceFactory.createResource(uri.toString())); // override ?this binding value with ?uri query param value
+            
+            try (Response cr = ((SesameProtocolClient)getService().getSPARQLClient()).query(query, Dataset.class, qsm, new MultivaluedHashMap()))
             {
                 return cr.readEntity(Dataset.class);
             }
         }
-    }
-    
-    /**
-     * Returns SPARQL query used to retrieve resource description.
-     * The query comes from the LDT template that has matched the current request.
-     * 
-     * @return SPARQL query
-     */
-    @Override
-    public Query getQuery()
-    {
-        if (getService().getSPARQLClient() instanceof SesameProtocolClient)
-            // if endpoint suports "Sesame protocol", send query solutions as URL parameters instead of setting in the query string
-            return new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
-            getUriInfo().getBaseUri().toString()).asQuery();
-        
-        return super.getQuery();
+        else
+        {
+            Query query = getQuery();
+            
+            if (!uri.equals(getURI()))
+            {
+                QuerySolutionMap qsm = getQuerySolutionMap();
+                qsm.add(SPIN.THIS_VAR_NAME, ResourceFactory.createResource(uri.toString())); // override ?this binding value with ?uri query param value
+
+                // apply bindings on the original query string
+                query = new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
+                    qsm, getUriInfo().getBaseUri().toString()).asQuery();
+            }
+                
+            try (Response cr = getService().getSPARQLClient().query(query, Dataset.class, new MultivaluedHashMap()))
+            {
+                return cr.readEntity(Dataset.class);
+            }
+        }
     }
     
     public Resource getArgument(Model model, Resource type)
