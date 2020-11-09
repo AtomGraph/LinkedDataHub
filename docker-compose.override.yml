@@ -5,6 +5,7 @@ services:
       - ./config/system-varnish.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
   varnish-end-user:
     image: atomgraph/varnish
+    mem_limit: 128m # caching to disk, so it shouldn't use much memory
     depends_on:
       - linkeddatahub
     environment:

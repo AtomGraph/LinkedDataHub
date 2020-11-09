@@ -2,6 +2,7 @@ version: "2.3"
 services:
   nginx:
     image: atomgraph/nginx
+    mem_limit: 128m
     command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - ${HTTP_PORT}:${HTTP_PORT} # allow Tomcat to do HTTP to HTTPS redirect
