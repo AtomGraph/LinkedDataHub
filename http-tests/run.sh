@@ -93,6 +93,8 @@ error_count=0
 export AGENT_CERT_FILE=$(mktemp)
 export AGENT_CERT_PWD="changeit"
 
+start_time=$(date +%s)
+
 run_tests "signup.sh"
 (( error_count += $? ))
 
@@ -115,14 +117,19 @@ run_tests $(find . -type f -name 'GET-proxied.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'GET-proxied-external.sh')
 (( error_count += $? ))
-#run_tests $(find ./admin/ -type f -name '*.sh')
-#(( error_count += $? ))
-#run_tests $(find ./imports/ -type f -name '*.sh')
-#(( error_count += $? ))
-#run_tests $(find ./linked-data-templates/ -type f -name '*.sh')
-#(( error_count += $? ))
-#run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
-#(( error_count += $? ))
+run_tests $(find ./admin/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./imports/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./linked-data-templates/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
+(( error_count += $? ))
+
+end_time=$(date +%s)
+runtime=$((end_time-start_time))
+
+echo "### Test duration: ${runtime} s"
 
 ### Exit
 
