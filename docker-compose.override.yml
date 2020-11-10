@@ -1,11 +1,15 @@
 version: "2.3"
 services:
   linkeddatahub:
+    ports:
+      - 8001:8000 # debugger
+    #environment:
+    #  - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
     volumes:
       - ./config/system-varnish.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
+      - ../LinkedDataHub-Apps/demo/skos/files/skos.xsl:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/demo/skos/xsl/index.xsl:ro
   varnish-end-user:
     image: atomgraph/varnish
-    mem_limit: 128m # caching to disk, so it shouldn't use much memory
     depends_on:
       - linkeddatahub
     environment:

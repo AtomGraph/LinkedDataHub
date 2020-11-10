@@ -18,11 +18,8 @@ services:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
-    ports:
-      - 8001:8000 # debugger
     environment:
-      - JPDA_ADDRESS=*:8000 # debugger port
-      - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=40.0
+      - CATALINA_OPTS=-XX:MaxRAMPercentage=75 # heap will use up to 75% of container's RAM
       - ATOMGRAPH_UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
