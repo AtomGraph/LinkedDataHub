@@ -1,4 +1,4 @@
-FROM maven:3.5.3-jdk-8 as maven
+FROM maven:3.6.3-jdk-11 as maven
 
 # download and extract Jena
 

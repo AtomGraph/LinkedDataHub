@@ -505,7 +505,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
     # import default CA certs from the JRE
 
-    export CACERTS="${JAVA_HOME}/jre/lib/security/cacerts"
+    export CACERTS="${JAVA_HOME}/lib/security/cacerts"
 
     keytool -importkeystore \
       -destkeystore "$CLIENT_TRUSTSTORE" \

@@ -21,7 +21,8 @@ services:
     ports:
       - 8001:8000 # debugger
     environment:
-      - JPDA_ADDRESS=8000 # debugger port
+      - JPDA_ADDRESS=*:8000 # debugger port
+      - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=40.0
       - ATOMGRAPH_UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"

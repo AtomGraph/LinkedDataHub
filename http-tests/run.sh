@@ -129,7 +129,7 @@ run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
 end_time=$(date +%s)
 runtime=$((end_time-start_time))
 
-echo "### Test duration: ${runtime} s"
+echo "### Failed tests: ${error_count} Test duration: ${runtime} s"
 
 ### Exit
 
