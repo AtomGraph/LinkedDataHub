@@ -520,8 +520,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                         addProperty(RDF.type, DH.Item).
                         addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
                         addProperty(SIOC.HAS_CONTAINER, namedMetaModel.createResource(getUriInfo().getBaseUriBuilder().path("graphs/").toString())).
-                        addProperty(FOAF.maker, getAgent()).
-                        addProperty(ACL.owner, getAgent()).
+                        addProperty(FOAF.maker, agent).
+                        addProperty(ACL.owner, agent).
                         addProperty(FOAF.primaryTopic, graph).
                         addLiteral(PROV.generatedAtTime, namedMetaModel.createTypedLiteral(Calendar.getInstance()));
                     graph.addProperty(RDF.type, APL.Dataset).
