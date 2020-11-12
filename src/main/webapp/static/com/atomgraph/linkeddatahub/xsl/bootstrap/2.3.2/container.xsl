@@ -1815,7 +1815,6 @@ exclude-result-prefixes="#all"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-string" select="$select-string"/>
-                <xsl:with-param name="expression-var-name" select="$new-var-name" as="xs:string?"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -1823,9 +1822,10 @@ exclude-result-prefixes="#all"
     <!-- result counts -->
     
     <xsl:template name="apl:ResultCounts">
-        <xsl:param name="expression-var-name" as="xs:string?"/>
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <!-- use the first SELECT variable as the COUNT expression -->
+        <xsl:param name="expression-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$select-xml" mode="apl:result-count">

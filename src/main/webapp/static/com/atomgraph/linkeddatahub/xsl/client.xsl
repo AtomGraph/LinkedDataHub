@@ -623,7 +623,6 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="expression-var-name" as="xs:string?"/>
 
         <!-- container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
@@ -662,7 +661,6 @@ extension-element-prefixes="ixsl"
                     <xsl:if test="id('result-counts', ixsl:page())">
                         <xsl:call-template name="apl:ResultCounts">
                             <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="expression-var-name" select="$expression-var-name"/>
                         </xsl:call-template>
                     </xsl:if>
                     
@@ -803,7 +801,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template name="render-facets">
         <xsl:param name="select-xml" as="document-node()"/>
-        <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables -->
+        <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:param name="facet-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:param name="container-id" select="'faceted-nav'" as="xs:string"/>
 

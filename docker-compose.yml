@@ -19,7 +19,7 @@ services:
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
     environment:
-      - CATALINA_OPTS=-XX:MaxRAMPercentage=75 # heap will use up to 75% of container's RAM
+      - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 # heap will use up to 75% of container's RAM
       - ATOMGRAPH_UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
