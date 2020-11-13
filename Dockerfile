@@ -140,6 +140,10 @@ RUN rm -rf webapps/* && \
 
 COPY platform/entrypoint.sh entrypoint.sh
 
+# copy SPARQL query used to split the default graph into named graphs
+
+COPY platform/split-default-graph.rq.template split-default-graph.rq.template
+
 # copy SPARQL query used to get metadata of the root app service from the system dataset
 
 COPY platform/select-root-services.rq.template select-root-services.rq.template

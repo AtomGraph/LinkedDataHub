@@ -91,7 +91,9 @@ WHERE
         OPTIONAL
           { ?agent  cert:key  ?key }
         OPTIONAL
-          { ?secretary  acl:delegates  ?agent }
+          { GRAPH ?secretaryGraph
+              { ?secretary  acl:delegates  ?agent }
+          }
         OPTIONAL
           { GRAPH ?accountGraph
               { ?account  sioc:account_of  ?agent }
