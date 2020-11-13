@@ -17,8 +17,10 @@ popd > /dev/null
 
 # GET the directly identified named graph
 
+graph_sha1=$(sha1sum "$END_USER_BASE_URL" | cut -d " " -f 1)
+
 curl -k -w "%{http_code}\n" -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/" \
+  "${END_USER_BASE_URL}graphs/${graph_sha1}/" \
 | grep -q "${STATUS_OK}"

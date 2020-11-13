@@ -15,6 +15,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
+graph_sha1=$(sha1sum "$END_USER_BASE_URL" | cut -d " " -f 1)
+
 # replace the named graph
 
 (
@@ -24,7 +26,7 @@ curl -k -w "%{http_code}\n" -f -s \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \
   --data-binary @- \
-  "${END_USER_BASE_URL}graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/" <<EOF
+  "${END_USER_BASE_URL}graphs/${graph_sha1}/" <<EOF
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/default-predicate> "named object PUT" .
 <${END_USER_BASE_URL}named-subject-put> <http://example.com/another-predicate> "another named object PUT" .
 EOF
@@ -36,7 +38,7 @@ EOF
 curl -k -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/" \
+  "${END_USER_BASE_URL}graphs/${graph_sha1}/" \
 | tr -d '\n' \
 | grep '"named object PUT"' \
 | grep -v '"named object"' > /dev/null

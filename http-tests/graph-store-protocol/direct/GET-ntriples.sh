@@ -15,12 +15,14 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
+graph_sha1=$(sha1sum "$END_USER_BASE_URL" | cut -d " " -f 1)
+
 # use conneg to request N-Triples as the preferred format
 
 curl -k -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}graphs/173eedbd-3d3b-45c9-b021-17d4e1e03009/" \
+  "${END_USER_BASE_URL}graphs/${graph_sha1}/" \
 | rapper -q --input ntriples --output ntriples /dev/stdin - \
 | tr -s '\n' '\t' \
 | grep "<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${END_USER_BASE_URL}ns/default#Root>"
