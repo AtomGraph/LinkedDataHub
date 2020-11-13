@@ -15,7 +15,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-graph_sha1=$(echo "$END_USER_BASE_URL" | sha1sum | cut -d " " -f 1)
+graph_sha1=$(echo -n "$END_USER_BASE_URL" | sha1sum | cut -d " " -f 1)
 
 # delete graph (of the Root document)
 
