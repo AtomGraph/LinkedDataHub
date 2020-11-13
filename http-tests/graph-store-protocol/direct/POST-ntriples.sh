@@ -15,7 +15,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-graph_sha1=$(sha1sum "$END_USER_BASE_URL" | cut -d " " -f 1)
+graph_sha1=$(echo "$END_USER_BASE_URL" | sha1sum | cut -d " " -f 1)
 
 # append new triples to the named graph
 
