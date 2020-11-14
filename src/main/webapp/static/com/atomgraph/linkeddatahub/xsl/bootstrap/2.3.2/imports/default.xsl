@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY java   "http://xml.apache.org/xalan/java/">
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -17,7 +16,7 @@
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
@@ -37,7 +36,6 @@ xmlns:spin="&spin;"
 xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
 
     <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
@@ -48,10 +46,127 @@ exclude-result-prefixes="#all">
     <xsl:param name="uri" as="xs:anyURI"/>
     <!-- <xsl:param name="lapp:Application" as="document-node()?"/> -->
 
+    <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        
+        <xsl:sequence select="apl:listSuperClasses($class, false())"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+        
+        <xsl:if test="doc-available(ac:document-uri($class))">
+            <xsl:variable name="document" select="document(ac:document-uri($class))" as="document-node()"/>
+
+            <xsl:for-each select="$document">
+                <xsl:variable name="superclasses" select="key('resources', $class)/rdfs:subClassOf/@rdf:resource[not(. = $class)]" as="attribute()*"/>
+                <xsl:sequence select="$superclasses"/>
+
+                <xsl:if test="not($direct)">
+                    <xsl:for-each select="$superclasses">
+                        <xsl:sequence select="apl:listSuperClasses(., $direct)"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+    
+    <xsl:function name="apl:ontologyImports" as="attribute()*" cache="yes">
+        <xsl:param name="ontology" as="xs:anyURI"/>
+        
+        <xsl:sequence select="apl:ontologyImports($ontology, false())"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:ontologyImports" as="attribute()*" cache="yes">
+        <xsl:param name="ontology" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+
+        <xsl:if test="doc-available($ontology)">
+            <xsl:variable name="document" select="document($ontology)" as="document-node()"/>
+            <xsl:for-each select="$document">
+                <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
+                <xsl:sequence select="$imports"/>
+                
+                <xsl:if test="not($direct)">
+                    <xsl:for-each select="$imports">
+                        <xsl:sequence select="apl:ontologyImports(., $direct)"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+
+    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+
+        <xsl:sequence select="apl:listSubClasses($class, false(), $ldt:ontology)"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+        <xsl:param name="ontology" as="xs:anyURI"/>
+        
+        <xsl:variable name="ontologies" select="$ontology, apl:ontologyImports($ontology)" as="xs:anyURI*"/>
+        <xsl:variable name="ontology-docs" as="document-node()*">
+            <xsl:for-each select="$ontologies">
+                <xsl:if test="doc-available(.)">
+                    <xsl:sequence select="document(.)"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:variable>
+        
+        <xsl:sequence select="apl:listSubClassesInDocuments($class, $direct, $ontology-docs)"/>
+    </xsl:function>
+    
+    <!-- this is a different, not follow-your-nose Linked Data search as in apl:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
+    <!-- start with the $ldt:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
+    <xsl:function name="apl:listSubClassesInDocuments" as="attribute()*" cache="yes">
+        <xsl:param name="class" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+        <xsl:param name="ontology-docs" as="document-node()*"/>
+
+        <xsl:for-each select="$ontology-docs">
+            <xsl:variable name="subclasses" select="key('resources-by-subclass', $class, .)/@rdf:about[not(. = $class)]" as="attribute()*"/>
+            <xsl:sequence select="$subclasses"/>
+
+            <xsl:for-each select="$subclasses">
+                <xsl:sequence select="apl:listSubClassesInDocuments(., $direct, $ontology-docs)"/>
+            </xsl:for-each>
+        </xsl:for-each>
+    </xsl:function>
+    
+    <xsl:function name="apl:listSuperTemplates" as="attribute()*" cache="yes">
+        <xsl:param name="template" as="xs:anyURI"/>
+        
+        <xsl:sequence select="apl:listSuperTemplates($template, false())"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:listSuperTemplates" as="attribute()*" cache="yes">
+        <xsl:param name="template" as="xs:anyURI"/>
+        <xsl:param name="direct" as="xs:boolean"/>
+        
+        <xsl:if test="doc-available(ac:document-uri($template))">
+            <xsl:variable name="document" select="document(ac:document-uri($template))" as="document-node()"/>
+
+            <xsl:for-each select="$document">
+                <xsl:variable name="supertemplates" select="key('resources', $template)/ldt:extends/@rdf:resource" as="attribute()*"/>
+                <xsl:sequence select="$supertemplates"/>
+
+                <xsl:if test="not($direct)">
+                    <xsl:for-each select="$supertemplates">
+                        <xsl:sequence select="apl:listSuperTemplates(., $direct)"/>
+                    </xsl:for-each>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:function>
+    
     <!-- CLIENT-SIDE FUNCTIONS -->
     
-    <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString') to get SPARQL string -->
-    <xsl:function name="ac:paginate" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString', []) to get SPARQL string -->
+    <xsl:function name="ac:paginate" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="select-builder"/> <!-- as SelectBuilder -->
         <xsl:param name="limit" as="xs:integer?"/>
         <xsl:param name="offset" as="xs:integer?"/>
@@ -60,25 +175,25 @@ exclude-result-prefixes="#all">
 
         <xsl:choose>
             <xsl:when test="$order-by and not(empty($desc))">
-                <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', $limit), 'offset', $offset), 'orderBy', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $order-by), $desc))"/>
+                <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ]), 'orderBy', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering',  [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]), $desc ]) ])"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:call($select-builder, 'limit', $limit), 'offset', $offset)"/>
+                <xsl:sequence select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
 
     <!-- format external URLs in DataTable as HTML links with ?uri= indirection (which leads back to the app in LD browser mode -->
-    <xsl:template match="@rdf:*[local-name() = 'about'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'about'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'" priority="1">
+    <xsl:template match="@rdf:*[local-name() = 'about'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'about'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="1">
         "&lt;a href=\"?uri=<xsl:value-of select="encode-for-uri(.)"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
 
     <!-- format URLs in DataTable as HTML links -->
-    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         "&lt;a href=\"<xsl:value-of select="."/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
     
-    <xsl:function name="ac:rdf-data-table" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:function name="ac:rdf-data-table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -108,7 +223,7 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
-    <xsl:function name="ac:sparql-results-data-table" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:function name="ac:sparql-results-data-table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -128,7 +243,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
     
     <!-- TO-DO: make 'data-table' configurable -->
-    <xsl:template name="ac:draw-chart" use-when="system-property('xsl:product-name') = 'Saxon-CE'">
+    <xsl:template name="ac:draw-chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -158,9 +273,15 @@ exclude-result-prefixes="#all">
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:when>
-            <xsl:otherwise>
+            <xsl:when test="$chart-type = '&ac;BarChart'">
                 <xsl:variable name="js-statement" as="element()">
                     <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }})"/>
+                </xsl:variable>
+                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$category}' }}, vAxis: {{ title: '{$series}' }} }})"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:otherwise>
@@ -191,7 +312,7 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="ac:object-label($object)"/>
     </xsl:function>
     
-    <xsl:function name="apl:subClasses" as="node()*">
+<!--    <xsl:function name="apl:subClasses" as="node()*">
         <xsl:param name="class" as="xs:anyURI*"/>
         <xsl:param name="document" as="document-node()"/>
         
@@ -211,7 +332,7 @@ exclude-result-prefixes="#all">
             <xsl:sequence select="apl:superClasses($superclasses[not(. = $class)], $document)"/>
         </xsl:if>
         <xsl:sequence select="key('resources', $class, $document)/@rdf:about, $superclasses"/>
-    </xsl:function>
+    </xsl:function>-->
     
     <xsl:function name="lapp:base" as="node()?">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -233,7 +354,20 @@ exclude-result-prefixes="#all">
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove')"/>
     </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
         
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-edit')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID = 'copy-uri']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-copy-uri')"/>
+    </xsl:template>
+    
     <xsl:template match="*" mode="apl:logo" priority="0">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -252,6 +386,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- ANCHOR -->
+    <!-- TO-DO: move to external.xsl -->
 
     <!-- add ?uri= indirection on external HTTP(S) links -->
     <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
@@ -268,6 +403,20 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
+    <xsl:template match="@rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]">
+        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(if (contains(., '#')) then substring-before(., '#') else .), if (substring-after(., '#')) then concat('#', substring-after(., '#')) else ()))" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="title" select="." as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- LOOKUP -->
     
     <xsl:template name="bs2:Lookup">
@@ -341,8 +490,8 @@ exclude-result-prefixes="#all">
                                                 <xsl:attribute name="value" select="."/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <xsl:value-of use-when="system-property('xsl:product-name') = 'Saxon-CE'" select="resolve-uri(concat('/', ixsl:call(ixsl:window(), 'generateUUID')), $ac:uri)"/>
-                                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'" select="resolve-uri(concat('/', xs:string(uuid:randomUUID())), $ac:uri)"/>
+                                                <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select="resolve-uri(concat('/', ixsl:call(ixsl:window(), 'generateUUID', [])), $ac:uri)"/>
+                                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'" select="resolve-uri(concat('/', ac:uuid()), $ac:uri)"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
                                     </xsl:attribute>
@@ -416,7 +565,20 @@ exclude-result-prefixes="#all">
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = $this]) and (if (../rdf:type/@rdf:resource and $ac:sitemap) then (key('resources', key('resources', (../rdf:type/@rdf:resource, apl:superClasses(../rdf:type/@rdf:resource, $ac:sitemap)), $ac:sitemap)/spin:constraint/(@rdf:resource|@rdf:nodeID), $ac:sitemap)[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = $this]) else true())" as="xs:boolean"/>
+        <xsl:param name="required" as="xs:boolean">
+            <xsl:variable name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
+            <xsl:choose>
+                <xsl:when test="not(empty($types))">
+                    <!-- constraint (sub)classes are in the admin ontology -->
+                    <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
+                    <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
+                    <xsl:sequence select="not(empty(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="false()"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
@@ -455,7 +617,7 @@ exclude-result-prefixes="#all">
                         </xsl:otherwise>
                     </xsl:choose>
 
-                    <xsl:value-of use-when="system-property('xsl:product-name') = 'Saxon-CE'" select="local-name()"/>
+                    <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select="local-name()"/>
                 </label>
             </xsl:if>
             
@@ -469,7 +631,7 @@ exclude-result-prefixes="#all">
                 <xsl:if test="not($required)">
                     <div class="btn-group pull-right">
                         <button type="button" title="Remove this statement">
-                            <xsl:apply-templates select="key('resources', 'remove', document('../translations.rdf'))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', 'remove', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn btn-small pull-right'"/>
                             </xsl:apply-templates>
                         </button>
@@ -541,18 +703,19 @@ exclude-result-prefixes="#all">
                             <xsl:if test="$forClass">
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
-                                    <xsl:when test="system-property('xsl:product-name') = 'SAXON'">
+                                    <xsl:when test="doc-available(ac:document-uri($forClass))">
+                                        <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
-                                        <xsl:for-each select="distinct-values(apl:subClasses($forClass, $ac:sitemap))[not(. = $forClass)]">
+                                        <xsl:for-each select="distinct-values(apl:listSubClasses($forClass))[not(. = $forClass)]">
                                             <input type="hidden" class="forClass" value="{.}"/>
                                         </xsl:for-each>
                                         <!-- bs2:Constructor sets forClass -->
-                                        <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="bs2:Constructor">
-                                            <xsl:with-param name="subclasses" select="true()"/>
+                                        <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
+                                            <xsl:with-param name="subclasses" select="$subclasses"/>
                                         </xsl:apply-templates>
                                     </xsl:when>
                                     <xsl:otherwise>
-                                        <!-- $ac:sitemap not available for Saxon-CE -->
+                                        <!-- $forClass URI cannot be resolved to an RDF document -->
                                         <input type="hidden" class="forClass" value="{$forClass}"/>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -560,8 +723,8 @@ exclude-result-prefixes="#all">
                                 <xsl:if test="not($type = 'hidden') and $type-label">
                                     <span class="help-inline">
                                         <xsl:choose>
-                                            <xsl:when test="system-property('xsl:product-name') = 'SAXON'"> <!-- server-side Saxon has access to the sitemap ontology -->
-                                                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="ac:label"/>
+                                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
+                                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                                             </xsl:when>
                                             <xsl:otherwise> <!-- client-side Saxon-CE does not have access to the sitemap ontology -->
                                                 <xsl:value-of select="$forClass"/>
@@ -681,18 +844,18 @@ exclude-result-prefixes="#all">
         <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
-            <xsl:when test="system-property('xsl:product-name') = 'SAXON' and not($forClass = '&rdfs;Resource')">
+            <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
+                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
-                <xsl:for-each select="distinct-values(apl:subClasses($forClass, $ac:sitemap))[not(. = $forClass)]">
+                <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
                 </xsl:for-each>
                 <!-- bs2:Constructor sets forClass -->
-                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="bs2:Constructor">
-                    <xsl:with-param name="subclasses" select="true()"/>
+                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
+                    <xsl:with-param name="subclasses" select="$subclasses"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
-                <!-- $ac:sitemap not available for Saxon-CE -->
                 <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by ?Type FILTER -->
             </xsl:otherwise>
         </xsl:choose>
@@ -700,18 +863,18 @@ exclude-result-prefixes="#all">
         <xsl:if test="not($type = 'hidden') and $type-label">
             <span class="help-inline">
                 <xsl:choose>
-                    <xsl:when test="system-property('xsl:product-name') = 'SAXON'"> <!-- server-side Saxon has access to the sitemap ontology -->
+                    <xsl:when test="doc-available(ac:document-uri($forClass))">
                         <xsl:choose>
                             <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                            <xsl:when test="key('resources', $forClass, $ac:sitemap)">
-                                <xsl:apply-templates select="key('resources', $forClass, $ac:sitemap)" mode="ac:label"/>
+                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
+                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:when>
-                    <xsl:otherwise> <!-- client-side Saxon-CE does not have access to the sitemap ontology -->
+                    <xsl:otherwise>
                         <xsl:value-of select="$forClass"/>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -727,7 +890,6 @@ exclude-result-prefixes="#all">
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <div class="control-group">
             <span class="control-label">
@@ -749,7 +911,7 @@ exclude-result-prefixes="#all">
                                 </option>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:for-each use-when="system-property('xsl:product-name') = 'Saxon-CE'" select=".">
+                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select=".">
                             <option value="{current-grouping-key()}">
                                 <xsl:value-of select="local-name()"/>
                             </option>
@@ -759,8 +921,8 @@ exclude-result-prefixes="#all">
             </span>
 
             <div class="controls">
-                <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
-                    <xsl:apply-templates select="key('resources', 'add', document('../translations.rdf'))" mode="apl:logo">
+                <button type="button" id="button-{generate-id()}" class="btn add-value">
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>
                 </button>
@@ -772,15 +934,16 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about]" mode="bs2:Constructor">
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
-        <xsl:param name="subclasses" select="false()" as="xs:boolean"/>
+        <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
-        <!-- this is used for typeahead FILTER ?Type -->
+        <!-- this is used for typeahead's FILTER ?Type -->
         <input type="hidden" class="forClass" value="{$forClass}"/>
 
+        <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
         <xsl:choose>
-            <xsl:when test="$subclasses and apl:subClasses($forClass, $ac:sitemap)">
+            <xsl:when test="not(empty($subclasses))">
                 <div class="btn-group">
                     <button type="button">
                         <xsl:choose>
@@ -799,17 +962,13 @@ exclude-result-prefixes="#all">
                         </xsl:choose>
                     </button>
                     <ul class="dropdown-menu">
-                        <xsl:variable name="self-and-subclasses" select="(., key('resources', apl:subClasses($forClass, $ac:sitemap), $ac:sitemap))" as="element()*"/>
+                        <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
 
                         <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
                         <xsl:for-each select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]">
                             <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                             
-                            <!-- we are in $ac:sitemap context already -->
-                            <xsl:variable name="action" as="xs:anyURI?">
-                                <xsl:value-of select="key('resources', key('resources', key('resources', key('resources', @rdf:about)/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
-                            </xsl:variable>
-
+                            <xsl:variable name="action" select="$self-and-subclasses/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
                             <li>
                                 <button type="button" class="btn add-constructor" title="{@rdf:about}">
                                     <xsl:if test="$id">
@@ -825,22 +984,20 @@ exclude-result-prefixes="#all">
                 </div>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:variable name="action" as="xs:anyURI?">
-                    <xsl:for-each select="$ac:sitemap">
-                        <xsl:value-of select="key('resources', key('resources', key('resources', key('resources', $forClass)/rdfs:subClassOf/@rdf:*)/owl:allValuesFrom/@rdf:*)/rdfs:subClassOf/@rdf:*)/owl:hasValue/@rdf:resource"/>
-                    </xsl:for-each>
-                </xsl:variable>
+                <xsl:variable name="self" select="key('resources', $forClass, document(ac:document-uri($forClass)))" as="element()*"/>
+                <!-- won't traverse blank nodes, only URI resources -->
+                <xsl:variable name="action" select="$self/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
                 <button type="button" title="{@rdf:about}">
                     <xsl:if test="$id">
                         <xsl:attribute name="id" select="$id"/>
                     </xsl:if>
-                    
+
                     <xsl:choose>
                         <xsl:when test="$with-label">
                             <xsl:apply-templates select="." mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn add-constructor'"/>
                             </xsl:apply-templates>
-                            
+
                             <xsl:apply-templates select="." mode="ac:label"/>
                         </xsl:when>
                         <xsl:otherwise>

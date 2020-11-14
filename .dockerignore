@@ -1,5 +1,9 @@
 config
-docker
+hooks
+certs
+data
 http-tests
-selenium
+node
+node_modules
 target
+uploads

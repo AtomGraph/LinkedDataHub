@@ -4,7 +4,7 @@ services:
   - docker
 
 env:
-  - ASF_ARCHIVE=http://archive.apache.org/dist/ JENA_VERSION=3.13.1 JENA_HOME="${TRAVIS_BUILD_DIR}/apache-jena-${JENA_VERSION}" PATH="$PATH:$JENA_HOME/bin" BASE_URI=https://localhost:4443/ OWNER_KEY_PASSWORD=changeit
+  - ASF_ARCHIVE=http://archive.apache.org/dist/ JENA_VERSION=3.13.1 JENA_HOME="${TRAVIS_BUILD_DIR}/apache-jena-${JENA_VERSION}" PATH="$PATH:$JENA_HOME/bin" BASE_URI=https://localhost:4443/ OWNER_CERT_PWD=changeit SECRETARY_CERT_PWD=LinkedDataHub
 
 before_install:
   - find ./scripts -name "*.sh" -exec chmod +x {} \;
@@ -14,17 +14,19 @@ before_install:
   - docker build -t atomgraph/linkeddatahub .
 
 install:
+  - sudo apt-get install -qq raptor2-utils
   - ./http-tests/print-env-file.sh > .env
-  - docker-compose up -d # run in the background
+  -  docker-compose -f docker-compose.yml up -d # do not use docker-compose.override.yml with Varnish for tests; run in the background
 
 before_script:
-  - while ! curl -w "%{http_code}\n" -k -s "${BASE_URI}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
-  - openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_KEY_PASSWORD" -passout pass:"$OWNER_KEY_PASSWORD" # generate a copy of the owner PEM cert - seems to differ with different openssl versions?
+  - while ! curl -w "%{http_code}\n" -k -s "$BASE_URI" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+  - openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_CERT_PWD" -passout pass:"$OWNER_CERT_PWD" # re-generate the owner PEM cert - seems to differ with different openssl versions?
+  - openssl pkcs12 -in ./certs/secretary.p12 -out ./http-tests/secretary.p12.pem -passin pass:"$SECRETARY_CERT_PWD" -passout pass:"$SECRETARY_CERT_PWD" # re-generate the secretary PEM cert - seems to differ with different openssl versions?
   - pushd .
   - cd http-tests
 
 script:
-  - ./run.sh "$PWD/owner.p12.pem" "$OWNER_KEY_PASSWORD" # run tests with owner certificate/password
+  - ./run.sh "$PWD/owner.p12.pem" "$OWNER_CERT_PWD" "$PWD/secretary.p12.pem" "$SECRETARY_CERT_PWD" # run tests
 
 after_script:
   - popd

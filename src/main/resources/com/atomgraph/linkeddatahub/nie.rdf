@@ -1,0 +1,395 @@
+<?xml version="1.0"?>
+<!--
+#
+# Copyright (c) 2008 NEPOMUK Consortium
+# Copyright (c) 2011 Sebastian Trueg <trueg@kde.org>
+# Copyright (c) 2012 di.me Consortium
+# 
+# All rights reserved, licensed under either CC-BY or BSD.
+#
+# You are free:
+#  * to Share - to copy, distribute and transmit the work
+#  * to Remix - to adapt the work
+# Under the following conditions:
+#  * Attribution - You must attribute the work in the manner specified by the author
+#    or licensor (but not in any way that suggests that they endorse you or your use 
+#    of the work).
+#
+# Redistribution and use in source and binary forms, with or without modification, 
+# are permitted provided that the following conditions are met:
+#  * Redistributions of source code must retain the above copyright notice, this 
+#    list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright notice, this 
+#    list of conditions and the following disclaimer in the documentation and/or 
+#    other materials provided with the distribution.
+#  * Neither the names of the authors nor the names of contributors may
+#    be used to endorse or promote products derived from this ontology without 
+#    specific prior written permission.
+#
+# THIS ONTOLOGY IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS ONTOLOGY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+-->
+<rdf:RDF xmlns:nao="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsd="http://www.w3.org/2001/XMLSchema#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:nie="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#" xmlns:nrl="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/">
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#characterSet">
+		<rdfs:comment>Characterset in which the content of the InformationElement was created. Example: ISO-8859-1, UTF-8. One of the registered character sets at http://www.iana.org/assignments/character-sets. This characterSet is used to interpret any textual parts of the content. If more than one characterSet is used within one data object, use more specific properties.</rdfs:comment>
+		<rdfs:domain>
+			<rdfs:Class rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement">
+				<rdfs:comment>A unit of content the user works with. This is a superclass for all interpretations of a DataObject.</rdfs:comment>
+				<rdfs:label>InformationElement</rdfs:label>
+				<rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource" />
+			</rdfs:Class>
+		</rdfs:domain>
+		<rdfs:label>characterSet</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#rootElementOf">
+		<rdfs:comment>DataObjects extracted from a single data source are organized into a containment tree. This property links the root of that tree with the datasource it has been extracted from</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>rootElementOf</rdfs:label>
+		<rdfs:range>
+			<rdfs:Class rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataSource">
+				<rdfs:comment>A superclass for all entities from which DataObjects can be extracted. Each entity represents a native application or some other system that manages information that may be of interest to the user of the Semantic Desktop. Subclasses may include FileSystems, Mailboxes, Calendars, websites etc. The exact choice of subclasses and their properties is considered application-specific. Each data extraction application is supposed to provide it's own DataSource ontology. Such an ontology should contain supported data source types coupled with properties necessary for the application to gain access to the data sources.  (paths, urls, passwords  etc...)</rdfs:comment>
+				<rdfs:label>DataSource</rdfs:label>
+				<rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource" />
+			</rdfs:Class>
+		</rdfs:range>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#informationElementDate">
+		<rdfs:comment>A point or period of time associated with an event in the lifecycle of an Information Element. A common superproperty for all date-related properties of InformationElements in the NIE Framework.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>informationElementDate</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/date" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#legal">
+		<rdfs:comment>A common superproperty for all properties that point at legal information about an Information Element</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>legal</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/rights" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#isStoredAs">
+		<rdfs:comment>Links the information element with the DataObject it is stored in.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>isStoredAs</rdfs:label>
+		<rdfs:range>
+			<rdfs:Class rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject">
+				<rdfs:comment>A unit of data that is created, annotated and processed on the user desktop. It represents a native structure the user works with. The usage of the term 'native' is important. It means that a DataObject can be directly mapped to a data structure maintained by a native application. This may be a file, a set of files or a part of a file. The granularity depends on the user. This class is not intended to be instantiated by itself. Use more specific subclasses.</rdfs:comment>
+				<rdfs:label>DataObject</rdfs:label>
+				<rdfs:subClassOf rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource" />
+			</rdfs:Class>
+		</rdfs:range>
+		<nrl:inverseProperty>
+			<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#interpretedAs">
+				<rdfs:comment>Links the DataObject with the InformationElement it is interpreted as.</rdfs:comment>
+				<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+				<rdfs:label>interpretedAs</rdfs:label>
+				<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+				<nrl:inverseProperty rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#isStoredAs" />
+			</rdf:Property>
+		</nrl:inverseProperty>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#language">
+		<rdfs:comment>Language the InformationElement is expressed in. This property applies to the data object in its entirety. If the data object is divisible into parts expressed in multiple languages - more specific properties should be used. Users are encouraged to use the two-letter code specified in the RFC 3066</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>language</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/language" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#copyright">
+		<rdfs:comment>Content copyright</rdfs:comment>
+		<rdfs:label>copyright</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#legal" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/accessRights" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#modified">
+		<rdfs:comment>Date the DataObject was changed in any way.  Note that this date refers to the modification of the DataObject itself (i.e. the physical representation). Compare with nie:contentModified.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>modified</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#created">
+		<rdfs:comment>Date of creation of the DataObject. Note that this date refers to the creation of the DataObject itself (i.e. the physical representation). Compare with nie:contentCreated.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>created</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/created" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#created" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#modified" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#lastModified">
+		<rdfs:comment>Last modification date of the DataObject. Note that this date refers to the modification of the DataObject itself (i.e. the physical representation). Compare with nie:contentLastModified.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>lastModified</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/date" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#lastModified" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#modified" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#mimeType">
+		<rdfs:comment>The mime type of the resource, if available. Example: "text/plain". See http://www.iana.org/assignments/media-types/. This property applies to data objects that can be described with one mime type. In cases where the object as a whole has one mime type, while it's parts have other mime types, or there is no mime type that can be applied to the object as a whole, but some parts of the content have mime types - use more specific properties.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>mimeType</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#version">
+		<rdfs:comment>The current version of the given data object. Exact semantics is unspecified at this level. Use more specific subproperties if needed.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>version</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/hasVersion" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#links">
+		<rdfs:comment>A linking relation. A piece of content links/mentions a piece of data</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>links</rdfs:label>
+		<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:subPropertyOf>
+			<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#relatedTo">
+				<rdfs:comment>A common superproperty for all relations between a piece of content and other pieces of data (which may be interpreted as other pieces of content).</rdfs:comment>
+				<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+				<rdfs:label>relatedTo</rdfs:label>
+				<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+				<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/relation" />
+			</rdf:Property>
+		</rdfs:subPropertyOf>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#generator">
+		<rdfs:comment>Software used to "generate" the contents. E.g. a word processor name.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>generator</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#isPartOf">
+		<rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#FunctionalProperty" />
+		<rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#DefiningProperty" />
+		<rdfs:comment>Generic property used to express containment relationships between DataObjects. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of DataObjects to use those specific subproperties. Note to the developers: Please be aware of the distinction between containment relation and provenance. The isPartOf relation models physical containment, a nie:DataObject (e.g. an nfo:Attachment) is a 'physical' part of an nie:InformationElement (a nmo:Message). Also, please note the difference between physical containment (isPartOf) and logical containment (isLogicalPartOf) the former has more strict meaning. They may occur independently of each other.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>isPartOf</rdfs:label>
+		<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/isPartOf" />
+		<nrl:inverseProperty>
+			<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#hasPart">
+				<rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#InverseFunctionalProperty" />
+				<rdfs:comment>Generic property used to express 'physical' containment relationships between DataObjects. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of DataObjects to use those specific subproperties. Note to the developers: Please be aware of the distinction between containment relation and provenance. The hasPart relation models physical containment, an InformationElement (a nmo:Message) can have a 'physical' part (an nfo:Attachment).  Also, please note the difference between physical containment (hasPart) and logical containment (hasLogicalPart) the former has more strict meaning. They may occur independently of each other.</rdfs:comment>
+				<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+				<rdfs:label>hasPart</rdfs:label>
+				<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+				<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#relatedTo" />
+				<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/hasPart" />
+				<nrl:inverseProperty rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#isPartOf" />
+				<nao:userVisible rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</nao:userVisible>
+			</rdf:Property>
+		</nrl:inverseProperty>
+		<nao:userVisible rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</nao:userVisible>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#disclaimer">
+		<rdfs:comment>A disclaimer</rdfs:comment>
+		<rdfs:label>disclaimer</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#legal" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#generatorOption">
+		<rdfs:comment>A common superproperty for all settings used by the generating software. This may include compression settings, algorithms, autosave, interlaced/non-interlaced etc. Note that this property has no range specified and therefore should not be used directly. Always use more specific properties.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>generatorOption</rdfs:label>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#description">
+		<rdfs:comment>A textual description of the resource. This property may be used for any metadata fields that provide some meta-information or comment about a resource in the form of a passage of text. This property is not to be confused with nie:plainTextContent. Use more specific subproperties wherever possible.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>description</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/description" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#description" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#contentCreated">
+		<rdfs:comment>The date of the content creation. This may not necessarily be equal to the date when the DataObject (i.e. the physical representation) itself was created. Compare with nie:created property.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>contentCreated</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#informationElementDate" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#created" />
+		<rdfs:subPropertyOf>
+			<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#contentModified">
+				<rdfs:comment>The date of a modification of the original content (not its corresponding DataObject or local copy). Compare with nie:modified.</rdfs:comment>
+				<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+				<rdfs:label>modified</rdfs:label>
+				<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+			</rdf:Property>
+		</rdfs:subPropertyOf>
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#title">
+		<rdfs:comment>Name given to an InformationElement</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>title</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/title" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#prefLabel" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#lastRefreshed">
+		<rdfs:comment>Date when information about this data object was retrieved (for the first time) or last refreshed from the data source. This property is important for metadata extraction applications that don't receive any notifications of changes in the data source and have to poll it regularly. This may lead to information becoming out of date. In these cases this property may be used to determine the age of data, which is an important element of it's dependability. </rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>lastRefreshed</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/date" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#dataSource">
+		<rdfs:comment>Marks the provenance of a DataObject, what source does a data object come from.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>dataSource</rdfs:label>
+		<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataSource" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/source" />
+		<nrl:minCardinality>1</nrl:minCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#depends">
+		<rdfs:comment>Dependency relation. A piece of content depends on another piece of data in order to be properly understood/used/interpreted.</rdfs:comment>
+		<rdfs:label>depends</rdfs:label>
+		<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#relatedTo" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#contentLastModified">
+		<rdfs:comment>The date of the last modification of the original content (not its corresponding DataObject or local copy). Compare with nie:lastModified.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>contentLastModified</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#informationElementDate" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#lastModified" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#contentModified" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#keyword">
+		<rdfs:comment>Adapted DublinCore: The topic of the content of the resource, as keyword. No sentences here. Recommended best practice is to select a value from a controlled vocabulary or formal classification scheme. </rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>keyword</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#isLogicalPartOf">
+		<rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#DefiningProperty" />
+		<rdfs:comment>Generic property used to express 'logical' containment relationships between DataObjects. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of InformationElement to use those specific subproperties. Note the difference between 'physical' containment (isPartOf) and logical containment (isLogicalPartOf)</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>isLogicalPartOf</rdfs:label>
+		<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/isPartOf" />
+		<nrl:inverseProperty>
+			<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#hasLogicalPart">
+				<rdfs:comment>Generic property used to express 'logical' containment relationships between InformationElements. NIE extensions are encouraged to provide more specific subproperties of this one. It is advisable for actual instances of InformationElement to use those specific subproperties. Note the difference between 'physical' containment (hasPart) and logical containment (hasLogicalPart)</rdfs:comment>
+				<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+				<rdfs:label>hasLogicalPart</rdfs:label>
+				<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+				<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/hasPart" />
+				<nrl:inverseProperty rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#isLogicalPartOf" />
+			</rdf:Property>
+		</nrl:inverseProperty>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#identifier">
+		<rdfs:comment>An unambiguous reference to the InformationElement within a given context. Recommended best practice is to identify the resource by means of a string conforming to a formal identification system.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>identifier</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nao#identifier" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/identifier" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent">
+		<rdfs:comment>Plain-text representation of the content of a InformationElement with all markup removed. The main purpose of this property is full-text indexing and search. Its exact content is considered application-specific. The user can make no assumptions about what is and what is not contained within. Applications should use more specific properties wherever possible.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>plainTextContent</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#htmlContent">
+		<rdfs:comment>The HTML content of an information element. This property can be used to store text including formatting in a generic fashion.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>html content</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#comment">
+		<rdfs:comment>A user comment about an InformationElement.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>comment</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#contentSize">
+		<rdfs:comment>The size of the content. This property can be used whenever the size of the content of an InformationElement differs from the size of the DataObject. (e.g. because of compression, encoding, encryption or any other representation issues). The contentSize in expressed in bytes.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>contentSize</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#license">
+		<rdfs:comment>Terms and intellectual property rights licensing conditions.</rdfs:comment>
+		<rdfs:label>license</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/terms/license" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#legal" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#subject">
+		<rdfs:comment>An overall topic of the content of a InformationElement</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#InformationElement" />
+		<rdfs:label>subject</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://purl.org/dc/elements/1.1/subject" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#coreGraph">
+		<nao:deprecated rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</nao:deprecated>
+		<rdfs:comment>Connects the data object with the graph that contains information about it. Deprecated in favor of a more generic nao:isDataGraphFor.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>coreGraph</rdfs:label>
+		<rdfs:range rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#InstanceBase" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#licenseType">
+		<rdfs:comment>The type of the license. Possible values for this field may include "GPL", "BSD", "Creative Commons" etc.</rdfs:comment>
+		<rdfs:label>licenseType</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string" />
+		<rdfs:subPropertyOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#legal" />
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#byteSize">
+		<rdfs:comment>The overall size of the data object in bytes. That means the space taken by the DataObject in its container, and not the size of the content that is of interest to the user. For cases where the content size is different (e.g. in compressed files the content is larger, in messages the content excludes headings and is smaller) use more specific properties, not necessarily subproperties of this one.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>byteSize</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#url">
+		<rdf:type rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#DefiningProperty" />
+		<rdfs:comment>URL of a DataObject. It points to the location of the object. A typial usage is FileDataObject. In cases where creating a simple file:// or http:// URL for a file is difficult (e.g. for files inside compressed archives) the applications are encouraged to use conventions defined by Apache Commons VFS Project at http://jakarta.apache.org/  commons/ vfs/ filesystems.html.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataObject" />
+		<rdfs:label>url</rdfs:label>
+		<rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Resource" />
+		<nrl:maxCardinality>1</nrl:maxCardinality>
+	</rdf:Property>
+	<rdfs:Resource rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataSourceGraph">
+		<rdfs:subClassOf rdf:resource="http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#InstanceBase" />
+		<rdfs:comment>Represents the sum of all information that has been obtained from a data source. Each data source has its own personal information graph. When a data source is deleted, the graph becomes redundant and should also be deleted. If two or more items in two or more data source graphs are determined to be equivalent, they are integrated at the PIMO level, and the integrated representation plus the links to the original items are stored in the pimo:PersonalInformationModel graph.</rdfs:comment>
+		<rdfs:label>Data Source Graph</rdfs:label>
+	</rdfs:Resource>
+	<rdf:Property rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#sourceMode">
+		<rdfs:comment>Represents a number of applicable modes for a data source.</rdfs:comment>
+		<rdfs:domain rdf:resource="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#DataSource" />
+		<rdfs:label>Data Source Mode</rdfs:label>
+		<rdfs:range>
+			<rdfs:Class rdf:about="http://www.semanticdesktop.org/ontologies/2007/01/19/nie#Mode">
+				<rdfs:comment>Representation for a standard set of device/application/service modes, corresponding to various sets of modes that are either inbuilt in a device (e.g. inbuilt phone modes such as silent, loud, general, vibrate, etc.) or available for applications and online services (e.g. IM system modes such as busy, available, invisible, etc.)</rdfs:comment>
+				<rdfs:label>Mode</rdfs:label>
+			</rdfs:Class>
+		</rdfs:range>
+	</rdf:Property>
+</rdf:RDF>

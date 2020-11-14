@@ -108,7 +108,6 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
-turtle+="@prefix srv:	<http://jena.hpl.hp.com/Service#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:service a ns:GenericService .\n"
 turtle+="_:service dct:title \"${title}\" .\n"
@@ -125,10 +124,10 @@ if [ -n "$graph_store" ] ; then
     turtle+="_:service a:graphStore <${graph_store}> .\n"
 fi
 if [ -n "$auth_user" ] ; then
-    turtle+="_:service srv:queryAuthUser \"${auth_user}\" .\n"
+    turtle+="_:service a:authUser \"${auth_user}\" .\n"
 fi
 if [ -n "$auth_pwd" ] ; then
-    turtle+="_:service srv:queryAuthPwd \"${auth_pwd}\" .\n"
+    turtle+="_:service a:authPwd \"${auth_pwd}\" .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"

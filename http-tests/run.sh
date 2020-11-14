@@ -1,14 +1,16 @@
 #!/bin/bash
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage:   $0 cert_pem_file cert_password" >&2
-  echo "Example: $0 $PWD/../certs/owner.p12.pem Password" >&2
+if [ "$#" -ne 4 ]; then
+  echo "Usage:   $0" '$owner_pem_file $owner_cert_password $secretary_pem_file $secretary_cert_password' >&2
+  echo "Example: $0 $PWD/../certs/owner.p12.pem OwnerPassword $PWD/../certs/secretary.p12.pem SecretaryPassword" >&2
   echo "Note: special characters such as $ need to be escaped in passwords!" >&2
   exit 1
 fi
 
 export OWNER_CERT_FILE="$1"
 export OWNER_CERT_PWD="$2"
+export SECRETARY_CERT_FILE="$3"
+export SECRETARY_CERT_PWD="$4"
 export SCRIPT_ROOT="$PWD/../scripts"
 
 export STATUS_OK=200
@@ -71,6 +73,12 @@ function initialize_dataset()
       "${3}" > /dev/null
 }
 
+export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")"
+printf "### Owner agent URI: %s\n" "$OWNER_URI"
+
+export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE" "$SECRETARY_CERT_PWD")"
+printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
+
 export -f initialize_dataset
 
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
@@ -85,10 +93,13 @@ error_count=0
 export AGENT_CERT_FILE=$(mktemp)
 export AGENT_CERT_PWD="changeit"
 
+start_time=$(date +%s)
+
 run_tests "signup.sh"
 (( error_count += $? ))
 
-export AGENT_WEBID_URI="$(../scripts/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
+export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
+printf "### Signed up agent URI: %s\n" "$AGENT_URI"
 
 # store the end-user and admin datasets
 export TMP_END_USER_DATASET=$(mktemp)
@@ -96,10 +107,29 @@ export TMP_ADMIN_DATASET=$(mktemp)
 download_dataset "$END_USER_ENDPOINT_URL" > "$TMP_END_USER_DATASET"
 download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
-run_tests $(find ./admin/ -name '*.sh')
+### Other tests ###
+
+run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
-run_tests $(find ./imports/ -name '*.sh')
+run_tests $(find . -type f -name 'HEAD-accept.sh')
 (( error_count += $? ))
+run_tests $(find . -type f -name 'GET-proxied.sh')
+(( error_count += $? ))
+run_tests $(find . -type f -name 'GET-proxied-external.sh')
+(( error_count += $? ))
+run_tests $(find ./admin/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./imports/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./linked-data-templates/ -type f -name '*.sh')
+(( error_count += $? ))
+run_tests $(find ./graph-store-protocol/ -type f -name '*.sh')
+(( error_count += $? ))
+
+end_time=$(date +%s)
+runtime=$((end_time-start_time))
+
+echo "### Failed tests: ${error_count} Test duration: ${runtime} s"
 
 ### Exit
 

@@ -33,7 +33,7 @@ public class Dydra
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "http://dydra.com/ns#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/services/dydra#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */

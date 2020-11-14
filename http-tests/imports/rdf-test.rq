@@ -1,0 +1,32 @@
+PREFIX def:   <ns/default#>
+PREFIX dh:    <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+PREFIX sioc:  <http://rdfs.org/sioc/ns#>
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
+PREFIX dct:   <http://purl.org/dc/terms/>
+
+CONSTRUCT
+{
+    ?concept foaf:isPrimaryTopicOf ?item ;
+        ?p ?o .
+    ?item a def:Item ;
+        sioc:has_container <concepts/> ;
+        dh:slug ?id ;
+        dct:title ?prefLabel ;
+        foaf:primaryTopic ?concept .
+}
+WHERE
+{
+    SELECT *
+    {
+        ?concept a skos:Concept .
+        BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
+        BIND (BNODE() AS ?item)
+        ?concept ?p ?o
+        OPTIONAL
+        {
+            ?concept skos:prefLabel ?prefLabel
+            FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+    }
+}

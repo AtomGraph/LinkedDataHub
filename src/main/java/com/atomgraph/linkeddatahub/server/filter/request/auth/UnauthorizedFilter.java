@@ -21,8 +21,12 @@ import com.atomgraph.linkeddatahub.model.UserAccount;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.processor.vocabulary.LDT;
-import com.sun.jersey.spi.container.ContainerRequest;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.PreMatching;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -30,7 +34,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  * JAX-RS request filter that handles unauthorized requests.
@@ -39,6 +42,8 @@ import org.spinrdf.vocabulary.SPIN;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@PreMatching
+@Priority(Priorities.USER + 100) // has to execute after WebIDFilter
 public class UnauthorizedFilter extends AuthFilter
 {
     private static final Logger log = LoggerFactory.getLogger(UnauthorizedFilter.class);
@@ -50,17 +55,17 @@ public class UnauthorizedFilter extends AuthFilter
     }
     
     @Override
-    public boolean isApplied(Application application, String realm, ContainerRequest request)
+    public boolean isApplied(Application application, String realm, ContainerRequestContext request)
     {
         return true;
     }
     
-    public QuerySolutionMap getQuerySolutionMap(Application app, ContainerRequest request, Resource accessMode)
+    public QuerySolutionMap getQuerySolutionMap(Application app, ContainerRequestContext request, Resource accessMode)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add("AuthenticatedAgentClass", RDFS.Resource); // disable AuthenticatedAgent UNION branch
         qsm.add("agent", RDFS.Resource); // non-matching value that disables the branch of UNION with ?agent
-        qsm.add(SPIN.THIS_VAR_NAME, ResourceFactory.createResource(request.getAbsolutePath().toString()));
+        qsm.add(SPIN.THIS_VAR_NAME, ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()));
         qsm.add("Mode", accessMode);
         qsm.add(LDT.Ontology.getLocalName(), app.getOntology());
 
@@ -68,7 +73,7 @@ public class UnauthorizedFilter extends AuthFilter
     }
 
     @Override
-    public ContainerRequest authorize(ContainerRequest request, URI absolutePath, Resource accessMode, Application app)
+    public void authorize(ContainerRequestContext request, URI absolutePath, Resource accessMode, Application app)
     {
         if (isApplied(app, null, request) || isLoginForced(request, getScheme())) // checks if this filter should be applied
         {
@@ -85,33 +90,33 @@ public class UnauthorizedFilter extends AuthFilter
             Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
             if (authorization == null)
             {
-                if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {}", request.getAbsolutePath());
-                throw new AuthorizationException("Access not authorized", request.getAbsolutePath(), accessMode, null);
+                if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {}", request.getUriInfo().getAbsolutePath());
+                throw new AuthorizationException("Access not authorized", request.getUriInfo().getAbsolutePath(), accessMode, null);
             }
         }
         
-        return request;
+        //return request;
     }
 
     @Override
-    public void login(Application application, String realm, ContainerRequest request)
+    public void login(Application application, String realm, ContainerRequestContext request)
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void logout(Application application, String realm, ContainerRequest request)
+    public void logout(Application application, String realm, ContainerRequestContext request)
     {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public QuerySolutionMap getQuerySolutionMap(String realm, ContainerRequest request, URI absolutePath, Resource accessMode) {
+    public QuerySolutionMap getQuerySolutionMap(String realm, ContainerRequestContext request, URI absolutePath, Resource accessMode) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public ContainerRequest authenticate(String realm, ContainerRequest request, Resource accessMode, UserAccount account, Resource agent) {
+    public ContainerRequestContext authenticate(String realm, ContainerRequestContext request, Resource accessMode, UserAccount account, Resource agent) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

@@ -29,20 +29,17 @@ import com.atomgraph.core.vocabulary.A;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.ClientFilter;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import java.net.URI;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.DatasetAccessor;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,9 +51,6 @@ public class ServiceImpl extends ResourceImpl implements Service
 {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceImpl.class);
-
-    private static final Property AUTH_USER = ResourceFactory.createProperty(org.apache.jena.sparql.engine.http.Service.queryAuthUser.getSymbol());
-    private static final Property AUTH_PWD = ResourceFactory.createProperty(org.apache.jena.sparql.engine.http.Service.queryAuthPwd.getSymbol());
 
     private final Client client;
     private final MediaTypes mediaTypes;
@@ -97,7 +91,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public String getAuthUser()
     {
-        Statement authUser = getProperty(AUTH_USER);
+        Statement authUser = getProperty(A.authUser);
         if (authUser != null) return authUser.getString();
         
         return null;
@@ -106,7 +100,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public String getAuthPwd()
     {
-        Statement authPwd = getProperty(AUTH_PWD);
+        Statement authPwd = getProperty(A.authPwd);
         if (authPwd != null) return authPwd.getString();
         
         return null;
@@ -115,10 +109,10 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public SPARQLClient getSPARQLClient()
     {
-        return getSPARQLClient(getClient().resource(getProxiedURI(URI.create(getSPARQLEndpoint().getURI()))));
+        return getSPARQLClient(getClient().target(getProxiedURI(URI.create(getSPARQLEndpoint().getURI()))));
     }
     
-    public SPARQLClient getSPARQLClient(WebResource resource)
+    public SPARQLClient getSPARQLClient(WebTarget resource)
     {
         SPARQLClient sparqlClient;
         
@@ -129,8 +123,11 @@ public class ServiceImpl extends ResourceImpl implements Service
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-            ClientFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-            sparqlClient.getWebResource().addFilter(authFilter);
+            HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
+                credentials(getAuthUser(), getAuthPwd()).
+                build();
+            
+            sparqlClient.getEndpoint().register(authFeature);
         }
         
         return sparqlClient;
@@ -145,17 +142,20 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public GraphStoreClient getGraphStoreClient()
     {
-        return getGraphStoreClient(getClient().resource(getProxiedURI(URI.create(getGraphStore().getURI()))));
+        return getGraphStoreClient(getClient().target(getProxiedURI(URI.create(getGraphStore().getURI()))));
     }
     
-    public GraphStoreClient getGraphStoreClient(WebResource resource)
+    public GraphStoreClient getGraphStoreClient(WebTarget resource)
     {
         GraphStoreClient graphStoreClient = GraphStoreClient.create(resource);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-            ClientFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-            graphStoreClient.getWebResource().addFilter(authFilter);
+            HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
+                credentials(getAuthUser(), getAuthPwd()).
+                build();
+            
+            graphStoreClient.getEndpoint().register(authFeature);
         }
         
         return graphStoreClient;
@@ -171,19 +171,22 @@ public class ServiceImpl extends ResourceImpl implements Service
     public QuadStoreClient getQuadStoreClient()
     {
         if (getQuadStore() != null) 
-            return getQuadStoreClient(getClient().resource(getProxiedURI(URI.create(getQuadStore().getURI()))));
+            return getQuadStoreClient(getClient().target(getProxiedURI(URI.create(getQuadStore().getURI()))));
         
         return null;
     }
     
-    public QuadStoreClient getQuadStoreClient(WebResource resource)
+    public QuadStoreClient getQuadStoreClient(WebTarget resource)
     {
         QuadStoreClient quadStoreClient = QuadStoreClient.create(resource);
         
         if (getAuthUser() != null && getAuthPwd() != null)
         {
-            ClientFilter authFilter = new HTTPBasicAuthFilter(getAuthUser(), getAuthPwd());
-            quadStoreClient.getWebResource().addFilter(authFilter);
+            HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
+                credentials(getAuthUser(), getAuthPwd()).
+                build();
+            
+            quadStoreClient.getEndpoint().register(authFeature);
         }
         
         return quadStoreClient;

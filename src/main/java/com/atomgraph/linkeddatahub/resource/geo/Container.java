@@ -18,14 +18,14 @@ package com.atomgraph.linkeddatahub.resource.geo;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.processor.util.TemplateCall;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
-import javax.ws.rs.core.Application;
+import com.atomgraph.processor.model.TemplateCall;
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -46,21 +46,20 @@ public class Container extends ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
-    public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+    @Inject
+    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 
             service, application,
             ontology, templateCall,
             httpHeaders, resourceContext,
-            client,
-            httpContext, securityContext,
+            httpServletRequest, securityContext,
             dataManager, providers,
             system);
     }

@@ -20,10 +20,15 @@ import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.ConstraintViolationException;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
+import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
+import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import javax.ws.rs.core.MediaType;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.query.QueryFactory;
@@ -33,14 +38,11 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.constraints.ConstraintViolation;
-import org.spinrdf.constraints.ObjectPropertyPath;
-import org.spinrdf.constraints.SimplePropertyPath;
-import org.spinrdf.util.JenaUtil;
-import org.spinrdf.vocabulary.SP;
+
 
 /**
  * JAX-RS provider that skolemizes blank node resources in the input RDF dataset.
@@ -67,11 +69,18 @@ public class SkolemizingDatasetProvider extends com.atomgraph.server.io.Skolemiz
                 if (ontClass != null)
                 {
                     // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
-                    Set<Resource> superClasses = JenaUtil.getAllSuperClasses(ontClass);
+                    Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
                     if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
                         resource.addLiteral(DH.slug, UUID.randomUUID().toString());
                 }
             }
+        }
+
+        if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
+        {
+            Resource format = resource.getProperty(DCTerms.format).
+                changeObject(com.atomgraph.linkeddatahub.MediaType.toResource(MediaType.valueOf(resource.getProperty(DCTerms.format).getString()))).getResource();
+            if (log.isDebugEnabled()) log.debug("Resource: {} Format: {}", resource, format);
         }
 
         if (resource.hasProperty(FOAF.mbox) && resource.getProperty(FOAF.mbox).getObject().isLiteral())

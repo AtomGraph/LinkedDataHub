@@ -48,6 +48,8 @@ public class APLC
 
     // CONFIG
 
+    public static final ObjectProperty baseUri = m_model.createObjectProperty( NS + "baseUri" );
+    
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
@@ -62,7 +64,7 @@ public class APLC
     
     public static final DatatypeProperty restrictionsQuery = m_model.createDatatypeProperty( NS + "restrictionsQuery" );
     
-    public static final DatatypeProperty postUpdate = m_model.createDatatypeProperty( NS + "postUpdate" );
+    public static final DatatypeProperty putUpdate = m_model.createDatatypeProperty( NS + "putUpdate" );
     
     public static final DatatypeProperty deleteUpdate = m_model.createDatatypeProperty( NS + "deleteUpdate" );
     
@@ -94,7 +96,7 @@ public class APLC
 
     public static final DatatypeProperty requestAccessEMailSubject = m_model.createDatatypeProperty( NS + "requestAccessEMailSubject" );
     
-    public static final DatatypeProperty requestAccessEMailText = m_model.createDatatypeProperty( NS + "requestAccessEMailText" ); 
+    public static final DatatypeProperty requestAccessEMailText = m_model.createDatatypeProperty( NS + "requestAccessEMailText" );
     
     public static final DatatypeProperty signUpCertValidity = m_model.createDatatypeProperty( NS + "signUpCertValidity" );
 
@@ -104,6 +106,12 @@ public class APLC
     
     public static final DatatypeProperty insertOwnerUpdate = m_model.createDatatypeProperty( NS + "insertOwnerUpdate" );
     
-    public static final DatatypeProperty ontologyImportQuery = m_model.createDatatypeProperty( NS + "ontologyImportQuery" ); 
+    public static final DatatypeProperty ontologyImportQuery = m_model.createDatatypeProperty( NS + "ontologyImportQuery" );
 
+    public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" );
+    
+    public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" );
+
+    public static final DatatypeProperty importKeepAlive = m_model.createDatatypeProperty( NS + "importKeepAlive" );
+    
 }

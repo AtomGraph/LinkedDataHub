@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY java   "http://xml.apache.org/xalan/java/">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
@@ -30,14 +29,13 @@ xmlns:core="&c;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
     
     <xsl:template match="acl:mode/@rdf:resource | acl:mode/@rdf:nodeID" mode="bs2:FormControl" priority="1">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
-        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', $ac:sitemap)" as="element()*"/>
+        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document('&acl;'))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>

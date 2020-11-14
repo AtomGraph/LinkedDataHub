@@ -13,7 +13,7 @@
     owl:imports aplt: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "ACL templates" ;
-    rdfs:comment "AtomGraph ACL templates" .
+    rdfs:comment "LinkedDataHub ACL templates" .
 
 :SignUp a ldt:Template ;
     ldt:match "/sign%20up" ;
@@ -91,7 +91,9 @@ WHERE
         OPTIONAL
           { ?agent  cert:key  ?key }
         OPTIONAL
-          { ?secretary  acl:delegates  ?agent }
+          { GRAPH ?secretaryGraph
+              { ?secretary  acl:delegates  ?agent }
+          }
         OPTIONAL
           { GRAPH ?accountGraph
               { ?account  sioc:account_of  ?agent }

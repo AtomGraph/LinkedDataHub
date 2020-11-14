@@ -16,16 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
-import com.sun.jersey.api.client.ClientResponse;
+import com.atomgraph.client.util.DataManager;
+import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.function.Supplier;
+import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SP;
 
 /**
  * SPIN query loader.
@@ -52,16 +52,10 @@ public class QueryLoader implements Supplier<Query>
     @Override
     public Query get()
     {
-        ClientResponse cr = null;
-        try
+        try (Response cr = getDataManager().load(getURI()))
         {
-            cr = getDataManager().load(getURI());
-            Resource queryRes = cr.getEntity(Model.class).getResource(getURI());
+            Resource queryRes = cr.readEntity(Model.class).getResource(getURI());
             return QueryFactory.create(queryRes.getRequiredProperty(SP.text).getString(), getBaseURI());
-        }
-        finally
-        {
-            if (cr != null) cr.close();
         }
     }
 

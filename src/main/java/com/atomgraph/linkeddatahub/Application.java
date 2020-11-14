@@ -29,8 +29,6 @@ import com.atomgraph.client.locator.PrefixMapper;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
-import com.atomgraph.linkeddatahub.client.provider.DatasetXSLTWriter;
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
@@ -39,27 +37,25 @@ import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFWriterRegistry;
 import com.atomgraph.client.mapper.ClientErrorExceptionMapper;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.client.writer.function.ConstructDocument;
+import com.atomgraph.client.writer.function.UUID;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.core.io.DatasetProvider;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
-import com.atomgraph.core.io.UpdateRequestReader;
-import com.atomgraph.core.provider.ClientProvider;
-import com.atomgraph.core.provider.MediaTypesProvider;
-import com.atomgraph.linkeddatahub.client.provider.DataManagerProvider;
-import com.atomgraph.linkeddatahub.client.provider.TemplatesProvider;
-import com.atomgraph.server.mapper.NotFoundExceptionMapper;
+import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.provider.QueryParamProvider;
+import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
+import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
 import com.atomgraph.core.vocabulary.A;
-import com.atomgraph.linkeddatahub.server.mapper.ClientHandlerExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.InvalidWebIDPublicKeyExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.ModelExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.OntClassNotFoundExceptionMapper;
-import com.atomgraph.linkeddatahub.server.mapper.UniformInterfaceExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.QueryExecExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.RiotParseExceptionMapper;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
@@ -71,54 +67,58 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.apps.model.impl.AdminApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl;
 import com.atomgraph.linkeddatahub.apps.model.impl.EndUserApplicationImpl;
+import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
+import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
+import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.model.Import;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDDelegationExceptionMapper;
-import com.atomgraph.linkeddatahub.server.provider.ApplicationProvider;
+import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
+import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
+import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
-import com.atomgraph.linkeddatahub.server.provider.ClientUriInfoProvider;
-import com.atomgraph.linkeddatahub.server.provider.NoCertClientProvider;
-import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
-import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
-import com.atomgraph.linkeddatahub.server.provider.ServiceProvider;
+import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter;
+import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
-import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
+import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
+import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
+import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
+import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
+import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.processor.model.Parameter;
 import com.atomgraph.processor.model.Template;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.model.impl.ParameterImpl;
 import com.atomgraph.processor.model.impl.TemplateImpl;
 import com.atomgraph.processor.vocabulary.AP;
-import com.atomgraph.server.mapper.ClientExceptionMapper;
 import com.atomgraph.server.mapper.ConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.ParameterExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
 import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
 import com.atomgraph.server.mapper.jena.RiotExceptionMapper;
-import com.atomgraph.server.provider.TemplateCallProvider;
-import com.atomgraph.server.provider.TemplateProvider;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.client.apache4.ApacheHttpClient4;
-import com.sun.jersey.client.apache4.ApacheHttpClient4Handler;
-import com.sun.jersey.client.apache4.config.ApacheHttpClient4Config;
-import com.sun.jersey.client.apache4.config.DefaultApacheHttpClient4Config;
-import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 import org.apache.jena.enhanced.BuiltinPersonalities;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.slf4j.Logger;
-import org.spinrdf.arq.ARQFactory;
-import org.spinrdf.system.SPINModuleRegistry;
 import java.net.URI;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -135,32 +135,17 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletContext;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
-import javax.xml.transform.Templates;
-import javax.xml.transform.TransformerConfigurationException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.sax.SAXTransformerFactory;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -169,23 +154,55 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.reasoner.Reasoner;
-import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
-import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.spinrdf.vocabulary.SP;
+import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.TreeMap;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.xml.transform.TransformerException;
+import net.sf.saxon.om.TreeInfo;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XsltCompiler;
+import net.sf.saxon.s9api.XsltExecutable;
+import nu.xom.XPathException;
+import org.apache.http.HttpResponse;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
-import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
+import org.apache.jena.vocabulary.LocationMappingVocab;
+import org.glassfish.hk2.api.TypeLiteral;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.process.internal.RequestScoped;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
 
 /**
  * JAX-RS 1.x application subclass.
@@ -194,32 +211,31 @@ import static org.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see <a href="https://jersey.github.io/documentation/1.19.1/jax-rs.html#d4e186">Deploying a RESTful Web Service</a>
  */
-public class Application extends javax.ws.rs.core.Application
+public class Application extends ResourceConfig
 {
     
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    private static final int MAX_CONNECTIONS_PER_ROUTE = 5;
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
     
-    private final Set<Class<?>> classes = new HashSet<>();
-    private final Set<Object> singletons = new HashSet<>();
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
-    private final Client client;
+    private final Client client, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
-    private final String postUpdateString, deleteUpdateString;
+    private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final boolean remoteVariableBindings;
-    private final Templates templates;
+    private final Processor xsltProc = new Processor(false);
+    private final XsltCompiler xsltComp;
+    private final XsltExecutable xsltExec;
     private final OntModelSpec ontModelSpec;
     private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI uploadRoot;
+    private final URI baseURI, uploadRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
@@ -228,6 +244,7 @@ public class Application extends javax.ws.rs.core.Application
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
     private final Map<URI, Model> webIDmodelCache = new HashMap<>();
+    private final Map<String, XsltExecutable> xsltExecutableCache = new HashMap<>();
     
     private Dataset contextDataset;
     
@@ -235,11 +252,11 @@ public class Application extends javax.ws.rs.core.Application
     {
         this(
             new MediaTypes(),
-            servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.parseInt(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
             servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.preemptiveAuth.getURI())) : false,
-            servletConfig.getServletContext().getInitParameter(AP.sitemapRules.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AP.sitemapRules.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI()) != null ? Boolean.valueOf(servletConfig.getServletContext().getInitParameter(AP.cacheSitemap.getURI())) : true,
-            new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),            
+            new PrefixMapper(servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.prefixMapping.getURI()) : null),
             com.atomgraph.client.Application.getSource(servletConfig.getServletContext(), servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) != null ? servletConfig.getServletContext().getInitParameter(AC.stylesheet.getURI()) : null),
             servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.cacheStylesheet.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(AC.resolvingUncached.getURI())) : true,
@@ -255,13 +272,17 @@ public class Application extends javax.ws.rs.core.Application
             servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.postUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.postUpdate.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,            
-            servletConfig.getServletContext().getResource("/").toString(),
+            servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
+            // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
+            servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI())) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -278,8 +299,7 @@ public class Application extends javax.ws.rs.core.Application
     }
     
     public Application(final MediaTypes mediaTypes,
-            final Integer maxGetRequestSize, final boolean preemptiveAuth,
-            final String rulesString, boolean cacheSitemap,
+            final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
@@ -287,10 +307,11 @@ public class Application extends javax.ws.rs.core.Application
             final boolean remoteVariableBindings,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString,
             final String appQueryString, final String sitemapQueryString,
-            final String graphDocumentQueryString, final String postUpdateString, final String deleteUpdateString,
-            final String systemBase,
+            final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
+            final String baseURIString,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
+            final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort)
     {
         if (clientKeyStoreURIString == null)
@@ -332,19 +353,26 @@ public class Application extends javax.ws.rs.core.Application
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
         
+        if (baseURIString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Base URI property '{}' not configured", APLC.baseUri.getURI());
+            throw new ConfigurationException(APLC.baseUri);
+        }
+        baseURI = URI.create(baseURIString);
+
         if (appQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.appQuery.getURI());
             throw new ConfigurationException(APLC.appQuery);
-        }        
-        appQuery = QueryFactory.create(appQueryString, systemBase);
-        appQuery.setBaseURI(systemBase); // for some reason the above is not enough
+        }
+        appQuery = QueryFactory.create(appQueryString, baseURIString);
+        appQuery.setBaseURI(baseURIString); // for some reason the above is not enough
         
         if (sitemapQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.sitemapQuery.getURI());
             throw new ConfigurationException(APLC.sitemapQuery);
-        }        
+        }
         sitemapQuery = QueryFactory.create(sitemapQueryString);
         
         if (graphDocumentQueryString == null)
@@ -353,25 +381,19 @@ public class Application extends javax.ws.rs.core.Application
             throw new ConfigurationException(APLC.graphDocumentQuery);
         }
         this.graphDocumentQuery =  QueryFactory.create(graphDocumentQueryString);
-        
-        if (rulesString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Sitemap Rules (" + AP.sitemapRules.getURI() + ") not configured");
-            throw new ConfigurationException(AP.sitemapRules);
-        }
-        
+                
         if (uploadRootString == null)
         {
             if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", APLC.uploadRoot.getURI());
             throw new ConfigurationException(APLC.uploadRoot);
         }
         
-        if (postUpdateString == null)
+        if (putUpdateString == null)
         {
-            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.postUpdate);
-            throw new ConfigurationException(APLC.postUpdate);
+            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.putUpdate);
+            throw new ConfigurationException(APLC.putUpdate);
         }
-        this.postUpdateString = postUpdateString;
+        this.putUpdateString = putUpdateString;
         
         if (deleteUpdateString == null)
         {
@@ -408,17 +430,6 @@ public class Application extends javax.ws.rs.core.Application
         this.invalidateCache = invalidateCache;
         this.authCacheControl = authCacheControl;
 
-        List<Rule> rules = Rule.parseRules(rulesString);
-        OntModelSpec rulesSpec = new OntModelSpec(OntModelSpec.OWL_MEM);
-        Reasoner reasoner = new GenericRuleReasoner(rules);
-        //reasoner.setDerivationLogging(true);
-        //reasoner.setParameter(ReasonerVocabulary.PROPtraceOn, Boolean.TRUE);
-        rulesSpec.setReasoner(reasoner);
-        this.ontModelSpec = rulesSpec;
-        
-        SPINModuleRegistry.get().init(); // needs to be called before any SPIN-related code
-        ARQFactory.get().setUseCaches(false); // enabled caching leads to unexpected QueryBuilder behaviour
-        
         // add RDF/POST serialization
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
@@ -427,8 +438,7 @@ public class Application extends javax.ws.rs.core.Application
 
         // initialize mapping for locally stored vocabularies
         LocationMapper.setGlobalLocationMapper(locationMapper);
-        if (log.isDebugEnabled()) log.debug("LocationMapper.get(): {}", locationMapper);
-        
+        if (log.isTraceEnabled()) log.trace("LocationMapper.get(): {}", locationMapper);
         
         try
         {
@@ -438,7 +448,9 @@ public class Application extends javax.ws.rs.core.Application
             trustStore = KeyStore.getInstance("JKS");
             trustStore.load(new FileInputStream(new java.io.File(new URI(clientTrustStoreURIString))), clientTrustStorePassword.toCharArray());
             
-            client = getClient(new DefaultApacheHttpClient4Config(), keyStore, clientKeyStorePassword, trustStore);
+            client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
+            importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
+            noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
@@ -460,6 +472,7 @@ public class Application extends javax.ws.rs.core.Application
                 throw new WebApplicationException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
             }
             
+            SP.init(BuiltinPersonalities.model);
             BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
             BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
@@ -467,14 +480,17 @@ public class Application extends javax.ws.rs.core.Application
             BuiltinPersonalities.model.add(AdminApplication.class, AdminApplicationImpl.factory);
             BuiltinPersonalities.model.add(EndUserApplication.class, EndUserApplicationImpl.factory);
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, ApplicationImpl.factory);
-            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(client, mediaTypes, maxGetRequestSize));
-            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(client, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Service.class, new com.atomgraph.linkeddatahub.model.generic.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.model.dydra.Service.class, new com.atomgraph.linkeddatahub.model.dydra.impl.ServiceImplementation(noCertClient, mediaTypes, maxGetRequestSize));
+            BuiltinPersonalities.model.add(Import.class, ImportImpl.factory);
+            BuiltinPersonalities.model.add(RDFImport.class, RDFImportImpl.factory);
             BuiltinPersonalities.model.add(CSVImport.class, CSVImportImpl.factory);
             BuiltinPersonalities.model.add(File.class, FileImpl.factory);
         
-            dataManager = new DataManager(locationMapper, client, mediaTypes, preemptiveAuth, resolvingUncached);
-            FileManager.setStdLocators(dataManager);
-            FileManager.setGlobalFileManager(dataManager);
+            // TO-DO: config property for cacheModelLoads
+            dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
+//            FileManager.setStdLocators((FileManager)dataManager);
+//            FileManager.setGlobalFileManager((FileManager)dataManager);
             if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
             
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
@@ -493,13 +509,40 @@ public class Application extends javax.ws.rs.core.Application
             else authenticator = null;
 
             if (smtpHost == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP host not configured"));
-            emailProperties.put("mail.smtp.host", smtpHost);
             if (smtpPort == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
+            emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
-            SAXTransformerFactory transformerFactory = ((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null));
-            transformerFactory.setURIResolver(dataManager);
-            this.templates = transformerFactory.newTemplates(stylesheet);
+            xsltProc.registerExtensionFunction(new UUID());
+            xsltProc.registerExtensionFunction(new ConstructDocument(xsltProc));
+            
+            Model mappingModel = locationMapper.toModel();
+            ResIterator altLocationIt = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
+            try
+            {
+                while (altLocationIt.hasNext())
+                {
+                    Resource altLocation = altLocationIt.next();
+                    String prefix = altLocation.getRequiredProperty(LocationMappingVocab.prefix).getString();
+                    TreeInfo doc = xsltProc.getUnderlyingConfiguration().buildDocumentTree(dataManager.resolve("", prefix));
+                    // registering mapped RDF documents in the XSLT processor so that document() returns them cached, throughout multiple transformations
+                    xsltProc.getUnderlyingConfiguration().getGlobalDocumentPool().add(doc, prefix);
+                }
+            }
+            catch (XPathException | TransformerException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
+                throw new WebApplicationException(ex);
+            }
+            finally
+            {
+                altLocationIt.close();
+            }
+            
+            xsltComp = xsltProc.newXsltCompiler();
+            xsltComp.setParameter(new QName("apl", APL.baseUri.getNameSpace(), APL.baseUri.getLocalName()), new XdmAtomicValue(baseURI));
+            xsltComp.setURIResolver(dataManager); // default Xerces parser does not support HTTPS
+            xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
         {
@@ -536,75 +579,171 @@ public class Application extends javax.ws.rs.core.Application
             if (log.isErrorEnabled()) log.error("URI syntax error: {}", ex);
             throw new WebApplicationException(ex);
         }
-        catch (TransformerConfigurationException ex)
+        catch (SaxonApiException ex)
         {
             if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
             throw new WebApplicationException(ex);
         }
         
-        ontModelSpec.setImportModelGetter(dataManager);
-        OntDocumentManager.getInstance().setFileManager(dataManager);
+        this.ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
+        this.ontModelSpec.setImportModelGetter(dataManager);
+        OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
         if (log.isDebugEnabled()) log.debug("OntDocumentManager.getInstance().getFileManager(): {} Cache ontologies: {}", OntDocumentManager.getInstance().getFileManager(), cacheSitemap);
-        ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
+        this.ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
     }
     
     @PostConstruct
     public void init()
     {
-        classes.add(ResourceBase.class); // handles /
+        register(MultiPartFeature.class);
+        register(ResourceBase.class); // handles /
+        
+        registerFilters();
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        singletons.add(new ApplicationProvider());
-        singletons.add(new ServiceProvider(getMaxGetRequestSize()));
-        singletons.add(new OntologyProvider(getOntModelSpec(), getSitemapQuery()));
-        singletons.add(new ClientUriInfoProvider());
-        singletons.add(new TemplateProvider());
-        singletons.add(new TemplateCallProvider());
-        singletons.add(new com.atomgraph.core.provider.DataManagerProvider(getDataManager()));
-        singletons.add(new DataManagerProvider(isPreemptiveAuth(), isResolvingUncached()));
-        singletons.add(new ClientProvider(getClient()));
-        singletons.add(new NoCertClientProvider(getTrustStore()));
-        singletons.add(new SkolemizingDatasetProvider());
-        singletons.add(new SkolemizingModelProvider());
-        singletons.add(new ResultSetProvider());
-        singletons.add(new QueryParamProvider());
-        singletons.add(new UpdateRequestReader());
-        singletons.add(new MediaTypesProvider(getMediaTypes()));
-        singletons.add(new NotFoundExceptionMapper());
-        singletons.add(new ConfigurationExceptionMapper());
-        singletons.add(new OntologyExceptionMapper());
-        singletons.add(new ModelExceptionMapper());
-        singletons.add(new ConstraintViolationExceptionMapper());
-        singletons.add(new DatatypeFormatExceptionMapper());
-        singletons.add(new ParameterExceptionMapper());
-        singletons.add(new ClientExceptionMapper());
-        singletons.add(new QueryExecExceptionMapper());
-        singletons.add(new RiotExceptionMapper());
-        singletons.add(new RiotParseExceptionMapper()); // move to Processor?
-        singletons.add(new ClientErrorExceptionMapper());
-        singletons.add(new ClientHandlerExceptionMapper());
-        singletons.add(new HttpHostConnectExceptionMapper());
-        singletons.add(new OntClassNotFoundExceptionMapper());
-        singletons.add(new InvalidWebIDPublicKeyExceptionMapper());
-        singletons.add(new InvalidWebIDURIExceptionMapper());
-        singletons.add(new WebIDCertificateExceptionMapper());
-        singletons.add(new WebIDDelegationExceptionMapper());
-        singletons.add(new WebIDLoadingExceptionMapper());
-        singletons.add(new ResourceExistsExceptionMapper());
-        singletons.add(new QueryParseExceptionMapper());
-        singletons.add(new AuthenticationExceptionMapper());
-        singletons.add(new AuthorizationExceptionMapper());
-        singletons.add(new UniformInterfaceExceptionMapper());
-        singletons.add(new MessagingExceptionMapper());
+        register(new SkolemizingDatasetProvider());
+        register(new SkolemizingModelProvider());
+        register(new ResultSetProvider());
+        register(new QueryParamProvider());
+        register(new UpdateRequestProvider());
+        register(NotFoundExceptionMapper.class);
+        register(ConfigurationExceptionMapper.class);
+        register(OntologyExceptionMapper.class);
+        register(ModelExceptionMapper.class);
+        register(ConstraintViolationExceptionMapper.class);
+        register(DatatypeFormatExceptionMapper.class);
+        register(ParameterExceptionMapper.class);
+        register(QueryExecExceptionMapper.class);
+        register(RiotExceptionMapper.class);
+        register(RiotParseExceptionMapper.class); // move to Processor?
+        register(ClientErrorExceptionMapper.class);
+        register(HttpHostConnectExceptionMapper.class);
+        register(OntClassNotFoundExceptionMapper.class);
+        register(InvalidWebIDPublicKeyExceptionMapper.class);
+        register(InvalidWebIDURIExceptionMapper.class);
+        register(WebIDCertificateExceptionMapper.class);
+        register(WebIDDelegationExceptionMapper.class);
+        register(WebIDLoadingExceptionMapper.class);
+        register(ResourceExistsExceptionMapper.class);
+        register(QueryParseExceptionMapper.class);
+        register(AuthenticationExceptionMapper.class);
+        register(AuthorizationExceptionMapper.class);
+        register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
-        singletons.add(new DatasetXSLTWriter(getTemplates(), getOntModelSpec())); // writes XHTML responses
-        singletons.add(new TemplatesProvider(((SAXTransformerFactory)TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", null)),
-                getDataManager(), getStylesheet(), isCacheStylesheet())); // loads XSLT stylesheet
+        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes (X)HTML responses
+        register(new DatasetXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes XHTML responses
 
-        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
+        final com.atomgraph.linkeddatahub.Application system = this;
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(system).to(com.atomgraph.linkeddatahub.Application.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class).to(com.atomgraph.core.MediaTypes.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ServiceFactory.class).to(Service.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(OntologyFactory.class).to(Ontology.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(new com.atomgraph.core.factory.DataManagerFactory(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ClientUriInfoFactory.class).to(ClientUriInfo.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
+                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        
+//        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
+    }
+    
+    public void registerFilters()
+    {
+        register(new HttpMethodOverrideFilter());
+        register(ClientUriInfoFilter.class);
+        register(ApplicationFilter.class);
+        register(OntologyFilter.class);
+        register(TemplateCallFilter.class);
+        register(WebIDFilter.class);
+        register(UnauthorizedFilter.class);
+        register(new RDFPostCleanupInterceptor());
     }
     
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
@@ -654,9 +793,7 @@ public class Application extends javax.ws.rs.core.Application
     
     public Ontology getOntology(com.atomgraph.linkeddatahub.apps.model.Application app)
     {
-        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery(),
-                getClient(), getMediaTypes(), getMaxGetRequestSize(), isRemoteVariableBindings()).
-                getOntology(app);
+        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery()).getOntology(app);
     }
 
     public Resource matchApp(URI absolutePath)
@@ -729,30 +866,20 @@ public class Application extends javax.ws.rs.core.Application
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(THIS_VAR_NAME, absolutePath);
         
-        QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm);
-        if (getAppQuery().isConstructType()) return qex.execConstruct();
-        if (getAppQuery().isDescribeType()) return qex.execDescribe();
+        try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))
+        {
+            if (getAppQuery().isConstructType()) return qex.execConstruct();
+            if (getAppQuery().isDescribeType()) return qex.execDescribe();
+        }
         
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public static Client getClient(ClientConfig clientConfig, KeyStore keyStore, String keyStorePassword, KeyStore trustStore) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
+    public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
     {
-        if (clientConfig == null) throw new IllegalArgumentException("ClientConfig cannot be null");
         if (keyStore == null) throw new IllegalArgumentException("KeyStore cannot be null");
         if (keyStorePassword == null) throw new IllegalArgumentException("KeyStore password string cannot be null");
         if (trustStore == null) throw new IllegalArgumentException("KeyStore (truststore) cannot be null");
-
-        //ClientConfig clientConfig = new DefaultApacheHttpClient4Config();
-        clientConfig.getProperties().put(URLConnectionClientHandler.PROPERTY_HTTP_URL_CONNECTION_SET_METHOD_WORKAROUND, true);
-        clientConfig.getSingletons().add(new ModelProvider());
-        clientConfig.getSingletons().add(new DatasetProvider());
-        clientConfig.getSingletons().add(new ResultSetProvider());
-        clientConfig.getSingletons().add(new QueryProvider());
-        clientConfig.getSingletons().add(new UpdateRequestReader()); // TO-DO: UpdateRequestProvider
-        // cannot register CSVReader with Client because it depends on request URI (AppUriInfo) as context
-        //clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_CONNECTION_MANAGER, new ThreadSafeClientConnManager());
-        clientConfig.getProperties().put(ApacheHttpClient4Config.PROPERTY_ENABLE_BUFFERING , true);
 
         // for client authentication
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -765,45 +892,125 @@ public class Application extends javax.ws.rs.core.Application
         SSLContext ctx = SSLContext.getInstance("SSL");
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-        HostnameVerifier hv = new HostnameVerifier()
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+            register("https", new SSLConnectionSocketFactory(ctx)).
+            register("http", new PlainConnectionSocketFactory()).
+            build();
+
+        // https://github.com/eclipse-ee4j/jersey/issues/4449
+        PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
         {
+
             @Override
-            public boolean verify(String hostname, SSLSession session)
+            public void close()
             {
-                if ( log.isDebugEnabled()) log.debug("Warning: URL Host: {} vs. {}", hostname, session.getPeerHost());
-
-                return true;
+                super.shutdown();
             }
+
+            @Override
+            public void shutdown()
+            {
+                // Disable shutdown of the pool. This will be done later, when this factory is closed
+                // This is a workaround for finalize method on jerseys ClientRuntime which
+                // closes the client and shuts down the connection pool when it is garbage collected
+            };
+
         };
+        if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
+        if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+//        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
 
-        // clientConfig.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hv, ctx));
-        SchemeRegistry schemeRegistry = new SchemeRegistry();
-        SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-        Scheme httpsScheme = new Scheme("https", 443, ssf);
-        schemeRegistry.register(httpsScheme);
-        Scheme httpScheme = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-        schemeRegistry.register(httpScheme);
-        ThreadSafeClientConnManager conman = new ThreadSafeClientConnManager(schemeRegistry);
-        conman.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE);
-        HttpClient httpClient = new DefaultHttpClient(conman);
-        ApacheHttpClient4Handler handler = new ApacheHttpClient4Handler(httpClient, null, false);
-        Client client = new ApacheHttpClient4(handler, clientConfig);
-        client.setFollowRedirects(true);
-        if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
+        ClientConfig config = new ClientConfig();
+        config.connectorProvider(new ApacheConnectorProvider());
+        config.register(MultiPartFeature.class);
+        config.register(new ModelProvider());
+        config.register(new DatasetProvider());
+        config.register(new ResultSetProvider());
+        config.register(new QueryProvider());
+        config.register(new UpdateRequestProvider());
+        config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+        if (keepAliveStrategy != null) config.property(ApacheClientProperties.KEEPALIVE_STRATEGY, keepAliveStrategy);
 
-        return client;
+        return ClientBuilder.newBuilder().
+            withConfig(config).
+            sslContext(ctx).
+            hostnameVerifier(NoopHostnameVerifier.INSTANCE).
+            build();
     }
     
-    @Override
-    public Set<Class<?>> getClasses()
+    public static Client getNoCertClient(KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn)
     {
-        return classes;
-    }
+        try
+        {
+            // for trusting server certificate
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+            
+            SSLContext ctx = SSLContext.getInstance("SSL");
+            ctx.init(null, tmf.getTrustManagers(), null);
 
-    @Override
-    public Set<Object> getSingletons()
-    {
-        return singletons;
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
+                register("https", new SSLConnectionSocketFactory(ctx)).
+                register("http", new PlainConnectionSocketFactory()).
+                build();
+        
+            // https://github.com/eclipse-ee4j/jersey/issues/4449
+            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager(socketFactoryRegistry)
+            {
+
+                @Override
+                public void close()
+                {
+                    super.shutdown();
+                }
+
+                @Override
+                public void shutdown()
+                {
+                    // Disable shutdown of the pool. This will be done later, when this factory is closed
+                    // This is a workaround for finalize method on jerseys ClientRuntime which
+                    // closes the client and shuts down the connection pool when it is garbage collected
+                };
+                
+            };
+            if (maxConnPerRoute != null) conman.setDefaultMaxPerRoute(maxConnPerRoute);
+            if (maxTotalConn != null) conman.setMaxTotal(maxTotalConn);
+
+            ClientConfig config = new ClientConfig();
+            config.connectorProvider(new ApacheConnectorProvider());
+            config.register(MultiPartFeature.class);
+            config.register(new ModelProvider());
+            config.register(new DatasetProvider());
+            config.register(new ResultSetProvider());
+            config.register(new QueryProvider());
+            config.register(new UpdateRequestProvider()); // TO-DO: UpdateRequestProvider
+            config.property(ClientProperties.FOLLOW_REDIRECTS, true);
+            config.property(ApacheClientProperties.CONNECTION_MANAGER, conman);
+
+            return ClientBuilder.newBuilder().
+                withConfig(config).
+                sslContext(ctx).
+                hostnameVerifier(NoopHostnameVerifier.INSTANCE).
+                build();
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+        catch (KeyStoreException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("Key store error: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+        catch (KeyManagementException ex)
+        {
+            if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
+            throw new WebApplicationException(ex);
+        }
+        
+        //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
     }
     
     public EventBus getEventBus()
@@ -860,12 +1067,12 @@ public class Application extends javax.ws.rs.core.Application
     {
         return graphDocumentQuery;
     }
-    
-    public UpdateRequest getPostUpdate(String baseURI)
-    {
-        return UpdateFactory.create(postUpdateString, baseURI);
-    }
 
+    public UpdateRequest getPutUpdate(String baseURI)
+    {
+        return UpdateFactory.create(putUpdateString, baseURI);
+    }
+    
     public UpdateRequest getDeleteUpdate(String baseURI)
     {
         return UpdateFactory.create(deleteUpdateString, baseURI);
@@ -891,9 +1098,14 @@ public class Application extends javax.ws.rs.core.Application
         return ontModelSpec;
     }
     
-    public Templates getTemplates()
+    public XsltCompiler getXsltCompiler()
     {
-        return templates;
+        return xsltComp;
+    }
+    
+    public XsltExecutable getXsltExecutable()
+    {
+        return xsltExec;
     }
     
     public Source getStylesheet()
@@ -946,6 +1158,16 @@ public class Application extends javax.ws.rs.core.Application
         return trustStore;
     }
 
+    public Client getImportClient()
+    {
+        return importClient;
+    }
+
+    public Client getNoCertClient()
+    {
+        return noCertClient;
+    }
+    
     public final MessageBuilder getMessageBuilder()
     {
         if (authenticator != null) return MessageBuilder.fromPropertiesAndAuth(emailProperties, authenticator);
@@ -955,6 +1177,11 @@ public class Application extends javax.ws.rs.core.Application
     public Map<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
+    }
+    
+    public Map<String, XsltExecutable> getXsltExecutableCache()
+    {
+        return xsltExecutableCache;
     }
     
 }

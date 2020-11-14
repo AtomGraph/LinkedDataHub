@@ -16,38 +16,35 @@
  */
 package com.atomgraph.linkeddatahub.client.filter;
 
-import com.atomgraph.linkeddatahub.model.Agent;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.filter.ClientFilter;
+import java.io.IOException;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
+import org.apache.jena.rdf.model.Resource;
 
 /**
  * Client filter that delegates WebID identity.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class WebIDDelegationFilter extends ClientFilter
+public class WebIDDelegationFilter implements ClientRequestFilter
 {
 
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
-    private final Agent agent;
+    private final Resource agent;
     
-    public WebIDDelegationFilter(Agent agent)
+    public WebIDDelegationFilter(Resource agent)
     {
         this.agent = agent;
     }
     
     @Override
-    public ClientResponse handle(ClientRequest cr) throws ClientHandlerException
+    public void filter(ClientRequestContext cr) throws IOException
     {
-        cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
-
-        return getNext().handle(cr);
+        if (getAgent() != null) cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
     }
-    
-    public Agent getAgent()
+
+    public Resource getAgent()
     {
         return agent;
     }

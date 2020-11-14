@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.model;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
-import com.sun.jersey.api.client.Client;
+import javax.ws.rs.client.Client;
 import org.apache.jena.rdf.model.Resource;
 
 /**

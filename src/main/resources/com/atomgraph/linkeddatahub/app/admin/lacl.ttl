@@ -18,7 +18,7 @@
 : a owl:Ontology ;
     owl:imports apl:, sp:, spin:, acl:, cert: ;
     owl:versionInfo "1.1.4" ;
-    rdfs:label "AtomGraph ACL ontology" .
+    rdfs:label "LinkedDataHub ACL ontology" .
 
 :password a owl:DatatypeProperty ;
     rdfs:range rdfs:Literal ;

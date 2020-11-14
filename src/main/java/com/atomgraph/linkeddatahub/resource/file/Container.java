@@ -20,15 +20,11 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
-import com.sun.jersey.multipart.FormDataBodyPart;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -42,15 +38,20 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
-import com.sun.jersey.api.client.Client;
-import javax.ws.rs.core.Application;
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.ontology.Ontology;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,23 +64,34 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
-    public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes, 
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+    private final MessageDigest messageDigest;
+    
+    @Inject
+    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
-                httpContext, securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
+        
+        try
+        {
+            this.messageDigest = MessageDigest.getInstance("SHA1");
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
+            throw new WebApplicationException(ex);
+        }
     }
 
     @Override
@@ -91,20 +103,23 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
         try
         {
-            MessageDigest md = MessageDigest.getInstance("SHA1");
             try (InputStream is = bodyPart.getEntityAs(InputStream.class);
-                DigestInputStream dis = new DigestInputStream(is, md))
+                DigestInputStream dis = new DigestInputStream(is, getMessageDigest()))
             {
+                dis.getMessageDigest().reset();
                 File tempFile = File.createTempFile("tmp", null);
                 FileChannel destination = new FileOutputStream(tempFile).getChannel();
                 destination.transferFrom(Channels.newChannel(dis), 0, 104857600);
-                String sha1Hash = new BigInteger(1, dis.getMessageDigest().digest()).toString(16);
+                String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
                 if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
                 resource.removeAll(DH.slug).
                     addLiteral(DH.slug, sha1Hash).
-                    addLiteral(FOAF.sha1, sha1Hash).
-                    addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+                    addLiteral(FOAF.sha1, sha1Hash);
+                
+                // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
+                if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
+                
                 URI sha1Uri = new Skolemizer(getOntology(),
                         getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).
                         build(resource);
@@ -114,16 +129,16 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 return super.writeFile(sha1Uri, getUriInfo().getBaseUri(), new FileInputStream(tempFile));
             }
         }
-        catch (NoSuchAlgorithmException ex)
-        {
-            if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-        }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
+            throw new WebApplicationException(ex);
         }
-        
-        return null;
     }
 
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
+    }
+    
 }

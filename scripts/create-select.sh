@@ -43,8 +43,8 @@ do
         shift # past argument
         shift # past value
         ;;
-        --endpoint)
-        endpoint="$2"
+        --service)
+        service="$2"
         shift # past argument
         shift # past value
         ;;
@@ -110,8 +110,8 @@ turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item foaf:primaryTopic _:query .\n"
 
-if [ -n "$endpoint" ] ; then
-    turtle+="_:query apl:endpoint <${endpoint}> .\n"
+if [ -n "$service" ] ; then
+    turtle+="_:query apl:service <${service}> .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"

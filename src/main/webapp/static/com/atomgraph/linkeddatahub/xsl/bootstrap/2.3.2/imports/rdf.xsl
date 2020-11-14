@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY java   "http://xml.apache.org/xalan/java/">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -17,7 +16,6 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
-    <!ENTITY list   "http://jena.hpl.hp.com/ARQ/list#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -38,9 +36,8 @@ xmlns:sioc="&sioc;"
 xmlns:spin="&spin;"
 xmlns:sp="&sp;"
 xmlns:void="&void;"
-xmlns:list="&list;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
+xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
     <!-- shortened version of @rdf:resource bs2:FormControl -->
@@ -84,7 +81,7 @@ exclude-result-prefixes="#all">
                         <span>
                             <button type="button" class="btn add-type">
                                 <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="apl:logo"/>
-                                <xsl:text use-when="system-property('xsl:product-name') = 'Saxon-CE'">&#x2715;</xsl:text>
+                                <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">&#x2715;</xsl:text>
                             </button>
                         </span>
                         -->

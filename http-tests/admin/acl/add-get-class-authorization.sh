@@ -20,7 +20,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "GET Container authorization" \
-  --agent "$AGENT_WEBID_URI" \
+  --agent "$AGENT_URI" \
   --to-all-in "${END_USER_BASE_URL}ns/default#Root" \
   --read
 

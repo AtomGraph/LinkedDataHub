@@ -38,11 +38,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        --endpoint)
-        endpoint="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --query)
         query="$2"
         shift # past argument
@@ -87,10 +82,6 @@ if [ -z "$title" ] ; then
     echo '--title not set'
     exit 1
 fi
-if [ -z "$endpoint" ] ; then # TO-DO: make obsolete/optional?
-    echo '--endpoint not set'
-    exit 1
-fi
 if [ -z "$query" ] ; then
     echo '--query not set'
     exit 1
@@ -133,7 +124,6 @@ turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:chart a ns:ResultSetChart .\n"
 turtle+="_:chart dct:title \"${title}\" .\n"
-turtle+="_:chart apl:endpoint <${endpoint}> .\n" # TO-DO: remove
 turtle+="_:chart spin:query <${query}> .\n"
 turtle+="_:chart apl:chartType <${chart_type}> .\n"
 turtle+="_:chart apl:categoryVarName \"${category_var_name}\" .\n"

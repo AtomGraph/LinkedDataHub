@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# New version of scripts that accept named arguments, e.g.: ./create-container.sh -f ../../linkeddatahub-apps/certs/martynas.stage.localhost.pem -p XXXXXX -b https://localhost:4443/demo/city-graph/  https://localhost:4443/demo/city-graph/ --title "Test" --description "This is a container"
+# New version of scripts that accept named arguments, e.g.: ./create-container.sh -f ../../linkeddatahub-apps/certs/martynas.stage.localhost.pem -p XXXXXX -b https://localhost:4443/demo/city-graph/ https://localhost:4443/demo/city-graph/ --parent https://localhost:4443/demo/city-graph/ --title "Test" --description "This is a container"
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 

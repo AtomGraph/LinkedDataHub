@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.sitemap.resource.ontology;
 
 import org.apache.jena.ontology.OntDocumentManager;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import java.net.URI;
 import java.util.List;
 import javax.ws.rs.core.Context;
@@ -29,15 +27,17 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.server.provider.OntologyProvider;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
-import com.atomgraph.processor.util.TemplateCall;
-import com.sun.jersey.api.client.Client;
+import com.atomgraph.processor.model.TemplateCall;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
-import javax.ws.rs.core.Application;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Resource;
@@ -55,20 +55,19 @@ public class Item extends ResourceBase
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
-    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+    @Inject
+    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application, ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
-                httpContext, securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
     }
@@ -84,7 +83,7 @@ public class Item extends ResourceBase
     {
         Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
         
-        if (getTemplateCall().hasArgument(LSMT.clear)) // this is just a flag, we don't need the argument value. TO-DO: change to post()!
+        if (getTemplateCall().get().hasArgument(LSMT.clear)) // this is just a flag, we don't need the argument value. TO-DO: change to post()!
         {
             if (ontology == null)
             {
@@ -97,9 +96,10 @@ public class Item extends ResourceBase
             if (OntDocumentManager.getInstance().getFileManager().hasCachedModel(ontologyURI))
             {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
-                
-                OntologyProvider ontProvider = new OntologyProvider(getSystem().getOntModelSpec(), getSystem().getSitemapQuery());
-                ontProvider.getOntology(getApplication(),
+  
+                // here be dragons! Without explicitly reloading the cleared ontology here, owl:import with its URI can lead to a request loopback later on
+                new SPARQLClientOntologyLoader(getSystem().getOntModelSpec(), getSystem().getSitemapQuery()).
+                    getOntology(getApplication(),
                         getApplication().getService(),
                         ontologyURI,
                         getSystem().getOntModelSpec(),

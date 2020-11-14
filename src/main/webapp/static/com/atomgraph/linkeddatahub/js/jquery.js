@@ -1,41 +1,4 @@
-/* global Saxon, stylesheetUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder */
-
-var rdfXml = null; // TO-DO: set as xsl:param instead
-
-function loadRDFXML(event, url, callback)
-{
-    $.ajax({url: url,
-        headers: { "Accept": "application/rdf+xml" }
-    }).
-    done(function(data, textStatus, jqXHR)
-    {
-        rdfXml = jqXHR.responseXML;
-        callback(event); // TO-DO: replace with xslt2proc.updateHTMLDocument() ?
-    } ).
-    fail(function(jqXHR, textStatus, errorThrown)
-    {
-        alert(errorThrown);
-    });
-}
-
-function loadXHTML(event, url, callback)
-{
-    $.ajax({url: url,
-        "headers": { "Accept": "text/html" }
-    }).
-    done(function(data, textStatus, jqXHR)
-    {
-        var parser = new DOMParser();
-        var html = parser.parseFromString(jqXHR.responseText, "text/html");
-        xslt2proc.setParameter(null, "constructor-doc", html);
-        callback(event); // TO-DO: replace with xslt2proc.updateHTMLDocument() ?
-    } ).
-    fail(function(jqXHR, textStatus, errorThrown)
-    {
-        var error = $($.parseXML(jqXHR.responseText)).find(".alert-error h2").text();
-        alert(errorThrown + "\n\n" + error);
-    });
-}
+/* global stylesheetUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
 var onTypeaheadInputBlur = function()
 {
@@ -43,144 +6,33 @@ var onTypeaheadInputBlur = function()
     $(this).nextAll("ul.typeahead").hide().empty();
 };
 
-var onInputMouseOver = function()
+var fetchDispatchXML = function(url, method, headers, body, target, eventName)
 {
-    // use description text of the property in control-group label, if any
-    var descSpan = $(this).closest(".control-group").find(".control-label .description");
-    if (descSpan.length)
+    let request = new Request(url, { "method": method, "headers": headers, "body": body });
+    
+    fetch(request).
+    then(function(response)
     {
-        $(this).tooltip({ "placement": "top", "title": descSpan.text() });
-    } 
-};
-
-var onModalFormSubmit = function(event)
-{    
-    if ($(this).find("input[name=rdf]").length)
-    {
-        var form = this;
-        event.preventDefault();
-
-        var container = $(this).find(".action-container");
-        if (container.length) // POST only
+        response.text().
+        then(function(xmlString)
         {
-            var uriInput = container.find("button input[type=hidden]");
-            if (uriInput.length)
-            {
-                var actionParts = this.action.split("?");
-                var newAction = uriInput.val();
-                if (actionParts.length > 1) newAction += "?" + actionParts[1]; // add query string
-                this.action = newAction;
-            }
-            else
-            {
-                container.find(".control-group").toggleClass("error");
-                return false;
-            }
-        }
-        
-        $(this).css("cursor", "progress"); // notify user that data processing is in progress
-
-        // remove names of RDF/POST inputs with empty values
-        $(this).find("input[name=ob]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-        $(this).find("input[name=ou]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-        $(this).find("input[name=ol]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-        
-        var settings = null;
-        if (this.enctype === "multipart/form-data")
-            settings = 
-            {
-                "method": this.method,
-                "data": new FormData(this),
-                "processData": false,
-                "contentType": false,
-                "headers": { "Accept": "text/html" }
-            } ;
-        else settings = 
-            {
-                "method": this.method,
-                "data": $(this).serialize(),
-                "contentType": "application/x-www-form-urlencoded", // RDF/POST
-                "headers": { "Accept": "text/html" }
-            } ;
-
-        $.ajax(this.action, settings).
-        done(function(responseXML, textStatus, jqXHR)
-        {
-            if (jqXHR.status === 200) // OK response to PUT
-            {
-                window.location.reload(); // refresh page to see changes from EditMode
-                return true;
-            }
-            
-            var location = jqXHR.getResponseHeader("Location"); // from 201 Created response
-            console.log("Location: " + jqXHR.getResponseHeader("Location") + " Status: " + textStatus);
-            if (location === null || jqXHR.status !== 201) // Created response to POST
-            {
-                alert("Could not create resource. Response status: " + textStatus);
-                return false;
-            }
-            
-            // if form submit did not originate from a typeahead (target), redirect to the created resource
-            var targetId = $(form).find("input.target-id").val();
-            if (targetId.length === 0) window.location = location;
-                
-            $.ajax(location,
-                {
-                    "method": "GET",
-                    "headers": { "Accept": "application/rdf+xml, */*;q=0.1" } // RDF/XML response
-                }
-            ).
-            done(function(responseXML, textStatus, jqXHR)
-            {
-                // render typeahead with XSLT if RDF/XML is returned
-                if (jqXHR.getResponseHeader("Content-Type") === "application/rdf+xml;charset=UTF-8")
-                {
-                    // TO-DO: extract following block into a function
-                    xslt2proc.setInitialTemplate(null);
-                    xslt2proc.setInitialMode("{http://graphity.org/xsl/bootstrap/2.3.2}CreatedMode"); // namespace ignored
-                    xslt2proc.setParameter(null, "constructor-form", form);
-                    xslt2proc.setParameter(null, "created-uri", location);
-                    xslt2proc.updateHTMLDocument(responseXML);
-                }
-                else
-                {
-                    // cannot render typeahead without RDF/XML, simply display URI value and remove form
-                    $("#" + targetId).closest("div[class = 'controls']").find("span").find("input").val(location);
-                    $(form).remove();
-                }
-
-                $(form).css("cursor", "default"); // data processing done
-            }).
-            fail(function(jqXHR, textStatus, errorThrown)
-            {
-                $(form).css("cursor", "default"); // data processing done
-                alert(textStatus + " " + errorThrown);
-            });
-        }).
-        fail(function(jqXHR, textStatus, errorThrown)
-        {
-            // if 4xx error (URISyntax/Constraint/SkolemizationViolations or ResourceExistsException), execute XSLT transformation
-            if (jqXHR.status === 400 || jqXHR.status === 409) // TO-DO: a more precise check based on exception type?
-            {
-                var parser = new DOMParser();
-                var html = parser.parseFromString(jqXHR.responseText, "text/html");
-                
-                // TO-DO: extract following block into a function
-                xslt2proc.setInitialTemplate(null);
-                xslt2proc.setInitialMode("{http://graphity.org/xsl/bootstrap/2.3.2}ConstructMode");  // namespace ignored
-                xslt2proc.setParameter(null, "constructor-form", form);
-                xslt2proc.setParameter(null, "constructor-doc", html);
-                xslt2proc.updateHTMLDocument(html);
-
-                $(form).css("cursor", "default"); // data processing done
-            }
-            else // otherwise, show error
-            {
-                $(form).css("cursor", "default"); // data processing done
-                alert(errorThrown);
-            }
+            let xml = new DOMParser().parseFromString(xmlString, "text/xml");
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target } } );
+            // no need to add event listeners here, that is done by IXSL
+            document.dispatchEvent(event);
         });
-    }    
+    }).
+    catch(function(response)
+    {
+        response.text().
+        then(function(xmlString)
+        {
+            let xml = new DOMParser().parseFromString(xmlString, "text/xml");
+            let event = new CustomEvent(eventName, { "detail": { "response": response, "xml": xml, "target": target } } );
+            // no need to add event listeners here, that is done by IXSL
+            document.dispatchEvent(event);
+        });
+    });
 };
 
 var onSubjectTypeChange = function(event)
@@ -300,10 +152,10 @@ $(document).ready(function()
     $(".input-prepend.input-append input[type=text]").on("change", onPrependedAppendedInputChange).change();
     
     $("input.typeahead").on("blur", onTypeaheadInputBlur);
-    $("fieldset input").on("mouseover", onInputMouseOver);
     
     $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
 
+    // already done in client.xsl?
     $("form").on("submit", function()
     {
         if ($(this).find("input[name=rdf]").length)

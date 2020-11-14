@@ -10,6 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERTIFICATE      .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate (provided during signup)\n"
     printf "  --accept MEDIA_TYPE                  Requested media type (e.g. text/turtle)\n"
+    printf "  --head                               Requested headers only, no body (HEAD method)\n"
 }
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
@@ -33,6 +34,10 @@ do
         --accept)
         accept="$2"
         shift # past argument
+        shift # past value
+        ;;
+        --head)
+        head=true
         shift # past value
         ;;
         *)    # unknown option
@@ -66,4 +71,9 @@ fi
 target="$1"
 
 # GET RDF document
-curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}" -s -I
+
+if [ -n "$head" ] ; then
+    curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}" --head
+else
+    curl -v -k -E "${cert_pem_file}":"${cert_password}" -H "Accept: ${accept}" "${target}"
+fi

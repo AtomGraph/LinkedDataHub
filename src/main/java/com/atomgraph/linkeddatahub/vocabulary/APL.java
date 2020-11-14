@@ -48,6 +48,8 @@ public class APL
 
     // DOMAIN
 
+    public static final OntClass Dataset = m_model.createClass(NS + "Dataset");
+
     public static final OntClass GenericService = m_model.createClass(NS + "GenericService");
     
     public static final OntClass DydraService = m_model.createClass(NS + "DydraService");
@@ -57,6 +59,8 @@ public class APL
     public static final OntClass CSVImport = m_model.createClass(NS + "CSVImport");
 
     public static final OntClass XMLImport = m_model.createClass(NS + "XMLImport");
+    
+    public static final OntClass RDFImport = m_model.createClass(NS + "RDFImport");
 
     public static final OntClass ImportRun = m_model.createClass(NS + "ImportRun");
     
@@ -71,6 +75,8 @@ public class APL
     public static final OntClass ConstructorMode = m_model.createClass(NS + "ConstructorMode");
 
     public static final OntClass URISyntaxViolation = m_model.createClass(NS + "URISyntaxViolation");
+    
+    public static final ObjectProperty baseUri = m_model.createObjectProperty( NS + "baseUri" );
     
     public static final ObjectProperty violation = m_model.createObjectProperty( NS + "violation" );
     

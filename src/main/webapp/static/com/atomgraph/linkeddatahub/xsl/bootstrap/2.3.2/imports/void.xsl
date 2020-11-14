@@ -13,7 +13,6 @@ xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:uuid="java:java.util.UUID"
 exclude-result-prefixes="#all">
 
     <xsl:template match="void:inDataset" mode="bs2:PropertyList"/>

@@ -20,7 +20,7 @@ group_doc=$(./create-group.sh \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --name "Test group" \
-  --member "$AGENT_WEBID_URI")
+  --member "$AGENT_URI")
 
 group=$(curl -s -k \
   -E "${OWNER_CERT_FILE}":"${OWNER_CERT_PWD}" \

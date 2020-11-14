@@ -16,11 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper;
 
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import com.atomgraph.server.exception.ModelException;
 import com.atomgraph.server.model.QueriedResource;
+import javax.ws.rs.container.ResourceContext;
 
 /**
  * JAX-RS mapper for model exceptions.
@@ -34,14 +34,14 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
     @Override
     public Response toResponse(ModelException ex)
     {
-        ex.getModel().add(getQueriedResource().describe().getDefaultModel());
+        if (getQueriedResource() != null) ex.getModel().add(getQueriedResource().describe().getDefaultModel());
         
         return super.toResponse(ex);
     }
     
     public QueriedResource getQueriedResource()
     {
-        return getResourceContext().matchResource(getUriInfo().getRequestUri(), QueriedResource.class);
+        return getResourceContext().getResource(QueriedResource.class);
     }
     
     public ResourceContext getResourceContext()

@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.model.impl;
 
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
-import java.net.URI;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -28,7 +28,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  *
@@ -64,9 +63,6 @@ public class CSVImportImpl extends ImportImpl implements CSVImport
         }
     };
 
-    // TO-DO: load media types from apl:CSVImport restriction?
-    public static javax.ws.rs.core.MediaType[] MEDIA_TYPES = { com.atomgraph.linkeddatahub.MediaType.valueOf(URI.create("http://www.sparontologies.net/mediatype/application/vnd.ms-excel")) };
-    
     public CSVImportImpl(Node n, EnhGraph g)
     {
         super(n, g);

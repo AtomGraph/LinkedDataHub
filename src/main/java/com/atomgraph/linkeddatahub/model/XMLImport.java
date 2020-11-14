@@ -16,6 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
+import org.apache.jena.rdf.model.Resource;
+
 /**
  * XML data import.
  * 
@@ -23,5 +25,7 @@ package com.atomgraph.linkeddatahub.model;
  */
 public interface XMLImport extends Import
 {
+    
+    Resource getStylesheet();
     
 }

@@ -11,8 +11,6 @@
 @prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
-@prefix srv:	<http://jena.hpl.hp.com/Service#> .
-@prefix dydra:	<http://dydra.com/ns#> .
 
 # APPS
 
@@ -56,5 +54,4 @@ _:root_end_user_service a apl:GenericService ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
-    a:quadStore <http://fuseki-end-user:3030/ds/> ;
-    lapp:proxy <http://varnish-end-user/> .
+    a:quadStore <http://fuseki-end-user:3030/ds/> .

@@ -16,18 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.model.dydra.impl;
 
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientRequest;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.filter.ClientFilter;
+import java.io.IOException;
 import java.net.URI;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.core.UriBuilder;
 
 /**
  *
  * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public class AuthTokenFilter extends ClientFilter
+public class AuthTokenFilter implements ClientRequestFilter
 {
 
     static final String AUTH_TOKEN_PARAM_NAME = "auth_token";
@@ -41,12 +40,10 @@ public class AuthTokenFilter extends ClientFilter
     }
     
     @Override
-    public ClientResponse handle(ClientRequest cr) throws ClientHandlerException
+    public void filter(ClientRequestContext cr) throws IOException
     {
-        URI withToken = UriBuilder.fromUri(cr.getURI()).queryParam(AUTH_TOKEN_PARAM_NAME, getToken()).build();
-        cr.setURI(withToken);
-        
-        return getNext().handle(cr);
+        URI withToken = UriBuilder.fromUri(cr.getUri()).queryParam(AUTH_TOKEN_PARAM_NAME, getToken()).build();
+        cr.setUri(withToken);
     }
     
     public String getToken()

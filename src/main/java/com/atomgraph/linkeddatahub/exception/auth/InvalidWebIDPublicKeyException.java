@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.exception.auth;
 
 import java.security.interfaces.RSAPublicKey;
+import javax.ws.rs.NotAuthorizedException;
 
 /**
  * WebID authentication exception.
@@ -24,7 +25,7 @@ import java.security.interfaces.RSAPublicKey;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class InvalidWebIDPublicKeyException extends RuntimeException
+public class InvalidWebIDPublicKeyException extends NotAuthorizedException
 {
     
     private final RSAPublicKey publicKey;
@@ -41,7 +42,7 @@ public class InvalidWebIDPublicKeyException extends RuntimeException
     {
         return publicKey;
     }
-            
+    
     public String getWebID()
     {
         return webID;

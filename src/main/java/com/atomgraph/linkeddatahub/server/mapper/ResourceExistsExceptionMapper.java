@@ -19,7 +19,7 @@ package com.atomgraph.linkeddatahub.server.mapper;
 import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.model.QueriedResource;
-import com.sun.jersey.api.core.ResourceContext;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -54,10 +54,10 @@ public class ResourceExistsExceptionMapper extends ExceptionMapperBase implement
             build();
     }
     
-    public QueriedResource getQueriedResource()
-    {
-        return getResourceContext().matchResource(getUriInfo().getRequestUri(), QueriedResource.class);
-    }
+//    public QueriedResource getQueriedResource()
+//    {
+//        return getResourceContext().matchResource(getUriInfo().getRequestUri(), QueriedResource.class);
+//    }
     
     public ResourceContext getResourceContext()
     {

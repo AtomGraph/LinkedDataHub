@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model;
 
-import com.atomgraph.linkeddatahub.server.method.PATCH;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.core.Response;
 import org.apache.jena.update.UpdateRequest;
 

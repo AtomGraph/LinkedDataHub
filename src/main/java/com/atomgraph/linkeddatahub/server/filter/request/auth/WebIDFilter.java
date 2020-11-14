@@ -19,8 +19,6 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.client.DataManager;
-import com.atomgraph.linkeddatahub.client.NoCertClient;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDURIException;
@@ -28,15 +26,10 @@ import com.atomgraph.linkeddatahub.exception.auth.WebIDCertificateException;
 import com.atomgraph.linkeddatahub.exception.auth.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.filter.CacheControlFilter;
 import com.atomgraph.linkeddatahub.exception.auth.WebIDDelegationException;
-import com.atomgraph.linkeddatahub.server.provider.ApplicationProvider;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
@@ -46,14 +39,18 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Providers;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -70,7 +67,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  * WebID authentication request filter.
@@ -78,6 +74,8 @@ import org.spinrdf.vocabulary.SPIN;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@PreMatching
+@Priority(Priorities.USER) // has to execute after HttpMethodOverrideFilter which has @Priority(Priorities.HEADER_DECORATOR + 50)
 public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
 {
     
@@ -90,8 +88,9 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     private final javax.ws.rs.core.MediaType[] acceptedTypes;
     
     @Context HttpServletRequest httpServletRequest;
-    @Context Providers providers;
-    @Context Application system;
+    
+    @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
 
     private ParameterizedSparqlString authQuery, ownerAuthQuery, webIDQuery;
 
@@ -116,32 +115,31 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     }
 
     @Override
-    public ContainerRequest filter(ContainerRequest request)
+    public void filter(ContainerRequestContext request)
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
-        if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getRequestUri());
+        if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
         
         Resource accessMode = null;
         if (request.getMethod().equalsIgnoreCase(HttpMethod.GET) || request.getMethod().equalsIgnoreCase(HttpMethod.HEAD) ||
                 request.getMethod().equalsIgnoreCase("com.sun.jersey.MATCH_RESOURCE")) accessMode = ACL.Read;
         if (request.getMethod().equalsIgnoreCase(HttpMethod.POST)) accessMode = ACL.Append;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.PUT)) accessMode = ACL.Write;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.DELETE)) accessMode = ACL.Write;
-        if (request.getMethod().equalsIgnoreCase("PATCH")) accessMode = ACL.Write;
+        if (request.getMethod().equalsIgnoreCase(HttpMethod.PUT) ||
+            request.getMethod().equalsIgnoreCase(HttpMethod.DELETE) ||
+            request.getMethod().equalsIgnoreCase(HttpMethod.PATCH))
+            accessMode = ACL.Write;
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
         {
             if (log.isWarnEnabled()) log.warn("Skipping authentication/authorization, request method not recognized: {}", request.getMethod());
-            return request;
+            return;
         }
-        
-        com.atomgraph.linkeddatahub.apps.model.Application app = getApplicationProvider().getApplication(getHttpServletRequest());
 
         // logout not really possible with HTTP certificates
         //if (isLogoutForced(request, getScheme())) logout(app, request);
         
         X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");
-        if (certs == null) return request;
+        if (certs == null) return; // request;
 
         if (!(request.getSecurityContext().getUserPrincipal() instanceof Agent))
             try
@@ -151,49 +149,39 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                     if (getWebIDURI(cert) != null) webIDCert = cert;
                 
                 if (log.isTraceEnabled()) log.trace("Client WebID certificate: {}", webIDCert);
-                if (webIDCert == null) return request;
+                if (webIDCert == null) return; // request;
                 
                 webIDCert.checkValidity(); // check if certificate is expired or not yet valid
                 RSAPublicKey publicKey = (RSAPublicKey)webIDCert.getPublicKey();
                 URI webID = getWebIDURI(webIDCert);
                 if (log.isTraceEnabled()) log.trace("Client WebID: {}", webID);
 
-                try
+                Resource agent = authenticate(loadWebID(webID), webID, publicKey);
+                if (agent == null)
                 {
-                    Resource agent = authenticate(loadWebID(webID), webID, publicKey);
-                    if (agent == null)
-                    {
-                        if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
-                        throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
-                    }
-                    getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
-
-                    String onBehalfOf = request.getHeaderValue(ON_BEHALF_OF);
-                    if (onBehalfOf != null)
-                    {
-                        URI principalWebID = new URI(onBehalfOf);
-                        Model principalWebIDModel = loadWebID(principalWebID);
-                        Resource principal = principalWebIDModel.createResource(onBehalfOf);
-                        // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
-                        if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
-                        else throw new WebIDDelegationException(agent, principal);
-                    }
-                    
-                    // imitate type inference, otherwise we'll get Jena's polymorphism exception
-                    request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
-
-                    if (app != null)
-                    {
-                        Resource authorization = authorize(app, request, agent, accessMode);
-                        ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
-                    }
-
-                    return request;
+                    if (log.isErrorEnabled()) log.error("Client certificate public key did not match WebID public key: {}", webID);
+                    throw new InvalidWebIDPublicKeyException(publicKey, webID.toString());
                 }
-                catch (ClientHandlerException ex)
+                getSystem().getWebIDModelCache().put(webID, agent.getModel()); // now it's safe to cache the WebID Model
+
+                String onBehalfOf = request.getHeaderString(ON_BEHALF_OF);
+                if (onBehalfOf != null)
                 {
-                    if (log.isErrorEnabled()) log.error("Error loading RDF data from WebID URI: {}", webID, ex);
-                    return request; // default to unauthenticated access
+                    URI principalWebID = new URI(onBehalfOf);
+                    Model principalWebIDModel = loadWebID(principalWebID);
+                    Resource principal = principalWebIDModel.createResource(onBehalfOf);
+                    // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
+                    if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
+                    else throw new WebIDDelegationException(agent, principal);
+                }
+
+                // imitate type inference, otherwise we'll get Jena's polymorphism exception
+                request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
+
+                if (app != null)
+                {
+                    Resource authorization = authorize(app, request, agent, accessMode);
+                    ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
                 }
             }
             catch (CertificateException ex)
@@ -213,8 +201,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 Resource agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
                 authorize(app, request, agent, accessMode);
             }
-            
-            return request;
         }
     }
     
@@ -270,32 +256,28 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     
     public Model loadWebIDFromURI(URI webID)
     {
-        ClientResponse cr = null;
-        
         try
         {
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
-            cr = getNoCertClient().resource(webIDDoc).
-                    accept(getAcceptableMediaTypes()).
-                    get(ClientResponse.class);
             
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            try (Response cr = getNoCertClient().target(webIDDoc).
+                    request(getAcceptableMediaTypes()).
+                    get())
             {
-                if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
-                throw new WebIDLoadingException(cr);
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                {
+                    if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
+                    throw new WebIDLoadingException(webID, cr);
+                }
+                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
+
+                return cr.readEntity(Model.class);
             }
-            cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
-            
-            return cr.getEntity(Model.class);
         }
         catch (URISyntaxException ex)
         {
             // can't happen
-        }
-        finally
-        {
-            if (cr != null) cr.close();
         }
         
         return null;
@@ -304,7 +286,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
     public QuerySolutionMap getQuerySolutionMap(com.atomgraph.linkeddatahub.apps.model.Application app, Resource absolutePath, Resource agent, Resource accessMode)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
-        if (app.canAs(EndUserApplication.class)) qsm.add(SD.endpoint.getLocalName(), app.getService().getSPARQLEndpoint()); // needed for federation with the end-user endpoint        
+        if (app.canAs(EndUserApplication.class)) qsm.add(SD.endpoint.getLocalName(), app.getService().getSPARQLEndpoint()); // needed for federation with the end-user endpoint
         qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
         qsm.add("agent", agent);
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
@@ -313,13 +295,13 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return qsm;
     }
     
-    public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequest request, Resource agent, Resource accessMode)
+    public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request, Resource agent, Resource accessMode)
     {
         return authorize(app, request, accessMode,
-                getQuerySolutionMap(app, ResourceFactory.createResource(request.getAbsolutePath().toString()), agent, accessMode));
+                getQuerySolutionMap(app, ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
     }
         
-    public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequest request, Resource accessMode, QuerySolutionMap qsm)
+    public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request, Resource accessMode, QuerySolutionMap qsm)
     {
         final ParameterizedSparqlString pss;
         final com.atomgraph.linkeddatahub.model.Service adminService; // always run auth queries on admin Service
@@ -343,8 +325,8 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         
         if (authorization == null)
         {
-            if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getAbsolutePath(), accessMode);
-            throw new AuthorizationException("Access not authorized for request URI", request.getAbsolutePath(), accessMode);
+            if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getUriInfo().getAbsolutePath(), accessMode);
+            throw new AuthorizationException("Access not authorized for request URI", request.getUriInfo().getAbsolutePath(), accessMode);
         }
             
         return authorization;
@@ -364,10 +346,11 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
         if (service == null) throw new IllegalArgumentException("Service cannot be null");
 
-        return service.getSPARQLClient().
-                addFilter(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
-                query(query, Model.class, null).
-                getEntity(Model.class);
+        try (Response cr = service.getSPARQLClient().// register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request
+                query(query, Model.class))
+        {
+            return cr.readEntity(Model.class);
+        }
     }
     
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
@@ -389,7 +372,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return null;
     }
     
-    public boolean isApplied(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequest request)
+    public boolean isApplied(com.atomgraph.linkeddatahub.apps.model.Application app, String realm, ContainerRequestContext request)
     {
         return true;
     }
@@ -399,19 +382,9 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return httpServletRequest;
     }
     
-    public ApplicationProvider getApplicationProvider()
-    {
-        return ((ApplicationProvider)getProviders().getContextResolver(com.atomgraph.linkeddatahub.apps.model.Application.class, null));
-    }
-    
-    public Providers getProviders()
-    {
-        return providers;
-    }
-    
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return (com.atomgraph.linkeddatahub.Application)system;
+        return system;
     }
     
     public ParameterizedSparqlString getAuthQuery()
@@ -429,14 +402,10 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         return webIDQuery;
     }
     
-    public DataManager getDataManager()
+
+    public Client getNoCertClient()
     {
-        return getProviders().getContextResolver(DataManager.class, null).getContext(DataManager.class);
-    }
-    
-    public NoCertClient getNoCertClient()
-    {
-        return getProviders().getContextResolver(NoCertClient.class, null).getContext(NoCertClient.class);
+        return system.getNoCertClient();
     }
     
     public javax.ws.rs.core.MediaType[] getAcceptableMediaTypes()

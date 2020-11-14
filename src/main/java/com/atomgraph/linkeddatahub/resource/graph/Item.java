@@ -21,8 +21,6 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import java.net.URI;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
@@ -33,25 +31,26 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.atomgraph.linkeddatahub.server.method.PATCH;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.Optional;
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.Dataset;
@@ -75,21 +74,20 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
-    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+    @Inject
+    public Item(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system)
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
-                httpContext, securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
     }
@@ -99,10 +97,10 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     public Response options()
     {
         ResponseBuilder rb = Response.ok().
-            header("Allow", HttpMethod.GET).
-            header("Allow", HttpMethod.POST).
-            header("Allow", HttpMethod.PUT).
-            header("Allow", HttpMethod.DELETE);
+            header(HttpHeaders.ALLOW, HttpMethod.GET).
+            header(HttpHeaders.ALLOW, HttpMethod.POST).
+            header(HttpHeaders.ALLOW, HttpMethod.PUT).
+            header(HttpHeaders.ALLOW, HttpMethod.DELETE);
         
         String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
@@ -114,7 +112,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     @Override
     public Response get()
     {
-        return getResponseBuilder(DatasetFactory.create(getService().getDatasetAccessor().getModel(getURI().toString()))).build();
+        return getResponseBuilder(getService().getDatasetAccessor().getModel(getURI().toString())).build();
     }
 
     @Override
@@ -143,39 +141,36 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         
         getService().getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
 
-        ResultSet resultSet = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
+        try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                 getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                new MultivaluedMapImpl()).
-                getEntity(ResultSetRewindable.class);
-        if (resultSet.hasNext())
-        {
-            QuerySolution qs = resultSet.next();
-            Resource document = qs.getResource(FOAF.Document.getLocalName());
-            Resource provGraph = qs.getResource("provGraph"); // TO-DO: use some constant instead of a hardcoded string
-            Resource container = qs.getResource(DH.Container.getLocalName());
-            
-            if (provGraph != null)
+                new MultivaluedHashMap()))
             {
-                // add dct:modified on ?doc where { ?doc void:inDataset ?this }
-                Model provModel = ModelFactory.createDefaultModel();
-                provModel.addLiteral(document, DCTerms.modified, provModel.createTypedLiteral(GregorianCalendar.getInstance()));
-                Dataset provDataset = DatasetFactory.create();
-                provDataset.addNamedModel(provGraph.getURI(), provModel);
-                getService().getDatasetQuadAccessor().add(provDataset);
-            }
-            
-            // attempt to purge ?doc where { ?doc void:inDataset ?this }
-            if (getSystem().isInvalidateCache() && document != null)
+            ResultSet resultSet = cr.readEntity(ResultSetRewindable.class);
+            if (resultSet.hasNext())
             {
-                ClientResponse banResponse = null;
-                try
+                QuerySolution qs = resultSet.next();
+                Resource document = qs.getResource(FOAF.Document.getLocalName());
+                Resource provGraph = qs.getResource("provGraph"); // TO-DO: use some constant instead of a hardcoded string
+                Resource container = qs.getResource(DH.Container.getLocalName());
+
+                if (provGraph != null)
                 {
-                    banResponse = ban(document, container);
-                    if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                    // add dct:modified on ?doc where { ?doc void:inDataset ?this }
+                    Model provModel = ModelFactory.createDefaultModel();
+                    provModel.addLiteral(document, DCTerms.modified, provModel.createTypedLiteral(GregorianCalendar.getInstance()));
+                    Dataset provDataset = DatasetFactory.create();
+                    provDataset.addNamedModel(provGraph.getURI(), provModel);
+                    getService().getDatasetQuadAccessor().add(provDataset);
                 }
-                finally
+
+                // attempt to purge ?doc where { ?doc void:inDataset ?this }
+                if (getSystem().isInvalidateCache() && document != null)
                 {
-                    if (banResponse != null) banResponse.close();
+                    try (Response banResponse = ban(document, container))
+                    {
+                        if (banResponse != null)
+                            if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                    }
                 }
             }
         }
@@ -221,34 +216,31 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
         // attempt to purge ?doc where { ?doc void:inDataset ?this }
         if (getSystem().isInvalidateCache())
         {
-            ResultSet resultSet = getService().getSPARQLClient().
+            try (Response cr = getService().getSPARQLClient().
                 query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                     getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                    new MultivaluedMapImpl()).
-                getEntity(ResultSetRewindable.class);
-            if (resultSet.hasNext())
-            {
-                QuerySolution qs = resultSet.next();
-                Resource document = qs.getResource(FOAF.Document.getLocalName());
-                Resource container = qs.getResource(DH.Container.getLocalName());
-                
-                if (document != null)
+                    new MultivaluedHashMap()))
                 {
-                    ClientResponse banResponse = null;
-                    try
+                ResultSet resultSet = cr.readEntity(ResultSetRewindable.class);
+                if (resultSet.hasNext())
+                {
+                    QuerySolution qs = resultSet.next();
+                    Resource document = qs.getResource(FOAF.Document.getLocalName());
+                    Resource container = qs.getResource(DH.Container.getLocalName());
+
+                    if (document != null)
                     {
-                        banResponse = ban(document, container);
-                        if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
-                    }
-                    finally
-                    {
-                        if (banResponse != null) banResponse.close();
+                        try (Response banResponse = ban(document, container))
+                        {
+                            if (banResponse != null)
+                                if (log.isDebugEnabled()) log.debug("Sent BAN {} request SPARQL service proxy; received status code: {}", document.getURI(), banResponse.getStatus());
+                        }
                     }
                 }
             }
         }
         
-        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()); // TO-DO: remove named graph about named graph
+        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()).close(); // TO-DO: remove named graph about named graph
         getService().getDatasetAccessor().deleteModel(getURI().toString());
 
         return Response.noContent().build();

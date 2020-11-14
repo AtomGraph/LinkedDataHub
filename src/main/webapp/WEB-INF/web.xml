@@ -3,7 +3,7 @@
     xmlns="http://java.sun.com/xml/ns/javaee"
     xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" 
-    id="atomgraph-platform" version="3.0">
+    id="linkeddatahub" version="3.0">
     <display-name>AtomGraph Platform</display-name>
     <description>Multi-tenant Linked Data platform</description>
     <!-- context-params are set in docker-compose via conf/ROOT.xml -->
@@ -155,7 +155,7 @@ WHERE
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDQuery</param-name>
-        <param-value><![CDATA[
+<!--        <param-value><![CDATA[
 PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
             
 SELECT *
@@ -164,6 +164,19 @@ SELECT *
       cert:modulus ?mod ;
       cert:exponent ?exp
    ] .
+}
+]]></param-value>-->
+        <!-- we use this query version temporarily due to this Jena bug: https://issues.apache.org/jira/browse/JENA-1936 -->
+        <param-value><![CDATA[
+PREFIX cert:    <http://www.w3.org/ns/auth/cert#>
+            
+SELECT *
+{
+   ?webid cert:key [
+      cert:modulus ?certMod ;
+      cert:exponent ?exp
+   ] .
+   FILTER (?certMod = ?mod)
 }
 ]]></param-value>
     </context-param>
@@ -273,85 +286,23 @@ SELECT DISTINCT *
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#postUpdate</param-name>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#putUpdate</param-name>
         <param-value><![CDATA[
-PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
-PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
-PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
-PREFIX prov:    <http://www.w3.org/ns/prov#>
-PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-PREFIX void:    <http://rdfs.org/ns/void#>
-PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
-PREFIX sioc:    <http://rdfs.org/sioc/ns#>
-PREFIX dct:     <http://purl.org/dc/terms/>
-# https://mail-archives.apache.org/mod_mbox/jena-users/201605.mbox/%3C57346D71.4080209@apache.org%3E
-            
-DELETE
-{
-    ?doc ?docP ?docO .
-    ?docO ?thingP ?thingO .
-    ?thingO ?thing1P ?thing1O .
-    ?symThing ?docOP ?docO .
-    ?symThing ?symThingP ?symThingO .
-}
-INSERT
-{
-    GRAPH ?graphGraphDoc {
-        ?graphDoc a dh:Item ;
-            sioc:has_space ?base ;
-            sioc:has_container <graphs/> ;
-            foaf:maker ?Agent ; # sioc:has_creator ?UserAccount ;
-            acl:owner ?Agent ;
-            foaf:primaryTopic ?graph ;
-            prov:generatedAtTime ?now . # prov:wasGeneratedBy ?import
-        ?graph a apl:Dataset ;
-            foaf:isPrimaryTopicOf ?graphDoc .
-        ?doc sioc:has_space ?base ;
-            foaf:maker ?Agent ; # sioc:has_creator ?UserAccount ;
-            acl:owner ?Agent ;
-            dct:created ?now ;
-            void:inDataset ?graph .
-    }
-    GRAPH ?graphDoc {
-        ?doc ?docP ?docO .
-        ?docO ?thingP ?thingO .
-        ?thingO ?thing1P ?thing1O .
-        ?symThing ?docOP ?docO .
-        ?symThing ?symThingP ?symThingO .
-    }
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  void: <http://rdfs.org/ns/void#>
+
+INSERT {
+  GRAPH ?graphGraphDoc {
+    ?this dct:modified ?modified .
+  }
 }
 WHERE
-{
-    {
-        SELECT ?doc ?graphDoc ?graph ?graphGraphDoc
-        {
-            ?doc dh:slug ?slug .
-
-            BIND (URI(CONCAT(STR(<graphs/>), STRUUID(), "/")) AS ?graphDoc) # has to match ldt:match of apl:Dataset
-            BIND (URI(CONCAT(STR(?graphDoc), "#this")) AS ?graph)
-            BIND (URI(CONCAT(STR(<graphs/>), STRUUID(), "/")) AS ?graphGraphDoc) # has to match ldt:match of apl:Dataset
-        }
-    }
-    BIND (NOW() AS ?now)
-    ?doc ?docP ?docO .
-    ?doc a ?Type .
-    OPTIONAL {
-        ?docO ?thingP ?thingO . # topic 1st level description
-        FILTER NOT EXISTS { ?docO dh:slug ?docOSlug } # do not match topic if it's a document
-        OPTIONAL {
-            ?thingO ?thing1P ?thing1O # topic 2nd level description
-            FILTER NOT EXISTS { ?doc ?docP ?thingO }
-        }
-        OPTIONAL {
-            ?symThing ?docOP ?docO # 1st of symmetric description
-            FILTER(?symThing != ?doc)
-            OPTIONAL {
-                ?symThing ?symThingP ?symThingO
-            }
-        }
-    }
-}
+  { GRAPH ?graphGraphDoc
+      { ?this  void:inDataset  ?graph ;
+               dct:created     ?created
+      }
+    BIND(now() AS ?modified)
+  }
 ]]></param-value>
     </context-param>
     <context-param>
@@ -528,14 +479,6 @@ support@linkeddatahub.com]]></param-value>
         <param-value>true</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/processor#sitemapRules</param-name>
-        <param-value><![CDATA[
-[inhClass: (?class rdf:type <http://www.w3.org/2000/01/rdf-schema#Class>), (?class ?p ?o), (?p rdf:type <https://www.w3.org/ns/ldt#InheritedProperty>), (?subClass rdfs:subClassOf ?class), (?subClass rdf:type <http://www.w3.org/2000/01/rdf-schema#Class>), noValue(?subClass ?p) -> (?subClass ?p ?o) ]
-[inhTemplate: (?template rdf:type <https://www.w3.org/ns/ldt#Template>), (?template ?p ?o), (?p rdf:type <https://www.w3.org/ns/ldt#InheritedProperty>), (?subTemplate <https://www.w3.org/ns/ldt#extends> ?template), (?subTemplate rdf:type <https://www.w3.org/ns/ldt#Template>), noValue(?subTemplate ?p) -> (?subTemplate ?p ?o) ]
-[rdfs9: (?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y)]
-]]></param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#invalidateCache</param-name>
         <param-value>true</param-value>
     </context-param>
@@ -573,21 +516,11 @@ WHERE
 ]]></param-value>
     </context-param>
     <servlet>
-        <servlet-name>platform</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>javax.ws.rs.Application</param-name>
-            <param-value>com.atomgraph.linkeddatahub.Application</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
-            <param-value>com.atomgraph.client.filter.request.PostReplaceFilter;com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter,com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter,com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
-            <param-value>com.atomgraph.server.filter.response.HypermediaFilter</param-value>
-        </init-param>
+        <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
     </servlet>
+    <listener>
+        <listener-class>com.atomgraph.core.util.jena.StartupListener</listener-class>
+    </listener>
     <listener>
         <listener-class>com.atomgraph.linkeddatahub.listener.ImportListener</listener-class>
     </listener>
@@ -607,7 +540,7 @@ WHERE
         <url-pattern>/favicon.ico</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>platform</servlet-name>
+        <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
     <filter>

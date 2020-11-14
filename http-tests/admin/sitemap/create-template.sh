@@ -14,7 +14,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/sitemap"
 --uri "${END_USER_BASE_URL}ns/templates#NewTemplate" \
 --label "New template" \
 --slug new-template \
---extends "${END_USER_BASE_URL}ns/templates#Item" \
+--extends "${END_USER_BASE_URL}ns/templates#Document" \
 --match "/" \
 --is-defined-by "${END_USER_BASE_URL}ns/templates#"
 

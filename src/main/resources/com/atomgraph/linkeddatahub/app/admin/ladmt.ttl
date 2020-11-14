@@ -11,5 +11,5 @@
 
 : a ldt:Ontology ;
     owl:imports aplt:, laclt:, lsmt: ;
-    rdfs:label "Admin templates" ;
+    rdfs:label "LinkedDataHub admin templates" ;
     owl:versionInfo "1.1.4" .

@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -36,6 +36,11 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
+        <build.warName>ROOT</build.warName>
+        <saxon-js.stylesheet>/static/com/atomgraph/linkeddatahub/xsl/client.xsl</saxon-js.stylesheet>
+        <xsl.root.dir>static/com/atomgraph/</xsl.root.dir>
+        <xsl.file.list>xsl.file.list.txt</xsl.file.list>
+        <xsl.file.list.comma>xsl.file.list.comma.txt</xsl.file.list.comma>
     </properties>
 
     <scm>
@@ -45,27 +50,49 @@
         <tag>HEAD</tag>
     </scm>
 
+    <repositories>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+            <id>apache-repo-releases</id>
+            <url>https://repository.apache.org/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>apache-repo-snapshots</id>
+            <url>https://repository.apache.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
     <dependencies>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>4.0.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-multipart</artifactId>
-            <version>1.19</version>
+            <groupId>org.glassfish.jersey.connectors</groupId>
+            <artifactId>jersey-apache-connector</artifactId>
+            <version>2.30.1</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.jersey.contribs</groupId>
-            <artifactId>jersey-apache-client4</artifactId>
-            <version>1.19</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>1.19</version>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>2.30.1</version>
         </dependency>
         <dependency>
             <groupId>xom</groupId>
@@ -78,16 +105,16 @@
             <version>1.5.2</version>
         </dependency>
         <dependency>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-          <version>22.0</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>22.0</version>
         </dependency>
         <dependency>
             <groupId>com.atomgraph.etl.csv</groupId>
             <artifactId>csv2rdf</artifactId>
-            <version>2.0.1</version>
+            <version>2.1.1</version>
             <exclusions>
-                <!-- exclide SL4J from CSV2RDF - we already got another coming from Core. Otherwise we get https://www.slf4j.org/codes.html#multiple_bindings -->
+                <!-- exclude SL4J from CSV2RDF - we already got another coming from Core. Otherwise we get https://www.slf4j.org/codes.html#multiple_bindings -->
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-simple</artifactId>
@@ -97,24 +124,25 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>2.2.8</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.6</version>
+            <version>3.0.0</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>2.1.6</version>
+            <version>3.0.0</version>
             <type>war</type>
         </dependency>
         <dependency>
+            <!-- comes with atomgraph/letsencrypt-tomcat -->
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-coyote</artifactId>
-            <version>8.0.44</version>
+            <version>9.0.39</version>
             <type>jar</type>
         </dependency>
     </dependencies>
@@ -129,6 +157,21 @@
             </resource>
         </resources>
                 
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>default-war</id>
+                            <phase>none</phase>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -143,31 +186,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <!-- ignore warnings about internal Java APIs which we use for WebIDCertGen -->
                     <compilerArgs>
                         <arg>-XDignore.symbol.file</arg>
                         <arg>-Djava.endorsed.dirs=${endorsed.dir}</arg>
                     </compilerArgs>
                     <fork>true</fork>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.3</version>
-                <configuration>
-                    <warName>ROOT</warName>
-                    <webappDirectory>target/ROOT</webappDirectory>
-                    <failOnMissingWebXml>true</failOnMissingWebXml>
-                    <attachClasses>true</attachClasses>
-                    <overlays>
-                         <overlay>
-                             <groupId>${project.groupId}</groupId>
-                             <artifactId>client</artifactId>
-                         </overlay>
-                    </overlays>
                 </configuration>
             </plugin>
             <plugin>
@@ -180,6 +206,150 @@
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>find-xsl-files</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <executable>find</executable>
+                            <workingDirectory>${project.build.directory}/${build.warName}/${xsl.root.dir}</workingDirectory>
+                            <outputFile>${project.build.directory}/${xsl.file.list}</outputFile>
+                            <commandlineArgs>. -type f -name '*.xsl'</commandlineArgs>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>comma-separate-xsl-files</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <executable>paste</executable>
+                            <workingDirectory>${project.build.directory}</workingDirectory>
+                            <outputFile>${project.build.directory}/${xsl.file.list.comma}</outputFile>
+                            <commandlineArgs>-s -d, ${project.build.directory}/${xsl.file.list}</commandlineArgs>
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.honton.chas</groupId>
+                <artifactId>readfiles-maven-plugin</artifactId>
+                <version>0.0.1</version>
+                <executions>
+                    <execution>
+                        <id>read-comma-separated-xsl-file-list</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>readfiles</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <!-- set xsl.file.list.comma.txt property -->
+                                <file>${project.build.directory}/${xsl.file.list.comma}</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.soebes.maven.plugins</groupId>
+                <artifactId>iterator-maven-plugin</artifactId>
+                <version>0.5.1</version>
+                <executions>
+                    <execution>
+                        <id>inline-xml-entities</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>iterator</goal>
+                        </goals>
+                        <configuration>
+                            <content>${xsl.file.list.comma.txt}</content>
+                            <pluginExecutors>
+                                <pluginExecutor>
+                                    <plugin>
+                                        <groupId>org.codehaus.mojo</groupId>
+                                        <artifactId>exec-maven-plugin</artifactId>
+                                        <version>3.0.0</version>
+                                    </plugin>
+                                    <goal>java</goal>
+                                    <configuration>
+                                        <mainClass>net.sf.saxon.Query</mainClass>
+                                        <commandlineArgs>-qs:"." -s:"${project.build.directory}/${build.warName}/${xsl.root.dir}/@item@" -o:"${project.build.directory}/${build.warName}/${xsl.root.dir}/@item@"</commandlineArgs>
+                                    </configuration>
+                                </pluginExecutor>
+                            </pluginExecutors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.10.0</version>
+                <configuration>
+                    <nodeVersion>v14.8.0</nodeVersion>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                    <execution>
+                        <id>generate-sef</id>
+                        <goals>
+                            <goal>npx</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <arguments>xslt3 -t -xsl:${project.build.directory}/${build.warName}${saxon-js.stylesheet} -export:${project.build.directory}/${build.warName}${saxon-js.stylesheet}.sef.json -nogo -ns:##html5</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.3</version>
+                <configuration>
+                    <warName>${build.warName}</warName>
+                    <webappDirectory>${project.build.directory}/${build.warName}</webappDirectory>
+                    <failOnMissingWebXml>true</failOnMissingWebXml>
+                    <attachClasses>true</attachClasses>
+                    <overlays>
+                        <overlay>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>client</artifactId>
+                        </overlay>
+                    </overlays>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-war</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exploded</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>package-war</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>war</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -206,49 +376,6 @@
             <properties>
                 <packaging.type>jar</packaging.type>
             </properties>
-        </profile>
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <version>3.2.3</version>
-                        <configuration>
-                            <webResources>
-                                <resource>
-                                    <directory>src/main/webapp/dev/SaxonceDebug</directory>
-                                    <targetPath>static/com/atomgraph/linkeddatahub/js/saxon-ce</targetPath>
-                                </resource>
-                            </webResources>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <version>3.2.3</version>
-                        <configuration>
-                            <webResources>
-                                <resource>
-                                    <directory>src/main/webapp/prod/Saxonce</directory>
-                                    <targetPath>static/com/atomgraph/linkeddatahub/js/saxon-ce</targetPath>
-                                </resource>
-                            </webResources>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
             <id>release</id>

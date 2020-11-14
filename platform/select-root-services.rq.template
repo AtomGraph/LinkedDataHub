@@ -1,8 +1,8 @@
 PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
+PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-PREFIX dydra:   <http://dydra.com/ns#>
-PREFIX srv:     <http://jena.hpl.hp.com/Service#>
+PREFIX dydra:   <https://w3id.org/atomgraph/linkeddatahub/services/dydra#>
 
 SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd
 {
@@ -12,7 +12,7 @@ SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQu
         ?adminApp ldt:service ?adminService ;
             ldt:base ?adminBaseUri .
         {
-            ?endUserService sd:endpoint ?endUserQuadStore .
+            ?endUserService a:quadStore ?endUserQuadStore .
         }
         UNION
         {
@@ -20,7 +20,7 @@ SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQu
             BIND (URI(CONCAT(STR(?endUserRepository), "service")) AS ?endUserQuadStore)
         }
         {
-            ?adminService sd:endpoint ?adminQuadStore .
+            ?adminService a:quadStore ?adminQuadStore .
         }
         UNION
         {
@@ -29,12 +29,12 @@ SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQu
         }
         OPTIONAL
         {
-            ?endUserService srv:queryAuthUser ?endUserAuthUser ;
-                srv:queryAuthPwd ?endUserAuthPwd .
+            ?endUserService a:authUser ?endUserAuthUser ;
+                a:authPwd ?endUserAuthPwd .
         }
         OPTIONAL
         {
-            ?adminService srv:queryAuthUser ?adminAuthUser ;
-                srv:queryAuthPwd ?adminAuthPwd .
+            ?adminService a:authUser ?adminAuthUser ;
+                a:authPwd ?adminAuthPwd .
         }
 }

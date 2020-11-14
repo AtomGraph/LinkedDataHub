@@ -1,4 +1,14 @@
-FROM maven:3.5.3-jdk-8 as maven
+FROM maven:3.6.3-jdk-11 as maven
+
+# download and extract Jena
+
+ARG JENA_VERSION=3.16.0
+
+ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
+
+RUN mkdir /jena && \
+    curl -SL "$JENA_TAR_URL" | \
+    tar -xzf - -C /jena
 
 # copy trust manager source code
 
@@ -18,19 +28,7 @@ COPY src /usr/src/platform/src
 
 COPY pom.xml /usr/src/platform/pom.xml
 
-ARG MAVEN_PROFILE=prod
-
-RUN mvn -Pstandalone -P${MAVEN_PROFILE} clean install
-
-# download and extract Jena
-
-ARG JENA_VERSION=3.12.0
-
-ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
-
-RUN mkdir /jena && \
-    curl -SL "$JENA_TAR_URL" | \
-    tar -xzf - -C /jena
+RUN mvn -Pstandalone clean install
 
 # ==============================
 
@@ -57,6 +55,8 @@ COPY platform/context.xsl conf/context.xsl
 # copy trust manager from the maven stage of the build
 
 COPY --from=maven /usr/src/trust-manager/target/trust-manager-1.0.0-SNAPSHOT.jar lib/ldh-trust-manager.jar
+
+ENV CACHE_MODEL_LOADS=true
 
 ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
 
@@ -86,11 +86,15 @@ ENV HTTPS_CLIENT_AUTH=want
 
 ENV HTTPS_COMPRESSION=on
 
-ENV P12_FILE=/var/linkeddatahub/server.p12
+ENV P12_FILE=/var/linkeddatahub/certs/server.p12
 
 ENV PKCS12_KEY_PASSWORD=
 
 ENV PKCS12_STORE_PASSWORD=
+
+ENV SECRETARY_REL_URI=admin/acl/agents/e413f97b-15ee-47ea-ba65-4479aa7f1f9e/#this
+
+ENV SECRETARY_KEY_PASSWORD=LinkedDataHub
 
 ENV SECRETARY_CERT_ALIAS=ldh
 
@@ -116,9 +120,29 @@ ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
 
 ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
 
+ENV UPLOAD_CONTAINER_PATH=uploads
+
+ENV MAX_CONN_PER_ROUTE=20
+
+ENV MAX_TOTAL_CONN=40
+
+ENV IMPORT_KEEPALIVE=
+
+# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
+
+RUN rm -rf webapps/* && \
+    apt-get update && \
+    apt-get install -y xmlstarlet && \
+    apt-get install -y gettext-base && \
+    apt-get install -y uuid-runtime
+
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
+
+# copy SPARQL query used to split the default graph into named graphs
+
+COPY platform/split-default-graph.rq.template split-default-graph.rq.template
 
 # copy SPARQL query used to get metadata of the root app service from the system dataset
 
@@ -135,18 +159,6 @@ COPY platform/root-owner.trig.template root-owner.trig.template
 COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
 COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
-
-# define upload container path
-
-ENV UPLOAD_CONTAINER_PATH=uploads
-
-# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
-
-RUN rm -rf webapps/* && \
-    apt-get update && \
-    apt-get install -y xmlstarlet && \
-    apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime
 
 # copy webapp config
 
@@ -168,6 +180,6 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 
 # persist certificates in a volume
 
-VOLUME /var/linkeddatahub "$CATALINA_HOME/webapps/ROOT/certs"
+VOLUME /var/linkeddatahub/certs "$CATALINA_HOME/webapps/ROOT/certs"
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

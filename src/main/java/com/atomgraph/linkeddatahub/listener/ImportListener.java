@@ -16,16 +16,21 @@
  */
 package com.atomgraph.linkeddatahub.listener;
 
+import com.atomgraph.client.MediaTypes;
 import com.atomgraph.linkeddatahub.exception.ImportException;
 import com.atomgraph.linkeddatahub.imports.QueryLoader;
+import com.atomgraph.linkeddatahub.imports.StreamRDFOutput;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutput;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.imports.csv.stream.ClientResponseSupplier;
+import com.atomgraph.linkeddatahub.imports.stream.StreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
+import com.atomgraph.linkeddatahub.model.Import;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
-import com.sun.jersey.api.client.ClientResponse;
+import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
 import java.util.Calendar;
 import java.util.concurrent.CompletableFuture;
@@ -35,9 +40,13 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
@@ -52,7 +61,6 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.vocabulary.SPIN;
 
 /**
  * Data import listener.
@@ -65,12 +73,15 @@ public class ImportListener implements ServletContextListener
 
     private static final Logger log = LoggerFactory.getLogger(ImportListener.class);
     
-    private static final int MAX_THREADS = 10; // TO-DO: move to config?
+    private static final int MAX_THREADS = 1; // Graph Store Protocol cannot accept concurrent write requests TO-DO: make configurable
     private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(MAX_THREADS);
     public static final javax.ws.rs.core.MediaType TEXT_CSV_TYPE = MediaType.valueOf("text/csv");
     public static final javax.ws.rs.core.MediaType VNDMS_EXCEL_TYPE = MediaType.valueOf("application/vnd.ms-excel; q=0.4");
     public static final javax.ws.rs.core.MediaType OCTET_STREAM_TYPE = MediaType.valueOf("application/octet-stream; q=0.1");
     public static final javax.ws.rs.core.MediaType[] CSV_MEDIA_TYPES = { TEXT_CSV_TYPE, VNDMS_EXCEL_TYPE, OCTET_STREAM_TYPE };
+    public static final javax.ws.rs.core.MediaType[] RDF_MEDIA_TYPES = Stream.concat(MediaTypes.READABLE.get(Model.class).stream(), MediaTypes.READABLE.get(Dataset.class).stream()).
+        collect(Collectors.toList()).
+        toArray(new javax.ws.rs.core.MediaType[0]);
     
     @Override
     public void contextInitialized(ServletContextEvent sce)
@@ -98,37 +109,70 @@ public class ImportListener implements ServletContextListener
         qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, csvImport.getBaseUri().getURI());
         
-        Supplier<ClientResponse> csvSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, csvImport.getDataManager());
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, csvImport.getDataManager());
         // skip validation because it will be done during final POST anyway
-        Function<ClientResponse, CSVStreamRDFOutput> rdfOutputWriter = new CSVStreamRDFOutputWriter(csvImport.getContainer().getURI(),
+        Function<Response, CSVStreamRDFOutput> rdfOutputWriter = new CSVStreamRDFOutputWriter(csvImport.getContainer().getURI(),
                 csvImport.getDataManager(), csvImport.getBaseUri().getURI(), pss.asQuery(), csvImport.getDelimiter());
         
-        CompletableFuture.supplyAsync(csvSupplier).thenApplyAsync(rdfOutputWriter).
+        CompletableFuture.supplyAsync(fileSupplier).thenApplyAsync(rdfOutputWriter).
             thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, accessor)).
             exceptionally(failure(csvImport, importRes, provImport, provGraph, accessor));
     }
 
+    public static void submit(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor)
+    {
+        if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
+        if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
+        
+        Resource provImport = ModelFactory.createDefaultModel().createResource(rdfImport.getURI()).
+                addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
+        
+        QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), rdfImport.getBaseUri().getURI(), rdfImport.getDataManager());
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(SPIN.THIS_VAR_NAME, rdfImport.getContainer()); // target container becomes ?this
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, rdfImport.getBaseUri().getURI());
+        
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, rdfImport.getDataManager());
+        // skip validation because it will be done during final POST anyway
+        Function<Response, StreamRDFOutput> rdfOutputWriter = new StreamRDFOutputWriter(rdfImport.getContainer().getURI(),
+                rdfImport.getDataManager(), rdfImport.getBaseUri().getURI(), pss.asQuery());
+        
+        CompletableFuture.supplyAsync(fileSupplier).thenApplyAsync(rdfOutputWriter).
+            thenAcceptAsync(success(rdfImport, importRes, provImport, provGraph, accessor)).
+            exceptionally(failure(rdfImport, importRes, provImport, provGraph, accessor));
+    }
+    
     public static Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
     {
-        return new Consumer<CSVStreamRDFOutput>()
+        return (CSVStreamRDFOutput output) ->
         {
-
-            @Override
-            public void accept(CSVStreamRDFOutput output)
-            {
-                Resource dataset = provImport.getModel().createResource().
+            Resource dataset = provImport.getModel().createResource().
                     addProperty(RDF.type, VoID.Dataset).
                     addLiteral(VoID.distinctSubjects, output.getCSVStreamRDFProcessor().getSubjectCount()).
                     addLiteral(VoID.triples, output.getCSVStreamRDFProcessor().getTripleCount()).
                     addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
-                provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
-                
-                appendProvGraph(provImport, provGraph, accessor);
-            }
+            provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
+            
+            appendProvGraph(provImport, provGraph, accessor);
         };
     }
     
-    public static Function<Throwable, Void> failure(final CSVImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
+    public static Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
+    {
+        return (StreamRDFOutput output) ->
+        {
+            Resource dataset = provImport.getModel().createResource().
+                    addProperty(RDF.type, VoID.Dataset).
+//                    addLiteral(VoID.distinctSubjects, output.getCSVStreamRDFProcessor().getSubjectCount()).
+//                    addLiteral(VoID.triples, output.getCSVStreamRDFProcessor().getTripleCount()).
+                    addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
+            provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
+            
+            appendProvGraph(provImport, provGraph, accessor);
+        };
+    }
+
+    public static Function<Throwable, Void> failure(final Import importInst, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
     {
         return new Function<Throwable, Void>()
         {
@@ -136,7 +180,7 @@ public class ImportListener implements ServletContextListener
             @Override
             public Void apply(Throwable t)
             {
-                if (log.isErrorEnabled()) log.error("Could not write CSVImport: {}", csvImport, t);
+                if (log.isErrorEnabled()) log.error("Could not write Import: {}", importInst, t);
                 
                 if (t instanceof CompletionException)
                 {
@@ -147,7 +191,7 @@ public class ImportListener implements ServletContextListener
                             addProperty(RDF.type, PROV.Entity).
                             addLiteral(DCTerms.description, tpe.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
-                        provImport.addProperty(PROV.endedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
+                        provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
                         appendProvGraph(provImport, provGraph, accessor);
                     }
                     
@@ -155,11 +199,14 @@ public class ImportListener implements ServletContextListener
                     {
                         ImportException ie = (ImportException)t.getCause();
                         Model excModel = ie.getModel();
-                        Resource response = getResource(excModel, RDF.type, HTTP.Response); // find Response
-                        provImport.getModel().add(ResourceUtils.reachableClosure(response));
-                        response = getResource(provImport.getModel(), RDF.type, HTTP.Response); // find again in prov Model
-                        response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
-                        provImport.addProperty(PROV.endedAtTime, csvImport.getModel().createTypedLiteral(Calendar.getInstance()));
+                        if (excModel != null)
+                        {
+                            Resource response = getResource(excModel, RDF.type, HTTP.Response); // find Response
+                            provImport.getModel().add(ResourceUtils.reachableClosure(response));
+                            response = getResource(provImport.getModel(), RDF.type, HTTP.Response); // find again in prov Model
+                            response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
+                        }
+                        provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
                         appendProvGraph(provImport, provGraph, accessor);
                     }
                 }
@@ -184,7 +231,7 @@ public class ImportListener implements ServletContextListener
             
         };
     }
-    
+
     public static void appendProvGraph(Resource provImport, Resource provGraph, DatasetAccessor accessor)
     {
         if (log.isDebugEnabled()) log.debug("Appending import metadata to provenance graph: {}", provGraph);

@@ -29,7 +29,7 @@ xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
-exclude-result-prefixes="xs prop"
+exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 version="2.0"
 >
@@ -86,25 +86,69 @@ version="2.0"
         <xsl:param name="element" as="element()"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="query" as="xs:string"/>
-        <xsl:param name="js-function" as="xs:string"/>
-        <xsl:param name="callback"/>
+        <xsl:param name="resource-types" as="xs:anyURI*"/>
+        
         <!-- if the value hasn't changed during the delay -->
-        <xsl:if test="$query = $element/@prop:value">
-            <xsl:value-of select="ixsl:call(ixsl:window(), $js-function, ixsl:event(), $uri, $callback)"/>
+        <xsl:if test="$query = $element/ixsl:get(., 'value')">
+            <!--<xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>-->
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="typeahead:xml-loaded">
+                    <!--<xsl:with-param name="action" select="$callback" as="function(*)" />-->
+                    <xsl:with-param name="element" select="$element" as="element()"/>
+                    <xsl:with-param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
+                    <xsl:with-param name="resource-types" select="$resource-types"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:if>
     </xsl:template>
 
+    <xsl:template name="typeahead:xml-loaded">
+        <xsl:context-item as="map(*)" use="required"/>
+        
+        <xsl:param name="element" as="element()"/>
+        <xsl:param name="container-uri" as="xs:anyURI"/>
+        <xsl:param name="resource-types" as="xs:anyURI*"/>
+        
+        <xsl:variable name="menu" select="$element/following-sibling::ul" as="element()"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:if test="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.typeahead'))">
+                        <ixsl:set-property name="LinkedDataHub.typeahead" select="[]"/> <!-- empty array -->
+                    </xsl:if>
+                    <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
+
+                    <xsl:call-template name="typeahead:process">
+                        <xsl:with-param name="menu" select="$menu"/>
+                        <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
+                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(core:stateOf)][not(core:viewOf)][not(dh:pageOf)][not(ldt:paramName)]"/>
+                        <xsl:with-param name="resource-types" select="$resource-types"/>
+                        <xsl:with-param name="element" select="$element"/>
+                        <xsl:with-param name="name" select="'ou'"/>
+                    </xsl:call-template>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <xsl:template name="typeahead:process">
         <xsl:param name="menu" as="element()"/>
         <xsl:param name="items" as="element()*"/>
         <xsl:param name="element" as="element()"/>
         <xsl:param name="name" as="xs:string"/>
+        <xsl:param name="resource-types" as="xs:anyURI*"/>
 
         <xsl:choose>
             <xsl:when test="$items">
                 <xsl:call-template name="typeahead:render">
                     <xsl:with-param name="menu" select="$menu"/>
-                    <xsl:with-param name="items" select="$items"/>
+                    <!-- we're filtering here because data might not come pre-FILTERed from a SPARQL result, e.g. from an ontology document -->
+                    <!-- TO-DO: filtering properties by literal text() containing $query -->
+                    <xsl:with-param name="items" select="$items[if (not(empty($resource-types))) then (rdf:type/@rdf:resource = $resource-types) else true()]"/>
                     <xsl:with-param name="element" select="$element"/>
                     <xsl:with-param name="name" select="$name"/>
                 </xsl:call-template>
@@ -130,7 +174,7 @@ version="2.0"
         
         <xsl:result-document href="#{$menu/@id}" method="ixsl:replace-content">
             <xsl:apply-templates select="$items" mode="ac:TypeaheadOptionMode">
-                <xsl:with-param name="query" select="$element/@prop:value"/>
+                <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
                 <xsl:with-param name="name" select="$name"/>
                 <xsl:sort select="rdfs:label[1]"/>
                 <xsl:sort select="dct:title[1]"/>
@@ -147,9 +191,9 @@ version="2.0"
         <xsl:param name="menu" as="element()"/>
         
         <xsl:for-each select="$menu">
-            <ixsl:set-attribute name="style:display" select="'block'"/>
-            <ixsl:set-attribute name="style:top" select="concat($element/@prop:offsetTop + $element/@prop:offsetHeight, 'px')"/>
-            <ixsl:set-attribute name="style:left" select="concat($element/@prop:offsetLeft, 'px')"/>
+            <ixsl:set-style name="display" select="'block'"/>
+            <ixsl:set-style name="top" select="($element/ixsl:get(., 'offsetTop') + $element/ixsl:get(., 'offsetHeight')) || 'px'"/>
+            <ixsl:set-style name="left" select="($element/ixsl:get(., 'offsetLeft')) || 'px'"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -157,7 +201,7 @@ version="2.0"
         <xsl:param name="menu" as="element()"/>
 
         <xsl:for-each select="$menu">
-            <ixsl:set-attribute name="style:display" select="'none'"/>
+            <ixsl:set-style name="display" select="'none'"/>
         </xsl:for-each>
     </xsl:template>
     

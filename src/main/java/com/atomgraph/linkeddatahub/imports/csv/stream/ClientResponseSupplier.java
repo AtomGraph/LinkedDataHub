@@ -16,9 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.imports.csv.stream;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
-import com.sun.jersey.api.client.ClientResponse;
+import com.atomgraph.client.util.DataManager;
 import java.util.function.Supplier;
+import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.listener.ImportListener
  */
-public class ClientResponseSupplier implements Supplier<ClientResponse>
+public class ClientResponseSupplier implements Supplier<Response>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ClientResponseSupplier.class);
@@ -46,7 +46,7 @@ public class ClientResponseSupplier implements Supplier<ClientResponse>
     }
 
     @Override
-    public ClientResponse get()
+    public Response get()
     {
         return getDataManager().get(getURI(), getMediaTypes());
     }

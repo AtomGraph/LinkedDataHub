@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -12,13 +13,15 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
+    <!ENTITY void   "http://rdfs.org/ns/void#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:ac="&ac;"
+xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
+xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
@@ -28,30 +31,36 @@ xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:sp="&sp;"
 xmlns:geo="&geo;"
+xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-exclude-result-prefixes="#all">
+xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
+exclude-result-prefixes="#all"
+extension-element-prefixes="ixsl"
+>
     
+    <xsl:param name="lacl:Agent" as="document-node()?"/>
+
     <!-- CSS -->
     
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Container']" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Container']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][$ac:sitemap][(rdf:type/@rdf:resource, apl:superClasses(rdf:type/@rdf:resource, $ac:sitemap)) = '&dh;Item']" mode="apl:logo">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'Saxon-CE'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
@@ -188,6 +197,49 @@ exclude-result-prefixes="#all">
     </xsl:template>
         
     <!-- ACTIONS -->
+
+    <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
+        <div class="pull-right">
+            <button>
+                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+                
+                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+            </button>
+        </div>
+
+        <xsl:variable name="logged-in" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+        <xsl:if test="$logged-in">
+            <!-- show delete button only for document resources -->
+            <xsl:if test="ac:document-uri(@rdf:about) = @rdf:about">
+                <div class="pull-right">
+                    <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
+                        <button class="btn btn-delete" type="submit">
+                            <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
+                        </button>
+                    </form>
+                </div>
+            </xsl:if>
+
+            <xsl:for-each select="key('resources', @rdf:about)/void:inDataset/@rdf:resource">
+                <xsl:if test="not($ac:mode = '&ac;EditMode')">
+                    <div class="pull-right">
+                        <xsl:variable name="graph-uri" select="xs:anyURI(concat(ac:document-uri(.), '?mode=', encode-for-uri('&ac;EditMode'), '&amp;mode=', encode-for-uri('&ac;ModalMode')))" as="xs:anyURI"/>
+                        <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn'"/>
+                            </xsl:apply-templates>
+
+                            <input type="hidden" value="{$graph-uri}"/>
+                        </button>
+                    </div>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
     
     <xsl:template match="*" mode="bs2:Actions"/>
     
@@ -206,18 +258,24 @@ exclude-result-prefixes="#all">
         <ul class="inline">
             <xsl:for-each select="rdf:type/@rdf:resource">
                 <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') = 'Saxon-CE'"/>
+                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
 
-                <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
-                    <xsl:when test="doc-available(ac:document-uri(.))">
+                <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
+                <!--
+                <xsl:choose>
+                    <xsl:when test="doc-available(resolve-uri('?uri=' || encode-for-uri(ac:document-uri(.)), $ldt:base))">
                         <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:TypeListItem"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="."/>
+                        <li>
+                            <xsl:apply-templates select="."/>
+                        </li>
                     </xsl:otherwise>
                 </xsl:choose>
-                
-                <xsl:value-of select="." use-when="system-property('xsl:product-name') = 'Saxon-CE'"/>
+                -->
+                <li>
+                    <xsl:apply-templates select="."/>
+                </li>
             </xsl:for-each>
         </ul>
     </xsl:template>

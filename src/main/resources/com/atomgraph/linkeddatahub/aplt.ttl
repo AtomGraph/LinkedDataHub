@@ -177,7 +177,7 @@ DESCRIBE ?this
     ldt:match "/imports/" ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.imports.Container> ;
     rdfs:label "Imports" ;
-    rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
+    rdfs:comment "Provides CSV and RDF import capability to matching containers" ;
     rdfs:isDefinedBy : .
 
 :ImportItem a ldt:Template ;
@@ -326,13 +326,14 @@ WHERE
   { GRAPH ?graph
       { ?this  ?p  ?o
         OPTIONAL
-          { ?this  foaf:primaryTopic  ?primaryTopic }
+          { ?this  foaf:primaryTopic  ?primaryTopic
+            OPTIONAL
+              { GRAPH ?provGraph
+                  { ?response  prov:wasGeneratedBy  ?primaryTopic }
+              }
+          }
         OPTIONAL
           { ?this  rdfs:seeAlso  ?seeAlso }
-        OPTIONAL
-          { GRAPH ?provGraph
-              { ?response  prov:wasGeneratedBy  ?primaryTopic }
-          }
       }
   }""" ;
     rdfs:label "Describe with topic" ;

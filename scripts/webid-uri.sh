@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" -ne 2 ]; then
-  echo "Usage:   $0 cert_pem_file cert_password" >&2
+  echo "Usage:   $0" '$cert_pem_file $cert_password' >&2
   echo "Example: $0 martynas.localhost.pem Password" >&2
   exit 1
 fi

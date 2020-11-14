@@ -17,13 +17,16 @@
 package com.atomgraph.linkeddatahub.imports.csv.stream;
 
 import com.atomgraph.core.MediaType;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.exception.ImportException;
-import com.sun.jersey.api.client.ClientResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
@@ -37,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.listener.ImportListener
  */
-public class CSVStreamRDFOutputWriter implements Function<ClientResponse, CSVStreamRDFOutput>
+public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDFOutput>
 {
 
     private static final Logger log = LoggerFactory.getLogger(CSVStreamRDFOutputWriter.class);
@@ -58,32 +61,38 @@ public class CSVStreamRDFOutputWriter implements Function<ClientResponse, CSVStr
     }
     
     @Override
-    public CSVStreamRDFOutput apply(ClientResponse input)
+    public CSVStreamRDFOutput apply(Response input)
     {
         if (input == null) throw new IllegalArgumentException("Model cannot be null");
         
-        ClientResponse cr = null;
         try
         {
-            CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(input.getEntityInputStream(), StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
-
-            cr = getDataManager().getEndpoint(URI.create(getURI())).
-                type(MediaType.TEXT_NTRIPLES).
-                accept(MediaType.TEXT_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
-                post(ClientResponse.class, rdfOutput);
-            
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            try (InputStream is = input.readEntity(InputStream.class))
             {
-                //if (log.isErrorEnabled()) log.error("Could not write Import into container. ClientResponse: {}", cr);
-                throw new ImportException(cr.toString(), cr.getEntity(Model.class));
+                CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
+
+                try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
+                    request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
+                    post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
+                        throw new ImportException(cr.toString(), cr.readEntity(Model.class));
+                    }
+
+                    return rdfOutput;
+                }
             }
-            
-            return rdfOutput;
+        }
+        catch (IOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Error reading CSV InputStream: {}", ex);
+            throw new WebApplicationException(ex);
         }
         finally
         {
-            if (cr != null) cr.close();
-            input.close(); // close CSV input here as we couldn't close it before streaming finished (to avoid Jersey leaks)
+            input.close(); // close response
         }
     }
 

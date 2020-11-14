@@ -19,21 +19,22 @@ package com.atomgraph.linkeddatahub.sitemap.resource.ontology;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
 import com.atomgraph.server.exception.ConstraintViolationException;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.util.List;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -54,7 +55,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.constraints.ConstraintViolation;
 
 /**
  * JAX-RS resource that handles ontology container requests.
@@ -67,21 +67,20 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
     private final Query ontologyImportQuery;
 
-    public Container(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-            @Context Ontology ontology, @Context TemplateCall templateCall,
+    @Inject
+    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context Client client,
-            @Context HttpContext httpContext, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
-            @Context Application system, @Context final ServletConfig servletConfig)
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes, 
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
-                httpContext, securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
         
@@ -114,7 +113,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
                 transformedModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(transformedModel);
 
-                super.post(DatasetFactory.create(transformedModel));
+                super.post(DatasetFactory.create(transformedModel)).close();
             }
             
             return get();

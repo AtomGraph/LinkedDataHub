@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.api.core.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -26,30 +24,30 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.provider.OntologyLoader;
-import com.atomgraph.linkeddatahub.server.provider.SPARQLClientOntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
+import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.AgentContext;
-import com.atomgraph.linkeddatahub.util.WebIDCertGen;
-import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
+import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.util.TemplateCall;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.ConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.container.MappableContainerException;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
+import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
+import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +55,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -66,15 +63,19 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import javax.inject.Inject;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Application;
+import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -83,7 +84,7 @@ import javax.ws.rs.core.UriInfo;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -94,13 +95,12 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.server.internal.process.MappableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spinrdf.constraints.ConstraintViolation;
-import org.spinrdf.constraints.ObjectPropertyPath;
-import org.spinrdf.constraints.SimplePropertyPath;
 
 /**
  * JAX-RS resource that handles signups.
@@ -120,6 +120,18 @@ public class SignUp extends ResourceBase
     public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
+    // the following update has to match how platform/root-owner.trig.template stores acl:delegate for secretary
+    public static final String SECRETARY_DELEGATES_UPDATE = "PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>\n" +
+"\n" +
+"INSERT {\n" +
+"  GRAPH ?g {\n" +
+"    ?secretary acl:delegates ?Agent .\n" +
+"  }\n" +
+"}\n" +
+"WHERE\n" +
+"  { GRAPH ?g\n" +
+"      { ?Agent  ?p  ?o }\n" +
+"  }";
     
     private final Model countryModel;
     private final Ontology adminOntology;
@@ -131,23 +143,22 @@ public class SignUp extends ResourceBase
     private final boolean download;
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
-    public SignUp(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-                  @Context Service service, @Context com.atomgraph.linkeddatahub.apps.model.Application application,
-                  @Context Ontology ontology, @Context TemplateCall templateCall,
+    @Inject
+    public SignUp(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+                  Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+                  Ontology ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Context Client client,
-                  @Context HttpContext httpContext, @Context SecurityContext securityContext,
+                  @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
-                  @Context Application system, @Context final ServletConfig servletConfig)
+                  com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application,
                 ontology, templateCall,
                 httpHeaders, resourceContext,
-                client,
-                httpContext, securityContext,
+                httpServletRequest, securityContext,
                 dataManager, providers,
-                (com.atomgraph.linkeddatahub.Application)system);
+                system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
@@ -165,10 +176,7 @@ public class SignUp extends ResourceBase
         
         // get admin app ontology
         AdminApplication adminApp = application.as(AdminApplication.class);
-        OntologyLoader ontProv = new SPARQLClientOntologyLoader(((com.atomgraph.linkeddatahub.Application)system).getOntModelSpec(),
-                ((com.atomgraph.linkeddatahub.Application)system).getSitemapQuery(),
-                client, mediaTypes,
-                ((com.atomgraph.linkeddatahub.Application)system).getMaxGetRequestSize(), ((com.atomgraph.linkeddatahub.Application)system).isRemoteVariableBindings());
+        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
         adminOntology = ontProv.getOntology(adminApp);
         
         // TO-DO: extract Agent container URI from ontology Restrictions
@@ -204,7 +212,7 @@ public class SignUp extends ResourceBase
     @Override
     public Response construct(InfModel infModel)
     {
-        if (!getTemplateCall().hasArgument(APLT.forClass))
+        if (!getTemplateCall().get().hasArgument(APLT.forClass))
             throw new WebApplicationException(new IllegalStateException("dh:forClass argument is mandatory for aplt:SignUp template"), BAD_REQUEST);
         
         Model model = infModel.getRawModel();
@@ -213,7 +221,7 @@ public class SignUp extends ResourceBase
             // need to skolemize early to build the agent URI
             model = new Skolemizer(getAdminOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
             
-            Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
+            Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
             ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
 
             try
@@ -236,7 +244,7 @@ public class SignUp extends ResourceBase
 
                 String uuid = UUID.randomUUID().toString();
                 String keyStoreFileName = uuid + ".p12";
-                Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
+                java.nio.file.Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
 
                 new WebIDCertGen("RSA", STORE_TYPE).generate(keyStorePath, password, password, KEY_ALIAS,
                     fullName, null, orgName, null, null, countryName, agent.getURI(), getValidityDays());
@@ -252,7 +260,6 @@ public class SignUp extends ResourceBase
                     {
                         RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
                         agent.addProperty(Cert.key, createPublicKey(model, forClass.getNameSpace(), publicKey)); // add public key
-                        model.createResource(getSystem().getSecretaryWebIDURI().toString()).addProperty(ACL.delegates, agent); // add WebID delegation relationship
 
                         // skolemize once again to build the public key URI
                         model = new Skolemizer(getAdminOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
@@ -262,33 +269,40 @@ public class SignUp extends ResourceBase
                         URI agentContainerURI = getAgentContainerUriBuilder(). queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
                         SecurityContext securityContext = new AgentContext(agent.inModel(infModel).as(Agent.class), SecurityContext.CLIENT_CERT_AUTH);
                         // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                        Dataset dataset = DatasetFactory.create(model);
-                        // remove secretary WebID from cache
-                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-                        Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).post(dataset);
-                        
-                        if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        try (Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).construct(model))
                         {
-                            if (log.isErrorEnabled()) log.error("Cannot create Agent with URI: {}", agent.getURI());
-                            throw new WebApplicationException();
-                        }
-                        
-                        if (download)
-                        {
-                            return Response.ok(keyStoreBytes).
-                                type(PKCS12_MEDIA_TYPE).
-                                header("Content-Disposition", "attachment; filename=cert.p12").
-                                build();
-                        }
-                        else
-                        {
-                            LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                            sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+                            if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                            {
+                                if (log.isErrorEnabled()) log.error("Cannot create Agent with URI: {}", agent.getURI());
+                                throw new WebApplicationException("Cannot create Agent with URI: " + agent.getURI());
+                            }
 
-                            // append Agent data to response
-                            Dataset description = describe();
-                            description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
-                            return getResponseBuilder(description).build();
+                            Response updateResp = makeSecretaryDelegate(agent);
+                            if (!updateResp.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                            {
+                                if (log.isErrorEnabled()) log.error("Could not add acl:delegate for Agent with URI: {}", agent.getURI());
+                                throw new WebApplicationException("Could not add acl:delegate for Agent with URI: " + agent.getURI());
+                            }
+                            // remove secretary WebID from cache
+                            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+        
+                            if (download)
+                            {
+                                return Response.ok(keyStoreBytes).
+                                    type(PKCS12_MEDIA_TYPE).
+                                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                                    build();
+                            }
+                            else
+                            {
+                                LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                                sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                                // append Agent data to response
+                                Dataset description = describe();
+                                description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
+                                return getResponseBuilder(description).build();
+                            }
                         }
                     }
                 }
@@ -299,7 +313,7 @@ public class SignUp extends ResourceBase
             }
             catch (Exception ex)
             {
-                throw new MappableContainerException(ex);
+                throw new MappableException(ex);
             }
             finally
             {
@@ -386,17 +400,30 @@ public class SignUp extends ResourceBase
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
             build());
     }
-    
+
     public com.atomgraph.linkeddatahub.server.model.Resource createAgentContainer(URI agentContainerURI, Resource forClass, SecurityContext securityContext)
     {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
         queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
         
         return new ResourceBase(
-            new ClientUriInfo(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
+            new ClientUriInfoImpl(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            getClient(), getHttpContext(), securityContext, getDataManager(), getProviders(),
+            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
+    }
+    
+    public Response makeSecretaryDelegate(Resource agent)
+    {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(SECRETARY_DELEGATES_UPDATE);
+        pss.setIri("secretary", getSystem().getSecretaryWebIDURI().toString());
+        pss.setParam(FOAF.Agent.getLocalName(), agent);
+        UpdateRequest update = pss.asUpdate();
+
+        MultivaluedMap formData = new MultivaluedHashMap();
+        formData.putSingle("update", update.toString());
+
+        return getService().getSPARQLClient().post(formData, MediaType.APPLICATION_FORM_URLENCODED_TYPE, new MediaType[]{}, null);
     }
     
     @Override

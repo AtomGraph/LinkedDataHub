@@ -71,8 +71,9 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:label "Chart type" ;
     rdfs:isDefinedBy : .
 
-:endpoint a owl:ObjectProperty ;
-    rdfs:label "Endpoint" ;
+:service a owl:ObjectProperty ;
+    rdfs:label "Service" ;
+    rdfs:range :Service ;
     rdfs:isDefinedBy : .
 
 :categoryProperty a owl:ObjectProperty ;
@@ -116,16 +117,16 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :ServiceConstructor a sp:Construct ;
     sp:text """
+      PREFIX a:       <https://w3id.org/atomgraph/core#>
       PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
-      PREFIX srv:     <http://jena.hpl.hp.com/Service#>
 
       CONSTRUCT {
           ?this sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
-              srv:queryAuthUser [ a xsd:string ] ;
-              srv:queryAuthPwd [ a xsd:string ] ;
+              a:authUser [ a xsd:string ] ;
+              a:authPwd [ a xsd:string ] ;
               lapp:proxy [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
@@ -166,7 +167,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     spin:constructor :DydraServiceConstructor ;
     spin:constraint [ a :MissingPropertyValue ;
             rdfs:label "Dydra repository" ;
-            sp:arg1 <http://dydra.com/ns#repository>
+            sp:arg1 <https://w3id.org/atomgraph/linkeddatahub/services/dydra#repository>
         ] ;
     rdfs:label "Dydra service" ;
     rdfs:comment "Dydra cloud repository" ;
@@ -175,7 +176,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 :DydraServiceConstructor a sp:Construct ;
     sp:text """
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX dydra:   <http://dydra.com/ns#>
+      PREFIX dydra:   <https://w3id.org/atomgraph/linkeddatahub/services/dydra#>
 
       CONSTRUCT {
           ?this dydra:repository [ a rdfs:Resource ] .
@@ -261,7 +262,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
       CONSTRUCT {
           ?this sp:text [ a xsd:string ] ;
-            :endpoint [ a rdfs:Resource ] .
+            :service [ a :Service ] .
       }
       WHERE {}""" ;
     rdfs:label "Query constructor" ;
@@ -279,9 +280,12 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 :FileConstructor a sp:Construct ;
     sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     PREFIX nfo:     <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+    PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX dct:     <http://purl.org/dc/terms/>
 
     CONSTRUCT {
-        ?this nfo:fileName [ a xsd:string ] .
+        ?this nfo:fileName [ a xsd:string ] ;
+            dct:format [ a rdfs:Resource ] .
     }
     WHERE {}""" ;
     rdfs:label "File constructor" ;
@@ -305,21 +309,24 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     spin:constraint :MissingQuery, :MissingDelimiter ;
     rdfs:isDefinedBy : .
 
+:RDFImport a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Import ; # restriction on media type?
+    rdfs:label "RDF import" ;
+    spin:constructor :RDFImportConstructor ;
+    spin:constraint :MissingQuery ;
+    rdfs:isDefinedBy : .
+
 #:XMLImport a rdfs:Class, owl:Class ;
 #    rdfs:subClassOf :Import ; # restriction on media type?
 #    rdfs:label "XML import" ;
 #    rdfs:isDefinedBy : .
 
 :ImportConstructor a sp:Construct ;
-    sp:text """PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
-        PREFIX sp:      <http://spinrdf.org/sp#>
-        PREFIX spin:    <http://spinrdf.org/spin#>
+    sp:text """PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
         PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
 
         CONSTRUCT {
             ?this :action [ a dh:Container ] ;
-                spin:query [ a :Construct ] ;
                 :file [ a :File ] .
         }
         WHERE {}""" ;
@@ -328,12 +335,25 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :CSVImportConstructor a sp:Construct ;
     sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
 
         CONSTRUCT {
-            ?this :delimiter "," .
+            ?this spin:query [ a :Construct ] ;
+                :delimiter "," .
         }
         WHERE {}""" ;
     rdfs:label "CSV import constructor" ;
+    rdfs:isDefinedBy : .
+
+:RDFImportConstructor a sp:Construct ;
+    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
+        PREFIX spin:    <http://spinrdf.org/spin#>
+
+        CONSTRUCT {
+            ?this spin:query [ a :Construct ] .
+        }
+        WHERE {}""" ;
+    rdfs:label "RDF import constructor" ;
     rdfs:isDefinedBy : .
 
 # charts
@@ -343,7 +363,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     spin:constructor :ChartConstructor ;
-    spin:constraint :MissingQuery, :MissingEndpoint, :MissingChartType ;
+    spin:constraint :MissingQuery, :MissingChartType ;
     rdfs:isDefinedBy : .
 
 :ChartConstructor a sp:Construct ;
@@ -353,8 +373,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
       PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
 
       CONSTRUCT {
-          ?this :endpoint [ a rdfs:Resource ] ;
-            :chartType  [ a rdfs:Resource ] .
+          ?this :chartType [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Chart constructor" ;
@@ -510,11 +529,6 @@ WHERE
 :MissingDelimiter a :MissingPropertyValue ;
     rdfs:label "Missing delimiter" ;
     sp:arg1 :delimiter ;
-    rdfs:isDefinedBy : .
-
-:MissingEndpoint a :MissingPropertyValue ;
-    rdfs:label "Missing endpoint" ;
-    sp:arg1 :endpoint ;
     rdfs:isDefinedBy : .
 
 :MissingChartType a :MissingPropertyValue ;

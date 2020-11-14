@@ -16,11 +16,11 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
-import com.atomgraph.linkeddatahub.client.DataManager;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.processor.util.Validator;
+import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.util.List;
 import org.apache.jena.rdf.model.Resource;
-import org.spinrdf.constraints.ConstraintViolation;
 
 /**
  * Data import.
