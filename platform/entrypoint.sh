@@ -380,8 +380,7 @@ root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N
 root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
 root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
 
-rm -f root_service_metadata.xml
-rm -f select-root-services.rq
+rm -f root_service_metadata.xml select-root-services.rq
 
 if [ -z "$root_end_user_quad_store_url" ] ; then
     printf "\nEnd-user quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
@@ -541,6 +540,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
         -dname "$secretary_dname" \
         -ext SAN=uri:"$SECRETARY_URI" \
         -validity "$SECRETARY_CERT_VALIDITY"
+
     printf "\n### Secretary WebID certificate's DName attributes: %s\n" "$secretary_dname"
 
     # convert secretary's certificate to PEM

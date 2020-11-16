@@ -374,12 +374,12 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         if (getService().getDatasetQuadAccessor() != null)
         {
-            getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), agent, created));
+            getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
             
             return Response.ok().build();
         }
         
-        return super.post(splitDefaultModel(dataset.getDefaultModel(), agent, created)); // append dataset to service
+        return super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
     }
     
     @Override
@@ -479,12 +479,13 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     
     public Dataset splitDefaultModel(Model model)
     {
-        return splitDefaultModel(model, getAgent(), Calendar.getInstance());
+        return splitDefaultModel(model, getUriInfo().getBaseUri(), getAgent(), Calendar.getInstance());
     }
     
-    public Dataset splitDefaultModel(Model model, Agent agent, Calendar created)
+    public Dataset splitDefaultModel(Model model, URI base, Agent agent, Calendar created)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (base == null) throw new IllegalArgumentException("URI base cannot be null");
 
         Dataset dataset = DatasetFactory.create();
 
@@ -505,13 +506,13 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 }
                 else hash = DigestUtils.sha1Hex(stmt.getSubject().getId().getBlankNodeId().toString());
                 
-                String graphURI = getUriInfo().getBaseUriBuilder().path("graphs/{hash}/").build(hash).toString(); // TO-DO: use the apl:GraphItem ldt:path value
+                String graphURI = UriBuilder.fromUri(base).path("graphs/{hash}/").build(hash).toString(); // TO-DO: use the apl:GraphItem ldt:path value
                 Model namedModel = dataset.getNamedModel(graphURI);
                 namedModel.add(stmt);
 
                 // create the meta-graph with provenance metadata
                 String graphHash = DigestUtils.sha1Hex(graphURI);
-                String metaGraphURI = getUriInfo().getBaseUriBuilder().path("graphs/{hash}/").build(graphHash).toString();
+                String metaGraphURI = UriBuilder.fromUri(base).path("graphs/{hash}/").build(graphHash).toString();
                 Model namedMetaModel = dataset.getNamedModel(metaGraphURI);
                 if (namedMetaModel.isEmpty())
                 {
@@ -519,7 +520,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     Resource graphDoc = namedMetaModel.createResource(graphURI).
                         addProperty(RDF.type, DH.Item).
                         addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
-                        addProperty(SIOC.HAS_CONTAINER, namedMetaModel.createResource(getUriInfo().getBaseUriBuilder().path("graphs/").toString())).
+                        addProperty(SIOC.HAS_CONTAINER, namedMetaModel.createResource(UriBuilder.fromUri(base).path("graphs/").build().toString())).
                         addProperty(FOAF.maker, agent).
                         addProperty(ACL.owner, agent).
                         addProperty(FOAF.primaryTopic, graph).
