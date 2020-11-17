@@ -1,0 +1,62 @@
+hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
+
+args=()
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -b|--base)
+        base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+    esac
+done
+set -- "${args[@]}" # restore args
+
+if [ -z "$cert_pem_file" ] ; then
+    echo '-f|--cert-pem-file not set'
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    echo '-p|--cert-password not set'
+    exit 1
+fi
+if [ -z "$base" ] ; then
+    echo '-b|--base not set'
+    exit 1
+fi
+
+graph_sha1=$(echo -n "${base}admin/acl/authorizations/public/" | sha1sum | cut -d " " -f 1)
+
+curl -X PATCH \
+    -v -f -k \
+    -E "$cert_pem_file":"$cert_password" \
+    -H "Content-Type: application/sparql-update" \
+    "${base}admin/graphs/${graph_sha1}/" \
+     --data-binary @- <<EOF
+BASE <${base}admin/>
+
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  def: <../ns/default#>
+
+INSERT DATA
+{
+  GRAPH <graphs/${graph_sha1}/>
+  {
+    <acl/authorizations/public/#this> acl:accessToClass def:Root, def:Container, def:Item, def:File ;
+        acl:accessTo <../sparql> .
+  }
+}
+EOF

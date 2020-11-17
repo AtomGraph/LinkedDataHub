@@ -4,6 +4,9 @@
     <!ENTITY xsd            "http://www.w3.org/2001/XMLSchema#">
 ]>
 <rdf:RDF xmlns:rdf="&rdf;" xmlns:rdfs="&rdfs;">
+    <rdf:Description rdf:nodeID="sign-up">
+        <rdfs:label xml:lang="en-US">Sign up</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="root">
         <rdfs:label xml:lang="en-US">Root</rdfs:label>
     </rdf:Description>

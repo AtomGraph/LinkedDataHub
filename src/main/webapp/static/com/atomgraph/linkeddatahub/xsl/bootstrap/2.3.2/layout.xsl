@@ -454,68 +454,74 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
-        <xsl:choose>
-            <xsl:when test="$lacl:Agent//@rdf:about">
-                <ul class="nav pull-right">
-                    <li>
-                        <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
-                            <xsl:attribute name="class" select="'active'"/>
-                        </xsl:if>
-                        
-                        <a href="?mode={encode-for-uri('&ac;QueryEditorMode')}">SPARQL editor</a>
-                    </li>
-
-                    <xsl:if test="$ldt:base">
-                        <xsl:variable name="apps-uri" select="resolve-uri('..', $ldt:base)" as="xs:anyURI"/>
-                        <xsl:if test="doc-available($apps-uri)">
-                            <li>
-                                <div class="btn-group">
-                                    <button title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                                        <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo">
-                                            <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                        </xsl:apply-templates>
-                                    </button>
-                                    <ul class="dropdown-menu pull-right">
-                                        <xsl:variable name="apps" select="document($apps-uri)" as="document-node()"/>
-                                        <xsl:for-each select="$apps//*[ldt:base/@rdf:resource]">
-                                            <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                            <xsl:apply-templates select="." mode="bs2:AppListItem">
-                                                <xsl:with-param name="active" select="ldt:base/@rdf:resource = $ldt:base"/>
-                                            </xsl:apply-templates>
-                                        </xsl:for-each>
-                                    </ul>
-                                </div>
-                            </li>
-                        </xsl:if>
+        <xsl:if test="$lacl:Agent//@rdf:about">
+            <ul class="nav pull-right">
+                <li>
+                    <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
+                        <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <li>
-                        <div class="btn-group">
-                            <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
-                                <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo">
-                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                </xsl:apply-templates>
-                            </button>
-                            <ul class="dropdown-menu pull-right">
-                                <li>
-                                    <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $lacl:Agent)">
-                                        <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                    <a href="?mode={encode-for-uri('&ac;QueryEditorMode')}">SPARQL editor</a>
+                </li>
+
+                <xsl:if test="$ldt:base">
+                    <xsl:variable name="apps-uri" select="resolve-uri('..', $ldt:base)" as="xs:anyURI"/>
+                    <xsl:if test="doc-available($apps-uri)">
+                        <li>
+                            <div class="btn-group">
+                                <button title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
+                                    <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo">
+                                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                    </xsl:apply-templates>
+                                </button>
+                                <ul class="dropdown-menu pull-right">
+                                    <xsl:variable name="apps" select="document($apps-uri)" as="document-node()"/>
+                                    <xsl:for-each select="$apps//*[ldt:base/@rdf:resource]">
+                                        <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                        <xsl:apply-templates select="." mode="bs2:AppListItem">
+                                            <xsl:with-param name="active" select="ldt:base/@rdf:resource = $ldt:base"/>
+                                        </xsl:apply-templates>
                                     </xsl:for-each>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </xsl:when>
-            <xsl:when test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
-                <p class="pull-right">
-                    <xsl:variable name="signup-uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
-                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($signup-uri)) else $signup-uri}">Sign up</a>
-                </p>
-            </xsl:when>
-        </xsl:choose>
+                                </ul>
+                            </div>
+                        </li>
+                    </xsl:if>
+                </xsl:if>
+
+                <li>
+                    <div class="btn-group">
+                        <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
+                            <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                            </xsl:apply-templates>
+                        </button>
+                        <ul class="dropdown-menu pull-right">
+                            <li>
+                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $lacl:Agent)">
+                                    <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                                </xsl:for-each>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </xsl:if>
+
+        <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
+    <xsl:template match="rdf:RDF[not($lacl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+        <xsl:param name="uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
+            
+        <p class="pull-right">
+            <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
+                <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
+            </a>
+        </p>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="bs2:SignUp"/>
+    
     <xsl:template match="*[ldt:base/@rdf:resource]" mode="bs2:AppListItem">
         <xsl:param name="active" as="xs:boolean?"/>
         
