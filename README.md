@@ -150,8 +150,8 @@ _:warning: Before running app installation scripts that use LinkedDataHub's CLI 
 ## How to get involved
 
 * contribute a new LDH application or modify [one of ours](https://github.com/AtomGraph/LinkedDataHub-Apps)
-* work on [good first issues](contribute)
-* work on the features in our [Roadmap](wiki/Roadmap)
+* work on [good first issues](../../contribute)
+* work on the features in our [Roadmap](../../wiki/Roadmap)
 * join our [community](#community)
 
 ## Test suite
