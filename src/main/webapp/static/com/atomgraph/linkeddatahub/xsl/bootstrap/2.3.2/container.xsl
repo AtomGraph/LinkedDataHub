@@ -179,7 +179,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="class" select="'sidebar-nav faceted-nav'" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="subject-var-name" as="xs:string"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
         <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
@@ -210,7 +212,9 @@ exclude-result-prefixes="#all"
                     </xsl:choose>
                     
                     <span class="caret caret-reversed pull-right"></span>
-                    <input type="hidden" name="bgp-id" value="{$id}"/>
+                    <input type="hidden" name="subject" value="{$subject-var-name}"/>
+                    <input type="hidden" name="predicate" value="{$predicate}"/>
+                    <input type="hidden" name="object" value="{$object-var-name}"/>
                 </h2>
 
                 <!-- facet values will be loaded into an <ul> here -->
@@ -218,6 +222,45 @@ exclude-result-prefixes="#all"
         </xsl:result-document>
     </xsl:template>
 
+    <!-- ORDER BY -->
+    
+    <xsl:template name="bs2:OrderBy">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="predicate" as="xs:anyURI"/>
+        <xsl:param name="object-var-name" as="xs:string"/>
+        <xsl:param name="default-order-by-var-name" as="xs:string?"/>
+        <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
+
+        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+            <!-- TO-DO: order options -->
+            <option value="{$predicate}">
+                <xsl:if test="$object-var-name = $default-order-by-var-name">
+                    <xsl:attribute name="selected" select="'selected'"/>
+                </xsl:if>
+                
+                <xsl:choose>
+                    <xsl:when test="$results">
+                        <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                    </xsl:when>
+                    <!-- attempt to use the fragment as label -->
+                    <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
+                        <xsl:value-of select="substring-after($predicate, '#')"/>
+                    </xsl:when>
+                    <!-- attempt to use the last path segment as label -->
+                    <xsl:when test="string-length(tokenize($predicate, '/')[last()]) &gt; 0">
+                        <xsl:value-of select="translate(tokenize($predicate, '/')[last()], '_', ' ')"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="$predicate"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </option>
+        </xsl:result-document>
+    </xsl:template>
+    
     <!-- PAGER -->
 
     <xsl:template name="bs2:PagerList">
@@ -1116,14 +1159,156 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
+    <!-- order by onchange -->
+    
+    <xsl:template match="select[@id = 'container-order']" mode="ixsl:onchange">
+        <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="desc" select="following-sibling::button/contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
+        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
+        <xsl:variable name="select-xml" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-xml')" as="document-node()"/>
+        <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
+        <!-- generate the XML structure of a SPARQL query which is used to load facet values, their counts and labels -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="desc" select="$desc" tunnel="yes"/>
+                    <xsl:with-param name="default-var-name" select="$default-order-by-var-name" tunnel="yes"/>
+                    <xsl:with-param name="default-desc" select="$default-desc" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <!-- set ?this variable value -->
+        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
+        <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
+        <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), (), true())" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="order-by-predicate" select="$predicate"/>
+                <xsl:with-param name="desc" select="$desc"/>
+                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
+                <xsl:with-param name="default-desc" select="$default-desc"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
+    <!-- change ORDER BY -->
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:replace-order-by">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="/json:map" mode="apl:replace-order-by" priority="1">
+        <xsl:param name="var-name" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="desc" as="xs:boolean?" tunnel="yes"/>
+        <xsl:param name="default-var-name" as="xs:string?" tunnel="yes"/>
+        <xsl:param name="default-desc" as="xs:boolean?" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+
+            <xsl:if test="$var-name">
+                <json:array key="order">
+                    <json:map>
+                        <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$var-name"/></json:string>
+
+                        <xsl:if test="$desc">
+                            <json:boolean key="descending">true</json:boolean>
+                        </xsl:if>
+                    </json:map>
+
+                    <!-- do not use the default ordering as the secondary one if it uses the same variable as the primary one -->
+                    <xsl:if test="$default-var-name and not($var-name = $default-var-name)">
+                        <json:map>
+                            <json:string key="expression"><xsl:text>?</xsl:text><xsl:value-of select="$default-var-name"/></json:string>
+
+                            <xsl:if test="$default-desc">
+                                <json:boolean key="descending">true</json:boolean>
+                            </xsl:if>
+                        </json:map>
+                    </xsl:if>
+                </json:array>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="json:array[@key = 'order']" mode="apl:replace-order-by" priority="1"/>
+    
+    <!-- ascending/descending onclick -->
+    
+    <!-- TO-DO: unify with container ORDER BY onchange -->
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-order-by']" mode="ixsl:onclick">
+        <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="predicate" select="preceding-sibling::select/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
+        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
+        <xsl:variable name="select-xml" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-xml')" as="document-node()"/>
+        <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string"/>
+        <!-- generate the XML structure of a SPARQL query which is used to load facet values, their counts and labels -->
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/> <!-- not() because we are toggling the direction -->
+                    <xsl:with-param name="default-var-name" select="$default-order-by-var-name" tunnel="yes"/>
+                    <xsl:with-param name="default-desc" select="$default-desc" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+        <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+        <!-- set ?this variable value -->
+        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
+        <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
+        <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), (), true())" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="order-by-predicate" select="$predicate"/>
+                <xsl:with-param name="desc" select="not($desc)"/> <!-- not() because we are toggling the direction -->
+                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
+                <xsl:with-param name="default-desc" select="$default-desc"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+        
+        <!-- toggle the arrow direction -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
     <!-- facet header on click -->
     
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//*[tokenize(@class, ' ') = 'nav-header']" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'faceted-nav']" as="element()"/>
-        <xsl:variable name="bgp-id" select="input[@name = 'bgp-id']/@value" as="xs:string"/>
+        <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
+        <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
+        <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-xml')" as="document-node()"/>
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[generate-id() = $bgp-id]" as="element()"/> <!-- TO-DO: use key()? -->
+        <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
 
         <!-- is the current facet loaded? -->
         <xsl:variable name="loaded" select="not(empty(following-sibling::ul))" as="xs:boolean"/>
@@ -1785,6 +1970,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <!-- use the first SELECT variable as the parallax variable -->
         <xsl:variable name="var-name" select="substring-after(ixsl:get(ixsl:call($select-builder, 'build', []), 'variables')[1], '?')"/>
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         <xsl:variable name="new-var-name" select="'subject' || translate($uuid, '-', '_')" as="xs:string"/>

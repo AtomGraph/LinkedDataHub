@@ -91,6 +91,7 @@ WHERE
       { ?child  foaf:primaryTopic  ?thing }
   }
 }
+ORDER BY ?title
 """ .
 
 # select geo resources
