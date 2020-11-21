@@ -1159,6 +1159,95 @@ exclude-result-prefixes="#all"
 
     <!-- EVENT LISTENERS -->
 
+    <!-- container mode tabs -->
+    
+    <xsl:template match="*[@id = 'container-pane']/div/ul[@class = 'nav nav-tabs']/li/a" mode="ixsl:onclick">
+        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+
+        <ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        
+        <xsl:call-template name="render-container">
+            <xsl:with-param name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')"/>
+            <xsl:with-param name="select-xml" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-xml')"/>
+        </xsl:call-template>
+    </xsl:template>
+
+    <!-- pager prev links -->
+
+    <xsl:template match="*[@id = 'container-pane']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
+        <xsl:variable name="event" select="ixsl:event()"/>
+
+        <!-- descrease OFFSET to get the previous page -->
+        <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
+        <xsl:variable name="offset" select="$offset - $page-size" as="xs:integer"/>
+        <ixsl:set-property name="offset" select="$offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:variable name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))" as="xs:integer"/>
+
+        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+        <!-- <xsl:variable name="order-by" select="if ($ac:order-by) then $ac:order-by else if (ixsl:call($select-builder, 'isVariable', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $default-order-by))) then $default-order-by else ()" as="xs:string?"/> -->
+        <!-- wrap SELECT into DESCRIBE and set LIMIT/OFFSET (do not override ORDER BY). TO-DO: transform with XSLT -->
+        <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, $offset, (), true())" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+        <xsl:variable name="predicate" select="ixsl:get(id('container-order', ixsl:page()), 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="desc" select="id('container-order', ixsl:page())/following-sibling::button/contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
+        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="order-by-predicate" select="$predicate"/>
+                <xsl:with-param name="desc" select="$desc"/>
+                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
+                <xsl:with-param name="default-desc" select="$default-desc"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+
+    <!-- pager next links -->
+    
+    <xsl:template match="*[@id = 'container-pane']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
+        <xsl:variable name="event" select="ixsl:event()"/>
+
+        <!-- increase OFFSET to get the next page -->
+        <xsl:variable name="offset" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset'))" as="xs:integer"/>
+        <xsl:variable name="offset" select="$offset + $page-size" as="xs:integer"/>
+        <ixsl:set-property name="offset" select="$offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:variable name="limit" select="xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit'))" as="xs:integer"/>
+
+        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+<xsl:message>
+    SELECT STRING: <xsl:value-of select="$select-string"/>
+</xsl:message>
+        
+        <!-- <xsl:variable name="order-by" select="if ($ac:order-by) then $ac:order-by else if (ixsl:call($select-builder, 'isVariable', ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', $default-order-by))) then $default-order-by else ()" as="xs:string?"/> -->
+        <!-- wrap SELECT into DESCRIBE and set LIMIT/OFFSET (do not override ORDER BY). TO-DO: transform with XSLT -->
+        <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, $offset, (), true())" as="xs:string"/>
+        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
+
+        <xsl:variable name="predicate" select="ixsl:get(id('container-order', ixsl:page()), 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="desc" select="id('container-order', ixsl:page())/following-sibling::button/contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
+        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
+        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="select-string" select="$select-string"/>
+                <xsl:with-param name="order-by-predicate" select="$predicate"/>
+                <xsl:with-param name="desc" select="$desc"/>
+                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
+                <xsl:with-param name="default-desc" select="$default-desc"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
     <!-- order by onchange -->
     
     <xsl:template match="select[@id = 'container-order']" mode="ixsl:onchange">
