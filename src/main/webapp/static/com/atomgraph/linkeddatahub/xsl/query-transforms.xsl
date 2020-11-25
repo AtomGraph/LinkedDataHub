@@ -211,11 +211,11 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
 
-    <!-- if there are two sort keys already, replace the first one with the new one - if it's not empty -->
+    <!-- if there are two sort keys already, replace the first one with the new one - if it's not empty and not equal to the second one -->
     <xsl:template match="json:array[@key = 'order'][count(json:map) = 2]/json:map[1]" mode="apl:replace-order-by" priority="1">
         <xsl:param name="var-name" as="xs:string?" tunnel="yes"/>
         
-        <xsl:if test="$var-name">
+        <xsl:if test="$var-name and not('?' || $var-name = following-sibling::json:map/json:string[@key = 'expression'])">
             <xsl:copy>
                 <xsl:apply-templates select="@* | node()" mode="#current"/>
             </xsl:copy>

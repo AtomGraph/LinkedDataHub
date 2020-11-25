@@ -668,17 +668,6 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
-        <xsl:param name="desc" as="xs:boolean?"/>
-        <xsl:param name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
-        <xsl:param name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
-
-<xsl:message>
-ORDER BY PREDICATE: <xsl:value-of select="$order-by-predicate"/>
-DESC: <xsl:value-of select="$desc"/>
-DEFAULT ORDER BY VAR NAME: <xsl:value-of select="$default-order-by-var-name"/>
-DEFAULT DESC: <xsl:value-of select="$default-desc"/>
-</xsl:message>
         
         <!-- container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
@@ -699,9 +688,19 @@ DEFAULT DESC: <xsl:value-of select="$default-desc"/>
                     <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                     <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-                    <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
-                    
+                    <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+                    <xsl:variable name="order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
+                    <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+                    <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
+                    <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
+                    <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+
 <xsl:message>
+ORDER BY VAR NAME: <xsl:value-of select="$order-by-var-name"/>
+ORDER BY PREDICATE: <xsl:value-of select="$order-by-predicate"/>
+DESC: <xsl:value-of select="$desc"/>
+DEFAULT ORDER BY VAR NAME: <xsl:value-of select="$default-order-by-var-name"/>
+DEFAULT DESC: <xsl:value-of select="$default-desc"/>
 DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
 </xsl:message>
 
@@ -799,7 +798,7 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                 <xsl:for-each select="$bgp-triples-map">
                     <xsl:call-template name="render-order-by-despatch">
                         <xsl:with-param name="container-id" select="$order-by-container-id"/>
-                        <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
+                        <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                     </xsl:call-template>
                 </xsl:for-each>
 
@@ -1086,10 +1085,9 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
     <xsl:template name="render-order-by-despatch">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="default-order-by-var-name" as="xs:string?"/>
+        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="id" select="generate-id()" as="xs:string"/>
         <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-        <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="results-uri" select="resolve-uri('?uri=' || encode-for-uri($predicate) || '&amp;accept=' || encode-for-uri('application/rdf+xml') || '&amp;mode=' || encode-for-uri('fragment'), $ldt:base)" as="xs:anyURI"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -1097,8 +1095,7 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                 <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="id" select="$id"/>
                 <xsl:with-param name="predicate" select="$predicate"/>
-                <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
+                <xsl:with-param name="default-order-by-predicate" as="xs:anyURI?"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>

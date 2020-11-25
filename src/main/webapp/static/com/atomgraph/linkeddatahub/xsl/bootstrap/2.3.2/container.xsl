@@ -231,14 +231,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
-        <xsl:param name="object-var-name" as="xs:string"/>
-        <xsl:param name="default-order-by-var-name" as="xs:string?"/>
+        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
         <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
             <!-- TO-DO: order options -->
             <option value="{$predicate}">
-                <xsl:if test="$object-var-name = $default-order-by-var-name">
+                <xsl:if test="$predicate = $default-order-by-predicate">
                     <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
@@ -1247,18 +1246,9 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
-        <xsl:variable name="predicate" select="ixsl:get(id('container-order', ixsl:page()), 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="desc" select="id('container-order', ixsl:page())/following-sibling::button/contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
-        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
-        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
-
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="order-by-predicate" select="$predicate"/>
-                <xsl:with-param name="desc" select="$desc"/>
-                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
-                <xsl:with-param name="default-desc" select="$default-desc"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -1267,7 +1257,6 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
     
     <xsl:template match="*[@id = 'container-pane']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
-
         <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
         <xsl:variable name="offset-states" select="array:filter($states, function($state) { map:get($state, xs:anyURI('&ldt;arg'))/rdf:type/@rdf:resource = '&ac;Offset' })" as="array(*)"/>
         <xsl:variable name="last-offset-state" select="if (array:size($offset-states)) then $offset-states(array:size($offset-states)) else ()" as="map(xs:anyURI, item())?"/>
@@ -1301,18 +1290,9 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
 
-        <xsl:variable name="predicate" select="ixsl:get(id('container-order', ixsl:page()), 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="desc" select="id('container-order', ixsl:page())/following-sibling::button/contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
-        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
-        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
-
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="order-by-predicate" select="$predicate"/>
-                <xsl:with-param name="desc" select="$desc"/>
-                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
-                <xsl:with-param name="default-desc" select="$default-desc"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -1321,9 +1301,6 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
     
     <xsl:template match="select[@id = 'container-order']" mode="ixsl:onchange">
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="desc" select="following-sibling::button/contains(@class, 'btn-order-by-desc')" as="xs:boolean"/> 
-        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
-        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
         <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
         <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
         <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
@@ -1357,10 +1334,6 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="order-by-predicate" select="$predicate"/>
-                <xsl:with-param name="desc" select="$desc"/>
-                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
-                <xsl:with-param name="default-desc" select="$default-desc"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -1370,9 +1343,6 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
     <!-- TO-DO: unify with container ORDER BY onchange -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-order-by']" mode="ixsl:onclick">
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
-        <xsl:variable name="predicate" select="preceding-sibling::select/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
-        <xsl:variable name="default-desc" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-desc')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-desc') else ()" as="xs:boolean?"/>
         <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
         <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
         <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
@@ -1380,7 +1350,7 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
             <rdf:Description>
               <rdf:type rdf:resource="&ac;Desc"/>
               <spl:predicate rdf:resource="&ac;desc"/>
-              <rdf:value><xsl:value-of select="not($desc)"/></rdf:value> <!-- not() because we are toggling the direction -->
+              <rdf:value><xsl:value-of select="$desc"/></rdf:value> <!-- not() because we are toggling the direction -->
             </rdf:Description>
         </xsl:variable>
         <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)"/>
@@ -1403,10 +1373,6 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
-                <xsl:with-param name="order-by-predicate" select="$predicate"/>
-                <xsl:with-param name="desc" select="not($desc)"/> <!-- not() because we are toggling the direction -->
-                <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
-                <xsl:with-param name="default-desc" select="$default-desc"/>
             </xsl:call-template>
         </ixsl:schedule-action>
         
@@ -1718,15 +1684,6 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
         <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
         <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
         <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
-<!--        <xsl:variable name="new-state" as="element()">
-            <rdf:Description>
-              <rdf:type rdf:resource="&ac;FilterIn"/>
-              <spl:predicate rdf:resource="&ac;filterIn"/>
-              <rdf:value><xsl:value-of select="$var-name"/></rdf:value>
-            </rdf:Description>
-        </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)"/>
-        <ixsl:set-property name="states" select="array:append($states, map{ xs:anyURI('&ldt;arg'): $new-state, xs:anyURI('&spin;query'): $select-xml })" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <xsl:variable name="new-state" as="element()">
             <rdf:Description>
               <rdf:type rdf:resource="&ac;FilterIn"/>
