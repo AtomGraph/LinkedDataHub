@@ -1350,7 +1350,7 @@ QUERY STRING: <xsl:value-of select="$query-string"/>
             <rdf:Description>
               <rdf:type rdf:resource="&ac;Desc"/>
               <spl:predicate rdf:resource="&ac;desc"/>
-              <rdf:value><xsl:value-of select="$desc"/></rdf:value> <!-- not() because we are toggling the direction -->
+              <rdf:value><xsl:value-of select="not($desc)"/></rdf:value> <!-- not() because we are toggling the direction -->
             </rdf:Description>
         </xsl:variable>
         <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)"/>

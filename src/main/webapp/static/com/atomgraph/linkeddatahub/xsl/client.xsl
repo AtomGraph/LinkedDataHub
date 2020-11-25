@@ -816,7 +816,7 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                                 </select>
                                 
                                 <xsl:choose>
-                                    <xsl:when test="not($default-desc)">
+                                    <xsl:when test="not($desc)">
                                         <button type="button" class="btn btn-order-by">Ascending</button>
                                     </xsl:when>
                                     <xsl:otherwise>
