@@ -19,11 +19,12 @@
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
     <!ENTITY spin       "http://spinrdf.org/spin#">
+    <!ENTITY spl        "http://spinrdf.org/spl#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
@@ -33,6 +34,7 @@ xmlns:js="http://saxonica.com/ns/globalJS"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
+xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:typeahead="&typeahead;"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
@@ -48,6 +50,7 @@ xmlns:srx="&srx;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
+xmlns:spl="&spl;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -72,6 +75,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/container.xsl"/>
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/sparql.xsl"/>
+    <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
@@ -140,6 +144,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="desc" select="$ac:desc" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="active-class" select="'list-mode'" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!--<ixsl:set-property name="endpoint" select="resolve-uri('sparql', $ldt:base)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+        <ixsl:set-property name="states" select="array{}" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- load application's ontology RDF document -->
 <!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -539,13 +544,43 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="desc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.desc')" as="xs:boolean"/>
                             <!-- set ?this variable value -->
                             <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
-                            <!-- wrap SELECT into DESCRIBE and set pagination modifiers -->
-                            <xsl:variable name="query-string" select="ac:build-describe($select-string, xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.limit')), xs:integer(ixsl:get(ixsl:window(), 'LinkedDataHub.offset')), ixsl:get(ixsl:window(), 'LinkedDataHub.order-by'), ixsl:get(ixsl:window(), 'LinkedDataHub.desc'))" as="xs:string"/>
-                            <xsl:variable name="service-uri" select="$select-resource/apl:service/@rdf:resource" as="xs:anyURI?"/>
-                            
                             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                             <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                            <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+                            
+                            <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
+                            <xsl:variable name="new-state" as="element()">
+                                <rdf:Description>
+                                  <rdf:type rdf:resource="&ac;Limit"/>
+                                  <spl:predicate rdf:resource="&ac;limit"/>
+                                  <rdf:value><xsl:value-of select="$ac:limit"/></rdf:value>
+                                </rdf:Description>
+                            </xsl:variable>
+                            <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)"/>
+                            <xsl:variable name="states" select="array:append($states, map{ xs:anyURI('&ldt;arg'): $new-state, xs:anyURI('&spin;query'): $select-xml })"/>
+                            <ixsl:set-property name="states" select="$states" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            
+                            <xsl:variable name="new-state" as="element()">
+                                <rdf:Description>
+                                  <rdf:type rdf:resource="&ac;Offset"/>
+                                  <spl:predicate rdf:resource="&ac;offset"/>
+                                  <rdf:value><xsl:value-of select="$ac:offset"/></rdf:value>
+                                </rdf:Description>
+                            </xsl:variable>
+                            <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)"/>
+                            <xsl:variable name="states" select="array:append($states, map{ xs:anyURI('&ldt;arg'): $new-state, xs:anyURI('&spin;query'): $select-xml })"/>
+                            
+                            <ixsl:set-property name="states" select="$states" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+                            <!-- wrap SELECT into a DESCRIBE -->
+                            <xsl:variable name="query-xml" as="element()">
+                                <xsl:apply-templates select="$select-xml" mode="apl:wrap-describe"/>
+                            </xsl:variable>
+                            <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
+                            <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+                            <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
+
                             <xsl:variable name="default-order-by-var-name" select="$select-xml//json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                             <xsl:variable name="default-desc" select="$select-xml//json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']/xs:boolean(.)" as="xs:boolean?"/>
                             <ixsl:set-property name="default-order-by" select="$default-order-by-var-name" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -554,9 +589,11 @@ extension-element-prefixes="ixsl"
                             <!-- set global SELECT URI-->
                             <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                             <!-- set global SELECT query (without modifiers) -->
-                            <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <!-- set global DESCRIBE query -->
-                            <ixsl:set-property name="describe-query" select="$query-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+<!--                            <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                             set global DESCRIBE query 
+                            <ixsl:set-property name="describe-query" select="$query-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
+
+                            <xsl:variable name="service-uri" select="$select-resource/apl:service/@rdf:resource" as="xs:anyURI?"/>
 
                             <!-- container progress bar -->
                             <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
@@ -571,7 +608,7 @@ extension-element-prefixes="ixsl"
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                         <xsl:call-template name="onContainerQueryServiceLoad">
                                             <xsl:with-param name="service-uri" select="$service-uri"/>
-                                            <xsl:with-param name="select-string" select="$select-string"/>
+                                            <xsl:with-param name="select-xml" select="$select-xml"/>
                                             <xsl:with-param name="query-string" select="$query-string"/>
                                         </xsl:call-template>
                                     </ixsl:schedule-action>
@@ -581,7 +618,7 @@ extension-element-prefixes="ixsl"
                                     
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                         <xsl:call-template name="onContainerResultsLoad">
-                                            <xsl:with-param name="select-string" select="$select-string"/>
+                                            <xsl:with-param name="select-xml" select="$select-xml"/>
                                         </xsl:call-template>
                                     </ixsl:schedule-action>
                                 </xsl:otherwise>
@@ -602,7 +639,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
-        <xsl:param name="select-string" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="query-string" as="xs:string"/>
         
         <xsl:choose>
@@ -616,7 +653,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContainerResultsLoad">
-                            <xsl:with-param name="select-string" select="$select-string"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
@@ -630,7 +667,7 @@ extension-element-prefixes="ixsl"
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="select-string" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="desc" as="xs:boolean?"/>
         <xsl:param name="default-order-by-var-name" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.default-order-by')) then ixsl:get(ixsl:window(), 'LinkedDataHub.default-order-by') else ()" as="xs:string?"/>
@@ -658,12 +695,6 @@ DEFAULT DESC: <xsl:value-of select="$default-desc"/>
                         <xsl:apply-templates select="." mode="ac:GroupTriples"/>
                     </xsl:variable>
                     <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                    <!-- set LinkedDataHub.select-xml which is used by facets as well as result counts -->
-                    <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                    <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                    <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                    <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
@@ -719,6 +750,7 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                         
                         <xsl:call-template name="bs2:Parallax">
                             <xsl:with-param name="results" select="$grouped-results"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </xsl:if>
                 </xsl:for-each>
@@ -778,7 +810,10 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                                 <xsl:text>Order by </xsl:text>
                                 
                                 <select id="{$order-by-container-id}" name="order-by" class="input-medium">
-                                    <option>[URI/ID]</option>
+                                    <!-- show the default option if the container query does not have an ORDER BY -->
+                                    <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
+                                        <option>[None]</option>
+                                    </xsl:if>
                                 </select>
                                 
                                 <xsl:choose>
@@ -813,9 +848,24 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                 <xsl:with-param name="map" select="ac:create-map('map-canvas', 56, 10, 4)"/>
             </xsl:call-template>
 
+            <!-- unset LIMIT and OFFSET - we want all of the container's children on the map -->
+            <xsl:variable name="select-xml" as="document-node()">
+                <xsl:document>
+                    <xsl:apply-templates select="$select-xml" mode="apl:replace-limit"/>
+                </xsl:document>
+            </xsl:variable>
+            <xsl:variable name="select-xml" as="document-node()">
+                <xsl:document>
+                    <xsl:apply-templates select="$select-xml" mode="apl:replace-offset"/>
+                </xsl:document>
+            </xsl:variable>
+            <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+            <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+            <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+
             <xsl:call-template name="create-geo-object">
-                <!-- use container's SELECT query to build a geo query -->
-                <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, resolve-uri('sparql', $ldt:base), ixsl:get(ixsl:window(), 'LinkedDataHub.select-query'), 'thing')"/>
+                <!-- use container's SELECT query to build a geo query. TO-DO: ?thing will only work with the default select-children query -->
+                <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, resolve-uri('sparql', $ldt:base), $select-string, 'thing')"/>
             </xsl:call-template>
 
             <xsl:call-template name="add-geo-listener"/>

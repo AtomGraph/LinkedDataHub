@@ -31,7 +31,7 @@ xmlns:sioc="&sioc;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
-version="2.0"
+version="3.0"
 >
         
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOptionMode">
