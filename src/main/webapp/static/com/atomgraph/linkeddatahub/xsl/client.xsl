@@ -695,15 +695,6 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
 
-<xsl:message>
-ORDER BY VAR NAME: <xsl:value-of select="$order-by-var-name"/>
-ORDER BY PREDICATE: <xsl:value-of select="$order-by-predicate"/>
-DESC: <xsl:value-of select="$desc"/>
-DEFAULT ORDER BY VAR NAME: <xsl:value-of select="$default-order-by-var-name"/>
-DEFAULT DESC: <xsl:value-of select="$default-desc"/>
-DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
-</xsl:message>
-
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="results" select="$grouped-results"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -761,6 +752,9 @@ DEFAULT ORDER BY PREDICATE: <xsl:value-of select="$default-order-by-predicate"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
+        
+        <!-- loading is done - restore the default mouse cursor -->
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <xsl:template name="render-container">
