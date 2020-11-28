@@ -209,7 +209,7 @@ extension-element-prefixes="ixsl"
             </button>
         </div>
 
-        <xsl:variable name="logged-in" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="logged-in" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
         <xsl:if test="$logged-in">
             <!-- show delete button only for document resources -->

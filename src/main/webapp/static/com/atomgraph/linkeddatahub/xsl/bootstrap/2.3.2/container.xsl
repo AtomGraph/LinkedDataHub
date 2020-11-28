@@ -265,17 +265,11 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="bs2:PagerList">
         <xsl:param name="result-count" as="xs:integer?"/>
-        
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        
-        <xsl:variable name="offset-states" select="array:filter($states, function($state) { map:get($state, xs:anyURI('&ldt;arg'))/rdf:type/@rdf:resource = '&ac;Offset' })" as="array(*)"/>
-        <xsl:variable name="last-offset-state" select="if (array:size($offset-states)) then $offset-states(array:size($offset-states)) else ()" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="offset" select="if (map:size($last-offset-state) gt 0) then map:get($last-offset-state, xs:anyURI('&ldt;arg'))/rdf:value else 0" as="xs:integer"/>
-        
-        <xsl:variable name="limit-states" select="array:filter($states, function($state) { map:get($state, xs:anyURI('&ldt;arg'))/rdf:type/@rdf:resource = '&ac;Limit' })" as="array(*)"/>
-        <xsl:variable name="last-limit-state" select="if (array:size($limit-states)) then $limit-states(array:size($limit-states)) else ()" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="limit" select="if (map:size($last-limit-state) gt 0) then map:get($last-limit-state, xs:anyURI('&ldt;arg'))/rdf:value else 0" as="xs:integer"/>
-
+        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
+        <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
         <xsl:variable name="show" select="($offset - $limit) &gt;= 0 or $result-count &gt;= $limit" as="xs:boolean"/>
 
         <!-- do not show pagination if the children document count is less than the page limit -->
@@ -1139,67 +1133,120 @@ exclude-result-prefixes="#all"
     <!-- container state rendering -->
     
     <xsl:function name="ac:transform-query" as="document-node()">
-        <xsl:param name="state" as="element()"/>
+        <xsl:param name="state" as="map(xs:string, item()?)"/>
         <xsl:param name="select-query" as="document-node()"/>
 
+        <xsl:message select="'State type: ' || map:get($state, '&rdf;type')"/>
+        
         <xsl:document>
             <xsl:choose>
-                <xsl:when test="$state/rdf:type/@rdf:resource = '&ac;Limit'">
+                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Limit'">
                     <xsl:apply-templates select="$select-query" mode="apl:replace-limit">
-                        <xsl:with-param name="limit" select="$state/rdf:value" tunnel="yes"/>
+                        <xsl:with-param name="limit" select="xs:integer(map:get($state, '&rdf;value'))" as="xs:integer" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$state/rdf:type/@rdf:resource = '&ac;Offset'">
+                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Offset'">
                     <xsl:apply-templates select="$select-query" mode="apl:replace-offset">
-                        <xsl:with-param name="offset" select="$state/rdf:value" tunnel="yes"/>
+                        <xsl:with-param name="offset" select="xs:integer(map:get($state, '&rdf;value'))" as="xs:integer" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$state/rdf:type/@rdf:resource = '&ac;OrderBy'">
+                <xsl:when test="map:get($state, '&rdf;type') = '&ac;OrderBy'">
                     <xsl:apply-templates select="$select-query" mode="apl:replace-order-by">
-                        <xsl:with-param name="var-name" select="$state/rdf:value" tunnel="yes"/>
+                        <xsl:with-param name="var-name" select="map:get($state, '&rdf;value')" as="xs:string" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$state/rdf:type/@rdf:resource = '&ac;Desc'">
+                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Desc'">
                     <xsl:apply-templates select="$select-query" mode="apl:toggle-desc">
-                        <xsl:with-param name="desc" select="xs:boolean($state/rdf:value)" tunnel="yes"/>
+                        <xsl:with-param name="desc" select="xs:boolean(map:get($state, '&rdf;value'))" as="xs:boolean" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$state/rdf:type/@rdf:resource = '&ac;FilterIn'">
-                    <xsl:variable name="values" select="array { for $label in $state/rdf:value/* return map { 'value' : string($label/input[@type = 'checkbox']/@value), 'type': string($label/input[@name = 'type']/@value), 'datatype': string($label/input[@name = 'datatype']/@value) } }" as="array(map(xs:string, xs:string))"/>
+                <xsl:when test="map:get($state, '&rdf;type') = '&ac;FilterIn'">
                     <xsl:apply-templates select="$select-query" mode="apl:filter-in">
-                        <xsl:with-param name="var-name" select="$state/spl:predicate/@rdf:resource" tunnel="yes"/>
-                        <xsl:with-param name="values" select="$values" tunnel="yes"/>
+                        <xsl:with-param name="var-name" select="map:get($state, '&spl;predicate')" as="xs:string" tunnel="yes"/>
+                        <xsl:with-param name="values" select="map:get($state, '&rdf;value')" as="array(map(xs:string, xs:string))" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
-                <xsl:when test="$state/rdf:type/@rdf:resource = '&ac;Parallax'">
+                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Parallax'">
                     <xsl:apply-templates select="$select-query" mode="apl:add-parallax-step">
-                        <xsl:with-param name="predicate" select="$state/rdf:value/@rdf:resource" tunnel="yes"/>
+                        <xsl:with-param name="predicate" select="xs:anyURI(map:get($state, '&rdf;value'))" as="xs:anyURI" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
+                <xsl:otherwise>
+                    <xsl:message error-code="apl:UnknownStateType" terminate="yes">
+                        Unknown state type '<xsl:value-of select="map:get($state, '&rdf;type')"/>'
+                    </xsl:message>
+                </xsl:otherwise>
             </xsl:choose>
         </xsl:document>
     </xsl:function>
     
+    <xsl:template name="apl:push-state">
+        <xsl:param name="new-state" as="map(xs:string, item()?)"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+<xsl:message>
+    PUSH-STATE/SELECT-XML: <xsl:value-of select="$select-xml => serialize(map {'method': 'adaptive'})"/>
+</xsl:message>
+        
+        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+
+<xsl:message>
+    SERIALIZED STATE: <xsl:value-of select="serialize($new-state, map { 'method': 'json' })"/>
+</xsl:message>
+        <!-- push the latest state into history -->
+        <xsl:variable name="js-statement" as="element()">
+            <xsl:variable name="state-json-string" select="serialize($new-state, map { 'method': 'json' })" as="xs:string"/>
+            <root statement="history.pushState({{ '&ldt;arg': JSON.parse('{$state-json-string}'), '&spin;query': JSON.parse('{$select-json-string}') }}, '')"/>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+<xsl:message>
+HISTORY LENGTH: <xsl:value-of select="ixsl:get(ixsl:window(), 'history.length')"/>
+</xsl:message>
+    </xsl:template>
+    
     <xsl:template name="apl:RenderContainer">
-        <xsl:param name="new-state" select="." as="element()"/>
+        <xsl:param name="new-state" as="map(xs:string, item()?)?"/>
+        <xsl:param name="select-xml" as="document-node()">
+            <!-- if SELECT query is not provided, retrieve it from history.state -->
+            <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+            <!-- history.pushState() state objects cannot contain elements, therefore we are converting the query to JSON before pushing -->
+            <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+<xsl:message>select-json-string: <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json-string ])"/></xsl:message>
+            <xsl:sequence select="json-to-xml($select-json-string)"/>
+        </xsl:param>
+        <xsl:param name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <!-- if new state is provided, transform the query using it. otherwise, render the query result of the current (last pushed) history.state -->
+        <xsl:variable name="select-xml" select="if (exists($new-state)) then ac:transform-query($new-state, $select-xml) else $select-xml" as="document-node()"/>
+<xsl:message>
+    SELECT-XML-TRANSFORMED: <xsl:value-of select="$select-xml => serialize(map {'method': 'adaptive'})"/>
+</xsl:message>
+<xsl:message>
+    SELECT-XML: <xsl:value-of select="$select-xml => serialize(map {'method': 'adaptive'})"/>
+</xsl:message>
+<xsl:message>RENDER CONTAINER</xsl:message>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)"/>
-        <ixsl:set-property name="states" select="array:append($states, map{ xs:anyURI('&ldt;arg'): $new-state, xs:anyURI('&spin;query'): $select-xml })" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        
+        <xsl:if test="exists($new-state)">
+            <xsl:call-template name="apl:push-state">
+                <xsl:with-param name="new-state" select="$new-state"/>
+                <xsl:with-param name="select-xml" select="$select-xml"/>
+            </xsl:call-template>
+        </xsl:if>
+        
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
             <xsl:apply-templates select="$select-xml" mode="apl:wrap-describe"/>
         </xsl:variable>
+<xsl:message>
+    QUERY-XML: <xsl:value-of select="$select-xml => serialize(map {'method': 'adaptive'})"/>
+</xsl:message>
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
+<xsl:message>QUERY JSON: <xsl:value-of select="$query-json-string"/></xsl:message>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
-
+<xsl:message>SCHEDULE ACTION</xsl:message>
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1208,17 +1255,33 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
+    
+    <!-- popstate -->
+    
+    <xsl:template match="." mode="ixsl:onpopstate">
+        <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
+        <xsl:variable name="state-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $state ])" as="xs:string"/>
+        <xsl:variable name="state-map" select="parse-json($state-json-string)" as="map(xs:string, item()?)"/>
+        <xsl:variable name="state-arg" select="map:get($state-map, '&ldt;arg')" as="map(xs:string, item()?)"/>
+
+        <xsl:message>
+            POPSTATE! STATE: <xsl:value-of select="$state-arg => serialize(map {'method': 'adaptive'})"/>
+        </xsl:message>
+        
+        <xsl:call-template name="apl:RenderContainer">
+            <xsl:with-param name="new-state" select="$state-arg" as="map(xs:string, item()?)"/>
+        </xsl:call-template>
+    </xsl:template>
 
     <!-- container mode tabs -->
     
     <xsl:template match="*[@id = 'container-pane']/div/ul[@class = 'nav nav-tabs']/li/a" mode="ixsl:onclick">
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
 
         <ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
 
         <xsl:call-template name="render-container">
             <xsl:with-param name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')"/>
@@ -1230,20 +1293,20 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[@id = 'container-pane']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        <xsl:variable name="offset-states" select="array:filter($states, function($state) { map:get($state, xs:anyURI('&ldt;arg'))/rdf:type/@rdf:resource = '&ac;Offset' })" as="array(*)"/>
-        <xsl:variable name="last-offset-state" select="if (array:size($offset-states)) then $offset-states(array:size($offset-states)) else ()" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="offset" select="if (map:size($last-offset-state) gt 0) then map:get($last-offset-state, xs:anyURI('&ldt;arg'))/rdf:value else 0" as="xs:integer"/>
+        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <!-- descrease OFFSET to get the previous page -->
-        <xsl:variable name="offset" select="(if ($offset) then $offset else 0) - $page-size" as="xs:integer"/>
+        <xsl:variable name="offset" select="$offset - $page-size" as="xs:integer"/>
         
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="new-state" as="element()">
-                <rdf:Description>
-                  <rdf:type rdf:resource="&ac;Offset"/>
-                  <spl:predicate rdf:resource="&ac;offset"/>
-                  <rdf:value><xsl:value-of select="$offset"/></rdf:value>
-                </rdf:Description>
+            <xsl:with-param name="new-state" as="map(xs:string, item()?)">
+                <xsl:map>
+                    <xsl:map-entry key="'&rdf;type'" select="'&ac;Offset'"/>
+                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;offset'"/>
+                    <xsl:map-entry key="'&rdf;value'" select="$offset"/>
+                </xsl:map>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -1252,20 +1315,20 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="*[@id = 'container-pane']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        <xsl:variable name="offset-states" select="array:filter($states, function($state) { map:get($state, xs:anyURI('&ldt;arg'))/rdf:type/@rdf:resource = '&ac;Offset' })" as="array(*)"/>
-        <xsl:variable name="last-offset-state" select="if (array:size($offset-states)) then $offset-states(array:size($offset-states)) else ()" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="offset" select="if (map:size($last-offset-state) gt 0) then map:get($last-offset-state, xs:anyURI('&ldt;arg'))/rdf:value else 0" as="xs:integer"/>
+        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>        
         <!-- increase OFFSET to get the next page -->
-        <xsl:variable name="offset" select="(if ($offset) then $offset else 0) + $page-size" as="xs:integer"/>
+        <xsl:variable name="offset" select="$offset + $page-size" as="xs:integer"/>
         
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="new-state" as="element()">
-                <rdf:Description>
-                  <rdf:type rdf:resource="&ac;Offset"/>
-                  <spl:predicate rdf:resource="&ac;offset"/>
-                  <rdf:value><xsl:value-of select="$offset"/></rdf:value>
-                </rdf:Description>
+            <xsl:with-param name="new-state" as="map(xs:string, item()?)">
+                <xsl:map>
+                    <xsl:map-entry key="'&rdf;type'" select="'&ac;Offset'"/>
+                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;offset'"/>
+                    <xsl:map-entry key="'&rdf;value'" select="$offset"/>
+                </xsl:map>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -1274,20 +1337,20 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="select[@id = 'container-order']" mode="ixsl:onchange">
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
+        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
         <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
         
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="new-state" as="element()">
-                <rdf:Description>
-                  <rdf:type rdf:resource="&ac;OrderBy"/>
-                  <spl:predicate rdf:resource="&ac;orderBy"/>
-                  <rdf:value><xsl:value-of select="$var-name"/></rdf:value>
-                </rdf:Description>
+            <xsl:with-param name="new-state" as="map(xs:string, item()?)">
+                <xsl:map>
+                    <xsl:map-entry key="'&rdf;type'" select="'&ac;OrderBy'"/>
+                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;orderBy'"/>
+                    <xsl:map-entry key="'&rdf;value'" select="$var-name"/>
+                </xsl:map>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -1299,12 +1362,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
         
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="new-state" as="element()">
-                <rdf:Description>
-                  <rdf:type rdf:resource="&ac;Desc"/>
-                  <spl:predicate rdf:resource="&ac;desc"/>
-                  <rdf:value><xsl:value-of select="not($desc)"/></rdf:value> <!-- not() because we are toggling the direction -->
-                </rdf:Description>
+            <xsl:with-param name="new-state" as="map(xs:string, item()?)">
+                <xsl:map>
+                    <xsl:map-entry key="'&rdf;type'" select="'&ac;Desc'"/>
+                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;desc'"/>
+                    <xsl:map-entry key="'&rdf;value'" select="not($desc)"/>
+                </xsl:map>
             </xsl:with-param>
         </xsl:call-template>
         
@@ -1319,15 +1382,15 @@ exclude-result-prefixes="#all"
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
-        <xsl:variable name="states" select="array { ixsl:get(ixsl:window(), 'LinkedDataHub.states') }" as="array(*)"/>
-        <xsl:variable name="last-state" select="$states(array:size($states))" as="map(xs:anyURI, item())?"/>
-        <xsl:variable name="select-xml" select="map:get($last-state, xs:anyURI('&spin;query'))" as="document-node()"/>
+        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $subject-var-name][json:string[@key = 'predicate'] = $predicate][json:string[@key = 'object'] = '?' || $object-var-name]" as="element()"/>
 
         <!-- is the current facet loaded? -->
-        <xsl:variable name="loaded" select="not(empty(following-sibling::ul))" as="xs:boolean"/>
+        <xsl:variable name="loaded" select="exists(following-sibling::ul)" as="xs:boolean"/>
         <xsl:choose>
             <!-- if not, load and render its values -->
             <xsl:when test="not($loaded)">
@@ -1614,12 +1677,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="values" select="array { for $label in $labels return map { 'value' : string($label/input[@type = 'checkbox']/@value), 'type': string($label/input[@name = 'type']/@value), 'datatype': string($label/input[@name = 'datatype']/@value) } }" as="array(map(xs:string, xs:string))"/>
         
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="new-state" as="element()">
-                <rdf:Description>
-                  <rdf:type rdf:resource="&ac;FilterIn"/>
-                  <spl:predicate rdf:resource="{$var-name}"/>
-                  <rdf:value><xsl:copy-of select="$labels"/></rdf:value>
-                </rdf:Description>
+            <xsl:with-param name="new-state" as="map(xs:string, item()?)">
+                <xsl:map>
+                    <xsl:map-entry key="'&rdf;type'" select="'&ac;FilterIn'"/>
+                    <xsl:map-entry key="'&spl;predicate'" select="$var-name"/>
+                    <xsl:map-entry key="'&rdf;value'" select="$values"/>
+                </xsl:map>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>
@@ -1630,12 +1693,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="new-state" as="element()">
-                <rdf:Description>
-                  <rdf:type rdf:resource="&ac;Parallax"/>
-                  <spl:predicate rdf:resource="&ac;predicate"/>
-                  <rdf:value rdf:resource="{$predicate}"/>
-                </rdf:Description>
+            <xsl:with-param name="new-state" as="map(xs:string, item()?)">
+                <xsl:map>
+                    <xsl:map-entry key="'&rdf;type'" select="'&ac;Parallax'"/>
+                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;predicate'"/>
+                    <xsl:map-entry key="'&rdf;value'" select="$predicate"/>
+                </xsl:map>
             </xsl:with-param>
         </xsl:call-template>
     </xsl:template>

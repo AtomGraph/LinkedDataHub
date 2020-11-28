@@ -174,7 +174,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="desc" as="xs:boolean?"/>
 
         <xsl:choose>
-            <xsl:when test="$order-by and not(empty($desc))">
+            <xsl:when test="$order-by and exists($desc)">
                 <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ]), 'orderBy', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering',  [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]), $desc ]) ])"/>
             </xsl:when>
             <xsl:otherwise>
@@ -568,11 +568,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" as="xs:boolean">
             <xsl:variable name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
             <xsl:choose>
-                <xsl:when test="not(empty($types))">
+                <xsl:when test="exists($types)">
                     <!-- constraint (sub)classes are in the admin ontology -->
                     <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
                     <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
-                    <xsl:sequence select="not(empty(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this]))"/>
+                    <xsl:sequence select="exists(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this])"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:sequence select="false()"/>
@@ -943,7 +943,7 @@ exclude-result-prefixes="#all">
 
         <!-- if $forClass subclasses are provided, render a dropdown with multiple constructor choices. Otherwise, only render a single constructor button for $forClass -->
         <xsl:choose>
-            <xsl:when test="not(empty($subclasses))">
+            <xsl:when test="exists($subclasses)">
                 <div class="btn-group">
                     <button type="button">
                         <xsl:choose>

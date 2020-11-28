@@ -148,7 +148,7 @@ version="3.0"
                     <xsl:with-param name="menu" select="$menu"/>
                     <!-- we're filtering here because data might not come pre-FILTERed from a SPARQL result, e.g. from an ontology document -->
                     <!-- TO-DO: filtering properties by literal text() containing $query -->
-                    <xsl:with-param name="items" select="$items[if (not(empty($resource-types))) then (rdf:type/@rdf:resource = $resource-types) else true()]"/>
+                    <xsl:with-param name="items" select="$items[if (exists($resource-types)) then (rdf:type/@rdf:resource = $resource-types) else true()]"/>
                     <xsl:with-param name="element" select="$element"/>
                     <xsl:with-param name="name" select="$name"/>
                 </xsl:call-template>

@@ -241,7 +241,7 @@ exclude-result-prefixes="#all">
     <!-- STYLE -->
     
     <xsl:template match="rdf:RDF" mode="xhtml:Style">
-        <xsl:param name="load-wymeditor" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean"/>
         
         <xsl:apply-imports/>
 
@@ -256,7 +256,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-ce-log-level" select="'FINE'" as="xs:string"/>
-        <xsl:param name="load-wymeditor" select="not(empty($lacl:Agent//@rdf:about))" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
@@ -289,7 +289,7 @@ exclude-result-prefixes="#all">
                             ]]>
                             <!--
                             <xsl:variable name="ontology-imports" select="apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
-                            <xsl:if test="not(empty($ontology-imports))">
+                            <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
                                 <xsl:for-each select="apl:ontologyImports($ldt:ontology)">
                                     <xsl:text>{ name: "</xsl:text>
@@ -641,7 +641,7 @@ exclude-result-prefixes="#all">
                     <!--if the current resource is a Container, show Container and Item constructors--> 
                     <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
                     <!-- current resource is a container -->
-                    <xsl:if test="not(empty($document-classes)) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
+                    <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
                         <xsl:for-each select="$document-classes">
                             <xsl:sort select="ac:label(.)"/>
 
