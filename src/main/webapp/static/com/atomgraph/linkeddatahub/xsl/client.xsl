@@ -597,12 +597,15 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
                                     <!-- load the service metadata first to get the endpoint URL -->
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                         <xsl:call-template name="onContainerQueryServiceLoad">
+                                            <xsl:with-param name="select-xml" select="$select-xml"/>
                                             <xsl:with-param name="service-uri" select="$service-uri"/>
                                         </xsl:call-template>
                                     </ixsl:schedule-action>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:call-template name="apl:RenderContainer"/>
+                                    <xsl:call-template name="apl:RenderContainer">
+                                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                                    </xsl:call-template>
                                 </xsl:otherwise>
                             </xsl:choose>
                         </xsl:when>
@@ -620,9 +623,8 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
     
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
-        <!--<xsl:param name="select-xml" as="document-node()"/>-->
-        <!--<xsl:param name="query-string" as="xs:string"/>-->
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -630,6 +632,7 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
                     <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
 
                     <xsl:call-template name="apl:RenderContainer">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
                     </xsl:call-template>
                 </xsl:for-each>
