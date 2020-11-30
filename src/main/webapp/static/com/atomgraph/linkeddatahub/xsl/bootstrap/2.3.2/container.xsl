@@ -49,6 +49,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="'parallax-nav'" as="xs:string?"/>
         <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
 
         <xsl:result-document href="#{$id}" method="ixsl:replace-content">
@@ -59,7 +60,6 @@ exclude-result-prefixes="#all"
             </ul>
         </xsl:result-document>
 
-        <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
@@ -72,7 +72,7 @@ exclude-result-prefixes="#all"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
                 <xsl:with-param name="container-id" select="'parallax-properties'"/>
-                <xsl:with-param name="var-name" select="$first-var-name"/>
+                <xsl:with-param name="var-name" select="$focus-var-name"/>
                 <xsl:with-param name="results" select="$results"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -1309,8 +1309,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
         <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
         
         <xsl:variable name="new-state" as="map(xs:string, item()?)">
@@ -1716,13 +1716,12 @@ exclude-result-prefixes="#all"
     <xsl:template name="apl:ResultCounts">
         <xsl:param name="count-var-name" select="'count'" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <!-- use the first SELECT variable as the COUNT expression -->
-        <xsl:param name="expression-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
                 <xsl:apply-templates select="$select-xml" mode="apl:result-count">
                     <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
-                    <xsl:with-param name="expression-var-name" select="$expression-var-name" tunnel="yes"/>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>

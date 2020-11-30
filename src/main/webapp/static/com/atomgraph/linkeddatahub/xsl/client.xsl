@@ -544,11 +544,8 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                             <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                            <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
-                            
-<xsl:message>
-PUSH DEFAULT LIMIT STATE
-</xsl:message>
+                            <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+                            <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                             <xsl:variable name="new-state" as="map(xs:string, item()?)">
                                 <xsl:map>
@@ -562,9 +559,6 @@ PUSH DEFAULT LIMIT STATE
                                 <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                             </xsl:call-template>
-<xsl:message>
-PUSH DEFAULT OFFSET STATE
-</xsl:message>
                             
                             <xsl:variable name="new-state" as="map(xs:string, item()?)">
                                 <xsl:map>
@@ -578,9 +572,6 @@ PUSH DEFAULT OFFSET STATE
                                 <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
                                 <xsl:with-param name="select-xml" select="$select-xml"/>
                             </xsl:call-template>
-<xsl:message>
-DEFAULT LIMIT/OFFSET STATES PUSHED
-</xsl:message>
 
                             <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                             <xsl:variable name="service-uri" select="$select-resource/apl:service/@rdf:resource" as="xs:anyURI?"/>
@@ -664,9 +655,9 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
                     </xsl:variable>
                     <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+                    <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-                    <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+                    <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                     <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
@@ -676,6 +667,7 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
 
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="results" select="$grouped-results"/>
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                         <xsl:with-param name="desc" select="$desc"/>
                         <xsl:with-param name="default-order-by-var-name" select="$default-order-by-var-name"/>
@@ -687,6 +679,7 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
                     <!-- only append facets if they are not already present -->
                     <xsl:if test="not(id('faceted-nav', ixsl:page())/*)">
                         <xsl:call-template name="render-facets">
+                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </xsl:if>
@@ -694,6 +687,7 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
                     <!-- result counts -->
                     <xsl:if test="id('result-counts', ixsl:page())">
                         <xsl:call-template name="apl:ResultCounts">
+                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </xsl:if>
@@ -719,6 +713,7 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
                         
                         <xsl:call-template name="bs2:Parallax">
                             <xsl:with-param name="results" select="$grouped-results"/>
+                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </xsl:if>
@@ -738,6 +733,7 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
     
     <xsl:template name="render-container">
         <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="desc" as="xs:boolean?"/>
         <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
@@ -765,9 +761,8 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
             </xsl:when>
             <!-- first time rendering the container results -->
             <xsl:otherwise>
-                <xsl:variable name="first-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-                <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $first-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+                <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                 <xsl:for-each select="$bgp-triples-map">
                     <xsl:call-template name="render-order-by-despatch">
                         <xsl:with-param name="container-id" select="$order-by-container-id"/>
@@ -900,11 +895,11 @@ DEFAULT LIMIT/OFFSET STATES PUSHED
     <xsl:template name="render-facets">
         <xsl:param name="select-xml" as="document-node()"/>
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
-        <xsl:param name="facet-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="container-id" select="'faceted-nav'" as="xs:string"/>
 
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $facet-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+        <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
 
         <xsl:for-each select="$bgp-triples-map">
             <xsl:call-template name="render-facet-headers-despatch">
