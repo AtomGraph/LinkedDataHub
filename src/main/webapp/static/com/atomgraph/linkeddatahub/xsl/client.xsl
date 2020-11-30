@@ -710,10 +710,9 @@ extension-element-prefixes="ixsl"
                                 <xsl:copy-of select="id('right-nav', ixsl:page())/*"/>
                             </xsl:result-document>
                         </xsl:if>
-                        
+
                         <xsl:call-template name="bs2:Parallax">
                             <xsl:with-param name="results" select="$grouped-results"/>
-                            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </xsl:if>

@@ -49,7 +49,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="'parallax-nav'" as="xs:string?"/>
         <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
 
         <xsl:result-document href="#{$id}" method="ixsl:replace-content">
@@ -60,6 +59,8 @@ exclude-result-prefixes="#all"
             </ul>
         </xsl:result-document>
 
+        <!-- do not use the initial LinkedDataHub.focus-var-name since parallax is changing the SELECT var name -->
+        <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="query-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
@@ -1719,9 +1720,20 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
+                <!-- unset LIMIT and OFFSET - we want to COUNT all of the container's children -->
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="apl:replace-limit"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="apl:replace-offset"/>
+                    </xsl:document>
+                </xsl:variable>
                 <xsl:apply-templates select="$select-xml" mode="apl:result-count">
                     <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name" tunnel="yes"/>
+                    <xsl:with-param name="expression-var-name" select="$focus-var-name" tunnel="yes"/>
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
