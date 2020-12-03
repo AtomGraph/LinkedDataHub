@@ -98,7 +98,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:PropertyList">
         <xsl:variable name="properties" as="element()*">
             <xsl:apply-templates select="*" mode="#current">
-                <xsl:sort select="ac:property-label(.)" data-type="text" order="ascending" /> <!-- lang="{$ldt:lang}" -->
+                <xsl:sort select="ac:property-label(.)" order="ascending"/> <!-- lang="{$ldt:lang}" -->
             </xsl:apply-templates>
         </xsl:variable>
 
@@ -172,30 +172,30 @@ extension-element-prefixes="ixsl"
     
     <!-- IMAGE -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Image">
-        <xsl:variable name="prelim-images" as="item()*">
-            <xsl:apply-templates mode="ac:image"/>
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Image">
+        <xsl:variable name="image-uris" as="xs:anyURI*">
+            <xsl:apply-templates select="." mode="ac:image"/>
         </xsl:variable>
-        <xsl:variable name="images" select="$prelim-images/self::*" as="element()*"/>
-
-        <xsl:if test="$images">
-            <div class="carousel slide">
-                <div class="carousel-inner">
-                    <xsl:for-each select="$images">
-                        <div class="item">
-                            <xsl:if test="position() = 1">
-                                <xsl:attribute name="class">active item</xsl:attribute>
-                            </xsl:if>
-                            <xsl:copy-of select="."/>
-                        </div>
-                    </xsl:for-each>
-                    <a class="carousel-control left" onclick="$(this).parents('.carousel').carousel('prev');">&#8249;</a>
-                    <a class="carousel-control right" onclick="$(this).parents('.carousel').carousel('next');">&#8250;</a>
-                </div>
-            </div>
-        </xsl:if>
-    </xsl:template>
+        <xsl:variable name="this" select="." as="element()"/>
         
+        <xsl:for-each select="$image-uris[1]">
+            <a href="{$this/@rdf:about}" title="{ac:label($this)}">
+                <img src="{.}" alt="{ac:label($this)}" class="img-polaroid"/>
+            </a>
+        </xsl:for-each>
+    </xsl:template>
+
+    <xsl:template match="*[*][@rdf:nodeID]" mode="bs2:Image">
+        <xsl:variable name="image-uris" as="xs:anyURI*">
+            <xsl:apply-templates select="." mode="ac:image"/>
+        </xsl:variable>
+        <xsl:variable name="this" select="." as="element()"/>
+        
+        <xsl:for-each select="$image-uris[1]">
+            <img src="{.}" alt="{ac:label($this)}" class="img-polaroid"/>
+        </xsl:for-each>
+    </xsl:template>
+
     <!-- ACTIONS -->
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
@@ -261,18 +261,6 @@ extension-element-prefixes="ixsl"
                 <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
 
                 <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
-                <!--
-                <xsl:choose>
-                    <xsl:when test="doc-available(resolve-uri('?uri=' || encode-for-uri(ac:document-uri(.)), $ldt:base))">
-                        <xsl:apply-templates select="key('resources', ., document(ac:document-uri(.)))" mode="bs2:TypeListItem"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <li>
-                            <xsl:apply-templates select="."/>
-                        </li>
-                    </xsl:otherwise>
-                </xsl:choose>
-                -->
                 <li>
                     <xsl:apply-templates select="."/>
                 </li>

@@ -65,7 +65,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
-    <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/layout.xsl"/>
+    <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/apl.xsl"/>
     <xsl:import href="imports/dct.xsl"/>
@@ -777,7 +777,8 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Right"/>
+    <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
+    <xsl:template match="*[@rdf:about = $ac:uri]/*[not(self::dct:created or self::dct:modified or self::foaf:maker or self::acl:owner or self::foaf:primaryTopic)]" mode="bs2:PropertyList" priority="1"/>
     
     <!-- MODE LIST -->
         
@@ -1688,6 +1689,9 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
+    <!-- suppres types in property list - we show them in the bs2:Header instead -->
+    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:PropertyList"/>
+    
     <!-- OBJECT -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Object">

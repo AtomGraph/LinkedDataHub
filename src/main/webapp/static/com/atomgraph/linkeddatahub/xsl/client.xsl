@@ -109,7 +109,6 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <!--<xsl:param name="default-order-by" select="'title'" as="xs:string?"/>-->
 
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
     <xsl:key name="violations-by-value" match="*" use="apl:violationValue/text()"/>
@@ -301,11 +300,11 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:description">
         <xsl:choose>
-            <xsl:when test="rdfs:comment[lang($ac:lang)]">
-                <xsl:value-of select="rdfs:comment[lang($ac:lang)]"/>
+            <xsl:when test="rdfs:comment">
+                <xsl:value-of select="rdfs:comment"/>
             </xsl:when>
-            <xsl:when test="dct:description[lang($ac:lang)]">
-                <xsl:value-of select="dct:description[lang($ac:lang)]"/>
+            <xsl:when test="dct:description">
+                <xsl:value-of select="dct:description"/>
             </xsl:when>
             <xsl:when test="rdfs:comment">
                 <xsl:value-of select="rdfs:comment"/>
@@ -316,6 +315,17 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:image">
+        <xsl:choose>
+            <xsl:when test="foaf:img/@rdf:resource">
+                <xsl:sequence select="foaf:img/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="foaf:depiction/@rdf:resource">
+                <xsl:sequence select="foaf:depiction/@rdf:resource"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:template>
+    
     <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -765,7 +775,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="$bgp-triples-map">
                     <xsl:call-template name="render-order-by-despatch">
                         <xsl:with-param name="container-id" select="$order-by-container-id"/>
-                        <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
+                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                     </xsl:call-template>
                 </xsl:for-each>
 
@@ -1052,7 +1062,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="render-order-by-despatch">
         <xsl:context-item as="element()" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
+        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="id" select="generate-id()" as="xs:string"/>
         <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="resolve-uri('?uri=' || encode-for-uri($predicate) || '&amp;accept=' || encode-for-uri('application/rdf+xml') || '&amp;mode=' || encode-for-uri('fragment'), $ldt:base)" as="xs:anyURI"/>
@@ -1062,7 +1072,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="id" select="$id"/>
                 <xsl:with-param name="predicate" select="$predicate"/>
-                <xsl:with-param name="default-order-by-predicate" as="xs:anyURI?"/>
+                <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>

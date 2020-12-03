@@ -184,7 +184,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
 
     <!-- format external URLs in DataTable as HTML links with ?uri= indirection (which leads back to the app in LD browser mode -->
-    <xsl:template match="@rdf:*[local-name() = 'about'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'about'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:*[local-name() = 'resource'][starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="1">
+    <xsl:template match="@rdf:about[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:about[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="1">
         "&lt;a href=\"?uri=<xsl:value-of select="encode-for-uri(.)"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
 
@@ -291,13 +291,13 @@ exclude-result-prefixes="#all">
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->
-    <xsl:function name="ac:image" as="xs:anyURI?">
+    <xsl:function name="ac:image" as="attribute()*">
         <xsl:param name="resource" as="element()"/>
 
-        <xsl:variable name="images" as="xs:anyURI*">
+        <xsl:variable name="images" as="attribute()*">
             <xsl:apply-templates select="$resource" mode="ac:image"/>
         </xsl:variable>
-        <xsl:sequence select="$images[1]"/>
+        <xsl:sequence select="$images"/>
     </xsl:function>
 
     <xsl:function name="ac:svg-label" as="xs:string?">
@@ -311,28 +311,6 @@ exclude-result-prefixes="#all">
 
         <xsl:sequence select="ac:object-label($object)"/>
     </xsl:function>
-    
-<!--    <xsl:function name="apl:subClasses" as="node()*">
-        <xsl:param name="class" as="xs:anyURI*"/>
-        <xsl:param name="document" as="document-node()"/>
-        
-        <xsl:variable name="subclasses" select="ac:superClassOf($class, $document)" as="attribute()*"/>
-        <xsl:if test="$subclasses[not(. = $class)]">
-            <xsl:sequence select="apl:subClasses($subclasses[not(. = $class)], $document)"/>
-        </xsl:if>
-        <xsl:sequence select="key('resources', $class, $document)/@rdf:about, $subclasses"/>
-    </xsl:function>
-
-    <xsl:function name="apl:superClasses" as="node()*">
-        <xsl:param name="class" as="xs:anyURI*"/>
-        <xsl:param name="document" as="document-node()"/>
-        
-        <xsl:variable name="superclasses" select="rdfs:subClassOf($class, $document)" as="attribute()*"/>
-        <xsl:if test="$superclasses[not(. = $class)]">
-            <xsl:sequence select="apl:superClasses($superclasses[not(. = $class)], $document)"/>
-        </xsl:if>
-        <xsl:sequence select="key('resources', $class, $document)/@rdf:about, $superclasses"/>
-    </xsl:function>-->
     
     <xsl:function name="lapp:base" as="node()?">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -653,7 +631,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- object resource -->
-    <xsl:template match="@rdf:*[local-name() = 'resource']" mode="bs2:FormControl">
+    <xsl:template match="@rdf:resource" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -756,7 +734,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- object blank node -->
-    <xsl:template match="*[@rdf:*[local-name() = ('about', 'nodeID')]]/*/@rdf:*[local-name() = ('nodeID')]" mode="bs2:FormControl">
+    <xsl:template match="*[@rdf:about]/*/@rdf:nodeID | *[@rdf:nodeID]/*/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -799,7 +777,7 @@ exclude-result-prefixes="#all">
     
     <!-- blank nodes that only have rdf:type xsd:* and no other properties become literal inputs -->
     <!-- TO-DO: expand pattern to handle other XSD datatypes -->
-    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/*/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[starts-with(@rdf:resource, '&xsd;')])]]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[starts-with(@rdf:resource, '&xsd;')])]]" mode="bs2:FormControl" priority="2">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -824,7 +802,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource typeaheads -->
-    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/*/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'resource-typeahead typeahead'" as="xs:string?"/>

@@ -38,7 +38,6 @@ xmlns:spl="&spl;"
 xmlns:geo="&geo;"
 xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:saxon="http://saxon.sf.net/"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
@@ -232,13 +231,13 @@ exclude-result-prefixes="#all"
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
-        <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
+        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
 
         <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
             <!-- TO-DO: order options -->
             <option value="{$predicate}">
-                <xsl:if test="$predicate = $default-order-by-predicate">
+                <xsl:if test="$predicate = $order-by-predicate">
                     <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
@@ -1238,12 +1237,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>
 
         <ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <xsl:call-template name="render-container">
             <xsl:with-param name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
         </xsl:call-template>
     </xsl:template>
 
