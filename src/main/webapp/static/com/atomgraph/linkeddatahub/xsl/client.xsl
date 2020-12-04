@@ -555,6 +555,10 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                             <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
                             <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+                            
+                            <!-- set the initial SELECT query (without modifiers) -->
+                            <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <!-- set the first var name of the initial SELECT query -->
                             <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                             <xsl:variable name="new-state" as="map(xs:string, item()?)">
@@ -688,6 +692,13 @@ extension-element-prefixes="ixsl"
 
                     <!-- only append facets if they are not already present -->
                     <xsl:if test="not(id('faceted-nav', ixsl:page())/*)">
+                        <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
+                        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+                        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+                        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+                        <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+
                         <xsl:call-template name="render-facets">
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
