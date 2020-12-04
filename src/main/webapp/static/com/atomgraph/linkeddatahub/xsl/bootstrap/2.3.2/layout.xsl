@@ -449,7 +449,7 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
 
-            <xsl:apply-templates select="." mode="bs2:ModeList"/>
+            <!--<xsl:apply-templates select="." mode="bs2:ModeList"/>-->
         </div>
     </xsl:template>
     

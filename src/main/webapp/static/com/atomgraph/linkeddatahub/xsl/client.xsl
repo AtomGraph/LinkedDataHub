@@ -783,7 +783,8 @@ extension-element-prefixes="ixsl"
                     <div class="pull-right">
                         <form class="form-inline">
                             <label for="{$order-by-container-id}">
-                                <xsl:text>Order by </xsl:text>
+                                <!-- currently no space for the label in the layout -->
+                                <!--<xsl:text>Order by </xsl:text>-->
                                 
                                 <select id="{$order-by-container-id}" name="order-by" class="input-medium">
                                     <!-- show the default option if the container query does not have an ORDER BY -->
@@ -819,10 +820,12 @@ extension-element-prefixes="ixsl"
 
         <!-- after we've created the map or chart container element, create the JS objects using it -->
         <xsl:if test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
-            <!-- TO-DO: check if window.LinkedDataHub.map already exists? -->
-            <xsl:call-template name="create-google-map">
-                <xsl:with-param name="map" select="ac:create-map('map-canvas', 56, 10, 4)"/>
-            </xsl:call-template>
+            <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+            <xsl:variable name="center-lat" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.map')) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.map'), 'getCenter', []), 'lat', [])) else 56" as="xs:float"/>
+            <xsl:variable name="center-lng" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.map')) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.map'), 'getCenter', []), 'lng', [])) else 10" as="xs:float"/>
+            <xsl:variable name="zoom" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.map')) then xs:integer(ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.map'), 'getZoom', [])) else 4" as="xs:integer"/>
+            
+            <ixsl:set-property name="map" select="ac:create-map('map-canvas', $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
             <!-- unset LIMIT and OFFSET - we want all of the container's children on the map -->
             <xsl:variable name="select-xml" as="document-node()">
@@ -838,10 +841,16 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
             <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
             <xsl:variable name="select-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
-
+            <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+            <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+            <!-- do not use the initial LinkedDataHub.focus-var-name since parallax is changing the SELECT var name -->
+            <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+            <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+            <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
+            
             <xsl:call-template name="create-geo-object">
                 <!-- use container's SELECT query to build a geo query. TO-DO: ?thing will only work with the default select-children query -->
-                <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, resolve-uri('sparql', $ldt:base), $select-string, 'thing')"/>
+                <xsl:with-param name="geo" select="ac:create-geo-object($ac:uri, $endpoint, $select-string, $focus-var-name, $graph-var-name)"/>
             </xsl:call-template>
 
             <xsl:call-template name="add-geo-listener"/>

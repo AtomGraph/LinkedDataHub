@@ -430,24 +430,26 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
 
-    <xsl:template name="create-google-map">
-        <xsl:param name="map"/>
-
-        <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-    </xsl:template>
-
     <xsl:function name="ac:create-geo-object">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="item-var-name" as="xs:string"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:param name="graph-var-name" as="xs:string?"/>
 
         <!-- set ?this value -->
         <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="js-statement" as="element()">
             <!-- TO-DO: move Geo under AtomGraph namespace -->
             <!-- use template literals because the query is multi-line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals -->
-            <root statement="new SPARQLMap.Geo(window.LinkedDataHub.map, new URL('{$endpoint}'), `{$select-string}`, '{$item-var-name}')"/>
+            <xsl:choose>
+                <xsl:when test="$graph-var-name">
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.map, new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.map, new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
@@ -460,7 +462,8 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="add-geo-listener">
         <xsl:variable name="js-statement" as="element()">
-            <root statement="window.LinkedDataHub.map.addListener('idle', function() {{ window.LinkedDataHub.geo.loadMarkers(window.LinkedDataHub.geo.addMarkers); }})"/> <!-- use template literal because the query string is multi-line -->
+            <!-- use template literal because the query string is multi-line -->
+            <root statement="window.LinkedDataHub.map.addListener('idle', function() {{ window.LinkedDataHub.geo.loadMarkers(window.LinkedDataHub.geo.addMarkers); }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:template>
@@ -473,7 +476,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <!-- <xsl:param name="endpoint" as="xs:anyURI"/> -->
         <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
@@ -816,7 +818,6 @@ exclude-result-prefixes="#all"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
-        <!-- <xsl:param name="endpoint" as="xs:anyURI"/> -->
         <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
@@ -1183,7 +1184,8 @@ exclude-result-prefixes="#all"
     <xsl:template name="apl:push-state">
         <xsl:param name="new-state" as="map(xs:string, item()?)"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+        <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
+        <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
         <!-- push the latest state into history -->
         <xsl:variable name="js-statement" as="element()">
             <xsl:variable name="state-json-string" select="serialize($new-state, map { 'method': 'json' })" as="xs:string"/>
