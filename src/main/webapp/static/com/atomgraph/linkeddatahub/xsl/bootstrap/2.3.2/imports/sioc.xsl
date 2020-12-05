@@ -61,7 +61,9 @@ exclude-result-prefixes="#all">
                         <xsl:choose>
                             <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
                             <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                </xsl:value-of>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>

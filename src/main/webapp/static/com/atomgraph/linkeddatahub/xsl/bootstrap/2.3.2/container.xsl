@@ -141,7 +141,9 @@ exclude-result-prefixes="#all"
                     
                     <xsl:choose>
                         <xsl:when test="$results">
-                            <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                            </xsl:value-of>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
                         <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
@@ -197,7 +199,9 @@ exclude-result-prefixes="#all"
                 <h2 class="nav-header btn">
                     <xsl:choose>
                         <xsl:when test="$results">
-                            <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                            </xsl:value-of>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
                         <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
@@ -243,7 +247,9 @@ exclude-result-prefixes="#all"
                 
                 <xsl:choose>
                     <xsl:when test="$results">
-                        <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                        </xsl:value-of>
                     </xsl:when>
                     <!-- attempt to use the fragment as label -->
                     <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
@@ -623,7 +629,9 @@ exclude-result-prefixes="#all"
                             </xsl:if>
 
                             <label for="{$chart-type-id}">
-                                <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label"/>
+                                </xsl:value-of>
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>
                             <br/>
@@ -696,7 +704,9 @@ exclude-result-prefixes="#all"
                                             <xsl:attribute name="selected">selected</xsl:attribute>
                                         </xsl:if>
 
-                                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                        </xsl:value-of>
                                     </option>
                                 </xsl:for-each-group>
                             </select>
@@ -722,7 +732,9 @@ exclude-result-prefixes="#all"
                                             <xsl:attribute name="selected">selected</xsl:attribute>
                                         </xsl:if>
 
-                                        <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                        </xsl:value-of>
                                     </option>
                                 </xsl:for-each-group>
                             </select>
@@ -965,7 +977,9 @@ exclude-result-prefixes="#all"
                             </xsl:if>
 
                             <label for="{$chart-type-id}">
-                                <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label"/>
+                                </xsl:value-of>
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>
                             <br/>

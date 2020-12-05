@@ -406,10 +406,14 @@ extension-element-prefixes="ixsl"
             <span class="pull-left">
                 <xsl:choose>
                     <xsl:when test="key('resources', foaf:primaryTopic/@rdf:resource)">
-                        <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="ac:label"/>
+                        </xsl:value-of>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="." mode="ac:label"/>
+                        </xsl:value-of>
                     </xsl:otherwise>
                 </xsl:choose>
             </span>
@@ -1183,7 +1187,9 @@ extension-element-prefixes="ixsl"
                                 <div class="well well-small">
                                     <h2 class="nav-header">
                                         <a href="{$ldt:base}" title="{$ldt:base}">
-                                            <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                                            </xsl:value-of>
                                         </a>
                                     </h2>
                                     <ul class="nav nav-list">
@@ -2416,7 +2422,9 @@ extension-element-prefixes="ixsl"
                                 </xsl:apply-templates>
 
                                 <label class="control-label" for="{$for}" title="{$property}">
-                                    <xsl:apply-templates select="." mode="ac:property-label"/>
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="." mode="ac:property-label"/>
+                                    </xsl:value-of>
                                 </label>
 
                                 <div class="controls">

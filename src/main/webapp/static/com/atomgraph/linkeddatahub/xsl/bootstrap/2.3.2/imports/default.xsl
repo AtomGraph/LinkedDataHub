@@ -576,7 +576,9 @@ exclude-result-prefixes="#all">
                             <xsl:choose>
                                 <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
                                     <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                                        <xsl:apply-templates select="." mode="ac:label"/>
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="." mode="ac:label"/>
+                                        </xsl:value-of>
                                         
                                         <xsl:if test="ac:description(.)">
                                             <span class="description">
@@ -702,7 +704,9 @@ exclude-result-prefixes="#all">
                                     <span class="help-inline">
                                         <xsl:choose>
                                             <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
-                                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                                <xsl:value-of>
+                                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                                </xsl:value-of>
                                             </xsl:when>
                                             <xsl:otherwise> <!-- client-side Saxon-CE does not have access to the sitemap ontology -->
                                                 <xsl:value-of select="$forClass"/>
@@ -845,7 +849,9 @@ exclude-result-prefixes="#all">
                         <xsl:choose>
                             <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
                             <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                </xsl:value-of>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
@@ -930,7 +936,9 @@ exclude-result-prefixes="#all">
                                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                                 </xsl:apply-templates>
                                 <xsl:text> </xsl:text>
-                                <xsl:apply-templates select="." mode="ac:label"/>
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="." mode="ac:label"/>
+                                </xsl:value-of>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
@@ -954,7 +962,9 @@ exclude-result-prefixes="#all">
                                     </xsl:if>
                                     <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about), '&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
 
-                                    <xsl:apply-templates select="." mode="ac:label"/>
+                                    <xsl:value-of>
+                                        <xsl:apply-templates select="." mode="ac:label"/>
+                                    </xsl:value-of>
                                 </button>
                             </li>
                         </xsl:for-each>
@@ -976,7 +986,9 @@ exclude-result-prefixes="#all">
                                 <xsl:with-param name="class" select="'btn add-constructor'"/>
                             </xsl:apply-templates>
 
-                            <xsl:apply-templates select="." mode="ac:label"/>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="." mode="ac:label"/>
+                            </xsl:value-of>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">

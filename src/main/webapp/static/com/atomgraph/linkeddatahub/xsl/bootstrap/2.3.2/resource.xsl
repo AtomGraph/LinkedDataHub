@@ -205,7 +205,9 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
                 
-                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                </xsl:value-of>
             </button>
         </div>
 
@@ -217,7 +219,9 @@ extension-element-prefixes="ixsl"
                 <div class="pull-right">
                     <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
                         <button class="btn btn-delete" type="submit">
-                            <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                            <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label"/>
+                            </xsl:value-of>
                             <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
                         </button>
                     </form>

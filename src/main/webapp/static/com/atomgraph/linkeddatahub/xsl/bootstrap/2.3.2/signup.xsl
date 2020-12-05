@@ -195,7 +195,9 @@ exclude-result-prefixes="#all">
                 <input type="hidden" name="pu" value="&foaf;name"/>
 
                 <label class="control-label" for="{$id}">
-                    <xsl:apply-templates select="key('resources', '&foaf;name', document('&foaf;'))" mode="ac:label"/>
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', '&foaf;name', document('&foaf;'))" mode="ac:label"/>
+                    </xsl:value-of>
                 </label>
                 <div class="controls">
                     <xsl:call-template name="xhtml:Input">
@@ -277,7 +279,9 @@ exclude-result-prefixes="#all">
             <input type="hidden" name="pu" value="&lacl;password"/>
 
             <label class="control-label" for="{$for}">
-                <xsl:apply-templates select="key('resources', '&lacl;password', document('&lacl;'))" mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&lacl;password', document('&lacl;'))" mode="ac:label"/>
+                </xsl:value-of>
             </label>
             <div class="controls">
                 <xsl:call-template name="xhtml:Input">

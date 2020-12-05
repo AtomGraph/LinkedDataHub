@@ -66,7 +66,9 @@ exclude-result-prefixes="#all">
                     </xsl:call-template>
 
                     <label class="control-label">
-                        <xsl:apply-templates select="key('resources', '&rdf;type', document('&rdf;'))" mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&rdf;type', document('&rdf;'))" mode="ac:label"/>
+                        </xsl:value-of>
                     </label>
 
                     <div class="controls">

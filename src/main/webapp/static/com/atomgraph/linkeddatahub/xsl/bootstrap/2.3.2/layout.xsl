@@ -181,7 +181,9 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
         <title>
             <xsl:if test="$lapp:Application">
-                <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
+                </xsl:value-of>
                 <xsl:text> - </xsl:text>
             </xsl:if>
 
@@ -190,11 +192,15 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][not(key('resources', $ac:uri))]" mode="xhtml:Title" priority="1">
-        <xsl:apply-templates select="." mode="ac:label"/>
+        <xsl:value-of>
+            <xsl:apply-templates select="." mode="ac:label"/>
+        </xsl:value-of>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about = $ac:uri]" mode="xhtml:Title" priority="1">
-        <xsl:apply-templates select="." mode="ac:label"/>
+        <xsl:value-of>
+            <xsl:apply-templates select="." mode="ac:label"/>
+        </xsl:value-of>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="xhtml:Title"/>
@@ -262,12 +268,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-map" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
 
-        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', $ac:contextUri)}"></script>
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/jquery.js', $ac:contextUri)}"></script>
-
-        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}"></script>
+        <!-- Web-Client scripts -->
+        <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', $ac:contextUri)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/UUID.js', $ac:contextUri)}" defer="defer"></script>
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/client/js/jquery.js', $ac:contextUri)}" defer="defer"></script>
+        <!-- LinkedDataHub scripts -->
+        <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}" defer="defer"></script>
         <script type="text/javascript">
             <![CDATA[
                 var baseUri = "]]><xsl:value-of select="$ldt:base"/><![CDATA[";
@@ -276,10 +283,10 @@ exclude-result-prefixes="#all">
             ]]>
         </script>
         <xsl:if test="$load-wymeditor">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
                 <![CDATA[
                     window.onload = function() {
@@ -331,11 +338,11 @@ exclude-result-prefixes="#all">
             </script>
         </xsl:if>
         <xsl:if test="$load-sparql-builder">
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $ac:contextUri)}"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLBuilder.js', $ac:contextUri)}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-sparql-map">
-            <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={$ac:googleMapsKey}"></script>
-            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLMap.js', $ac:contextUri)}"></script>
+            <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={$ac:googleMapsKey}" defer="defer"></script>
+            <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/SPARQLMap.js', $ac:contextUri)}" defer="defer"></script>
         </xsl:if>
         <xsl:if test="$load-google-charts">
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -370,7 +377,9 @@ exclude-result-prefixes="#all">
                             <xsl:attribute name="class" select="'brand admin'"/>
                         </xsl:if>
                         
-                        <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
+                        </xsl:value-of>
                     </a>
 
                     <div id="collapsing-top-navbar" class="nav-collapse collapse" style="margin-left: 17%;">
@@ -515,7 +524,9 @@ exclude-result-prefixes="#all">
             
         <p class="pull-right">
             <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
-                <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
+                </xsl:value-of>
             </a>
         </p>
     </xsl:template>
@@ -531,7 +542,9 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <a href="{ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" title="{ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}">
-                <xsl:apply-templates select="." mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
             </a>
         </li>
     </xsl:template>
@@ -616,7 +629,9 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>
-                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="ac:label"/>
+                </xsl:value-of>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>
             </button>
@@ -746,7 +761,9 @@ exclude-result-prefixes="#all">
                                         <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document('translations.rdf'))">
                                             <xsl:apply-templates select="." mode="apl:logo"/>
                                             <xsl:text> </xsl:text>
-                                            <xsl:apply-templates select="." mode="ac:label"/>
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="." mode="ac:label"/>
+                                            </xsl:value-of>
                                         </xsl:for-each>
                                     </a>
                                 </li>
@@ -1141,7 +1158,9 @@ exclude-result-prefixes="#all">
             </xsl:if>
 
             <h2>
-                <xsl:apply-templates select="." mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
             </h2>
         </div>
     </xsl:template>
@@ -1303,7 +1322,9 @@ exclude-result-prefixes="#all">
         <fieldset class="action-container">
             <div class="control-group">
                 <label class="control-label" for="input-container">
-                    <xsl:apply-templates select="key('resources', '&dh;Container', document('&dh;'))" mode="ac:label"/>
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', '&dh;Container', document('&dh;'))" mode="ac:label"/>
+                    </xsl:value-of>
                 </label>
                 <div class="controls">
                     <span>
@@ -1329,7 +1350,9 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
-            <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="ac:label"/>
+            <xsl:value-of>
+                <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="ac:label"/>
+            </xsl:value-of>
         </div>
     </xsl:template>
     
@@ -1370,7 +1393,9 @@ exclude-result-prefixes="#all">
                     <legend title="{@rdf:about}">
                         <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
                         <xsl:text> </xsl:text>
-                        <xsl:apply-templates select="." mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="." mode="ac:label"/>
+                        </xsl:value-of>
                     </legend>
                 </xsl:for-each>
             </xsl:when>
@@ -1491,10 +1516,14 @@ exclude-result-prefixes="#all">
             <span class="pull-left">
                 <xsl:choose>
                     <xsl:when test="key('resources', foaf:primaryTopic/@rdf:resource)">
-                        <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="ac:label"/>
+                        </xsl:value-of>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="ac:label"/>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="." mode="ac:label"/>
+                        </xsl:value-of>
                     </xsl:otherwise>
                 </xsl:choose>
             </span>
@@ -1579,7 +1608,9 @@ exclude-result-prefixes="#all">
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:text> </xsl:text>
-                <xsl:apply-templates select="." mode="ac:label"/>
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
             </a>
         </li>
     </xsl:template>
@@ -1647,7 +1678,9 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
+            <xsl:value-of>
             <xsl:apply-templates select="." mode="ac:label"/>
+            </xsl:value-of>
         </div>
     </xsl:template>
 
