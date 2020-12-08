@@ -460,15 +460,8 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
 
-    <xsl:template name="create-geo-object">
-        <xsl:param name="geo"/>
-
-        <ixsl:set-property name="geo" select="$geo" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-    </xsl:template>
-
-    <xsl:template name="add-geo-listener">
+    <xsl:template name="ac:add-geo-listener">
         <xsl:variable name="js-statement" as="element()">
-            <!-- use template literal because the query string is multi-line -->
             <root statement="window.LinkedDataHub.map.addListener('idle', function() {{ window.LinkedDataHub.geo.loadMarkers(window.LinkedDataHub.geo.addMarkers); }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>

@@ -708,7 +708,7 @@ exclude-result-prefixes="#all">
                                                     <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
                                                 </xsl:value-of>
                                             </xsl:when>
-                                            <xsl:otherwise> <!-- client-side Saxon-CE does not have access to the sitemap ontology -->
+                                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
                                                 <xsl:value-of select="$forClass"/>
                                             </xsl:otherwise>
                                         </xsl:choose>

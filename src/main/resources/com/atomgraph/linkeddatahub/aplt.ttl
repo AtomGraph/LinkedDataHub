@@ -156,7 +156,7 @@ WHERE
 
 :File a ldt:Template ;
     ldt:extends :Document ;
-    ldt:match "/uploads/{slug}/" ;
+    ldt:match "/uploads/{sha1sum}/" ;
     ldt:query [ a sp:Describe ; sp:text """
 DESCRIBE ?this
 {

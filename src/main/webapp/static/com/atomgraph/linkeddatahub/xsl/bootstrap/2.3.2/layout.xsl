@@ -261,12 +261,12 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
-        <xsl:param name="saxon-ce-log-level" select="'FINE'" as="xs:string"/>
+        <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-map" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
-        <xsl:param name="load-google-charts" select="$ldt:base and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
@@ -324,7 +324,7 @@ exclude-result-prefixes="#all">
                                 documentPool: cache,
                                 stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
                                 initialTemplate: "main",
-                                logLevel: 10,
+                                logLevel: ]]><xsl:value-of select="$saxon-js-log-level"/><![CDATA[,
                                 stylesheetParams: {
                                     "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
                                     "Q{https://www.w3.org/ns/ldt#}base": baseUri,
@@ -785,17 +785,26 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="class" select="'span3'"/>
         </xsl:apply-imports>
     </xsl:template>
-    
-    <xsl:template match="*[@rdf:about = $ac:uri]" mode="bs2:Right" priority="1">
-        <div class="well well-small">
-            <xsl:apply-templates select="." mode="bs2:PropertyList">
-                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-            </xsl:apply-templates>
-        </div>
-    </xsl:template>
 
     <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
-    <xsl:template match="*[@rdf:about = $ac:uri]/*[not(self::dct:created or self::dct:modified or self::foaf:maker or self::acl:owner or self::foaf:primaryTopic)]" mode="bs2:PropertyList" priority="1"/>
+    <xsl:template match="*[@rdf:about = $ac:uri][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic]" mode="bs2:Right" priority="1">
+        <xsl:variable name="definitions" as="document-node()">
+            <xsl:document>
+                <dl class="dl-horizontal">
+                    <xsl:apply-templates select="dct:created | dct:modified | foaf:maker | acl:owner | foaf:primaryTopic" mode="bs2:PropertyList">
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                    </xsl:apply-templates>
+                </dl>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:if test="$definitions/*/*">
+            <div class="well well-small">
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+    </xsl:template>
     
     <!-- MODE LIST -->
         
@@ -1679,7 +1688,7 @@ exclude-result-prefixes="#all">
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
             <xsl:value-of>
-            <xsl:apply-templates select="." mode="ac:label"/>
+                <xsl:apply-templates select="." mode="ac:label"/>
             </xsl:value-of>
         </div>
     </xsl:template>

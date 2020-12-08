@@ -72,69 +72,6 @@ extension-element-prefixes="ixsl"
         
         <xsl:attribute name="class" select="$class"/>
     </xsl:template>
-
-    <!-- BLOCK MODE -->
-
-    <!-- TO-DO: move to Web-Client -->
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="bs2:Header"/>
-
-            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
-        </div>
-    </xsl:template>
-
-    <!-- TO-DO: move to Web-Client -->
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:PropertyList">
-        <xsl:variable name="properties" as="element()*">
-            <xsl:apply-templates select="*" mode="#current">
-                <xsl:sort select="ac:property-label(.)" order="ascending"/> <!-- lang="{$ldt:lang}" -->
-            </xsl:apply-templates>
-        </xsl:variable>
-
-        <xsl:if test="$properties">
-            <dl class="dl-horizontal">
-                <xsl:copy-of select="$properties"/>
-            </dl>
-        </xsl:if>
-    </xsl:template>
-
-    <!-- TO-DO: move to Web-Client -->
-    <!-- inline blank node resource if there is only one property except foaf:primaryTopic having it as object -->
-    <xsl:template match="@rdf:nodeID[key('resources', .)][count(key('predicates-by-object', .)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="2">
-        <xsl:param name="inline" select="true()" as="xs:boolean" tunnel="yes"/>
-
-        <xsl:choose>
-            <xsl:when test="$inline">
-                <xsl:apply-templates select="key('resources', .)" mode="#current">
-                    <xsl:with-param name="display" select="$inline" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:next-match/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
-    <!-- TO-DO: move to Web-Client -->
-    <!-- hide inlined blank node resources from the main block flow -->
-    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="1">
-        <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
-        
-        <xsl:if test="$display">
-            <xsl:next-match/>
-        </xsl:if>
-    </xsl:template>
     
     <!-- HEADER MODE -->
 

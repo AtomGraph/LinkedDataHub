@@ -78,7 +78,7 @@ PREFIX  dct:  <http://purl.org/dc/terms/>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
-SELECT DISTINCT  ?child ?title ?thing
+SELECT DISTINCT  ?child ?thing
 WHERE
 { GRAPH ?childGraph
   {   { ?child  sioc:has_parent  ?this }
@@ -108,7 +108,7 @@ ORDER BY ?title
 PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
 PREFIX  dct:  <http://purl.org/dc/terms/>
 
-SELECT  ?resource ?lat ?long ?type ?title
+SELECT  DISTINCT ?resource
 WHERE
 { GRAPH ?graph
   { ?resource  geo:lat  ?lat ;
@@ -119,6 +119,7 @@ WHERE
       { ?resource  dct:title  ?title }
   }
 }
+ORDER BY ?title
 """ .
 
 # select latest
@@ -134,7 +135,7 @@ WHERE
     sp:text """
 PREFIX  dct:  <http://purl.org/dc/terms/>
 
-SELECT DISTINCT  ?dated ?created
+SELECT DISTINCT  ?dated
 WHERE
 { GRAPH ?graph
   { ?dated  dct:created  ?created }
@@ -160,13 +161,12 @@ PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
 
-SELECT DISTINCT  ?resource ?label
+SELECT DISTINCT  ?resource
 WHERE
 { GRAPH ?graph
   { ?resource a ?Type .
     ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
     FILTER isURI(?resource)
-    OPTIONAL
-      { ?resource  dct:created  ?created }
   }
-}""" .
+}
+""" .

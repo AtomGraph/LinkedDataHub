@@ -530,19 +530,70 @@ WHERE
     <servlet-mapping>
         <servlet-name>default</servlet-name>
         <url-pattern>/static/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>default</servlet-name>
         <url-pattern>/robots.txt</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>default</servlet-name>
         <url-pattern>/favicon.ico</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>com.atomgraph.linkeddatahub.Application</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+    <filter>
+       <filter-name>ExpiresFilter</filter-name>
+       <filter-class>org.apache.catalina.filters.ExpiresFilter</filter-class>
+       <init-param>
+          <param-name>ExpiresByType image/jpeg</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType image/gif</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType image/png</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType image/webp</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType image/svg+xml</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType image/x-icon</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType video/webm</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType video/mp4</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType video/mpeg</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType text/css</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType text/javascript</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+       <init-param>
+          <param-name>ExpiresByType application/javascript</param-name>
+          <param-value>access plus 1 year</param-value>
+       </init-param>
+    </filter>
+    <filter-mapping>
+       <filter-name>ExpiresFilter</filter-name>
+       <url-pattern>/static/*</url-pattern>
+       <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
     <filter>
         <filter-name>HSTS filter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>

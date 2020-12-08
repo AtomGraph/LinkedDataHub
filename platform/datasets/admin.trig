@@ -1010,8 +1010,8 @@ nst:FileContainer a adm:Template ;
 nst:File a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/default/file/> ;
     ldt:extends aplt:File ;
-    # ldt:match "/uploads/{slug}/" ;
-    ldt:cacheControl "public, max-age=3600" ;
+    # ldt:match "/uploads/{sha1sum}/" ;
+    ldt:cacheControl "public, max-age=31536000" ; # content-addressed documents never change, therefore never expire
     rdfs:label "File" ;
     rdfs:comment "A document that represents an uploaded file" ;
     rdfs:isDefinedBy nst: .
