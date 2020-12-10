@@ -20,7 +20,7 @@ import javax.ws.rs.core.UriInfo;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface ClientUriInfo extends UriInfo
 {

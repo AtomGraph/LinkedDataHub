@@ -110,6 +110,8 @@ extension-element-prefixes="ixsl"
     <!-- IMAGE -->
     
     <xsl:template match="*[*][@rdf:about]" mode="bs2:Image">
+        <xsl:param name="class" select="'img-polaroid'" as="xs:string?"/>
+        
         <xsl:variable name="image-uris" as="xs:anyURI*">
             <xsl:apply-templates select="." mode="ac:image"/>
         </xsl:variable>
@@ -117,7 +119,11 @@ extension-element-prefixes="ixsl"
         
         <xsl:for-each select="$image-uris[1]">
             <a href="{$this/@rdf:about}" title="{ac:label($this)}">
-                <img src="{.}" alt="{ac:label($this)}" class="img-polaroid"/>
+                <img src="{.}" alt="{ac:label($this)}">
+                    <xsl:if test="$class">
+                        <xsl:attribute name="class" select="$class"/>
+                    </xsl:if>
+                </img>
             </a>
         </xsl:for-each>
     </xsl:template>

@@ -21,7 +21,7 @@ import net.sf.saxon.s9api.XsltExecutable;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface XsltExecutableSupplier extends Supplier<XsltExecutable>
 {

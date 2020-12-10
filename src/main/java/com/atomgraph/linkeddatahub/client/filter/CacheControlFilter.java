@@ -24,7 +24,7 @@ import javax.ws.rs.core.HttpHeaders;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class CacheControlFilter implements ClientRequestFilter
 {

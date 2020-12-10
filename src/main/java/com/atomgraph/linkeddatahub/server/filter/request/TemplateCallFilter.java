@@ -36,7 +36,7 @@ import org.apache.jena.vocabulary.OWL;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
 @Priority(900)
