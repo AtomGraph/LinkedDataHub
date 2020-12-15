@@ -14,16 +14,16 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.filter.request.auth;
+package com.atomgraph.linkeddatahub.server.filter.request.authn;
 
-import com.atomgraph.linkeddatahub.model.UserAccount;
+import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
-import javax.ws.rs.NotAuthorizedException;
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
@@ -31,11 +31,12 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import org.apache.jena.ext.com.google.common.net.HttpHeaders;
+import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.vocabulary.RDFS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,8 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
-public class JWTFilter extends AuthFilter
+@Priority(Priorities.USER + 10) // has to execute after WebIDFilter
+public class JWTFilter extends AuthenticationFilter
 {
 
     private static final Logger log = LoggerFactory.getLogger(JWTFilter.class);
@@ -57,55 +59,29 @@ public class JWTFilter extends AuthFilter
         return "JWT";
     }
     
-    @Override
-    public boolean isApplied(Application application, String realm, ContainerRequestContext request)
-    {
-        return getJWTToken(request) != null;
-    }
+//    @Override
+//    public boolean isApplied(Application application, ContainerRequestContext request)
+//    {
+//        return getJWTToken(request) != null;
+//    }
     
     @Override
-    public QuerySolutionMap getQuerySolutionMap(String realm, ContainerRequestContext request, URI absolutePath, Resource accessMode)
+    public Resource authenticate(ContainerRequestContext request)
     {
+        ParameterizedSparqlString pss = new ParameterizedSparqlString("DESCRIBE ?account { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id } }"); // TO-DO: better check
+        
         DecodedJWT jwt = getJWTToken(request);
         if (jwt != null)
         {
-            String userId = jwt.getSubject();
+            Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
             QuerySolutionMap qsm = new QuerySolutionMap();
-            RDFNode neverMatch = RDFS.Resource; // non-matching value that disables the unused branch of UNION
-            qsm.add("this", ResourceFactory.createResource(absolutePath.toString()));
-            qsm.add("Mode", accessMode);
-            qsm.add(SIOC.ID.getLocalName(), ResourceFactory.createTypedLiteral(userId));
-            qsm.add(SIOC.NAME.getLocalName(), neverMatch);
+            qsm.add(SIOC.ID.getLocalName(), userId);
 
-            return qsm;
+            Model agentModel = loadModel(pss, qsm, getAdminService());
+            return getResourceByPropertyValue(agentModel, SIOC.ID, userId);
         }
         
         return null;
-    }
-    
-    @Override
-    public ContainerRequestContext authenticate(String realm, ContainerRequestContext request, Resource accessMode, UserAccount account, Resource agent)
-    {
-        DecodedJWT jwt = getJWTToken(request);
-        if (jwt != null)
-        {
-            String userId = jwt.getSubject();
-
-            if (account != null)
-            {
-                account.addLiteral(LACL.jwtToken, jwt.getPayload()); // storing token during request - might need to forward authentication
-                if (log.isDebugEnabled()) log.debug("Authenticated Agent: {} UserAccount: {}", agent, account);
-                return request;
-            }
-            else
-            {
-                if (log.isTraceEnabled()) log.trace("UserAccount with ID '{}' not found", userId);
-                throw new NotAuthorizedException("UserAccount with ID '" + userId + "' not found", realm);
-            }
-        }
-
-        
-        return request;
     }
     
     protected DecodedJWT getJWTToken(ContainerRequestContext request)
@@ -125,9 +101,9 @@ public class JWTFilter extends AuthFilter
 
         return null;
     }
-
+    
     @Override
-    public void login(Application app, String realm, ContainerRequestContext request)
+    public void login(Application app, ContainerRequestContext request)
     {
         URI location = app.getBaseURI().resolve("oauth2/authorize/google");
         Response response = Response.seeOther(location).build();
@@ -135,7 +111,7 @@ public class JWTFilter extends AuthFilter
     }
 
     @Override
-    public void logout(Application app, String realm, ContainerRequestContext request)
+    public void logout(Application app, ContainerRequestContext request)
     {
         Cookie cookie = request.getCookies().get(COOKIE_NAME);
         if (cookie != null)

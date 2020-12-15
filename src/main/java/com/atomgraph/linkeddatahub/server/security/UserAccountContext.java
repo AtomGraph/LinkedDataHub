@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.filter.request.auth;
+package com.atomgraph.linkeddatahub.server.security;
 
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.UserAccount;

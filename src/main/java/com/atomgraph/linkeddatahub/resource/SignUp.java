@@ -30,7 +30,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;

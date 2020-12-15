@@ -88,7 +88,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter;
 import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.authn.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
@@ -100,7 +100,8 @@ import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.JWTFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.authn.JWTFilter;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -746,7 +747,7 @@ public class Application extends ResourceConfig
         register(TemplateCallFilter.class);
         register(WebIDFilter.class);
         register(JWTFilter.class);
-        register(UnauthorizedFilter.class);
+        register(AuthorizationFilter.class);
         register(new RDFPostCleanupInterceptor());
     }
     
