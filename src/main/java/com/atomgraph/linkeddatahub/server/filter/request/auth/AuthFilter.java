@@ -20,6 +20,7 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
+import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.UserAccount;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -141,14 +142,16 @@ public abstract class AuthFilter implements ContainerRequestFilter // ResourceFi
                 // imitate type inference, otherwise we'll get Jena's polymorphism exception
                 accountRes.addProperty(RDF.type, LACL.UserAccount);
                 UserAccount account = accountRes.as(UserAccount.class);
-                Resource agent = account.getPropertyResourceValue(SIOC.ACCOUNT_OF);
-                if (agent == null) throw new IllegalStateException("UserAccount must belong to an agent Resource");
+                Resource agentRes = account.getPropertyResourceValue(SIOC.ACCOUNT_OF);
+                agentRes.addProperty(RDF.type, LACL.Agent);
+                Agent agent = agentRes.as(Agent.class);
+                if (agentRes == null) throw new IllegalStateException("UserAccount must belong to an agent Resource");
              
                 try
                 {
                     if (log.isTraceEnabled()) log.trace("Authenticating UserAccount realm {}", account, realm);
-                    authenticate(realm, request, accessMode, account, agent);
-                    request.setSecurityContext(new UserAccountContext(account, getScheme()));
+                    authenticate(realm, request, accessMode, account, agentRes);
+                    request.setSecurityContext(new UserAccountContext(getScheme(), agent, account));
                 }
                 catch (NotAuthorizedException ex)
                 {

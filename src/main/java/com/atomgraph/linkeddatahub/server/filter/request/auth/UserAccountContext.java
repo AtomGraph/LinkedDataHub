@@ -16,10 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
-import java.security.Principal;
-import javax.ws.rs.core.SecurityContext;
+import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.UserAccount;
-import com.atomgraph.processor.vocabulary.SIOC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,50 +27,21 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.model.UserAccount
  */
-public class UserAccountContext implements SecurityContext
+public class UserAccountContext extends AgentContext
 {
     private static final Logger log = LoggerFactory.getLogger(UserAccountContext.class);
 
     private final UserAccount account;
-    private final String authScheme;
     
-    public UserAccountContext(UserAccount account, String authScheme)
+    public UserAccountContext(String authScheme, Agent agent, UserAccount account)
     {
-	this.account = account;
-        this.authScheme = authScheme;
+        super(authScheme, agent);
+        this.account = account;
     }
 
     public UserAccount getUserAccount()
     {
-	return account;
-    }
-    
-    @Override
-    public Principal getUserPrincipal()
-    {
-	return getUserAccount();
-    }
-
-    // http://docs.oracle.com/javaee/5/tutorial/doc/bncbe.html
-    // http://docs.oracle.com/javaee/6/tutorial/doc/gijrp.html
-    // http://docs.oracle.com/javaee/6/tutorial/doc/gmmku.html
-    @Override
-    public boolean isUserInRole(String roleURI)
-    {
-	if (log.isDebugEnabled()) log.debug("Checking UserAccount: {} for role: {}", this, roleURI);
-	return getUserAccount().hasProperty(SIOC.HAS_FUNCTION, getUserAccount().getModel().createResource(roleURI));
-    }
-
-    @Override
-    public boolean isSecure()
-    {
-	return true;
-    }
-
-    @Override
-    public String getAuthenticationScheme()
-    {
-	return authScheme;
+        return account;
     }
 
 }

@@ -192,37 +192,17 @@ DESCRIBE ?this
 :OAuth2Login a ldt:Template ;
     ldt:extends ct:Document ;
     ldt:match "/oauth2/login" ;
-    ldt:query [ a sp:Construct ;
-        sp:text """
-PREFIX  apl:   <https://w3id.org/atomgraph/linkeddatahub/domain#>
-
-CONSTRUCT 
-  { 
-    ?this a apl:OAuth2Callback .
-  }
-WHERE
-  { }""" ] ;
-    ldt:param :Code, :State, :Error, :AuthUser, :Hd, :Prompt, :SessionState ;
-    ldt:loadClass <java:com.atomgraph.linkeddatahub.server.oauth2.facebook.Login> ;
+    ldt:param :Code, :State, :Error ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.oauth2.Login> ;
     rdfs:label "OAuth 2.0 login" ;
     rdfs:isDefinedBy : .
 
-#:AuthorizeGoogle a ldt:Template ;
-#    ldt:extends ct:Document ;
-#    ldt:match "/oauth2/authorize/google" ;
-#    ldt:query [ a sp:Construct ;
-#        sp:text """
-#PREFIX  apl:   <https://w3id.org/atomgraph/linkeddatahub/domain#>
-#
-#CONSTRUCT 
-#  { 
-#    ?this a apl:AuthorizeGoogle .
-#  }
-#WHERE
-#  { }""" ] ;
-#    ldt:loadClass <java:com.atomgraph.linkeddatahub.server.oauth2.Authorize> ;
-#    rdfs:label "OAuth 2.0 authorization endpoint" ;
-#    rdfs:isDefinedBy : .
+:AuthorizeGoogle a ldt:Template ;
+    ldt:extends ct:Document ;
+    ldt:match "/oauth2/authorize/google" ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize> ;
+    rdfs:label "Google OAuth 2.0 authorization endpoint" ;
+    rdfs:isDefinedBy : .
 
 # PARAMETERS
 

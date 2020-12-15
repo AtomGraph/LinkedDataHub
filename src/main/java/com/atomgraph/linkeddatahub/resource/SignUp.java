@@ -30,8 +30,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
-import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.AgentContext;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
@@ -134,7 +132,7 @@ public class SignUp extends ResourceBase
 "  }";
     
     private final Model countryModel;
-    private final Ontology adminOntology;
+//    private final Ontology adminOntology;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
     private final String emailSubject;
@@ -175,9 +173,9 @@ public class SignUp extends ResourceBase
         }
         
         // get admin app ontology
-        AdminApplication adminApp = application.as(AdminApplication.class);
-        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
-        adminOntology = ontProv.getOntology(adminApp);
+//        AdminApplication adminApp = application.as(AdminApplication.class);
+//        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
+//        adminOntology = ontProv.getOntology(adminApp);
         
         // TO-DO: extract Agent container URI from ontology Restrictions
         agentContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AGENT_PATH);
@@ -219,7 +217,7 @@ public class SignUp extends ResourceBase
         try
         {
             // need to skolemize early to build the agent URI
-            model = new Skolemizer(getAdminOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
+            model = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
             
             Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
             ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
@@ -262,14 +260,14 @@ public class SignUp extends ResourceBase
                         agent.addProperty(Cert.key, createPublicKey(model, forClass.getNameSpace(), publicKey)); // add public key
 
                         // skolemize once again to build the public key URI
-                        model = new Skolemizer(getAdminOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
+                        model = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
             
                         // store Agent data
 
                         URI agentContainerURI = getAgentContainerUriBuilder(). queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-                        SecurityContext securityContext = new AgentContext(agent.inModel(infModel).as(Agent.class), SecurityContext.CLIENT_CERT_AUTH);
+                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
                         // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                        try (Response postResponse = createAgentContainer(agentContainerURI, forClass, securityContext).construct(model))
+                        try (Response postResponse = createContainer(agentContainerURI, forClass, securityContext).construct(model))
                         {
                             if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                             {
@@ -360,14 +358,14 @@ public class SignUp extends ResourceBase
     public Resource createPublicKey(Model model, String namespace, RSAPublicKey publicKey)
     {
         // TO-DO: improve class URI retrieval
-        Resource publicKeyClass = ResourceFactory.createResource(namespace + "PublicKey"); // subclassOf LACL.PublicKey
-        Resource publicKeyItemClass = ResourceFactory.createResource(namespace + "PublicKeyItem");
+        Resource cls = model.createResource(namespace + LACL.PublicKey.getLocalName()); // subclassOf LACL.PublicKey
+        Resource itemCls = model.createResource(namespace + LACL.PublicKey.getLocalName() + "Item");
 
         Resource publicKeyItem = model.createResource().
-            addProperty(RDF.type, publicKeyItemClass).
+            addProperty(RDF.type, itemCls).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         Resource publicKeyRes = model.createResource().
-            addProperty(RDF.type, publicKeyClass).
+            addProperty(RDF.type, cls).
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
         publicKeyItem.addProperty(FOAF.primaryTopic, publicKeyRes);
@@ -401,13 +399,18 @@ public class SignUp extends ResourceBase
             build());
     }
 
-    public com.atomgraph.linkeddatahub.server.model.Resource createAgentContainer(URI agentContainerURI, Resource forClass, SecurityContext securityContext)
+    public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
     {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
         queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
         
+        return createResource(uri, queryParams, securityContext);
+    }
+    
+    public com.atomgraph.linkeddatahub.server.model.Resource createResource(URI requestUri, MultivaluedMap<String, String> queryParams, SecurityContext securityContext)
+    {
         return new ResourceBase(
-            new ClientUriInfoImpl(getUriInfo().getBaseUri(), agentContainerURI, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
+            new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
@@ -442,10 +445,10 @@ public class SignUp extends ResourceBase
         return countryModel;
     }
     
-    public Ontology getAdminOntology()
-    {
-        return adminOntology;
-    }
+//    public Ontology getAdminOntology()
+//    {
+//        return adminOntology;
+//    }
     
     public UriBuilder getAgentContainerUriBuilder()
     {

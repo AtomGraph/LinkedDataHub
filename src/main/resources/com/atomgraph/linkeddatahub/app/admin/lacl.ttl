@@ -143,45 +143,44 @@
 
 # user accounts
 
-#:UserAccount a rdfs:Class ;
-#    rdfs:subClassOf sioc:UserAccount, foaf:OnlineAccount ;
-#    spin:constructor :UserAccountConstructor ;
-#    spin:constraint :MissingSIOCName, :MissingSIOCEmail, :MissingSIOCAccountOf ;
-#    rdfs:label "User account" ;
-#    rdfs:isDefinedBy : .
-#
-#:MissingSIOCName a apl:MissingPropertyValue ;
-#    rdfs:label "Missing sioc:name" ;
-#    sp:arg1 sioc:name ;
-#    rdfs:isDefinedBy : .
-#
-#:MissingSIOCEmail a apl:MissingPropertyValue ;
-#    rdfs:label "Missing sioc:email" ;
-#    sp:arg1 sioc:email ;
-#    rdfs:isDefinedBy : .
-#
-#:MissingSIOCAccountOf a apl:MissingPropertyValue ;
-#    rdfs:label "Missing sioc:account_of" ;
-#    sp:arg1 sioc:account_of ;
-#    rdfs:isDefinedBy : .
-#
-#:UserAccountConstructor a sp:Construct ;
-#    rdfs:label "User account constructor" ;
-#    sp:text """
-#        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-#        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
-#        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
-#        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
-#        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-#
-#        CONSTRUCT {
-#            ?this sioc:name [ a xsd:string ] ;
-#                sioc:email [ a rdfs:Resource ] ;
-#                sioc:account_of [ a lacl:Agent ] ;
-#                lacl:password [ a xsd:string ] .
-#        }
-#        WHERE {}""" ;
-#    rdfs:isDefinedBy : .
+:UserAccount a rdfs:Class ;
+    rdfs:subClassOf sioc:UserAccount, foaf:OnlineAccount ;
+    spin:constructor :UserAccountConstructor ;
+    spin:constraint :MissingSIOCName, :MissingSIOCEmail, :MissingSIOCAccountOf ;
+    rdfs:label "User account" ;
+    rdfs:isDefinedBy : .
+
+:MissingSIOCName a apl:MissingPropertyValue ;
+    rdfs:label "Missing sioc:name" ;
+    sp:arg1 sioc:name ;
+    rdfs:isDefinedBy : .
+
+:MissingSIOCEmail a apl:MissingPropertyValue ;
+    rdfs:label "Missing sioc:email" ;
+    sp:arg1 sioc:email ;
+    rdfs:isDefinedBy : .
+
+:MissingSIOCAccountOf a apl:MissingPropertyValue ;
+    rdfs:label "Missing sioc:account_of" ;
+    sp:arg1 sioc:account_of ;
+    rdfs:isDefinedBy : .
+
+:UserAccountConstructor a sp:Construct ;
+    rdfs:label "User account constructor" ;
+    sp:text """
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+        PREFIX lacl:    <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+
+        CONSTRUCT {
+            ?this sioc:name [ a xsd:string ] ;
+                sioc:email [ a rdfs:Resource ] ;
+                sioc:account_of [ a lacl:Agent ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
 
 # agents
 

@@ -37,7 +37,7 @@ public class AgentContext implements SecurityContext
     private final Agent agent;
     private final String authScheme;
     
-    public AgentContext(Agent account, String authScheme)
+    public AgentContext(String authScheme, Agent account)
     {
         this.agent = account;
         this.authScheme = authScheme;

@@ -134,8 +134,8 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
-        # only signup, request for access and WebID profiles can be public in admin app, nothing else
-        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AgentItem"))) )
+        # only signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "AgentItem"))) )
       }
     UNION
       { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization .

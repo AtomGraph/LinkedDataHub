@@ -176,7 +176,7 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
                 }
 
                 // imitate type inference, otherwise we'll get Jena's polymorphism exception
-                request.setSecurityContext(new AgentContext(agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), getScheme()));
+                request.setSecurityContext(new AgentContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class)));
 
                 if (app != null)
                 {

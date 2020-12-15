@@ -523,6 +523,22 @@ exclude-result-prefixes="#all">
         <xsl:param name="uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
             
         <p class="pull-right">
+<!--            <form action="https://accounts.google.com/o/oauth2/v2/auth" method="get">
+                <input type="hidden" name="client_id" value="94623832214-l46itt9or8ov4oejndd15b2gv266aqml.apps.googleusercontent.com"/>
+                <input type="hidden" name="response_type" value="code"/>
+                <input type="hidden" name="scope" value="openid email"/>
+                <input type="hidden" name="redirect_uri" value="{resolve-uri('oauth2/login', $ldt:base)}"/>
+                <input type="hidden" name="nonce" value="{ac:uuid()}"/>
+                <input type="hidden" name="state" value="{ac:uuid()}"/>
+                
+                <button type="submit">Login with Google</button>
+            </form>-->
+            
+            <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $ldt:base)}">
+                <xsl:value-of>
+                    Login with Google
+                </xsl:value-of>
+            </a>
             <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>

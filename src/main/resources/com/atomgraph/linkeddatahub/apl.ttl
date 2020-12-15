@@ -207,18 +207,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:label "Named graph" ;
     rdfs:isDefinedBy : .
 
-# OAuth 2.0
-
-:OAuth2Callback a rdfs:Class, owl:Class ;
-    rdfs:subClassOf c:Document ;
-    rdfs:label "OAuth 2.0 callback endpoint" ;
-    rdfs:isDefinedBy : .
-
-:AuthorizeGoogle a rdfs:Class, owl:Class ;
-    rdfs:subClassOf c:Document ;
-    rdfs:label "OAuth 2.0 authorization endpoint" ;
-    rdfs:isDefinedBy : .
-
 # queries
 
 :Query a rdfs:Class, owl:Class ;

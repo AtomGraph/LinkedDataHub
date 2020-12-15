@@ -67,4 +67,6 @@ public class FOAF
     
     public static final ObjectProperty maker = m_model.createObjectProperty( NS + "maker" );
 
+    public static final ObjectProperty account = m_model.createObjectProperty( NS + "account" );
+
 }
