@@ -85,7 +85,6 @@ import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter;
 import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.authn.WebIDFilter;

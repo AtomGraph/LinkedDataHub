@@ -189,7 +189,6 @@ public class WebIDFilter extends AuthenticationFilter
     public Resource authenticate(Model webIDModel, URI webID, RSAPublicKey publicKey)
     {
         ParameterizedSparqlString pss = getWebIDQuery();
-        // pss.setIri("webid", webID.toString()); // do not set ?webid as we will be SELECTing it
         pss.setLiteral("exp", ResourceFactory.createTypedLiteral(publicKey.getPublicExponent()));
         pss.setLiteral("mod", ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDDatatype.XSDhexBinary));
 
