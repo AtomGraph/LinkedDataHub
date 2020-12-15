@@ -134,8 +134,19 @@ public class Login extends ResourceBase
                 Model model = ModelFactory.createDefaultModel();
                 InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
                 String email = jwt.getClaim("email").asString();
-                Resource agent = createAgent(model, getOntology().getURI(), model.createResource(getUriInfo().getBaseUri().resolve("acl/agents/").toString()), jwt.getClaim("given_name").asString(), jwt.getClaim("family_name").asString(), email);
-                Resource userAccount = createUserAccount(model, getOntology().getURI(), model.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()), userId, jwt.getClaim("name").asString(), email);
+                String issuer = jwt.getClaim("iss").asString();
+                Resource agent = createAgent(model,
+                    getOntology().getURI(),
+                    model.createResource(getUriInfo().getBaseUri().resolve("acl/agents/").toString()),
+                    jwt.getClaim("given_name").asString(),
+                    jwt.getClaim("family_name").asString(),
+                    email);
+                Resource userAccount = createUserAccount(model,
+                    getOntology().getURI(),
+                    model.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
+                    userId,
+                    jwt.getClaim("name").asString(),
+                    email);
                 userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                 agent.addProperty(FOAF.account, userAccount);
                 

@@ -74,7 +74,6 @@ public class JWTFilter extends AuthFilter
             RDFNode neverMatch = RDFS.Resource; // non-matching value that disables the unused branch of UNION
             qsm.add("this", ResourceFactory.createResource(absolutePath.toString()));
             qsm.add("Mode", accessMode);
-
             qsm.add(SIOC.ID.getLocalName(), ResourceFactory.createTypedLiteral(userId));
             qsm.add(SIOC.NAME.getLocalName(), neverMatch);
 

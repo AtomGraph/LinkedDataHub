@@ -290,7 +290,6 @@ public class WebIDFilter implements ContainerRequestFilter // extends AuthFilter
         qsm.add("AuthenticatedAgentClass", ACL.AuthenticatedAgent); // enable AuthenticatedAgent UNION branch
         qsm.add("agent", agent);
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
-        //qsm.add(LDT.base.getLocalName(), base);
         qsm.add("Mode", accessMode);
         return qsm;
     }
