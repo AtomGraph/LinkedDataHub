@@ -100,7 +100,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
         else agent = null; // public access
 
-        Resource authorization = authorize(getApplication(), request, agent, accessMode);
+        Resource authorization = authorize(request, agent, accessMode);
         if (authorization == null)
         {
             if (log.isTraceEnabled()) log.trace("Access not authorized for request URI: {} and access mode: {}", request.getUriInfo().getAbsolutePath(), accessMode);
@@ -108,7 +108,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         }
         else // authorization successful
             if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
-                ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel());
+                ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
     }
     
     public QuerySolutionMap getAuthorizationParams(com.atomgraph.linkeddatahub.apps.model.Application app, Resource absolutePath, Resource agent, Resource accessMode)
@@ -127,22 +127,20 @@ public class AuthorizationFilter implements ContainerRequestFilter
         else
         {
             qsm.add("AuthenticatedAgentClass", RDFS.Resource); // disable AuthenticatedAgent UNION branch
-            qsm.add("agent", RDFS.Resource); // non-matching value that disables the branch of UNION with ?agent
+            qsm.add("agent", RDFS.Resource); // disables UNION branch with ?agent
         }
         
         return qsm;
     }
     
-    public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request, Resource agent, Resource accessMode)
+    public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
-        return authorize(app, getAuthorizationParams(app, ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
+        return authorize(getApplication(), getAuthorizationParams(getApplication(), ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
     }
     
     public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, QuerySolutionMap qsm)
     {
-        final ParameterizedSparqlString pss = app.canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
-        pss.setParams(qsm); // apply variable bindings to the query string
-        Model authModel = loadAuth(qsm, app);
+        Model authModel = loadAuth(app, qsm);
         
         // type check will not work on LACL subclasses without InfModel
         Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
@@ -151,13 +149,12 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return authorization;
     }
 
-    protected Model loadAuth(QuerySolutionMap qsm, com.atomgraph.linkeddatahub.apps.model.Application app)
+    protected Model loadAuth(com.atomgraph.linkeddatahub.apps.model.Application app, QuerySolutionMap qsm)
     {
         if (app == null) throw new IllegalArgumentException("Application Resource cannot be null");
+        if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
 
-        ParameterizedSparqlString pss;
-        if (app.canAs(EndUserApplication.class)) pss = getAuthQuery(); // end-user
-        else pss = getOwnerAuthQuery(); // admin
+        final ParameterizedSparqlString pss = app.canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
         
         Service adminService; // always run auth queries on admin Service
         if (app.canAs(EndUserApplication.class))
@@ -194,24 +191,24 @@ public class AuthorizationFilter implements ContainerRequestFilter
         else
             adminService = app.getService();
         
-        return loadModel(pss, qsm, adminService);
+        return loadModel(adminService, pss, qsm);
     }
     
     /**
      * Loads authorization graph from the admin service.
      * 
+     * @param service SPARQL service
      * @param pss auth query string
      * @param qsm query solution map (applied to the query string or sent as request params, depending on the protocol)
-     * @param service SPARQL service
      * @return authorization graph (can be empty)
      * @see com.atomgraph.linkeddatahub.vocabulary.APLC#authQuery
      */
-    protected Model loadModel(ParameterizedSparqlString pss, QuerySolutionMap qsm, com.atomgraph.linkeddatahub.model.Service service)
+    protected Model loadModel(com.atomgraph.linkeddatahub.model.Service service, ParameterizedSparqlString pss, QuerySolutionMap qsm)
     {
+        if (service == null) throw new IllegalArgumentException("Service cannot be null");
         if (pss == null) throw new IllegalArgumentException("ParameterizedSparqlString cannot be null");
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
-        if (service == null) throw new IllegalArgumentException("Service cannot be null");
-
+        
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (service.getSPARQLClient() instanceof SesameProtocolClient)
             try (Response cr = ((SesameProtocolClient)service.getSPARQLClient()). // register(new CacheControlFilter(CacheControl.valueOf("no-cache"))). // add Cache-Control: no-cache to request

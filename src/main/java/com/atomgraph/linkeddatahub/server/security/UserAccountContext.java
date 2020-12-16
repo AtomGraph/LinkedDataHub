@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.model.UserAccount
  */
+@Deprecated
 public class UserAccountContext extends AgentContext
 {
     private static final Logger log = LoggerFactory.getLogger(UserAccountContext.class);

@@ -121,6 +121,7 @@ public class JWTFilter extends AuthenticationFilter
             NewCookie deleteCookie = new NewCookie(cookie.getName(), null,
                 app.getBase().getURI(), null,
                     NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+            
             Response response = Response.seeOther(request.getUriInfo().getAbsolutePath()).
                 // Jersey 1.x NewCookie does not support Expires, we need to write the header explicitly
                 header(HttpHeaders.SET_COOKIE, deleteCookie.toString() + ";Expires=Thu, 01 Jan 1970 00:00:00 GMT").
