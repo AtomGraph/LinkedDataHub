@@ -98,13 +98,13 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         if (getAgent() != null)
         {
+            if (SecurityContext.CLIENT_CERT_AUTH.equals(getAuthScheme())) return new WebIDDelegationFilter(getAgent());
+
             if (JWTFilter.AUTH_SCHEME.equals(getAuthScheme()))
             {
                 String jwtToken = getAgent().getRequiredProperty(FOAF.account).getResource().getRequiredProperty(LACL.jwtToken).getString();
                 return new JWTDelegationFilter(jwtToken);
             }
-            
-            if (SecurityContext.CLIENT_CERT_AUTH.equals(getAuthScheme())) return new WebIDDelegationFilter(getAgent());
         }
             
         return null;

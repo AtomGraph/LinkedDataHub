@@ -38,7 +38,7 @@ public class JWTDelegationFilter implements ClientRequestFilter
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        cr.getHeaders().add(HttpHeaders.AUTHORIZATION, jwtToken);
+        cr.getHeaders().add(HttpHeaders.AUTHORIZATION, getJwtToken());
     }
     
     public String getJwtToken()
