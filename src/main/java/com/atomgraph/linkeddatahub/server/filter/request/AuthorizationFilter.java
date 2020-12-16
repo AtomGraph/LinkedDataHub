@@ -29,8 +29,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -111,10 +109,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
                 ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
     }
     
-    public QuerySolutionMap getAuthorizationParams(com.atomgraph.linkeddatahub.apps.model.Application app, Resource absolutePath, Resource agent, Resource accessMode)
+    public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)
     {
         QuerySolutionMap qsm = new QuerySolutionMap();
-        if (app.canAs(EndUserApplication.class)) qsm.add(SD.endpoint.getLocalName(), app.getService().getSPARQLEndpoint()); // needed for federation with the end-user endpoint
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
         qsm.add("Mode", accessMode);
         qsm.add(LDT.Ontology.getLocalName(), app.getOntology());
@@ -135,12 +132,12 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     public Resource authorize(ContainerRequestContext request, Resource agent, Resource accessMode)
     {
-        return authorize(getApplication(), getAuthorizationParams(getApplication(), ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
+        return authorize(getAuthorizationParams(ResourceFactory.createResource(request.getUriInfo().getAbsolutePath().toString()), agent, accessMode));
     }
     
-    public Resource authorize(com.atomgraph.linkeddatahub.apps.model.Application app, QuerySolutionMap qsm)
+    public Resource authorize(QuerySolutionMap qsm)
     {
-        Model authModel = loadAuth(app, qsm);
+        Model authModel = loadAuth(qsm);
         
         // type check will not work on LACL subclasses without InfModel
         Resource authorization = getResourceByPropertyValue(authModel, ACL.mode, null);
@@ -149,49 +146,16 @@ public class AuthorizationFilter implements ContainerRequestFilter
         return authorization;
     }
 
-    protected Model loadAuth(com.atomgraph.linkeddatahub.apps.model.Application app, QuerySolutionMap qsm)
+    protected Model loadAuth(QuerySolutionMap qsm)
     {
-        if (app == null) throw new IllegalArgumentException("Application Resource cannot be null");
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
 
-        final ParameterizedSparqlString pss = app.canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
+        final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
         
-        Service adminService; // always run auth queries on admin Service
-        if (app.canAs(EndUserApplication.class))
-        {
-            EndUserApplication endUserApp = app.as(EndUserApplication.class);
-            adminService = endUserApp.getAdminApplication().getService();
+        if (getApplication().canAs(EndUserApplication.class))
+            pss.setIri(SD.endpoint.getLocalName(), getApplication().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
 
-            // set ?endpoint value, otherwise the federation between admin and end-user services will fail
-            if (app.getService().canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class))
-            {
-                Resource repository = app.getService().as(com.atomgraph.linkeddatahub.model.dydra.Service.class).getRepository();
-                URI endpointURI = URI.create(repository.getURI());
-
-                // rewrite end-user SERVICE ?endpoint's external URL into "localhost" URL if its host matches base (admin) endpoint's host
-                if (adminService.canAs(Service.class))
-                {
-                    URI adminEndpointURI = URI.create(adminService.as(com.atomgraph.linkeddatahub.model.dydra.Service.class).getRepository().getURI());
-                    if (adminEndpointURI.getHost().equals(endpointURI.getHost()))
-                        try
-                        {
-                            endpointURI = new URI(endpointURI.getScheme(), "localhost",
-                                    endpointURI.getPath(), endpointURI.getFragment());
-                        }
-                        catch (URISyntaxException ex)
-                        {
-                        }
-                }
-
-                pss.setIri(SD.endpoint.getLocalName(), endpointURI.toString());
-            }
-            else
-                pss.setIri(SD.endpoint.getLocalName(), app.getService().getSPARQLEndpoint().getURI());
-        }
-        else
-            adminService = app.getService();
-        
-        return loadModel(adminService, pss, qsm);
+        return loadModel(getAdminService(), pss, qsm);
     }
     
     /**
@@ -248,7 +212,9 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     protected Service getAdminService()
     {
-        return getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : getApplication().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
     public Application getApplication()
