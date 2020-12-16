@@ -132,7 +132,6 @@ public class SignUp extends ResourceBase
 "  }";
     
     private final Model countryModel;
-//    private final Ontology adminOntology;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
     private final String emailSubject;
@@ -148,7 +147,7 @@ public class SignUp extends ResourceBase
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
                   @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,
-                  com.atomgraph.linkeddatahub.Application system, @Context final ServletConfig servletConfig)
+                  com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application,
@@ -171,11 +170,6 @@ public class SignUp extends ResourceBase
         {
             throw new WebApplicationException(ex);
         }
-        
-        // get admin app ontology
-//        AdminApplication adminApp = application.as(AdminApplication.class);
-//        OntologyLoader ontProv = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
-//        adminOntology = ontProv.getOntology(adminApp);
         
         // TO-DO: extract Agent container URI from ontology Restrictions
         agentContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AGENT_PATH);
@@ -444,11 +438,6 @@ public class SignUp extends ResourceBase
     {
         return countryModel;
     }
-    
-//    public Ontology getAdminOntology()
-//    {
-//        return adminOntology;
-//    }
     
     public UriBuilder getAgentContainerUriBuilder()
     {

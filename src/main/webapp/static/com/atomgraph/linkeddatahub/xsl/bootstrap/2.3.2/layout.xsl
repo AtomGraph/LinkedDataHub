@@ -1484,7 +1484,7 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="$template/*[1]" mode="bs2:PropertyControl"> <!-- [not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)] -->
                 <xsl:with-param name="template" select="$template"/>
-                <!--<xsl:with-param name="forClass" select="$forClass"/>-->
+                <xsl:with-param name="forClass" select="$forClass"/>
                 <xsl:with-param name="required" select="true()"/>
             </xsl:apply-templates>
         </fieldset>

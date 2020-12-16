@@ -2,7 +2,9 @@ package com.atomgraph.linkeddatahub.resource.oauth2;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.filter.request.authn.JWTFilter;
@@ -10,6 +12,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -19,12 +22,18 @@ import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.json.JsonObject;
+import javax.mail.Address;
+import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.WebApplicationException;
@@ -46,7 +55,6 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -54,6 +62,7 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.server.internal.process.MappableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +78,10 @@ public class Login extends ResourceBase
     public static final String TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
     public static final String USER_INFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo";
     
+    private final Address signUpAddress;
+    private final String emailSubject;
+    private final String emailText;
+    
     @Inject
     public Login(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
@@ -76,7 +89,7 @@ public class Login extends ResourceBase
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
             uriInfo.getAbsolutePath(),
@@ -86,6 +99,25 @@ public class Login extends ResourceBase
             httpServletRequest, securityContext,
             dataManager, providers,
             system);
+        
+        try
+        {
+            String signUpAddressParam = servletConfig.getServletContext().getInitParameter(APLC.signUpAddress.getURI());
+            if (signUpAddressParam == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpAddress));
+            InternetAddress[] signUpAddresses = InternetAddress.parse(signUpAddressParam);
+            // if (signUpAddresses.size() == 0) throw Exception...
+            signUpAddress = signUpAddresses[0];
+        }
+        catch (AddressException ex)
+        {
+            throw new WebApplicationException(ex);
+        }
+        
+        emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
+        if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
+
+        emailText = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailText.getURI());
+        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailText));
     }
     
     @GET
@@ -152,13 +184,11 @@ public class Login extends ResourceBase
                 // skolemize here because this Model will not go through SkolemizingModelProvider
                 new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(model);
 
-//                Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
                 ResIterator it = model.listResourcesWithProperty(RDF.type, model.createResource(getOntology().getURI() + LACL.Agent.getLocalName()));
                 try
                 {
                     // we need to retrieve resources again because they've changed from bnodes to URIs
                     agent = it.next();
-//                    userAccount = agent.getPropertyResourceValue(FOAF.account);
                     
                     SecurityContext securityContext = new AgentContext("JWT", agent.inModel(infModel).as(Agent.class)); // userAccount.inModel(infModel).as(UserAccount.class)
                     Dataset dataset = DatasetFactory.create(model);
@@ -172,6 +202,11 @@ public class Login extends ResourceBase
                     }
 
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", userId);
+                    sendEmail(agent);
+                }
+                catch (MessagingException | UnsupportedEncodingException ex)
+                {
+                    throw new MappableException(ex);
                 }
                 finally
                 {
@@ -245,6 +280,28 @@ public class Login extends ResourceBase
         return account;
     }
 
+    public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
+    {
+        String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
+        String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
+        String fullName = givenName + " " + familyName;
+        // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
+        String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
+
+        // labels and links need to come from the end-user app
+        EMailListener.submit(getSystem().getMessageBuilder().
+            subject(String.format(getEmailSubject(),
+                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
+                fullName)).
+            from(getSignUpAddress()).
+            to(mbox, fullName).
+            textBodyPart(String.format(getEmailText(),
+                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getApplication().getEndUserApplication().getBase(),
+                agent.getURI())).
+            build());
+    }
+        
     public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
     {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
@@ -261,10 +318,26 @@ public class Login extends ResourceBase
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }
-    
-    public Query getAuthQuery()
-    {
-        return null;
-    }
 
+    @Override
+    public AdminApplication getApplication()
+    {
+        return super.getApplication().as(AdminApplication.class);
+    }
+    
+    public Address getSignUpAddress()
+    {
+        return signUpAddress;
+    }
+    
+    public String getEmailSubject()
+    {
+        return emailSubject;
+    }
+    
+    public String getEmailText()
+    {
+        return emailText;
+    }
+    
 }
