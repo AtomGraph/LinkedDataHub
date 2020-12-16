@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request.authn;
 
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -51,12 +52,13 @@ public class JWTFilter extends AuthenticationFilter
 
     private static final Logger log = LoggerFactory.getLogger(JWTFilter.class);
 
+    public static final String AUTH_SCHEME = "JWT";
     public static final String COOKIE_NAME = "id_token";
     
     @Override
     public String getScheme()
     {
-        return "JWT";
+        return AUTH_SCHEME;
     }
     
 //    @Override
@@ -68,20 +70,27 @@ public class JWTFilter extends AuthenticationFilter
     @Override
     public Resource authenticate(ContainerRequestContext request)
     {
-        ParameterizedSparqlString pss = new ParameterizedSparqlString("DESCRIBE ?account { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id } }"); // TO-DO: better check
+        ParameterizedSparqlString pss = new ParameterizedSparqlString("DESCRIBE ?account ?agent { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id ; <http://rdfs.org/sioc/ns#account_of> ?agent } }"); // TO-DO: better check
         
         DecodedJWT jwt = getJWTToken(request);
-        if (jwt != null)
-        {
-            Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
-            QuerySolutionMap qsm = new QuerySolutionMap();
-            qsm.add(SIOC.ID.getLocalName(), userId);
+        if (jwt == null) return null;
 
-            Model agentModel = loadModel(pss, qsm, getAdminService());
-            return getResourceByPropertyValue(agentModel, SIOC.ID, userId);
-        }
-        
-        return null;
+        // TO-DO: verify(jwt);
+
+        Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
+        QuerySolutionMap qsm = new QuerySolutionMap();
+        qsm.add(SIOC.ID.getLocalName(), userId);
+        // TO-DO: match issuer? "iss" field
+
+        Model agentModel = loadModel(pss, qsm, getAdminService());
+        Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
+        if (account == null) return null;  // UserAccount not found
+
+        // we add token value to the UserAccount. This will allow SecurityContext to carry the token as well as DataManager to delegate it.
+        account.addLiteral(LACL.jwtToken, jwt.getToken());
+        Resource agent = account.getRequiredProperty(SIOC.ACCOUNT_OF).getResource();
+
+        return agent;
     }
     
     protected DecodedJWT getJWTToken(ContainerRequestContext request)

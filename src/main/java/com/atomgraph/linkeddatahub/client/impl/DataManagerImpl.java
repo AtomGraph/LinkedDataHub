@@ -21,20 +21,17 @@ import java.net.URI;
 import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.client.filter.JWTDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import com.atomgraph.linkeddatahub.server.filter.request.authn.JWTFilter;
+import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.stream.StreamSource;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,12 +57,12 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
             SecurityContext securityContext)
     {
         this(mapper, modelCache,
-                client, mediaTypes,
-                cacheModelLoads, preemptiveAuth, resolvingUncached,
-                rootContextURI,
-                app != null ? app.getBaseURI() : null,
-                securityContext != null ? securityContext.getAuthenticationScheme() : null,
-                (securityContext != null && securityContext.getUserPrincipal() instanceof Agent) ? (Agent)securityContext.getUserPrincipal() : null);
+            client, mediaTypes,
+            cacheModelLoads, preemptiveAuth, resolvingUncached,
+            rootContextURI,
+            app != null ? app.getBaseURI() : null,
+            securityContext != null ? securityContext.getAuthenticationScheme() : null,
+            (securityContext != null && securityContext.getUserPrincipal() instanceof Agent) ? (Agent)securityContext.getUserPrincipal() : null);
     }
     
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache, 
@@ -99,43 +96,19 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     
     public ClientRequestFilter getClientAuthFilter()
     {
-//        UserAccount userAccount = getUserAccount(securityContext);
-//        if (userAccount != null) return getClientCertFilter(context, userAccount);
-
-//        if (securityContext.getUserPrincipal() instanceof Agent &&
-//                getSecurityContext().getAuthScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-//            return new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal());
-        
-        if (getAgent() != null && SecurityContext.CLIENT_CERT_AUTH.equals(getAuthScheme())) return new WebIDDelegationFilter(getAgent());
+        if (getAgent() != null)
+        {
+            if (JWTFilter.AUTH_SCHEME.equals(getAuthScheme()))
+            {
+                String jwtToken = getAgent().getRequiredProperty(FOAF.account).getResource().getRequiredProperty(LACL.jwtToken).getString();
+                return new JWTDelegationFilter(jwtToken);
+            }
+            
+            if (SecurityContext.CLIENT_CERT_AUTH.equals(getAuthScheme())) return new WebIDDelegationFilter(getAgent());
+        }
             
         return null;
     }
-    
-    /*
-    public ClientRequestFilter getClientCertFilter(Context context, UserAccount userAccount)
-    {
-        if (context == null) throw new IllegalArgumentException("Context must be not null");
-        if (userAccount == null) throw new IllegalArgumentException("UserAccount must be not null");
-
-        if (userAccount.hasProperty(LACL.password))
-        {
-            String username = userAccount.getProperty(SIOC.NAME).getString();
-            String password = userAccount.getProperty(LACL.password).getString();
-
-            return new HTTPBasicAuthFilter(username, password);
-        }
-
-        if (userAccount.hasProperty(LACL.jwtToken) && getApplication() != null)
-        {
-            String jwtToken = userAccount.getProperty(LACL.jwtToken).getString();
-            return new JWTFilter(jwtToken, URI.create(getApplication().getBase(context).getURI()).getPath(), null); // getAppUriInfo().getBase().getHost()
-        }
-
-        throw new IllegalStateException("UserAccount does not have a lacl:password or sioc:id");
-        
-        return null;
-    }
-    */
     
 //    @Override
 //    public Source resolve(String href, String base) throws TransformerException

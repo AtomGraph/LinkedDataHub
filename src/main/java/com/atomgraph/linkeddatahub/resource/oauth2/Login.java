@@ -5,12 +5,11 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.model.UserAccount;
 import com.atomgraph.linkeddatahub.server.filter.request.authn.JWTFilter;
-import com.atomgraph.linkeddatahub.server.security.UserAccountContext;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -159,9 +158,9 @@ public class Login extends ResourceBase
                 {
                     // we need to retrieve resources again because they've changed from bnodes to URIs
                     agent = it.next();
-                    userAccount = agent.getPropertyResourceValue(FOAF.account);
+//                    userAccount = agent.getPropertyResourceValue(FOAF.account);
                     
-                    SecurityContext securityContext = new UserAccountContext("JWT", agent.inModel(infModel).as(Agent.class), userAccount.inModel(infModel).as(UserAccount.class));
+                    SecurityContext securityContext = new AgentContext("JWT", agent.inModel(infModel).as(Agent.class)); // userAccount.inModel(infModel).as(UserAccount.class)
                     Dataset dataset = DatasetFactory.create(model);
                     Response resp = createContainer(getUriInfo().getBaseUri().resolve("acl/users/"), LACL.UserAccount, securityContext).
                         post(dataset);
