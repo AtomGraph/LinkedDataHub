@@ -7,7 +7,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.filter.request.authn.JWTFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.authn.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
@@ -165,13 +165,14 @@ public class Login extends ResourceBase
                 Model model = ModelFactory.createDefaultModel();
                 InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
                 String email = jwt.getClaim("email").asString();
-                String issuer = jwt.getClaim("iss").asString();
+                //String issuer = jwt.getIssuer();
                 Resource agent = createAgent(model,
                     getOntology().getURI(),
                     model.createResource(getUriInfo().getBaseUri().resolve("acl/agents/").toString()),
                     jwt.getClaim("given_name").asString(),
                     jwt.getClaim("family_name").asString(),
-                    email);
+                    email,
+                    jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 Resource userAccount = createUserAccount(model,
                     getOntology().getURI(),
                     model.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
@@ -214,9 +215,8 @@ public class Login extends ResourceBase
                 }
             }
             
-            NewCookie jwtCookie = new NewCookie(JWTFilter.COOKIE_NAME, idToken,
-                getUriInfo().getBaseUri().getPath(), null, // getUriInfo().getBase().getHost()
-                NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+            String path = getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI().getPath();
+            NewCookie jwtCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, idToken, path, null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
             
             return Response.seeOther(getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI()). // redirect to end-user root
                 cookie(jwtCookie).
@@ -235,7 +235,7 @@ public class Login extends ResourceBase
         //throw new JWTVerificationException();
     }
     
-    public Resource createAgent(Model model, String namespace, Resource container, String givenName, String familyName, String email)
+    public Resource createAgent(Model model, String namespace, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.Agent.getLocalName()); // subclassOf LACL.Agent
@@ -252,6 +252,8 @@ public class Login extends ResourceBase
             addLiteral(model.createProperty(FOAF.NS + "familyName"), familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
             addProperty(FOAF.isPrimaryTopicOf, agentDoc);
+        if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
+            
         agentDoc.addProperty(FOAF.primaryTopic, agent);
         
         return agent;
@@ -298,7 +300,8 @@ public class Login extends ResourceBase
             textBodyPart(String.format(getEmailText(),
                 getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
                 getApplication().getEndUserApplication().getBase(),
-                agent.getURI())).
+                agent.getURI(),
+                "WHATEVER")). // TO-DO: separate email text for OAuth2 signups
             build());
     }
         

@@ -100,7 +100,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.authn.JWTFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.authn.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -745,7 +745,7 @@ public class Application extends ResourceConfig
         register(OntologyFilter.class);
         register(TemplateCallFilter.class);
         register(WebIDFilter.class);
-        register(JWTFilter.class);
+        register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(new RDFPostCleanupInterceptor());
     }

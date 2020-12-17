@@ -69,4 +69,6 @@ public class FOAF
 
     public static final ObjectProperty account = m_model.createObjectProperty( NS + "account" );
 
+    public static final ObjectProperty img = m_model.createObjectProperty( NS + "img" );
+    
 }

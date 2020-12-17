@@ -60,7 +60,7 @@ public class LACL
 
     public static final DatatypeProperty passwordHash = m_model.createDatatypeProperty( NS + "passwordHash" );
     
-    public static final DatatypeProperty jwtToken = m_model.createDatatypeProperty( NS + "jwtToken" );
+    public static final DatatypeProperty idToken = m_model.createDatatypeProperty( NS + "idToken" );
 
     public static final ObjectProperty requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
 

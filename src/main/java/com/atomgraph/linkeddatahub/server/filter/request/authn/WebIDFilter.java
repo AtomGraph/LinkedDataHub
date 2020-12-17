@@ -97,21 +97,6 @@ public class WebIDFilter extends AuthenticationFilter
     {
         return SecurityContext.CLIENT_CERT_AUTH;
     }
-
-//    @Override
-//    public void filter(ContainerRequestContext request)
-//    {
-//        if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
-//        if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
-//
-//        // skip filter if user already authorized
-//        if (request.getSecurityContext().getUserPrincipal() != null) return;
-//        // skip filter if no application has matched
-//        if (getApplication() == null) return;
-//
-//        // logout not really possible with HTTP certificates
-//        //if (isLogoutForced(request, getScheme())) logout(app, request);
-//    }
     
     @Override
     public Resource authenticate(ContainerRequestContext request)
@@ -243,12 +228,6 @@ public class WebIDFilter extends AuthenticationFilter
         
         return null;
     }
-    
-//    @Override
-//    public boolean isApplied(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request)
-//    {
-//        return true;
-//    }
     
     public HttpServletRequest getHttpServletRequest()
     {

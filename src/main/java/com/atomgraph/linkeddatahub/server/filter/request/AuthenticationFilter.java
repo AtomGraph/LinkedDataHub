@@ -58,11 +58,6 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     public abstract void login(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
 
     public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
-
-//    public boolean isApplied(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request)
-//    {
-//        return true;
-//    }
     
     public abstract Resource authenticate(ContainerRequestContext request);
 

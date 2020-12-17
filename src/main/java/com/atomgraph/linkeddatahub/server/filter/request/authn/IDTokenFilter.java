@@ -21,14 +21,18 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
+import java.util.Date;
 import javax.annotation.Priority;
+import javax.json.JsonObject;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import org.apache.jena.ext.com.google.common.net.HttpHeaders;
@@ -47,10 +51,10 @@ import org.slf4j.LoggerFactory;
  */
 @PreMatching
 @Priority(Priorities.USER + 10) // has to execute after WebIDFilter
-public class JWTFilter extends AuthenticationFilter
+public class IDTokenFilter extends AuthenticationFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(JWTFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(IDTokenFilter.class);
 
     public static final String AUTH_SCHEME = "JWT";
     public static final String COOKIE_NAME = "id_token";
@@ -61,23 +65,24 @@ public class JWTFilter extends AuthenticationFilter
         return AUTH_SCHEME;
     }
     
-//    @Override
-//    public boolean isApplied(Application application, ContainerRequestContext request)
-//    {
-//        return getJWTToken(request) != null;
-//    }
-    
     @Override
     public Resource authenticate(ContainerRequestContext request)
     {
         ParameterizedSparqlString pss = new ParameterizedSparqlString("DESCRIBE ?account ?agent { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id ; <http://rdfs.org/sioc/ns#account_of> ?agent } }"); // TO-DO: better check
         
-        DecodedJWT jwt = getJWTToken(request);
-        if (jwt == null) return null;
+        DecodedJWT idToken = getJWTToken(request);
+        if (idToken == null) return null;
 
-        // TO-DO: verify(jwt);
+        try
+        {
+            if (!verify(idToken)) return null; // TO-DO: refresh token
+        }
+        catch (JWTVerificationException ex)
+        {
+            return null;
+        }
 
-        Literal userId = ResourceFactory.createStringLiteral(jwt.getSubject());
+        Literal userId = ResourceFactory.createStringLiteral(idToken.getSubject());
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SIOC.ID.getLocalName(), userId);
         // TO-DO: match issuer? "iss" field
@@ -87,7 +92,7 @@ public class JWTFilter extends AuthenticationFilter
         if (account == null) return null;  // UserAccount not found
 
         // we add token value to the UserAccount. This will allow SecurityContext to carry the token as well as DataManager to delegate it.
-        account.addLiteral(LACL.jwtToken, jwt.getToken());
+        account.addLiteral(LACL.idToken, idToken.getToken());
         Resource agent = account.getRequiredProperty(SIOC.ACCOUNT_OF).getResource();
 
         return agent;
@@ -97,18 +102,40 @@ public class JWTFilter extends AuthenticationFilter
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
 
-        String authHeader = request.getHeaderString(HttpHeaders.AUTHORIZATION);
-        
-        if (authHeader != null && authHeader.startsWith("Bearer "))
-        {
-            String idToken = authHeader.substring("Bearer ".length());
-            return JWT.decode(idToken);
-        }
-
-        Cookie jwtCookie = request.getCookies().get("id_token");
+        Cookie jwtCookie = request.getCookies().get(COOKIE_NAME);
         if (jwtCookie != null) return JWT.decode(jwtCookie.getValue());
 
         return null;
+    }
+    
+    protected boolean verify(DecodedJWT idToken)
+    {
+        Date now = new Date();
+        if (idToken.getExpiresAt().before(now)) throw new JWTVerificationException("ID token for subject '"  + idToken.getSubject() + "' has expired");
+        
+        // TO-DO: check expiration
+        
+        // TO-DO: use keys, this is for debugging purposes only: https://developers.google.com/identity/protocols/oauth2/openid-connect#validatinganidtoken
+        try (Response cr = getSystem().getNoCertClient().
+                target("https://oauth2.googleapis.com/tokeninfo").
+                queryParam("id_token", idToken.getToken()).
+                request(MediaType.APPLICATION_JSON_TYPE).
+                get())
+        {
+            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            {
+                if (log.isErrorEnabled()) log.error("Could not verify JWT token for subject: ", idToken.getSubject());
+                throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
+            }
+                
+            JsonObject verifiedIdToken = cr.readEntity(JsonObject.class);
+            if (idToken.getIssuer().equals(verifiedIdToken.getString("iss")) &&
+                idToken.getSubject().equals(verifiedIdToken.getString("sub")) &&
+                idToken.getKeyId().equals(verifiedIdToken.getString("kid")))
+                return true;
+        }
+
+        throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
     }
     
     @Override
