@@ -54,11 +54,10 @@ services:
       - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
       - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
     volumes:
-      - ./config/system-varnish.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
-      - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
       - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig:ro
       - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig:ro
       - ./src/main/resources/com/atomgraph/linkeddatahub/apl.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/apl.ttl:ro
