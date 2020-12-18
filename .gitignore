@@ -6,3 +6,4 @@
 /nb-configuration.xml
 /node
 /node_modules
+/docker-compose.override.yml

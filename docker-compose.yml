@@ -18,7 +18,10 @@ services:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
+    ports:
+      - 8001:8000 # debugger
     environment:
+    #  - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
       - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 # heap will use up to 75% of container's RAM
       - ATOMGRAPH_UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
       - TZ="Europe/Copenhagen"
@@ -51,6 +54,7 @@ services:
       - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
       - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
     volumes:
+      - ./config/system-varnish.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
@@ -80,6 +84,19 @@ services:
       - ./config/fuseki/end-user.ttl:/var/fuseki/config.ttl:ro
       - ./data/end-user:/var/fuseki/data
     command: [ "--config", "/var/fuseki/config.ttl" ]
+  varnish-end-user:
+    image: atomgraph/varnish
+    depends_on:
+      - linkeddatahub
+    environment:
+      - BACKEND_HOST=fuseki-end-user
+      - BACKEND_PORT=3030
+      - CLIENT_HOST=linkeddatahub
+      - VARNISH_TTL=86400
+    privileged: true
+    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /bin/sh ./entrypoint.sh"
+    volumes:
+      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   email-server:
     image: namshi/smtp
     environment:
