@@ -193,8 +193,8 @@ extension-element-prefixes="ixsl"
     <!-- TIMESTAMP -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Timestamp">
-        <xsl:apply-templates select="dct:created/text()"/>
-        <xsl:apply-templates select="dct:modified/text()"/>
+        <xsl:apply-templates select="dct:created/text()[xs:dateTime(.) = max(../../dct:created/text()/xs:dateTime(.))]"/>
+        <xsl:apply-templates select="dct:modified/text()[xs:dateTime(.) = max(../../dct:modified/text()/xs:dateTime(.))]"/>
     </xsl:template>
     
     <!-- TYPE LIST -->
