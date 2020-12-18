@@ -116,6 +116,8 @@ ENV OWNER_DOC_URI=
 
 ENV LOAD_DATASETS=
 
+ENV CONTEXT_DATASET=/var/linkeddatahub/datasets/system.trig
+
 ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
 
 ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig

@@ -1,5 +1,3 @@
-@base           <jndi:/stage.linkeddatahub.com/> .
-
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix lapp:	<https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
@@ -18,23 +16,21 @@
 
 _:root_admin_app a lapp:AdminApplication ;
     dct:title "LinkedDataHub admin" ;
-    ldt:base <https://localhost:4443/admin/> ;
-    ldt:ontology <https://localhost:4443/admin/ns#> ;
+    ldt:base <admin/> ;
+    ldt:ontology <admin/ns#> ;
     ldt:service _:root_admin_service ;
     ac:stylesheet <file:///usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
-    lapp:endUserApplication _:root_end_user_app ;
-    foaf:maker <https://localhost:4443/admin/acl/agents/ce84eb31-cc1e-41f4-9e29-dacd417b9818/#this> .
+    lapp:endUserApplication _:root_end_user_app .
 
 # root end-user
 
 _:root_end_user_app a lapp:EndUserApplication ;
     dct:title "LinkedDataHub" ;
-    ldt:base <https://localhost:4443/> ;
-    ldt:ontology <https://localhost:4443/ns#> ;
+    ldt:base <> ;
+    ldt:ontology <ns#> ;
     ldt:service _:root_end_user_service ;
     lapp:adminApplication _:root_admin_app ;
-    lapp:public true ;
-    foaf:maker <https://localhost:4443/admin/acl/agents/ce84eb31-cc1e-41f4-9e29-dacd417b9818/#this> .
+    lapp:public true .
 
 # SERVICES
 

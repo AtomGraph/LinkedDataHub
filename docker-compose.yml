@@ -37,7 +37,6 @@ services:
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
-      - CONTEXT_DATASET=/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig
       - IMPORT_KEEPALIVE=300000
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
@@ -55,9 +54,9 @@ services:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
-      - ./config/system.trig:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/system.trig:ro
-      - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig
-      - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig
+      - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
+      - ./platform/datasets/admin.trig:/var/linkeddatahub/datasets/admin.trig:ro
+      - ./platform/datasets/end-user.trig:/var/linkeddatahub/datasets/end-user.trig:ro
       - ./src/main/resources/com/atomgraph/linkeddatahub/apl.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/apl.ttl:ro
       - ./src/main/resources/com/atomgraph/linkeddatahub/aplt.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/aplt.ttl:ro
       - ./src/main/resources/com/atomgraph/linkeddatahub/lapp.ttl:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/lapp.ttl:ro

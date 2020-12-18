@@ -370,7 +370,13 @@ append_quads()
 
 envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
 
-sparql --data="${PWD}/webapps/ROOT${CONTEXT_DATASET}" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
+# base the $CONTEXT_DATASET
+
+webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
+based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
+trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
+
+sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 
 root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
 root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
@@ -513,6 +519,16 @@ else
 
     envsubst < split-default-graph.rq.template > split-default-graph.rq
 fi
+
+# extract admin/end-user bnodes or URIs from the $CONTEXT_DATASET
+
+root_admin_app=$(grep "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/apps/domain#AdminApplication>" "$based_context_dataset" | cut -d " " -f 1)
+root_end_user_app=$(grep "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/apps/domain#EndUserApplication>" "$based_context_dataset" | cut -d " " -f 1)
+
+# append ownership metadata to apps
+
+echo "${root_admin_app} <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+echo "${root_end_user_app} <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
 # if CLIENT_TRUSTSTORE does not exist:
 # 1. generate a secretary (server) certificate with a WebID relative to the BASE_URI
@@ -662,7 +678,7 @@ CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam aplc:clientKeyStorePassword '$CLIE
 CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam aplc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
 ATOMGRAPH_UPLOAD_ROOT_PARAM="--stringparam aplc:uploadRoot 'file://$ATOMGRAPH_UPLOAD_ROOT' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam aplc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
-CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$CONTEXT_DATASET' "
+CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$webapp_context_dataset' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
