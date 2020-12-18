@@ -88,7 +88,7 @@ export ADMIN_BASE_URL="https://localhost:4443/admin/"
 
 error_count=0
 
-### Authorization tests ###
+### Signup test ###
 
 export AGENT_CERT_FILE=$(mktemp)
 export AGENT_CERT_PWD="changeit"
@@ -109,6 +109,8 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
+run_tests $(find . -type f -name 'request-access.sh')
+(( error_count += $? ))
 run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'HEAD-accept.sh')

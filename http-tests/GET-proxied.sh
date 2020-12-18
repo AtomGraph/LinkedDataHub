@@ -17,7 +17,7 @@ popd > /dev/null
 
 # load the RDF vocabulary using LDH as a proxy
 
-proxied_triple_count=$(curl -k -f -v \
+proxied_triple_count=$(curl -k -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/n-triples' \
@@ -28,7 +28,7 @@ proxied_triple_count=$(curl -k -f -v \
 
 # load the RDF vocabulary directly
 
-direct_triple_count=$(curl -k -f -v \
+direct_triple_count=$(curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}" \
