@@ -14,22 +14,28 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception.auth;
-
-import java.security.cert.CertificateException;
+package com.atomgraph.linkeddatahub.exception.auth.webid;
 
 /**
- * WebID certificate exception.
- * Thrown when the SSL client certificate cannot parse, is expired or not yet valid.
+ * WebID URI exception.
+ * Thrown when the WebID is not a valid URI.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class WebIDCertificateException extends RuntimeException
+public class InvalidWebIDURIException extends RuntimeException
 {
     
-    public WebIDCertificateException(CertificateException ex)
+    private final String uri;
+    
+    public InvalidWebIDURIException(String uri)
     {
-        super(ex);
+        super("Could not parse WebID URI: '" + uri + "'");
+        this.uri = uri;
+    }
+    
+    public String getURI()
+    {
+        return uri;
     }
     
 }

@@ -14,14 +14,17 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.filter.request.authn;
+package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
 import java.util.Date;
@@ -73,14 +76,7 @@ public class IDTokenFilter extends AuthenticationFilter
         DecodedJWT idToken = getJWTToken(request);
         if (idToken == null) return null;
 
-        try
-        {
-            if (!verify(idToken)) return null; // TO-DO: refresh token
-        }
-        catch (JWTVerificationException ex)
-        {
-            return null;
-        }
+        if (!verify(idToken)) return null; // TO-DO: refresh token
 
         Literal userId = ResourceFactory.createStringLiteral(idToken.getSubject());
         QuerySolutionMap qsm = new QuerySolutionMap();
@@ -111,21 +107,24 @@ public class IDTokenFilter extends AuthenticationFilter
     protected boolean verify(DecodedJWT idToken)
     {
         Date now = new Date();
-        if (idToken.getExpiresAt().before(now)) throw new JWTVerificationException("ID token for subject '"  + idToken.getSubject() + "' has expired");
-        
-        // TO-DO: check expiration
+        if (idToken.getExpiresAt().before(now))
+        {
+            if (log.isDebugEnabled()) log.debug("ID token for subject '{}' has expired at {}", idToken.getSubject(), idToken.getExpiresAt());
+            throw new TokenExpiredException("ID token for subject '"  + idToken.getSubject() + "' has expired at " + idToken.getExpiresAt());
+        }
         
         // TO-DO: use keys, this is for debugging purposes only: https://developers.google.com/identity/protocols/oauth2/openid-connect#validatinganidtoken
         try (Response cr = getSystem().getNoCertClient().
-                target("https://oauth2.googleapis.com/tokeninfo").
-                queryParam("id_token", idToken.getToken()).
-                request(MediaType.APPLICATION_JSON_TYPE).
-                get())
+            target("https://oauth2.googleapis.com/tokeninfo").
+            queryParam("id_token", idToken.getToken()).
+            request(MediaType.APPLICATION_JSON_TYPE).
+            get())
         {
             if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
             {
-                if (log.isErrorEnabled()) log.error("Could not verify JWT token for subject: ", idToken.getSubject());
-                throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
+                if (log.isDebugEnabled()) log.debug("Could not verify JWT token for subject '{}'", idToken.getSubject());
+//                throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
+                return false;
             }
                 
             JsonObject verifiedIdToken = cr.readEntity(JsonObject.class);
@@ -135,7 +134,8 @@ public class IDTokenFilter extends AuthenticationFilter
                 return true;
         }
 
-        throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
+//        throw new JWTVerificationException("Could not verify JWT token for subject '"  + idToken.getSubject() + "'");
+        return false;
     }
     
     @Override

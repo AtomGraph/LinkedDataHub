@@ -14,29 +14,31 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.mapper.auth;
+package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
-import com.atomgraph.linkeddatahub.exception.auth.WebIDLoadingException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.InvalidWebIDURIException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * JAX-RS mapper for WebID loading exceptions.
+ * JAX-RS mapper for WebID URI exceptions.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class WebIDLoadingExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<WebIDLoadingException>
+public class InvalidWebIDURIExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<InvalidWebIDURIException>
 {
     
     @Override
-    public Response toResponse(WebIDLoadingException ex)
+    public Response toResponse(InvalidWebIDURIException ex)
     {
-        return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.BAD_REQUEST,
-                    ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
-                getModel())).
+        Resource resource = toResource(ex, Response.Status.BAD_REQUEST,
+                    ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest"));
+                
+        return getResponseBuilder(DatasetFactory.create(resource.getModel())).
             status(Response.Status.BAD_REQUEST).
             build();
     }

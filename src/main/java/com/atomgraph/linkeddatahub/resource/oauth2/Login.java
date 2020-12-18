@@ -7,7 +7,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.filter.request.authn.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
@@ -133,7 +133,7 @@ public class Login extends ResourceBase
         }
 
         String code = getUriInfo().getQueryParameters().getFirst("code");
-        String state = getUriInfo().getQueryParameters().getFirst("state");
+        String state = getUriInfo().getQueryParameters().getFirst("state"); // TO-DO: verify by matching against state generated in Authorize
 
         Form form = new Form().
             param("grant_type", "authorization_code").

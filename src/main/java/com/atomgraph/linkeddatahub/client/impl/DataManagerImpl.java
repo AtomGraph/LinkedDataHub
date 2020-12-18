@@ -24,7 +24,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.filter.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.filter.request.authn.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.util.Map;
 import javax.ws.rs.client.Client;

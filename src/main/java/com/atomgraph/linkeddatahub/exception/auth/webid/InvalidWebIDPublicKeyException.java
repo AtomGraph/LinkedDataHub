@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception.auth;
+package com.atomgraph.linkeddatahub.exception.auth.webid;
 
 import java.security.interfaces.RSAPublicKey;
 import javax.ws.rs.NotAuthorizedException;

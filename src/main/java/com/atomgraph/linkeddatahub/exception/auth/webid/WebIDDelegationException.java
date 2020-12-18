@@ -14,24 +14,22 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception.auth;
+package com.atomgraph.linkeddatahub.exception.auth.webid;
 
-import java.net.URI;
-import javax.ws.rs.core.Response;
+import org.apache.jena.rdf.model.Resource;
 
 /**
- * 
- * WebID loading exception.
- * Thrown if WebID URI cannot be successfully dereferenced to an RDF document.
+ * WebID delegation exception.
+ * Thrown if it cannot be verified that an agent delegates a principal agent.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class WebIDLoadingException extends RuntimeException
+public class WebIDDelegationException extends RuntimeException
 {
     
-    public WebIDLoadingException(URI webID, Response cr)
+    public WebIDDelegationException(Resource agent, Resource principal)
     {
-        super("WebID profile could not be loaded: " + webID);
+        super("Agent '" + agent.getURI() + "' does not delegate (acl:delegates) the agent '" + principal.getURI() + "'");
     }
     
 }

@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.client.filter;
 
-import com.atomgraph.linkeddatahub.server.filter.request.authn.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import java.io.IOException;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;

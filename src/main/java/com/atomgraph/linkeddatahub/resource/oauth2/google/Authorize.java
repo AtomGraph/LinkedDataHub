@@ -23,15 +23,15 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
-import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.model.TemplateCall;
+import java.math.BigInteger;
 import java.net.URI;
+import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -42,9 +42,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.Statement;
-import org.glassfish.jersey.uri.UriComponent;
-import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +97,7 @@ public class Authorize extends ResourceBase
                 as(Template.class).getMatch().toString()). // has to be a URI template without parameters
             build();
 
-        String state = BCrypt.hashpw(UUID.randomUUID().toString() + clientID, BCrypt.gensalt());
+        String state = new BigInteger(130, new SecureRandom()).toString(32);
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
             queryParam("response_type", "code").

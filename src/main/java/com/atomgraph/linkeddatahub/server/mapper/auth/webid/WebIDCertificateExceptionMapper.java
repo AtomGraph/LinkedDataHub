@@ -14,9 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.mapper.auth;
+package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
-import com.atomgraph.linkeddatahub.exception.auth.WebIDCertificateException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.WebIDCertificateException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

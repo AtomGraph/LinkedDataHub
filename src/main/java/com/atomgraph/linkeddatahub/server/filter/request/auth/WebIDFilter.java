@@ -14,17 +14,17 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.filter.request.authn;
+package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDPublicKeyException;
-import com.atomgraph.linkeddatahub.exception.auth.InvalidWebIDURIException;
-import com.atomgraph.linkeddatahub.exception.auth.WebIDCertificateException;
-import com.atomgraph.linkeddatahub.exception.auth.WebIDLoadingException;
-import com.atomgraph.linkeddatahub.exception.auth.WebIDDelegationException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.InvalidWebIDPublicKeyException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.InvalidWebIDURIException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.WebIDCertificateException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.WebIDLoadingException;
+import com.atomgraph.linkeddatahub.exception.auth.webid.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import java.net.URI;
 import java.net.URISyntaxException;
