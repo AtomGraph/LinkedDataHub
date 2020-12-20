@@ -5,6 +5,7 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 
 curl -w "%{http_code}\n" -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=request" \

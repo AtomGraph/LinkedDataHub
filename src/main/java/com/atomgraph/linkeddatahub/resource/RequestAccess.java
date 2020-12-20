@@ -141,13 +141,14 @@ public class RequestAccess extends ResourceBase
                         request(MediaType.TEXT_NQUADS_TYPE).
                         get()) // load maker's WebID model)
             {
-                owner = cr.readEntity(Dataset.class).getDefaultModel().getResource(owner.getURI());
-                
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (log.isErrorEnabled()) log.error("GET WebID profile: {} unsuccessful. Reason: {}", cr.getLocation(), cr.getStatusInfo().getReasonPhrase());
-                    throw new ClientErrorException(cr);
+                    if (log.isErrorEnabled()) log.error("Could not GET WebID profile {}. Reason: {}", owner.getURI(), cr.getStatusInfo().getReasonPhrase());
+                    // throw new ClientErrorException(cr); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
+                    throw new ClientErrorException("Could not GET WebID profile: " + owner.getURI(), cr.getStatusInfo().getStatusCode());
                 }
+
+                owner = cr.readEntity(Dataset.class).getDefaultModel().getResource(owner.getURI());
 
                 URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
                 try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
@@ -157,7 +158,8 @@ public class RequestAccess extends ResourceBase
                     if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr1.getLocation(), cr1.getStatusInfo().getReasonPhrase());
-                        throw new ClientErrorException(cr1);
+                        // throw new ClientErrorException(cr1); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
+                        throw new ClientErrorException("POST request to AuthorizationRequest container unsuccesful", cr1.getStatusInfo().getStatusCode());
                     }
 
                     try
