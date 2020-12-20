@@ -120,6 +120,9 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     {
         getService().getDatasetAccessor().add(getURI().toString(), dataset.getDefaultModel());
         
+        Response banResponse = ban(getOntResource());
+        if (banResponse != null) banResponse.close();
+        
         return Response.ok().build();
     }
 

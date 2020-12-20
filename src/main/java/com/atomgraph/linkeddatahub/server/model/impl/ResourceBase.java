@@ -900,19 +900,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
         return null;
     }
-    
-    /*
-    @Override
-    public UserAccount getUserAccount()
-    {
-        if (getSecurityContext() != null &&
-                getSecurityContext().getUserPrincipal() != null &&
-                getSecurityContext().getUserPrincipal() instanceof UserAccount)
-            return (UserAccount)getSecurityContext().getUserPrincipal();
-        
-        return null;
-    }
-    */
 
     /**
      * Gets agent authenticated for the current request.
