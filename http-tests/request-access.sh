@@ -10,11 +10,11 @@ curl -w "%{http_code}\n" -k -s \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=request" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://localhost:4443/admin/ns#AuthorizationRequest" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}ns#AuthorizationRequest" \
   --data-urlencode "pu=http://rdfs.org/sioc/ns#has_container" \
-  --data-urlencode "ou=https://localhost:4443/admin/acl/authorization-requests/" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}acl/authorization-requests/" \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#requestAccessTo" \
-  --data-urlencode "ou=https://localhost:4443/" \
+  --data-urlencode "ou=${END_USER_BASE_URL}" \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#requestMode" \
   --data-urlencode "ou=http://www.w3.org/ns/auth/acl#Read" \
   --data-urlencode "ou=http://www.w3.org/ns/auth/acl#Write" \

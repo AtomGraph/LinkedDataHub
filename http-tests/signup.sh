@@ -13,7 +13,7 @@ curl -k -s \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=agent" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://localhost:4443/admin/ns#Person" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}ns#Person" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/based_near" \
   --data-urlencode "ou=http://www.wikidata.org/entity/Q35" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/mbox" \
@@ -36,11 +36,11 @@ curl -k -s \
   --data-urlencode "ob=doc" \
   --data-urlencode "sb=doc" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://localhost:4443/admin/ns#AgentItem" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}ns#AgentItem" \
   --data-urlencode "pu=http://purl.org/dc/terms/description" \
   --data-urlencode "lt=http://www.w3.org/2001/XMLSchema#string" \
   --data-urlencode "pu=http://rdfs.org/sioc/ns#has_container" \
-  --data-urlencode "ou=https://localhost:4443/admin/acl/agents/" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}acl/agents/" \
   --data-urlencode "pu=http://purl.org/dc/terms/title" \
   --data-urlencode "ol=${title}" \
   --data-urlencode "lt=http://www.w3.org/2001/XMLSchema#string" \
