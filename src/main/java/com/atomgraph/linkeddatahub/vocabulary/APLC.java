@@ -90,7 +90,9 @@ public class APLC
 
     public static final DatatypeProperty signUpEMailSubject = m_model.createDatatypeProperty( NS + "signUpEMailSubject" );
     
-    public static final DatatypeProperty signUpEMailText = m_model.createDatatypeProperty( NS + "signUpEMailText" );
+    public static final DatatypeProperty webIDSignUpEMailText = m_model.createDatatypeProperty( NS + "webIDSignUpEMailText" );
+
+    public static final DatatypeProperty oAuthSignUpEMailText = m_model.createDatatypeProperty( NS + "oAuthSignUpEMailText" );
 
     public static final DatatypeProperty notificationAddress = m_model.createDatatypeProperty( NS + "notificationAddress" );
 

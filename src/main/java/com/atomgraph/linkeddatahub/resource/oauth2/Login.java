@@ -92,7 +92,6 @@ public class Login extends ResourceBase
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
-            uriInfo.getAbsolutePath(),
             service, application,
             ontology, templateCall,
             httpHeaders, resourceContext,
@@ -116,8 +115,8 @@ public class Login extends ResourceBase
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
 
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(APLC.oAuthSignUpEMailText.getURI());
+        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.oAuthSignUpEMailText));
     }
     
     @GET
@@ -156,7 +155,7 @@ public class Login extends ResourceBase
             DecodedJWT jwt = JWT.decode(idToken);
             String userId = jwt.getSubject();
 
-            ParameterizedSparqlString askQuery = new ParameterizedSparqlString("ASK { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id } }");
+            ParameterizedSparqlString askQuery = new ParameterizedSparqlString("ASK { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id } }"); // TO-DO: move to config
             askQuery.setLiteral(SIOC.ID.getLocalName(), userId);
             boolean accountExists = getApplication().getService().getSPARQLClient().ask(askQuery.asQuery());
 
@@ -300,8 +299,7 @@ public class Login extends ResourceBase
             textBodyPart(String.format(getEmailText(),
                 getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
                 getApplication().getEndUserApplication().getBase(),
-                agent.getURI(),
-                "WHATEVER")). // TO-DO: separate email text for OAuth2 signups
+                agent.getURI())).
             build());
     }
         

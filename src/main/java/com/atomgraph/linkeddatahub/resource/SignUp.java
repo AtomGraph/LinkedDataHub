@@ -191,8 +191,8 @@ public class SignUp extends ResourceBase
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
 
-        emailText = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailText));
+        emailText = servletConfig.getServletContext().getInitParameter(APLC.webIDSignUpEMailText.getURI());
+        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.webIDSignUpEMailText));
         
         if (servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()) == null)
             throw new WebApplicationException(new ConfigurationException(APLC.signUpCertValidity));
