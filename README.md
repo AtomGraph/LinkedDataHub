@@ -142,6 +142,7 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 ## [Demo applications](https://linkeddatahub.com/demo/)
 
 **Get the [source code](https://github.com/AtomGraph/LinkedDataHub-Apps)**
+
 _:warning: Before running app installation scripts that use LinkedDataHub's CLI scripts, set the `SCRIPT_ROOT` environmental variable to the [`scripts`](https://github.com/AtomGraph/LinkedDataHub/tree/master/scripts) subfolder of your LinkedDataHub fork or clone._ For example:
 
     export SCRIPT_ROOT="/c/Users/namedgraph/WebRoot/AtomGraph/LinkedDataHub/scripts"
@@ -149,8 +150,8 @@ _:warning: Before running app installation scripts that use LinkedDataHub's CLI 
 ## How to get involved
 
 * contribute a new LDH application or modify [one of ours](https://github.com/AtomGraph/LinkedDataHub-Apps)
-* work on [good first issues](contribute)
-* work on the features in our [Roadmap](wiki/Roadmap)
+* work on [good first issues](../../contribute)
+* work on the features in our [Roadmap](../../wiki/Roadmap)
 * join our [community](#community)
 
 ## Test suite
