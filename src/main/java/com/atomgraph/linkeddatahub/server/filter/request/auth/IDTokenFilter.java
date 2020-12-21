@@ -18,12 +18,9 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;

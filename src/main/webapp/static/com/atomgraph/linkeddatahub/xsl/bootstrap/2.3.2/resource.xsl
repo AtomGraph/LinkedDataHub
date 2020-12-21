@@ -143,7 +143,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
         <div class="pull-right">
-            <button>
+            <button title="{key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}">
                 <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
