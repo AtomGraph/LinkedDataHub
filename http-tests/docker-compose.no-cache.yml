@@ -1,0 +1,5 @@
+version: "2.3"
+services:
+  linkeddatahub:
+    volumes:
+      - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
