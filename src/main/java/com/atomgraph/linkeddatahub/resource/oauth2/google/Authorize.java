@@ -22,7 +22,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.linkeddatahub.vocabulary.LACLT;
 import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.model.TemplateCall;
 import java.math.BigInteger;
@@ -82,7 +82,7 @@ public class Authorize extends ResourceBase
     @Override
     public Response get()
     {
-        String clientID = "94623832214-l46itt9or8ov4oejndd15b2gv266aqml.apps.googleusercontent.com";
+        String clientID = "94623832214-l46itt9or8ov4oejndd15b2gv266aqml.apps.googleusercontent.com"; // TO-DO: config
         
 //        Statement clientStmt = getApplication().getProperty(Google.clientID);
 //        if (clientStmt == null || !clientStmt.getObject().isLiteral())
@@ -93,7 +93,7 @@ public class Authorize extends ResourceBase
 //        String clientID = clientStmt.getString();
 
         URI redirectUri = getUriInfo().getBaseUriBuilder().
-            path(getOntology().getOntModel().getOntClass(APLT.OAuth2Login.getURI()).
+            path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).
                 as(Template.class).getMatch().toString()). // has to be a URI template without parameters
             build();
 

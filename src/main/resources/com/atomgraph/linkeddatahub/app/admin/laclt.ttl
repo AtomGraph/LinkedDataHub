@@ -3,6 +3,7 @@
 @prefix :	<#> .
 @prefix aplt:   <https://w3id.org/atomgraph/linkeddatahub/templates#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix thgt:	<https://www.w3.org/ns/ldt/topic-hierarchy-graphs/templates#> .
@@ -23,12 +24,77 @@
     rdfs:label "Sign up" ;
     rdfs:isDefinedBy : .
 
+:OAuth2Login a ldt:Template ;
+    ldt:extends thgt:Document ;
+    ldt:match "/oauth2/login" ;
+    ldt:param :Code, :State, :Error ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.oauth2.Login> ;
+    rdfs:label "OAuth 2.0 login" ;
+    rdfs:isDefinedBy : .
+
+:AuthorizeGoogle a ldt:Template ;
+    ldt:extends thgt:Document ;
+    ldt:match "/oauth2/authorize/google" ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize> ;
+    rdfs:label "Google OAuth 2.0 authorization endpoint" ;
+    rdfs:isDefinedBy : .
+
 :RequestAccess a ldt:Template ;
     ldt:match "/request%20access" ;
     ldt:extends thgt:Document ;
     ldt:param aplt:ForClass ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.RequestAccess> ;
     rdfs:label "Request access" ;
+    rdfs:isDefinedBy : .
+
+
+:Code a ldt:Parameter ;
+    rdfs:label "OAuth authorization code" ;
+    spl:predicate :code ;
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:State a ldt:Parameter ;
+    rdfs:label "OAuth client state" ;
+    spl:predicate :state ;
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Error a ldt:Parameter ;
+    rdfs:label "OAuth error" ;
+    spl:predicate :error ;
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:AuthUser a ldt:Parameter ;
+    rdfs:label "Auth user" ;
+    spl:predicate :authuser ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Hd a ldt:Parameter ;
+    rdfs:label "HD" ;
+    spl:predicate :hd ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:Prompt a ldt:Parameter ;
+    rdfs:label "Prompt" ;
+    spl:predicate :prompt ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
+:SessionState a ldt:Parameter ;
+    rdfs:label "Session state" ;
+    spl:predicate :session_state ; # Google-specific
+    spl:valueType xsd:string ;
+    spl:optional true ;
     rdfs:isDefinedBy : .
 
 # authorization

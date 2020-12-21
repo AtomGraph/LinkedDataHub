@@ -16,8 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
@@ -26,15 +24,16 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public class APLT
+public class LACLT
 {
+
     /** <p>The RDF model that holds the vocabulary terms</p> */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/templates#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */
@@ -46,22 +45,6 @@ public class APLT
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
 
-    public static final ObjectProperty aclEndpoint = m_model.createObjectProperty( NS + "aclEndpoint" );
-
-    // TEMPLATES
+    public static final OntClass OAuth2Login = m_model.createClass(NS + "OAuth2Login");
     
-    public static final OntClass File = m_model.createClass(NS + "File");
-    
-    public static final OntClass Document = m_model.createClass(NS + "Document");
-    
-    public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
-
-    public static final DatatypeProperty login = m_model.createDatatypeProperty( NS + "login" );
-
-    public static final DatatypeProperty logout = m_model.createDatatypeProperty( NS + "logout" );
-
-    public static final DatatypeProperty ban = m_model.createDatatypeProperty( NS + "ban" );
-
-    public static final ObjectProperty debug = m_model.createObjectProperty( NS + "debug" );
-
 }
