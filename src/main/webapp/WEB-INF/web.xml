@@ -154,6 +154,22 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#userAccountQuery</param-name>
+        <param-value><![CDATA[
+PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+DESCRIBE ?account ?agent
+WHERE
+  { GRAPH ?g
+      { ?account  sioc:id          ?id ;
+                  lacl:issuer      ?issuer ;
+                  sioc:account_of  ?agent
+      }
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDQuery</param-name>
 <!--        <param-value><![CDATA[
 PREFIX cert:    <http://www.w3.org/ns/auth/cert#>

@@ -25,6 +25,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
 import java.util.Date;
+import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.json.JsonObject;
 import javax.ws.rs.Priorities;
@@ -59,6 +60,14 @@ public class IDTokenFilter extends AuthenticationFilter
     public static final String AUTH_SCHEME = "JWT";
     public static final String COOKIE_NAME = "id_token";
     
+    private ParameterizedSparqlString userAccountQuery;
+
+    @PostConstruct
+    public void init()
+    {
+        userAccountQuery = new ParameterizedSparqlString(getSystem().getUserAccountQuery().toString());
+    }
+    
     @Override
     public String getScheme()
     {
@@ -68,17 +77,17 @@ public class IDTokenFilter extends AuthenticationFilter
     @Override
     public Resource authenticate(ContainerRequestContext request)
     {
-        ParameterizedSparqlString pss = new ParameterizedSparqlString("DESCRIBE ?account ?agent { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id ; <http://rdfs.org/sioc/ns#account_of> ?agent } }"); // TO-DO: better check
+        ParameterizedSparqlString pss = getUserAccountQuery();
         
         DecodedJWT idToken = getJWTToken(request);
         if (idToken == null) return null;
 
-        if (!verify(idToken)) return null; // TO-DO: refresh token
+        if (!verify(idToken)) return null;
 
         Literal userId = ResourceFactory.createStringLiteral(idToken.getSubject());
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SIOC.ID.getLocalName(), userId);
-        // TO-DO: match issuer? "iss" field
+        qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(idToken.getIssuer()));
 
         Model agentModel = loadModel(pss, qsm, getAdminService());
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
@@ -161,6 +170,11 @@ public class IDTokenFilter extends AuthenticationFilter
                 build();
             throw new WebApplicationException(response);
         }
+    }
+    
+    public ParameterizedSparqlString getUserAccountQuery()
+    {
+        return userAccountQuery.copy();
     }
     
 }

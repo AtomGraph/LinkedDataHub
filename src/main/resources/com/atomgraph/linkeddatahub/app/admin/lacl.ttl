@@ -21,15 +21,14 @@
     rdfs:label "LinkedDataHub ACL ontology" .
 
 :password a owl:DatatypeProperty ;
-    rdfs:range rdfs:Literal ;
+    rdfs:range xsd:string ;
     rdfs:label "Password" ;
     rdfs:isDefinedBy : .
 
-:passwordHash a owl:DatatypeProperty ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "Password hash" ;
-    rdfs:comment "BCrypt hash value" ;
-    rdfs:seeAlso <http://www.mindrot.org/projects/jBCrypt/> ;
+:issuer a owl:DatatypeProperty ;
+    rdfs:domain :UserAccount ;
+    rdfs:range xsd:string ;
+    rdfs:label "User account issuer" ;
     rdfs:isDefinedBy : .
 
 :requestMode a owl:ObjectProperty ;
@@ -187,7 +186,7 @@
 :Agent a rdfs:Class ;
     rdfs:subClassOf foaf:Agent ;
     spin:constructor :AgentConstructor ;
-    spin:constraint :MissingCertKey ;
+    # spin:constraint :MissingCertKey ; # Agent has either PublicKey or UserAccount
     rdfs:label "Agent" ;
     rdfs:isDefinedBy : .
 

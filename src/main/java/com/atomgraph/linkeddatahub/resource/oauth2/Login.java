@@ -55,6 +55,7 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -81,6 +82,7 @@ public class Login extends ResourceBase
     private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
+    private final Query userAccountQuery;
     
     @Inject
     public Login(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
@@ -117,6 +119,8 @@ public class Login extends ResourceBase
 
         emailText = servletConfig.getServletContext().getInitParameter(APLC.oAuthSignUpEMailText.getURI());
         if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.oAuthSignUpEMailText));
+        
+        userAccountQuery = system.getUserAccountQuery();
     }
     
     @GET
@@ -138,7 +142,7 @@ public class Login extends ResourceBase
             param("grant_type", "authorization_code").
             param("client_id", "94623832214-l46itt9or8ov4oejndd15b2gv266aqml.apps.googleusercontent.com").
             param("redirect_uri", getUriInfo().getAbsolutePath().toString()).
-            param("client_secret", "ht4oxEyihCcSrcZCtseJ4dQ8").
+            param("client_secret", "ht4oxEyihCcSrcZCtseJ4dQ8"). // TO-DO: move to config!
             param("code", code);
                 
         try (Response cr = getSystem().getClient().target(TOKEN_ENDPOINT).
@@ -153,11 +157,12 @@ public class Login extends ResourceBase
 
             String idToken = response.getString("id_token");
             DecodedJWT jwt = JWT.decode(idToken);
-            String userId = jwt.getSubject();
 
-            ParameterizedSparqlString askQuery = new ParameterizedSparqlString("ASK { GRAPH ?g { ?account <http://rdfs.org/sioc/ns#id> ?id } }"); // TO-DO: move to config
-            askQuery.setLiteral(SIOC.ID.getLocalName(), userId);
-            boolean accountExists = getApplication().getService().getSPARQLClient().ask(askQuery.asQuery());
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
+            pss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
+            pss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
+            Model agentModel = getApplication().getService().getSPARQLClient().loadModel(pss.asQuery());
+            boolean accountExists = !agentModel.isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
@@ -175,7 +180,8 @@ public class Login extends ResourceBase
                 Resource userAccount = createUserAccount(model,
                     getOntology().getURI(),
                     model.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
-                    userId,
+                    jwt.getSubject(),
+                    jwt.getIssuer(),
                     jwt.getClaim("name").asString(),
                     email);
                 userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
@@ -197,11 +203,11 @@ public class Login extends ResourceBase
 
                     if (resp.getStatus() != Status.OK.getStatusCode())
                     {
-                        if (log.isErrorEnabled()) log.error("Could not create UserAccount for user ID: {}", userId);
+                        if (log.isErrorEnabled()) log.error("Could not create UserAccount for user ID: {}", jwt.getSubject());
                         throw new WebApplicationException();
                     }
 
-                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", userId);
+                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
                     sendEmail(agent);
                 }
                 catch (MessagingException | UnsupportedEncodingException ex)
@@ -258,7 +264,7 @@ public class Login extends ResourceBase
         return agent;
     }
     
-    public Resource createUserAccount(Model model, String namespace, Resource container, String id, String name, String email)
+    public Resource createUserAccount(Model model, String namespace, Resource container, String id, String issuer, String name, String email)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.UserAccount.getLocalName()); // subclassOf LACL.UserAccount
@@ -273,6 +279,7 @@ public class Login extends ResourceBase
             addLiteral(DCTerms.created, GregorianCalendar.getInstance()).
             addProperty(RDF.type, cls).
             addLiteral(SIOC.ID, id).
+            addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
             addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
             addProperty(FOAF.isPrimaryTopicOf, accountDoc);
@@ -339,6 +346,11 @@ public class Login extends ResourceBase
     public String getEmailText()
     {
         return emailText;
+    }
+
+    public Query getUserAccountQuery()
+    {
+        return userAccountQuery;
     }
     
 }
