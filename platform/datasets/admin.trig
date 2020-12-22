@@ -1482,12 +1482,12 @@ admt:SignUp a ldt:Template ;
     rdfs:label "Sign up" ;
     rdfs:isDefinedBy admt: .
 
-admt:OAuth2Login a adm:Template ;
+admt:OAuth2Login a ldt:Template ;
     ldt:extends laclt:OAuth2Login ;
     rdfs:label "OAuth 2.0 login" ;
     rdfs:isDefinedBy admt: .
 
-admt:AuthorizeGoogle a adm:Template ;
+admt:AuthorizeGoogle a ldt:Template ;
     ldt:extends laclt:AuthorizeGoogle ;
     rdfs:label "Google OAuth 2.0 authorization endpoint" ;
     rdfs:isDefinedBy admt: .
