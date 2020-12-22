@@ -47,4 +47,6 @@ public class LACLT
 
     public static final OntClass OAuth2Login = m_model.createClass(NS + "OAuth2Login");
     
+    public static final OntClass AuthorizeGoogle = m_model.createClass(NS + "AuthorizeGoogle");
+    
 }

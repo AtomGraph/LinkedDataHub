@@ -611,7 +611,8 @@ public class Application extends ResourceConfig
         register(MultiPartFeature.class);
         register(ResourceBase.class); // handles /
         
-        registerFilters();
+        registerContainerRequestFilters();
+        registerExceptionMappers();
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
@@ -620,30 +621,6 @@ public class Application extends ResourceConfig
         register(new ResultSetProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
-        register(NotFoundExceptionMapper.class);
-        register(ConfigurationExceptionMapper.class);
-        register(OntologyExceptionMapper.class);
-        register(ModelExceptionMapper.class);
-        register(ConstraintViolationExceptionMapper.class);
-        register(DatatypeFormatExceptionMapper.class);
-        register(ParameterExceptionMapper.class);
-        register(QueryExecExceptionMapper.class);
-        register(RiotExceptionMapper.class);
-        register(RiotParseExceptionMapper.class); // move to Processor?
-        register(ClientErrorExceptionMapper.class);
-        register(HttpHostConnectExceptionMapper.class);
-        register(OntClassNotFoundExceptionMapper.class);
-        register(InvalidWebIDPublicKeyExceptionMapper.class);
-        register(InvalidWebIDURIExceptionMapper.class);
-        register(WebIDCertificateExceptionMapper.class);
-        register(WebIDDelegationExceptionMapper.class);
-        register(WebIDLoadingExceptionMapper.class);
-        register(TokenExpiredExceptionMapper.class);
-        register(ResourceExistsExceptionMapper.class);
-        register(QueryParseExceptionMapper.class);
-        register(AuthenticationExceptionMapper.class);
-        register(AuthorizationExceptionMapper.class);
-        register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes (X)HTML responses
@@ -747,7 +724,7 @@ public class Application extends ResourceConfig
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     
-    public void registerFilters()
+    protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
         register(ClientUriInfoFilter.class);
@@ -758,6 +735,34 @@ public class Application extends ResourceConfig
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(new RDFPostCleanupInterceptor());
+    }
+    
+    protected void registerExceptionMappers()
+    {
+        register(NotFoundExceptionMapper.class);
+        register(ConfigurationExceptionMapper.class);
+        register(OntologyExceptionMapper.class);
+        register(ModelExceptionMapper.class);
+        register(ConstraintViolationExceptionMapper.class);
+        register(DatatypeFormatExceptionMapper.class);
+        register(ParameterExceptionMapper.class);
+        register(QueryExecExceptionMapper.class);
+        register(RiotExceptionMapper.class);
+        register(RiotParseExceptionMapper.class); // move to Processor?
+        register(ClientErrorExceptionMapper.class);
+        register(HttpHostConnectExceptionMapper.class);
+        register(OntClassNotFoundExceptionMapper.class);
+        register(InvalidWebIDPublicKeyExceptionMapper.class);
+        register(InvalidWebIDURIExceptionMapper.class);
+        register(WebIDCertificateExceptionMapper.class);
+        register(WebIDDelegationExceptionMapper.class);
+        register(WebIDLoadingExceptionMapper.class);
+        register(TokenExpiredExceptionMapper.class);
+        register(ResourceExistsExceptionMapper.class);
+        register(QueryParseExceptionMapper.class);
+        register(AuthenticationExceptionMapper.class);
+        register(AuthorizationExceptionMapper.class);
+        register(MessagingExceptionMapper.class);
     }
     
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
