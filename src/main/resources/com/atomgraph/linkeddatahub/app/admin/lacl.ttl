@@ -28,7 +28,7 @@
 :issuer a owl:DatatypeProperty ;
     rdfs:domain :UserAccount ;
     rdfs:range xsd:string ;
-    rdfs:label "User account issuer" ;
+    rdfs:label "Issuer" ;
     rdfs:isDefinedBy : .
 
 :requestMode a owl:ObjectProperty ;

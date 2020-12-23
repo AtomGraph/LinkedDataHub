@@ -94,7 +94,7 @@ public class IDTokenFilter extends AuthenticationFilter
         if (account == null) return null;  // UserAccount not found
 
         // we add token value to the UserAccount. This will allow SecurityContext to carry the token as well as DataManager to delegate it.
-        account.addLiteral(LACL.idToken, idToken.getToken());
+//        account.addLiteral(LACL.idToken, idToken.getToken());
         Resource agent = account.getRequiredProperty(SIOC.ACCOUNT_OF).getResource();
 
         return agent;

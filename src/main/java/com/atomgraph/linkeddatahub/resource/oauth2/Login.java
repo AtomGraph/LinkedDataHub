@@ -12,6 +12,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -186,6 +187,8 @@ public class Login extends ResourceBase
                     email);
                 userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                 agent.addProperty(FOAF.account, userAccount);
+
+                model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
                 
                 // skolemize here because this Model will not go through SkolemizingModelProvider
                 new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(model);
@@ -196,7 +199,7 @@ public class Login extends ResourceBase
                     // we need to retrieve resources again because they've changed from bnodes to URIs
                     agent = it.next();
                     
-                    SecurityContext securityContext = new AgentContext("JWT", agent.inModel(infModel).as(Agent.class)); // userAccount.inModel(infModel).as(UserAccount.class)
+                    SecurityContext securityContext = new AgentContext("JWT", agent.inModel(infModel).as(Agent.class));
                     Dataset dataset = DatasetFactory.create(model);
                     Response resp = createContainer(getUriInfo().getBaseUri().resolve("acl/users/"), LACL.UserAccount, securityContext).
                         post(dataset);
@@ -206,6 +209,9 @@ public class Login extends ResourceBase
                         if (log.isErrorEnabled()) log.error("Could not create UserAccount for user ID: {}", jwt.getSubject());
                         throw new WebApplicationException();
                     }
+                    
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
                     sendEmail(agent);
@@ -326,7 +332,7 @@ public class Login extends ResourceBase
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }
-
+    
     @Override
     public AdminApplication getApplication()
     {

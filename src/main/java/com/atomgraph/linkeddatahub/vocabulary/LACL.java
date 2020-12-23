@@ -58,8 +58,6 @@ public class LACL
 
     public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );
     
-    public static final DatatypeProperty idToken = m_model.createDatatypeProperty( NS + "idToken" );
-    
     public static final DatatypeProperty issuer = m_model.createDatatypeProperty( NS + "issuer" );
 
     public static final ObjectProperty requestAgent = m_model.createObjectProperty( NS + "requestAgent" );

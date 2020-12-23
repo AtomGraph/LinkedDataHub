@@ -21,17 +21,13 @@ import java.net.URI;
 import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.client.filter.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,13 +94,8 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         if (getAgent() != null)
         {
-            if (SecurityContext.CLIENT_CERT_AUTH.equals(getAuthScheme())) return new WebIDDelegationFilter(getAgent());
-
-            if (IDTokenFilter.AUTH_SCHEME.equals(getAuthScheme()))
-            {
-                String idToken = getAgent().getRequiredProperty(FOAF.account).getResource().getRequiredProperty(LACL.idToken).getString();
-                return new IDTokenDelegationFilter(idToken);
-            }
+            if (log.isDebugEnabled()) log.debug("Delegating Agent's <{}> access to secretary", getAgent());
+            return new WebIDDelegationFilter(getAgent());
         }
             
         return null;
