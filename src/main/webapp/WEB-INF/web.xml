@@ -451,14 +451,11 @@ WHERE
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDSignUpEMailText</param-name>
-        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's %s application.
+        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
-Read more about LinkedDataHub signup and login here: https://linkeddatahub.com/linkeddatahub/docs/getting-started/
 
-With the certificate installed, you will be able to authenticate with every LinkedDataHub application. Note that you will still need to request authorization to get access to non-public resources.
-Read more about access control here: https://linkeddatahub.com/linkeddatahub/docs/administration/manage-acl/
-
+Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
@@ -470,14 +467,9 @@ support@linkeddatahub.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#oAuthSignUpEMailText</param-name>
-        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's %s application.
+        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
 
-A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
-Read more about LinkedDataHub signup and login here: https://linkeddatahub.com/linkeddatahub/docs/getting-started/
-
-With the certificate installed, you will be able to authenticate with every LinkedDataHub application. Note that you will still need to request authorization to get access to non-public resources.
-Read more about access control here: https://linkeddatahub.com/linkeddatahub/docs/administration/manage-acl/
-
+Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
