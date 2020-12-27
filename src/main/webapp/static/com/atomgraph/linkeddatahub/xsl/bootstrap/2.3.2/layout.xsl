@@ -5,6 +5,7 @@
     <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY aplt   "https://w3id.org/atomgraph/linkeddatahub/templates#">
+    <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -61,6 +62,7 @@ xmlns:spl="&spl;"
 xmlns:void="&void;"
 xmlns:nfo="&nfo;"
 xmlns:geo="&geo;"
+xmlns:google="&google;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
@@ -97,6 +99,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="lacl:mode" select="if (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource) then $lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource else ()" as="xs:anyURI*"/>
+    <xsl:param name="google:clientID" as="xs:string?"/>
 
     <xsl:variable name="root-containers" select="($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))" as="xs:anyURI*"/>
     
@@ -523,11 +526,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
             
         <p class="pull-right">
-            <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $ldt:base)}">
-                <xsl:value-of>
-                    Login with Google
-                </xsl:value-of>
-            </a>
+            <xsl:if test="$google:clientID">
+                <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $ldt:base)}">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </a>
+            </xsl:if>
             <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
