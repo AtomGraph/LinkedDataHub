@@ -1417,7 +1417,14 @@ exclude-result-prefixes="#all">
                 <legend title="{$forClass}">
                     <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
                     <xsl:text> </xsl:text>
-                    <xsl:value-of select="$forClass"/>
+                    <xsl:choose>
+                        <xsl:when test="doc-available(ac:document-uri($forClass))">
+                            <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$forClass"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </legend>
             </xsl:otherwise>
         </xsl:choose>
@@ -1449,7 +1456,7 @@ exclude-result-prefixes="#all">
 
             <xsl:if test="$legend">
                 <legend>
-                    <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="xhtml:Anchor"/>
+                    <xsl:value-of select="ac:label(.)"/>
                 </legend>
             </xsl:if>
 

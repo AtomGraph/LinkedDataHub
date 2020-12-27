@@ -576,9 +576,7 @@ exclude-result-prefixes="#all">
                             <xsl:choose>
                                 <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
                                     <xsl:for-each select="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
-                                        <xsl:value-of>
-                                            <xsl:apply-templates select="." mode="ac:label"/>
-                                        </xsl:value-of>
+                                        <xsl:value-of select="ac:label(.)"/> <!-- uppercase first letter -->
                                         
                                         <xsl:if test="ac:description(.)">
                                             <span class="description">
