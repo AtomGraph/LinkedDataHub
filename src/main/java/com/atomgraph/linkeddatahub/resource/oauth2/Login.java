@@ -16,6 +16,7 @@ import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Skolemizer;
@@ -84,6 +85,7 @@ public class Login extends ResourceBase
     private final String emailSubject;
     private final String emailText;
     private final Query userAccountQuery;
+    private final String clientID, clientSecret;
     
     @Inject
     public Login(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
@@ -122,12 +124,17 @@ public class Login extends ResourceBase
         if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.oAuthSignUpEMailText));
         
         userAccountQuery = system.getUserAccountQuery();
+        clientID = (String)system.getProperty(Google.clientID.getURI());
+        clientSecret = (String)system.getProperty(Google.clientSecret.getURI());
     }
     
     @GET
     @Override
     public Response get()
     {
+        if (getClientID() == null) throw new ConfigurationException(Google.clientID);
+        if (getClientSecret() == null) throw new ConfigurationException(Google.clientSecret);
+        
         String error = getUriInfo().getQueryParameters().getFirst("error");
         
         if (error != null)
@@ -141,9 +148,9 @@ public class Login extends ResourceBase
 
         Form form = new Form().
             param("grant_type", "authorization_code").
-            param("client_id", "94623832214-l46itt9or8ov4oejndd15b2gv266aqml.apps.googleusercontent.com").
+            param("client_id", getClientID()).
             param("redirect_uri", getUriInfo().getAbsolutePath().toString()).
-            param("client_secret", "ht4oxEyihCcSrcZCtseJ4dQ8"). // TO-DO: move to config!
+            param("client_secret", getClientSecret()).
             param("code", code);
                 
         try (Response cr = getSystem().getClient().target(TOKEN_ENDPOINT).
@@ -357,6 +364,16 @@ public class Login extends ResourceBase
     public Query getUserAccountQuery()
     {
         return userAccountQuery;
+    }
+    
+    private String getClientID()
+    {
+        return clientID;
+    }
+    
+    private String getClientSecret()
+    {
+        return clientSecret;
     }
     
 }

@@ -724,6 +724,14 @@ if [ -n "$MAIL_PASSWORD" ] ; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
 
+if [ -n "$GOOGLE_CLIENT_ID" ] ; then
+    GOOGLE_CLIENT_ID_PARAM="--stringparam google:clientID '$GOOGLE_CLIENT_ID' "
+fi
+
+if [ -n "$GOOGLE_CLIENT_SECRET" ] ; then
+    GOOGLE_CLIENT_SECRET_PARAM="--stringparam google:clientSecret '$GOOGLE_CLIENT_SECRET' "
+fi
+
 transform="xsltproc \
   --output conf/Catalina/localhost/ROOT.xml \
   $CACHE_MODEL_LOADS_PARAM \
@@ -748,6 +756,8 @@ transform="xsltproc \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \
   $MAIL_PASSWORD_PARAM \
+  $GOOGLE_CLIENT_ID_PARAM \
+  $GOOGLE_CLIENT_SECRET_PARAM \
   conf/context.xsl \
   conf/Catalina/localhost/ROOT.xml"
 

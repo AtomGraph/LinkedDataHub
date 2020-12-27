@@ -3,12 +3,14 @@
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY aplc   "https://w3id.org/atomgraph/linkeddatahub/config#">
+    <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
 ]>
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
 xmlns:aplc="&aplc;"
+xmlns:google="&google;"
 >
   
     <xsl:output method="xml" indent="yes"/>
@@ -35,6 +37,8 @@ xmlns:aplc="&aplc;"
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
     <xsl:param name="mail.password"/>
+    <xsl:param name="google:clientID"/>
+    <xsl:param name="google:clientSecret"/>
 
     <xsl:template match="@*|node()">
         <xsl:copy>
@@ -111,6 +115,12 @@ xmlns:aplc="&aplc;"
             </xsl:if>
             <xsl:if test="$mail.password">
                 <Parameter name="mail.password" value="{$mail.password}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$google:clientID">
+                <Parameter name="&google;clientID" value="{$google:clientID}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$google:clientSecret">
+                <Parameter name="&google;clientSecret" value="{$google:clientSecret}" override="false"/>
             </xsl:if>
 
             <xsl:apply-templates select="node()"/>

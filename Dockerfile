@@ -130,6 +130,10 @@ ENV MAX_TOTAL_CONN=40
 
 ENV IMPORT_KEEPALIVE=
 
+ENV GOOGLE_CLIENT_ID=
+
+ENV GOOGLE_CLIENT_SECRET=
+
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN rm -rf webapps/* && \

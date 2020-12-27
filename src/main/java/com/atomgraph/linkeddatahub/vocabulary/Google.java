@@ -17,7 +17,7 @@ public class Google
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "\"https://w3id.org/atomgraph/linkeddatahub/services/google#"; // TO-DO: change namespace URI to w3id.org
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/services/google#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */

@@ -20,8 +20,10 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACLT;
 import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.model.TemplateCall;
@@ -51,13 +53,13 @@ import org.slf4j.LoggerFactory;
  */
 public class Authorize extends ResourceBase
 {
+    private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     public static final String ENDPOINT_URI = "https://accounts.google.com/o/oauth2/v2/auth";
-    public static final String SCOPE = "openid email profile"; // "email profile";
+    public static final String SCOPE = "openid email profile";
 
-
-    private static final Logger log = LoggerFactory.getLogger(Item.class);
-
+    private final String clientID;
+    
     @Inject
     public Authorize(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
@@ -77,20 +79,13 @@ public class Authorize extends ResourceBase
             system);
         
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        clientID = (String)system.getProperty(Google.clientID.getURI());
     }
     
     @Override
     public Response get()
     {
-        String clientID = "94623832214-l46itt9or8ov4oejndd15b2gv266aqml.apps.googleusercontent.com"; // TO-DO: config
-        
-//        Statement clientStmt = getApplication().getProperty(Google.clientID);
-//        if (clientStmt == null || !clientStmt.getObject().isLiteral())
-//        {
-//            if (log.isWarnEnabled()) log.warn("Google client ID not specified for application '{}'", getApplication().getURI());
-//            throw new WebApplicationException(new IllegalStateException("Google client ID not specified for application '" + getApplication().getURI() + "'"));
-//        }
-//        String clientID = clientStmt.getString();
+        if (getClientID() == null) throw new ConfigurationException(Google.clientID);
 
         URI redirectUri = getUriInfo().getBaseUriBuilder().
             path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).
@@ -101,7 +96,7 @@ public class Authorize extends ResourceBase
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
             queryParam("response_type", "code").
-            queryParam("client_id", clientID).
+            queryParam("client_id", getClientID()).
             queryParam("redirect_uri", redirectUri).
             queryParam("scope", SCOPE).
             queryParam("state", state).
@@ -110,4 +105,9 @@ public class Authorize extends ResourceBase
         return Response.seeOther(authUriBuilder.build()).build();
     }
         
+    private String getClientID()
+    {
+        return clientID;
+    }
+    
 }

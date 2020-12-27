@@ -105,6 +105,7 @@ import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExcepti
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.processor.model.Parameter;
 import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.model.TemplateCall;
@@ -291,7 +292,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
-            servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null
+            servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null,
+            servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
         );
 
         URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI())) : null;
@@ -317,7 +320,8 @@ public class Application extends ResourceConfig
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
-            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort)
+            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
+            final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
         {
@@ -428,6 +432,8 @@ public class Application extends ResourceConfig
         this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
+        this.property(Google.clientID.getURI(), googleClientID);
+        this.property(Google.clientSecret.getURI(), googleClientSecret);
         
         try
         {
