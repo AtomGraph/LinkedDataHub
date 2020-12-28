@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Priority(Priorities.ENTITY_CODER)
+@Priority(Priorities.ENTITY_CODER + 10) // execute after the ContentLengthLimitInterceptor
 public class RDFPostCleanupInterceptor implements ReaderInterceptor
 {
 
@@ -62,7 +62,7 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
         if (context.getMediaType() != null && context.getMediaType().isCompatible(MediaType.APPLICATION_FORM_URLENCODED_TYPE))
         {
             StringWriter writer = new StringWriter();
-            IOUtils.copy(context.getInputStream(), writer);;
+            IOUtils.copy(context.getInputStream(), writer, StandardCharsets.UTF_8);
             
             String formData = writer.toString();
             
@@ -189,18 +189,5 @@ public class RDFPostCleanupInterceptor implements ReaderInterceptor
             return baos.toString(StandardCharsets.UTF_8.name());
         }
     }
-//    
-//    @Override
-//    public ContainerRequestFilter getRequestFilter()
-//    {
-//        return this;
-//    }
-//
-//    @Override
-//    public ContainerResponseFilter getResponseFilter()
-//    {
-//        return null;
-//    }
-
     
 }

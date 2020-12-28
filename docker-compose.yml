@@ -41,6 +41,7 @@ services:
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - IMPORT_KEEPALIVE=300000
+      - MAX_CONTENT_LENGTH=2097152
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
@@ -53,6 +54,8 @@ services:
       - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
       - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
       - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
+      # - GOOGLE_CLIENT_ID=
+      # - GOOGLE_CLIENT_SECRET=
     volumes:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
       - ./uploads:/var/www/linkeddatahub/uploads

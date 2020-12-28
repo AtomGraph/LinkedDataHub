@@ -708,6 +708,10 @@ if [ -n "$OWNER_AUTH_QUERY" ] ; then
     OWNER_AUTH_QUERY_PARAM="--stringparam aplc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
 fi
 
+if [ -n "$MAX_CONTENT_LENGTH" ] ; then
+    MAX_CONTENT_LENGTH_PARAM="--stringparam aplc:maxContentLength '$MAX_CONTENT_LENGTH' "
+fi
+
 if [ -n "$MAX_CONN_PER_ROUTE" ] ; then
     MAX_CONN_PER_ROUTE_PARAM="--stringparam aplc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
 fi
@@ -749,6 +753,7 @@ transform="xsltproc \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
   $OWNER_AUTH_QUERY_PARAM \
+  $MAX_CONTENT_LENGTH_PARAM \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
   $IMPORT_KEEPALIVE_PARAM \

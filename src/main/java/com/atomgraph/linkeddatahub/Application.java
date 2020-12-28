@@ -101,6 +101,7 @@ import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -244,6 +245,7 @@ public class Application extends ResourceConfig
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
+    private final Integer maxContentLength;
     private final Authenticator authenticator;
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
@@ -285,6 +287,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
@@ -318,7 +321,7 @@ public class Application extends ResourceConfig
             final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
             final String baseURIString,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final CacheControl authCacheControl,
+            final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
             final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
@@ -432,6 +435,7 @@ public class Application extends ResourceConfig
         this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
+        this.maxContentLength = maxPostSize;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -740,6 +744,7 @@ public class Application extends ResourceConfig
         register(WebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
+        register(ContentLengthLimitFilter.class);
         register(new RDFPostCleanupInterceptor());
     }
     
@@ -1173,6 +1178,11 @@ public class Application extends ResourceConfig
         return cookieMaxAge;
     }
 
+    public Integer getMaxContentLength()
+    {
+        return maxContentLength;
+    }
+    
     public CacheControl getAuthCacheControl()
     {
         return authCacheControl;

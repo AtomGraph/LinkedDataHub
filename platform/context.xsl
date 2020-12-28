@@ -30,6 +30,7 @@ xmlns:google="&google;"
     <xsl:param name="aplc:contextDataset"/>
     <xsl:param name="aplc:authQuery"/>
     <xsl:param name="aplc:ownerAuthQuery"/>
+    <xsl:param name="aplc:maxContentLength"/>
     <xsl:param name="aplc:maxConnPerRoute"/>
     <xsl:param name="aplc:maxTotalConn"/>
     <xsl:param name="aplc:importKeepAlive"/>
@@ -94,6 +95,9 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$aplc:ownerAuthQuery">
                 <Parameter name="&aplc;ownerAuthQuery" value="{$aplc:ownerAuthQuery}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$aplc:maxContentLength">
+                <Parameter name="&aplc;maxContentLength" value="{$aplc:maxContentLength}" override="false"/>
             </xsl:if>
             <xsl:if test="$aplc:maxConnPerRoute">
                 <Parameter name="&aplc;maxConnPerRoute" value="{$aplc:maxConnPerRoute}" override="false"/>

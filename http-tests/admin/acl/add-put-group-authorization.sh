@@ -50,6 +50,7 @@ curl -k -w "%{http_code}\n" -f -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-quads" \
+  -H "Content-Length: 0" \
   -X PUT \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_OK}"
