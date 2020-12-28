@@ -24,6 +24,7 @@ file_content_type="text/plain" # content type doesn't matter -- only Content-Len
 curl -w "%{http_code}\n" -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: ${file_content_type}" \
+  -H "Accept: text/turtle" \
   --data-binary "@${file}" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_REQUEST_ENTITY_TOO_LARGE}"

@@ -18,7 +18,7 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaType;
-import com.atomgraph.linkeddatahub.exception.ImportException;
+import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.imports.StreamRDFOutput;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutputWriter;
 import java.io.IOException;

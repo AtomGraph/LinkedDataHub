@@ -29,6 +29,7 @@ export STATUS_UNAUTHORIZED=401
 export STATUS_FORBIDDEN=403
 export STATUS_NOT_FOUND=404
 export STATUS_NOT_ACCEPTABLE=406
+export STATUS_REQUEST_ENTITY_TOO_LARGE=413
 export STATUS_UNSUPPORTED_MEDIA=415
 export STATUS_INTERNAL_SERVER_ERROR=500
 export STATUS_NOT_IMPLEMENTED=501
@@ -118,6 +119,10 @@ run_tests $(find . -type f -name 'HEAD-accept.sh')
 run_tests $(find . -type f -name 'GET-proxied.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'GET-proxied-external.sh')
+(( error_count += $? ))
+run_tests $(find . -type f -name 'POST-content-length-413.sh')
+(( error_count += $? ))
+run_tests $(find . -type f -name 'POST-transfer-chunked-413.sh')
 (( error_count += $? ))
 run_tests $(find ./admin/ -type f -name '*.sh')
 (( error_count += $? ))

@@ -23,7 +23,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-import com.atomgraph.linkeddatahub.exception.auth.AuthorizationException;
+import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;

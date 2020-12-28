@@ -23,19 +23,19 @@ file="$(mktemp)"
 
 for ((i=1; i <= 60000; i++)) ;
 do
-    echo -e "<http://s> <http://p> <http://o> <http://g> ." >> "$file" ;
+  echo -e "<http://s> <http://p> <http://o> <http://g> ." >> "$file" ;
 done
-
-stat --printf="%s" "$file" # check the file size
 
 file_content_type="application/n-quads" # content type doesn't matter -- only Content-Length
 
-# unset the Content-Length header
+# stream data - use chunked encoding
 
 curl -w "%{http_code}\n" -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: ${file_content_type}" \
-  -H "Content-Length:" \
+  -H "Accept: text/turtle" \
+  -H "Transfer-Encoding: chunked" \
+  -H "Expect:" \
   --data-binary "@${file}" \
-  "${END_USER_BASE_URL}"
-# | grep -q "${STATUS_REQUEST_ENTITY_TOO_LARGE}"
+  "${END_USER_BASE_URL}" \
+| grep -q "${STATUS_REQUEST_ENTITY_TOO_LARGE}"

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception;
+package com.atomgraph.linkeddatahub.server.exception;
 
 import java.util.List;
 import org.apache.jena.rdf.model.Model;

@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper;
 
-import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
+import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.model.QueriedResource;
 import javax.ws.rs.container.ResourceContext;

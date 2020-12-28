@@ -14,28 +14,29 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception.auth.webid;
+package com.atomgraph.linkeddatahub.server.exception;
+
+import org.apache.jena.rdf.model.Model;
 
 /**
- * WebID URI exception.
- * Thrown when the WebID is not a valid URI.
+ * Exception thrown when data import terminates unexpectedly.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class InvalidWebIDURIException extends RuntimeException
+public class ImportException extends RuntimeException
 {
     
-    private final String uri;
+    private final Model model;
     
-    public InvalidWebIDURIException(String uri)
+    public ImportException(String message, Model model)
     {
-        super("Could not parse WebID URI: '" + uri + "'");
-        this.uri = uri;
+        super(message);
+        this.model = model;
     }
     
-    public String getURI()
+    public Model getModel()
     {
-        return uri;
+        return model;
     }
     
 }

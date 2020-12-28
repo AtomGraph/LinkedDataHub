@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Priority(Priorities.ENTITY_CODER + 10) // execute after the ContentLengthLimitInterceptor
+@Priority(Priorities.ENTITY_CODER)
 public class RDFPostCleanupInterceptor implements ReaderInterceptor
 {
 

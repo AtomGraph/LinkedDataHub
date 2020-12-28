@@ -36,7 +36,7 @@ import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdf.model.RDFWriter;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
-import com.atomgraph.linkeddatahub.exception.RDFSyntaxException;
+import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.ConstraintViolationException;

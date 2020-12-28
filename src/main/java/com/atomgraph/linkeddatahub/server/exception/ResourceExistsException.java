@@ -14,29 +14,39 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception;
+package com.atomgraph.linkeddatahub.server.exception;
 
+import com.atomgraph.server.exception.ModelException;
+import java.net.URI;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 
 /**
- * Exception thrown when data import terminates unexpectedly.
+ * Exception thrown when a write request attempts to construct a resource with a URI that already exists in the service dataset.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ImportException extends RuntimeException
+public class ResourceExistsException extends ModelException
 {
-    
-    private final Model model;
-    
-    public ImportException(String message, Model model)
+
+    private final URI uri;
+    private final Resource resource;
+
+    public ResourceExistsException(URI uri, Resource resource, Model model)
     {
-        super(message);
-        this.model = model;
+        super(model);
+        this.uri = uri;
+        this.resource = resource;
+    }
+
+    public URI getURI()
+    {
+        return uri;
     }
     
-    public Model getModel()
+    public Resource getResource()
     {
-        return model;
+        return resource;
     }
-    
+
 }

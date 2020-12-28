@@ -14,29 +14,21 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.server.util.stream;
+package com.atomgraph.linkeddatahub.server.exception;
 
-import java.io.IOException;
-import java.io.InputStream;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.core.Response;
 
 /**
  *
  * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public class RejectTooLongInputStream extends LimitedInputStream
+public class PayloadTooLargeException extends ClientErrorException
 {
 
-    public RejectTooLongInputStream(InputStream inputStream, long pSizeMax)
+    public PayloadTooLargeException(long maxPayloadSize, long payloadSize) // TO-DO: use sizes to generate a message?
     {
-        super(inputStream, pSizeMax);
-    }
-
-    @Override
-    protected void raiseError(long pSizeMax, long pCount) throws IOException
-    {
-        throw new WebApplicationException(Response.Status.REQUEST_ENTITY_TOO_LARGE);
+        super(Response.Status.REQUEST_ENTITY_TOO_LARGE);
     }
     
 }

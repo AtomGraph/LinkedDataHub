@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
-import com.atomgraph.linkeddatahub.exception.auth.webid.InvalidWebIDPublicKeyException;
+import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;

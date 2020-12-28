@@ -14,24 +14,28 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception.auth.webid;
-
-import java.net.URI;
-import javax.ws.rs.core.Response;
+package com.atomgraph.linkeddatahub.server.exception.auth.webid;
 
 /**
- * 
- * WebID loading exception.
- * Thrown if WebID URI cannot be successfully dereferenced to an RDF document.
+ * WebID URI exception.
+ * Thrown when the WebID is not a valid URI.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class WebIDLoadingException extends RuntimeException
+public class InvalidWebIDURIException extends RuntimeException
 {
     
-    public WebIDLoadingException(URI webID, Response cr)
+    private final String uri;
+    
+    public InvalidWebIDURIException(String uri)
     {
-        super("WebID profile could not be loaded: " + webID);
+        super("Could not parse WebID URI: '" + uri + "'");
+        this.uri = uri;
+    }
+    
+    public String getURI()
+    {
+        return uri;
     }
     
 }

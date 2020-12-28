@@ -16,7 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
-import com.atomgraph.linkeddatahub.exception.auth.webid.WebIDCertificateException;
+import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDCertificateException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

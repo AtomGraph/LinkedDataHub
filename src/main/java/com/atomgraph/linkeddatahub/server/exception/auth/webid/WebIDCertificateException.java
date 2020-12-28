@@ -14,19 +14,22 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception;
+package com.atomgraph.linkeddatahub.server.exception.auth.webid;
+
+import java.security.cert.CertificateException;
 
 /**
- *
+ * WebID certificate exception.
+ * Thrown when the SSL client certificate cannot parse, is expired or not yet valid.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@Deprecated
-public class MissingNamedGraphException extends RuntimeException
+public class WebIDCertificateException extends RuntimeException
 {
     
-    public MissingNamedGraphException(String message)
+    public WebIDCertificateException(CertificateException ex)
     {
-        super(message);
+        super(ex);
     }
     
 }

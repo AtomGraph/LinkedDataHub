@@ -14,39 +14,22 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception;
+package com.atomgraph.linkeddatahub.server.exception.auth.webid;
 
-import com.atomgraph.server.exception.ModelException;
-import java.net.URI;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 
 /**
- * Exception thrown when a write request attempts to construct a resource with a URI that already exists in the service dataset.
+ * WebID delegation exception.
+ * Thrown if it cannot be verified that an agent delegates a principal agent.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ResourceExistsException extends ModelException
+public class WebIDDelegationException extends RuntimeException
 {
-
-    private final URI uri;
-    private final Resource resource;
-
-    public ResourceExistsException(URI uri, Resource resource, Model model)
+    
+    public WebIDDelegationException(Resource agent, Resource principal)
     {
-        super(model);
-        this.uri = uri;
-        this.resource = resource;
-    }
-
-    public URI getURI()
-    {
-        return uri;
+        super("Agent '" + agent.getURI() + "' does not delegate (acl:delegates) the agent '" + principal.getURI() + "'");
     }
     
-    public Resource getResource()
-    {
-        return resource;
-    }
-
 }

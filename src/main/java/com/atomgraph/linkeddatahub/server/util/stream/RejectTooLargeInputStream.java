@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,33 +14,28 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.exception;
+package com.atomgraph.linkeddatahub.server.util.stream;
 
+import com.atomgraph.linkeddatahub.server.exception.PayloadTooLargeException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import javax.xml.transform.TransformerConfigurationException;
+import java.io.InputStream;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-@Deprecated
-public class XSLTException extends RuntimeException
+public class RejectTooLargeInputStream extends LimitedInputStream
 {
 
-    public XSLTException(TransformerConfigurationException ex)
+    public RejectTooLargeInputStream(InputStream inputStream, long pSizeMax)
     {
-        super(ex);
+        super(inputStream, pSizeMax);
     }
 
-    public XSLTException(IOException ex)
+    @Override
+    protected void raiseError(long pSizeMax, long pCount) throws IOException
     {
-        super(ex);
-    }
-    
-    public XSLTException(URISyntaxException ex)
-    {
-        super(ex);
+        throw new PayloadTooLargeException(pSizeMax, pCount);
     }
     
 }

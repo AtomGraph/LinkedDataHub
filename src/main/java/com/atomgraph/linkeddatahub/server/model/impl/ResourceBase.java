@@ -26,7 +26,7 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.exception.ResourceExistsException;
+import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
