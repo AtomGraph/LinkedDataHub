@@ -19,7 +19,7 @@ popd > /dev/null
 
 file="$(mktemp)"
 
-# generate ~3M of N-Triples assuming MAX_CONTENT_LENGTH is set to 2M
+# generate ~3MB of N-Triples assuming MAX_CONTENT_LENGTH is set to 2MB
 
 for ((i=1; i <= 60000; i++)) ;
 do

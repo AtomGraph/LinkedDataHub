@@ -18,7 +18,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 popd > /dev/null
 
 file="$(mktemp)"
-truncate -s 3M "${file}" # assuming MAX_CONTENT_LENGTH is set to 2M
+truncate -s 3M "${file}" # assuming MAX_CONTENT_LENGTH is set to 2MB
 file_content_type="text/plain" # content type doesn't matter -- only Content-Length
 
 curl -w "%{http_code}\n" -k -s \
