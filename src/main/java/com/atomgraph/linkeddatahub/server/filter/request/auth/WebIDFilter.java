@@ -133,7 +133,7 @@ public class WebIDFilter extends AuthenticationFilter
                 Model principalWebIDModel = loadWebID(principalWebID);
                 Resource principal = principalWebIDModel.createResource(onBehalfOf);
                 // if we verify that the current agent is a secretary of the principal, that principal becomes current agent. Else throw error
-                if (agent.equals(principal) || agent.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
+                if (agent.equals(principal) || principal.getModel().contains(agent, ACL.delegates, principal)) agent = principal;
                 else throw new WebIDDelegationException(agent, principal);
             }
 

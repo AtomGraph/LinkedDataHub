@@ -138,39 +138,64 @@ WHERE
 :AgentItem a ldt:Template ;
     ldt:extends aplt:Document ;
     ldt:match "/acl/agents/{slug}/" ;
-    ldt:query :DescribeAgentItem ;
+    ldt:query :ConstructAgentItem ;
     rdfs:label "Agent item template" ;
     rdfs:isDefinedBy : .
 
-:DescribeAgentItem a sp:Construct, ldt:Query ;
-    rdfs:label "DESCRIBE Agent Item" ;
+:ConstructAgentItem a sp:Construct, ldt:Query ;
+    rdfs:label "CONSTRUCT AgentItem" ;
     sp:text """
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  cert: <http://www.w3.org/ns/auth/cert#>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
-DESCRIBE ?this ?agent ?key ?secretary ?account ?group ?auth
+CONSTRUCT 
+  { 
+    ?this foaf:primaryTopic ?agent .
+    ?this ?thisP ?thisO .
+    ?this dct:created ?created .
+    ?agent a ?type .
+    ?agent foaf:name ?name .
+    ?agent foaf:givenName ?givenName .
+    ?agent foaf:familyName ?familyName .
+    ?agent cert:key ?key .
+    ?secretary acl:delegates ?agent .
+    ?secretary foaf:name ?secretaryName .
+    ?key ?keyP ?keyO .
+    ?agent foaf:account ?account .
+    ?account ?accountP ?accountO .
+  }
 WHERE
   { GRAPH ?graph
-      { ?this  foaf:primaryTopic  ?agent
+      { ?this  foaf:primaryTopic  ?agent ;
+               ?thisP             ?thisO .
+        GRAPH ?provGraph
+          { ?this  dct:created  ?created }
+        ?agent  a ?type .
         OPTIONAL
-          { ?agent  cert:key  ?key }
+          { ?agent  foaf:name  ?name }
+        OPTIONAL
+          { ?agent  foaf:givenName   ?givenName ;
+                    foaf:familyName  ?familyName
+          }
         OPTIONAL
           { GRAPH ?secretaryGraph
-              { ?secretary  acl:delegates  ?agent }
+              { ?secretary  acl:delegates  ?agent
+                OPTIONAL
+                  { ?secretary  foaf:name  ?secretaryName }
+              }
           }
         OPTIONAL
-          { GRAPH ?accountGraph
-              { ?account  sioc:account_of  ?agent }
+          { ?agent  cert:key  ?key
+            GRAPH ?keyGraph
+              { ?key  ?keyP  ?keyO }
           }
         OPTIONAL
-          { GRAPH ?groupGraph
-              { ?group  foaf:member  ?agent }
-          }
-        OPTIONAL
-          { GRAPH ?authGraph
-              { ?auth  acl:agent  ?agent }
+          { ?agent  foaf:account  ?account
+            GRAPH ?accountGraph
+              { ?account  ?accountP  ?accountO }
           }
       }
   }""" ;
@@ -186,16 +211,15 @@ WHERE
 #     rdfs:isDefinedBy : .
 # 
 # :DescribeUserAccountItem a sp:Construct, ldt:Query ;
-#     rdfs:label "DESCRIBE UserAccount Item" ;
+#     rdfs:label "DESCRIBE UserAccountItem" ;
 #     sp:text """
 # PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 # PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 # 
-# DESCRIBE ?this ?account ?agent
+# DESCRIBE ?this ?account
 # WHERE
 #   { GRAPH ?graph
 #       { ?this     foaf:primaryTopic  ?account .
-#         ?account  sioc:account_of    ?agent
 #       }
 #   }""" ;
 #     rdfs:isDefinedBy : .
