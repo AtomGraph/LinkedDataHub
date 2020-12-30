@@ -56,6 +56,8 @@ public class APLC
 
     public static final DatatypeProperty webIDQuery = m_model.createDatatypeProperty( NS + "webIDQuery" );
     
+    public static final DatatypeProperty agentQuery = m_model.createDatatypeProperty( NS + "agentQuery" );
+
     public static final DatatypeProperty userAccountQuery = m_model.createDatatypeProperty( NS + "userAccountQuery" );
 
     public static final DatatypeProperty authCacheControl = m_model.createDatatypeProperty( NS + "authCacheControl" );

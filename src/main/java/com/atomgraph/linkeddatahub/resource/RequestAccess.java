@@ -41,6 +41,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
@@ -49,13 +50,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -80,7 +81,7 @@ public class RequestAccess extends ResourceBase
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
-    private final String agentQueryString;
+    private final Query agentQuery;
 
     @Inject
     public RequestAccess(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
@@ -98,6 +99,7 @@ public class RequestAccess extends ResourceBase
                 httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
+        agentQuery = system.getAgentQuery();
         
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
@@ -120,15 +122,12 @@ public class RequestAccess extends ResourceBase
         
         emailText = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailText.getURI());
         if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.requestAccessEMailText));
-        
-        agentQueryString = "DESCRIBE ?Agent WHERE { GRAPH ?g { ?Agent ?p ?o } }"; // TO-DO: move to config
     }
     
     @Override
     public Response construct(InfModel infModel)
     {
-        if (!getTemplateCall().get().hasArgument(APLT.forClass))
-            throw new WebApplicationException(new IllegalStateException("aplt:forClass argument is mandatory for aplt:RequestAccess template"), BAD_REQUEST);
+        if (!getTemplateCall().get().hasArgument(APLT.forClass)) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:RequestAccess template");
 
         Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
         ResIterator it = infModel.getRawModel().listResourcesWithProperty(RDF.type, forClass);
@@ -143,9 +142,8 @@ public class RequestAccess extends ResourceBase
             if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
             String ownerURI = owner.getURI();
                     
-            ParameterizedSparqlString pss = new ParameterizedSparqlString(agentQueryString);
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.Agent.getLocalName(), owner);
-            
             // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
             Model agentModel = getAdminService().getSPARQLClient().loadModel(pss.asQuery());
             owner = agentModel.getResource(ownerURI);
@@ -225,6 +223,11 @@ public class RequestAccess extends ResourceBase
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder;
+    }
+    
+    public Query getAgentQuery()
+    {
+        return agentQuery;
     }
     
 }

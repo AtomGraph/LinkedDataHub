@@ -229,7 +229,7 @@ public class Application extends ResourceConfig
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, userAccountQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
     private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
@@ -276,6 +276,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
@@ -316,7 +317,7 @@ public class Application extends ResourceConfig
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final boolean remoteVariableBindings,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String userAccountQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString, final String sitemapQueryString,
             final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
             final String baseURIString,
@@ -371,6 +372,13 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(APLC.userAccountQuery);
         }
         this.userAccountQuery = QueryFactory.create(userAccountQueryString);
+        
+        if (agentQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
+            throw new ConfigurationException(APLC.agentQuery);
+        }
+        this.agentQuery = QueryFactory.create(agentQueryString);
         
         if (baseURIString == null)
         {
@@ -1081,6 +1089,11 @@ public class Application extends ResourceConfig
     public Query getWebIDQuery()
     {
         return webIDQuery;
+    }
+    
+    public Query getAgentQuery()
+    {
+        return agentQuery;
     }
     
     public Query getUserAccountQuery()

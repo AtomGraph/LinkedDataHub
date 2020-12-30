@@ -71,13 +71,13 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
@@ -192,8 +192,7 @@ public class SignUp extends ResourceBase
     @Override
     public Response construct(InfModel infModel)
     {
-        if (!getTemplateCall().get().hasArgument(APLT.forClass))
-            throw new WebApplicationException(new IllegalStateException("dh:forClass argument is mandatory for aplt:SignUp template"), BAD_REQUEST);
+        if (!getTemplateCall().get().hasArgument(APLT.forClass)) throw new BadRequestException("dh:forClass argument is mandatory for aplt:SignUp template");
         
         Model model = infModel.getRawModel();
         try

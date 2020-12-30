@@ -161,6 +161,7 @@ CONSTRUCT
     ?agent foaf:givenName ?givenName .
     ?agent foaf:familyName ?familyName .
     ?agent cert:key ?key .
+    ?secretary a ?secretaryType .
     ?secretary acl:delegates ?agent .
     ?secretary foaf:name ?secretaryName .
     ?key ?keyP ?keyO .
@@ -170,10 +171,10 @@ CONSTRUCT
 WHERE
   { GRAPH ?graph
       { ?this  foaf:primaryTopic  ?agent ;
-               ?thisP             ?thisO .
+               ?thisP             ?thisO
         GRAPH ?provGraph
           { ?this  dct:created  ?created }
-        ?agent  a ?type .
+        ?agent  a  ?type
         OPTIONAL
           { ?agent  foaf:name  ?name }
         OPTIONAL
@@ -182,7 +183,8 @@ WHERE
           }
         OPTIONAL
           { GRAPH ?secretaryGraph
-              { ?secretary  acl:delegates  ?agent
+              { ?secretary  a            ?secretaryType ;
+                          acl:delegates  ?agent
                 OPTIONAL
                   { ?secretary  foaf:name  ?secretaryName }
               }
@@ -198,7 +200,8 @@ WHERE
               { ?account  ?accountP  ?accountO }
           }
       }
-  }""" ;
+  }
+""" ;
     rdfs:isDefinedBy : .
 
 # user account

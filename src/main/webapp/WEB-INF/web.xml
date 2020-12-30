@@ -154,6 +154,16 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
+        <param-value><![CDATA[
+DESCRIBE ?Agent
+WHERE
+  { GRAPH ?g
+      { ?Agent  ?p  ?o }
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#userAccountQuery</param-name>
         <param-value><![CDATA[
 PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>

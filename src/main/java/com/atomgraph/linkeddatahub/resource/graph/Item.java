@@ -200,7 +200,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
 //        catch (URISyntaxException ex)
 //        {
 //            if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-//            throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+//            throw new BadRequestException(ex);
 //        }
 //        catch (IOException ex)
 //        {
