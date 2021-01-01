@@ -19,7 +19,7 @@ popd > /dev/null
 
 graph_sha1=$(echo -n "$END_USER_BASE_URL" | sha1sum | cut -d " " -f 1)
 
-curl -k -w "%{http_code}\n" -f -v -G \
+curl -k -w "%{http_code}\n" -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}graphs/${graph_sha1}/" \

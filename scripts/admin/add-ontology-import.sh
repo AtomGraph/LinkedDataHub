@@ -45,9 +45,9 @@ ontology_doc="$1"
 
 # extract ontology URI and graph URI from app document N-Triples description (slashes in ${ontology_doc} need to be escaped before passing to sed)
 
-ontology=$(curl -s -v -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+ontology=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
-graph_doc=$(curl -s -v -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
+graph_doc=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
 
 sparql+="PREFIX owl:	<http://www.w3.org/2002/07/owl#>\n"
 sparql+="INSERT DATA {\n"
@@ -58,4 +58,4 @@ sparql+="}\n"
 
 # PATCH SPARQL to the named graph
 
-echo -e "$sparql" | curl -X PATCH --data-binary @- -v -k -E "$cert_pem_file":"$cert_password" "$graph_doc" -H "Content-Type: application/sparql-update"
+echo -e "$sparql" | curl -X PATCH --data-binary @- -s -k -E "$cert_pem_file":"$cert_password" "$graph_doc" -H "Content-Type: application/sparql-update"

@@ -11,4 +11,4 @@ fi
 auth_token=$1
 repository=$2
 
-curl -v -X DELETE "${repository}/service?auth_token=${auth_token}"
+curl -s -X DELETE "${repository}/service?auth_token=${auth_token}"

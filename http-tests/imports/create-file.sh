@@ -49,7 +49,7 @@ file=$(echo "$file_ntriples" \
 
 echo "$file" # file URL used in other tests
 
-curl --head -k -w "%{http_code}\n" -f -v \
+curl --head -k -w "%{http_code}\n" -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: ${file_content_type}" \
   "$file" \

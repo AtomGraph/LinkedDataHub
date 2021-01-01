@@ -18,7 +18,7 @@ etag=$(
 
 popd > /dev/null
 
-curl -k -w "%{http_code}\n" -f -v -G \
+curl -k -w "%{http_code}\n" -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/csv" \
   "$file" \

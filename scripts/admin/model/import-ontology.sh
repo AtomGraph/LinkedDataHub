@@ -73,4 +73,4 @@ turtle+="_:arg ldt:paramName \"source\".\n"
 turtle+="_:arg rdf:value <${source}>.\n"
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | curl -v -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -
+echo -e "$turtle" | turtle --base="$base" | curl -s -k -E "$cert_pem_file":"$cert_password" -d @- -H "Content-Type: $content_type" -H "Accept: text/turtle" "$target" -s -D -
