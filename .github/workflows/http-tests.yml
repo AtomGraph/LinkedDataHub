@@ -23,7 +23,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t atomgraph/linkeddatahub .
       - name: Create .env file
-        run: print-env-file.sh > .env
+        run: ./print-env-file.sh > .env
         working-directory: http-tests
       - name: Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml up -d # do not use Varnish cache for tests; run in the background
