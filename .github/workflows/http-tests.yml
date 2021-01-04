@@ -23,7 +23,7 @@ jobs:
       #- name: Build Docker image
       #  run: docker build -t atomgraph/linkeddatahub .
       - name: Create .env file
-        run: ./print-env-file.sh > .env
+        run: "./print-env-file.sh > .env"
         working-directory: http-tests
       - run: ls -l && ls -l http-tests
       - name: Run Docker containers
