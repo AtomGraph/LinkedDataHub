@@ -10,7 +10,7 @@ jobs:
       ASF_ARCHIVE: http://archive.apache.org/dist/
       JENA_VERSION: 3.13.1
       JENA_HOME: "/home/user/opt/apache-jena-${JENA_VERSION}"
-      PATH: "$PATH:$JENA_HOME/bin"
+      # PATH: "$PATH:$JENA_HOME/bin"
       BASE_URI: https://localhost:4443/
       OWNER_CERT_PWD: changeit
       SECRETARY_CERT_PWD: LinkedDataHub
