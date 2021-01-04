@@ -27,6 +27,8 @@ jobs:
       - name: Wait for the server to start...
         run: while ! curl -w "%{http_code}\n" -k -s "$BASE_URI" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
       - run: ls -l && ls -l certs
+      - run: openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_CERT_PWD" -passout pass:"$OWNER_CERT_PWD" # re-generate the owner PEM cert - seems to differ with different openssl versions?
+      - run: openssl pkcs12 -in ./certs/secretary.p12 -out ./http-tests/secretary.p12.pem -passin pass:"$SECRETARY_CERT_PWD" -passout pass:"$SECRETARY_CERT_PWD" # re-generate the secretary PEM cert - seems to differ with different openssl
       - name: Run HTTP test scripts
         # run: ./run.sh "$PWD/owner.p12.pem" "$OWNER_CERT_PWD" "$PWD/secretary.p12.pem" "$SECRETARY_CERT_PWD" # run tests
         run: echo "$PWD/owner.p12.pem" "$OWNER_CERT_PWD" "$PWD/secretary.p12.pem" "$SECRETARY_CERT_PWD"
