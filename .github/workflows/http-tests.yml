@@ -26,6 +26,7 @@ jobs:
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
       - name: Wait for the server to start...
         run: while ! curl -w "%{http_code}\n" -k -s "$BASE_URI" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+      - run: ls -l && ls -l certs
       - name: Run HTTP test scripts
         # run: ./run.sh "$PWD/owner.p12.pem" "$OWNER_CERT_PWD" "$PWD/secretary.p12.pem" "$SECRETARY_CERT_PWD" # run tests
         run: echo "$PWD/owner.p12.pem" "$OWNER_CERT_PWD" "$PWD/secretary.p12.pem" "$SECRETARY_CERT_PWD"
