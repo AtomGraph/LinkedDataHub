@@ -36,6 +36,10 @@ jobs:
         shell: bash
         working-directory: http-tests
       - run: ./run.sh "$PWD/owner.p12.pem" "$OWNER_CERT_PWD" "$PWD/secretary.p12.pem" "$SECRETARY_CERT_PWD" # run tests
+        env:
+          PATH: "$PATH:$JENA_HOME/bin"
+        shell: bash
+        working-directory: http-tests
       - run: ls -l
       - name: Stop Docker containers
         run: docker-compose down # shutdown fuseki and processor
