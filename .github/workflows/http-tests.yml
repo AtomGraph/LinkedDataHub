@@ -26,7 +26,7 @@ jobs:
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
       - name: Wait for the server to start...
         run: while ! curl -w "%{http_code}\n" -k -s "$BASE_URI" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
-      - run: ls -l && ls -l certs
+      - run: ls -l && ls -l certs && ls -l scripts
       - run: openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"$OWNER_CERT_PWD" -passout pass:"$OWNER_CERT_PWD" # re-generate the owner PEM cert - seems to differ with different openssl versions?
       - run: openssl pkcs12 -in ./certs/secretary.p12 -out ./http-tests/secretary.p12.pem -passin pass:"$SECRETARY_CERT_PWD" -passout pass:"$SECRETARY_CERT_PWD" # re-generate the secretary PEM cert - seems to differ with different openssl
       - name: Run HTTP test scripts
