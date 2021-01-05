@@ -24,8 +24,8 @@ jobs:
             JENA_HOME: "${{runner.temp}}/apache-jena-${{env.JENA_VERSION}}"
       - name: Checkout code
         uses: actions/checkout@v2
-      #- name: Build Docker image
-      #  run: docker build -t atomgraph/linkeddatahub .
+      - name: Build Docker image
+        run: docker build -t atomgraph/linkeddatahub .
       - name: Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
       - name: Wait for the server to start...
