@@ -39,6 +39,6 @@ jobs:
         shell: bash
         working-directory: http-tests
       - name: Stop Docker containers
-        run: docker-compose down --env-file ./http-tests/.env up
+        run: docker-compose --env-file ./http-tests/.env down
       - name: Remove Docker containers
-        run: docker-compose rm -f --env-file ./http-tests/.env up
+        run: docker-compose --env-file ./http-tests/.env rm -f
