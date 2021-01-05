@@ -51,6 +51,8 @@ curl -k -s \
   "${ADMIN_BASE_URL}sign%20up?forClass=https%3A%2F%2Flocalhost%3A4443%2Fadmin%2Fns%23Person&download=true" \
 > "$agent_p12_cert"
 
+echo "CERT:" && cat "$agent_p12_cert"
+
 # convert PKCS12 to PEM
 
 openssl pkcs12 \
