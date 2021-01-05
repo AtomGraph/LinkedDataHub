@@ -3,7 +3,7 @@
 
     <groupId>com.atomgraph</groupId>
     <artifactId>linkeddatahub</artifactId>
-    <version>2.0.44</version>
+    <version>2.0.45-SNAPSHOT</version>
     <packaging>${packaging.type}</packaging>
 
     <name>AtomGraph LinkedDataHub</name>
@@ -46,7 +46,7 @@
         <url>https://github.com/AtomGraph/LinkedDataHub</url>
         <connection>scm:git:git://github.com/AtomGraph/LinkedDataHub.git</connection>
         <developerConnection>scm:git:git@github.com:AtomGraph/LinkedDataHub.git</developerConnection>
-        <tag>linkeddatahub-2.0.44</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <repositories>
