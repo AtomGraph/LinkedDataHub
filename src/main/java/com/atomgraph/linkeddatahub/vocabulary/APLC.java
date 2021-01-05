@@ -55,6 +55,10 @@ public class APLC
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
 
     public static final DatatypeProperty webIDQuery = m_model.createDatatypeProperty( NS + "webIDQuery" );
+    
+    public static final DatatypeProperty agentQuery = m_model.createDatatypeProperty( NS + "agentQuery" );
+
+    public static final DatatypeProperty userAccountQuery = m_model.createDatatypeProperty( NS + "userAccountQuery" );
 
     public static final DatatypeProperty authCacheControl = m_model.createDatatypeProperty( NS + "authCacheControl" );
 
@@ -90,7 +94,9 @@ public class APLC
 
     public static final DatatypeProperty signUpEMailSubject = m_model.createDatatypeProperty( NS + "signUpEMailSubject" );
     
-    public static final DatatypeProperty signUpEMailText = m_model.createDatatypeProperty( NS + "signUpEMailText" );
+    public static final DatatypeProperty webIDSignUpEMailText = m_model.createDatatypeProperty( NS + "webIDSignUpEMailText" );
+
+    public static final DatatypeProperty oAuthSignUpEMailText = m_model.createDatatypeProperty( NS + "oAuthSignUpEMailText" );
 
     public static final DatatypeProperty notificationAddress = m_model.createDatatypeProperty( NS + "notificationAddress" );
 
@@ -114,4 +120,6 @@ public class APLC
 
     public static final DatatypeProperty importKeepAlive = m_model.createDatatypeProperty( NS + "importKeepAlive" );
     
+    public static final DatatypeProperty maxContentLength = m_model.createDatatypeProperty( NS + "maxContentLength" );
+
 }

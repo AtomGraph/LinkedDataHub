@@ -124,11 +124,17 @@ ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
 
 ENV UPLOAD_CONTAINER_PATH=uploads
 
+ENV MAX_CONTENT_LENGTH=
+
 ENV MAX_CONN_PER_ROUTE=20
 
 ENV MAX_TOTAL_CONN=40
 
 ENV IMPORT_KEEPALIVE=
+
+ENV GOOGLE_CLIENT_ID=
+
+ENV GOOGLE_CLIENT_SECRET=
 
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 

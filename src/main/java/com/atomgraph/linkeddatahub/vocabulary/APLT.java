@@ -54,8 +54,6 @@ public class APLT
     
     public static final OntClass Document = m_model.createClass(NS + "Document");
     
-    public static final OntClass OAuth2Callback = m_model.createClass(NS + "OAuth2Callback");
-    
     public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
 
     public static final DatatypeProperty login = m_model.createDatatypeProperty( NS + "login" );

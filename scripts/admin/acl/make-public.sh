@@ -41,7 +41,7 @@ fi
 graph_sha1=$(echo -n "${base}admin/acl/authorizations/public/" | sha1sum | cut -d " " -f 1)
 
 curl -X PATCH \
-    -v -f -k \
+    -s -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
     "${base}admin/graphs/${graph_sha1}/" \

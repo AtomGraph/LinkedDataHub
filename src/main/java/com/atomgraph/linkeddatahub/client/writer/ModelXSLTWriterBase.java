@@ -28,6 +28,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
@@ -193,6 +194,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("", "", "Referer"), new XdmAtomicValue(referer)); // TO-DO: move to ac: namespace
             }
 
+            if (getSystem().getProperty(Google.clientID.getURI()) != null)
+                params.put(new QName("google", Google.clientID.getNameSpace(), Google.clientID.getLocalName()), new XdmAtomicValue((String)getSystem().getProperty(Google.clientID.getURI())));
+            
             return params;
         }
         catch (IOException | URISyntaxException | SaxonApiException ex)

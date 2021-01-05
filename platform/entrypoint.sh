@@ -708,6 +708,10 @@ if [ -n "$OWNER_AUTH_QUERY" ] ; then
     OWNER_AUTH_QUERY_PARAM="--stringparam aplc:ownerAuthQuery '$OWNER_AUTH_QUERY' "
 fi
 
+if [ -n "$MAX_CONTENT_LENGTH" ] ; then
+    MAX_CONTENT_LENGTH_PARAM="--stringparam aplc:maxContentLength '$MAX_CONTENT_LENGTH' "
+fi
+
 if [ -n "$MAX_CONN_PER_ROUTE" ] ; then
     MAX_CONN_PER_ROUTE_PARAM="--stringparam aplc:maxConnPerRoute '$MAX_CONN_PER_ROUTE' "
 fi
@@ -722,6 +726,14 @@ fi
 
 if [ -n "$MAIL_PASSWORD" ] ; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
+fi
+
+if [ -n "$GOOGLE_CLIENT_ID" ] ; then
+    GOOGLE_CLIENT_ID_PARAM="--stringparam google:clientID '$GOOGLE_CLIENT_ID' "
+fi
+
+if [ -n "$GOOGLE_CLIENT_SECRET" ] ; then
+    GOOGLE_CLIENT_SECRET_PARAM="--stringparam google:clientSecret '$GOOGLE_CLIENT_SECRET' "
 fi
 
 transform="xsltproc \
@@ -741,6 +753,7 @@ transform="xsltproc \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
   $OWNER_AUTH_QUERY_PARAM \
+  $MAX_CONTENT_LENGTH_PARAM \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
   $IMPORT_KEEPALIVE_PARAM \
@@ -748,6 +761,8 @@ transform="xsltproc \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \
   $MAIL_PASSWORD_PARAM \
+  $GOOGLE_CLIENT_ID_PARAM \
+  $GOOGLE_CLIENT_SECRET_PARAM \
   conf/context.xsl \
   conf/Catalina/localhost/ROOT.xml"
 

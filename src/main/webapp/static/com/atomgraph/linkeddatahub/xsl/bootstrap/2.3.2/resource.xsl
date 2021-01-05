@@ -143,7 +143,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[@rdf:about]" mode="bs2:Actions" priority="1">
         <div class="pull-right">
-            <button>
+            <button title="{key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}">
                 <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
@@ -193,8 +193,12 @@ extension-element-prefixes="ixsl"
     <!-- TIMESTAMP -->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Timestamp">
-        <xsl:apply-templates select="dct:created/text()[xs:dateTime(.) = max(../../dct:created/text()/xs:dateTime(.))]"/>
-        <xsl:apply-templates select="dct:modified/text()[xs:dateTime(.) = max(../../dct:modified/text()/xs:dateTime(.))]"/>
+        <!-- TO-DO: property labels? -->
+        <xsl:variable name="min-created-datetime" select="min((../../dct:created/text()[. castable as xs:date]/xs:date(.), ../../dct:created/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
+        <xsl:apply-templates select="dct:created/text()[. = $min-created-datetime]"/>
+        <xsl:text> </xsl:text>
+        <xsl:variable name="max-modified-datetime" select="max((../../dct:modified/text()[. castable as xs:date]/xs:date(.), ../../dct:modified/text()[. castable as xs:dateTime]/xs:dateTime(.)))" as="item()?"/>
+        <xsl:apply-templates select="dct:modified/text()[. = $max-modified-datetime]"/>
     </xsl:template>
     
     <!-- TYPE LIST -->

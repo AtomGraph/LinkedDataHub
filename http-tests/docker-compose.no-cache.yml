@@ -1,5 +1,9 @@
 version: "2.3"
 services:
   linkeddatahub:
+    ports:
+      - 8001:8000 # debugger
+    environment:
+      - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
     volumes:
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro

@@ -115,7 +115,7 @@ fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
-# rdf_post+="-v -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} "
+# rdf_post+="-s -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} "
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=file\"\n"
 rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
@@ -157,4 +157,4 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server and print Location URL
-echo -e "$rdf_post" | curl -v -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -s -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

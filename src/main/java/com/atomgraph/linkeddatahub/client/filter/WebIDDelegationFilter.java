@@ -41,7 +41,7 @@ public class WebIDDelegationFilter implements ClientRequestFilter
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        if (getAgent() != null) cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
+        cr.getHeaders().add(ON_BEHALF_OF, getAgent().getURI());
     }
 
     public Resource getAgent()

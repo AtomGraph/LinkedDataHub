@@ -17,7 +17,7 @@ popd > /dev/null
 
 # check that the template is present in the ontology
 
-curl -k -f -v -N \
+curl -k -f -s -N \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}ns/domain" \
 | grep -q "<${END_USER_BASE_URL}ns/domain#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"

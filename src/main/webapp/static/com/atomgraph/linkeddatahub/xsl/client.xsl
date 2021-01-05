@@ -158,19 +158,20 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:if>
         <!-- create a container for top-level document navigation, if it doesn't exist yet -->
-        <xsl:if test="not(id('root-children-nav', ixsl:page()))">
+        <xsl:if test="id('left-nav', ixsl:page()) and not(id('root-children-nav', ixsl:page()))">
             <xsl:result-document href="#left-nav" method="ixsl:replace-content">
                 <div id="root-children-nav"/>
 
                 <xsl:copy-of select="id('left-nav', ixsl:page())/*"/>
             </xsl:result-document>
+            
+            <!-- load the top-level documents (children of root) -->
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="apl:RootLoad">
+                    <xsl:with-param name="id" select="'root-children-nav'"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:if>
-        <!-- load the top-level documents (children of root) -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="apl:RootLoad">
-                <xsl:with-param name="id" select="'root-children-nav'"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="id('main-content', ixsl:page()) and not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">

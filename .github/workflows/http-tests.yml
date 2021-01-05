@@ -1,0 +1,45 @@
+name: HTTP-tests
+
+on: push
+
+jobs:
+  http-tests:
+    name: Build Docker image and run HTTP test suite against it
+    runs-on: ubuntu-latest
+    env:
+      ASF_ARCHIVE: http://archive.apache.org/dist/
+      JENA_VERSION: 3.13.1
+      BASE_URI: https://localhost:4443/
+      OWNER_CERT_PWD: changeit
+      SECRETARY_CERT_PWD: LinkedDataHub
+    steps:
+      - name: Install Linux packages
+        run:  sudo apt-get update && sudo apt-get install -qq raptor2-utils && sudo apt-get install curl
+      - name: Download Jena
+        run: curl -sS --fail "${{env.ASF_ARCHIVE}}jena/binaries/apache-jena-${{env.JENA_VERSION}}.tar.gz" -o "${{runner.temp}}/jena.tar.gz"
+      - name: Unpack Jena
+        run: tar -zxf jena.tar.gz
+        working-directory: ${{runner.temp}}
+      - run: echo "$JENA_HOME/bin" >> $GITHUB_PATH
+        env:
+            JENA_HOME: "${{runner.temp}}/apache-jena-${{env.JENA_VERSION}}"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build Docker image
+        run: docker build -t atomgraph/linkeddatahub .
+      - name: Run Docker containers
+        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
+      - name: Wait for the server to start...
+        run: while ! curl -w "%{http_code}\n" -k -s "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+      - name: Generate owner's PEM certificate
+        run: openssl pkcs12 -in ./certs/owner.p12 -out ./http-tests/owner.p12.pem -passin pass:"${{env.OWNER_CERT_PWD}}" -passout pass:"${{env.OWNER_CERT_PWD}}" # re-generate the owner PEM cert - seems to differ with different openssl versions?
+      - name: Generate secretary's PEM certificate
+        run: openssl pkcs12 -in ./certs/secretary.p12 -out ./http-tests/secretary.p12.pem -passin pass:"${{env.SECRETARY_CERT_PWD}}" -passout pass:"${{env.SECRETARY_CERT_PWD}}" # re-generate the secretary PEM cert - seems to differ with different openssl
+      - name: Run HTTP test scripts
+        run: ./run.sh "$PWD/owner.p12.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/secretary.p12.pem" "${{env.SECRETARY_CERT_PWD}}"
+        shell: bash
+        working-directory: http-tests
+      - name: Stop Docker containers
+        run: docker-compose --env-file ./http-tests/.env down
+      - name: Remove Docker containers
+        run: docker-compose --env-file ./http-tests/.env rm -f

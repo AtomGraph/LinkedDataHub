@@ -7,6 +7,9 @@
     <rdf:Description rdf:nodeID="sign-up">
         <rdfs:label xml:lang="en-US">Sign up</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="login-google">
+        <rdfs:label xml:lang="en-US">Login with Google</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="root">
         <rdfs:label xml:lang="en-US">Root</rdfs:label>
     </rdf:Description>

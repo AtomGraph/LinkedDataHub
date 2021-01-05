@@ -68,6 +68,12 @@
     administrators.</p>
 </div>"""^^rdf:XMLLiteral .
 
+<oauth2/login> a adm:OAuth2Login ;
+    dct:title "OAuth 2.0 login" .
+
+<oauth2/authorize/google> a adm:AuthorizeGoogle ;
+    dct:title "Google OAuth2.0 authorization" .
+
 # QUERIES
 
 # select children
@@ -198,7 +204,7 @@ WHERE
 # sign up
 
 <acl/authorizations/sign-up/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations> ;
+    sioc:has_container <acl/authorizations/> ;
     dct:title "Signup access" ;
     foaf:primaryTopic <acl/authorizations/sign-up/#this> .
 
@@ -206,7 +212,7 @@ WHERE
     foaf:isPrimaryTopicOf <acl/authorizations/sign-up/> ;
     rdfs:label "Signup access" ;
     rdfs:comment "Required to enable public signup" ;
-    acl:accessToClass adm:SignUp ; # acl:accessTo <sign%20up> ;
+    acl:accessToClass adm:SignUp ;
     acl:mode acl:Read, acl:Append ;
     acl:agentClass foaf:Agent .
 
@@ -224,6 +230,36 @@ WHERE
     acl:accessToClass adm:RequestAccess ;
     acl:mode acl:Read, acl:Append ;
     acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
+
+# OAuth2 login
+
+<acl/authorizations/oauth2-login/> a adm:AuthorizationItem ;
+    sioc:has_container <acl/authorizations/> ;
+    dct:title "OAuth2 login access" ;
+    foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
+
+<acl/authorizations/oauth2-login/#this> a adm:Authorization ;
+    foaf:isPrimaryTopicOf <acl/authorizations/oauth2-login/> ;
+    rdfs:label "OAuth2 login access" ;
+    rdfs:comment "Required to enable public OAuth2 login" ;
+    acl:accessToClass adm:OAuth2Login ;
+    acl:mode acl:Read ;
+    acl:agentClass foaf:Agent .
+
+# Google authorization
+
+<acl/authorizations/authorize-google/> a adm:AuthorizationItem ;
+    sioc:has_container <acl/authorizations/> ;
+    dct:title "Google's OAuth2 authorization" ;
+    foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
+
+<acl/authorizations/authorize-google/#this> a adm:Authorization ;
+    foaf:isPrimaryTopicOf <acl/authorizations/authorize-google/> ;
+    rdfs:label "Google's OAuth2 authorization" ;
+    rdfs:comment "Required to enable public OAuth2 login" ;
+    acl:accessToClass adm:AuthorizeGoogle ;
+    acl:mode acl:Read ;
+    acl:agentClass foaf:Agent .
 
 # append authorization request
 
@@ -251,7 +287,7 @@ WHERE
     foaf:isPrimaryTopicOf <acl/authorizations/oauth2/> ;
     rdfs:label "OAuth 2.0 access" ;
     rdfs:comment "Required to enable login with external accounts" ;
-    acl:accessTo <../oauth2/login> ;
+    acl:accessTo apl:OAuth2Login, apl:AuthorizeGoogle ;
     acl:mode acl:Read ;
     acl:agentClass foaf:Agent .
 
@@ -1047,19 +1083,6 @@ nst:ImportItem a adm:Template ;
     rdfs:label "Import item" ;
     rdfs:isDefinedBy nst: .
 
-# OAuth login
-
-<sitemap/templates/default/oauth2-login/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
-    dct:title "OAuth 2.0 login" ;
-    foaf:primaryTopic nst:OAuth2Login .
-
-nst:OAuth2Login a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/oauth2-login/> ;
-    ldt:extends aplt:OAuth2Login ;
-    rdfs:label "OAuth 2.0 login" ;
-    rdfs:isDefinedBy nst: .
-
 ### NAMESPACE
 
 # CLASSES
@@ -1459,6 +1482,16 @@ admt:SignUp a ldt:Template ;
     rdfs:label "Sign up" ;
     rdfs:isDefinedBy admt: .
 
+admt:OAuth2Login a ldt:Template ;
+    ldt:extends laclt:OAuth2Login ;
+    rdfs:label "OAuth 2.0 login" ;
+    rdfs:isDefinedBy admt: .
+
+admt:AuthorizeGoogle a ldt:Template ;
+    ldt:extends laclt:AuthorizeGoogle ;
+    rdfs:label "Google OAuth 2.0 authorization endpoint" ;
+    rdfs:isDefinedBy admt: .
+
 admt:RequestAccess a ldt:Template ;
     ldt:extends laclt:RequestAccess ;
     ldt:cacheControl "public, max-age=3600" ;
@@ -1802,6 +1835,18 @@ adm:RequestAccess a rdfs:Class ;
     rdfs:label "Request access" ;
     rdfs:isDefinedBy adm: .
 
+# OAuth 2.0
+
+adm:OAuth2Login a rdfs:Class ;
+    rdfs:subClassOf c:Document ;
+    rdfs:label "OAuth 2.0 login endpoint" ;
+    rdfs:isDefinedBy adm: .
+
+adm:AuthorizeGoogle a rdfs:Class ;
+    rdfs:subClassOf c:Document ;
+    rdfs:label "OAuth 2.0 authorization endpoint" ;
+    rdfs:isDefinedBy adm: .
+
 # authorization
 
 adm:Authorization a rdfs:Class ;
@@ -1850,29 +1895,29 @@ adm:ItemOfAuthorizationRequestContainer a owl:Restriction ;
 
 # user account
 
-#     adm:UserAccount a rdfs:Class ;
-#         rdfs:subClassOf lacl:UserAccount, adm:TopicOfUserAccountItem ;
-#         ldt:path "{isPrimaryTopicOf.slug}/" ;
-#         ldt:fragment "this" ;
-#         rdfs:label "User account" ;
-#         rdfs:isDefinedBy adm: .
-#
-#     adm:UserAccountItem a rdfs:Class ;
-#         rdfs:subClassOf adm:Item, adm:ItemOfUserAccountContainer ;
-#         rdfs:label "User account item" ;
-#         rdfs:isDefinedBy adm: .
-# 
-#     adm:TopicOfUserAccountItem a owl:Restriction ;
-#         owl:onProperty foaf:isPrimaryTopicOf ;
-#         owl:allValuesFrom adm:UserAccountItem ;
-#         rdfs:label "Topic of user account item" ;
-#         rdfs:isDefinedBy adm: .
-# 
-#     adm:ItemOfUserAccountContainer a owl:Restriction ;
-#         owl:onProperty sioc:has_container ;
-#         owl:hasValue <acl/users/> ;
-#         rdfs:label "Has user account container" ;
-#         rdfs:isDefinedBy adm: .
+adm:UserAccount a rdfs:Class ;
+    rdfs:subClassOf lacl:UserAccount, adm:TopicOfUserAccountItem ;
+    ldt:path "{isPrimaryTopicOf.slug}/" ;
+    ldt:fragment "this" ;
+    rdfs:label "User account" ;
+    rdfs:isDefinedBy adm: .
+
+adm:UserAccountItem a rdfs:Class ;
+    rdfs:subClassOf adm:Item, adm:ItemOfUserAccountContainer ;
+    rdfs:label "User account item" ;
+    rdfs:isDefinedBy adm: .
+
+adm:TopicOfUserAccountItem a owl:Restriction ;
+    owl:onProperty foaf:isPrimaryTopicOf ;
+    owl:allValuesFrom adm:UserAccountItem ;
+    rdfs:label "Topic of user account item" ;
+    rdfs:isDefinedBy adm: .
+
+adm:ItemOfUserAccountContainer a owl:Restriction ;
+    owl:onProperty sioc:has_container ;
+    owl:hasValue <acl/users/> ;
+    rdfs:label "Has user account container" ;
+    rdfs:isDefinedBy adm: .
 
 # agent
 

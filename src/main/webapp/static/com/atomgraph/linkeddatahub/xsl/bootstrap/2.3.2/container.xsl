@@ -141,9 +141,7 @@ exclude-result-prefixes="#all"
                     
                     <xsl:choose>
                         <xsl:when test="$results">
-                            <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
-                            </xsl:value-of>
+                            <xsl:value-of select="ac:label(key('resources', $predicate, $results))"/>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
                         <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">

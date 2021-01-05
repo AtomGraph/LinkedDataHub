@@ -46,6 +46,7 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.PUT;
@@ -112,25 +113,39 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
     @Override
     public Response get()
     {
-        return getResponseBuilder(getService().getDatasetAccessor().getModel(getURI().toString())).build();
+        if (!getService().getDatasetAccessor().containsModel(getURI().toString()))
+        {
+            if (log.isDebugEnabled()) log.debug("GET Graph Store named graph with URI: {} not found", getURI());
+            throw new NotFoundException("Named graph not found");
+        }
+
+        Model model = getService().getDatasetAccessor().getModel(getURI().toString());
+        if (log.isDebugEnabled()) log.debug("GET Graph Store named graph with URI: {} found, returning Model of size(): {}", getURI(), model.size());
+        return getResponse(model);
     }
 
     @Override
     public Response post(Dataset dataset)
     {
+        boolean existingGraph = getService().getDatasetAccessor().containsModel(getURI().toString());
+
+        // is this implemented correctly? The specification is not very clear.
+        if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
         getService().getDatasetAccessor().add(getURI().toString(), dataset.getDefaultModel());
-        
-        return Response.ok().build();
+
+        if (existingGraph) return Response.ok().build();
+        else return Response.created(getURI()).build();
     }
 
     @Override
     @PUT
     public Response put(Dataset dataset)
     {
-        Model existing = getService().getDatasetAccessor().getModel(getURI().toString());
-        if (!existing.isEmpty()) // remove existing representation
+        boolean existingGraph = getService().getDatasetAccessor().containsModel(getURI().toString());
+        if (!existingGraph)
         {
-            EntityTag entityTag = new EntityTag(Long.toHexString(ModelUtils.hashModel(existing)));
+            Model model = getService().getDatasetAccessor().getModel(getURI().toString());
+            EntityTag entityTag = new EntityTag(Long.toHexString(ModelUtils.hashModel(model)));
             ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
             if (rb != null)
             {
@@ -139,6 +154,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             }
         }
         
+        if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
         getService().getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
 
         try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
@@ -175,7 +191,8 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             }
         }
         
-        return Response.ok().build();
+        if (existingGraph) return Response.ok().build();
+        else return Response.created(getURI()).build();
     }
     
 //    @PUT
@@ -200,7 +217,7 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
 //        catch (URISyntaxException ex)
 //        {
 //            if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-//            throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+//            throw new BadRequestException(ex);
 //        }
 //        catch (IOException ex)
 //        {
@@ -240,10 +257,17 @@ public class Item extends ResourceBase implements Patchable // com.atomgraph.cor
             }
         }
         
-        //getSPARQLEndpoint().post(getUpdateRequest((Model)null), Collections.<URI>emptyList(), Collections.<URI>emptyList()).close(); // TO-DO: remove named graph about named graph
-        getService().getDatasetAccessor().deleteModel(getURI().toString());
-
-        return Response.noContent().build();
+        if (!getService().getDatasetAccessor().containsModel(getURI().toString()))
+        {
+            if (log.isDebugEnabled()) log.debug("DELETE named graph with URI {}: not found", getURI());
+            throw new NotFoundException("Named graph not found");
+        }
+        else
+        {
+            if (log.isDebugEnabled()) log.debug("DELETE named graph with URI: {}", getURI());
+            getService().getDatasetAccessor().deleteModel(getURI().toString());
+            return Response.noContent().build(); // TO-DO: NoContentException?
+        }
     }
     
     @PATCH

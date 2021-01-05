@@ -19,11 +19,11 @@ package com.atomgraph.linkeddatahub;
 import com.atomgraph.linkeddatahub.server.mapper.ResourceExistsExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.HttpHostConnectExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.MessagingExceptionMapper;
-import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDLoadingExceptionMapper;
-import com.atomgraph.linkeddatahub.server.mapper.auth.InvalidWebIDURIExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDLoadingExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.auth.webid.InvalidWebIDURIExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.AuthorizationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.auth.AuthenticationExceptionMapper;
-import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDCertificateExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDCertificateExceptionMapper;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.locator.PrefixMapper;
 import org.apache.jena.ontology.OntDocumentManager;
@@ -53,7 +53,7 @@ import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
 import com.atomgraph.core.vocabulary.A;
-import com.atomgraph.linkeddatahub.server.mapper.auth.InvalidWebIDPublicKeyExceptionMapper;
+import com.atomgraph.linkeddatahub.server.mapper.auth.webid.InvalidWebIDPublicKeyExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.ModelExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.OntClassNotFoundExceptionMapper;
 import com.atomgraph.linkeddatahub.server.mapper.jena.QueryExecExceptionMapper;
@@ -73,17 +73,18 @@ import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
-import com.atomgraph.linkeddatahub.server.mapper.auth.WebIDDelegationExceptionMapper;
+import com.atomgraph.linkeddatahub.model.UserAccount;
+import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDDelegationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
 import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
+import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.UnauthorizedFilter;
 import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
@@ -98,9 +99,14 @@ import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
+import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
+import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.processor.model.Parameter;
 import com.atomgraph.processor.model.Template;
 import com.atomgraph.processor.model.TemplateCall;
@@ -223,7 +229,7 @@ public class Application extends ResourceConfig
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
     private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
@@ -239,6 +245,7 @@ public class Application extends ResourceConfig
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
+    private final Integer maxContentLength;
     private final Authenticator authenticator;
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
@@ -269,6 +276,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
@@ -279,6 +288,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI()) != null ? CacheControl.valueOf(servletConfig.getServletContext().getInitParameter(APLC.authCacheControl.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxContentLength.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxConnPerRoute.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
@@ -286,7 +296,9 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
-            servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null
+            servletConfig.getServletContext().getInitParameter("mail.smtp.port") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.port") : null,
+            servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientID.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) != null ? servletConfig.getServletContext().getInitParameter(Google.clientSecret.getURI()) : null
         );
 
         URI contextDatasetURI = servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI()) != null ? new URI(servletConfig.getServletContext().getInitParameter(APLC.contextDataset.getURI())) : null;
@@ -305,14 +317,15 @@ public class Application extends ResourceConfig
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final boolean remoteVariableBindings,
-            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString,
+            final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString, final String sitemapQueryString,
             final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
             final String baseURIString,
             final String uploadRootString, final boolean invalidateCache,
-            final Integer cookieMaxAge, final CacheControl authCacheControl,
+            final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
-            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort)
+            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
+            final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
         {
@@ -352,6 +365,20 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(APLC.webIDQuery);
         }
         this.webIDQuery = QueryFactory.create(webIDQueryString);
+        
+        if (userAccountQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("UserAccount SPARQL query is not configured properly");
+            throw new ConfigurationException(APLC.userAccountQuery);
+        }
+        this.userAccountQuery = QueryFactory.create(userAccountQueryString);
+        
+        if (agentQueryString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Agent SPARQL query is not configured properly");
+            throw new ConfigurationException(APLC.agentQuery);
+        }
+        this.agentQuery = QueryFactory.create(agentQueryString);
         
         if (baseURIString == null)
         {
@@ -416,6 +443,9 @@ public class Application extends ResourceConfig
         this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
+        this.maxContentLength = maxPostSize;
+        this.property(Google.clientID.getURI(), googleClientID);
+        this.property(Google.clientSecret.getURI(), googleClientSecret);
         
         try
         {
@@ -476,7 +506,7 @@ public class Application extends ResourceConfig
             BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
             BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
-            //BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
+            BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
             BuiltinPersonalities.model.add(AdminApplication.class, AdminApplicationImpl.factory);
             BuiltinPersonalities.model.add(EndUserApplication.class, EndUserApplicationImpl.factory);
             BuiltinPersonalities.model.add(com.atomgraph.linkeddatahub.apps.model.Application.class, ApplicationImpl.factory);
@@ -599,7 +629,8 @@ public class Application extends ResourceConfig
         register(MultiPartFeature.class);
         register(ResourceBase.class); // handles /
         
-        registerFilters();
+        registerContainerRequestFilters();
+        registerExceptionMappers();
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
@@ -608,29 +639,6 @@ public class Application extends ResourceConfig
         register(new ResultSetProvider());
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
-        register(NotFoundExceptionMapper.class);
-        register(ConfigurationExceptionMapper.class);
-        register(OntologyExceptionMapper.class);
-        register(ModelExceptionMapper.class);
-        register(ConstraintViolationExceptionMapper.class);
-        register(DatatypeFormatExceptionMapper.class);
-        register(ParameterExceptionMapper.class);
-        register(QueryExecExceptionMapper.class);
-        register(RiotExceptionMapper.class);
-        register(RiotParseExceptionMapper.class); // move to Processor?
-        register(ClientErrorExceptionMapper.class);
-        register(HttpHostConnectExceptionMapper.class);
-        register(OntClassNotFoundExceptionMapper.class);
-        register(InvalidWebIDPublicKeyExceptionMapper.class);
-        register(InvalidWebIDURIExceptionMapper.class);
-        register(WebIDCertificateExceptionMapper.class);
-        register(WebIDDelegationExceptionMapper.class);
-        register(WebIDLoadingExceptionMapper.class);
-        register(ResourceExistsExceptionMapper.class);
-        register(QueryParseExceptionMapper.class);
-        register(AuthenticationExceptionMapper.class);
-        register(AuthorizationExceptionMapper.class);
-        register(MessagingExceptionMapper.class);
 
         if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec())); // writes (X)HTML responses
@@ -734,7 +742,7 @@ public class Application extends ResourceConfig
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
     
-    public void registerFilters()
+    protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
         register(ClientUriInfoFilter.class);
@@ -742,8 +750,38 @@ public class Application extends ResourceConfig
         register(OntologyFilter.class);
         register(TemplateCallFilter.class);
         register(WebIDFilter.class);
-        register(UnauthorizedFilter.class);
+        register(IDTokenFilter.class);
+        register(AuthorizationFilter.class);
+        register(ContentLengthLimitFilter.class);
         register(new RDFPostCleanupInterceptor());
+    }
+    
+    protected void registerExceptionMappers()
+    {
+        register(NotFoundExceptionMapper.class);
+        register(ConfigurationExceptionMapper.class);
+        register(OntologyExceptionMapper.class);
+        register(ModelExceptionMapper.class);
+        register(ConstraintViolationExceptionMapper.class);
+        register(DatatypeFormatExceptionMapper.class);
+        register(ParameterExceptionMapper.class);
+        register(QueryExecExceptionMapper.class);
+        register(RiotExceptionMapper.class);
+        register(RiotParseExceptionMapper.class); // move to Processor?
+        register(ClientErrorExceptionMapper.class);
+        register(HttpHostConnectExceptionMapper.class);
+        register(OntClassNotFoundExceptionMapper.class);
+        register(InvalidWebIDPublicKeyExceptionMapper.class);
+        register(InvalidWebIDURIExceptionMapper.class);
+        register(WebIDCertificateExceptionMapper.class);
+        register(WebIDDelegationExceptionMapper.class);
+        register(WebIDLoadingExceptionMapper.class);
+        register(TokenExpiredExceptionMapper.class);
+        register(ResourceExistsExceptionMapper.class);
+        register(QueryParseExceptionMapper.class);
+        register(AuthenticationExceptionMapper.class);
+        register(AuthorizationExceptionMapper.class);
+        register(MessagingExceptionMapper.class);
     }
     
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
@@ -1053,6 +1091,16 @@ public class Application extends ResourceConfig
         return webIDQuery;
     }
     
+    public Query getAgentQuery()
+    {
+        return agentQuery;
+    }
+    
+    public Query getUserAccountQuery()
+    {
+        return userAccountQuery;
+    }
+    
     public Query getSitemapQuery()
     {
         return sitemapQuery;
@@ -1143,6 +1191,11 @@ public class Application extends ResourceConfig
         return cookieMaxAge;
     }
 
+    public Integer getMaxContentLength()
+    {
+        return maxContentLength;
+    }
+    
     public CacheControl getAuthCacheControl()
     {
         return authCacheControl;

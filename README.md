@@ -158,7 +158,8 @@ _:warning: Before running app installation scripts that use LinkedDataHub's CLI 
 
 LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedDataHub/tree/master/http-tests). The server implementation is also covered by the [Processor test suite](https://github.com/AtomGraph/Processor/tree/master/http-tests).
 
-[![Build status](https://api.travis-ci.org/AtomGraph/LinkedDataHub.svg?branch=master)](https://travis-ci.org/AtomGraph/LinkedDataHub)
+![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/workflows/HTTP-tests/badge.svg?branch=master)
+![HTTP-tests](https://github.com/AtomGraph/LinkedDataHub/workflows/HTTP-tests/badge.svg?branch=develop)
 
 ## Dependencies
 

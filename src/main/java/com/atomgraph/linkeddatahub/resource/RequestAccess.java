@@ -22,11 +22,13 @@ import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.model.TemplateCall;
 import java.io.UnsupportedEncodingException;
@@ -39,6 +41,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
@@ -47,13 +50,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -78,6 +81,7 @@ public class RequestAccess extends ResourceBase
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
+    private final Query agentQuery;
 
     @Inject
     public RequestAccess(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
@@ -95,6 +99,7 @@ public class RequestAccess extends ResourceBase
                 httpServletRequest, securityContext,
                 dataManager, providers,
                 system);
+        agentQuery = system.getAgentQuery();
         
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
@@ -122,8 +127,7 @@ public class RequestAccess extends ResourceBase
     @Override
     public Response construct(InfModel infModel)
     {
-        if (!getTemplateCall().get().hasArgument(APLT.forClass))
-            throw new WebApplicationException(new IllegalStateException("aplt:forClass argument is mandatory for aplt:RequestAccess template"), BAD_REQUEST);
+        if (!getTemplateCall().get().hasArgument(APLT.forClass)) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:RequestAccess template");
 
         Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
         ResIterator it = infModel.getRawModel().listResourcesWithProperty(RDF.type, forClass);
@@ -135,44 +139,38 @@ public class RequestAccess extends ResourceBase
             if (!requestAgent.equals(agent)) throw new IllegalStateException("Agent requesting access must be authenticated");
             
             Resource owner = getApplication().getMaker();
-            if (owner == null) throw new IllegalStateException("Application '" + getApplication().getURI() + "' does not have a maker (foaf:maker)");
+            if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
+            String ownerURI = owner.getURI();
+                    
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
+            pss.setParam(FOAF.Agent.getLocalName(), owner);
+            // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
+            Model agentModel = getAdminService().getSPARQLClient().loadModel(pss.asQuery());
+            owner = agentModel.getResource(ownerURI);
+            if (owner == null) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            try (Response cr = getDataManager().getEndpoint(URI.create(owner.getURI())).
-                        request(MediaType.TEXT_NQUADS_TYPE).
-                        get()) // load maker's WebID model)
+            URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
+            try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
+                    request(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+                    post(Entity.entity(infModel.getRawModel(), MediaType.APPLICATION_NTRIPLES_TYPE)))
             {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (log.isErrorEnabled()) log.error("Could not GET WebID profile {}. Reason: {}", owner.getURI(), cr.getStatusInfo().getReasonPhrase());
-                    // throw new ClientErrorException(cr); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
-                    throw new ClientErrorException("Could not GET WebID profile: " + owner.getURI(), cr.getStatusInfo().getStatusCode());
+                    if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr1.getLocation(), cr1.getStatusInfo().getReasonPhrase());
+                    // throw new ClientErrorException(cr1); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
+                    throw new ClientErrorException("POST request to AuthorizationRequest container unsuccesful", cr1.getStatusInfo().getStatusCode());
                 }
 
-                owner = cr.readEntity(Dataset.class).getDefaultModel().getResource(owner.getURI());
-
-                URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-                try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
-                        request(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
-                        post(Entity.entity(infModel.getRawModel(), MediaType.APPLICATION_NTRIPLES_TYPE)))
+                try
                 {
-                    if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                    {
-                        if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr1.getLocation(), cr1.getStatusInfo().getReasonPhrase());
-                        // throw new ClientErrorException(cr1); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
-                        throw new ClientErrorException("POST request to AuthorizationRequest container unsuccesful", cr1.getStatusInfo().getStatusCode());
-                    }
-
-                    try
-                    {
-                        sendEmail(owner, accessRequest);
-                    }
-                    catch (MessagingException | UnsupportedEncodingException ex)
-                    {
-                        if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
-                    }
-
-                    return get();
+                    sendEmail(owner, accessRequest);
                 }
+                catch (MessagingException | UnsupportedEncodingException ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
+                }
+
+                return get();
             }
         }
         finally
@@ -202,6 +200,11 @@ public class RequestAccess extends ResourceBase
             build());
     }
     
+    protected Service getAdminService()
+    {
+        return getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : getApplication().getService();
+    }
+    
     private Address getNotificationAddress()
     {
         return notificationAddress;
@@ -220,6 +223,11 @@ public class RequestAccess extends ResourceBase
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
         return authRequestContainerUriBuilder;
+    }
+    
+    public Query getAgentQuery()
+    {
+        return agentQuery;
     }
     
 }

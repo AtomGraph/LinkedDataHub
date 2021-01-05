@@ -43,4 +43,4 @@ fi
 
 ontology_doc="$1"
 
-curl -v -k -E "$cert_pem_file":"$cert_password" "${ontology_doc}?clear=" -H "Accept: text/turtle"
+curl -s -k -E "$cert_pem_file":"$cert_password" "${ontology_doc}?clear=" -H "Accept: text/turtle"

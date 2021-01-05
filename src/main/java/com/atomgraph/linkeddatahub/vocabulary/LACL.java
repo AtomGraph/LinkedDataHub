@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import static com.atomgraph.linkeddatahub.vocabulary.Cert.NS;
 import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntClass;
@@ -58,10 +57,8 @@ public class LACL
     public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
 
     public static final DatatypeProperty password = m_model.createDatatypeProperty( NS + "password" );
-
-    public static final DatatypeProperty passwordHash = m_model.createDatatypeProperty( NS + "passwordHash" );
     
-    public static final DatatypeProperty jwtToken = m_model.createDatatypeProperty( NS + "jwtToken" );
+    public static final DatatypeProperty issuer = m_model.createDatatypeProperty( NS + "issuer" );
 
     public static final ObjectProperty requestAgent = m_model.createObjectProperty( NS + "requestAgent" );
 

@@ -134,8 +134,8 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
-        # only signup, request for access and WebID profiles can be public in admin app, nothing else
-        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AgentItem"))) )
+        # only signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
+        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "AgentItem"))) )
       }
     UNION
       { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization .
@@ -149,6 +149,32 @@ WHERE
         { ?this  a                     ?Type ;
                  foaf:maker            ?agent
         }
+      }
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
+        <param-value><![CDATA[
+DESCRIBE ?Agent
+WHERE
+  { GRAPH ?g
+      { ?Agent  ?p  ?o }
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#userAccountQuery</param-name>
+        <param-value><![CDATA[
+PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+DESCRIBE ?account ?agent
+WHERE
+  { GRAPH ?g
+      { ?account  sioc:id          ?id ;
+                  lacl:issuer      ?issuer ;
+                  sioc:account_of  ?agent
       }
   }
 ]]></param-value>
@@ -434,19 +460,29 @@ WHERE
         <param-value>[%s] Signup of "%s" is complete</param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpEMailText</param-name>
-        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's %s application.
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#webIDSignUpEMailText</param-name>
+        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
-Read more about LinkedDataHub signup and login here: https://linkeddatahub.com/linkeddatahub/docs/getting-started/
 
-With the certificate installed, you will be able to authenticate with every LinkedDataHub application. Note that you will still need to request authorization to get access to non-public resources.
-Read more about access control here: https://linkeddatahub.com/linkeddatahub/docs/administration/manage-acl/
-
+Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
 Certificate expires on: %s
+
+
+LinkedDataHub by AtomGraph
+support@linkeddatahub.com]]></param-value>
+    </context-param>
+    <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#oAuthSignUpEMailText</param-name>
+        <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
+
+Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
+
+Application's base URI: %s
+Your WebID profile: %s
 
 
 LinkedDataHub by AtomGraph
