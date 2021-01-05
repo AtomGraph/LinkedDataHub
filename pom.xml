@@ -128,18 +128,18 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>3.0.5-SNAPSHOT</version>
+            <version>3.0.5</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.0.21-SNAPSHOT</version>
+            <version>3.0.21</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.0.21-SNAPSHOT</version>
+            <version>3.0.21</version>
             <type>war</type>
         </dependency>
         <dependency>
