@@ -24,7 +24,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.net.URI;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.json.JsonObject;
@@ -83,20 +86,31 @@ public class IDTokenFilter extends AuthenticationFilter
         if (idToken == null) return null;
 
         if (!verify(idToken)) return null;
-
+        
+        String cacheKey = idToken.getIssuer() + idToken.getSubject();
+        final Model agentModel;
         Literal userId = ResourceFactory.createStringLiteral(idToken.getSubject());
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SIOC.ID.getLocalName(), userId);
-        qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(idToken.getIssuer()));
+        if (getSystem().getOIDCModelCache().containsKey(cacheKey)) agentModel = getSystem().getOIDCModelCache().get(cacheKey);
+        else
+        {
+            QuerySolutionMap qsm = new QuerySolutionMap();
+            qsm.add(SIOC.ID.getLocalName(), userId);
+            qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(idToken.getIssuer()));
 
-        Model agentModel = loadModel(pss, qsm, getAdminService());
+            agentModel = loadModel(pss, qsm, getAdminService());
+        }
+        
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);
-        if (account == null) return null;  // UserAccount not found
+        if (account == null) return null; // UserAccount not found
 
         // we add token value to the UserAccount. This will allow SecurityContext to carry the token as well as DataManager to delegate it.
-//        account.addLiteral(LACL.idToken, idToken.getToken());
         Resource agent = account.getRequiredProperty(SIOC.ACCOUNT_OF).getResource();
-
+        if (agent == null) throw new IllegalStateException("UserAccount is not attached to an agent (sioc:account_of property is missing)");
+        
+        // calculate ID token expiration in seconds and use it in the cache
+        long expiration = ChronoUnit.SECONDS.between(Instant.now(), idToken.getExpiresAt().toInstant());
+        getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
+        
         return agent;
     }
     
