@@ -74,7 +74,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
                 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][$ac:uri = resolve-uri('request%20access', $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][$ac:uri = resolve-uri('request%20access', $ldt:base)]/sioc:has_container" mode="bs2:FormControl" priority="4">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -126,7 +126,18 @@ exclude-result-prefixes="#all">
         <input type="hidden" name="ou" value="{$apl:access-to}"/>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAccessTo[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <!-- hide the document resource -->
+<!--    <xsl:template match="*[foaf:primaryTopic][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>-->
+
+    <!-- hide type control -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TypeControl" priority="2">
+        <xsl:next-match>
+            <xsl:with-param name="hidden" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- hide properties (including all of document resource properties) -->
+    <xsl:template match="foaf:isPrimaryTopicOf[$ac:uri = resolve-uri('request%20access', $ldt:base)] | *[foaf:primaryTopic][$ac:uri = resolve-uri('request%20access', $ldt:base)]/*" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -139,11 +150,8 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="sioc:content[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1"/>
-
-    <!-- hide slug - it will be created server side -->
-    <xsl:template match="dh:slug[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1"/>
     
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
-    <xsl:template match="*[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*" mode="bs2:PropertyControl" priority="1"/>
 
 </xsl:stylesheet>

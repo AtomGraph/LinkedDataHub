@@ -166,6 +166,8 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 * [XOM](http://www.xom.nu)
 * [JavaMail](https://javaee.github.io/javamail/)
 * [Guava](https://github.com/google/guava)
+* [java-jwt](https://github.com/auth0/java-jwt)
+* [ExpiringMap](https://github.com/jhalterman/expiringmap)
 * [CSV2RDF](https://github.com/AtomGraph/CSV2RDF)
 * [Processor](https://github.com/AtomGraph/Processor)
 * [Web-Client](https://github.com/AtomGraph/Web-Client)
