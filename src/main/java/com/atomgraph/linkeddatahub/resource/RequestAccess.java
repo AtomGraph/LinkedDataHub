@@ -145,7 +145,7 @@ public class RequestAccess extends ResourceBase
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.Agent.getLocalName(), owner);
             // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
-            Model agentModel = getAdminService().getSPARQLClient().loadModel(pss.asQuery());
+            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery());
             owner = agentModel.getResource(ownerURI);
             if (owner == null) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
@@ -200,9 +200,11 @@ public class RequestAccess extends ResourceBase
             build());
     }
     
-    protected Service getAdminService()
+    protected Service getAgentService()
     {
-        return getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : getApplication().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
     private Address getNotificationAddress()

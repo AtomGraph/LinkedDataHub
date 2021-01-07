@@ -169,7 +169,7 @@ public class Login extends ResourceBase
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
             pss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
             pss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
-            Model agentModel = getApplication().getService().getSPARQLClient().loadModel(pss.asQuery());
+            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery());
             boolean accountExists = !agentModel.isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
@@ -338,6 +338,11 @@ public class Login extends ResourceBase
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
+    }
+    
+    public Service getAgentService()
+    {
+        return getApplication().getService();
     }
     
     @Override

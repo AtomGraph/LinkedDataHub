@@ -97,7 +97,7 @@ public class IDTokenFilter extends AuthenticationFilter
             qsm.add(SIOC.ID.getLocalName(), userId);
             qsm.add(LACL.issuer.getLocalName(), ResourceFactory.createStringLiteral(idToken.getIssuer()));
 
-            agentModel = loadModel(pss, qsm, getAdminService());
+            agentModel = loadModel(pss, qsm, getAgentService());
         }
         
         Resource account = getResourceByPropertyValue(agentModel, SIOC.ID, userId);

@@ -81,9 +81,11 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         request.setSecurityContext(new AgentContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class)));
     }
     
-    protected Service getAdminService()
+    protected Service getAgentService()
     {
-        return getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : getApplication().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
     /**
