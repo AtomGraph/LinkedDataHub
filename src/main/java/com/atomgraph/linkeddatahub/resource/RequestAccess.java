@@ -147,7 +147,7 @@ public class RequestAccess extends ResourceBase
             // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)
             Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery());
             owner = agentModel.getResource(ownerURI);
-            if (owner == null) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
+            if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
             URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
             try (Response cr1 = getDataManager().getEndpoint(authRequestContainerURI).
