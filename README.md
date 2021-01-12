@@ -137,7 +137,7 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 **On Linux / Mac**
 
     export JENA_HOME=the directory you downloaded Jena to
-    export PATH=$PATH:$JENA_HOME/bin
+    export PATH="$PATH:$JENA_HOME/bin"
 
 ## [Demo applications](https://linkeddatahub.com/demo/)
 

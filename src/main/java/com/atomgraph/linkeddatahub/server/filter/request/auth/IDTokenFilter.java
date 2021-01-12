@@ -61,7 +61,7 @@ public class IDTokenFilter extends AuthenticationFilter
     private static final Logger log = LoggerFactory.getLogger(IDTokenFilter.class);
 
     public static final String AUTH_SCHEME = "JWT";
-    public static final String COOKIE_NAME = "id_token";
+    public static final String COOKIE_NAME = "LinkedDataHub.id_token";
     
     private ParameterizedSparqlString userAccountQuery;
 
