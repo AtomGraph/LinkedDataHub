@@ -25,12 +25,12 @@ print_usage()
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
-    printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment\n"
+    printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
     printf "  --file ABS_PATH                      Absolute path to the CSV file\n"
-    printf "  --file-slug STRING                   String that will be used as the file's URI path segment\n"
-    printf "  --file-doc-slug STRING               String that will be used as the file document's URI path segment\n"
+    printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
+    printf "  --file-doc-slug STRING               String that will be used as the file document's URI path segment (optional)\n"
     printf "  --delimiter CHAR                     CSV delimiter char (default: ',')\n"
-    printf "  --import-slug STRING                 String that will be used as the import's URI path segment\n"
+    printf "  --import-slug STRING                 String that will be used as the import's URI path segment (optional)\n"
 }
 
 args=()
@@ -56,16 +56,6 @@ case $key in
     ;;
     --title)
     title="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --description)
-    description="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --slug)
-    slug="$2"
     shift # past argument
     shift # past value
     ;;
@@ -141,27 +131,7 @@ if [ -z "$query_file" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$query_doc_slug" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$file" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$file_slug" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$file_doc_slug" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$delimiter" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$import_slug" ] ; then
     print_usage
     exit 1
 fi
