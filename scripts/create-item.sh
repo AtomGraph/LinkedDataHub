@@ -1,6 +1,22 @@
 #!/bin/bash
 
-# New version of scripts that accept named arguments, e.g.: ./create-container.sh -f ../../linkeddatahub-apps/certs/martynas.stage.localhost.pem -p XXXXXX -b https://localhost:4443/demo/city-graph/  https://localhost:4443/demo/city-graph/ --title "Test" --description "This is a container"
+print_usage()
+{
+    printf "Creates an item in a container.\n"
+    printf "\n"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "\n"
+    printf "  --title TITLE                        Title of the item\n"
+    printf "  --description DESCRIPTION            Description of the item (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --container CONTAINER_URI            URI of the parent container\n"
+}
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
@@ -44,11 +60,11 @@ done
 set -- "${args[@]}" # restore args parameters
 
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$title" ] ; then
-    echo '--title not set'
+    print_usage
     exit 1
 fi
 

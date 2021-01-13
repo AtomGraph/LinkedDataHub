@@ -1,5 +1,26 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "\n"
+    printf "  --title TITLE                        Title of the container\n"
+    printf "  --description DESCRIPTION            Description of the container (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --action CONTAINER_URI               URI of the target container\n"
+    printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query\n"
+    printf "  --file FILE_URI                      URI of the CSV file\n"
+    printf "  --delimiter CHAR                     Delimiter char (default: ',')\n"
+}
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -67,35 +88,35 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$title" ] ; then
-    echo '--title not set'
+    print_usage
     exit 1
 fi
 if [ -z "$action" ] ; then
-    echo '--action not set'
+    print_usage
     exit 1
 fi
 if [ -z "$query" ] ; then
-    echo '--query not set'
+    print_usage
     exit 1
 fi
 if [ -z "$file" ] ; then
-    echo '--file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$delimiter" ] ; then
-    echo '--delimiter not set'
+    print_usage
     exit 1
 fi
 

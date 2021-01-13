@@ -8,6 +8,31 @@ function onexit() {
     exit "$exit_status"
 }
 
+print_usage()
+{
+    printf "Transforms CSV data into RDF using a SPARQL query and imports it.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "\n"
+    printf "  --title TITLE                        Title of the container\n"
+    printf "  --description DESCRIPTION            Description of the container (optional)\n"
+    printf "  --slug STRING                         String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --action CONTAINER_URI               URI of the target container\n"
+    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
+    printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment\n"
+    printf "  --file ABS_PATH                      Absolute path to the CSV file\n"
+    printf "  --file-slug STRING                   String that will be used as the file's URI path segment\n"
+    printf "  --file-doc-slug STRING               String that will be used as the file document's URI path segment\n"
+    printf "  --file-content-type MEDIA_TYPE       Media type of the file\n"
+    printf "  --import-slug STRING                 String that will be used as the import's URI path segment\n"
+}
+
 args=()
 while [[ $# -gt 0 ]]
 do
@@ -91,6 +116,55 @@ case $key in
 esac
 done
 set -- "${args[@]}" # restore args
+
+if [ -z "$cert_pem_file" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$base" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$title" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$action" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$query_file" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$query_doc_slug" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$file" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$file_slug" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$file_doc_slug" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$file_content_type" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$import_slug" ] ; then
+    print_usage
+    exit 1
+fi
 
 query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file")
 

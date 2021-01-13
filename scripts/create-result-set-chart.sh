@@ -1,5 +1,26 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Creates a chart for SPARQL SELECT query results.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "\n"
+    printf "  --title TITLE                        Title of the chart\n"
+    printf "  --description DESCRIPTION            Description of the chart (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --query QUERY_URI                    URI of the SELECT query\n"
+    printf "  --chart-type TYPE_URI                URI of the chart type\n"
+    printf "  --category-var-name CATEGORY_VAR     Name of the variable used as category (without leading '?')\n"
+    printf "  --series-var-name SERIES_VAR         Name of the variable used as series (without leading '?')\n"
+}
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -67,35 +88,35 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$title" ] ; then
-    echo '--title not set'
+    print_usage
     exit 1
 fi
 if [ -z "$query" ] ; then
-    echo '--query not set'
+    print_usage
     exit 1
 fi
 if [ -z "$chart_type" ] ; then
-    echo '--chart-type not set'
+    print_usage
     exit 1
 fi
 if [ -z "$category_var_name" ] ; then
-    echo '--category-var-name not set'
+    print_usage
     exit 1
 fi
 if [ -z "$series_var_name" ] ; then
-    echo '--series-var-name not set'
+    print_usage
     exit 1
 fi
 

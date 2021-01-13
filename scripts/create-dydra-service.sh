@@ -1,5 +1,26 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Creates a Dydra service using repository URI.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "\n"
+    printf "  --title TITLE                        Title of the service\n"
+    printf "  --description DESCRIPTION            Description of the service (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --repository REPOSITORY_URI          Repository URI\n"
+    printf "  --auth-token AUTH_TOKEN              Authorization token (optional)\n"
+    printf "  --auth-user AUTH_USER                Authorization username (optional)\n"
+    printf "  --auth-pwd AUTH_PASSWORD             Authorization password (optional)\n"
+}
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -66,23 +87,23 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$repository" ] ; then
-    echo '--repository not set'
+    print_usage
     exit 1
 fi
 if [ -z "$title" ] ; then
-    echo '--title not set'
+    print_usage
     exit 1
 fi
 

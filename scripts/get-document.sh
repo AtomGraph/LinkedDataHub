@@ -7,8 +7,9 @@ print_usage()
     printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
-    printf "  -f, --cert-pem-file CERTIFICATE      .pem file with the WebID certificate of the agent\n"
-    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate (provided during signup)\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "\n"
     printf "  --accept MEDIA_TYPE                  Requested media type (e.g. text/turtle)\n"
     printf "  --head                               Requested headers only, no body (HEAD method)\n"
 }
@@ -52,19 +53,16 @@ if [ -z "$cert_pem_file" ] ; then
     print_usage
     exit 1
 fi
-
 if [ -z "$cert_password" ] ; then
     print_usage
     exit 1
 fi
-
 if [ -z "$accept" ] ; then
     print_usage
     exit 1
 fi
-
 if [ "$#" -ne 1 ]; then
-    echo "Only one default argument is allowed"
+    print_usage
     exit 1
 fi
 

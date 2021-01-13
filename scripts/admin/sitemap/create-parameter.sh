@@ -1,5 +1,27 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Creates an LDT parameter.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "\n"
+    printf "  --label LABEL                        Label of the parameter\n"
+    printf "  --comment COMMENT                    Description of the parameter (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --uri URI                            URI of the parameter (optional)\n"
+    printf "  --predicate PREDICATE_URI            URI of the predicate -- its local name used as parameter name\n"
+    printf "  --value-type URI                     URI value of spl:valueType\n"
+    printf "  --optional                           Parameter is optional (optional)\n"
+    printf "  --is-defined-by ONTOLOGY_URI         URI of the ontology this parameter is defined in\n"
+}
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -71,35 +93,31 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$label" ] ; then
-    echo '--label not set'
+    print_usage
     exit 1
 fi
 if [ -z "$predicate" ] ; then
-    echo '--predicate not set'
+    print_usage
     exit 1
 fi
 if [ -z "$value_type" ] ; then
-    echo '--value-type not set'
-    exit 1
-fi
-if [ -z "$optional" ] ; then
-    echo '--optional not set'
+    print_usage
     exit 1
 fi
 if [ -z "$is_defined_by" ] ; then
-    echo '--is-defined-by not set'
+    print_usage
     exit 1
 fi
 

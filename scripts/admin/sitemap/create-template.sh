@@ -1,5 +1,29 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Creates an LDT template.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "\n"
+    printf "  --label LABEL                        Label of the template\n"
+    printf "  --comment COMMENT                    Description of the query (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --uri URI                            URI of the template (optional)\n"
+    printf "  --query QUERY_URI                    URI of the CONSTRUCT/DESCRIBE query (optional)\n"
+    printf "  --match URI_TEMPLATE                 Match URI template (optional)\n"
+    printf "  --extends SUPER_TEMPLATE_URI         URI of the super-template (optional)\n"
+    printf "  --param PARAM_URI                    URI of an LDT parameter (optional)\n"
+    printf "  --load-class CLASS_URI               URI of a JAX-RS resource class (optional)\n"
+    printf "  --is-defined-by ONTOLOGY_URI         URI of the ontology this template is defined in\n"
+}
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -83,27 +107,27 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$label" ] ; then
-    echo '--label not set'
+    print_usage
     exit 1
 fi
 if { [ -z "$extends" ] && [ -z "$query" ] ; } || { [ -z "$extends" ] && [ -z "$match" ] ; } ; then
-    echo '--extends or --query and --match not set'
+    print_usage
     exit 1
 fi
 if [ -z "$is_defined_by" ] ; then
-    echo '--is-defined-by not set'
+    print_usage
     exit 1
 fi
 
