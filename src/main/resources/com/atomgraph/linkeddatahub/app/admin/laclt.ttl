@@ -156,11 +156,7 @@ CONSTRUCT
     ?this foaf:primaryTopic ?agent .
     ?this ?thisP ?thisO .
     ?this dct:created ?created .
-    ?agent a ?type .
-    ?agent foaf:name ?name .
-    ?agent foaf:givenName ?givenName .
-    ?agent foaf:familyName ?familyName .
-    ?agent cert:key ?key .
+    ?agent ?agentP ?agentO .
     ?secretary a ?secretaryType .
     ?secretary acl:delegates ?agent .
     ?secretary foaf:name ?secretaryName .
@@ -174,13 +170,8 @@ WHERE
                ?thisP             ?thisO
         GRAPH ?provGraph
           { ?this  dct:created  ?created }
-        ?agent  a  ?type
-        OPTIONAL
-          { ?agent  foaf:name  ?name }
-        OPTIONAL
-          { ?agent  foaf:givenName   ?givenName ;
-                    foaf:familyName  ?familyName
-          }
+        ?agent  ?agentP  ?agentO .
+        FILTER (?agentP != foaf:mbox)
         OPTIONAL
           { GRAPH ?secretaryGraph
               { ?secretary  a            ?secretaryType ;
@@ -197,7 +188,9 @@ WHERE
         OPTIONAL
           { ?agent  foaf:account  ?account
             GRAPH ?accountGraph
-              { ?account  ?accountP  ?accountO }
+              { ?account  ?accountP  ?accountO
+                FILTER (?accountP != sioc:email)
+              }
           }
       }
   }

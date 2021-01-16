@@ -72,7 +72,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         if (getApplication().canAs(EndUserApplication.class))
             return getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI();
         else
-            return getApplication().as(AdminApplication.class).getBaseURI();
+            return getApplication().getBaseURI();
     }
     
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()

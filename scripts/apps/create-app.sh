@@ -1,6 +1,9 @@
 #!/bin/bash
+
 set -E
 trap onexit ERR
+
+### This script is specific to LinkedDataHub Cloud version. See https://linkeddatahub.com/
 
 function onexit() {
     local exit_status=${1:-$?}
@@ -117,9 +120,6 @@ fi
 if [ -n "$logo" ] ; then
     turtle+="_:app foaf:logo <${logo}> .\n"
 fi
-
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"

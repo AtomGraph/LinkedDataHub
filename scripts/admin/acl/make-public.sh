@@ -1,3 +1,17 @@
+#!/bin/bash
+
+print_usage()
+{
+    printf "Makes all documents of the end-user application publicly readable.\n"
+    printf "\n"
+    printf "Usage:  %s options\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+}
+
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
 
 args=()
@@ -26,15 +40,15 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 

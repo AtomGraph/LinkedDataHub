@@ -170,9 +170,11 @@ import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.xml.transform.TransformerException;
+import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
@@ -250,7 +252,8 @@ public class Application extends ResourceConfig
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
     private final URI secretaryWebIDURI;
-    private final Map<URI, Model> webIDmodelCache = new HashMap<>();
+    private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
+    private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
     private final Map<String, XsltExecutable> xsltExecutableCache = new HashMap<>();
     
     private Dataset contextDataset;
@@ -519,8 +522,6 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
-//            FileManager.setStdLocators((FileManager)dataManager);
-//            FileManager.setGlobalFileManager((FileManager)dataManager);
             if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
             
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
@@ -1227,9 +1228,14 @@ public class Application extends ResourceConfig
         else return MessageBuilder.fromProperties(emailProperties);
     }
     
-    public Map<URI, Model> getWebIDModelCache()
+    public ExpiringMap<URI, Model> getWebIDModelCache()
     {
         return webIDmodelCache;
+    }
+    
+    public ExpiringMap<String, Model> getOIDCModelCache()
+    {
+        return oidcModelCache;
     }
     
     public Map<String, XsltExecutable> getXsltExecutableCache()

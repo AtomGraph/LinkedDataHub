@@ -61,7 +61,6 @@
 # authorization requests
 
 :AuthorizationRequest a rdfs:Class ;
-    rdfs:subClassOf dh:Item ;
     spin:constructor :AuthorizationRequestConstructor ;
     spin:constraint :MissingRequestMode, :MissingRequestAgent, :MissingRequestAccessTo ;
     rdfs:label "Authorization request" ;

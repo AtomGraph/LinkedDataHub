@@ -1883,8 +1883,21 @@ adm:ItemOfAuthorizationContainer a owl:Restriction ;
 # authorization request
 
 adm:AuthorizationRequest a rdfs:Class ;
-    rdfs:subClassOf lacl:AuthorizationRequest, adm:ItemOfAuthorizationRequestContainer ;
+    rdfs:subClassOf lacl:AuthorizationRequest, adm:TopicOfAuthorizationRequestItem ;
+    ldt:path "{isPrimaryTopicOf.slug}/" ;
+    ldt:fragment "this" ;
     rdfs:label "Authorization request" ;
+    rdfs:isDefinedBy adm: .
+
+adm:AuthorizationRequestItem a rdfs:Class ;
+    rdfs:subClassOf adm:Item, adm:ItemOfAuthorizationRequestContainer ;
+    rdfs:label "Authorization request item" ;
+    rdfs:isDefinedBy adm: .
+
+adm:TopicOfAuthorizationRequestItem a owl:Restriction ;
+    owl:onProperty foaf:isPrimaryTopicOf ;
+    owl:allValuesFrom adm:AuthorizationRequestItem ;
+    rdfs:label "Topic of authorization request item" ;
     rdfs:isDefinedBy adm: .
 
 adm:ItemOfAuthorizationRequestContainer a owl:Restriction ;

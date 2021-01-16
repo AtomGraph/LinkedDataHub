@@ -1,5 +1,25 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Uploads a file.\n"
+    printf "\n"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "\n"
+    printf "  --title TITLE                        Title of the file\n"
+    printf "  --description DESCRIPTION            Description of the file (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
+    printf "\n"
+    printf "  --file ABS_PATH                      Absolute path to the file\n"
+    printf "  --file-content-type MEDIA_TYPE       Media type of the file\n"
+    printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
+}
+
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 args=()
@@ -67,32 +87,27 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
-    echo '-f|--cert-pem-file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    echo '-p|--cert-password not set'
-    exit 1
-fi
-if [ -z "$file_content_type" ] ; then
-    echo '--file-content-type not set'
-    # print_usage
+    print_usage
     exit 1
 fi
 if [ -z "$base" ] ; then
-    echo '-b|--base not set'
+    print_usage
     exit 1
 fi
 if [ -z "$title" ] ; then
-    echo '--title not set'
+    print_usage
     exit 1
 fi
 if [ -z "$file" ] ; then
-    echo '--file not set'
+    print_usage
     exit 1
 fi
 if [ -z "$file_content_type" ] ; then
-    echo '--file-content-type not set'
+    print_usage
     exit 1
 fi
 

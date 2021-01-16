@@ -27,6 +27,8 @@ import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,26 +103,28 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         return null;
     }
     
-//    @Override
-//    public Source resolve(String href, String base) throws TransformerException
-//    {
-//        URI uriBase = URI.create(base);
-//        URI uri = href.isEmpty() ? uriBase : uriBase.resolve(href);
-//        
-//        if (!(hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))) // read mapped URIs (such as system ontologies) from a file
-//        {
-//            // if document is not cached, construct ontology URI - they are cached under different URIs than their documents. TO-DO: refactor
-//            String ontologyHref = href + "#";
-//            uri = href.isEmpty() ? uriBase : uriBase.resolve(ontologyHref);
-//            if (hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))
-//            {
-//                if (log.isDebugEnabled()) log.debug("Resolving ontology URI '{}' from model cache instead of dereferencing its document '{}'", ontologyHref, href);
-//                return super.resolve(ontologyHref, base);
-//            }
-//        }
-//        
-//        return super.resolve(href, base);
-//    }
+    @Override
+    public Source resolve(String href, String base) throws TransformerException
+    {
+        URI hrefBase = URI.create(base);
+        URI uri = href.isEmpty() ? hrefBase : hrefBase.resolve(href);
+        if (uri.getScheme().equals("http") || uri.getScheme().equals("https"))
+        {
+            if (!(hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString()))))
+            {
+                // if document is not cached, construct ontology URI - they are cached under different URIs than their documents. TO-DO: refactor
+                String ontologyHref = href + "#";
+                uri = href.isEmpty() ? hrefBase : hrefBase.resolve(ontologyHref);
+                if (hasCachedModel(uri.toString()) || (isResolvingMapped() && isMapped(uri.toString())))
+                {
+                    if (log.isDebugEnabled()) log.debug("Resolving ontology URI '{}' from model cache instead of dereferencing its document '{}'", ontologyHref, href);
+                    return super.resolve(ontologyHref, base);
+                }
+            }
+        }
+        
+        return super.resolve(href, base);
+    }
     
 //    @Override
 //    public Source getSource(Model model, String systemId) throws IOException

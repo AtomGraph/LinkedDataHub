@@ -7,8 +7,9 @@ print_usage()
     printf "Usage:  echo -e \$rdf_body | %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
-    printf "  -f, --cert-pem-file CERTIFICATE      .pem file with the WebID certificate of the agent\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate (provided during signup)\n"
+    printf "\n"
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
 }
 
@@ -48,21 +49,18 @@ if [ -z "$cert_pem_file" ] ; then
     print_usage
     exit 1
 fi
-
 if [ -z "$cert_password" ] ; then
     # echo '-p|--cert-password not set'
     print_usage
     exit 1
 fi
-
 if [ -z "$content_type" ] ; then
     # echo '-t|--content-type not set'
     print_usage
     exit 1
 fi
-
 if [ "$#" -ne 1 ]; then
-    echo "Only one default argument is allowed"
+    print_usage
     exit 1
 fi
 

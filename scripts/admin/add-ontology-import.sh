@@ -1,5 +1,18 @@
 #!/bin/bash
 
+print_usage()
+{
+    printf "Adds owl:import statement to ontology.\n"
+    printf "\n"
+    printf "Usage:  %s options ONTOLOGY_DOC_URI\n" "$0"
+    printf "\n"
+    printf "Options:\n"
+    printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
+    printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "\n"
+    printf "  --import IMPORT_URI                  URI of the imported ontology\n"
+}
+
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 args=()
@@ -32,12 +45,11 @@ done
 set -- "${args[@]}" # restore args
 
 if [ -z "$import" ] ; then
-    echo '--import not set'
+    print_usage
     exit 1
 fi
-
 if [ "$#" -ne 1 ]; then
-    echo "Only one default argument is allowed"
+    print_usage
     exit 1
 fi
 

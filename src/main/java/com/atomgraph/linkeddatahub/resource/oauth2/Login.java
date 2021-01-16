@@ -7,6 +7,7 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
@@ -26,9 +27,11 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.json.JsonObject;
 import javax.mail.Address;
@@ -37,11 +40,13 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -145,7 +150,9 @@ public class Login extends ResourceBase
 
         String code = getUriInfo().getQueryParameters().getFirst("code");
         String state = getUriInfo().getQueryParameters().getFirst("state"); // TO-DO: verify by matching against state generated in Authorize
-
+        Cookie stateCookie = getHttpHeaders().getCookies().get(Authorize.COOKIE_NAME);
+        if (!state.equals(stateCookie.getValue())) throw new BadRequestException("OAuth 'state' parameter failed to validate");
+        
         Form form = new Form().
             param("grant_type", "authorization_code").
             param("client_id", getClientID()).
@@ -169,7 +176,7 @@ public class Login extends ResourceBase
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getUserAccountQuery().toString());
             pss.setLiteral(SIOC.ID.getLocalName(), jwt.getSubject());
             pss.setLiteral(LACL.issuer.getLocalName(), jwt.getIssuer());
-            Model agentModel = getApplication().getService().getSPARQLClient().loadModel(pss.asQuery());
+            Model agentModel = getAgentService().getSPARQLClient().loadModel(pss.asQuery());
             boolean accountExists = !agentModel.isEmpty();
 
             if (!accountExists) // UserAccount with this ID does not exist yet
@@ -235,8 +242,9 @@ public class Login extends ResourceBase
             
             String path = getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI().getPath();
             NewCookie jwtCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, idToken, path, null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+            URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]);
             
-            return Response.seeOther(getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI()). // redirect to end-user root
+            return Response.seeOther(originalReferer). // redirect to where s/he started authentication
                 cookie(jwtCookie).
                 build();
         }
@@ -338,6 +346,11 @@ public class Login extends ResourceBase
             getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
+    }
+    
+    public Service getAgentService()
+    {
+        return getApplication().getService();
     }
     
     @Override

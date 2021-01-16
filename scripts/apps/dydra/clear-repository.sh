@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### This script is specific to LinkedDataHub Cloud version. See https://linkeddatahub.com/
+
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
 if [ "$#" -ne 2 ]; then

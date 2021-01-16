@@ -21,6 +21,8 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.exception.ConfigurationException;
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
@@ -30,13 +32,16 @@ import com.atomgraph.processor.model.TemplateCall;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -57,6 +62,7 @@ public class Authorize extends ResourceBase
     
     public static final String ENDPOINT_URI = "https://accounts.google.com/o/oauth2/v2/auth";
     public static final String SCOPE = "openid email profile";
+    public static final String COOKIE_NAME = "LinkedDataHub.state";
 
     private final String clientID;
     
@@ -86,6 +92,7 @@ public class Authorize extends ResourceBase
     public Response get()
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
+        if (getHttpHeaders().getHeaderString("Referer") == null) throw new BadRequestException("'Referer' header value is not set, cannot use it for 'redirect_uri'");
 
         URI redirectUri = getUriInfo().getBaseUriBuilder().
             path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).
@@ -93,18 +100,30 @@ public class Authorize extends ResourceBase
             build();
 
         String state = new BigInteger(130, new SecureRandom()).toString(32);
+        String stateValue = Base64.getEncoder().encodeToString((state + ";" + getHttpHeaders().getHeaderString("Referer")).getBytes());
+        NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, getEndUserBaseURI().getPath(), null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
             queryParam("response_type", "code").
             queryParam("client_id", getClientID()).
             queryParam("redirect_uri", redirectUri).
             queryParam("scope", SCOPE).
-            queryParam("state", state).
+            queryParam("state", stateValue).
             queryParam("nonce", UUID.randomUUID().toString());
         
-        return Response.seeOther(authUriBuilder.build()).build();
+        return Response.seeOther(authUriBuilder.build()).
+            cookie(stateCookie).
+            build();
     }
-        
+
+    public URI getEndUserBaseURI()
+    {
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().getBaseURI();
+        else
+            return getApplication().as(AdminApplication.class).getEndUserApplication().getBaseURI();
+    }
+    
     private String getClientID()
     {
         return clientID;
