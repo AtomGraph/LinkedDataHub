@@ -197,29 +197,6 @@ WHERE
 """ ;
     rdfs:isDefinedBy : .
 
-# user account
-
-# :UserAccountItem a ldt:Template ;
-#     ldt:extends aplt:Document ;
-#     ldt:match "/acl/users/{slug}/" ;
-#     ldt:query :DescribeUserAccountItem ;
-#     rdfs:label "User account item template" ;
-#     rdfs:isDefinedBy : .
-# 
-# :DescribeUserAccountItem a sp:Construct, ldt:Query ;
-#     rdfs:label "DESCRIBE UserAccountItem" ;
-#     sp:text """
-# PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-# PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-# 
-# DESCRIBE ?this ?account
-# WHERE
-#   { GRAPH ?graph
-#       { ?this     foaf:primaryTopic  ?account .
-#       }
-#   }""" ;
-#     rdfs:isDefinedBy : .
-
 # group
 
 :GroupItem a ldt:Template ;
