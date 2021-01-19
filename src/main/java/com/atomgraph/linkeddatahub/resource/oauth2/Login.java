@@ -274,8 +274,8 @@ public class Login extends ResourceBase
         
         Resource agent = model.createResource().
             addProperty(RDF.type, cls).
-            addLiteral(model.createProperty(FOAF.NS + "givenName"), givenName).
-            addLiteral(model.createProperty(FOAF.NS + "familyName"), familyName).
+            addLiteral(FOAF.givenName, givenName).
+            addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
             addProperty(FOAF.isPrimaryTopicOf, agentDoc);
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
