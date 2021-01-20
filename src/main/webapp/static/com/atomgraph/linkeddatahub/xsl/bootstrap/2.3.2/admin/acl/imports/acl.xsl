@@ -85,7 +85,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="'auth-item'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&rdfs;label'"/>
@@ -96,7 +95,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="'Allowed ' || ac:label(key('resources', lacl:requestMode/@rdf:resource, document('&acl;'))) || ' access'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&acl;accessTo'"/>
@@ -107,7 +105,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="lacl:requestAccessTo/@rdf:resource"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&acl;agent'"/>
@@ -118,7 +115,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="lacl:requestAgent/@rdf:resource"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&acl;mode'"/>
@@ -143,6 +139,16 @@ exclude-result-prefixes="#all">
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
                 <xsl:with-param name="value" select="resolve-uri('ns#AuthorizationItem', $ldt:base)"/> <!-- AuthorizationItem class URI -->
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&sioc;has_container'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
