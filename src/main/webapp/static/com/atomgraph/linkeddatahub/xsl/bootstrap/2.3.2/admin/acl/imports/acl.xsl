@@ -50,4 +50,116 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
+    <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+        <xsl:next-match/>
+        
+        <form method="post" action="{resolve-uri('acl/authorizations/?forClass=' || encode-for-uri(resolve-uri('ns#Authorization', $ldt:base)), $ldt:base)}">
+            <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'rdf'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'sb'"/>
+                <xsl:with-param name="value" select="'auth'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&rdf;type'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="resolve-uri('ns#Authorization', $ldt:base)"/> <!-- Authorization class URI -->
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ob'"/>
+                <xsl:with-param name="value" select="'auth-item'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&rdfs;label'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ol'"/>
+                <xsl:with-param name="value" select="'Allowed ' || ac:label(key('resources', lacl:requestMode/@rdf:resource, document('&acl;'))) || ' access'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&acl;accessTo'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="lacl:requestAccessTo/@rdf:resource"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&acl;agent'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="lacl:requestAgent/@rdf:resource"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&acl;mode'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="lacl:requestMode/@rdf:resource"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'sb'"/>
+                <xsl:with-param name="value" select="'auth-item'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&rdf;type'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="resolve-uri('ns#AuthorizationItem', $ldt:base)"/> <!-- AuthorizationItem class URI -->
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&foaf;primaryTopic'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ob'"/>
+                <xsl:with-param name="value" select="'auth'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Allow</button>
+            </div>
+        </form>
+    </xsl:template>
+    
 </xsl:stylesheet>
