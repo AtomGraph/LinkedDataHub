@@ -53,6 +53,14 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:next-match/>
         
+        <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
+            <div class="alert">
+                <p>
+                    <strong>Warning!</strong> By allowing <code>Control</code> access mode you are effectively granting full control of the dataspace.
+                </p>
+            </div>
+        </xsl:if>
+        
         <form method="post" action="{resolve-uri('acl/authorizations/?forClass=' || encode-for-uri(resolve-uri('ns#Authorization', $ldt:base)), $ldt:base)}">
             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
             <xsl:call-template name="xhtml:Input">
@@ -90,19 +98,10 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="'&rdfs;label'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
+            <xsl:variable name="label" select="string-join(lacl:requestMode/@rdf:resource/ac:label(key('resources', ., document('&acl;'))), ', ')" as="xs:string"/>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ol'"/>
-                <xsl:with-param name="value" select="'Allowed ' || ac:label(key('resources', lacl:requestMode/@rdf:resource, document('&acl;'))) || ' access'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'pu'"/>
-                <xsl:with-param name="value" select="'&acl;accessTo'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="lacl:requestAccessTo/@rdf:resource"/>
+                <xsl:with-param name="value" select="'Allowed ' || $label || ' access'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
@@ -115,16 +114,42 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="lacl:requestAgent/@rdf:resource"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'pu'"/>
-                <xsl:with-param name="value" select="'&acl;mode'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="lacl:requestMode/@rdf:resource"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
+            <xsl:for-each select="lacl:requestAccessTo/@rdf:resource">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'pu'"/>
+                    <xsl:with-param name="value" select="'&acl;accessTo'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ou'"/>
+                    <xsl:with-param name="value" select="."/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
+            </xsl:for-each>
+            <xsl:for-each select="lacl:requestAccessToClass/@rdf:resource">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'pu'"/>
+                    <xsl:with-param name="value" select="'&acl;accessToClass'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ou'"/>
+                    <xsl:with-param name="value" select="."/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
+            </xsl:for-each>
+            <xsl:for-each select="lacl:requestMode/@rdf:resource">
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'pu'"/>
+                    <xsl:with-param name="value" select="'&acl;mode'"/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
+                <xsl:call-template name="xhtml:Input">
+                    <xsl:with-param name="name" select="'ou'"/>
+                    <xsl:with-param name="value" select="."/>
+                    <xsl:with-param name="type" select="'hidden'"/>
+                </xsl:call-template>
+            </xsl:for-each>
 
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>
