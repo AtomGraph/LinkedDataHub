@@ -13,6 +13,7 @@
     <!ENTITY prov   "http://www.w3.org/ns/prov#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -185,6 +186,17 @@ exclude-result-prefixes="#all">
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
                 <xsl:with-param name="value" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&dct;title'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:variable name="label" select="string-join(lacl:requestMode/@rdf:resource/ac:label(key('resources', ., document('&acl;'))), ', ')" as="xs:string"/>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ol'"/>
+                <xsl:with-param name="value" select="'Allowed ' || $label || ' access'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
