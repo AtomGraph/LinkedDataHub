@@ -13,6 +13,7 @@
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -84,6 +85,17 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="value" select="resolve-uri('acl/authorization-requests/', $ldt:base)"/>
         </xsl:call-template>
+        <!-- generate AuthorizationRequestItem title -->
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'pu'"/>
+            <xsl:with-param name="value" select="'&dct;title'"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:call-template>
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'ol'"/>
+            <xsl:with-param name="value" select="'Access request by ' || ac:label($lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)])"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template match="lacl:requestMode/@rdf:*[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
@@ -115,19 +127,50 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
 
-        <input type="hidden" name="ou" value="{$lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)]/@rdf:about}"/>
-    </xsl:template>
-    
-    <xsl:template match="lacl:requestAccessTo[$ac:uri = resolve-uri('request%20access', $ldt:base)][$apl:access-to]" mode="bs2:FormControl" priority="2">
-        <xsl:apply-templates select="." mode="xhtml:Input">
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'ou'"/>
+            <xsl:with-param name="value" select="$lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)]/@rdf:about"/>
             <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-
-        <input type="hidden" name="ou" value="{$apl:access-to}"/>
+        </xsl:call-template>
+        
+        <!-- generate AuthorizationRequest label-->
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'pu'"/>
+            <xsl:with-param name="value" select="'&rdfs;label'"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:call-template>
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="name" select="'ol'"/>
+            <xsl:with-param name="value" select="'Access request by ' || ac:label($lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)])"/>
+            <xsl:with-param name="type" select="'hidden'"/>
+        </xsl:call-template>
     </xsl:template>
     
-    <!-- hide the document resource -->
-<!--    <xsl:template match="*[foaf:primaryTopic][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="3"/>-->
+    <xsl:template match="lacl:requestAccessTo/@rdf:*[$ac:uri = resolve-uri('request%20access', $ldt:base)][$apl:access-to]" mode="bs2:FormControl" priority="2">
+        <label>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="resolve-uri('../sparql', $ldt:base)"/> <!-- end-user endpoint -->
+                <xsl:with-param name="type" select="'checkbox'"/>
+                <xsl:with-param name="checked" select="true()"/>
+            </xsl:call-template>
+            
+            SPARQL endpoint
+        </label>
+    </xsl:template>
+
+    <xsl:template match="lacl:requestAccessToClass/@rdf:*[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
+        <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
+        <xsl:variable name="classes" select="key('resources', (resolve-uri('../ns/default#Root', $ldt:base), resolve-uri('../ns/default#Container', $ldt:base), resolve-uri('../ns/default#Item', $ldt:base), resolve-uri('../ns/default#File', $ldt:base)), document(resolve-uri('../ns/default', $ldt:base)))" as="element()*"/>
+        <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
+            <xsl:for-each select="$classes">
+                <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
+                <xsl:apply-templates select="." mode="xhtml:Option">
+                    <xsl:with-param name="selected" select="true()"/>
+                </xsl:apply-templates>
+            </xsl:for-each>
+        </select>
+    </xsl:template>
 
     <!-- hide type control -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TypeControl" priority="2">

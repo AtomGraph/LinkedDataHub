@@ -567,12 +567,10 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             return getResourceContext().getResource(ProxyResourceBase.class).put(dataset);
         }
         
-        //Response response = super.put(dataset);
-
-        Calendar created = null;
         Response response;
         try
         {
+            Calendar created = null;
             // workaround in order to retain the dct:created value in the meta-graph - without it delete() will wipe all statements about the current resource
             Dataset description = describe();
             Statement createdStmt = description.getDefaultModel().createResource(getURI().toString()).getProperty(DCTerms.created);
@@ -586,6 +584,17 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             delete();
             
             response = post(dataset, getAgent(), created); // add the original dct:created value to the meta-graph
+            
+            if (created != null)
+            {
+                ParameterizedSparqlString updateString = new ParameterizedSparqlString(
+                    getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
+                    getQuerySolutionMap());
+                updateString.setLiteral(DCTerms.created.getLocalName(), created); // only match the dct:created value we had before this request, not the one we just added
+
+                if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
+                getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+            }
         }
         catch (NotFoundException ex)
         {
@@ -593,14 +602,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             
             response = Response.created(getURI()).build();
         }
-        
-        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-                getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
-                getQuerySolutionMap());
-        updateString.setLiteral(DCTerms.created.getLocalName(), created); // only match the dct:created value we had before this request, not the one we just added
-        
-        if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
-        getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
 
         Response banResponse = ban(getOntResource());
         if (banResponse != null) banResponse.close();

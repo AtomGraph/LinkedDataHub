@@ -640,7 +640,8 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
-
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    
                     <xsl:call-template name="apl:RenderContainer">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>

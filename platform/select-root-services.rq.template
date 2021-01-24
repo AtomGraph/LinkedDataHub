@@ -4,9 +4,9 @@ PREFIX a:       <https://w3id.org/atomgraph/core#>
 PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
 PREFIX dydra:   <https://w3id.org/atomgraph/linkeddatahub/services/dydra#>
 
-SELECT ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd
+SELECT ?endUserApp ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?adminApp ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd
 {
-    ?app ldt:base <$BASE_URI> ;
+    ?endUserApp ldt:base <$BASE_URI> ;
         ldt:service ?endUserService ;
         lapp:adminApplication ?adminApp .
         ?adminApp ldt:service ?adminService ;

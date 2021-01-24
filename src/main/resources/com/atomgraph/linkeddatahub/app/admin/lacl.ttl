@@ -40,8 +40,16 @@
 
 :requestAccessTo a owl:ObjectProperty ;
     rdfs:domain :AuthorizationRequest ;
+    rdfs:range <http://www.w3.org/2006/gen/ont#InformationResource> ;
     rdfs:label "Requested access to" ;
     rdfs:seeAlso acl:accessTo ;
+    rdfs:isDefinedBy : .
+
+:requestAccessToClass a owl:ObjectProperty ;
+    rdfs:domain :AuthorizationRequest ;
+    rdfs:range rdfs:Class ;
+    rdfs:label "Requested access to class" ;
+    rdfs:seeAlso acl:accessToClass ;
     rdfs:isDefinedBy : .
 
 :requestAgent a owl:ObjectProperty ;
@@ -92,6 +100,7 @@
         CONSTRUCT {
             ?this lacl:requestMode [ a acl:Mode ] ;
                 lacl:requestAccessTo [ a rdfs:Resource ] ;
+                lacl:requestAccessToClass [ a rdfs:Class ] ;
                 lacl:requestAgent [ a lacl:Agent ] .
         }
         WHERE {}""" ;

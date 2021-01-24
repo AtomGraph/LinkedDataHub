@@ -33,6 +33,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.model.TemplateCall;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.GregorianCalendar;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.mail.Address;
@@ -141,7 +142,9 @@ public class RequestAccess extends ResourceBase
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
             String ownerURI = owner.getURI();
-                    
+            
+            accessRequest.addLiteral(DCTerms.created, GregorianCalendar.getInstance());
+            
             ParameterizedSparqlString pss = new ParameterizedSparqlString(getAgentQuery().toString());
             pss.setParam(FOAF.Agent.getLocalName(), owner);
             // query agent data with SPARQL because the public laclt:AgentItem description does not expose foaf:mbox (which we need below in order to send an email)

@@ -10,33 +10,36 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 
+### do not use blank nodes to identify resources! ###
+### urn: URI scheme is used because applications/services are not accessible in their own dataspace (under $BASE_URI) ###
+
 # APPS
 
 # root admin
 
-_:root_admin_app a lapp:AdminApplication ;
+<urn:linkeddatahub:apps/admin> a lapp:AdminApplication ;
     dct:title "LinkedDataHub admin" ;
     ldt:base <admin/> ;
     ldt:ontology <admin/ns#> ;
-    ldt:service _:root_admin_service ;
+    ldt:service <urn:linkeddatahub:services/admin> ;
     ac:stylesheet <file:///usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
-    lapp:endUserApplication _:root_end_user_app .
+    lapp:endUserApplication <urn:linkeddatahub:apps/end-user> .
 
 # root end-user
 
-_:root_end_user_app a lapp:EndUserApplication ;
+<urn:linkeddatahub:apps/end-user> a lapp:EndUserApplication ;
     dct:title "LinkedDataHub" ;
     ldt:base <> ;
     ldt:ontology <ns#> ;
-    ldt:service _:root_end_user_service ;
-    lapp:adminApplication _:root_admin_app ;
+    ldt:service <urn:linkeddatahub:services/end-user> ;
+    lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:public true .
 
 # SERVICES
 
 # root admin
 
-_:root_admin_service a apl:GenericService ;
+<urn:linkeddatahub:services/admin> a apl:GenericService ;
     dct:title "LinkedDataHub admin service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-admin:3030/ds/> ;
@@ -45,7 +48,7 @@ _:root_admin_service a apl:GenericService ;
  
 # root end-user
 
-_:root_end_user_service a apl:GenericService ;
+<urn:linkeddatahub:services/end-user> a apl:GenericService ;
     dct:title "LinkedDataHub service" ;
     sd:supportedLanguage sd:SPARQL11Query, sd:SPARQL11Update ;
     sd:endpoint <http://fuseki-end-user:3030/ds/> ;

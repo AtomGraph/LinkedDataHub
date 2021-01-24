@@ -100,13 +100,9 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 
   ### Dataspaces
 
-  Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Their base URIs need to be relative to the base URI configured in the `.env` file.
+  Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
 
-  Reusing the `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as the new base URI, the easiest way is to simple replace the default `https://localhost:4443/` value with it. It can be done using the following shell command:
-  ```
-  sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig
-  ```
-  Note that `sed` requires to escape forward slashes `/` with backslashes `\`.
+_:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
 
   ## Reset
 

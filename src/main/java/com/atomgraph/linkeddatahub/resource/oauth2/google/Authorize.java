@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -92,15 +91,18 @@ public class Authorize extends ResourceBase
     public Response get()
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
-        if (getHttpHeaders().getHeaderString("Referer") == null) throw new BadRequestException("'Referer' header value is not set, cannot use it for 'redirect_uri'");
-
+        
+        final String originUri;
+        if (getHttpHeaders().getHeaderString("Referer") != null) originUri = getHttpHeaders().getHeaderString("Referer");
+        else originUri  = getEndUserBaseURI().toString();
+        
         URI redirectUri = getUriInfo().getBaseUriBuilder().
             path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).
                 as(Template.class).getMatch().toString()). // has to be a URI template without parameters
             build();
 
         String state = new BigInteger(130, new SecureRandom()).toString(32);
-        String stateValue = Base64.getEncoder().encodeToString((state + ";" + getHttpHeaders().getHeaderString("Referer")).getBytes());
+        String stateValue = Base64.getEncoder().encodeToString((state + ";" + originUri).getBytes());
         NewCookie stateCookie = new NewCookie(COOKIE_NAME, stateValue, getEndUserBaseURI().getPath(), null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
         
         UriBuilder authUriBuilder = UriBuilder.fromUri(ENDPOINT_URI).
