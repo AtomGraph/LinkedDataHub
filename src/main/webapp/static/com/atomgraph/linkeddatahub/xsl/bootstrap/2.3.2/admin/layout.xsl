@@ -12,8 +12,8 @@ xmlns:rdf="&rdf;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:import href="../layout.xsl"/>    
-    <xsl:include href="acl/layout.xsl"/>    
+    <xsl:import href="../layout.xsl"/>
+    <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
     <!-- allow subject editing in admin EditMode -->

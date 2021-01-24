@@ -10,6 +10,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#"> 
+    <!ENTITY prov   "http://www.w3.org/ns/prov#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
@@ -150,6 +151,16 @@ exclude-result-prefixes="#all">
                     <xsl:with-param name="type" select="'hidden'"/>
                 </xsl:call-template>
             </xsl:for-each>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'pu'"/>
+                <xsl:with-param name="value" select="'&prov;wasDerivedFrom'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'ou'"/>
+                <xsl:with-param name="value" select="@rdf:about"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
 
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>

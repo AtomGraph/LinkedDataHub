@@ -22,6 +22,9 @@
     <rdf:Description rdf:nodeID="applications">
         <rdfs:label xml:lang="en-US">Applications</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="notifications">
+        <rdfs:label xml:lang="en-US">Notifications</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="atomgraph">
         <rdfs:label xml:lang="en-US">AtomGraph</rdfs:label>
     </rdf:Description>

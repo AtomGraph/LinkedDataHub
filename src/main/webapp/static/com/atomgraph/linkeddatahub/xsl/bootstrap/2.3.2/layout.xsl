@@ -475,31 +475,6 @@ exclude-result-prefixes="#all">
 
                     <a href="?mode={encode-for-uri('&ac;QueryEditorMode')}">SPARQL editor</a>
                 </li>
-
-                <xsl:if test="$ldt:base">
-                    <xsl:variable name="apps-uri" select="resolve-uri('..', $ldt:base)" as="xs:anyURI"/>
-                    <xsl:if test="doc-available($apps-uri)">
-                        <li>
-                            <div class="btn-group">
-                                <button title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                                    <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo">
-                                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                                    </xsl:apply-templates>
-                                </button>
-                                <ul class="dropdown-menu pull-right">
-                                    <xsl:variable name="apps" select="document($apps-uri)" as="document-node()"/>
-                                    <xsl:for-each select="$apps//*[ldt:base/@rdf:resource]">
-                                        <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
-                                        <xsl:apply-templates select="." mode="bs2:AppListItem">
-                                            <xsl:with-param name="active" select="ldt:base/@rdf:resource = $ldt:base"/>
-                                        </xsl:apply-templates>
-                                    </xsl:for-each>
-                                </ul>
-                            </div>
-                        </li>
-                    </xsl:if>
-                </xsl:if>
-
                 <li>
                     <div class="btn-group">
                         <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
@@ -1007,10 +982,10 @@ exclude-result-prefixes="#all">
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-search')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:nodeID = 'applications']" mode="apl:logo">
+    <xsl:template match="*[@rdf:nodeID = 'notifications']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-context')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-notifications')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&lacl;Agent']" mode="apl:logo">
