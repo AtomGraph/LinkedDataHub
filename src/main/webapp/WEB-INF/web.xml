@@ -452,6 +452,45 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
+        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#ontologyVersionUpdate</param-name>
+        <param-value><![CDATA[
+PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+DELETE {
+  GRAPH ?ontologyGraph {
+    ?ontology owl:versionInfo ?versionInfo .
+  }
+}
+INSERT {
+  GRAPH ?ontologyGraph {
+    ?ontology owl:versionInfo ?graphHash .
+  }
+}
+WHERE
+  { SELECT  ?ontologyGraph ?ontology ?versionInfo (SHA1(GROUP_CONCAT(?tripleStr ; separator=' \n')) AS ?graphHash)
+    WHERE
+      { { SELECT  ?ontologyGraph ?ontology ?versionInfo ?s ?p ?o
+          WHERE
+            { GRAPH ?termGraph
+                { ?s  rdfs:isDefinedBy  ?ontology ;
+                      ?p                ?o
+                  GRAPH ?ontologyGraph
+                    { ?ontology  owl:versionInfo  ?versionInfo }
+                }
+            }
+        }
+        BIND(if(isURI(?s), concat("<", str(?s), ">"), concat("_:", str(?s))) AS ?sStr)
+        BIND(concat("<", str(?p), ">") AS ?pStr)
+        BIND(if(isURI(?o), concat("<", str(?o), ">"), if(isBlank(?o), concat("_:", str(?o)), concat("\"", str(?o), "\"", if(( lang(?o) != "" ), concat("@", str(lang(?o))), concat("^^<", str(datatype(?o)), ">"))))) AS ?oStr)
+        BIND(concat(?sStr, " ", ?pStr, " ", ?oStr, " .") AS ?tripleStr)
+      }
+    GROUP BY ?ontologyGraph ?ontology ?versionInfo
+    ORDER BY ?s ?p ?o datatype(?o) lcase(lang(?o))
+  }
+]]></param-value>
+    </context-param>
+    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpAddress</param-name>
         <param-value><![CDATA[LinkedDataHub <signup@linkeddatahub.com>]]></param-value>
     </context-param>
