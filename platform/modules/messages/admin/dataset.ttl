@@ -1,0 +1,66 @@
+@prefix adm:	<ns#> .
+@prefix ns:	<../ns#> .
+@prefix def:	<../ns/default#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+@prefix msg:    <https://w3id.org/atomgraph/linkeddatahub/modules/messages#> .
+
+ns: owl:imports msg: .
+
+# message
+
+<model/classes/namespace/message/> a adm:ClassItem ;
+    sioc:has_container <model/classes/namespace/> ;
+    dct:title "Message" ;
+    foaf:primaryTopic ns:Message .
+
+ns:Message a adm:Class ;
+    foaf:isPrimaryTopicOf <model/classes/namespace/message/> ;
+    rdfs:subClassOf msg:Message, ns:TopicOfMessageItem ;
+    rdfs:label "Message" ;
+    rdfs:isDefinedBy ns: .
+
+# message item
+
+<model/classes/namespace/message-item/> a adm:ClassItem ;
+    sioc:has_container <model/classes/namespace/> ;
+    dct:title "Message item" ;
+    foaf:primaryTopic ns:MessageItem .
+
+ns:MessageItem a adm:Class ;
+    foaf:isPrimaryTopicOf <model/classes/namespace/message-item/> ;
+    rdfs:subClassOf def:Item, ns:ItemOfMessagesContainer ;
+    rdfs:label "Message item" ;
+    rdfs:isDefinedBy ns: .
+
+# topic of message item
+
+<model/restrictions/namespace/topic-of-message-item/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/namespace/> ;
+    dct:title "Topic of message item" ;
+    foaf:primaryTopic ns:TopicOfMessageItem .
+
+ns:TopicOfMessageItem a adm:Restriction ;
+    foaf:isPrimaryTopicOf <model/restrictions/namespace/topic-of-message-item/> ;
+    owl:onProperty foaf:isPrimaryTopicOf ;
+    owl:allValuesFrom ns:MessageItem ;
+    rdfs:label "Topic of message item" ;
+    rdfs:isDefinedBy ns: .
+
+# has messages container
+
+<model/restrictions/namespace/messages-container/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/namespace/> ;
+    dct:title "Has messages container" ;
+    foaf:primaryTopic ns:ItemOfMessagesContainer .
+
+ns:ItemOfMessagesContainer a adm:Restriction ;
+    foaf:isPrimaryTopicOf <model/restrictions/namespace/messages-container/> ;
+    owl:onProperty sioc:has_container ;
+    owl:hasValue <../messages/> ;
+    rdfs:label "Has messages container" ;
+    rdfs:isDefinedBy ns: .

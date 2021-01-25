@@ -47,6 +47,7 @@
    [ lm:name "http://spinrdf.org/sp#" ;                                                 lm:altName "etc/sp.ttl" ] ,
    [ lm:name "http://spinrdf.org/spin#" ;                                               lm:altName "etc/spin.ttl" ] ,
    [ lm:name "http://spinrdf.org/spl#" ;                                                lm:altName "etc/spl.spin.ttl" ] ,
+   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/modules/messages#" ;             lm:altName "com/atomgraph/linkeddatahub/modules/messages/msg.ttl" ] ,
 
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/domain" ;                      lm:altName "com/atomgraph/linkeddatahub/apl.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/templates" ;                   lm:altName "com/atomgraph/linkeddatahub/aplt.ttl" ] ,
@@ -92,5 +93,6 @@
    [ lm:prefix "http://graph.facebook.com/schema/user" ;                                lm:altName "com/atomgraph/client/gfb-user.owl" ] ,
    [ lm:prefix "http://spinrdf.org/sp" ;                                                lm:altName "etc/sp.ttl" ] ,
    [ lm:prefix "http://spinrdf.org/spin" ;                                              lm:altName "etc/spin.ttl" ] ,
-   [ lm:prefix "http://spinrdf.org/spl" ;                                               lm:altName "etc/spl.spin.ttl" ]
+   [ lm:prefix "http://spinrdf.org/spl" ;                                               lm:altName "etc/spl.spin.ttl" ] ,
+   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/modules/messages" ;            lm:altName "com/atomgraph/linkeddatahub/modules/messages/msg.ttl" ]
 .

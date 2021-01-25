@@ -26,6 +26,7 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
+@prefix void:	<http://rdfs.org/ns/void#> .
 
 <> a adm:Container ;
     dh:select <queries/default/select-children/#this> ;
@@ -1082,6 +1083,34 @@ nst:ImportItem a adm:Template ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Import item" ;
     rdfs:isDefinedBy nst: .
+
+### MODULES
+
+# CONTAINERS
+
+<modules/> a adm:Container ;
+    sioc:has_parent <> ;
+    dh:select <queries/default/select-children/#this> ;
+    dct:title "Modules" ;
+    dct:description "Install and manage LinkedDataHub modules" .
+
+<modules/installed/> a adm:Container ;
+    sioc:has_parent <modules/> ;
+    dh:select <queries/default/select-children/#this> ;
+    dct:title "Installed modules" ;
+    dct:description "Manage installed modules" .
+
+# MODULES
+
+<modules/messages/> a adm:ModuleItem ;
+    sioc:has_container <modules/> ;
+    dct:title "Message module" ;
+    foaf:primaryTopic <modules/messages/#this> .
+
+<modules/messages/#this> a adm:Module ; # adm:Module rdfs:subClassOf void:Dataset?
+    rdfs:label "Message module" ;
+    foaf:isPrimaryTopicOf <modules/messages/> ;
+    void:dataDump <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/message-module/platform/modules/messages/admin/dataset.ttl> .
 
 ### NAMESPACE
 
