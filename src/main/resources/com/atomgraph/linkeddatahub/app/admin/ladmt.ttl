@@ -3,6 +3,7 @@
 @prefix :	<#> .
 @prefix laclt:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#> .
 @prefix lsmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#> .
+@prefix lmodt:	<https://w3id.org/atomgraph/linkeddatahub/admin/modules/templates#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix aplt:	<https://w3id.org/atomgraph/linkeddatahub/templates#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -10,6 +11,6 @@
 @prefix ldt:	<https://www.w3.org/ns/ldt#> .
 
 : a ldt:Ontology ;
-    owl:imports aplt:, laclt:, lsmt: ;
+    owl:imports aplt:, laclt:, lsmt:, lmodt: ;
     rdfs:label "LinkedDataHub admin templates" ;
     owl:versionInfo "1.1.4" .

@@ -8,8 +8,6 @@
 @prefix acl:	<http://www.w3.org/ns/auth/acl#> .
 @prefix cert:	<http://www.w3.org/ns/auth/cert#> .
 @prefix c:	<https://www.w3.org/ns/ldt/core/domain#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-@prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -19,6 +17,8 @@
     owl:imports apl:, sp:, spin:, acl:, cert: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "LinkedDataHub ACL ontology" .
+
+# PROPERTIES
 
 :password a owl:DatatypeProperty ;
     rdfs:range xsd:string ;

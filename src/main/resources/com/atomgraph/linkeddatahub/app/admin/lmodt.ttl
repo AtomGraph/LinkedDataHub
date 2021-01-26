@@ -1,0 +1,33 @@
+@base           <https://w3id.org/atomgraph/linkeddatahub/admin/modules/templates> .
+
+@prefix :	<#> .
+@prefix aplt:   <https://w3id.org/atomgraph/linkeddatahub/templates#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spl:    <http://spinrdf.org/spl#> .
+
+: a ldt:Ontology ;
+    owl:imports aplt: ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "Module templates" ;
+    rdfs:comment "LinkedDataHub module templates" .
+
+# module
+
+:ModuleItem a ldt:Template ;
+    ldt:extends aplt:Document ;
+    ldt:match "/modules/{uuid}/" ;
+    ldt:param :Install ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.module.Item> ;
+    rdfs:label "Module item" ;
+    rdfs:isDefinedBy : .
+
+:Install a ldt:Parameter ;
+    rdfs:label "Install" ;
+    spl:predicate :install ;
+    spl:valueType xsd:boolean ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .

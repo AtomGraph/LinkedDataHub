@@ -74,4 +74,15 @@ exclude-result-prefixes="#all">
         </xsl:apply-imports>
     </xsl:template>
         
+    <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][$ldt:ontology][apl:listSuperClasses(rdf:type/@rdf:resource) = '&lmod;Module']" mode="bs2:Actions">
+        <xsl:if test="$lacl:Agent//@rdf:about">
+            <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $ldt:base)]}" method="get">
+                <input type="hidden" name="install"/>
+                <button class="btn btn-primary" type="submit">Install</button>
+            </form>
+        </xsl:if>
+
+        <xsl:next-match/>
+    </xsl:template>
+    
 </xsl:stylesheet>

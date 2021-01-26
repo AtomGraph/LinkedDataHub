@@ -1,0 +1,64 @@
+@base		<https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain> .
+
+@prefix :	<#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix void:	<http://rdfs.org/ns/void#> .
+
+: a owl:Ontology ;
+    owl:imports void: ;
+    owl:versionInfo "1.1.4" ;
+    rdfs:label "LinkedDataHub Module ontology" .
+
+# PROPERTIES
+
+:endUserDataset a owl:ObjectProperty ;
+    rdfs:subPropertyOf void:dataDump ;
+    rdfs:domain :Module ;
+    rdfs:label "End-user dataset" ;
+    rdfs:isDefinedBy : .
+
+:adminDataset a owl:ObjectProperty ;
+    rdfs:subPropertyOf void:dataDump ;
+    rdfs:domain :Module ;
+    rdfs:label "Admin dataset" ;
+    rdfs:isDefinedBy : .
+
+# CLASSES
+
+# modules
+
+:Module a rdfs:Class ;
+    rdfs:subClassOf void:Dataset ;
+    spin:constructor :ModuleConstructor ;
+    spin:constraint :MissingEndUserDataset, :MissingAdminDataset ;
+    rdfs:label "Module" ;
+    rdfs:isDefinedBy : .
+
+:MissingEndUserDataset a apl:MissingPropertyValue ;
+    rdfs:label "Missing end-user dataset" ;
+    sp:arg1 :endUserDataset ;
+    rdfs:isDefinedBy : .
+
+:MissingAdminDataset a apl:MissingPropertyValue ;
+    rdfs:label "Missing admin dataset" ;
+    sp:arg1 :adminDataset ;
+    rdfs:isDefinedBy : .
+
+:ModuleConstructor a sp:Construct ;
+    rdfs:label "Module constructor" ;
+    sp:text """
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX lmod:    <https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain#>
+
+        CONSTRUCT {
+            ?this lmod:endUserDataset [ a rdfs:Resource ] ;
+                lmod:adminDataset [ a rdfs:Resource ] .
+        }
+        WHERE {}
+""" ;
+    rdfs:isDefinedBy : .

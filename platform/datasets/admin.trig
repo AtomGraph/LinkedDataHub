@@ -9,6 +9,7 @@
 @prefix laclt:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
 @prefix lsmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#> .
+@prefix lmod:	<https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix aplt:	<https://w3id.org/atomgraph/linkeddatahub/templates#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
@@ -1105,12 +1106,14 @@ nst:ImportItem a adm:Template ;
 <modules/messages/> a adm:ModuleItem ;
     sioc:has_container <modules/> ;
     dct:title "Message module" ;
+    dct:description "Enables sending and receiving messages between agents" ;
     foaf:primaryTopic <modules/messages/#this> .
 
-<modules/messages/#this> a adm:Module ; # adm:Module rdfs:subClassOf void:Dataset?
+<modules/messages/#this> a adm:Module ;
     rdfs:label "Message module" ;
     foaf:isPrimaryTopicOf <modules/messages/> ;
-    void:dataDump <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/message-module/platform/modules/messages/admin/dataset.ttl> .
+    lmod:endUserDataset <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/message-module/platform/modules/messages/dataset.ttl> ;
+    lmod:adminDataset <https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/message-module/platform/modules/messages/admin/dataset.ttl> .
 
 ### NAMESPACE
 
@@ -1493,7 +1496,7 @@ ns:ItemOfChartsContainer a adm:Restriction ;
 
 adm: a owl:Ontology ;
     foaf:isPrimaryTopicOf <ns> ;
-    owl:imports apl:, lacl:, lsm:, admt: ;
+    owl:imports apl:, lacl:, lsm:, lmod:, admt: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "Admin ontology" ;
     rdfs:comment "AtomGraph admin application ontology" .
@@ -2042,4 +2045,30 @@ adm:ItemOfGroupContainer a owl:Restriction ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <acl/groups/> ;
     rdfs:label "Has group container" ;
+    rdfs:isDefinedBy adm: .
+
+# MODULES
+
+adm:Module a rdfs:Class ;
+    rdfs:subClassOf lmod:Module, adm:TopicOfModuleItem ;
+    ldt:path "{isPrimaryTopicOf.slug}/" ;
+    ldt:fragment "this" ;
+    rdfs:label "Module" ;
+    rdfs:isDefinedBy adm: .
+
+adm:ModuleItem a rdfs:Class ;
+    rdfs:subClassOf adm:Item, adm:ItemOfModuleContainer ;
+    rdfs:label "Module item" ;
+    rdfs:isDefinedBy adm: .
+
+adm:TopicOfModuleItem a owl:Restriction ;
+    owl:onProperty foaf:isPrimaryTopicOf ;
+    owl:allValuesFrom adm:ModuleItem ;
+    rdfs:label "Topic of module item" ;
+    rdfs:isDefinedBy adm: .
+
+adm:ItemOfModuleContainer a owl:Restriction ;
+    owl:onProperty sioc:has_container ;
+    owl:hasValue <modules/> ;
+    rdfs:label "Has module container" ;
     rdfs:isDefinedBy adm: .
