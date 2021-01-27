@@ -10,6 +10,16 @@
     owl:versionInfo "1.0.0" ;
     rdfs:label "Message ontology" .
 
+# PROPERTIES
+
+:recipient a owl:ObjectProperty ;
+    rdfs:domain :Message ;
+    rdfs:range foaf:Agent ;
+    rdfs:label "Recipient" ;
+    rdfs:isDefinedBy : .
+
+# CLASSES
+
 :Message a rdfs:Class ;
     rdfs:subClassOf sioc:Post ;
     rdfs:label "Message" ;
