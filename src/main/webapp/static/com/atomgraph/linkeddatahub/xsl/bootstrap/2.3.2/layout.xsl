@@ -637,29 +637,13 @@ exclude-result-prefixes="#all">
                     <li class="divider"></li>
                 </xsl:if>
 
-                <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
-                    <!--if the current resource is a Container, show Container and Item constructors--> 
-                    <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
-                    <!-- current resource is a container -->
-                    <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
-                        <xsl:for-each select="$document-classes">
-                            <xsl:sort select="ac:label(.)"/>
-
-                            <li>
-                                <xsl:apply-templates select="." mode="bs2:Constructor">
-                                    <xsl:with-param name="id" select="()"/>
-                                    <xsl:with-param name="with-label" select="true()"/>
-                                </xsl:apply-templates>
-                            </li>
-                        </xsl:for-each>
-                        
-                        <xsl:if test="$default-classes">
-                            <li class="divider"></li>
-                        </xsl:if>
-                    </xsl:if>
-
-                    <xsl:for-each select="$default-classes">
+                <!--if the current resource is a Container, show Container and Item constructors--> 
+                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
+                <!-- current resource is a container -->
+                <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
+                    <xsl:for-each select="$document-classes">
                         <xsl:sort select="ac:label(.)"/>
+
                         <li>
                             <xsl:apply-templates select="." mode="bs2:Constructor">
                                 <xsl:with-param name="id" select="()"/>
@@ -667,7 +651,21 @@ exclude-result-prefixes="#all">
                             </xsl:apply-templates>
                         </li>
                     </xsl:for-each>
+
+                    <xsl:if test="$default-classes">
+                        <li class="divider"></li>
+                    </xsl:if>
                 </xsl:if>
+
+                <xsl:for-each select="$default-classes">
+                    <xsl:sort select="ac:label(.)"/>
+                    <li>
+                        <xsl:apply-templates select="." mode="bs2:Constructor">
+                            <xsl:with-param name="id" select="()"/>
+                            <xsl:with-param name="with-label" select="true()"/>
+                        </xsl:apply-templates>
+                    </li>
+                </xsl:for-each>
             </ul>
         </div>
     </xsl:template>
