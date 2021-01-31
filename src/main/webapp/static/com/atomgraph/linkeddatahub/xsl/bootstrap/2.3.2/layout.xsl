@@ -681,7 +681,7 @@ exclude-result-prefixes="#all">
             <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
             <xsl:variable name="constructor-list" as="element()*">
                 <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-                <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][not(@rdf:about = ($classes, $visited-classes)/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
+                <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
 
