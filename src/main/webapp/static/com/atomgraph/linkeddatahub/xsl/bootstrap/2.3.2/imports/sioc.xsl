@@ -31,7 +31,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <span>
-            <xsl:apply-templates select="key('resources', $ac:uri, $main-doc)" mode="apl:Typeahead"/>
+            <xsl:apply-templates select="key('resources', $ac:uri, document($ac:uri))" mode="apl:Typeahead"/>
         </span>
         <xsl:text> </xsl:text>
 
