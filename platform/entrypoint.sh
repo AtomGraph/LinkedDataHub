@@ -1,23 +1,6 @@
 #!/bin/bash
 set -e
 
-### LETSENCRYPT-TOMCAT ###
-
-if [ -z "$P12_FILE" ] ; then
-    echo '$P12_FILE not set'
-    exit 1
-fi
-
-if [ -z "$PKCS12_KEY_PASSWORD" ] ; then
-    echo '$PKCS12_KEY_PASSWORD not set'
-    exit 1
-fi
-
-if [ -z "$PKCS12_STORE_PASSWORD" ] ; then
-    echo '$PKCS12_STORE_PASSWORD not set'
-    exit 1
-fi
-
 # set timezone
 
 if [ -n "$TZ" ] ; then
@@ -29,52 +12,64 @@ fi
 
 # change server configuration
 
-P12_FILE_PARAM="--stringparam https.keystoreFile '$P12_FILE' "
-PKCS12_KEY_PASSWORD_PARAM="--stringparam https.keystorePass '$PKCS12_KEY_PASSWORD' "
-PKCS12_STORE_PASSWORD_PARAM="--stringparam https.keyPass '$PKCS12_STORE_PASSWORD' "
+if [ -n "$HTTP" ] ; then
+    HTTP_PARAM="--stringparam http $HTTP "
+fi
+
+if [ -n "$HTTP_SCHEME" ] ; then
+    HTTP_SCHEME_PARAM="--stringparam http.scheme $HTTP_SCHEME "
+fi
 
 if [ -n "$HTTP_PORT" ] ; then
-    HTTP_PORT_PARAM="--stringparam http.port '$HTTP_PORT' "
+    HTTP_PORT_PARAM="--stringparam http.port $HTTP_PORT "
 fi
 
-if [ -n "$PROXY_HTTP_NAME" ] ; then
-    PROXY_HTTP_NAME_PARAM="--stringparam http.proxyName '$PROXY_HTTP_NAME' "
+if [ -n "$HTTP_PROXY_NAME" ] ; then
+    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $HTTP_PROXY_NAME "
 fi
 
-if [ -n "$PROXY_HTTP_PORT" ] ; then
-    PROXY_HTTP_PORT_PARAM="--stringparam http.proxyPort '$PROXY_HTTP_PORT' "
+if [ -n "$HTTP_PROXY_PORT" ] ; then
+    HTTP_PROXY_PORT_PARAM="--stringparam http.proxyPort $HTTP_PROXY_PORT "
 fi
 
 if [ -n "$HTTP_REDIRECT_PORT" ] ; then
-    HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort '$HTTP_REDIRECT_PORT' "
+    HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort $HTTP_REDIRECT_PORT "
 fi
 
 if [ -n "$HTTP_CONNECTION_TIMEOUT" ] ; then
-    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout '$HTTP_CONNECTION_TIMEOUT' "
+    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout $HTTP_CONNECTION_TIMEOUT "
 fi
 
 if [ -n "$HTTP_COMPRESSION" ] ; then
     HTTP_COMPRESSION_PARAM="--stringparam http.compression $HTTP_COMPRESSION "
 fi
 
+if [ -n "$HTTPS" ] ; then
+    HTTPS_PARAM="--stringparam https $HTTPS "
+fi
+
+if [ -n "$HTTPS_SCHEME" ] ; then
+    HTTPS_SCHEME_PARAM="--stringparam https.scheme $HTTPS_SCHEME "
+fi
+
 if [ -n "$HTTPS_PORT" ] ; then
-    HTTPS_PORT_PARAM="--stringparam https.port '$HTTPS_PORT' "
+    HTTPS_PORT_PARAM="--stringparam https.port $HTTPS_PORT "
 fi
 
 if [ -n "$HTTPS_MAX_THREADS" ] ; then
-    HTTPS_MAX_THREADS_PARAM="--stringparam https.maxThreads '$HTTPS_MAX_THREADS' "
+    HTTPS_MAX_THREADS_PARAM="--stringparam https.maxThreads $HTTPS_MAX_THREADS "
 fi
 
 if [ -n "$HTTPS_CLIENT_AUTH" ] ; then
-    HTTPS_CLIENT_AUTH_PARAM="--stringparam https.clientAuth '$HTTPS_CLIENT_AUTH' "
+    HTTPS_CLIENT_AUTH_PARAM="--stringparam https.clientAuth $HTTPS_CLIENT_AUTH "
 fi
 
-if [ -n "$PROXY_HTTPS_NAME" ] ; then
-    PROXY_HTTPS_NAME_PARAM="--stringparam https.proxyName '$PROXY_HTTPS_NAME' "
+if [ -n "$HTTPS_PROXY_NAME" ] ; then
+    HTTPS_PROXY_NAME_PARAM="--stringparam https.proxyName $HTTPS_PROXY_NAME "
 fi
 
-if [ -n "$PROXY_HTTPS_PORT" ] ; then
-    PROXY_HTTPS_PORT_PARAM="--stringparam https.proxyPort '$PROXY_HTTPS_PORT' "
+if [ -n "$HTTPS_PROXY_PORT" ] ; then
+    HTTPS_PROXY_PORT_PARAM="--stringparam https.proxyPort $HTTPS_PROXY_PORT "
 fi
 
 if [ -n "$HTTPS_COMPRESSION" ] ; then
@@ -87,17 +82,21 @@ fi
 
 transform="xsltproc \
   --output conf/server.xml \
+  $HTTP_PARAM \
+  $HTTP_SCHEME_PARAM \
   $HTTP_PORT_PARAM \
-  $PROXY_HTTP_NAME_PARAM \
-  $PROXY_HTTP_PORT_PARAM \
+  $HTTP_PROXY_NAME_PARAM \
+  $HTTP_PROXY_PORT_PARAM \
   $HTTP_REDIRECT_PORT_PARAM \
   $HTTP_CONNECTION_TIMEOUT_PARAM \
   $HTTP_COMPRESSION_PARAM \
+  $HTTPS_PARAM \
+  $HTTPS_SCHEME_PARAM \
   $HTTPS_PORT_PARAM \
   $HTTPS_MAX_THREADS_PARAM \
   $HTTPS_CLIENT_AUTH_PARAM \
-  $PROXY_HTTPS_NAME_PARAM \
-  $PROXY_HTTPS_PORT_PARAM \
+  $HTTPS_PROXY_NAME_PARAM \
+  $HTTPS_PROXY_PORT_PARAM \
   $HTTPS_COMPRESSION_PARAM \
   $P12_FILE_PARAM \
   $PKCS12_KEY_PASSWORD_PARAM \
@@ -127,13 +126,13 @@ if [ -z "$PROTOCOL" ] ; then
     exit 1
 fi
 
-if [ -z "$PROXY_HTTP_PORT" ] ; then
-    echo '$PROXY_HTTP_PORT not set'
+if [ -z "$HTTP_PROXY_PORT" ] ; then
+    echo '$HTTP_PROXY_PORT not set'
     exit 1
 fi
 
-if [ -z "$PROXY_HTTPS_PORT" ] ; then
-    echo '$PROXY_HTTPS_PORT not set'
+if [ -z "$HTTPS_PROXY_PORT" ] ; then
+    echo '$HTTPS_PROXY_PORT not set'
     exit 1
 fi
 
@@ -202,60 +201,19 @@ if [ -z "$MAIL_USER" ] ; then
     exit 1
 fi
 
-# if server's SSL certificates do not exist (e.g. not mounted), generate them
-# https://community.letsencrypt.org/t/cry-for-help-windows-tomcat-ssl-lets-encrypt/22902/4
-
-if [ ! -f "$P12_FILE" ]; then
-    if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
-        printf "\n### Generating server certificate\n"
-
-        # crude check if the host is an IP address
-        IP_ADDR_MATCH=$(echo "$HOST" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
-
-        if [ -n "$IP_ADDR_MATCH" ]; then
-            ext="SAN=IP:${HOST}" # IP address
-        else
-            ext="SAN=DNS:${HOST}" # hostname
-        fi
-
-        keytool \
-          -genkeypair \
-          -storetype PKCS12 \
-          -alias "$KEY_ALIAS" \
-          -keyalg RSA \
-          -keypass "$PKCS12_KEY_PASSWORD" \
-          -storepass "$PKCS12_STORE_PASSWORD" \
-          -ext "$ext" \
-          -dname "CN=${HOST},OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK" \
-          -keystore "$P12_FILE"
-    else
-        printf "\n### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate\n"
-
-        openssl pkcs12 \
-          -export \
-          -in "$LETSENCRYPT_CERT_DIR"/fullchain.pem \
-          -inkey "$LETSENCRYPT_CERT_DIR"/privkey.pem \
-          -name "$KEY_ALIAS" \
-          -out "$P12_FILE" \
-          -password pass:"$PKCS12_KEY_PASSWORD"
-    fi
-else
-    printf "\n### Server certificate exists\n"
-fi
-
 # construct base URI (ignore default HTTP and HTTPS ports)
 
 if [ "$PROTOCOL" = "https" ]; then
-    if [ "$PROXY_HTTPS_PORT" = 443 ]; then
+    if [ "$HTTPS_PROXY_PORT" = 443 ]; then
         export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
     else
-        export BASE_URI="${PROTOCOL}://${HOST}:${PROXY_HTTPS_PORT}${ABS_PATH}"
+        export BASE_URI="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
     fi
 else
-    if [ "$PROXY_HTTP_PORT" = 80 ]; then
-        export BASE_URI="http://${HOST}${ABS_PATH}"
+    if [ "$HTTP_PROXY_PORT" = 80 ]; then
+        export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
     else
-        export BASE_URI="http://${HOST}:${PROXY_HTTP_PORT}${ABS_PATH}"
+        export BASE_URI="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
     fi
 fi
 
@@ -594,18 +552,18 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     if [ "$SELF_SIGNED_CERT" = true ] ; then
       # export certficate
 
-      keytool -exportcert \
-        -alias "$KEY_ALIAS" \
-        -file letsencrypt.cer \
-        -keystore "$P12_FILE" \
-        -storepass "$PKCS12_STORE_PASSWORD" \
-        -storetype PKCS12
+      #keytool -exportcert \
+      #  -alias "$KEY_ALIAS" \
+      #  -file letsencrypt.cer \
+      #  -keystore "$P12_FILE" \
+      #  -storepass "$PKCS12_STORE_PASSWORD" \
+      #  -storetype PKCS12
 
       printf "\n### Importing server certificate into client truststore\n\n"
 
       keytool -importcert \
         -alias "$KEY_ALIAS" \
-        -file letsencrypt.cer \
+        -file /usr/local/tomcat/webapps/ROOT/certs/server.cer \
         -keystore "$CLIENT_TRUSTSTORE" \
         -noprompt \
         -storepass "$CLIENT_KEYSTORE_PASSWORD" \

@@ -68,7 +68,7 @@ public class WebIDFilter extends AuthenticationFilter
     
     private static final Logger log = LoggerFactory.getLogger(WebIDFilter.class);
 
-    public static final int SNA_URI_NAME = 6;
+    public static final int SAN_URI_NAME = 6;
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     private final MediaTypes mediaTypes = new MediaTypes();
@@ -155,14 +155,14 @@ public class WebIDFilter extends AuthenticationFilter
     {
         if (cert.getSubjectAlternativeNames() != null)
         {
-            List<?>[] snas = cert.getSubjectAlternativeNames().toArray(new List<?>[0]);
-            if (snas.length > 0 && cert.getPublicKey() instanceof RSAPublicKey)
-                for (List<?> sna : snas)
+            List<?>[] sans = cert.getSubjectAlternativeNames().toArray(new List<?>[0]);
+            if (sans.length > 0 && cert.getPublicKey() instanceof RSAPublicKey)
+                for (List<?> san : sans)
                 {
-                    Object type = sna.get(0);
-                    if (Integer.valueOf(type.toString()).equals(SNA_URI_NAME))
+                    Object type = san.get(0);
+                    if (Integer.valueOf(type.toString()).equals(SAN_URI_NAME))
                     {
-                        Object value = sna.get(1);
+                        Object value = san.get(1);
                         return new URI(value.toString());
                     }
                 }

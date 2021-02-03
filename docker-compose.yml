@@ -3,7 +3,7 @@ services:
   nginx:
     image: atomgraph/nginx
     mem_limit: 128m
-    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /usr/local/openresty/nginx/conf/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - ${HTTP_PORT}:${HTTP_PORT} # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:${HTTPS_PORT} # HTTPS
@@ -16,6 +16,7 @@ services:
       - SERVER_HTTP_PORT=${HTTP_PORT}
     volumes:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      - ./certs:/etc/nginx/ssl
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
     ports:
@@ -30,15 +31,18 @@ services:
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}
-      - PROXY_HTTP_PORT=${HTTP_PORT}
+      - HTTP_SCHEME=https
+      - HTTP_PROXY_NAME=${HOST}
+      - HTTP_PROXY_PORT=${HTTPS_PORT}
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
-      - PROXY_HTTPS_PORT=${HTTPS_PORT}
-      - HTTPS_CLIENT_AUTH=want
-      - PKCS12_KEY_PASSWORD=R4#?CWaY#ZET\ncZ
-      - PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ
+      - HTTPS_PROXY_PORT=${HTTPS_PORT}
+      - HTTPS=false
+      #- HTTPS_CLIENT_AUTH=want
+      #- PKCS12_KEY_PASSWORD=R4#?CWaY#ZET\ncZ
+      #- PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ
       - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
-      - SELF_SIGNED_CERT=true # only on localhost
+      #- SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - IMPORT_KEEPALIVE=300000
       - MAX_CONTENT_LENGTH=2097152
