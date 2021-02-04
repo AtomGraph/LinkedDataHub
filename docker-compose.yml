@@ -42,7 +42,7 @@ services:
       #- PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ
       - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
-      #- SELF_SIGNED_CERT=true # only on localhost
+      - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
       - IMPORT_KEEPALIVE=300000
       - MAX_CONTENT_LENGTH=2097152

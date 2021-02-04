@@ -23,30 +23,7 @@ http {
             proxy_pass http://linkeddatahub;
             #proxy_cache backcache;
 
-            set_by_lua_block $webid_uri {
-                local openssl = require('openssl')
-
-                webIDs = {}
-                for k,v in pairs(openssl.x509.read(ngx.var.ssl_client_raw_cert):extensions()) do
-                    for k1,v1 in pairs(v:info()) do
-                        if(type(v1)=='table') then
-                            for k2,v2 in pairs(v1) do
-                                if(type(v2)=='table') then
-                                    for k3,v3 in pairs(v2) do
-                                        if(k3=='uniformResourceIdentifier') then
-                                            table.insert(webIDs, v3:data())
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-
-                return webIDs[1]
-            }
-
-            proxy_set_header X-WebID-URI $webid_uri;
+            proxy_set_header Client-Cert $ssl_client_escaped_cert;
         }
     }
 

@@ -101,15 +101,9 @@ public class WebIDFilter extends AuthenticationFilter
     @Override
     public Resource authenticate(ContainerRequestContext request)
     {
-        X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");
-        if (certs == null) return null;
-
         try
         {
-            X509Certificate webIDCert = null;
-            for (X509Certificate cert : certs)
-                if (getWebIDURI(cert) != null) webIDCert = cert;
-
+            X509Certificate webIDCert = getWebIDCertificate(request);
             if (log.isTraceEnabled()) log.trace("Client WebID certificate: {}", webIDCert);
             if (webIDCert == null) return null;
 
@@ -151,6 +145,16 @@ public class WebIDFilter extends AuthenticationFilter
         }
     }
 
+    public X509Certificate getWebIDCertificate(ContainerRequestContext request) throws URISyntaxException, CertificateException, CertificateParsingException
+    {
+        X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");
+
+        for (X509Certificate cert : certs)
+            if (getWebIDURI(cert) != null) return cert;
+        
+        return null;
+    }
+    
     public static URI getWebIDURI(X509Certificate cert) throws URISyntaxException, CertificateParsingException
     {
         if (cert.getSubjectAlternativeNames() != null)

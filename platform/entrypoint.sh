@@ -563,7 +563,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
       keytool -importcert \
         -alias "$KEY_ALIAS" \
-        -file /usr/local/tomcat/webapps/ROOT/certs/server.cer \
+        -file /usr/local/tomcat/webapps/ROOT/certs/server.crt \
         -keystore "$CLIENT_TRUSTSTORE" \
         -noprompt \
         -storepass "$CLIENT_KEYSTORE_PASSWORD" \
