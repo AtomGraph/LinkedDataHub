@@ -3,7 +3,7 @@ services:
   nginx:
     image: atomgraph/nginx
     mem_limit: 128m
-    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /usr/local/openresty/nginx/conf/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - ${HTTP_PORT}:${HTTP_PORT} # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:${HTTPS_PORT} # HTTPS
@@ -16,7 +16,6 @@ services:
       - SERVER_HTTP_PORT=${HTTP_PORT}
     volumes:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
-      - ./certs:/etc/nginx/ssl
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
     ports:

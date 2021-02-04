@@ -1,5 +1,11 @@
 version: "2.3"
 services:
+  nginx:
+    environment:
+      - GENERATE_SERVER_CERT=true
+      - HOST=localhost
+    volumes:
+      - ./certs:/etc/nginx/ssl
   linkeddatahub:
     ports:
       - 8001:8000 # debugger
