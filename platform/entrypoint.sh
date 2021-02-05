@@ -98,10 +98,7 @@ transform="xsltproc \
   $HTTPS_PROXY_NAME_PARAM \
   $HTTPS_PROXY_PORT_PARAM \
   $HTTPS_COMPRESSION_PARAM \
-  $P12_FILE_PARAM \
-  $PKCS12_KEY_PASSWORD_PARAM \
   $KEY_ALIAS_PARAM \
-  $PKCS12_STORE_PASSWORD_PARAM \
   conf/letsencrypt-tomcat.xsl \
   conf/server.xml"
 
@@ -284,18 +281,6 @@ wait_for_url()
     fi
 }
 
-# function to extract a WebID-compatible modulus from a .p12 certificate
-
-get_modulus()
-{
-    local cert_pem="$1"
-    local password="$2"
-
-    modulus_string=$(cat "$cert_pem" | openssl x509 -noout -modulus)
-    modulus="${modulus_string##*Modulus=}" # cut Modulus= text
-    echo "$modulus" | tr '[:upper:]' '[:lower:]' # lowercase
-}
-
 # function to append quad data to an RDF graph store
 
 append_quads()
@@ -364,122 +349,82 @@ fi
 
 printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
 
-# generate root owner WebID certificate if $OWNER_KEYSTORE does not exist
+# append root owner's metadata to the root admin dataset
+
+if [ -z "$OWNER_MBOX" ] ; then
+    echo '$OWNER_MBOX not set'
+    exit 1
+fi
+
+get_modulus()
+{
+    local key_pem="$1"
+
+    modulus_string=$(openssl x509 -noout -modulus -in "$key_pem")
+    modulus="${modulus_string##*Modulus=}" # cut Modulus= text
+    echo "$modulus" | tr '[:upper:]' '[:lower:]' # lowercase
+}
+
+get_common_name()
+{
+    local key_pem="$1"
+
+    subject_string=$(openssl x509 -noout -subject -in "$key_pem" -nameopt multiline)
+    echo "$subject_string" | sed -n 's/ *commonName *= //p' # lowercase
+}
 
 get_webid_uri()
 {
-    local cert_pem="$1"
-    local password="$2"
+    local key_pem="$1"
 
-    openssl x509 -in "$cert_pem" -text -noout -passin pass:"$password" \
+    openssl x509 -in "$key_pem" -text -noout \
       -certopt no_subject,no_header,no_version,no_serial,no_signame,no_validity,no_issuer,no_pubkey,no_sigdump,no_aux \
       | awk '/X509v3 Subject Alternative Name/ {getline; print}' | xargs | tail -c +5
 }
 
-owner_keystore_pem="${OWNER_KEYSTORE}.pem"
+OWNER_COMMON_NAME=$(get_common_name "$OWNER_PUBLIC_KEY")
 
-if [ ! -f "$OWNER_KEYSTORE" ]; then
-    if [ -z "$OWNER_MBOX" ] ; then
-        echo '$OWNER_MBOX not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_GIVEN_NAME" ] ; then
-        echo '$OWNER_GIVEN_NAME not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_FAMILY_NAME" ] ; then
-        echo '$OWNER_FAMILY_NAME not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_ORG_UNIT" ] ; then
-        echo '$OWNER_ORG_UNIT not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_ORGANIZATION" ] ; then
-        echo '$OWNER_ORGANIZATION not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_LOCALITY" ] ; then
-        echo '$OWNER_LOCALITY not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_STATE_OR_PROVINCE" ] ; then
-        echo '$OWNER_STATE_OR_PROVINCE not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_COUNTRY_NAME" ] ; then
-        echo '$OWNER_COUNTRY_NAME not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_KEY_PASSWORD" ] ; then
-        echo '$OWNER_KEY_PASSWORD not set'
-        exit 1
-    fi
-
-    root_owner_dname="CN=${OWNER_GIVEN_NAME} ${OWNER_FAMILY_NAME},OU=${OWNER_ORG_UNIT},O=${OWNER_ORGANIZATION},L=${OWNER_LOCALITY},ST=${OWNER_STATE_OR_PROVINCE},C=${OWNER_COUNTRY_NAME}"
-    printf "\n### Root owner WebID certificate's DName attributes: %s\n" "$root_owner_dname"
-
-    root_owner_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-    export root_owner_uuid
-    OWNER_DOC_URI="${BASE_URI}admin/acl/agents/${root_owner_uuid}/"
-    OWNER_URI="${OWNER_DOC_URI}#this"
-
-    printf "\n### Root owner's WebID URI: %s\n" "$OWNER_URI"
-
-    keytool \
-        -genkeypair \
-        -alias "$OWNER_CERT_ALIAS" \
-        -keyalg RSA \
-        -storetype PKCS12 \
-        -keystore "$OWNER_KEYSTORE" \
-        -storepass "$OWNER_KEY_PASSWORD" \
-        -keypass "$OWNER_KEY_PASSWORD" \
-        -dname "$root_owner_dname" \
-        -ext SAN=uri:"$OWNER_URI" \
-        -validity "$OWNER_CERT_VALIDITY"
-
-    # convert owner's certificate to PEM
-
-    openssl \
-        pkcs12 \
-        -in "$OWNER_KEYSTORE" \
-        -passin pass:"$OWNER_KEY_PASSWORD" \
-        -out "$owner_keystore_pem" \
-        -passout pass:"$OWNER_KEY_PASSWORD"
-
-    owner_cert_modulus=$(get_modulus "$owner_keystore_pem" "$OWNER_KEY_PASSWORD")
-    export owner_cert_modulus
-    printf "\n### Root owner WebID certificate's modulus: %s\n" "$owner_cert_modulus"
-
-    public_key_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-    export public_key_uuid
-
-    # append root owner metadata to the root admin dataset
-    
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
-    envsubst < root-owner.trig.template > root-owner.trig
-
-    trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
-
-    printf "\n### Uploading the metadata of the owner agent...\n\n"
-
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
-
-    rm -f root-owner.trig root-owner.nq split.root-owner.nq
-else
-    OWNER_URI=$(get_webid_uri "$owner_keystore_pem" "$OWNER_KEY_PASSWORD")
-
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
+if [ -z "$OWNER_COMMON_NAME" ] ; then
+    echo "Owner's public key does not contain CN (commonName) metadata"
+    exit 1
 fi
+
+OWNER_URI=$(get_webid_uri "$OWNER_PUBLIC_KEY")
+
+# strip fragment from the URL, if any
+
+case "$OWNER_URI" in
+  *#*) OWNER_DOC_URI=$(echo "$OWNER_URI" | cut -d "#" -f 1) ;;
+  *) OWNER_DOC_URI="$OWNER_URI" ;;
+esac
+
+if [ -z "$OWNER_URI" ] ; then
+    echo "Owner's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+    exit 1
+fi
+
+OWNER_CERT_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
+
+export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS
+
+printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS"
+
+PUBLIC_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+export PUBLIC_KEY_UUID
+
+# create data/query files by injecting environmental variables into template files
+
+envsubst < split-default-graph.rq.template > split-default-graph.rq
+envsubst < root-owner.trig.template > root-owner.trig
+
+trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
+sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
+
+printf "\n### Uploading the metadata of the owner agent...\n\n"
+
+append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
+
+rm -f root-owner.trig root-owner.nq split.root-owner.nq
 
 # append ownership metadata to apps (have to be URI resources!)
 
@@ -526,7 +471,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
         -out "$client_keystore_pem" \
         -passout pass:"$SECRETARY_KEY_PASSWORD"
 
-    secretary_cert_modulus=$(get_modulus "$client_keystore_pem" "$SECRETARY_KEY_PASSWORD")
+    secretary_cert_modulus=$(get_modulus "$client_keystore_pem")
     export secretary_cert_modulus
     printf "\n### Secretary WebID certificate's modulus: %s\n" "$secretary_cert_modulus"
 
@@ -550,15 +495,6 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     # if server certificate is self-signed, import it into client (secretary) truststore
 
     if [ "$SELF_SIGNED_CERT" = true ] ; then
-      # export certficate
-
-      #keytool -exportcert \
-      #  -alias "$KEY_ALIAS" \
-      #  -file letsencrypt.cer \
-      #  -keystore "$P12_FILE" \
-      #  -storepass "$PKCS12_STORE_PASSWORD" \
-      #  -storetype PKCS12
-
       printf "\n### Importing server certificate into client truststore\n\n"
 
       keytool -importcert \

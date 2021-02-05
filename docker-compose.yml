@@ -37,8 +37,6 @@ services:
       - HTTPS_PROXY_PORT=${HTTPS_PORT}
       - HTTPS=false
       #- HTTPS_CLIENT_AUTH=want
-      #- PKCS12_KEY_PASSWORD=R4#?CWaY#ZET\ncZ
-      #- PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ
       - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
@@ -49,18 +47,11 @@ services:
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
       - OWNER_MBOX=${OWNER_MBOX}
-      - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
-      - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
-      - OWNER_ORG_UNIT=${OWNER_ORG_UNIT}
-      - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
-      - OWNER_LOCALITY=${OWNER_LOCALITY}
-      - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
-      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
-      - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
     volumes:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
+      - ./public-keys:/var/linkeddatahub/public-keys
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
