@@ -159,6 +159,8 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 
 ## Dependencies
 
+### Java
+
 * [Jersey](https://eclipse-ee4j.github.io/jersey/)
 * [XOM](http://www.xom.nu)
 * [JavaMail](https://javaee.github.io/javamail/)
@@ -168,6 +170,13 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 * [CSV2RDF](https://github.com/AtomGraph/CSV2RDF)
 * [Processor](https://github.com/AtomGraph/Processor)
 * [Web-Client](https://github.com/AtomGraph/Web-Client)
+
+### Docker
+
+* [atomgraph/nginx](https://hub.docker.com/r/atomgraph/nginx)
+* [atomgraph/fuseki](https://hub.docker.com/r/atomgraph/fuseki)
+* [atomgraph/varnish](https://hub.docker.com/r/atomgraph/varnish)
+* [namshi/smtp](https://hub.docker.com/r/namshi/smtp)
 
 ## Support
 
