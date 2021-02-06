@@ -51,7 +51,7 @@ services:
       # - GOOGLE_CLIENT_SECRET=
     volumes:
       - ./certs:/usr/local/tomcat/webapps/ROOT/certs
-      - ./public-keys:/var/linkeddatahub/public-keys
+      - ./public-keys/owner.pem:/var/linkeddatahub/public-keys/owner.pem
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro

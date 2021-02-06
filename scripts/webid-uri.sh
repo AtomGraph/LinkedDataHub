@@ -1,9 +1,9 @@
 #!/bin/bash
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage:   $0" '$public_key_pem_file' >&2
-  echo "Example: $0 martynas.localhost.pem" >&2
-  exit 1
+    echo "Usage:   $0" '$public_key_pem_file' >&2
+    echo "Example: $0 martynas.localhost.pem" >&2
+    exit 1
 fi
 
 key_pem="$1"
