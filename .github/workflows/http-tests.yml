@@ -34,9 +34,9 @@ jobs:
           mkdir public-keys
           openssl pkcs12 -in test-user.p12 -passin pass:"${{env.OWNER_CERT_PWD}}" -nokeys -out ./public-keys/test-user.pem # only export the public key!
       - name: Run Docker containers
-        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up # do not use Varnish cache for tests; run in the background
+        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
       - name: Wait for the server to start...
-        run: while ! curl -w "%{http_code}\n" -k -s "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/owner.p12.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/secretary.p12.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash
