@@ -5,11 +5,12 @@ services:
       - GENERATE_SERVER_CERT=true
       - HOST=localhost
     volumes:
-      - ./certs:/etc/nginx/ssl
+      - ./certs:/etc/nginx/ssl/public
   linkeddatahub:
     ports:
       - 8001:8000 # debugger
     environment:
       - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
+      - OWNER_PUBLIC_KEY=/var/linkeddatahub/public-keys/test-user.pem
     volumes:
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
