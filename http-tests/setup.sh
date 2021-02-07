@@ -99,8 +99,8 @@ printf "\n### Secretary WebID certificate's DName attributes: %s\n" "$secretary_
 
 openssl \
     pkcs12 \
-    -in "$secretary_cert" \
-    -passin pass:"$secretary_cert_pwd" \
+    -in "$secretary_keystore" \
+    -passin pass:"$secretary_keystore_pwd" \
     -out "$secretary_cert" \
     -passout pass:"$secretary_cert_pwd"
 
