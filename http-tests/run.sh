@@ -74,10 +74,10 @@ function initialize_dataset()
       "${3}" > /dev/null
 }
 
-export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE" "$OWNER_CERT_PWD")"
+export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
 printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
-export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE" "$SECRETARY_CERT_PWD")"
+export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
@@ -99,7 +99,7 @@ start_time=$(date +%s)
 run_tests "signup.sh"
 (( error_count += $? ))
 
-export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE" "$AGENT_CERT_PWD")"
+export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE")"
 printf "### Signed up agent URI: %s\n" "$AGENT_URI"
 
 # store the end-user and admin datasets
