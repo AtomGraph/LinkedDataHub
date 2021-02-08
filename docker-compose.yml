@@ -52,7 +52,7 @@ services:
     volumes:
       - ./ssl/server:/var/linkeddatahub/ssl/server
       - ./ssl/owner:/var/linkeddatahub/ssl/owner
-      - ./ssl/secretary:/usr/local/tomcat/webapps/ROOT/ssl
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro

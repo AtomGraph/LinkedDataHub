@@ -34,10 +34,6 @@ ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
 
-# add XSLT stylesheet that makes changes to server.xml
-
-COPY platform/server.xsl conf/server.xsl
-
 # add XSLT stylesheet that makes changes to ROOT.xml
 
 COPY platform/context.xsl conf/context.xsl
@@ -64,11 +60,15 @@ ENV HTTP_REDIRECT_PORT=443
 
 ENV HTTP_COMPRESSION=on
 
+ENV HTTPS=false
+
 ENV SERVER_CERT=/var/linkeddatahub/ssl/server/server.crt
 
-ENV SECRETARY_CERT="$CATALINA_HOME/webapps/ROOT/ssl/cert.pem"
+ENV SECRETARY_CERT=/var/linkeddatahub/ssl/secretary/cert.pem
 
 ENV SECRETARY_CERT_ALIAS=secretary
+
+ENV CLIENT_KEYSTORE_MOUNT=/var/linkeddatahub/ssl/secretary/keystore.p12
 
 ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/ssl/keystore.p12"
 
@@ -147,9 +147,5 @@ COPY --from=maven /jena/* /jena
 ENV JENA_HOME=/jena
 
 ENV PATH="${PATH}:${JENA_HOME}/bin"
-
-# persist SSL-related files in a volume
-
-VOLUME /var/linkeddatahub/ssl "$CATALINA_HOME/webapps/ROOT/ssl"
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

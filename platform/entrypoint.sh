@@ -48,38 +48,6 @@ if [ -n "$HTTPS" ] ; then
     HTTPS_PARAM="--stringparam https $HTTPS "
 fi
 
-if [ -n "$HTTPS_SCHEME" ] ; then
-    HTTPS_SCHEME_PARAM="--stringparam https.scheme $HTTPS_SCHEME "
-fi
-
-if [ -n "$HTTPS_PORT" ] ; then
-    HTTPS_PORT_PARAM="--stringparam https.port $HTTPS_PORT "
-fi
-
-if [ -n "$HTTPS_MAX_THREADS" ] ; then
-    HTTPS_MAX_THREADS_PARAM="--stringparam https.maxThreads $HTTPS_MAX_THREADS "
-fi
-
-if [ -n "$HTTPS_CLIENT_AUTH" ] ; then
-    HTTPS_CLIENT_AUTH_PARAM="--stringparam https.clientAuth $HTTPS_CLIENT_AUTH "
-fi
-
-if [ -n "$HTTPS_PROXY_NAME" ] ; then
-    HTTPS_PROXY_NAME_PARAM="--stringparam https.proxyName $HTTPS_PROXY_NAME "
-fi
-
-if [ -n "$HTTPS_PROXY_PORT" ] ; then
-    HTTPS_PROXY_PORT_PARAM="--stringparam https.proxyPort $HTTPS_PROXY_PORT "
-fi
-
-if [ -n "$HTTPS_COMPRESSION" ] ; then
-    HTTPS_COMPRESSION_PARAM="--stringparam https.compression $HTTPS_COMPRESSION "
-fi
-
-if [ -n "$KEY_ALIAS" ] ; then
-    KEY_ALIAS_PARAM="--stringparam https.keyAlias '$KEY_ALIAS' "
-fi
-
 transform="xsltproc \
   --output conf/server.xml \
   $HTTP_PARAM \
@@ -91,14 +59,6 @@ transform="xsltproc \
   $HTTP_CONNECTION_TIMEOUT_PARAM \
   $HTTP_COMPRESSION_PARAM \
   $HTTPS_PARAM \
-  $HTTPS_SCHEME_PARAM \
-  $HTTPS_PORT_PARAM \
-  $HTTPS_MAX_THREADS_PARAM \
-  $HTTPS_CLIENT_AUTH_PARAM \
-  $HTTPS_PROXY_NAME_PARAM \
-  $HTTPS_PROXY_PORT_PARAM \
-  $HTTPS_COMPRESSION_PARAM \
-  $KEY_ALIAS_PARAM \
   conf/letsencrypt-tomcat.xsl \
   conf/server.xml"
 
@@ -145,6 +105,11 @@ fi
 
 if [ -z "$CLIENT_KEYSTORE" ] ; then
     echo '$CLIENT_KEYSTORE not set'
+    exit 1
+fi
+
+if [ -z "$CLIENT_KEYSTORE_MOUNT" ] ; then
+    echo '$CLIENT_KEYSTORE_MOUNT not set'
     exit 1
 fi
 
@@ -396,7 +361,7 @@ if [ -z "$OWNER_URI" ] ; then
     exit 1
 fi
 
-printf "\n### Owner's WebID URI: %s\n" "$owner_uri"
+printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
 
 # strip fragment from the URL, if any
 
@@ -431,6 +396,12 @@ rm -f root-owner.trig root-owner.nq split.root-owner.nq
 echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
+# copy mounted client keystore to a location where the webapp can access it
+
+mkdir -p "$(dirname "$CLIENT_KEYSTORE")"
+
+cp -f "$CLIENT_KEYSTORE_MOUNT" "$(dirname "$CLIENT_KEYSTORE")"
+
 # if CLIENT_TRUSTSTORE does not exist:
 # 1. import the certificate into the CLIENT_TRUSTSTORE
 # 2. initialize an Agent/PublicKey with secretary's metadata and key modulus
@@ -444,7 +415,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
         exit 1
     fi
 
-    printf "\n### Secretary's WebID URI: %s\n" "$owner_uri"
+    printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
     # strip fragment from the URL, if any
 
@@ -479,29 +450,31 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     # if server certificate is self-signed, import it into client truststore
 
     if [ "$SELF_SIGNED_CERT" = true ] ; then
-      printf "\n### Importing server certificate into the client truststore\n\n"
+        printf "\n### Importing server certificate into the client truststore\n\n"
 
-      keytool -importcert \
-        -alias "$KEY_ALIAS" \
-        -file "$SERVER_CERT" \
-        -keystore "$CLIENT_TRUSTSTORE" \
-        -noprompt \
-        -storepass "$CLIENT_KEYSTORE_PASSWORD" \
-        -storetype PKCS12 \
-        -trustcacerts
+        mkdir -p "$(dirname "$CLIENT_TRUSTSTORE")"
+
+        keytool -importcert \
+            -alias "$SECRETARY_CERT_ALIAS" \
+            -file "$SERVER_CERT" \
+            -keystore "$CLIENT_TRUSTSTORE" \
+            -noprompt \
+            -storepass "$CLIENT_KEYSTORE_PASSWORD" \
+            -storetype PKCS12 \
+            -trustcacerts
     fi
 
-    # import default CA certs from the JRE
-
+    printf "\n### Importing default CA certificates into the client truststore\n\n"
+ 
     export CACERTS="${JAVA_HOME}/lib/security/cacerts"
 
     keytool -importkeystore \
-      -destkeystore "$CLIENT_TRUSTSTORE" \
-      -deststorepass "$CLIENT_KEYSTORE_PASSWORD" \
-      -deststoretype PKCS12 \
-      -noprompt \
-      -srckeystore "$CACERTS" \
-      -srcstorepass changeit > /dev/null
+        -destkeystore "$CLIENT_TRUSTSTORE" \
+        -deststorepass "$CLIENT_KEYSTORE_PASSWORD" \
+        -deststoretype PKCS12 \
+        -noprompt \
+        -srckeystore "$CACERTS" \
+        -srcstorepass changeit
 fi
 
 if [ -z "$LOAD_DATASETS" ]; then

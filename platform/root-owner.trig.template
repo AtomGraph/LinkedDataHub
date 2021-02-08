@@ -1,7 +1,6 @@
 @prefix adm:    <ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix acl:    <http://www.w3.org/ns/auth/acl#> .
 @prefix cert:   <http://www.w3.org/ns/auth/cert#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -20,8 +19,6 @@
     foaf:mbox <mailto:${OWNER_MBOX}> ;
     foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
     cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
-
-<acl/agents/e413f97b-15ee-47ea-ba65-4479aa7f1f9e/#this> acl:delegates <${OWNER_URI}> .
 
 # PUBLIC KEY
 
