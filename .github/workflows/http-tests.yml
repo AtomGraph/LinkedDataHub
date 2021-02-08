@@ -27,20 +27,16 @@ jobs:
         uses: actions/checkout@v2
       - name: Build Docker image
         run: docker build -t atomgraph/linkeddatahub .
-      - name: Generate owner certificate and public key
-        run: |
-          root_owner_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-          "$JAVA_HOME"/bin/keytool -genkeypair -keyalg RSA -storetype PKCS12 -keystore test-user.p12 -storepass "${{env.OWNER_CERT_PWD}}" -keypass "${{env.OWNER_CERT_PWD}}" -ext SAN=uri:"${BASE_URI}admin/acl/agents/${root_owner_uuid}/" -dname 'CN=LinkedDataHub,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Denmark,C=DK'
-          mkdir public-keys
-          openssl pkcs12 -in test-user.p12 -passin pass:"${{env.OWNER_CERT_PWD}}" -nokeys -out ./public-keys/test-user.pem # only export the public key!
-          openssl pkcs12 -in test-user.p12 -out ./http-tests/owner.p12.pem -passin pass:"${{env.OWNER_CERT_PWD}}" -passout pass:"${{env.OWNER_CERT_PWD}}" # re-generate the owner PEM cert - seems to differ with different openssl versions?
-          # openssl pkcs12 -in ./certs/secretary.p12 -out ./http-tests/secretary.p12.pem -passin pass:"${{env.SECRETARY_CERT_PWD}}" -passout pass:"${{env.SECRETARY_CERT_PWD}}" # re-generate the secretary PEM cert - seems to differ with different openssl
+      - name: Generate owner's and secretary's certificates/public keys
+        run: ../scripts/setup.sh .env ssl "${{env.OWNER_CERT_PWD}}" "${{env.SECRETARY_CERT_PWD}}" 3650
+        shell: bash
+        working-directory: http-tests
       - name: Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
       - name: Wait for the server to start...
         run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
       - name: Run HTTP test scripts
-        run: ./run.sh "$PWD/owner.p12.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/../certs/secretary.p12.pem" "${{env.SECRETARY_CERT_PWD}}"
+        run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash
         working-directory: http-tests
       - name: Stop Docker containers

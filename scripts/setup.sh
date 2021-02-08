@@ -1,25 +1,29 @@
 #!/bin/bash
 
-if [ "$#" -ne 4 ]; then
-  echo "Usage:   $0" '$env_file $out_folder $owner_cert_pwd $validity' >&2
-  echo "Example: $0 .env ssl Password 3650" >&2
+if [ "$#" -ne 5 ]; then
+  echo "Usage:   $0" '$env_file $out_folder $owner_cert_pwd $secretary_cert_pwd $validity' >&2
+  echo "Example: $0 .env ssl Password Password 3650" >&2
   exit 1
 fi
 
 env_file="$1"
 out_folder="$2"
 
+printf "### Output folder: %s\n" "$out_folder"
+
 owner_alias="owner"
 owner_keystore="${out_folder}/owner/keystore.p12"
 owner_cert_pwd="$3"
+owner_cert="${out_folder}/owner/cert.pem"
 owner_public_key="${out_folder}/owner/public.pem"
-validity="$4"
 
 secretary_alias="secretary"
 secretary_keystore="${out_folder}/secretary/keystore.p12"
 secretary_keystore_pwd="LinkedDataHub"
 secretary_cert="${out_folder}/secretary/cert.pem"
-secretary_cert_pwd="LinkedDataHub"
+secretary_cert_pwd="$4"
+
+validity="$5"
 
 declare -A env
 
@@ -63,7 +67,7 @@ else
     fi
 fi
 
-printf "### Base URI: %s\n" "$base_uri"
+printf "\n### Base URI: %s\n" "$base_uri"
 
 # create owner certificate
 
@@ -119,6 +123,15 @@ keytool \
     -validity "$validity"
 
 # convert owner's certificate to PEM
+
+openssl \
+    pkcs12 \
+    -in "$owner_keystore" \
+    -passin pass:"$owner_cert_pwd" \
+    -out "$owner_cert" \
+    -passout pass:"$owner_cert_pwd"
+
+# convert owner's public key to PEM
 
 openssl \
     pkcs12 \
