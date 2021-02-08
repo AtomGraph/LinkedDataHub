@@ -67,8 +67,6 @@ printf "### Base URI: %s\n" "$base_uri"
 
 # create owner certificate
 
-printf "\n### Owner's WebID URI: %s\n" "$owner_uri"
-
 if [ -z "${env['OWNER_GIVEN_NAME']}" ]; then
     echo "Configuration is incomplete: OWNER_GIVEN_NAME is missing"
     exit 1
