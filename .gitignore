@@ -7,4 +7,4 @@
 /node
 /node_modules
 /docker-compose.override.yml
-/public-keys
+/ssl

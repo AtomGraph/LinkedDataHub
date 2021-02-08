@@ -50,8 +50,9 @@ services:
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
     volumes:
-      - ./certs:/usr/local/tomcat/webapps/ROOT/certs
-      - ./public-keys/owner.pem:/var/linkeddatahub/public-keys/owner.pem
+      - ./ssl/server:/var/linkeddatahub/ssl/server
+      - ./ssl/owner:/var/linkeddatahub/ssl/owner
+      - ./ssl/secretary:/usr/local/tomcat/webapps/ROOT/ssl
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro

@@ -19,19 +19,19 @@
     foaf:name "${OWNER_COMMON_NAME}" ;
     foaf:mbox <mailto:${OWNER_MBOX}> ;
     foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
-    cert:key <acl/public-keys/${PUBLIC_KEY_UUID}/#this> .
+    cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
 
 <acl/agents/e413f97b-15ee-47ea-ba65-4479aa7f1f9e/#this> acl:delegates <${OWNER_URI}> .
 
 # PUBLIC KEY
 
-<acl/public-keys/${PUBLIC_KEY_UUID}/> a adm:PublicKeyItem ;
+<acl/public-keys/${OWNER_KEY_UUID}/> a adm:PublicKeyItem ;
     dct:title "${OWNER_COMMON_NAME}" ;
-    foaf:primaryTopic <acl/public-keys/${PUBLIC_KEY_UUID}/#this> .
+    foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> .
 
-<acl/public-keys/${PUBLIC_KEY_UUID}/#this> a adm:PublicKey ;
+<acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
     rdfs:label "${OWNER_COMMON_NAME}" ;
-    foaf:isPrimaryTopicOf <acl/public-keys/${PUBLIC_KEY_UUID}/> ;
+    foaf:isPrimaryTopicOf <acl/public-keys/${OWNER_KEY_UUID}/> ;
     cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
     cert:exponent 65537 .
 

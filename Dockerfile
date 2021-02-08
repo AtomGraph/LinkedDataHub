@@ -10,16 +10,6 @@ RUN mkdir /jena && \
     curl -SL "$JENA_TAR_URL" | \
     tar -xzf - -C /jena
 
-# copy trust manager source code
-
-WORKDIR /usr/src/trust-manager
-
-COPY platform/trust-manager /usr/src/trust-manager
-
-# build trust manager
-
-RUN mvn clean install # builds target/trust-manager-1.0.0-SNAPSHOT.jar
-
 # copy platform source code and POM
 
 WORKDIR /usr/src/platform
@@ -52,10 +42,6 @@ COPY platform/server.xsl conf/server.xsl
 
 COPY platform/context.xsl conf/context.xsl
 
-# copy trust manager from the maven stage of the build
-
-COPY --from=maven /usr/src/trust-manager/target/trust-manager-1.0.0-SNAPSHOT.jar lib/ldh-trust-manager.jar
-
 ENV CACHE_MODEL_LOADS=true
 
 ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
@@ -74,25 +60,21 @@ ENV HOST=localhost
 
 ENV ABS_PATH=/
 
-# ENV HTTP_PROXY_PORT=80
-
 ENV HTTP_REDIRECT_PORT=443
 
 ENV HTTP_COMPRESSION=on
 
-ENV SECRETARY_REL_URI=admin/acl/agents/e413f97b-15ee-47ea-ba65-4479aa7f1f9e/#this
+ENV SERVER_CERT=/var/linkeddatahub/ssl/server/server.crt
 
-ENV SECRETARY_KEY_PASSWORD=LinkedDataHub
+ENV SECRETARY_CERT="$CATALINA_HOME/webapps/ROOT/ssl/cert.pem"
 
-ENV SECRETARY_CERT_ALIAS=ldh
+ENV SECRETARY_CERT_ALIAS=secretary
 
-ENV SECRETARY_CERT_VALIDITY=36500
+ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/ssl/keystore.p12"
 
-ENV CLIENT_KEYSTORE="$CATALINA_HOME/webapps/ROOT/certs/secretary.p12"
+ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/ssl/client.truststore"
 
-ENV CLIENT_TRUSTSTORE="$CATALINA_HOME/webapps/ROOT/certs/secretary.truststore"
-
-ENV OWNER_PUBLIC_KEY="/var/linkeddatahub/public-keys/owner.pem"
+ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
 
 ENV LOAD_DATASETS=
 
@@ -166,8 +148,8 @@ ENV JENA_HOME=/jena
 
 ENV PATH="${PATH}:${JENA_HOME}/bin"
 
-# persist certificates in a volume
+# persist SSL-related files in a volume
 
-VOLUME /var/linkeddatahub/certs "$CATALINA_HOME/webapps/ROOT/certs"
+VOLUME /var/linkeddatahub/ssl "$CATALINA_HOME/webapps/ROOT/ssl"
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

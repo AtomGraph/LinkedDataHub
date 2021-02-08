@@ -578,27 +578,27 @@ public class Application extends ResourceConfig
         }
         catch (FileNotFoundException ex)
         {
-            if (log.isErrorEnabled()) log.error("Truststore file not found");
+            if (log.isErrorEnabled()) log.error("File not found: {}", ex);
             throw new WebApplicationException(ex);
         }
         catch (IOException ex)
         {
-            if (log.isErrorEnabled()) log.error("Could not load truststore");
+            if (log.isErrorEnabled()) log.error("Could not load file: {}", ex);
             throw new WebApplicationException(ex);
         }
         catch (KeyStoreException ex)
         {
-            if (log.isErrorEnabled()) log.error("Key store error");
+            if (log.isErrorEnabled()) log.error("Key store error: {}", ex);
             throw new WebApplicationException(ex);
         }
         catch (NoSuchAlgorithmException ex)
         {
-            if (log.isErrorEnabled()) log.error("No such algorithm");
+            if (log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
             throw new WebApplicationException(ex);
         }
         catch (CertificateException ex)
         {
-            if (log.isErrorEnabled()) log.error("Certificate error");
+            if (log.isErrorEnabled()) log.error("Certificate error: {}", ex);
             throw new WebApplicationException(ex);
         }
         catch (KeyManagementException | UnrecoverableKeyException ex)

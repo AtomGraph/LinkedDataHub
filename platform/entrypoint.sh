@@ -154,7 +154,7 @@ if [ -z "$SECRETARY_CERT_ALIAS" ] ; then
 fi
 
 if [ -z "$CLIENT_TRUSTSTORE" ] ; then
-    echo '$SECRETARY_CERT_ALIAS not set'
+    echo '$CLIENT_TRUSTSTORE not set'
     exit 1
 fi
 
@@ -391,6 +391,13 @@ fi
 
 OWNER_URI=$(get_webid_uri "$OWNER_PUBLIC_KEY")
 
+if [ -z "$OWNER_URI" ] ; then
+    echo "Owner's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+    exit 1
+fi
+
+printf "\n### Owner's WebID URI: %s\n" "$owner_uri"
+
 # strip fragment from the URL, if any
 
 case "$OWNER_URI" in
@@ -398,19 +405,12 @@ case "$OWNER_URI" in
   *) OWNER_DOC_URI="$OWNER_URI" ;;
 esac
 
-if [ -z "$OWNER_URI" ] ; then
-    echo "Owner's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
-    exit 1
-fi
-
 OWNER_CERT_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
-
-export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS
 
 printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS"
 
-PUBLIC_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-export PUBLIC_KEY_UUID
+OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
 
 # create data/query files by injecting environmental variables into template files
 
@@ -432,48 +432,32 @@ echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >>
 echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
 # if CLIENT_TRUSTSTORE does not exist:
-# 1. generate a secretary (server) certificate with a WebID relative to the BASE_URI
-# 2. import the certificate into the CLIENT_TRUSTSTORE
-# 3. initialize an Agent/PublicKey with secretary's metadata and key modulus
-# 4. import the secretary metadata metadata into the quad store
-
-SECRETARY_URI="${BASE_URI}${SECRETARY_REL_URI}"
+# 1. import the certificate into the CLIENT_TRUSTSTORE
+# 2. initialize an Agent/PublicKey with secretary's metadata and key modulus
+# 3. import the secretary metadata metadata into the quad store
 
 if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
-    # generate secretary WebID certificate and extract its modulus
+    SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
 
-    secretary_dname="CN=LinkedDataHub,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Denmark,C=DK"
+    if [ -z "$SECRETARY_URI" ] ; then
+        echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+        exit 1
+    fi
 
-    printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
+    printf "\n### Secretary's WebID URI: %s\n" "$owner_uri"
 
-    keytool \
-        -genkeypair \
-        -alias "$SECRETARY_CERT_ALIAS" \
-        -keyalg RSA \
-        -storetype PKCS12 \
-        -keystore "$CLIENT_KEYSTORE" \
-        -storepass "$CLIENT_KEYSTORE_PASSWORD" \
-        -keypass "$SECRETARY_KEY_PASSWORD" \
-        -dname "$secretary_dname" \
-        -ext SAN=uri:"$SECRETARY_URI" \
-        -validity "$SECRETARY_CERT_VALIDITY"
+    # strip fragment from the URL, if any
 
-    printf "\n### Secretary WebID certificate's DName attributes: %s\n" "$secretary_dname"
+    case "$SECRETARY_URI" in
+      *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
+      *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
+    esac
 
-    # convert secretary's certificate to PEM
+    SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
+    printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
 
-    client_keystore_pem="${CLIENT_KEYSTORE}.pem"
-
-    openssl \
-        pkcs12 \
-        -in "$CLIENT_KEYSTORE" \
-        -passin pass:"$SECRETARY_KEY_PASSWORD" \
-        -out "$client_keystore_pem" \
-        -passout pass:"$SECRETARY_KEY_PASSWORD"
-
-    secretary_cert_modulus=$(get_modulus "$client_keystore_pem")
-    export secretary_cert_modulus
-    printf "\n### Secretary WebID certificate's modulus: %s\n" "$secretary_cert_modulus"
+    SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
 
     # append secretary metadata to the root admin dataset
 
@@ -492,14 +476,14 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
     rm -f root-secretary.trig root-secretary.nq split.root-secretary.nq
 
-    # if server certificate is self-signed, import it into client (secretary) truststore
+    # if server certificate is self-signed, import it into client truststore
 
     if [ "$SELF_SIGNED_CERT" = true ] ; then
-      printf "\n### Importing server certificate into client truststore\n\n"
+      printf "\n### Importing server certificate into the client truststore\n\n"
 
       keytool -importcert \
         -alias "$KEY_ALIAS" \
-        -file /usr/local/tomcat/webapps/ROOT/certs/server.crt \
+        -file "$SERVER_CERT" \
         -keystore "$CLIENT_TRUSTSTORE" \
         -noprompt \
         -storepass "$CLIENT_KEYSTORE_PASSWORD" \
@@ -548,17 +532,6 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
 fi
-
-# change server configuration 
-# the TrustManager code is located in lib/trust-manager.jar
-
-TRUST_MANAGER_CLASS_NAME="com.atomgraph.linkeddatahub.server.ssl.TrustManager"
-
-xsltproc \
-  --output conf/server.xml \
-  --stringparam https.trustManagerClassName "$TRUST_MANAGER_CLASS_NAME" \
-  conf/server.xsl \
-  conf/server.xml
 
 # change context configuration
 
