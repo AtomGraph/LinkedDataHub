@@ -41,24 +41,30 @@ jobs:
         working-directory: http-tests
       - name: Check logs
         run: docker-compose logs nginx
+        working-directory: http-tests
       - name: Check logs
         run: docker-compose logs linkeddatahub
+        working-directory: http-tests
       - name: Debug 2
         run: 'sleep 5 && curl -s -k "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
         working-directory: http-tests
       - name: Check logs
         run: docker-compose logs nginx
+        working-directory: http-tests
       - name: Check logs
         run: docker-compose logs linkeddatahub
+        working-directory: http-tests
       - name: Debug 3
         run: 'sleep 5 && curl -s -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
         working-directory: http-tests
       - name: Check logs
         run: docker-compose logs nginx
+        working-directory: http-tests
       - name: Check logs
         run: docker-compose logs linkeddatahub
+        working-directory: http-tests
       - name: Debug 4
         run: 'sleep 5 && curl -s -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
