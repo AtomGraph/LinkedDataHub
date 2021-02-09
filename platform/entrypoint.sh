@@ -459,7 +459,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
             -file "$SERVER_CERT" \
             -keystore "$CLIENT_TRUSTSTORE" \
             -noprompt \
-            -storepass "$CLIENT_KEYSTORE_PASSWORD" \
+            -storepass "$CLIENT_TRUSTSTORE_PASSWORD" \
             -storetype PKCS12 \
             -trustcacerts
     fi
@@ -470,7 +470,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
     keytool -importkeystore \
         -destkeystore "$CLIENT_TRUSTSTORE" \
-        -deststorepass "$CLIENT_KEYSTORE_PASSWORD" \
+        -deststorepass "$CLIENT_TRUSTSTORE_PASSWORD" \
         -deststoretype PKCS12 \
         -noprompt \
         -srckeystore "$CACERTS" \
