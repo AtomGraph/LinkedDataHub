@@ -22,6 +22,7 @@ secretary_keystore="${out_folder}/secretary/keystore.p12"
 secretary_keystore_pwd="LinkedDataHub"
 secretary_cert="${out_folder}/secretary/cert.pem"
 secretary_cert_pwd="$4"
+secretary_cert_dname="CN=LDH, OU=LDH, O=AtomGraph, L=Copenhagen, ST=Denmark, C=DK"
 
 validity="$5"
 
@@ -149,7 +150,6 @@ secretary_uri="${base_uri}admin/acl/agents/${secretary_uuid}/#this"
 
 printf "\n### Secretary's WebID URI: %s\n" "$secretary_uri"
 
-secretary_cert_dname="CN=LDH, OU=LDH, O=AtomGraph, L=Copenhagen, ST=Denmark, C=DK"
 printf "\n### Secretary WebID certificate's DName attributes: %s\n" "$secretary_cert_dname"
 
 keytool \
