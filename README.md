@@ -115,7 +115,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
   sudo rm -rf data && docker-compose down -v
   ```
 
-_:warning: This will **remove the persisted data**, server and owner certificates as well as their Docker volumes._
+_:warning: This will **remove the persisted data** as well as Docker volumes._
 </details>
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
