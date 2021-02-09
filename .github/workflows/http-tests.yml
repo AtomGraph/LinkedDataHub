@@ -36,7 +36,7 @@ jobs:
       #- name: Wait for the server to start...
       #  run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
       - name: Debug 1
-        run: 'curl -s -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        run: 'curl -s -k "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
         working-directory: http-tests
       - name: Check logs
@@ -44,7 +44,7 @@ jobs:
       - name: Check logs
         run: docker-compose logs linkeddatahub
       - name: Debug 2
-        run: 'sleep 5 && curl -s -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        run: 'sleep 5 && curl -s -k "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
         working-directory: http-tests
       - name: Check logs
@@ -55,6 +55,10 @@ jobs:
         run: 'sleep 5 && curl -s -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
         working-directory: http-tests
+      - name: Check logs
+        run: docker-compose logs nginx
+      - name: Check logs
+        run: docker-compose logs linkeddatahub
       - name: Debug 4
         run: 'sleep 5 && curl -s -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
