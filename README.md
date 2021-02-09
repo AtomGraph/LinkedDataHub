@@ -25,31 +25,30 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      - [Install Docker Compose](https://docs.docker.com/compose/install/), if it is not already included in the Docker installation
   3. [Fork](https://guides.github.com/activities/forking/) this repository and clone the fork into a folder
   4. In the folder, create an `.env` file and fill out the missing values (you can use [`.env_sample`](https://github.com/AtomGraph/LinkedDataHub/blob/master/.env_sample) as a template). For example:
-  ```
-  COMPOSE_CONVERT_WINDOWS_PATHS=1
-  COMPOSE_PROJECT_NAME=linkeddatahub
-
-  PROTOCOL=https
-  PROXY_HTTP_PORT=81
-  PROXY_HTTPS_PORT=4443
-  HOST=localhost
-  ABS_PATH=/
-
-  OWNER_MBOX=john@doe.com
-  OWNER_GIVEN_NAME=John
-  OWNER_FAMILY_NAME=Doe
-  OWNER_ORG_UNIT=My unit
-  OWNER_ORGANIZATION=My org
-  OWNER_LOCALITY=Copenhagen
-  OWNER_STATE_OR_PROVINCE=Denmark
-  OWNER_COUNTRY_NAME=DK
-  ```
+     ```
+     COMPOSE_CONVERT_WINDOWS_PATHS=1
+     COMPOSE_PROJECT_NAME=linkeddatahub
+     
+     PROTOCOL=https
+     PROXY_HTTP_PORT=81
+     PROXY_HTTPS_PORT=4443
+     HOST=localhost
+     ABS_PATH=/
+     
+     OWNER_MBOX=john@doe.com
+     OWNER_GIVEN_NAME=John
+     OWNER_FAMILY_NAME=Doe
+     OWNER_ORG_UNIT=My unit
+     OWNER_ORGANIZATION=My org
+     OWNER_LOCALITY=Copenhagen
+     OWNER_STATE_OR_PROVINCE=Denmark
+     OWNER_COUNTRY_NAME=DK
+     ```
   5. Setup SSL certificates/keys by running this from command line (replace `$owner_cert_pwd` and `$secretary_cert_pwd` with your own passwords):
      ```
      ./scripts/setup.sh .env ssl $owner_cert_pwd $secretary_cert_pwd 3650 
      ```
      The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed. It requires Java's `keytool` as well as `openssl` to be available on `$PATH`.
-
   6. Launch the application services by running this from command line:
      ```
      docker-compose up
@@ -57,11 +56,10 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      LinkedDataHub will start and mount the following sub-folders:
      - `data` where the triplestore(s) will persist RDF data
      - `uploads` where LDH stores content-hashed file uploads
-
-   The first should take around half a minute as datasets are being loaded into triplestores. After a successful startup, the last line of the Docker log should read something like:
-
-    linkeddatahub_1     | 09-Feb-2021 14:18:10.536 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [32609] milliseconds
-
+     The first should take around half a minute as datasets are being loaded into triplestores. After a successful startup, the last line of the Docker log should read something like:
+     ```
+     linkeddatahub_1     | 09-Feb-2021 14:18:10.536 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [32609] milliseconds
+     ```
   7. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `$owner_cert_pwd` value supplied to `setup.sh`)
      - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
