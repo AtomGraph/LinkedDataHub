@@ -38,15 +38,19 @@ jobs:
       - name: Debug 1
         run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
+        working-directory: http-tests
       - name: Debug 2
-        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        run: 'sleep 5 && curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
+        working-directory: http-tests
       - name: Debug 3
-        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        run: 'sleep 5 && curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
+        working-directory: http-tests
       - name: Debug 4
-        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        run: 'sleep 5 && curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
+        working-directory: http-tests
       #- name: Run HTTP test scripts
       #  run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
       #  shell: bash
