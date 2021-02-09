@@ -35,8 +35,17 @@ jobs:
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
       #- name: Wait for the server to start...
       #  run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
-      - name: Debug
-        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+      - name: Debug 1
+        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        shell: bash
+      - name: Debug 2
+        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        shell: bash
+      - name: Debug 3
+        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
+        shell: bash
+      - name: Debug 4
+        run: 'curl -k -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" -H "Accept: text/html"'
         shell: bash
       #- name: Run HTTP test scripts
       #  run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
