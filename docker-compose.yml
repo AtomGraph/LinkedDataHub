@@ -36,7 +36,6 @@ services:
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
       - HTTPS_PROXY_PORT=${HTTPS_PORT}
       - HTTPS=false
-      #- HTTPS_CLIENT_AUTH=want
       - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
