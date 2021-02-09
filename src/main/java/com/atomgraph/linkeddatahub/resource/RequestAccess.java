@@ -184,12 +184,22 @@ public class RequestAccess extends ResourceBase
     
     public void sendEmail(Resource owner, Resource accessRequest) throws MessagingException, UnsupportedEncodingException
     {
-        // TO-DO: trim values
-        String givenName = owner.getRequiredProperty(com.atomgraph.linkeddatahub.vocabulary.FOAF.givenName).getString();
-        String familyName = owner.getRequiredProperty(com.atomgraph.linkeddatahub.vocabulary.FOAF.familyName).getString();
-        String fullName = givenName + " " + familyName;
+        // TO-DO: trim values?
+        final String name;
+        if (owner.hasProperty(FOAF.givenName) && owner.hasProperty(FOAF.familyName))
+        {
+            String givenName = owner.getProperty(FOAF.givenName).getString();
+            String familyName = owner.getProperty(FOAF.familyName).getString();
+            name = givenName + " " + familyName;
+        }
+        else
+        {
+            if (owner.hasProperty(FOAF.name)) name = owner.getProperty(FOAF.name).getString();
+            else throw new IllegalStateException("Owner Agent '" + owner + "' does not have either foaf:givenName/foaf:familyName or foaf:name");
+        }
+        
         // we expect foaf:mbox value as mailto: URI (it gets converted from literal in Model provider)
-        String mbox = owner.getRequiredProperty(com.atomgraph.linkeddatahub.vocabulary.FOAF.mbox).getResource().getURI().substring("mailto:".length());
+        String mbox = owner.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
         Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
         Resource accessTo = accessRequest.getPropertyResourceValue(LACL.requestAccessTo);
@@ -198,7 +208,7 @@ public class RequestAccess extends ResourceBase
             subject(String.format(getEmailSubject(),
                 getApplication().getProperty(DCTerms.title).getString())).
             from(getNotificationAddress()).
-            to(mbox, fullName).
+            to(mbox, name).
             textBodyPart(String.format(getEmailText(), requestAgent.getURI(), accessTo.getURI(), accessRequest.getURI())).
             build());
     }
