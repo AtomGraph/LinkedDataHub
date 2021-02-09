@@ -53,6 +53,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
   ```
   docker-compose up
   ```
+
   LinkedDataHub will start and mount the following sub-folders:
      - `data` where the triplestore(s) will persist RDF data
      - `uploads` where LDH stores content-hashed file uploads
