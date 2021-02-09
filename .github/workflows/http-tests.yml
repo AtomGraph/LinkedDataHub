@@ -33,9 +33,9 @@ jobs:
         working-directory: http-tests
       - name: Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.no-cache.yml --env-file ./http-tests/.env up -d # do not use Varnish cache for tests; run in the background
-       name: Wait for the server to start...
-       run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; docker-compose logs ; done # wait for the webapp to start
-       working-directory: http-tests
+      - name: Wait for the server to start...
+        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 5 ; docker-compose logs ; done # wait for the webapp to start
+        working-directory: http-tests
       #- name: Debug 1
       #  run: 'curl -s -k "${{env.BASE_URI}}" -H "Accept: text/html"'
       #  shell: bash
