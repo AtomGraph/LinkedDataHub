@@ -751,7 +751,7 @@ public class Application extends ResourceConfig
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(TemplateCallFilter.class);
-        register(ProxiedWebIDFilter.class);//register(WebIDFilter.class);
+        register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
