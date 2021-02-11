@@ -19,7 +19,6 @@ owner_public_key="${out_folder}/owner/public.pem"
 
 secretary_alias="secretary"
 secretary_keystore="${out_folder}/secretary/keystore.p12"
-secretary_keystore_pwd="LinkedDataHub"
 secretary_cert="${out_folder}/secretary/cert.pem"
 secretary_cert_pwd="$4"
 secretary_cert_dname="CN=LDH, OU=LDH, O=AtomGraph, L=Copenhagen, ST=Denmark, C=DK"
@@ -158,7 +157,7 @@ keytool \
     -keyalg RSA \
     -storetype PKCS12 \
     -keystore "$secretary_keystore" \
-    -storepass "$secretary_keystore_pwd" \
+    -storepass "$secretary_cert_pwd" \
     -keypass "$secretary_cert_pwd" \
     -dname "$secretary_cert_dname" \
     -ext "SAN=uri:${secretary_uri}" \
