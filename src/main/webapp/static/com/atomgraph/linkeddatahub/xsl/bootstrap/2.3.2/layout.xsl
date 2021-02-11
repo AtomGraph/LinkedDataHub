@@ -641,31 +641,18 @@ exclude-result-prefixes="#all">
                 <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/default#Container', $ldt:base), resolve-uri('ns/default#Item', $ldt:base)), document(resolve-uri('ns/default', $ldt:base)))" as="element()*"/>
                 <!-- current resource is a container -->
                 <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base))">
-                    <xsl:for-each select="$document-classes">
+                    <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                         <xsl:sort select="ac:label(.)"/>
-
-                        <li>
-                            <xsl:apply-templates select="." mode="bs2:Constructor">
-                                <xsl:with-param name="id" select="()"/>
-                                <xsl:with-param name="with-label" select="true()"/>
-                            </xsl:apply-templates>
-                        </li>
-                    </xsl:for-each>
+                    </xsl:apply-templates>
 
                     <xsl:if test="$default-classes">
                         <li class="divider"></li>
                     </xsl:if>
                 </xsl:if>
 
-                <xsl:for-each select="$default-classes">
+                <xsl:apply-templates select="$default-classes" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
-                    <li>
-                        <xsl:apply-templates select="." mode="bs2:Constructor">
-                            <xsl:with-param name="id" select="()"/>
-                            <xsl:with-param name="with-label" select="true()"/>
-                        </xsl:apply-templates>
-                    </li>
-                </xsl:for-each>
+                </xsl:apply-templates>
             </ul>
         </div>
     </xsl:template>
@@ -685,7 +672,7 @@ exclude-result-prefixes="#all">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
 
-                <!-- apply to owl:imported ontologies recursively -->
+                <!-- show user-defined classes. Apply to owl:imported ontologies recursively -->
                 <xsl:for-each select="key('resources', $ontology, $ont-doc)/owl:imports/@rdf:resource">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="."/>
@@ -702,17 +689,18 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
                 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ConstructorListItem">
-<!--        <xsl:param name="ontology" as="xs:anyURI"/>-->
-<!--        <xsl:param name="ont-doc" as="document-node()"/>-->
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
         <xsl:param name="with-label" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <xsl:apply-templates select="." mode="bs2:Constructor">
-                <xsl:with-param name="id" select="()"/>
-                <xsl:with-param name="with-label" select="$with-label"/>
-            </xsl:apply-templates>
-        </li>
+
+        <!-- the class document has to be available -->
+        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
+            <li>
+                <xsl:apply-templates select="." mode="bs2:Constructor">
+                    <xsl:with-param name="id" select="()"/>
+                    <xsl:with-param name="with-label" select="$with-label"/>
+                </xsl:apply-templates>
+            </li>
+        </xsl:if>
     </xsl:template>
     
     <!-- LEFT NAV MODE -->
