@@ -168,6 +168,6 @@ keytool \
 openssl \
     pkcs12 \
     -in "$secretary_keystore" \
-    -passin pass:"$secretary_keystore_pwd" \
+    -passin pass:"$secretary_cert_pwd" \
     -out "$secretary_cert" \
     -passout pass:"$secretary_cert_pwd"
