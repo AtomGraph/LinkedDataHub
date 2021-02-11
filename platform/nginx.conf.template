@@ -7,10 +7,11 @@ http {
         server $UPSTREAM_SERVER:$UPSTREAM_HTTP_PORT;
     }
 
-    server {
-        # limit_req_zone $binary_remote_addr zone=mylimit:10m rate=1r/s;
-        # limit_req zone=mylimit;
+    limit_req_zone $binary_remote_addr zone=mylimit:10m rate=6r/s;
+    limit_req zone=mylimit;
+    limit_req_status 429;
 
+    server {
         listen $SERVER_HTTPS_PORT ssl;
         server_name $SERVER_NAME;
         ssl_certificate /etc/nginx/ssl/server.crt;
@@ -22,6 +23,7 @@ http {
         location / {
             proxy_pass http://linkeddatahub;
             #proxy_cache backcache;
+            limit_req zone=mylimit burst=20 nodelay;
 
             proxy_set_header Client-Cert '';
             proxy_set_header Client-Cert $ssl_client_escaped_cert;
