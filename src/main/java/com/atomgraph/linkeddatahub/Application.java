@@ -578,42 +578,42 @@ public class Application extends ResourceConfig
         }
         catch (FileNotFoundException ex)
         {
-            if (log.isErrorEnabled()) log.error("File not found: {}", ex);
+            if (log.isErrorEnabled()) log.error("File not found", ex);
             throw new WebApplicationException(ex);
         }
         catch (IOException ex)
         {
-            if (log.isErrorEnabled()) log.error("Could not load file: {}", ex);
+            if (log.isErrorEnabled()) log.error("Could not load file", ex);
             throw new WebApplicationException(ex);
         }
         catch (KeyStoreException ex)
         {
-            if (log.isErrorEnabled()) log.error("Key store error: {}", ex);
+            if (log.isErrorEnabled()) log.error("Key store error", ex);
             throw new WebApplicationException(ex);
         }
         catch (NoSuchAlgorithmException ex)
         {
-            if (log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
+            if (log.isErrorEnabled()) log.error("No such algorithm", ex);
             throw new WebApplicationException(ex);
         }
         catch (CertificateException ex)
         {
-            if (log.isErrorEnabled()) log.error("Certificate error: {}", ex);
+            if (log.isErrorEnabled()) log.error("Certificate error", ex);
             throw new WebApplicationException(ex);
         }
         catch (KeyManagementException | UnrecoverableKeyException ex)
         {
-            if (log.isErrorEnabled()) log.error("Key management error: {}", ex);
+            if (log.isErrorEnabled()) log.error("Key management error", ex);
             throw new WebApplicationException(ex);
         }
         catch (URISyntaxException ex)
         {
-            if (log.isErrorEnabled()) log.error("URI syntax error: {}", ex);
+            if (log.isErrorEnabled()) log.error("URI syntax error", ex);
             throw new WebApplicationException(ex);
         }
         catch (SaxonApiException ex)
         {
-            if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
+            if (log.isErrorEnabled()) log.error("System XSLT stylesheet error", ex);
             throw new WebApplicationException(ex);
         }
         

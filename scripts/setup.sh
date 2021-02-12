@@ -25,6 +25,10 @@ secretary_cert_dname="CN=LDH, OU=LDH, O=AtomGraph, L=Copenhagen, ST=Denmark, C=D
 
 validity="$5"
 
+# append secretary cert password to the env_file
+echo "" >> "$env_file"
+echo "SECRETARY_CERT_PASSWORD=${secretary_cert_pwd}" >> "$env_file"
+
 declare -A env
 
 # read file line by line and populate the array. Field separator is "="
