@@ -334,8 +334,7 @@ get_common_name()
 {
     local key_pem="$1"
 
-    subject_string=$(openssl x509 -noout -subject -in "$key_pem" -nameopt multiline)
-    echo "$subject_string" | sed -n 's/ *commonName *= //p' # lowercase
+    openssl x509 -noout -subject -in "$key_pem" -nameopt lname,sep_multiline,utf8 | grep 'commonName' | cut -d "=" -f 2
 }
 
 get_webid_uri()
