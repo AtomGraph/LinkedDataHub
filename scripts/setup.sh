@@ -11,6 +11,9 @@ out_folder="$2"
 
 printf "### Output folder: %s\n" "$out_folder"
 
+server_cert="${out_folder}/server/server.crt"
+server_public_key="${out_folder}/server/server.key"
+
 owner_alias="owner"
 owner_keystore="${out_folder}/owner/keystore.p12"
 owner_cert_pwd="$3"
@@ -73,7 +76,25 @@ fi
 
 printf "\n### Base URI: %s\n" "$base_uri"
 
-# create owner certificate
+### SERVER CERT ###
+
+mkdir -p "$out_folder"/server
+
+# crude check if the host is an IP address
+IP_ADDR_MATCH=$(echo "${env['HOST']}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
+
+if [ -n "$IP_ADDR_MATCH" ]; then
+    ext="subjectAltName=IP:${env['HOST']}" # IP address
+else
+    ext="subjectAltName=DNS:${env['HOST']}" # hostname
+fi
+
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+  -keyout "$server_public_key" -out "$server_cert" \
+  -subj "/CN=${env['HOST']}/OU=LinkedDataHub/O=AtomGraph/L=Copenhagen/C=DK" \
+  -addext "$ext"
+
+### OWNER CERT ###
 
 if [ -z "${env['OWNER_GIVEN_NAME']}" ]; then
     echo "Configuration is incomplete: OWNER_GIVEN_NAME is missing"
@@ -144,7 +165,7 @@ openssl \
     -nokeys \
     -out "$owner_public_key"
 
-# create secratary's certificate
+### SECRETARY CERT ###
 
 mkdir -p "$out_folder"/secretary
 
