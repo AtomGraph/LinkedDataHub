@@ -112,10 +112,10 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
 
   If you need to start fresh and wipe the existing setup (e.g. after configuring a new base URI), you can do that using
   ```
-  sudo rm -rf data && docker-compose down -v
+  sudo rm -rf data uploads && docker-compose down -v
   ```
 
-_:warning: This will **remove the persisted data** as well as Docker volumes._
+_:warning: This will **remove the persisted data and files** as well as Docker volumes._
 </details>
 
 ## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)

@@ -49,9 +49,9 @@ services:
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
     volumes:
-      - ./ssl/server:/var/linkeddatahub/ssl/server
-      - ./ssl/owner:/var/linkeddatahub/ssl/owner
-      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary
+      - ./ssl/server:/var/linkeddatahub/ssl/server:ro
+      - ./ssl/owner:/var/linkeddatahub/ssl/owner:ro
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro
