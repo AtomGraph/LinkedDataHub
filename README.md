@@ -53,7 +53,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      ```
   3. Setup SSL certificates/keys by running this from command line (replace `$owner_cert_pwd` and `$secretary_cert_pwd` with your own passwords):
      ```
-     ./scripts/setup.sh .env ssl $owner_cert_pwd $secretary_cert_pwd 3650 
+     ./scripts/setup.sh .env ssl $owner_cert_pwd $secretary_cert_pwd 3650
      ```
      The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed.
   4. Launch the application services by running this from command line:
