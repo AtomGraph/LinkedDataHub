@@ -11,6 +11,8 @@ http {
     limit_req zone=mylimit;
     limit_req_status 429;
 
+    client_max_body_size $MAX_BODY_SIZE;
+
     server {
         listen $SERVER_HTTPS_PORT ssl;
         server_name $SERVER_NAME;
