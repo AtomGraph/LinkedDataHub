@@ -1,9 +1,17 @@
 version: "2.3"
 services:
+  nginx:
+    environment:
+      - HOST=localhost
+    volumes:
+      - ./http-tests/ssl/server:/etc/nginx/ssl
   linkeddatahub:
     ports:
       - 8001:8000 # debugger
     environment:
       - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
     volumes:
+      - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
+      - ./http-tests/ssl/owner:/var/linkeddatahub/ssl/owner
+      - ./http-tests/ssl/secretary:/var/linkeddatahub/ssl/secretary
       - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro

@@ -1,23 +1,6 @@
 #!/bin/bash
 set -e
 
-### LETSENCRYPT-TOMCAT ###
-
-if [ -z "$P12_FILE" ] ; then
-    echo '$P12_FILE not set'
-    exit 1
-fi
-
-if [ -z "$PKCS12_KEY_PASSWORD" ] ; then
-    echo '$PKCS12_KEY_PASSWORD not set'
-    exit 1
-fi
-
-if [ -z "$PKCS12_STORE_PASSWORD" ] ; then
-    echo '$PKCS12_STORE_PASSWORD not set'
-    exit 1
-fi
-
 # set timezone
 
 if [ -n "$TZ" ] ; then
@@ -29,80 +12,53 @@ fi
 
 # change server configuration
 
-P12_FILE_PARAM="--stringparam https.keystoreFile '$P12_FILE' "
-PKCS12_KEY_PASSWORD_PARAM="--stringparam https.keystorePass '$PKCS12_KEY_PASSWORD' "
-PKCS12_STORE_PASSWORD_PARAM="--stringparam https.keyPass '$PKCS12_STORE_PASSWORD' "
+if [ -n "$HTTP" ] ; then
+    HTTP_PARAM="--stringparam http $HTTP "
+fi
+
+if [ -n "$HTTP_SCHEME" ] ; then
+    HTTP_SCHEME_PARAM="--stringparam http.scheme $HTTP_SCHEME "
+fi
 
 if [ -n "$HTTP_PORT" ] ; then
-    HTTP_PORT_PARAM="--stringparam http.port '$HTTP_PORT' "
+    HTTP_PORT_PARAM="--stringparam http.port $HTTP_PORT "
 fi
 
-if [ -n "$PROXY_HTTP_NAME" ] ; then
-    PROXY_HTTP_NAME_PARAM="--stringparam http.proxyName '$PROXY_HTTP_NAME' "
+if [ -n "$HTTP_PROXY_NAME" ] ; then
+    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $HTTP_PROXY_NAME "
 fi
 
-if [ -n "$PROXY_HTTP_PORT" ] ; then
-    PROXY_HTTP_PORT_PARAM="--stringparam http.proxyPort '$PROXY_HTTP_PORT' "
+if [ -n "$HTTP_PROXY_PORT" ] ; then
+    HTTP_PROXY_PORT_PARAM="--stringparam http.proxyPort $HTTP_PROXY_PORT "
 fi
 
 if [ -n "$HTTP_REDIRECT_PORT" ] ; then
-    HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort '$HTTP_REDIRECT_PORT' "
+    HTTP_REDIRECT_PORT_PARAM="--stringparam http.redirectPort $HTTP_REDIRECT_PORT "
 fi
 
 if [ -n "$HTTP_CONNECTION_TIMEOUT" ] ; then
-    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout '$HTTP_CONNECTION_TIMEOUT' "
+    HTTP_CONNECTION_TIMEOUT_PARAM="--stringparam http.connectionTimeout $HTTP_CONNECTION_TIMEOUT "
 fi
 
 if [ -n "$HTTP_COMPRESSION" ] ; then
     HTTP_COMPRESSION_PARAM="--stringparam http.compression $HTTP_COMPRESSION "
 fi
 
-if [ -n "$HTTPS_PORT" ] ; then
-    HTTPS_PORT_PARAM="--stringparam https.port '$HTTPS_PORT' "
-fi
-
-if [ -n "$HTTPS_MAX_THREADS" ] ; then
-    HTTPS_MAX_THREADS_PARAM="--stringparam https.maxThreads '$HTTPS_MAX_THREADS' "
-fi
-
-if [ -n "$HTTPS_CLIENT_AUTH" ] ; then
-    HTTPS_CLIENT_AUTH_PARAM="--stringparam https.clientAuth '$HTTPS_CLIENT_AUTH' "
-fi
-
-if [ -n "$PROXY_HTTPS_NAME" ] ; then
-    PROXY_HTTPS_NAME_PARAM="--stringparam https.proxyName '$PROXY_HTTPS_NAME' "
-fi
-
-if [ -n "$PROXY_HTTPS_PORT" ] ; then
-    PROXY_HTTPS_PORT_PARAM="--stringparam https.proxyPort '$PROXY_HTTPS_PORT' "
-fi
-
-if [ -n "$HTTPS_COMPRESSION" ] ; then
-    HTTPS_COMPRESSION_PARAM="--stringparam https.compression $HTTPS_COMPRESSION "
-fi
-
-if [ -n "$KEY_ALIAS" ] ; then
-    KEY_ALIAS_PARAM="--stringparam https.keyAlias '$KEY_ALIAS' "
+if [ -n "$HTTPS" ] ; then
+    HTTPS_PARAM="--stringparam https $HTTPS "
 fi
 
 transform="xsltproc \
   --output conf/server.xml \
+  $HTTP_PARAM \
+  $HTTP_SCHEME_PARAM \
   $HTTP_PORT_PARAM \
-  $PROXY_HTTP_NAME_PARAM \
-  $PROXY_HTTP_PORT_PARAM \
+  $HTTP_PROXY_NAME_PARAM \
+  $HTTP_PROXY_PORT_PARAM \
   $HTTP_REDIRECT_PORT_PARAM \
   $HTTP_CONNECTION_TIMEOUT_PARAM \
   $HTTP_COMPRESSION_PARAM \
-  $HTTPS_PORT_PARAM \
-  $HTTPS_MAX_THREADS_PARAM \
-  $HTTPS_CLIENT_AUTH_PARAM \
-  $PROXY_HTTPS_NAME_PARAM \
-  $PROXY_HTTPS_PORT_PARAM \
-  $HTTPS_COMPRESSION_PARAM \
-  $P12_FILE_PARAM \
-  $PKCS12_KEY_PASSWORD_PARAM \
-  $KEY_ALIAS_PARAM \
-  $PKCS12_STORE_PASSWORD_PARAM \
+  $HTTPS_PARAM \
   conf/letsencrypt-tomcat.xsl \
   conf/server.xml"
 
@@ -127,13 +83,13 @@ if [ -z "$PROTOCOL" ] ; then
     exit 1
 fi
 
-if [ -z "$PROXY_HTTP_PORT" ] ; then
-    echo '$PROXY_HTTP_PORT not set'
+if [ -z "$HTTP_PROXY_PORT" ] ; then
+    echo '$HTTP_PROXY_PORT not set'
     exit 1
 fi
 
-if [ -z "$PROXY_HTTPS_PORT" ] ; then
-    echo '$PROXY_HTTPS_PORT not set'
+if [ -z "$HTTPS_PROXY_PORT" ] ; then
+    echo '$HTTPS_PROXY_PORT not set'
     exit 1
 fi
 
@@ -152,13 +108,18 @@ if [ -z "$CLIENT_KEYSTORE" ] ; then
     exit 1
 fi
 
+if [ -z "$CLIENT_KEYSTORE_MOUNT" ] ; then
+    echo '$CLIENT_KEYSTORE_MOUNT not set'
+    exit 1
+fi
+
 if [ -z "$SECRETARY_CERT_ALIAS" ] ; then
     echo '$SECRETARY_CERT_ALIAS not set'
     exit 1
 fi
 
 if [ -z "$CLIENT_TRUSTSTORE" ] ; then
-    echo '$SECRETARY_CERT_ALIAS not set'
+    echo '$CLIENT_TRUSTSTORE not set'
     exit 1
 fi
 
@@ -202,60 +163,19 @@ if [ -z "$MAIL_USER" ] ; then
     exit 1
 fi
 
-# if server's SSL certificates do not exist (e.g. not mounted), generate them
-# https://community.letsencrypt.org/t/cry-for-help-windows-tomcat-ssl-lets-encrypt/22902/4
-
-if [ ! -f "$P12_FILE" ]; then
-    if [ ! -d "$LETSENCRYPT_CERT_DIR" ] || [ -z "$(ls -A "$LETSENCRYPT_CERT_DIR")" ]; then
-        printf "\n### Generating server certificate\n"
-
-        # crude check if the host is an IP address
-        IP_ADDR_MATCH=$(echo "$HOST" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
-
-        if [ -n "$IP_ADDR_MATCH" ]; then
-            ext="SAN=IP:${HOST}" # IP address
-        else
-            ext="SAN=DNS:${HOST}" # hostname
-        fi
-
-        keytool \
-          -genkeypair \
-          -storetype PKCS12 \
-          -alias "$KEY_ALIAS" \
-          -keyalg RSA \
-          -keypass "$PKCS12_KEY_PASSWORD" \
-          -storepass "$PKCS12_STORE_PASSWORD" \
-          -ext "$ext" \
-          -dname "CN=${HOST},OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Copenhagen,C=DK" \
-          -keystore "$P12_FILE"
-    else
-        printf "\n### Converting provided LetsEncrypt fullchain.pem/privkey.pem to server certificate\n"
-
-        openssl pkcs12 \
-          -export \
-          -in "$LETSENCRYPT_CERT_DIR"/fullchain.pem \
-          -inkey "$LETSENCRYPT_CERT_DIR"/privkey.pem \
-          -name "$KEY_ALIAS" \
-          -out "$P12_FILE" \
-          -password pass:"$PKCS12_KEY_PASSWORD"
-    fi
-else
-    printf "\n### Server certificate exists\n"
-fi
-
 # construct base URI (ignore default HTTP and HTTPS ports)
 
 if [ "$PROTOCOL" = "https" ]; then
-    if [ "$PROXY_HTTPS_PORT" = 443 ]; then
+    if [ "$HTTPS_PROXY_PORT" = 443 ]; then
         export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
     else
-        export BASE_URI="${PROTOCOL}://${HOST}:${PROXY_HTTPS_PORT}${ABS_PATH}"
+        export BASE_URI="${PROTOCOL}://${HOST}:${HTTPS_PROXY_PORT}${ABS_PATH}"
     fi
 else
-    if [ "$PROXY_HTTP_PORT" = 80 ]; then
-        export BASE_URI="http://${HOST}${ABS_PATH}"
+    if [ "$HTTP_PROXY_PORT" = 80 ]; then
+        export BASE_URI="${PROTOCOL}://${HOST}${ABS_PATH}"
     else
-        export BASE_URI="http://${HOST}:${PROXY_HTTP_PORT}${ABS_PATH}"
+        export BASE_URI="${PROTOCOL}://${HOST}:${HTTP_PROXY_PORT}${ABS_PATH}"
     fi
 fi
 
@@ -326,18 +246,6 @@ wait_for_url()
     fi
 }
 
-# function to extract a WebID-compatible modulus from a .p12 certificate
-
-get_modulus()
-{
-    local cert_pem="$1"
-    local password="$2"
-
-    modulus_string=$(cat "$cert_pem" | openssl x509 -noout -modulus)
-    modulus="${modulus_string##*Modulus=}" # cut Modulus= text
-    echo "$modulus" | tr '[:upper:]' '[:lower:]' # lowercase
-}
-
 # function to append quad data to an RDF graph store
 
 append_quads()
@@ -406,171 +314,120 @@ fi
 
 printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
 
-# generate root owner WebID certificate if $OWNER_KEYSTORE does not exist
+# append root owner's metadata to the root admin dataset
+
+if [ -z "$OWNER_MBOX" ] ; then
+    echo '$OWNER_MBOX not set'
+    exit 1
+fi
+
+get_modulus()
+{
+    local key_pem="$1"
+
+    modulus_string=$(openssl x509 -noout -modulus -in "$key_pem")
+    modulus="${modulus_string##*Modulus=}" # cut Modulus= text
+    echo "$modulus" | tr '[:upper:]' '[:lower:]' # lowercase
+}
+
+get_common_name()
+{
+    local key_pem="$1"
+
+    openssl x509 -noout -subject -in "$key_pem" -nameopt lname,sep_multiline,utf8 | grep 'commonName' | cut -d "=" -f 2
+}
 
 get_webid_uri()
 {
-    local cert_pem="$1"
-    local password="$2"
+    local key_pem="$1"
 
-    openssl x509 -in "$cert_pem" -text -noout -passin pass:"$password" \
+    openssl x509 -in "$key_pem" -text -noout \
       -certopt no_subject,no_header,no_version,no_serial,no_signame,no_validity,no_issuer,no_pubkey,no_sigdump,no_aux \
       | awk '/X509v3 Subject Alternative Name/ {getline; print}' | xargs | tail -c +5
 }
 
-owner_keystore_pem="${OWNER_KEYSTORE}.pem"
+OWNER_COMMON_NAME=$(get_common_name "$OWNER_PUBLIC_KEY")
 
-if [ ! -f "$OWNER_KEYSTORE" ]; then
-    if [ -z "$OWNER_MBOX" ] ; then
-        echo '$OWNER_MBOX not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_GIVEN_NAME" ] ; then
-        echo '$OWNER_GIVEN_NAME not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_FAMILY_NAME" ] ; then
-        echo '$OWNER_FAMILY_NAME not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_ORG_UNIT" ] ; then
-        echo '$OWNER_ORG_UNIT not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_ORGANIZATION" ] ; then
-        echo '$OWNER_ORGANIZATION not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_LOCALITY" ] ; then
-        echo '$OWNER_LOCALITY not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_STATE_OR_PROVINCE" ] ; then
-        echo '$OWNER_STATE_OR_PROVINCE not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_COUNTRY_NAME" ] ; then
-        echo '$OWNER_COUNTRY_NAME not set'
-        exit 1
-    fi
-
-    if [ -z "$OWNER_KEY_PASSWORD" ] ; then
-        echo '$OWNER_KEY_PASSWORD not set'
-        exit 1
-    fi
-
-    root_owner_dname="CN=${OWNER_GIVEN_NAME} ${OWNER_FAMILY_NAME},OU=${OWNER_ORG_UNIT},O=${OWNER_ORGANIZATION},L=${OWNER_LOCALITY},ST=${OWNER_STATE_OR_PROVINCE},C=${OWNER_COUNTRY_NAME}"
-    printf "\n### Root owner WebID certificate's DName attributes: %s\n" "$root_owner_dname"
-
-    root_owner_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-    export root_owner_uuid
-    OWNER_DOC_URI="${BASE_URI}admin/acl/agents/${root_owner_uuid}/"
-    OWNER_URI="${OWNER_DOC_URI}#this"
-
-    printf "\n### Root owner's WebID URI: %s\n" "$OWNER_URI"
-
-    keytool \
-        -genkeypair \
-        -alias "$OWNER_CERT_ALIAS" \
-        -keyalg RSA \
-        -storetype PKCS12 \
-        -keystore "$OWNER_KEYSTORE" \
-        -storepass "$OWNER_KEY_PASSWORD" \
-        -keypass "$OWNER_KEY_PASSWORD" \
-        -dname "$root_owner_dname" \
-        -ext SAN=uri:"$OWNER_URI" \
-        -validity "$OWNER_CERT_VALIDITY"
-
-    # convert owner's certificate to PEM
-
-    openssl \
-        pkcs12 \
-        -in "$OWNER_KEYSTORE" \
-        -passin pass:"$OWNER_KEY_PASSWORD" \
-        -out "$owner_keystore_pem" \
-        -passout pass:"$OWNER_KEY_PASSWORD"
-
-    owner_cert_modulus=$(get_modulus "$owner_keystore_pem" "$OWNER_KEY_PASSWORD")
-    export owner_cert_modulus
-    printf "\n### Root owner WebID certificate's modulus: %s\n" "$owner_cert_modulus"
-
-    public_key_uuid=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-    export public_key_uuid
-
-    # append root owner metadata to the root admin dataset
-    
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
-    envsubst < root-owner.trig.template > root-owner.trig
-
-    trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
-
-    printf "\n### Uploading the metadata of the owner agent...\n\n"
-
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
-
-    rm -f root-owner.trig root-owner.nq split.root-owner.nq
-else
-    OWNER_URI=$(get_webid_uri "$owner_keystore_pem" "$OWNER_KEY_PASSWORD")
-
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
+if [ -z "$OWNER_COMMON_NAME" ] ; then
+    echo "Owner's public key does not contain CN (commonName) metadata"
+    exit 1
 fi
+
+OWNER_URI=$(get_webid_uri "$OWNER_PUBLIC_KEY")
+
+if [ -z "$OWNER_URI" ] ; then
+    echo "Owner's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+    exit 1
+fi
+
+printf "\n### Owner's WebID URI: %s\n" "$OWNER_URI"
+
+# strip fragment from the URL, if any
+
+case "$OWNER_URI" in
+  *#*) OWNER_DOC_URI=$(echo "$OWNER_URI" | cut -d "#" -f 1) ;;
+  *) OWNER_DOC_URI="$OWNER_URI" ;;
+esac
+
+OWNER_CERT_MODULUS=$(get_modulus "$OWNER_PUBLIC_KEY")
+
+printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS"
+
+OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
+
+# create data/query files by injecting environmental variables into template files
+
+envsubst < split-default-graph.rq.template > split-default-graph.rq
+envsubst < root-owner.trig.template > root-owner.trig
+
+trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
+sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
+
+printf "\n### Uploading the metadata of the owner agent...\n\n"
+
+append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
+
+rm -f root-owner.trig root-owner.nq split.root-owner.nq
 
 # append ownership metadata to apps (have to be URI resources!)
 
 echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
-# if CLIENT_TRUSTSTORE does not exist:
-# 1. generate a secretary (server) certificate with a WebID relative to the BASE_URI
-# 2. import the certificate into the CLIENT_TRUSTSTORE
-# 3. initialize an Agent/PublicKey with secretary's metadata and key modulus
-# 4. import the secretary metadata metadata into the quad store
+# copy mounted client keystore to a location where the webapp can access it
 
-SECRETARY_URI="${BASE_URI}${SECRETARY_REL_URI}"
+mkdir -p "$(dirname "$CLIENT_KEYSTORE")"
+
+cp -f "$CLIENT_KEYSTORE_MOUNT" "$(dirname "$CLIENT_KEYSTORE")"
+
+# if CLIENT_TRUSTSTORE does not exist:
+# 1. import the certificate into the CLIENT_TRUSTSTORE
+# 2. initialize an Agent/PublicKey with secretary's metadata and key modulus
+# 3. import the secretary metadata metadata into the quad store
 
 if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
-    # generate secretary WebID certificate and extract its modulus
+    SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
 
-    secretary_dname="CN=LinkedDataHub,OU=LinkedDataHub,O=AtomGraph,L=Copenhagen,ST=Denmark,C=DK"
+    if [ -z "$SECRETARY_URI" ] ; then
+        echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+        exit 1
+    fi
 
     printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
 
-    keytool \
-        -genkeypair \
-        -alias "$SECRETARY_CERT_ALIAS" \
-        -keyalg RSA \
-        -storetype PKCS12 \
-        -keystore "$CLIENT_KEYSTORE" \
-        -storepass "$CLIENT_KEYSTORE_PASSWORD" \
-        -keypass "$SECRETARY_KEY_PASSWORD" \
-        -dname "$secretary_dname" \
-        -ext SAN=uri:"$SECRETARY_URI" \
-        -validity "$SECRETARY_CERT_VALIDITY"
+    # strip fragment from the URL, if any
 
-    printf "\n### Secretary WebID certificate's DName attributes: %s\n" "$secretary_dname"
+    case "$SECRETARY_URI" in
+      *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
+      *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
+    esac
 
-    # convert secretary's certificate to PEM
+    SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
+    printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
 
-    client_keystore_pem="${CLIENT_KEYSTORE}.pem"
-
-    openssl \
-        pkcs12 \
-        -in "$CLIENT_KEYSTORE" \
-        -passin pass:"$SECRETARY_KEY_PASSWORD" \
-        -out "$client_keystore_pem" \
-        -passout pass:"$SECRETARY_KEY_PASSWORD"
-
-    secretary_cert_modulus=$(get_modulus "$client_keystore_pem" "$SECRETARY_KEY_PASSWORD")
-    export secretary_cert_modulus
-    printf "\n### Secretary WebID certificate's modulus: %s\n" "$secretary_cert_modulus"
+    SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+    export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
 
     # append secretary metadata to the root admin dataset
 
@@ -589,41 +446,34 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
     rm -f root-secretary.trig root-secretary.nq split.root-secretary.nq
 
-    # if server certificate is self-signed, import it into client (secretary) truststore
+    # if server certificate is self-signed, import it into client truststore
 
     if [ "$SELF_SIGNED_CERT" = true ] ; then
-      # export certficate
+        printf "\n### Importing server certificate into the client truststore\n\n"
 
-      keytool -exportcert \
-        -alias "$KEY_ALIAS" \
-        -file letsencrypt.cer \
-        -keystore "$P12_FILE" \
-        -storepass "$PKCS12_STORE_PASSWORD" \
-        -storetype PKCS12
+        mkdir -p "$(dirname "$CLIENT_TRUSTSTORE")"
 
-      printf "\n### Importing server certificate into client truststore\n\n"
-
-      keytool -importcert \
-        -alias "$KEY_ALIAS" \
-        -file letsencrypt.cer \
-        -keystore "$CLIENT_TRUSTSTORE" \
-        -noprompt \
-        -storepass "$CLIENT_KEYSTORE_PASSWORD" \
-        -storetype PKCS12 \
-        -trustcacerts
+        keytool -importcert \
+            -alias "$SECRETARY_CERT_ALIAS" \
+            -file "$SERVER_CERT" \
+            -keystore "$CLIENT_TRUSTSTORE" \
+            -noprompt \
+            -storepass "$CLIENT_TRUSTSTORE_PASSWORD" \
+            -storetype PKCS12 \
+            -trustcacerts
     fi
 
-    # import default CA certs from the JRE
-
+    printf "\n### Importing default CA certificates into the client truststore\n\n"
+ 
     export CACERTS="${JAVA_HOME}/lib/security/cacerts"
 
     keytool -importkeystore \
-      -destkeystore "$CLIENT_TRUSTSTORE" \
-      -deststorepass "$CLIENT_KEYSTORE_PASSWORD" \
-      -deststoretype PKCS12 \
-      -noprompt \
-      -srckeystore "$CACERTS" \
-      -srcstorepass changeit > /dev/null
+        -destkeystore "$CLIENT_TRUSTSTORE" \
+        -deststorepass "$CLIENT_TRUSTSTORE_PASSWORD" \
+        -deststoretype PKCS12 \
+        -noprompt \
+        -srckeystore "$CACERTS" \
+        -srcstorepass changeit
 fi
 
 if [ -z "$LOAD_DATASETS" ]; then
@@ -654,17 +504,6 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
 fi
-
-# change server configuration 
-# the TrustManager code is located in lib/trust-manager.jar
-
-TRUST_MANAGER_CLASS_NAME="com.atomgraph.linkeddatahub.server.ssl.TrustManager"
-
-xsltproc \
-  --output conf/server.xml \
-  --stringparam https.trustManagerClassName "$TRUST_MANAGER_CLASS_NAME" \
-  conf/server.xsl \
-  conf/server.xml
 
 # change context configuration
 

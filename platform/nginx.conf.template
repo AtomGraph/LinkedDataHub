@@ -2,38 +2,48 @@ events {
     worker_connections 1024;
 }
 
-stream {
-    map $ssl_preread_server_name $name {
-        default upstream_server_https;
+http {
+    upstream linkeddatahub {
+        server $UPSTREAM_SERVER:$UPSTREAM_HTTP_PORT;
     }
 
-    log_format log_stream '$remote_addr [$time_local] $protocol [$ssl_preread_server_name] [$name] '
-        '$status $bytes_sent $bytes_received $session_time';
+    limit_req_zone $binary_remote_addr zone=linked_data:10m rate=6r/s;
+    limit_req_zone $binary_remote_addr zone=static_files:10m rate=20r/s;
+    limit_req_status 429;
 
-    access_log /var/log/nginx/access.log log_stream;
-    error_log  /var/log/nginx/error.log;
-
-    upstream upstream_server_https {
-        server $UPSTREAM_SERVER:$UPSTREAM_HTTPS_PORT;
-    }
+    client_max_body_size $MAX_BODY_SIZE;
 
     server {
-        listen $SERVER_HTTPS_PORT;
-        proxy_pass $name;
-        ssl_preread on;
-    }
-}
+        listen $SERVER_HTTPS_PORT ssl;
+        server_name $SERVER_NAME;
+        ssl_certificate $SERVER_CERT_FILE;
+        ssl_certificate_key $SERVER_KEY_FILE;
+        ssl_session_cache shared:SSL:1m;  
+        ssl_prefer_server_ciphers on;
+        ssl_verify_client optional_no_ca;
 
-http {
-    upstream upstream_server_http {
-        server $UPSTREAM_SERVER:$UPSTREAM_HTTP_PORT;
+        location / {
+            proxy_pass http://linkeddatahub;
+            #proxy_cache backcache;
+            limit_req zone=linked_data burst=20 nodelay;
+
+            proxy_set_header Client-Cert '';
+            proxy_set_header Client-Cert $ssl_client_escaped_cert;
+        }
+
+        location ^~ /static/ {
+            proxy_pass http://linkeddatahub;
+            limit_req zone=static_files burst=20 nodelay;
+        }
     }
 
     server {
         listen $SERVER_HTTP_PORT;
         server_name $SERVER_NAME;
     
-        return 301 https://$server_name:4443$request_uri;
+        location / {
+            return 301 https://$server_name:$SERVER_HTTPS_PORT$request_uri;
+        }
     }
 
 }

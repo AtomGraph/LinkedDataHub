@@ -3,7 +3,7 @@ services:
   nginx:
     image: atomgraph/nginx
     mem_limit: 128m
-    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$MAX_BODY_SIZE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
       - ${HTTP_PORT}:${HTTP_PORT} # allow Tomcat to do HTTP to HTTPS redirect
       - ${HTTPS_PORT}:${HTTPS_PORT} # HTTPS
@@ -14,6 +14,9 @@ services:
       - SERVER_NAME=${HOST}
       - SERVER_HTTPS_PORT=${HTTPS_PORT}
       - SERVER_HTTP_PORT=${HTTP_PORT}
+      - SERVER_CERT_FILE=/etc/nginx/ssl/server.crt
+      - SERVER_KEY_FILE=/etc/nginx/ssl/server.key
+      - MAX_BODY_SIZE=2097152
     volumes:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
   linkeddatahub:
@@ -30,13 +33,13 @@ services:
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}
-      - PROXY_HTTP_PORT=${HTTP_PORT}
+      - HTTP_SCHEME=https
+      - HTTP_PROXY_NAME=${HOST}
+      - HTTP_PROXY_PORT=${HTTPS_PORT}
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
-      - PROXY_HTTPS_PORT=${HTTPS_PORT}
-      - HTTPS_CLIENT_AUTH=want
-      - PKCS12_KEY_PASSWORD=R4#?CWaY#ZET\ncZ
-      - PKCS12_STORE_PASSWORD=R4#?CWaY#ZET\ncZ
-      - CLIENT_KEYSTORE_PASSWORD=LinkedDataHub
+      - HTTPS_PROXY_PORT=${HTTPS_PORT}
+      - HTTPS=false
+      - CLIENT_KEYSTORE_PASSWORD=${SECRETARY_CERT_PASSWORD}
       - CLIENT_TRUSTSTORE_PASSWORD=LinkedDataHub
       - SELF_SIGNED_CERT=true # only on localhost
       - SIGN_UP_CERT_VALIDITY=180
@@ -46,18 +49,12 @@ services:
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost
       - OWNER_MBOX=${OWNER_MBOX}
-      - OWNER_GIVEN_NAME=${OWNER_GIVEN_NAME}
-      - OWNER_FAMILY_NAME=${OWNER_FAMILY_NAME}
-      - OWNER_ORG_UNIT=${OWNER_ORG_UNIT}
-      - OWNER_ORGANIZATION=${OWNER_ORGANIZATION}
-      - OWNER_LOCALITY=${OWNER_LOCALITY}
-      - OWNER_STATE_OR_PROVINCE=${OWNER_STATE_OR_PROVINCE}
-      - OWNER_COUNTRY_NAME=${OWNER_COUNTRY_NAME}
-      - OWNER_KEY_PASSWORD=${OWNER_KEY_PASSWORD}
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
     volumes:
-      - ./certs:/usr/local/tomcat/webapps/ROOT/certs
+      - ./ssl/server:/var/linkeddatahub/ssl/server:ro
+      - ./ssl/owner:/var/linkeddatahub/ssl/owner:ro
+      - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
       - ./config/system-varnish.trig:/var/linkeddatahub/datasets/system.trig:ro

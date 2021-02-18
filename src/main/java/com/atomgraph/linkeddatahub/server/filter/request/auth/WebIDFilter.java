@@ -68,7 +68,7 @@ public class WebIDFilter extends AuthenticationFilter
     
     private static final Logger log = LoggerFactory.getLogger(WebIDFilter.class);
 
-    public static final int SNA_URI_NAME = 6;
+    public static final int SAN_URI_NAME = 6;
     public static final String ON_BEHALF_OF = "On-Behalf-Of";
     
     private final MediaTypes mediaTypes = new MediaTypes();
@@ -101,15 +101,9 @@ public class WebIDFilter extends AuthenticationFilter
     @Override
     public Resource authenticate(ContainerRequestContext request)
     {
-        X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");
-        if (certs == null) return null;
-
         try
         {
-            X509Certificate webIDCert = null;
-            for (X509Certificate cert : certs)
-                if (getWebIDURI(cert) != null) webIDCert = cert;
-
+            X509Certificate webIDCert = getWebIDCertificate(request);
             if (log.isTraceEnabled()) log.trace("Client WebID certificate: {}", webIDCert);
             if (webIDCert == null) return null;
 
@@ -151,18 +145,28 @@ public class WebIDFilter extends AuthenticationFilter
         }
     }
 
+    public X509Certificate getWebIDCertificate(ContainerRequestContext request) throws URISyntaxException, CertificateException, CertificateParsingException
+    {
+        X509Certificate[] certs = (X509Certificate[])getHttpServletRequest().getAttribute("javax.servlet.request.X509Certificate");
+
+        for (X509Certificate cert : certs)
+            if (getWebIDURI(cert) != null) return cert;
+        
+        return null;
+    }
+    
     public static URI getWebIDURI(X509Certificate cert) throws URISyntaxException, CertificateParsingException
     {
         if (cert.getSubjectAlternativeNames() != null)
         {
-            List<?>[] snas = cert.getSubjectAlternativeNames().toArray(new List<?>[0]);
-            if (snas.length > 0 && cert.getPublicKey() instanceof RSAPublicKey)
-                for (List<?> sna : snas)
+            List<?>[] sans = cert.getSubjectAlternativeNames().toArray(new List<?>[0]);
+            if (sans.length > 0 && cert.getPublicKey() instanceof RSAPublicKey)
+                for (List<?> san : sans)
                 {
-                    Object type = sna.get(0);
-                    if (Integer.valueOf(type.toString()).equals(SNA_URI_NAME))
+                    Object type = san.get(0);
+                    if (Integer.valueOf(type.toString()).equals(SAN_URI_NAME))
                     {
-                        Object value = sna.get(1);
+                        Object value = san.get(1);
                         return new URI(value.toString());
                     }
                 }

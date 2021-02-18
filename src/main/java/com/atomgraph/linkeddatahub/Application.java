@@ -102,6 +102,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -577,42 +578,42 @@ public class Application extends ResourceConfig
         }
         catch (FileNotFoundException ex)
         {
-            if (log.isErrorEnabled()) log.error("Truststore file not found");
+            if (log.isErrorEnabled()) log.error("File not found", ex);
             throw new WebApplicationException(ex);
         }
         catch (IOException ex)
         {
-            if (log.isErrorEnabled()) log.error("Could not load truststore");
+            if (log.isErrorEnabled()) log.error("Could not load file", ex);
             throw new WebApplicationException(ex);
         }
         catch (KeyStoreException ex)
         {
-            if (log.isErrorEnabled()) log.error("Key store error");
+            if (log.isErrorEnabled()) log.error("Key store error", ex);
             throw new WebApplicationException(ex);
         }
         catch (NoSuchAlgorithmException ex)
         {
-            if (log.isErrorEnabled()) log.error("No such algorithm");
+            if (log.isErrorEnabled()) log.error("No such algorithm", ex);
             throw new WebApplicationException(ex);
         }
         catch (CertificateException ex)
         {
-            if (log.isErrorEnabled()) log.error("Certificate error");
+            if (log.isErrorEnabled()) log.error("Certificate error", ex);
             throw new WebApplicationException(ex);
         }
         catch (KeyManagementException | UnrecoverableKeyException ex)
         {
-            if (log.isErrorEnabled()) log.error("Key management error: {}", ex);
+            if (log.isErrorEnabled()) log.error("Key management error", ex);
             throw new WebApplicationException(ex);
         }
         catch (URISyntaxException ex)
         {
-            if (log.isErrorEnabled()) log.error("URI syntax error: {}", ex);
+            if (log.isErrorEnabled()) log.error("URI syntax error", ex);
             throw new WebApplicationException(ex);
         }
         catch (SaxonApiException ex)
         {
-            if (log.isErrorEnabled()) log.error("System XSLT stylesheet error: {}", ex);
+            if (log.isErrorEnabled()) log.error("System XSLT stylesheet error", ex);
             throw new WebApplicationException(ex);
         }
         
@@ -750,7 +751,7 @@ public class Application extends ResourceConfig
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(TemplateCallFilter.class);
-        register(WebIDFilter.class);
+        register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
