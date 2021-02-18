@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ### This script is specific to LinkedDataHub Cloud version. See https://linkeddatahub.com/
 
