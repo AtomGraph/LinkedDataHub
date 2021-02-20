@@ -19,6 +19,7 @@ services:
       - MAX_BODY_SIZE=2097152
     volumes:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      - ./ssl/server:/etc/nginx/ssl:ro
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
     ports:
