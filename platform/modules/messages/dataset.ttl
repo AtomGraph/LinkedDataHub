@@ -12,9 +12,9 @@
 <messages/sent/> a def:Container ;
     sioc:has_parent <messages/> ;
     dh:select <queries/default/select-children/#this> ;
-    dct:title "Sent messages" .
+    dct:title "Sent" .
 
 <messages/received/> a def:Container ;
     sioc:has_parent <messages/> ;
     dh:select <queries/default/select-children/#this> ;
-    dct:title "Received messages" .
+    dct:title "Received" .
