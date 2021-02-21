@@ -80,6 +80,7 @@ nsd:ItemOfMessagesContainer a adm:Restriction ;
 
 nst:MessageContainer a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/messages/container/> ;
+    ldt:match "/messages/" ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.message.Container> ;
     rdfs:label "Message container" ;
     rdfs:isDefinedBy nst: .
