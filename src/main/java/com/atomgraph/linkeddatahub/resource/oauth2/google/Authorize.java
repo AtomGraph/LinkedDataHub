@@ -24,7 +24,6 @@ import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACLT;
 import com.atomgraph.processor.model.Template;
@@ -57,7 +56,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Authorize extends ResourceBase
 {
-    private static final Logger log = LoggerFactory.getLogger(Item.class);
+    private static final Logger log = LoggerFactory.getLogger(Authorize.class);
     
     public static final String ENDPOINT_URI = "https://accounts.google.com/o/oauth2/v2/auth";
     public static final String SCOPE = "openid email profile";
