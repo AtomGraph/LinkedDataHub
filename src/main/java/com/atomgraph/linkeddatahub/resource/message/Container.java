@@ -41,6 +41,8 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -48,6 +50,7 @@ import org.apache.jena.vocabulary.RDF;
  */
 public class Container extends ResourceBase
 {
+    private static final Logger log = LoggerFactory.getLogger(Container.class);
     
     @Inject
     public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
@@ -80,7 +83,17 @@ public class Container extends ResourceBase
                 // TO-DO get inbox container from Agent
                 URI inbox = getUriInfo().getBaseUriBuilder().path("messages/received/").build();
                 LinkedDataClient ldc = LinkedDataClient.create(getClient().target(inbox), getMediaTypes());
-                ldc.post(message.getModel());
+                try (Response response = ldc.post(infModel.getRawModel(), ldc.getDefaultMediaType(), new javax.ws.rs.core.MediaType[]{}))
+                {
+                    if (response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isDebugEnabled()) log.debug("Message successfully sent to inbox: {}", inbox);
+                    }
+                    else
+                    {
+                        if (log.isErrorEnabled()) log.error("Message could not be sent to inbox: {}", inbox);
+                    }
+                }
             }
         }
         finally
