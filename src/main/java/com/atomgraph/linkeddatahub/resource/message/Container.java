@@ -18,10 +18,12 @@ package com.atomgraph.linkeddatahub.resource.message;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.processor.model.TemplateCall;
+import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -63,13 +65,6 @@ public class Container extends ResourceBase
                 dataManager, providers,
                 system);
     }
-    
-//    @POST
-//    @Override
-//    public Response post(Dataset dataset)
-//    {
-//        return super.post(dataset);
-//    }
 
     @Override
     public Response construct(InfModel infModel)
@@ -82,7 +77,10 @@ public class Container extends ResourceBase
             {
                 Resource message = it.next();
                 Resource recipient = message.getPropertyResourceValue(ResourceFactory.createProperty("https://w3id.org/atomgraph/linkeddatahub/modules/messages#recipient"));
-                // get inbox
+                // TO-DO get inbox container from Agent
+                URI inbox = getUriInfo().getBaseUriBuilder().path("messages/received/").build();
+                LinkedDataClient ldc = LinkedDataClient.create(getClient().target(inbox), getMediaTypes());
+                ldc.post(message.getModel());
             }
         }
         finally
