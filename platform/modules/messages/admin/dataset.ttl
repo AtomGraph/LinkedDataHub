@@ -26,6 +26,8 @@ nsd: owl:imports msg: .
 nsd:Message a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/messages/message/> ;
     rdfs:subClassOf msg:Message, nsd:TopicOfMessageItem ;
+    ldt:path "{isPrimaryTopicOf.slug}/" ;
+    ldt:fragment "this" ;
     rdfs:label "Message" ;
     rdfs:isDefinedBy nsd: .
 
