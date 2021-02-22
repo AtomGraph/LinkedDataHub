@@ -116,8 +116,8 @@ urlencode()
   echo $(python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1")
 }
 
-ns="${base}ns#"
-class="${base}ns#File"
+ns="${base}ns/domain#"
+class="${ns}File"
 forClass=$(urlencode "$class")
 container="${base}files/"
 
