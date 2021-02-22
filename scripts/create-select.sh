@@ -6,7 +6,7 @@ print_usage()
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
-    printf "Options:\n"
+    printf "Optionsd:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
@@ -109,22 +109,22 @@ args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
 args+=("-c")
-args+=("${base}ns#Select") # class
+args+=("${base}ns/domain#Select") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix nsd:	<ns/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:query a ns:Select .\n"
+turtle+="_:query a nsd:Select .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
 turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:QueryItem .\n"
+turtle+="_:item a nsd:QueryItem .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item foaf:primaryTopic _:query .\n"

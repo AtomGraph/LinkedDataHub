@@ -871,12 +871,6 @@ def:MissingSelect a adm:MissingPropertyValue ;
     dct:title "Queries" ;
     dct:description "Manage SPARQL queries that are used by templates and constraints" .
 
-<sitemap/queries/default/> a adm:Container ;
-    sioc:has_parent <sitemap/queries/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Queries of the Default templates" .
-
 <sitemap/updates/> a adm:Container ;
     sioc:has_parent <sitemap/> ;
     dh:select <queries/default/select-children/#this> ;
@@ -889,11 +883,11 @@ def:MissingSelect a adm:MissingPropertyValue ;
     dct:title "Templates" ;
     dct:description "Manage LDT template that define the Linked Data API of the application by mapping URI templates to SPARQL" .
 
-<sitemap/templates/default/> a adm:Container ;
+<sitemap/templates/templates/> a adm:Container ;
     sioc:has_parent <sitemap/templates/> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Default" ;
-    dct:description "Templates of the Default ontology" .
+    dct:description "Templates of the Templates ontology" .
 
 <sitemap/parameters/> a adm:Container ;
     sioc:has_parent <sitemap/> ;
@@ -941,13 +935,13 @@ nst: a adm:Ontology ;
 
 # namespace ontology
 
-<sitemap/templates/default/namespace-ontology/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/namespace-ontology/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Namespace ontology" ;
     foaf:primaryTopic nst:NamespaceOntology .
 
 nst:NamespaceOntology a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/namespace-ontology/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/namespace-ontology/> ;
     ldt:extends aplt:NamespaceOntology ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Namespace ontology" ;
@@ -955,13 +949,13 @@ nst:NamespaceOntology a adm:Template ;
 
 # sub-ontology
 
-<sitemap/templates/default/sub-ontology/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/sub-ontology/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Sub-ontology" ;
     foaf:primaryTopic nst:SubOntology .
 
 nst:SubOntology a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/sub-ontology/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/sub-ontology/> ;
     ldt:extends aplt:SubOntology ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Sub-ontology" ;
@@ -969,39 +963,39 @@ nst:SubOntology a adm:Template ;
 
 # SPARQL endpoint
 
-<sitemap/templates/default/sparql-endpoint/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/sparql-endpoint/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "SPARQL endpoint" ;
     foaf:primaryTopic nst:SPARQLEndpoint .
 
 nst:SPARQLEndpoint a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/sparql-endpoint/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/sparql-endpoint/> ;
     ldt:extends aplt:SPARQLEndpoint ;
     rdfs:label "SPARQL endpoint" ;
     rdfs:isDefinedBy nst: .
 
 # graph store
 
-<sitemap/templates/default/graph-store/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/graph-store/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Graph store" ;
     foaf:primaryTopic nst:GraphStore .
 
 nst:GraphStore a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/graph-store/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-store/> ;
     ldt:extends aplt:GraphStore ;
     rdfs:label "Graph store" ;
     rdfs:isDefinedBy nst: .
 
 # item
 
-<sitemap/templates/default/document/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/document/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Document" ;
     foaf:primaryTopic nst:Document .
 
 nst:Document a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/document/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
     ldt:extends aplt:Document ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Document" ;
@@ -1009,28 +1003,27 @@ nst:Document a adm:Template ;
 
 # graph item
 
-<sitemap/templates/default/graph-item/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/graph-item/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Graph item" ;
     foaf:primaryTopic nst:GraphItem .
 
 nst:GraphItem a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/graph-item/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-item/> ;
     ldt:extends aplt:GraphItem ;
     rdfs:label "Graph item" ;
     rdfs:isDefinedBy nst: .
 
 # file container
 
-<sitemap/templates/default/file-container/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/file-container/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "File container" ;
     foaf:primaryTopic nst:FileContainer .
 
 nst:FileContainer a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/file-container/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/file-container/> ;
     ldt:extends aplt:FileContainer ;
-    # ldt:match "/files/" ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "File container" ;
     rdfs:comment "Provides multipart file upload capability to matching containers" ;
@@ -1038,15 +1031,14 @@ nst:FileContainer a adm:Template ;
 
 # file
 
-<sitemap/templates/default/file/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/file/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "File" ;
     foaf:primaryTopic nst:File .
 
 nst:File a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/file/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/file/> ;
     ldt:extends aplt:File ;
-    # ldt:match "/uploads/{sha1sum}/" ;
     ldt:cacheControl "public, max-age=31536000" ; # content-addressed documents never change, therefore never expire
     rdfs:label "File" ;
     rdfs:comment "A document that represents an uploaded file" ;
@@ -1054,15 +1046,14 @@ nst:File a adm:Template ;
 
 # import container
 
-<sitemap/templates/default/import-container/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/import-container/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Import container" ;
     foaf:primaryTopic nst:ImportContainer .
 
 nst:ImportContainer a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/import-container/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/import-container/> ;
     ldt:extends aplt:ImportContainer ;
-    # ldt:match "/imports/" ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Import container" ;
     rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
@@ -1070,15 +1061,14 @@ nst:ImportContainer a adm:Template ;
 
 # import item
 
-<sitemap/templates/default/import-item/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/default/> ;
+<sitemap/templates/templates/import-item/> a adm:TemplateItem ;
+    sioc:has_container <sitemap/templates/templates/> ;
     dct:title "Import item" ;
     foaf:primaryTopic nst:ImportItem .
 
 nst:ImportItem a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/default/import-item/> ;
+    foaf:isPrimaryTopicOf <sitemap/templates/templates/import-item/> ;
     ldt:extends aplt:ImportItem ;
-    # ldt:match "/imports/{slug}/" ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Import item" ;
     rdfs:isDefinedBy nst: .
@@ -1089,13 +1079,13 @@ nst:ImportItem a adm:Template ;
 
 # generic service
 
-<model/classes/namespace/services/generic/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/services/> ;
+<model/classes/domain/services/generic/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/services/> ;
     dct:title "Generic service" ;
     foaf:primaryTopic nsd:GenericService .
 
 nsd:GenericService a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/services/generic/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/services/generic/> ;
     rdfs:subClassOf def:GenericService, nsd:TopicOfServiceItem ;
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
@@ -1105,13 +1095,13 @@ nsd:GenericService a adm:Class ;
 
 # Dydra service
 
-<model/classes/namespace/services/dydra/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/services/> ;
+<model/classes/domain/services/dydra/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/services/> ;
     dct:title "Dydra service" ;
     foaf:primaryTopic nsd:DydraService .
 
 nsd:DydraService a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/services/dydra/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/services/dydra/> ;
     rdfs:subClassOf def:DydraService, nsd:TopicOfServiceItem ;
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
@@ -1121,26 +1111,26 @@ nsd:DydraService a adm:Class ;
 
 # service item
 
-<model/classes/namespace/services/service-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/services/> ;
+<model/classes/domain/services/service-item/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/services/> ;
     dct:title "Service item" ;
     foaf:primaryTopic nsd:ServiceItem .
 
 nsd:ServiceItem a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/services/service-item/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/services/service-item/> ;
     rdfs:subClassOf def:Item, nsd:ItemOfServiceContainer ; # def:Item, nsd:ItemOfServiceContainer ;
     rdfs:label "Service item" ;
     rdfs:isDefinedBy nsd: .
 
 # file
 
-<model/classes/namespace/file/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/file/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "File" ;
     foaf:primaryTopic nsd:File .
 
 nsd:File a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/file/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/file/> ;
     rdfs:subClassOf def:File, nsd:TopicOfFileItem, nsd:ItemOfFileContainer ;
     rdfs:label "File" ;
     rdfs:comment "A document that represents an uploaded file" ;
@@ -1148,156 +1138,156 @@ nsd:File a adm:Class ;
 
 # file item
 
-<model/classes/namespace/file-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/file-item/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "File item" ;
     foaf:primaryTopic nsd:FileItem .
 
 nsd:FileItem a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/file-item/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/file-item/> ;
     rdfs:subClassOf def:Item, nsd:ItemOfFilesContainer ;
     rdfs:label "File item" ;
     rdfs:isDefinedBy nsd: .
 
 # RDF import
 
-<model/classes/namespace/rdf-import/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/rdf-import/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "RDF import" ;
     foaf:primaryTopic nsd:RDFImport .
 
 nsd:RDFImport a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/rdf-import/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/rdf-import/> ;
     rdfs:subClassOf def:RDFImport, nsd:TopicOfImportItem ;
     rdfs:label "RDF import" ;
     rdfs:isDefinedBy nsd: .
 
 # CSV import
 
-<model/classes/namespace/csv-import/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/csv-import/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "CSV import" ;
     foaf:primaryTopic nsd:CSVImport .
 
 nsd:CSVImport a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/csv-import/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/csv-import/> ;
     rdfs:subClassOf def:CSVImport, nsd:TopicOfImportItem ;
     rdfs:label "CSV import" ;
     rdfs:isDefinedBy nsd: .
 
 # import item
 
-<model/classes/namespace/import-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/import-item/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "Import item" ;
     foaf:primaryTopic nsd:ImportItem .
 
 nsd:ImportItem a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/import-item/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/import-item/> ;
     rdfs:subClassOf def:Item, nsd:ItemOfImportsContainer ;
     rdfs:label "Import item" ;
     rdfs:isDefinedBy nsd: .
 
 # construct
 
-<model/classes/namespace/construct/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/construct/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "CONSTRUCT" ;
     foaf:primaryTopic nsd:Construct .
 
 nsd:Construct a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/construct/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/construct/> ;
     rdfs:subClassOf def:Construct, nsd:TopicOfQueryItem ;
     rdfs:label "CONSTRUCT" ;
     rdfs:isDefinedBy nsd: .
 
 # describe
 
-<model/classes/namespace/describe/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/describe/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "DESCRIBE" ;
     foaf:primaryTopic nsd:Describe .
 
 nsd:Describe a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/describe/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/describe/> ;
     rdfs:subClassOf def:Describe, nsd:TopicOfQueryItem ;
     rdfs:label "DESCRIBE" ;
     rdfs:isDefinedBy nsd: .
 
 # select
 
-<model/classes/namespace/select/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/select/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "SELECT" ;
     foaf:primaryTopic nsd:Select .
 
 nsd:Select a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/select/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/select/> ;
     rdfs:subClassOf def:Select, nsd:TopicOfQueryItem ;
     rdfs:label "SELECT" ;
     rdfs:isDefinedBy nsd: .
 
 # ask
 
-<model/classes/namespace/ask/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/ask/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "ASK" ;
     foaf:primaryTopic nsd:Ask .
 
 nsd:Ask a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/ask/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/ask/> ;
     rdfs:subClassOf def:Ask, nsd:TopicOfQueryItem ;
     rdfs:label "ASK" ;
     rdfs:isDefinedBy nsd: .
 
 # query item
 
-<model/classes/namespace/query-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/query-item/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "Query item" ;
     foaf:primaryTopic nsd:QueryItem .
 
 nsd:QueryItem a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/query-item/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/query-item/> ;
     rdfs:subClassOf def:Item, nsd:ItemOfQueriesContainer ;
     rdfs:label "Query item" ;
     rdfs:isDefinedBy nsd: .
 
 # graph chart
 
-<model/classes/namespace/graph-chart/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/graph-chart/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "Graph chart" ;
     foaf:primaryTopic nsd:GraphChart .
 
 nsd:GraphChart a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/graph-chart/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/graph-chart/> ;
     rdfs:subClassOf def:GraphChart, nsd:TopicOfChartItem ;
     rdfs:label "Graph chart" ;
     rdfs:isDefinedBy nsd: .
 
 # result set chart
 
-<model/classes/namespace/result-set-chart/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/result-set-chart/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "Result set chart" ;
     foaf:primaryTopic nsd:ResultSetChart .
 
 nsd:ResultSetChart a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/result-set-chart/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/result-set-chart/> ;
     rdfs:subClassOf def:ResultSetChart, nsd:TopicOfChartItem ;
     rdfs:label "Result set chart" ;
     rdfs:isDefinedBy nsd: .
 
 # chart item
 
-<model/classes/namespace/chart-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/namespace/> ;
+<model/classes/domain/chart-item/> a adm:ClassItem ;
+    sioc:has_container <model/classes/domain/> ;
     dct:title "Chart item" ;
     foaf:primaryTopic nsd:ChartItem .
 
 nsd:ChartItem a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/namespace/chart-item/> ;
+    foaf:isPrimaryTopicOf <model/classes/domain/chart-item/> ;
     rdfs:subClassOf def:Item, nsd:ItemOfChartsContainer ;
     rdfs:label "Chart item" ;
     rdfs:isDefinedBy nsd: .
@@ -1320,13 +1310,13 @@ nsd:TopicOfServiceItem a adm:Restriction ;
 
 # topic of query item
 
-<model/restrictions/namespace/topic-of-query-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/topic-of-query-item/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of query item" ;
     foaf:primaryTopic nsd:TopicOfQueryItem .
 
 nsd:TopicOfQueryItem a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/topic-of-query-item/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-query-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
     owl:allValuesFrom nsd:QueryItem ;
     rdfs:label "Topic of query item" ;
@@ -1334,13 +1324,13 @@ nsd:TopicOfQueryItem a adm:Restriction ;
 
 # topic of import item
 
-<model/restrictions/namespace/topic-of-import-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/topic-of-import-item/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of import item" ;
     foaf:primaryTopic nsd:TopicOfImportItem .
 
 nsd:TopicOfImportItem a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/topic-of-import-item/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-import-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
     owl:allValuesFrom nsd:ImportItem ;
     rdfs:label "Topic of import item" ;
@@ -1348,13 +1338,13 @@ nsd:TopicOfImportItem a adm:Restriction ;
 
 # topic of file item
 
-<model/restrictions/namespace/topic-of-file-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/topic-of-file-item/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of file item" ;
     foaf:primaryTopic nsd:TopicOfFileItem .
 
 nsd:TopicOfFileItem a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/topic-of-file-item/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-file-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
     owl:allValuesFrom nsd:FileItem ;
     rdfs:label "Topic of file item" ;
@@ -1362,13 +1352,13 @@ nsd:TopicOfFileItem a adm:Restriction ;
 
 # topic of chart item
 
-<model/restrictions/namespace/topic-of-chart-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/topic-of-chart-item/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of chart item" ;
     foaf:primaryTopic nsd:TopicOfChartItem .
 
 nsd:TopicOfChartItem a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/topic-of-chart-item/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-chart-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
     owl:allValuesFrom nsd:ChartItem ;
     rdfs:label "Topic of chart item" ;
@@ -1376,13 +1366,13 @@ nsd:TopicOfChartItem a adm:Restriction ;
 
 # has services container
 
-<model/restrictions/namespace/services-container/> a adm:RestrictionItem ;
+<model/restrictions/domain/services-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/> ;
     dct:title "Has services container" ;
     foaf:primaryTopic nsd:ItemOfServiceContainer .
 
 nsd:ItemOfServiceContainer a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/services-container/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/services-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../services/> ;
     rdfs:label "Has services container" ;
@@ -1390,13 +1380,13 @@ nsd:ItemOfServiceContainer a adm:Restriction ;
 
 # has uploads container
 
-<model/restrictions/namespace/uploads-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/uploads-container/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has uploads container" ;
     foaf:primaryTopic nsd:ItemOfFileContainer .
 
 nsd:ItemOfFileContainer a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/uploads-container/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/uploads-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../uploads/> ;
     rdfs:label "Has uploads container" ;
@@ -1404,13 +1394,13 @@ nsd:ItemOfFileContainer a adm:Restriction ;
 
 # has imports container
 
-<model/restrictions/namespace/imports-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/imports-container/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has imports container" ;
     foaf:primaryTopic nsd:ItemOfImportsContainer .
 
 nsd:ItemOfImportsContainer a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/imports-container/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/imports-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../imports/> ;
     rdfs:label "Has imports container" ;
@@ -1418,13 +1408,13 @@ nsd:ItemOfImportsContainer a adm:Restriction ;
 
 # has files container
 
-<model/restrictions/namespace/files-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/files-container/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has files container" ;
     foaf:primaryTopic nsd:ItemOfFilesContainer .
 
 nsd:ItemOfFilesContainer a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/files-container/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/files-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../files/> ;
     rdfs:label "Has files container" ;
@@ -1432,13 +1422,13 @@ nsd:ItemOfFilesContainer a adm:Restriction ;
 
 # has queries container
 
-<model/restrictions/namespace/queries-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/queries-container/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has queries container" ;
     foaf:primaryTopic nsd:ItemOfQueriesContainer .
 
 nsd:ItemOfQueriesContainer a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/queries-container/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/queries-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../queries/> ;
     rdfs:label "Has queries container" ;
@@ -1446,13 +1436,13 @@ nsd:ItemOfQueriesContainer a adm:Restriction ;
 
 # has charts container
 
-<model/restrictions/namespace/charts-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/namespace/> ;
+<model/restrictions/domain/charts-container/> a adm:RestrictionItem ;
+    sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has charts container" ;
     foaf:primaryTopic nsd:ItemOfChartsContainer .
 
 nsd:ItemOfChartsContainer a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/namespace/charts-container/> ;
+    foaf:isPrimaryTopicOf <model/restrictions/domain/charts-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../charts/> ;
     rdfs:label "Has charts container" ;

@@ -6,7 +6,7 @@ print_usage()
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
-    printf "Options:\n"
+    printf "Optionsd:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
@@ -119,11 +119,11 @@ args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
 args+=("-c")
-args+=("${base}ns#DydraService") # class
+args+=("${base}ns/domain#DydraService") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix nsd:	<ns/domain#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
@@ -131,13 +131,13 @@ turtle+="@prefix dydra: <https://w3id.org/atomgraph/linkeddatahub/services/dydra
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:service a ns:DydraService .\n"
+turtle+="_:service a nsd:DydraService .\n"
 turtle+="_:service dct:title \"${title}\" .\n"
 turtle+="_:service dydra:repository <${repository}> .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Query .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Update .\n"
 turtle+="_:service foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:ServiceItem .\n"
+turtle+="_:item a nsd:ServiceItem .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:service .\n"
