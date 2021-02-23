@@ -10,7 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
-    printf "      --request-base BASE_URI          Request base URI\n"
+    printf "  --request-base BASE_URI              Request base URI\n"
     printf "\n"
     printf "  --import IMPORT_URI                  URI of the imported ontology\n"
 }
@@ -30,6 +30,11 @@ do
         ;;
         -p|--cert-password)
         cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -b|--base)
+        base="$2"
         shift # past argument
         shift # past value
         ;;
