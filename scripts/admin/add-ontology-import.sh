@@ -55,11 +55,15 @@ fi
 
 ontology_doc="$1"
 
+echo "ontology_doc: $ontology_doc"
+
 # extract ontology URI and graph URI from app document N-Triples description (slashes in ${ontology_doc} need to be escaped before passing to sed)
 
 ontology=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+echo "ontology: $ontology"
 
 graph_doc=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
+echo "graph_doc: $graph_doc"
 
 sparql+="PREFIX owl:	<http://www.w3.org/2002/07/owl#>\n"
 sparql+="INSERT DATA {\n"
