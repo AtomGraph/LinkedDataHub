@@ -10,6 +10,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "      --request-base BASE_URI          Request base URI (if different from --base)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -35,6 +36,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --request-base)
+        request_base="$2"
+        shift # past argument
+        shift # past value
+        ;;
     esac
 done
 set -- "${args[@]}" # restore args
@@ -52,13 +58,17 @@ if [ -z "$base" ] ; then
     exit 1
 fi
 
+if [ -z "request_base" ]; then
+    request_base="$base"
+fi
+
 graph_sha1=$(echo -n "${base}admin/acl/authorizations/public/" | sha1sum | cut -d " " -f 1)
 
 curl -X PATCH \
     -s -f -k \
     -E "$cert_pem_file":"$cert_password" \
     -H "Content-Type: application/sparql-update" \
-    "${base}admin/graphs/${graph_sha1}/" \
+    "${request_base}admin/graphs/${graph_sha1}/" \
      --data-binary @- <<EOF
 BASE <${base}admin/>
 
