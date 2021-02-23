@@ -82,6 +82,8 @@ echo "ontology_doc_uri: $ontology_doc_uri"
 
 # extract ontology URI and graph URI from app document N-Triples description (slashes in ${ontology_doc} need to be escaped before passing to sed)
 
+curl -v -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc_uri//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p"
+
 ontology=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc_uri//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 echo "ontology: $ontology"
 
