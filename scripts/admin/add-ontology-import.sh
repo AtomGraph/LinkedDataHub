@@ -67,6 +67,9 @@ fi
 
 ontology_doc="$1"
 
+echo "base: $base"
+echo "request_base: $request_base"
+
 echo "ontology_doc: $ontology_doc"
 
 if [ -z "$request_base" ] ; then
