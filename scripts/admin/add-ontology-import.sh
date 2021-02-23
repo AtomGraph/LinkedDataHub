@@ -9,6 +9,8 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
+    printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
+    printf "      --request-base BASE_URI          Request base URI\n"
     printf "\n"
     printf "  --import IMPORT_URI                  URI of the imported ontology\n"
 }
@@ -18,29 +20,34 @@ hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 args=()
 while [[ $# -gt 0 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -f|--cert-pem-file)
-    cert_pem_file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -p|--cert-password)
-    cert_password="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --import)
-    import="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown arguments
-    args+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
+    case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --import)
+        import="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --request-base)
+        request_base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
 done
 set -- "${args[@]}" # restore args
 
@@ -57,12 +64,20 @@ ontology_doc="$1"
 
 echo "ontology_doc: $ontology_doc"
 
+if [ -z "$request_base" ] ; then
+    ontology_doc_uri="$ontology_doc"
+else
+    ontology_doc_uri="${$ontology_doc/$base/$request_base}"
+fi
+
+echo "ontology_doc_uri: $ontology_doc_uri"
+
 # extract ontology URI and graph URI from app document N-Triples description (slashes in ${ontology_doc} need to be escaped before passing to sed)
 
-ontology=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+ontology=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc_uri//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 echo "ontology: $ontology"
 
-graph_doc=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
+graph_doc=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc_uri//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
 echo "graph_doc: $graph_doc"
 
 sparql+="PREFIX owl:	<http://www.w3.org/2002/07/owl#>\n"
