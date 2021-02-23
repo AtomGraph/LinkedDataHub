@@ -75,7 +75,7 @@ echo "ontology_doc: $ontology_doc"
 if [ -z "$request_base" ] ; then
     ontology_doc_uri="$ontology_doc"
 else
-    ontology_doc_uri=$(echo "$ontology_doc" | sed -i "s|$request_base|$base|g")
+    ontology_doc_uri=$(echo "$ontology_doc" | sed -e "s|$request_base|$base|g")
 fi
 
 echo "ontology_doc_uri: $ontology_doc_uri"
