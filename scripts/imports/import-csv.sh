@@ -155,7 +155,13 @@ echo "QUERY_NTRIPLES: $query_ntriples"
 popd > /dev/null
 
 query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
-echo "QUERY: $query"
+
+if [ -z "$request_base" ] ; then
+    query_uri="$query"
+else
+    query_uri=$(echo "$query" | sed -e "s|$base|$request_base|g")
+fi"
+echo "QUERY_URI: $query_uri"
 
 file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv")
 
