@@ -73,23 +73,17 @@ else
     ontology_doc_uri=$(echo "$ontology_doc" | sed -e "s|$request_base|$base|g")
 fi
 
-echo "ontology_doc_uri: $ontology_doc_uri"
-
 # extract ontology URI and graph URI from app document N-Triples description (slashes in ${ontology_doc} need to be escaped before passing to sed)
 
 ontology=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc_uri//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
-echo "ontology: $ontology"
 
 graph_doc_uri=$(curl -s -k -E "$cert_pem_file":"$cert_password" "$ontology_doc" -H "Accept: application/n-triples" | cat | sed -rn "s/<${ontology_doc_uri//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
-echo "graph_doc_uri: $graph_doc_uri"
 
 if [ -z "$request_base" ] ; then
     graph_doc="$graph_doc_uri"
 else
     graph_doc=$(echo "$graph_doc_uri" | sed -e "s|$base|$request_base|g")
 fi
-
-echo "graph_doc: $graph_doc"
 
 sparql+="PREFIX owl:	<http://www.w3.org/2002/07/owl#>\n"
 sparql+="INSERT DATA {\n"
