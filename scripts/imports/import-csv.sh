@@ -160,7 +160,7 @@ if [ -z "$request_base" ] ; then
     query_uri="$query"
 else
     query_uri=$(echo "$query" | sed -e "s|$base|$request_base|g")
-fi"
+fi
 echo "QUERY_URI: $query_uri"
 
 file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv")
