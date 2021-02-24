@@ -142,9 +142,16 @@ if [ -z "$file" ] ; then
     exit 1
 fi
 
+if [ -z "$request_base" ] ; then
+    request_base="$base"
+fi
+
 query_container="${request_base}queries/"
 query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
 
+if [ -n "$request_base" ] ; then
+    query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
+fi
 echo "QUERY_DOC: $query_doc"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -155,22 +162,24 @@ echo "QUERY_NTRIPLES: $query_ntriples"
 popd > /dev/null
 
 query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+echo "QUERY: $query"
 
-if [ -z "$request_base" ] ; then
-    query_uri="$query"
-else
-    query_uri=$(echo "$query" | sed -e "s|$base|$request_base|g")
+file_container="${request_base}files/"
+file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv" "$file_container")
+
+if [ -n "$request_base" ] ; then
+    file_doc=$(echo "$file_doc" | sed -e "s|$base|$request_base|g")
 fi
-echo "QUERY_URI: $query_uri"
-
-file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv")
+echo "FILE_DOC: $file_doc"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 file_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --accept 'application/n-triples' "$file_doc")
+echo "FILE_NTRIPLES: $file_ntriples"
 
 popd > /dev/null
 
 file=$(echo "$file_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+echo "FILE: $file"
 
 ./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" --delimiter ","
