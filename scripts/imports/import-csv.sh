@@ -18,6 +18,7 @@ print_usage()
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
+    printf "  --request-base BASE_URI              Request base URI\n"
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
@@ -36,74 +37,79 @@ print_usage()
 args=()
 while [[ $# -gt 0 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -f|--cert-pem-file)
-    cert_pem_file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -p|--cert-password)
-    cert_password="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    -b|--base)
-    base="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --title)
-    title="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --action)
-    action="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --query-file)
-    query_file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --query-doc-slug)
-    query_doc_slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --file)
-    file="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --file-slug)
-    file_slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --file-doc-slug)
-    file_doc_slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --delimiter)
-    delimiter="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    --import-slug)
-    import_slug="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown arguments
-    args+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-esac
+    case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -b|--base)
+        base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --request-base)
+        request_base="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --title)
+        title="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --action)
+        action="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --query-file)
+        query_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --query-doc-slug)
+        query_doc_slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file)
+        file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file-slug)
+        file_slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --file-doc-slug)
+        file_doc_slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --delimiter)
+        delimiter="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --import-slug)
+        import_slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        *)    # unknown arguments
+        args+=("$1") # save it in an array for later
+        shift # past argument
+        ;;
+    esac
 done
 set -- "${args[@]}" # restore args
 
@@ -136,15 +142,20 @@ if [ -z "$file" ] ; then
     exit 1
 fi
 
-query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file")
+query_container="${request_base}queries/"
+query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
+
+echo "QUERY_DOC: $query_doc"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 query_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --accept 'application/n-triples' "$query_doc")
+echo "QUERY_NTRIPLES: $query_ntriples"
 
 popd > /dev/null
 
 query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+echo "QUERY: $query"
 
 file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv")
 
