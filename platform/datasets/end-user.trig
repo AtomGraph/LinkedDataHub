@@ -1,4 +1,4 @@
-@prefix ns:	<ns#> .
+@prefix nsd:	<ns/domain#> .
 @prefix def:	<ns/default#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -65,12 +65,12 @@
 
 # select children
 
-<queries/default/select-children/> a ns:QueryItem ;
+<queries/default/select-children/> a nsd:QueryItem ;
     sioc:has_container <queries/default/> ;
     dct:title "Select children" ;
     foaf:primaryTopic <queries/default/select-children/#this> .
 
-<queries/default/select-children/#this> a ns:Select ;
+<queries/default/select-children/#this> a nsd:Select ;
     foaf:isPrimaryTopicOf <queries/default/select-children/> ;
     dct:title "Select children" ;
     sp:text """
@@ -96,12 +96,12 @@ ORDER BY ?title
 
 # select geo resources
 
-<queries/default/select-geo-resources/> a ns:QueryItem ;
+<queries/default/select-geo-resources/> a nsd:QueryItem ;
     sioc:has_container <queries/default/> ;
     dct:title "Select geo resources" ;
     foaf:primaryTopic <queries/default/select-geo-resources/#this> .
 
-<queries/default/select-geo-resources/#this> a ns:Select ;
+<queries/default/select-geo-resources/#this> a nsd:Select ;
     foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
     dct:title "Select geo resources" ;
     sp:text """
@@ -124,12 +124,12 @@ ORDER BY ?title
 
 # select latest
 
-<queries/default/select-latest/> a ns:QueryItem ;
+<queries/default/select-latest/> a nsd:QueryItem ;
     sioc:has_container <queries/default/> ;
     dct:title "Select latest" ;
     foaf:primaryTopic <queries/default/select-latest/#this> .
 
-<queries/default/select-latest/#this> a ns:Select ;
+<queries/default/select-latest/#this> a nsd:Select ;
     foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
     dct:title "Select latest" ;
     sp:text """
@@ -145,12 +145,12 @@ ORDER BY DESC(?created)
 
 # select labelled
 
-<queries/default/select-labelled/> a ns:QueryItem ;
+<queries/default/select-labelled/> a nsd:QueryItem ;
     sioc:has_container <queries/default/> ;
     dct:title "Select labelled" ;
     foaf:primaryTopic <queries/default/select-labelled/#this> .
 
-<queries/default/select-labelled/#this> a ns:Select ;
+<queries/default/select-labelled/#this> a nsd:Select ;
     dct:title "Select labelled" ;
     sp:text """
 PREFIX  dct:  <http://purl.org/dc/terms/>
