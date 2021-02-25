@@ -147,7 +147,6 @@ WHERE
     sp:text """
 PREFIX  cert: <http://www.w3.org/ns/auth/cert#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  dct:  <http://purl.org/dc/terms/>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
@@ -155,7 +154,6 @@ CONSTRUCT
   { 
     ?this foaf:primaryTopic ?agent .
     ?this ?thisP ?thisO .
-    ?this dct:created ?created .
     ?agent ?agentP ?agentO .
     ?secretary a ?secretaryType .
     ?secretary acl:delegates ?agent .
@@ -166,12 +164,10 @@ CONSTRUCT
   }
 WHERE
   { GRAPH ?graph
-      { ?this  foaf:primaryTopic  ?agent ;
-               ?thisP             ?thisO
-        GRAPH ?provGraph
-          { ?this  dct:created  ?created }
-        ?agent  ?agentP  ?agentO .
-        FILTER (?agentP != foaf:mbox)
+      { ?this   foaf:primaryTopic  ?agent ;
+                ?thisP             ?thisO .
+        ?agent  ?agentP            ?agentO
+        FILTER ( ?agentP != foaf:mbox )
         OPTIONAL
           { GRAPH ?secretaryGraph
               { ?secretary  a            ?secretaryType ;
@@ -189,7 +185,7 @@ WHERE
           { ?agent  foaf:account  ?account
             GRAPH ?accountGraph
               { ?account  ?accountP  ?accountO
-                FILTER (?accountP != sioc:email)
+                FILTER ( ?accountP != sioc:email )
               }
           }
       }
