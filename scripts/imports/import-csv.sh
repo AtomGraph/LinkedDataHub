@@ -148,10 +148,7 @@ fi
 
 query_container="${request_base}queries/"
 query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
-
-if [ -n "$request_base" ] ; then
-    query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
-fi
+query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
@@ -163,10 +160,7 @@ query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>'
 
 file_container="${request_base}files/"
 file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv" "$file_container")
-
-if [ -n "$request_base" ] ; then
-    file_doc=$(echo "$file_doc" | sed -e "s|$base|$request_base|g")
-fi
+file_doc=$(echo "$file_doc" | sed -e "s|$base|$request_base|g")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
