@@ -65,34 +65,26 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
     {
         if (input == null) throw new IllegalArgumentException("Model cannot be null");
         
-        try
-        {
-            try (InputStream is = input.readEntity(InputStream.class))
-            {
-                CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
-
-                try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
+        try (input; InputStream is = input.readEntity(InputStream.class)) {
+            CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
+            
+            try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
                     request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
                     post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
+            {
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                    {
-                        //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
-                        throw new ImportException(cr.toString(), cr.readEntity(Model.class));
-                    }
-
-                    return rdfOutput;
+                    //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
+                    throw new ImportException(cr.toString(), cr.readEntity(Model.class));
                 }
+                
+                return rdfOutput;
             }
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("Error reading CSV InputStream: {}", ex);
             throw new WebApplicationException(ex);
-        }
-        finally
-        {
-            input.close(); // close response
         }
     }
 

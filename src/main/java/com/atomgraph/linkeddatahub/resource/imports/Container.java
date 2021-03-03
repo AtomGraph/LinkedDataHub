@@ -28,9 +28,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
-import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
-import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
 import java.net.URI;
@@ -121,27 +119,14 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         throw new IllegalStateException("Document provenance graph query returned no results");
                     }
 
-                     // start the import asynchroniously
-                    if (topic.canAs(CSVImport.class))
-                    {
-                        // we need to load stored import to know its graph URI which we will append to
-                        CSVImport csvImport = topic.as(CSVImport.class);
-                        csvImport.setDataManager(getDataManager()).
-                                setValidator(new Validator(getOntResource().getOntModel())).
-                                setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
+                    // start the import asynchroniously
+                    // we need to load stored import to know its graph URI which we will append to
+                    Import imp = topic.as(Import.class);
+                    imp.setDataManager(getDataManager()).
+                            setValidator(new Validator(getOntResource().getOntModel())).
+                            setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
 
-                        ImportListener.submit(csvImport, this, provGraph, getService().getDatasetAccessor());
-                    }
-                    if (topic.canAs(RDFImport.class))
-                    {
-                        // we need to load stored import to know its graph URI which we will append to
-                        RDFImport rdfImport = topic.as(RDFImport.class);
-                        rdfImport.setDataManager(getDataManager()).
-                                setValidator(new Validator(getOntResource().getOntModel())).
-                                setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
-
-                        ImportListener.submit(rdfImport, this, provGraph, getService().getDatasetAccessor());
-                    }
+                    ImportListener.submit(imp, provGraph, getService().getDatasetAccessor());
                 }
             }
             else
