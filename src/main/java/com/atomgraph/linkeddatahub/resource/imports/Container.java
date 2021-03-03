@@ -98,6 +98,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 QuerySolutionMap qsm = new QuerySolutionMap();
                 qsm.add(FOAF.Document.getLocalName(), document);
                 
+                // TO-DO: now that graph URI is a hash of the subject URI, me might be able to avoid this query request
                 try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                         qsm, getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
                         new MultivaluedHashMap()))
@@ -119,14 +120,9 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         throw new IllegalStateException("Document provenance graph query returned no results");
                     }
 
-                    // start the import asynchroniously
+                    // start the import asynchronously
                     // we need to load stored import to know its graph URI which we will append to
-                    Import imp = topic.as(Import.class);
-//                    imp.setDataManager(getDataManager()).
-//                            setValidator(new Validator(getOntResource().getOntModel())).
-//                            setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
-
-                    ImportListener.submit(imp, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                    ImportListener.submit(topic.as(Import.class), provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
                 }
             }
             else

@@ -128,7 +128,6 @@ public class ImportRunner implements Runnable
         
         return CompletableFuture.supplyAsync(fileSupplier).thenApplyAsync(rdfOutputWriter).
             thenAcceptAsync(success(csvImport, provImport, provGraph, accessor));
-            //exceptionally(failure(csvImport, provImport, provGraph, accessor));
     }
 
     public CompletableFuture<Void> execute(RDFImport rdfImport, Resource provImport, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
@@ -148,7 +147,6 @@ public class ImportRunner implements Runnable
         
         return CompletableFuture.supplyAsync(fileSupplier).thenApplyAsync(rdfOutputWriter).
             thenAcceptAsync(success(rdfImport, provImport, provGraph, accessor));
-//            exceptionally(failure(rdfImport, provImport, provGraph, accessor));
     }
 
     public Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
@@ -183,7 +181,7 @@ public class ImportRunner implements Runnable
 
     public void failure(Throwable t, final Import importInst, final Resource provImport, final Resource provGraph, final DatasetAccessor accessor)
     {
-        if (log.isErrorEnabled()) log.error("Could not write Import <{}>: {}", importInst, t);
+        if (log.isErrorEnabled()) log.error("Could not write Import <{}>", importInst, t);
 
         if (t instanceof CompletionException)
         {
