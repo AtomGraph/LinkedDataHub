@@ -42,7 +42,9 @@ public class ImportListener implements ServletContextListener
     
 //    private static final int MAX_THREADS = 1; // Graph Store Protocol cannot accept concurrent write requests TO-DO: make configurable
 //    private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(MAX_THREADS);
-    private static final BlockingQueue<ImportMetadata> IMPORT_QUEUE = new LinkedBlockingDeque<>(10);
+    
+    private static final int IMPORT_QUEUE_SIZE = 20; // Graph Store Protocol cannot accept concurrent write requests TO-DO: make configurable    
+    private static final BlockingQueue<ImportMetadata> IMPORT_QUEUE = new LinkedBlockingDeque<>(IMPORT_QUEUE_SIZE);
     
     @Override
     public void contextInitialized(ServletContextEvent sce)

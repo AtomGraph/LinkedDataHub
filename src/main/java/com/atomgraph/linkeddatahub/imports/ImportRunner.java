@@ -105,12 +105,15 @@ public class ImportRunner implements Runnable
                                 importMeta.getBaseURI(), importMeta.getDataManager()).join();
                     
                     if (log.isWarnEnabled()) log.warn("Import type not supported: <{}>", importMeta.getImport());
+                    
+                    if (Thread.interrupted()) throw new InterruptedException();
+                    
                 }
                 catch (CompletionException ex)
                 {
                     failure(ex, importMeta.getImport(), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor());
                 }
-                catch (Exception ex)
+                catch (InterruptedException ex)
                 {
                     if (log.isErrorEnabled()) log.error("Exception during Import processing: {}", ex);
                 }
@@ -118,7 +121,7 @@ public class ImportRunner implements Runnable
         }
         catch (InterruptedException e)
         {
-            Thread.currentThread().interrupt();
+            return;
         }
     }
     
