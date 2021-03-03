@@ -76,18 +76,6 @@ public class SesameProtocolClient extends SPARQLClient
         return super.query(query, clazz, mergedParams);
     }
 
-    /*
-    public void post(UpdateRequest updateRequest, QuerySolutionMap qsm)
-    {
-        if (log.isDebugEnabled()) log.debug("Executing post on SPARQL endpoint: {} using UpdateRequest: {}", getOrigin().getURI(), updateRequest);
-
-        MultivaluedMap<String, String> mvm = solutionMapToMultivaluedMap(qsm);
-        mvm.add("user_id", String.valueOf(updateRequest.hashCode()));
-
-        getDataManager().executeUpdateRequest(getOrigin().getURI(), updateRequest, mvm);
-    }
-    */
-    
     public static MultivaluedMap<String, String> solutionMapToMultivaluedMap(QuerySolutionMap qsm)
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
