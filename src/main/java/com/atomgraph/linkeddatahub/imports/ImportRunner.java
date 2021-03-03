@@ -85,9 +85,9 @@ public class ImportRunner implements Runnable
     @Override
     public void run()
     {
-        try
+        while (true)
         {
-            while (true)
+            try
             {
                 ImportMetadata importMeta = getQueue().take();
                 
@@ -107,21 +107,17 @@ public class ImportRunner implements Runnable
                     if (log.isWarnEnabled()) log.warn("Import type not supported: <{}>", importMeta.getImport());
                     
                     if (Thread.interrupted()) throw new InterruptedException();
-                    
                 }
                 catch (CompletionException ex)
                 {
                     failure(ex, importMeta.getImport(), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor());
                 }
-                catch (InterruptedException ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Exception during Import processing: {}", ex);
-                }
             }
-        }
-        catch (InterruptedException e)
-        {
-            return;
+            catch (InterruptedException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Import processing interrupted: {}", ex);
+                return;
+            }
         }
     }
     
