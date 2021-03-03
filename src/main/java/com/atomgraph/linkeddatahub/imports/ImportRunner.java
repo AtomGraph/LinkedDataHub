@@ -16,13 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
+import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutput;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.imports.csv.stream.ClientResponseSupplier;
 import com.atomgraph.linkeddatahub.imports.stream.StreamRDFOutputWriter;
-import static com.atomgraph.linkeddatahub.listener.ImportListener.CSV_MEDIA_TYPES;
-import static com.atomgraph.linkeddatahub.listener.ImportListener.RDF_MEDIA_TYPES;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
@@ -39,7 +38,11 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
@@ -63,6 +66,14 @@ public class ImportRunner implements Runnable
 {
 
     private static final Logger log = LoggerFactory.getLogger(ImportRunner.class);
+
+    public static final javax.ws.rs.core.MediaType TEXT_CSV_TYPE = MediaType.valueOf("text/csv");
+    public static final javax.ws.rs.core.MediaType VNDMS_EXCEL_TYPE = MediaType.valueOf("application/vnd.ms-excel; q=0.4");
+    public static final javax.ws.rs.core.MediaType OCTET_STREAM_TYPE = MediaType.valueOf("application/octet-stream; q=0.1");
+    public static final javax.ws.rs.core.MediaType[] CSV_MEDIA_TYPES = { TEXT_CSV_TYPE, VNDMS_EXCEL_TYPE, OCTET_STREAM_TYPE };
+    public static final javax.ws.rs.core.MediaType[] RDF_MEDIA_TYPES = Stream.concat(MediaTypes.READABLE.get(Model.class).stream(), MediaTypes.READABLE.get(Dataset.class).stream()).
+        collect(Collectors.toList()).
+        toArray(new javax.ws.rs.core.MediaType[0]);
 
     private final BlockingQueue<ImportMetadata> queue;
     
