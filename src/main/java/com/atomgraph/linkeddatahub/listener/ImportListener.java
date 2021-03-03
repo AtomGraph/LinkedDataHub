@@ -42,13 +42,13 @@ public class ImportListener implements ServletContextListener
     
 //    private static final int MAX_THREADS = 1; // Graph Store Protocol cannot accept concurrent write requests TO-DO: make configurable
 //    private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(MAX_THREADS);
-    private static final BlockingQueue<ImportMetadata> importQueue = new LinkedBlockingDeque<>(10);
+    private static final BlockingQueue<ImportMetadata> IMPORT_QUEUE = new LinkedBlockingDeque<>(10);
     
     @Override
     public void contextInitialized(ServletContextEvent sce)
     {
 //        if (log.isDebugEnabled()) log.debug("{} initialized with a pool of {} threads", getClass().getName());
-        new Thread(new ImportRunner(importQueue)).start();
+        new Thread(new ImportRunner(IMPORT_QUEUE)).start();
     }
 
     @Override
@@ -60,12 +60,7 @@ public class ImportListener implements ServletContextListener
 
     public static void submit(Import imp, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
     {
-        importQueue.add(new ImportMetadata(imp, provGraph, accessor, baseURI, dataManager));
-    }
-    
-    public BlockingQueue<ImportMetadata> getImportQueue()
-    {
-        return importQueue;
+        IMPORT_QUEUE.add(new ImportMetadata(imp, provGraph, accessor, baseURI, dataManager));
     }
     
 }
