@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.imports;
 
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutput;
 import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.imports.csv.stream.ClientResponseSupplier;
@@ -85,16 +86,22 @@ public class ImportRunner implements Runnable
                 try
                 {
                     if (importMeta.getImport().canAs(CSVImport.class))
-                        execute(importMeta.getImport().as(CSVImport.class), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor()).join();
+                        execute(importMeta.getImport().as(CSVImport.class), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor(),
+                                importMeta.getBaseURI(), importMeta.getDataManager()).join();
 
                     if (importMeta.getImport().canAs(RDFImport.class))
-                        execute(importMeta.getImport().as(RDFImport.class), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor()).join();
+                        execute(importMeta.getImport().as(RDFImport.class), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor(),
+                                importMeta.getBaseURI(), importMeta.getDataManager()).join();
                     
                     if (log.isWarnEnabled()) log.warn("Import type not supported: <{}>", importMeta.getImport());
                 }
                 catch (CompletionException ex)
                 {
                     failure(ex, importMeta.getImport(), provImport, importMeta.getProvenanceGraph(), importMeta.getDatasetAccessor());
+                }
+                catch (Exception ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Exception during Import processing: {}", ex);
                 }
             }
         }
@@ -104,40 +111,40 @@ public class ImportRunner implements Runnable
         }
     }
     
-    public CompletableFuture<Void> execute(CSVImport csvImport, Resource provImport, Resource provGraph, DatasetAccessor accessor)
+    public CompletableFuture<Void> execute(CSVImport csvImport, Resource provImport, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
         
-        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), csvImport.getBaseUri().getURI(), csvImport.getDataManager());
+        QueryLoader queryLoader = new QueryLoader(csvImport.getQuery().getURI(), baseURI, dataManager);
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, csvImport.getBaseUri().getURI());
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
         
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, csvImport.getDataManager());
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         Function<Response, CSVStreamRDFOutput> rdfOutputWriter = new CSVStreamRDFOutputWriter(csvImport.getContainer().getURI(),
-                csvImport.getDataManager(), csvImport.getBaseUri().getURI(), pss.asQuery(), csvImport.getDelimiter());
+                dataManager, baseURI, pss.asQuery(), csvImport.getDelimiter());
         
         return CompletableFuture.supplyAsync(fileSupplier).thenApplyAsync(rdfOutputWriter).
             thenAcceptAsync(success(csvImport, provImport, provGraph, accessor));
             //exceptionally(failure(csvImport, provImport, provGraph, accessor));
     }
 
-    public CompletableFuture<Void> execute(RDFImport rdfImport, Resource provImport, Resource provGraph, DatasetAccessor accessor)
+    public CompletableFuture<Void> execute(RDFImport rdfImport, Resource provImport, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
         
-        QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), rdfImport.getBaseUri().getURI(), rdfImport.getDataManager());
+        QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager);
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, rdfImport.getContainer()); // target container becomes ?this
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, rdfImport.getBaseUri().getURI());
+        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
         
-        Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, rdfImport.getDataManager());
+        Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         Function<Response, StreamRDFOutput> rdfOutputWriter = new StreamRDFOutputWriter(rdfImport.getContainer().getURI(),
-                rdfImport.getDataManager(), rdfImport.getBaseUri().getURI(), pss.asQuery());
+                dataManager, baseURI, pss.asQuery());
         
         return CompletableFuture.supplyAsync(fileSupplier).thenApplyAsync(rdfOutputWriter).
             thenAcceptAsync(success(rdfImport, provImport, provGraph, accessor));

@@ -122,11 +122,11 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                     // start the import asynchroniously
                     // we need to load stored import to know its graph URI which we will append to
                     Import imp = topic.as(Import.class);
-                    imp.setDataManager(getDataManager()).
-                            setValidator(new Validator(getOntResource().getOntModel())).
-                            setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
+//                    imp.setDataManager(getDataManager()).
+//                            setValidator(new Validator(getOntResource().getOntModel())).
+//                            setBaseUri(ResourceFactory.createResource(getUriInfo().getBaseUri().toString()));
 
-                    ImportListener.submit(imp, provGraph, getService().getDatasetAccessor());
+                    ImportListener.submit(imp, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
                 }
             }
             else

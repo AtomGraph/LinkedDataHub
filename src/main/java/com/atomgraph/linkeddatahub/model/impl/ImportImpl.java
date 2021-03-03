@@ -44,10 +44,10 @@ import org.apache.jena.vocabulary.RDFS;
 public class ImportImpl extends ResourceImpl implements Import
 {
 
-    private DataManager dataManager;
-    private Validator validator;
-    private List<ConstraintViolation> constraintViolations;
-    private Resource baseUri;
+//    private DataManager dataManager;
+//    private Validator validator;
+//    private List<ConstraintViolation> constraintViolations;
+//    private Resource baseUri;
     
     public static Implementation factory = new Implementation() 
     {
@@ -91,91 +91,91 @@ public class ImportImpl extends ResourceImpl implements Import
         return getPropertyResourceValue(APL.action);
     }
     
-    @Override
-    public Import setDataManager(DataManager dataManager)
-    {
-        this.dataManager = dataManager;
-        return this;
-    }
+//    @Override
+//    public Import setDataManager(DataManager dataManager)
+//    {
+//        this.dataManager = dataManager;
+//        return this;
+//    }
+//
+//    @Override
+//    public DataManager getDataManager()
+//    {
+//        return dataManager;
+//    }
+//    
+//    @Override
+//    public Import setValidator(Validator validator)
+//    {
+//        this.validator = validator;
+//        return this;
+//    }
+//
+//    @Override
+//    public Validator getValidator()
+//    {
+//        return validator;
+//    }
+//    
+//    @Override
+//    public Import setBaseUri(Resource baseUri)
+//    {
+//        this.baseUri = baseUri;
+//        return this;
+//    }
+//    
+//    @Override
+//    public Resource getBaseUri()
+//    {
+//        return baseUri;
+//    }
 
-    @Override
-    public DataManager getDataManager()
-    {
-        return dataManager;
-    }
-    
-    @Override
-    public Import setValidator(Validator validator)
-    {
-        this.validator = validator;
-        return this;
-    }
-
-    @Override
-    public Validator getValidator()
-    {
-        return validator;
-    }
-    
-    @Override
-    public Import setBaseUri(Resource baseUri)
-    {
-        this.baseUri = baseUri;
-        return this;
-    }
-    
-    @Override
-    public Resource getBaseUri()
-    {
-        return baseUri;
-    }
-
-    public void addConstraintViolations(List<ConstraintViolation> cvs)
-    {
-        for (ConstraintViolation cv : cvs)
-            addProperty(APL.violation, constraintViolationToResource(getModel(), cv));
-    }
-    
-    @Override
-    public List<ConstraintViolation> getConstraintViolations()
-    {
-        return constraintViolations;
-    }
-    
-    /**
-     * Constructs the same RDF structure for spin:ConstraintViolation as SPIN API does.
-     * 
-     * @param model target model
-     * @param cv constraint violation
-     * @return violation as resource
-     * @see org.spinrdf.constraints.SPINConstraints.addConstraintViolationsRDF(List<ConstraintViolation> cvs, Model result, boolean createSource)
-     */
-    protected Resource constraintViolationToResource(Model model, ConstraintViolation cv)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        if (cv == null) throw new IllegalArgumentException("ConstraintViolation cannot be null");
-        
-        Resource r = model.createResource(SPIN.ConstraintViolation);
-        String message = cv.getMessage();
-        
-        r.addProperty(SPIN.violationLevel, cv.getLevel());
-        if (message != null && message.length() > 0) r.addProperty(RDFS.label, message);
-        if (cv.getRoot() != null) r.addProperty(SPIN.violationRoot, cv.getRoot());
-        if (cv.getSource() != null) r.addProperty(SPIN.violationSource, cv.getSource());
-        if (cv.getValue() != null) r.addProperty(SPIN.violationValue, cv.getValue());
-        
-        for (SimplePropertyPath path : cv.getPaths())
-        {
-            if (path instanceof ObjectPropertyPath) r.addProperty(SPIN.violationPath, path.getPredicate());
-            else
-            {
-                Resource p = model.createResource(SP.ReversePath);
-                p.addProperty(SP.path, path.getPredicate());
-                r.addProperty(SPIN.violationPath, p);
-            }
-        }
-        
-        return r;
-    }
+//    public void addConstraintViolations(List<ConstraintViolation> cvs)
+//    {
+//        for (ConstraintViolation cv : cvs)
+//            addProperty(APL.violation, constraintViolationToResource(getModel(), cv));
+//    }
+//    
+//    @Override
+//    public List<ConstraintViolation> getConstraintViolations()
+//    {
+//        return constraintViolations;
+//    }
+//    
+//    /**
+//     * Constructs the same RDF structure for spin:ConstraintViolation as SPIN API does.
+//     * 
+//     * @param model target model
+//     * @param cv constraint violation
+//     * @return violation as resource
+//     * @see org.spinrdf.constraints.SPINConstraints.addConstraintViolationsRDF(List<ConstraintViolation> cvs, Model result, boolean createSource)
+//     */
+//    protected Resource constraintViolationToResource(Model model, ConstraintViolation cv)
+//    {
+//        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+//        if (cv == null) throw new IllegalArgumentException("ConstraintViolation cannot be null");
+//        
+//        Resource r = model.createResource(SPIN.ConstraintViolation);
+//        String message = cv.getMessage();
+//        
+//        r.addProperty(SPIN.violationLevel, cv.getLevel());
+//        if (message != null && message.length() > 0) r.addProperty(RDFS.label, message);
+//        if (cv.getRoot() != null) r.addProperty(SPIN.violationRoot, cv.getRoot());
+//        if (cv.getSource() != null) r.addProperty(SPIN.violationSource, cv.getSource());
+//        if (cv.getValue() != null) r.addProperty(SPIN.violationValue, cv.getValue());
+//        
+//        for (SimplePropertyPath path : cv.getPaths())
+//        {
+//            if (path instanceof ObjectPropertyPath) r.addProperty(SPIN.violationPath, path.getPredicate());
+//            else
+//            {
+//                Resource p = model.createResource(SP.ReversePath);
+//                p.addProperty(SP.path, path.getPredicate());
+//                r.addProperty(SPIN.violationPath, p);
+//            }
+//        }
+//        
+//        return r;
+//    }
     
 }

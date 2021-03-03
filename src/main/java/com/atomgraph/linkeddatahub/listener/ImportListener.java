@@ -17,9 +17,11 @@
 package com.atomgraph.linkeddatahub.listener;
 
 import com.atomgraph.client.MediaTypes;
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.imports.ImportRunner;
 import com.atomgraph.linkeddatahub.imports.ImportMetadata;
 import com.atomgraph.linkeddatahub.model.Import;
+import java.net.URI;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
@@ -70,9 +72,9 @@ public class ImportListener implements ServletContextListener
 //        THREAD_POOL.shutdown();
     }
 
-    public static void submit(Import imp, Resource provGraph, DatasetAccessor accessor)
+    public static void submit(Import imp, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
     {
-        importQueue.add(new ImportMetadata(imp, provGraph, accessor));
+        importQueue.add(new ImportMetadata(imp, provGraph, accessor, baseURI, dataManager));
     }
     
 }

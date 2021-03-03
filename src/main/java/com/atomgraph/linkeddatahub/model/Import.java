@@ -31,19 +31,19 @@ import org.apache.jena.rdf.model.Resource;
 public interface Import extends Resource
 {
         
-    Import setDataManager(DataManager dataManager);
-    
-    DataManager getDataManager();
-    
-    Import setValidator(Validator validator);
-    
-    Validator getValidator();
+//    Import setDataManager(DataManager dataManager);
+//    
+//    DataManager getDataManager();
+//    
+//    Import setValidator(Validator validator);
+//    
+//    Validator getValidator();
 
-    List<ConstraintViolation> getConstraintViolations();
+//    List<ConstraintViolation> getConstraintViolations();
     
-    Import setBaseUri(Resource baseUri);
-    
-    Resource getBaseUri();
+//    Import setBaseUri(Resource baseUri);
+//    
+//    Resource getBaseUri();
     
     Resource getFile();
     

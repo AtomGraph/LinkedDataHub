@@ -15,6 +15,7 @@
  *
  */package com.atomgraph.linkeddatahub.imports;
 
+import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.model.Import;
 import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.rdf.model.Resource;
@@ -29,12 +30,16 @@ public class ImportMetadata
     private final Import imp;
     private final Resource provGraph;
     private final DatasetAccessor accessor;
+    private final String baseURI;
+    private final DataManager dataManager;
     
-    public ImportMetadata(Import imp, Resource provGraph, DatasetAccessor accessor)
+    public ImportMetadata(Import imp, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
     {
         this.imp = imp;
         this.provGraph = provGraph;
         this.accessor = accessor;
+        this.baseURI = baseURI;
+        this.dataManager = dataManager;
     }
     
     public Import getImport()
@@ -50,6 +55,16 @@ public class ImportMetadata
     public DatasetAccessor getDatasetAccessor()
     {
         return accessor;
+    }
+
+    public String getBaseURI()
+    {
+        return baseURI;
+    }
+
+    public DataManager getDataManager()
+    {
+        return dataManager;
     }
     
 }
