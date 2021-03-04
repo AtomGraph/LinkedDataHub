@@ -197,7 +197,7 @@ WHERE
     rdfs:label "Public access" ;
     rdfs:comment "Allows unauthorized access" ;
     acl:accessTo <ns>, <ns/domain>, <ns/templates>, # admin ontologies are public
-        <../ns>, <../ns/default>, <../ns/domain>, <../ns/templates> ; # end-user ontologies are public
+        <../ns>, <../ns/domain/default>, <../ns/domain/system>, <../ns/domain>, <../ns/templates> ; # end-user ontologies are public
     acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
     acl:mode acl:Read ;
     acl:agentClass foaf:Agent, acl:AuthenticatedAgent .

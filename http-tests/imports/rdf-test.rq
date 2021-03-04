@@ -1,4 +1,4 @@
-PREFIX def:   <ns/default#>
+PREFIX nsdd:  <ns/domain/default#>
 PREFIX dh:    <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
 PREFIX sioc:  <http://rdfs.org/sioc/ns#>
 PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
@@ -9,7 +9,7 @@ CONSTRUCT
 {
     ?concept foaf:isPrimaryTopicOf ?item ;
         ?p ?o .
-    ?item a def:Item ;
+    ?item a nsdd:Item ;
         sioc:has_container <concepts/> ;
         dh:slug ?id ;
         dct:title ?prefLabel ;

@@ -136,7 +136,7 @@ args+=("${base}ns/domain/system#CSVImport") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<`ns/domain/system#> .\n"
+turtle+="@prefix nsds:	<ns/domain/system#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
