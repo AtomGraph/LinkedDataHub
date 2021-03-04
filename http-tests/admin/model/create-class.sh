@@ -68,7 +68,10 @@ echo "DDDD"
 mode=$(urlencode "https://w3id.org/atomgraph/client#ConstructMode")
 forClass=$(urlencode "$class")
 
-curl -k -f -s \
+echo "mode: $mode"
+echo "forClass: $forClasss"
+
+curl -k -f -v \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   "${END_USER_BASE_URL}?forClass=${forClass}&mode=${mode}" \
   -H "Accept: text/turtle"
