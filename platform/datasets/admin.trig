@@ -1,8 +1,9 @@
 @prefix adm:	<ns#> .
 @prefix admt:	<ns/templates#> .
 @prefix ns:	<../ns#> .
-@prefix def:	<../ns/default#> .
 @prefix nsd:	<../ns/domain#> .
+@prefix nsdd:	<../ns/domain/default#> .
+@prefix nsds:	<../ns/domain/system#> .
 @prefix nst:	<../ns/templates#> .
 @prefix ladmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/templates#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
@@ -476,13 +477,27 @@ WHERE
 <model/ontologies/default/> a adm:OntologyItem ;
     sioc:has_container <model/ontologies/> ;
     dct:title "Default" ;
-    foaf:primaryTopic def: .
+    foaf:primaryTopic nsdd: .
 
-def: a adm:Ontology ;
-    foaf:isPrimaryTopicOf <model/ontologies/default/>, <../ns/default> ;
+nsdd: a adm:Ontology ;
+    foaf:isPrimaryTopicOf <model/ontologies/default/>, <../ns/domain/default> ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
     owl:imports apl: ;
+    owl:versionInfo "1.0-SNAPSHOT" .
+
+# system
+
+<model/ontologies/system/> a adm:OntologyItem ;
+    sioc:has_container <model/ontologies/> ;
+    dct:title "System domain" ;
+    foaf:primaryTopic nsds: .
+
+nsds: a adm:Ontology ;
+    foaf:isPrimaryTopicOf <model/ontologies/system/>, <../ns/domain/system> ;
+    rdfs:label "System domain" ;
+    rdfs:comment "System ontology of the application" ;
+    owl:imports nsdd: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 # domain
@@ -496,7 +511,6 @@ nsd: a adm:Ontology ;
     foaf:isPrimaryTopicOf <model/ontologies/domain/>, <../ns/domain> ;
     rdfs:label "Domain" ;
     rdfs:comment "Domain ontology of the application" ;
-    owl:imports def: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 # CLASSES
@@ -506,212 +520,212 @@ nsd: a adm:Ontology ;
 <model/classes/default/root/> a adm:ClassItem ;
     sioc:has_root <model/classes/default/> ;
     dct:title "Root" ;
-    foaf:primaryTopic def:Root .
+    foaf:primaryTopic nsdd:Root .
 
-def:Root a adm:Class ;
+nsdd:Root a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/root/> ;
     rdfs:subClassOf sioc:Space, dh:Container ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingTitle, def:MissingSelect ; # roots do not have parents, therefore no def:MissingParent
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingTitle, nsdd:MissingSelect ; # roots do not have parents, therefore no nsdd:MissingParent
     rdfs:label "Root" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # container
 
 <model/classes/default/container/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "Container" ;
-    foaf:primaryTopic def:Container .
+    foaf:primaryTopic nsdd:Container .
 
-def:Container a adm:Class ;
+nsdd:Container a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/container/> ;
     rdfs:subClassOf dh:Container ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingParent, def:MissingTitle, def:MissingSelect ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingParent, nsdd:MissingTitle, nsdd:MissingSelect ;
     rdfs:label "Container" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # item
 
 <model/classes/default/item/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "Item" ;
-    foaf:primaryTopic def:Item .
+    foaf:primaryTopic nsdd:Item .
 
-def:Item a adm:Class ;
+nsdd:Item a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/item/> ;
     rdfs:subClassOf dh:Item ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingContainer, def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingContainer, nsdd:MissingTitle ;
     rdfs:label "Item" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # generic service
 
 <model/classes/default/generic-service/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "Generic service" ;
-    foaf:primaryTopic def:GenericService .
+    foaf:primaryTopic nsdd:GenericService .
 
-def:GenericService a adm:Class ;
+nsdd:GenericService a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/generic-service/> ;
     rdfs:subClassOf apl:GenericService ;
-    spin:constructor def:TitleConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "Generic service" ;
     rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # Dydra service
 
 <model/classes/default/dydra-service/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "Dydra service" ;
-    foaf:primaryTopic def:DydraService .
+    foaf:primaryTopic nsdd:DydraService .
 
-def:DydraService a adm:Class ;
+nsdd:DydraService a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/dydra-service/> ;
     rdfs:subClassOf apl:DydraService ;
-    spin:constructor def:TitleConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "Dydra service" ;
     rdfs:comment "Dydra cloud repository" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # file
 
 <model/classes/default/file/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "File" ;
-    foaf:primaryTopic def:File .
+    foaf:primaryTopic nsdd:File .
 
-def:File a adm:Class ;
+nsdd:File a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/file/> ;
     rdfs:subClassOf apl:File ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "File" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # construct
 
 <model/classes/default/construct/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "CONSTRUCT" ;
-    foaf:primaryTopic def:Construct .
+    foaf:primaryTopic nsdd:Construct .
 
-def:Construct a adm:Class ;
+nsdd:Construct a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/construct/> ;
     rdfs:subClassOf apl:Construct ;
-    spin:constructor def:TitleConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "CONSTRUCT" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # describe
 
 <model/classes/default/describe/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "DESCRIBE" ;
-    foaf:primaryTopic def:Describe .
+    foaf:primaryTopic nsdd:Describe .
 
-def:Describe a adm:Class ;
+nsdd:Describe a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/describe/> ;
     rdfs:subClassOf apl:Describe ;
-    spin:constructor def:TitleConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "DESCRIBE" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # select
 
 <model/classes/default/select/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "SELECT" ;
-    foaf:primaryTopic def:Select .
+    foaf:primaryTopic nsdd:Select .
 
-def:Select a adm:Class ;
+nsdd:Select a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/select/> ;
     rdfs:subClassOf apl:Select ;
-    spin:constructor def:TitleConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "SELECT" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # ask
 
 <model/classes/default/ask/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "ASK" ;
-    foaf:primaryTopic def:Ask .
+    foaf:primaryTopic nsdd:Ask .
 
-def:Ask a adm:Class ;
+nsdd:Ask a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/ask/> ;
     rdfs:subClassOf apl:Ask ;
-    spin:constructor def:TitleConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "ASK" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # RDF import
 
 <model/classes/default/rdf-import/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "RDF import" ;
-    foaf:primaryTopic def:RDFImport .
+    foaf:primaryTopic nsdd:RDFImport .
 
-def:RDFImport a adm:Class ;
+nsdd:RDFImport a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/rdf-import/> ;
     rdfs:subClassOf apl:RDFImport ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "RDF import" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # CSV import
 
 <model/classes/default/csv-import/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "CSV import" ;
-    foaf:primaryTopic def:CSVImport .
+    foaf:primaryTopic nsdd:CSVImport .
 
-def:CSVImport a adm:Class ;
+nsdd:CSVImport a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/csv-import/> ;
     rdfs:subClassOf apl:CSVImport ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "CSV import" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # graph chart
 
 <model/classes/default/graph-chart/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "Graph chart" ;
-    foaf:primaryTopic def:GraphChart .
+    foaf:primaryTopic nsdd:GraphChart .
 
-def:GraphChart a adm:Class ;
+nsdd:GraphChart a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/graph-chart/> ;
     rdfs:subClassOf apl:GraphChart ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "Graph chart" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # result set chart
 
 <model/classes/default/result-set-chart/> a adm:ClassItem ;
     sioc:has_container <model/classes/default/> ;
     dct:title "Result set chart" ;
-    foaf:primaryTopic def:ResultSetChart .
+    foaf:primaryTopic nsdd:ResultSetChart .
 
-def:ResultSetChart a adm:Class ;
+nsdd:ResultSetChart a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/result-set-chart/> ;
     rdfs:subClassOf apl:ResultSetChart ;
-    spin:constructor def:TitleConstructor, def:ContentConstructor, def:AttachmentConstructor ;
-    spin:constraint def:MissingTitle ;
+    spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+    spin:constraint nsdd:MissingTitle ;
     rdfs:label "Result set chart" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # QUERIES
 
@@ -720,9 +734,9 @@ def:ResultSetChart a adm:Class ;
 <model/queries/default/title-constructor/> a adm:QueryItem ;
     sioc:has_container <model/queries/default/> ;
     dct:title "Title constructor" ;
-    foaf:primaryTopic def:TitleConstructor .
+    foaf:primaryTopic nsdd:TitleConstructor .
 
-def:TitleConstructor a adm:Construct ;
+nsdd:TitleConstructor a adm:Construct ;
     foaf:isPrimaryTopicOf <model/queries/default/title-constructor/> ;
     rdfs:label "Title constructor" ;
     sp:text """
@@ -734,16 +748,16 @@ def:TitleConstructor a adm:Construct ;
           ?this dct:title [ a xsd:string ] .
         }
         WHERE {}""" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # description constructor
 
 <model/queries/default/description-constructor/> a adm:QueryItem ;
     sioc:has_container <model/queries/default/> ;
     dct:description "Description constructor" ;
-    foaf:primaryTopic def:DescriptionConstructor .
+    foaf:primaryTopic nsdd:DescriptionConstructor .
 
-def:DescriptionConstructor a adm:Construct ;
+nsdd:DescriptionConstructor a adm:Construct ;
     foaf:isPrimaryTopicOf <model/queries/default/description-constructor/> ;
     rdfs:label "Description constructor" ;
     sp:text """
@@ -755,16 +769,16 @@ def:DescriptionConstructor a adm:Construct ;
           ?this dct:description [ a xsd:string ] .
         }
         WHERE {}""" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # content constructor
 
 <model/queries/default/content-constructor/> a adm:QueryItem ;
     sioc:has_container <model/queries/default/> ;
     dct:title "Content constructor" ;
-    foaf:primaryTopic def:ContentConstructor .
+    foaf:primaryTopic nsdd:ContentConstructor .
 
-def:ContentConstructor a adm:Construct ;
+nsdd:ContentConstructor a adm:Construct ;
     foaf:isPrimaryTopicOf <model/queries/default/content-constructor/> ;
     rdfs:label "Content constructor" ;
     sp:text """
@@ -776,16 +790,16 @@ def:ContentConstructor a adm:Construct ;
           ?this sioc:content "<div xmlns=\\"http://www.w3.org/1999/xhtml\\"></div>"^^rdf:XMLLiteral .
         }
         WHERE {}""" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # attachment constructor
 
 <model/queries/default/attachment-constructor/> a adm:QueryItem ;
     sioc:has_container <model/queries/default/> ;
     dct:title "Attachment constructor" ;
-    foaf:primaryTopic def:AttachmentConstructor .
+    foaf:primaryTopic nsdd:AttachmentConstructor .
 
-def:AttachmentConstructor a adm:Construct ;
+nsdd:AttachmentConstructor a adm:Construct ;
     foaf:isPrimaryTopicOf <model/queries/default/attachment-constructor/> ;
     rdfs:label "Attachment constructor" ;
     sp:text """
@@ -797,57 +811,57 @@ def:AttachmentConstructor a adm:Construct ;
           ?this sioc:attachment [ a rdfs:Resource ] .
         }
         WHERE {}""" ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 # CONSTRAINTS
 
 <model/constraints/default/missing-parent/> a adm:ConstraintItem ;
     sioc:has_container <model/constraints/default/> ;
     dct:title "Missing parent" ;
-    foaf:primaryTopic def:MissingParent .
+    foaf:primaryTopic nsdd:MissingParent .
 
-def:MissingParent a adm:MissingPropertyValue ;
+nsdd:MissingParent a adm:MissingPropertyValue ;
     foaf:isPrimaryTopicOf <model/constraints/default/missing-parent/> ;
     rdfs:label "Missing parent" ;
     rdfs:comment "Requires containers to have a parent container" ;
     sp:arg1 sioc:has_parent ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 <model/constraints/default/missing-container/> a adm:ConstraintItem ;
     sioc:has_container <model/constraints/default/> ;
     dct:title "Missing container" ;
-    foaf:primaryTopic def:MissingContainer .
+    foaf:primaryTopic nsdd:MissingContainer .
 
-def:MissingContainer a adm:MissingPropertyValue ;
+nsdd:MissingContainer a adm:MissingPropertyValue ;
     foaf:isPrimaryTopicOf <model/constraints/default/missing-container/> ;
     rdfs:label "Missing container" ;
     rdfs:comment "Requires items to have a parent container" ;
     sp:arg1 sioc:has_container ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 <model/constraints/default/missing-title/> a adm:ConstraintItem ;
     sioc:has_container <model/constraints/default/> ;
     dct:title "Missing title" ;
-    foaf:primaryTopic def:MissingTitle .
+    foaf:primaryTopic nsdd:MissingTitle .
 
-def:MissingTitle a adm:MissingPropertyValue ;
+nsdd:MissingTitle a adm:MissingPropertyValue ;
     foaf:isPrimaryTopicOf <model/constraints/default/missing-title/> ;
     rdfs:label "Missing title" ;
     rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
     sp:arg1 dct:title ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 <model/constraints/default/missing-select/> a adm:ConstraintItem ;
     sioc:has_container <model/constraints/default/> ;
     dct:title "Missing select" ;
-    foaf:primaryTopic def:MissingSelect .
+    foaf:primaryTopic nsdd:MissingSelect .
 
-def:MissingSelect a adm:MissingPropertyValue ;
+nsdd:MissingSelect a adm:MissingPropertyValue ;
     foaf:isPrimaryTopicOf <model/constraints/default/missing-select/> ;
     rdfs:label "Missing select" ;
     rdfs:comment "Requires container to have an attached SPIN SELECT query" ;
     sp:arg1 dh:select ;
-    rdfs:isDefinedBy def: .
+    rdfs:isDefinedBy nsdd: .
 
 ### SITEMAP ###
 
@@ -914,7 +928,7 @@ ns: a adm:Ontology ;
     foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
     rdfs:label "Namespace" ;
     rdfs:comment "Namespace of the application" ;
-    owl:imports nsd:, nst: ;
+    owl:imports nsds:, nsds:, nst: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 # templates
@@ -1082,215 +1096,215 @@ nst:ImportItem a adm:Template ;
 <model/classes/domain/services/generic/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/services/> ;
     dct:title "Generic service" ;
-    foaf:primaryTopic nsd:GenericService .
+    foaf:primaryTopic nsds:GenericService .
 
-nsd:GenericService a adm:Class ;
+nsds:GenericService a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/services/generic/> ;
-    rdfs:subClassOf def:GenericService, nsd:TopicOfServiceItem ;
+    rdfs:subClassOf nsdd:GenericService, nsds:TopicOfServiceItem ;
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     rdfs:label "Generic service" ;
     rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # Dydra service
 
 <model/classes/domain/services/dydra/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/services/> ;
     dct:title "Dydra service" ;
-    foaf:primaryTopic nsd:DydraService .
+    foaf:primaryTopic nsds:DydraService .
 
-nsd:DydraService a adm:Class ;
+nsds:DydraService a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/services/dydra/> ;
-    rdfs:subClassOf def:DydraService, nsd:TopicOfServiceItem ;
+    rdfs:subClassOf nsdd:DydraService, nsds:TopicOfServiceItem ;
     ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     rdfs:label "Dydra service" ;
     rdfs:comment "Dydra cloud repository" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # service item
 
 <model/classes/domain/services/service-item/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/services/> ;
     dct:title "Service item" ;
-    foaf:primaryTopic nsd:ServiceItem .
+    foaf:primaryTopic nsds:ServiceItem .
 
-nsd:ServiceItem a adm:Class ;
+nsds:ServiceItem a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/services/service-item/> ;
-    rdfs:subClassOf def:Item, nsd:ItemOfServiceContainer ; # def:Item, nsd:ItemOfServiceContainer ;
+    rdfs:subClassOf nsdd:Item, nsds:ItemOfServiceContainer ; # nsdd:Item, nsds:ItemOfServiceContainer ;
     rdfs:label "Service item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # file
 
 <model/classes/domain/file/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "File" ;
-    foaf:primaryTopic nsd:File .
+    foaf:primaryTopic nsds:File .
 
-nsd:File a adm:Class ;
+nsds:File a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/file/> ;
-    rdfs:subClassOf def:File, nsd:TopicOfFileItem, nsd:ItemOfFileContainer ;
+    rdfs:subClassOf nsdd:File, nsds:TopicOfFileItem, nsds:ItemOfFileContainer ;
     rdfs:label "File" ;
     rdfs:comment "A document that represents an uploaded file" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # file item
 
 <model/classes/domain/file-item/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "File item" ;
-    foaf:primaryTopic nsd:FileItem .
+    foaf:primaryTopic nsds:FileItem .
 
-nsd:FileItem a adm:Class ;
+nsds:FileItem a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/file-item/> ;
-    rdfs:subClassOf def:Item, nsd:ItemOfFilesContainer ;
+    rdfs:subClassOf nsdd:Item, nsds:ItemOfFilesContainer ;
     rdfs:label "File item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # RDF import
 
 <model/classes/domain/rdf-import/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "RDF import" ;
-    foaf:primaryTopic nsd:RDFImport .
+    foaf:primaryTopic nsds:RDFImport .
 
-nsd:RDFImport a adm:Class ;
+nsds:RDFImport a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/rdf-import/> ;
-    rdfs:subClassOf def:RDFImport, nsd:TopicOfImportItem ;
+    rdfs:subClassOf nsdd:RDFImport, nsds:TopicOfImportItem ;
     rdfs:label "RDF import" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # CSV import
 
 <model/classes/domain/csv-import/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "CSV import" ;
-    foaf:primaryTopic nsd:CSVImport .
+    foaf:primaryTopic nsds:CSVImport .
 
-nsd:CSVImport a adm:Class ;
+nsds:CSVImport a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/csv-import/> ;
-    rdfs:subClassOf def:CSVImport, nsd:TopicOfImportItem ;
+    rdfs:subClassOf nsdd:CSVImport, nsds:TopicOfImportItem ;
     rdfs:label "CSV import" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # import item
 
 <model/classes/domain/import-item/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "Import item" ;
-    foaf:primaryTopic nsd:ImportItem .
+    foaf:primaryTopic nsds:ImportItem .
 
-nsd:ImportItem a adm:Class ;
+nsds:ImportItem a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/import-item/> ;
-    rdfs:subClassOf def:Item, nsd:ItemOfImportsContainer ;
+    rdfs:subClassOf nsdd:Item, nsds:ItemOfImportsContainer ;
     rdfs:label "Import item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # construct
 
 <model/classes/domain/construct/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "CONSTRUCT" ;
-    foaf:primaryTopic nsd:Construct .
+    foaf:primaryTopic nsds:Construct .
 
-nsd:Construct a adm:Class ;
+nsds:Construct a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/construct/> ;
-    rdfs:subClassOf def:Construct, nsd:TopicOfQueryItem ;
+    rdfs:subClassOf nsdd:Construct, nsds:TopicOfQueryItem ;
     rdfs:label "CONSTRUCT" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # describe
 
 <model/classes/domain/describe/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "DESCRIBE" ;
-    foaf:primaryTopic nsd:Describe .
+    foaf:primaryTopic nsds:Describe .
 
-nsd:Describe a adm:Class ;
+nsds:Describe a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/describe/> ;
-    rdfs:subClassOf def:Describe, nsd:TopicOfQueryItem ;
+    rdfs:subClassOf nsdd:Describe, nsds:TopicOfQueryItem ;
     rdfs:label "DESCRIBE" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # select
 
 <model/classes/domain/select/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "SELECT" ;
-    foaf:primaryTopic nsd:Select .
+    foaf:primaryTopic nsds:Select .
 
-nsd:Select a adm:Class ;
+nsds:Select a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/select/> ;
-    rdfs:subClassOf def:Select, nsd:TopicOfQueryItem ;
+    rdfs:subClassOf nsdd:Select, nsds:TopicOfQueryItem ;
     rdfs:label "SELECT" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # ask
 
 <model/classes/domain/ask/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "ASK" ;
-    foaf:primaryTopic nsd:Ask .
+    foaf:primaryTopic nsds:Ask .
 
-nsd:Ask a adm:Class ;
+nsds:Ask a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/ask/> ;
-    rdfs:subClassOf def:Ask, nsd:TopicOfQueryItem ;
+    rdfs:subClassOf nsdd:Ask, nsds:TopicOfQueryItem ;
     rdfs:label "ASK" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # query item
 
 <model/classes/domain/query-item/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "Query item" ;
-    foaf:primaryTopic nsd:QueryItem .
+    foaf:primaryTopic nsds:QueryItem .
 
-nsd:QueryItem a adm:Class ;
+nsds:QueryItem a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/query-item/> ;
-    rdfs:subClassOf def:Item, nsd:ItemOfQueriesContainer ;
+    rdfs:subClassOf nsdd:Item, nsds:ItemOfQueriesContainer ;
     rdfs:label "Query item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # graph chart
 
 <model/classes/domain/graph-chart/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "Graph chart" ;
-    foaf:primaryTopic nsd:GraphChart .
+    foaf:primaryTopic nsds:GraphChart .
 
-nsd:GraphChart a adm:Class ;
+nsds:GraphChart a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/graph-chart/> ;
-    rdfs:subClassOf def:GraphChart, nsd:TopicOfChartItem ;
+    rdfs:subClassOf nsdd:GraphChart, nsds:TopicOfChartItem ;
     rdfs:label "Graph chart" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # result set chart
 
 <model/classes/domain/result-set-chart/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "Result set chart" ;
-    foaf:primaryTopic nsd:ResultSetChart .
+    foaf:primaryTopic nsds:ResultSetChart .
 
-nsd:ResultSetChart a adm:Class ;
+nsds:ResultSetChart a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/result-set-chart/> ;
-    rdfs:subClassOf def:ResultSetChart, nsd:TopicOfChartItem ;
+    rdfs:subClassOf nsdd:ResultSetChart, nsds:TopicOfChartItem ;
     rdfs:label "Result set chart" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # chart item
 
 <model/classes/domain/chart-item/> a adm:ClassItem ;
     sioc:has_container <model/classes/domain/> ;
     dct:title "Chart item" ;
-    foaf:primaryTopic nsd:ChartItem .
+    foaf:primaryTopic nsds:ChartItem .
 
-nsd:ChartItem a adm:Class ;
+nsds:ChartItem a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/domain/chart-item/> ;
-    rdfs:subClassOf def:Item, nsd:ItemOfChartsContainer ;
+    rdfs:subClassOf nsdd:Item, nsds:ItemOfChartsContainer ;
     rdfs:label "Chart item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # RESTRICTIONS
 
@@ -1299,154 +1313,154 @@ nsd:ChartItem a adm:Class ;
 <model/restrictions/topic-of-service-item/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/> ;
     dct:title "Topic of service item" ;
-    foaf:primaryTopic nsd:TopicOfServiceItem .
+    foaf:primaryTopic nsds:TopicOfServiceItem .
 
-nsd:TopicOfServiceItem a adm:Restriction ;
+nsds:TopicOfServiceItem a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/topic-of-service-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom nsd:ServiceItem ;
+    owl:allValuesFrom nsds:ServiceItem ;
     rdfs:label "Topic of service item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # topic of query item
 
 <model/restrictions/domain/topic-of-query-item/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of query item" ;
-    foaf:primaryTopic nsd:TopicOfQueryItem .
+    foaf:primaryTopic nsds:TopicOfQueryItem .
 
-nsd:TopicOfQueryItem a adm:Restriction ;
+nsds:TopicOfQueryItem a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-query-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom nsd:QueryItem ;
+    owl:allValuesFrom nsds:QueryItem ;
     rdfs:label "Topic of query item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # topic of import item
 
 <model/restrictions/domain/topic-of-import-item/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of import item" ;
-    foaf:primaryTopic nsd:TopicOfImportItem .
+    foaf:primaryTopic nsds:TopicOfImportItem .
 
-nsd:TopicOfImportItem a adm:Restriction ;
+nsds:TopicOfImportItem a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-import-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom nsd:ImportItem ;
+    owl:allValuesFrom nsds:ImportItem ;
     rdfs:label "Topic of import item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # topic of file item
 
 <model/restrictions/domain/topic-of-file-item/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of file item" ;
-    foaf:primaryTopic nsd:TopicOfFileItem .
+    foaf:primaryTopic nsds:TopicOfFileItem .
 
-nsd:TopicOfFileItem a adm:Restriction ;
+nsds:TopicOfFileItem a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-file-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom nsd:FileItem ;
+    owl:allValuesFrom nsds:FileItem ;
     rdfs:label "Topic of file item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # topic of chart item
 
 <model/restrictions/domain/topic-of-chart-item/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Topic of chart item" ;
-    foaf:primaryTopic nsd:TopicOfChartItem .
+    foaf:primaryTopic nsds:TopicOfChartItem .
 
-nsd:TopicOfChartItem a adm:Restriction ;
+nsds:TopicOfChartItem a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-chart-item/> ;
     owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom nsd:ChartItem ;
+    owl:allValuesFrom nsds:ChartItem ;
     rdfs:label "Topic of chart item" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # has services container
 
 <model/restrictions/domain/services-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/> ;
     dct:title "Has services container" ;
-    foaf:primaryTopic nsd:ItemOfServiceContainer .
+    foaf:primaryTopic nsds:ItemOfServiceContainer .
 
-nsd:ItemOfServiceContainer a adm:Restriction ;
+nsds:ItemOfServiceContainer a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/services-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../services/> ;
     rdfs:label "Has services container" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # has uploads container
 
 <model/restrictions/domain/uploads-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has uploads container" ;
-    foaf:primaryTopic nsd:ItemOfFileContainer .
+    foaf:primaryTopic nsds:ItemOfFileContainer .
 
-nsd:ItemOfFileContainer a adm:Restriction ;
+nsds:ItemOfFileContainer a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/uploads-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../uploads/> ;
     rdfs:label "Has uploads container" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # has imports container
 
 <model/restrictions/domain/imports-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has imports container" ;
-    foaf:primaryTopic nsd:ItemOfImportsContainer .
+    foaf:primaryTopic nsds:ItemOfImportsContainer .
 
-nsd:ItemOfImportsContainer a adm:Restriction ;
+nsds:ItemOfImportsContainer a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/imports-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../imports/> ;
     rdfs:label "Has imports container" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # has files container
 
 <model/restrictions/domain/files-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has files container" ;
-    foaf:primaryTopic nsd:ItemOfFilesContainer .
+    foaf:primaryTopic nsds:ItemOfFilesContainer .
 
-nsd:ItemOfFilesContainer a adm:Restriction ;
+nsds:ItemOfFilesContainer a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/files-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../files/> ;
     rdfs:label "Has files container" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # has queries container
 
 <model/restrictions/domain/queries-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has queries container" ;
-    foaf:primaryTopic nsd:ItemOfQueriesContainer .
+    foaf:primaryTopic nsds:ItemOfQueriesContainer .
 
-nsd:ItemOfQueriesContainer a adm:Restriction ;
+nsds:ItemOfQueriesContainer a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/queries-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../queries/> ;
     rdfs:label "Has queries container" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 # has charts container
 
 <model/restrictions/domain/charts-container/> a adm:RestrictionItem ;
     sioc:has_container <model/restrictions/domain/> ;
     dct:title "Has charts container" ;
-    foaf:primaryTopic nsd:ItemOfChartsContainer .
+    foaf:primaryTopic nsds:ItemOfChartsContainer .
 
-nsd:ItemOfChartsContainer a adm:Restriction ;
+nsds:ItemOfChartsContainer a adm:Restriction ;
     foaf:isPrimaryTopicOf <model/restrictions/domain/charts-container/> ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <../charts/> ;
     rdfs:label "Has charts container" ;
-    rdfs:isDefinedBy nsd: .
+    rdfs:isDefinedBy nsds: .
 
 ### ADMIN ###
 
