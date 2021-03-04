@@ -28,12 +28,12 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 # create a document
 
 read -d '' -r doc_turtle << EOF || true
-    @prefix def:    <ns/default#> .
+    @prefix nsdd:    <ns/domain/default#> .
     @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
     @prefix dct:	<http://purl.org/dc/terms/> .
     @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
-    <${slug}/> a def:Item ;
+    <${slug}/> a nsdd:Item ;
         sioc:has_container <> ;
         dct:title "Test document" .
 EOF

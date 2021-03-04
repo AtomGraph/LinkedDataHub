@@ -28,7 +28,7 @@ constraint="${END_USER_BASE_URL}ns/domain#NewConstraint"
 --label "Constrained class" \
 --slug constrained-class \
 --constraint "$constraint" \
---sub-class-of "${END_USER_BASE_URL}ns/default#Item"
+--sub-class-of "${END_USER_BASE_URL}ns/domain/default#Item"
 
 popd > /dev/null
 

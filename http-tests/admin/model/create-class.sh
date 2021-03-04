@@ -21,7 +21,7 @@ class="${END_USER_BASE_URL}ns/domain#NewClass"
 --uri "$class" \
 --label "New class" \
 --slug new-class \
---sub-class-of "${END_USER_BASE_URL}ns/default#Item"
+--sub-class-of "${END_USER_BASE_URL}ns/domain/default#Item"
 
 popd > /dev/null
 

@@ -23,7 +23,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   -b "$ADMIN_BASE_URL" \
   --label "POST authorization" \
   --agent "$AGENT_URI" \
-  --to-all-in "${END_USER_BASE_URL}ns/default#Root" \
+  --to-all-in "${END_USER_BASE_URL}ns/domain/default#Root" \
   --append
 
 popd > /dev/null

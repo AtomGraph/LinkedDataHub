@@ -73,13 +73,13 @@ curl -X PATCH \
 BASE <${base}admin/>
 
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  def: <../ns/default#>
+PREFIX  nsdd: <../ns/domain/default#>
 
 INSERT DATA
 {
   GRAPH <graphs/${graph_sha1}/>
   {
-    <acl/authorizations/public/#this> acl:accessToClass def:Root, def:Container, def:Item, def:File ;
+    <acl/authorizations/public/#this> acl:accessToClass nsdd:Root, nsdd:Container, nsdd:Item, nsdd:File ;
         acl:accessTo <../sparql> .
   }
 }

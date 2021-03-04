@@ -25,4 +25,4 @@ curl -k -f -s -G \
   "${END_USER_BASE_URL}graphs/${graph_sha1}/" \
 | rapper -q --input ntriples --output ntriples /dev/stdin - \
 | tr -s '\n' '\t' \
-| grep "<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${END_USER_BASE_URL}ns/default#Root>"
+| grep "<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${END_USER_BASE_URL}ns/domain/default#Root>"

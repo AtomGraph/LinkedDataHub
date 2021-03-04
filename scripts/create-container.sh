@@ -79,15 +79,15 @@ if [ -z "$parent" ] ; then
 fi
 
 args+=("-c")
-args+=("${base}ns/default#Container")
+args+=("${base}ns/domain/default#Container")
 args+=("-t")
 args+=("text/turtle")
 
-turtle+="@prefix def:	<ns/default#> .\n"
+turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:container a def:Container .\n"
+turtle+="_:container a nsdd:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$select" ] ; then
