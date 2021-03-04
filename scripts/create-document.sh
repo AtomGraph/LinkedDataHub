@@ -16,8 +16,6 @@ print_usage()
 
 hash curl 2>/dev/null || { echo >&2 "curl not on \$PATH. Aborting."; exit 1; }
 
-echo "ARGS: $@"
-
 unknown=()
 while [[ $# -gt 0 ]]
 do
@@ -75,7 +73,7 @@ fi
 
 urlencode()
 {
-    python -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
+    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
 }
 
 container="$1"
