@@ -28,9 +28,10 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
+import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
+import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.util.Validator;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -47,7 +48,6 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetRewindable;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.LocationMapper;
 import org.slf4j.Logger;
@@ -98,7 +98,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 QuerySolutionMap qsm = new QuerySolutionMap();
                 qsm.add(FOAF.Document.getLocalName(), document);
                 
-                // TO-DO: now that graph URI is a hash of the subject URI, me might be able to avoid this query request
                 try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                         qsm, getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
                         new MultivaluedHashMap()))
@@ -120,9 +119,13 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         throw new IllegalStateException("Document provenance graph query returned no results");
                     }
 
-                    // start the import asynchronously
-                    // we need to load stored import to know its graph URI which we will append to
-                    ImportListener.submit(topic.as(Import.class), provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                     // start the import asynchroniously
+                    if (topic.canAs(CSVImport.class))
+                        ImportListener.submit(topic.as(CSVImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                    if (topic.canAs(RDFImport.class))
+                        ImportListener.submit(topic.as(RDFImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                    
+                    throw new IllegalStateException("Unsupported Import type");
                 }
             }
             else
