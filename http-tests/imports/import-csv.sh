@@ -43,6 +43,8 @@ cd imports
 --file "$pwd/test.csv" \
 --action "$container"
 
+echo "LAST EXIT CODE: $?"
+
 popd > /dev/null
 
 csv_id="test-item"
