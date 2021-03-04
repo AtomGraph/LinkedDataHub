@@ -487,7 +487,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="type" select="resolve-uri('ns/default#GraphChart', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="type" select="resolve-uri('ns/domain/default#GraphChart', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="action" select="resolve-uri(concat('charts/?forClass=', encode-for-uri(resolve-uri($type, $ldt:base))), $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
@@ -835,7 +835,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="type" select="resolve-uri('ns/default#ResultSetChart', $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="type" select="resolve-uri('ns/domain/default#ResultSetChart', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="action" select="resolve-uri(concat('charts/?forClass=', encode-for-uri(resolve-uri($type, $ldt:base))), $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>

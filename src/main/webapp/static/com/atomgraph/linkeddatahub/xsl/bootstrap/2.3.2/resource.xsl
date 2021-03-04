@@ -54,13 +54,13 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Root', $ldt:base), resolve-uri('ns/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base), concat($ldt:ontology, 'Container'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Item', $ldt:base), concat($ldt:ontology, 'Item'))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
