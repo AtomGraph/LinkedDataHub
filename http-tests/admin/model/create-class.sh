@@ -25,16 +25,12 @@ class="${END_USER_BASE_URL}ns/domain#NewClass"
 
 popd > /dev/null
 
-echo "AAAA"
-
 # check that the class is present in the ontology
 
 curl -k -f -s -N \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}ns/domain" \
 | grep -q "$class"
-
-echo "BBBB"
 
 # clear ontology from memory
 
@@ -44,8 +40,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 "${ADMIN_BASE_URL}model/ontologies/domain/"
-
-echo "CCCC"
 
 popd > /dev/null
 
@@ -61,19 +55,12 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-echo "DDDD"
-
 # attempt to construct an instance of the class
 
 mode=$(urlencode "https://w3id.org/atomgraph/client#ConstructMode")
 forClass=$(urlencode "$class")
 
-echo "mode: $mode"
-echo "forClass: $forClasss"
-
-curl -k -f -v \
+curl -k -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   "${END_USER_BASE_URL}?forClass=${forClass}&mode=${mode}" \
   -H "Accept: text/turtle"
-
-echo "EEEE"
