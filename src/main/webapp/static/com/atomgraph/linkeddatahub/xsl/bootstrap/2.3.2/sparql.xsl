@@ -203,7 +203,7 @@ exclude-result-prefixes="#all">
                     <xsl:value-of select="resolve-uri('ns#Ask', $ldt:base)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="resolve-uri('ns/default#Query', $ldt:base)"/> <!-- TO-DO: add to namespace ontology -->
+                    <xsl:value-of select="resolve-uri('ns/domain/default#Query', $ldt:base)"/> <!-- TO-DO: add to namespace ontology -->
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>

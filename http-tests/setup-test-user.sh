@@ -1,1 +1,0 @@
-./setup.sh https://localhost:4443/ /tmp/test-user.p12 changeit 'CN=Test Agent, OU=LinkedDataHub (localhost), O=AtomGraph, L=Copenhagen, ST=Denmark, C=DK' /tmp/test-user.pem 3650
