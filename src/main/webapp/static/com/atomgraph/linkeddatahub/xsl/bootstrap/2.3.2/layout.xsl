@@ -623,7 +623,7 @@ exclude-result-prefixes="#all">
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="default-classes" select="key('resources', (concat($ldt:ontology, 'GenericService'), concat($ldt:ontology, 'DydraService'), concat($ldt:ontology, 'Construct'), concat($ldt:ontology, 'Describe'), concat($ldt:ontology, 'Select'), concat($ldt:ontology, 'Ask'), concat($ldt:ontology, 'File'), concat($ldt:ontology, 'CSVImport'), concat($ldt:ontology, 'RDFImport'), concat($ldt:ontology, 'GraphChart'), concat($ldt:ontology, 'ResultSetChart')), document(ac:document-uri($ldt:ontology)))" as="element()*"/>
+                <xsl:variable name="default-classes" select="key('resources', (resolve-uri('ns/domain/system#GenericService', $ldt:base), resolve-uri('ns/domain/system#DydraService', $ldt:base), resolve-uri('ns/domain/system#Construct', $ldt:base), resolve-uri('ns/domain/system#Describe', $ldt:base), resolve-uri('ns/domain/system#Select', $ldt:base), resolve-uri('ns/domain/system#Ask', $ldt:base), resolve-uri('ns/domain/system#File', $ldt:base), resolve-uri('ns/domain/system#CSVImport', $ldt:base), resolve-uri('ns/domain/system#RDFImport', $ldt:base), resolve-uri('ns/domain/system#GraphChart', $ldt:base), resolve-uri('ns/domain/system#ResultSetChart', $ldt:base)), document(resolve-uri('ns/domain/system', $ldt:base)))" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$ldt:ontology"/>
