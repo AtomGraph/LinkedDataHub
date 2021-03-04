@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.model.dydra.impl;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.core.client.QuadStoreClient;
 import com.atomgraph.linkeddatahub.vocabulary.Dydra;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -27,6 +25,8 @@ import com.atomgraph.linkeddatahub.model.dydra.Service;
 import com.atomgraph.linkeddatahub.vocabulary.dydra.URN;
 import org.apache.jena.rdf.model.Statement;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
+import com.atomgraph.linkeddatahub.client.dydra.GraphStoreClient;
+import com.atomgraph.linkeddatahub.client.dydra.QuadStoreClient;
 import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -120,17 +120,39 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
     @Override
     public GraphStoreClient getGraphStoreClient(WebTarget resource)
     {
-        if (getAccessToken() != null) return super.getGraphStoreClient(resource).register(new AuthTokenFilter(getAccessToken())); // TO-DO
+        GraphStoreClient graphStoreClient = GraphStoreClient.create(resource);
         
-        return super.getGraphStoreClient(resource);
+        if (getAuthUser() != null && getAuthPwd() != null)
+        {
+            HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
+                credentials(getAuthUser(), getAuthPwd()).
+                build();
+            
+            graphStoreClient.getEndpoint().register(authFeature);
+        }
+        
+        if (getAccessToken() != null) graphStoreClient.register(new AuthTokenFilter(getAccessToken())); // TO-DO
+        
+        return graphStoreClient;
     }
     
     @Override
     public QuadStoreClient getQuadStoreClient(WebTarget resource)
     {
-        if (getAccessToken() != null) return super.getQuadStoreClient(resource).register(new AuthTokenFilter(getAccessToken())); // TO-DO
+        QuadStoreClient quadStoreClient = QuadStoreClient.create(resource);
         
-        return super.getQuadStoreClient(resource);
+        if (getAuthUser() != null && getAuthPwd() != null)
+        {
+            HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().
+                credentials(getAuthUser(), getAuthPwd()).
+                build();
+            
+            quadStoreClient.getEndpoint().register(authFeature);
+        }
+        
+        if (getAccessToken() != null) quadStoreClient.register(new AuthTokenFilter(getAccessToken())); // TO-DO
+        
+        return quadStoreClient;
     }
 
 }

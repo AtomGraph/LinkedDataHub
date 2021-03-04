@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class PayloadTooLargeException extends ClientErrorException
 {

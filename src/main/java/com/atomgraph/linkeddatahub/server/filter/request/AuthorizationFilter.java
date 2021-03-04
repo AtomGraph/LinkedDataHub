@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @PreMatching
 @Priority(Priorities.USER + 100) // has to execute after all AuthenticationFilters

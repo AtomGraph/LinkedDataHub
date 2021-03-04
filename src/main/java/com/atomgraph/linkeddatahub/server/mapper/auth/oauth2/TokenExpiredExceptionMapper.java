@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
@@ -36,7 +35,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<TokenExpiredException>
 {
