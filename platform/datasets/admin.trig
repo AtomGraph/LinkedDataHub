@@ -928,7 +928,7 @@ ns: a adm:Ontology ;
     foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
     rdfs:label "Namespace" ;
     rdfs:comment "Namespace of the application" ;
-    owl:imports nsds:, nsds:, nst: ;
+    owl:imports nsd:, nsds:, nst: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 # templates
