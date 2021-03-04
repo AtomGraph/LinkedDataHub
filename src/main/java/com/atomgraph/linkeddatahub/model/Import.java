@@ -16,10 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.model;
 
-import com.atomgraph.client.util.DataManager;
-import com.atomgraph.processor.util.Validator;
-import com.atomgraph.spinrdf.constraints.ConstraintViolation;
-import java.util.List;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -30,20 +26,6 @@ import org.apache.jena.rdf.model.Resource;
  */
 public interface Import extends Resource
 {
-        
-//    Import setDataManager(DataManager dataManager);
-//    
-//    DataManager getDataManager();
-//    
-//    Import setValidator(Validator validator);
-//    
-//    Validator getValidator();
-
-//    List<ConstraintViolation> getConstraintViolations();
-    
-//    Import setBaseUri(Resource baseUri);
-//    
-//    Resource getBaseUri();
     
     Resource getFile();
     
