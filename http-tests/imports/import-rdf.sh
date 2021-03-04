@@ -44,8 +44,6 @@ cd imports
 --file-content-type "text/turtle" \
 --action "$container"
 
-echo "LAST EXIT CODE: $?"
-
 popd > /dev/null
 
 rdf_id="concept7367"
