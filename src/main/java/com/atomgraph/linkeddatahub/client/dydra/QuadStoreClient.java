@@ -35,12 +35,12 @@ public class QuadStoreClient extends com.atomgraph.core.client.QuadStoreClient i
         return new QuadStoreClient(endpoint);
     }
     
-    @Override
-    public void add(Dataset dataset)
-    {
-        add(dataset, DatasetAccessorAsync.Mode.NOTIFY);
-    }
-    
+//    @Override
+//    public void add(Dataset dataset)
+//    {
+//        add(dataset, DatasetAccessorAsync.Mode.NOTIFY);
+//    }
+    ;
     public void add(Dataset dataset, DatasetAccessorAsync.Mode mode)
     {
         MultivaluedHashMap headers = new MultivaluedHashMap();
@@ -49,11 +49,11 @@ public class QuadStoreClient extends com.atomgraph.core.client.QuadStoreClient i
         post(dataset, getDefaultMediaType(), new MediaType[]{}, new MultivaluedHashMap(), headers).close();
     }
 
-    @Override
-    public void replace(Dataset dataset)
-    {
-        replace(dataset, DatasetAccessorAsync.Mode.NOTIFY);
-    }
+//    @Override
+//    public void replace(Dataset dataset)
+//    {
+//        replace(dataset, DatasetAccessorAsync.Mode.NOTIFY);
+//    }
 
     public void replace(Dataset dataset, DatasetAccessorAsync.Mode mode)
     {
