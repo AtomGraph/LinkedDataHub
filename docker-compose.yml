@@ -53,7 +53,7 @@ services:
       # - GOOGLE_CLIENT_SECRET=
     volumes:
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
-      - ./ssl/owner:/var/linkeddatahub/ssl/owner:ro
+      - ./ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem:ro
       - ./ssl/secretary:/var/linkeddatahub/ssl/secretary:ro
       - ./uploads:/var/www/linkeddatahub/uploads
       - ./config/dev.log4j.properties:/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/log4j.properties:ro
