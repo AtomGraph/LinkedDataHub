@@ -39,11 +39,11 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
         return new GraphStoreClient(endpoint);
     }
     
-    @Override
-    public void add(Model model)
-    {
-        add(model, DatasetAccessorAsync.Mode.NOTIFY);
-    }
+//    @Override
+//    public void add(Model model)
+//    {
+//        add(model, DatasetAccessorAsync.Mode.NOTIFY);
+//    }
     
     public void add(Model model, DatasetAccessorAsync.Mode mode)
     {
@@ -60,11 +60,11 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
         }
     }
 
-    @Override
-    public void putModel(Model model)
-    {
-        putModel(model, DatasetAccessorAsync.Mode.NOTIFY);
-    }
+//    @Override
+//    public void putModel(Model model)
+//    {
+//        putModel(model, DatasetAccessorAsync.Mode.NOTIFY);
+//    }
     
     public void putModel(Model model, DatasetAccessorAsync.Mode mode)
     {
@@ -81,11 +81,11 @@ public class GraphStoreClient extends com.atomgraph.core.client.GraphStoreClient
         }
     }
     
-    @Override
-    public void putModel(String uri, Model model)
-    {
-        putModel(uri, model, DatasetAccessorAsync.Mode.NOTIFY);
-    }
+//    @Override
+//    public void putModel(String uri, Model model)
+//    {
+//        putModel(uri, model, DatasetAccessorAsync.Mode.NOTIFY);
+//    }
     
     public void putModel(String uri, Model model, DatasetAccessorAsync.Mode mode)
     {
