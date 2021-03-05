@@ -7,8 +7,10 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import org.apache.jena.query.Dataset;
 
 /**
- *
+ * This client queues GSP requests so that we can avoid "Graph import failed" error on concurrent updates.
+ * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @see <a href="https://api.dydra.com/graphstore/asynchronous.html">Asynchronous Processing</a>
  */
 public class QuadStoreClient extends com.atomgraph.core.client.QuadStoreClient implements DatasetAccessorAsync
 {
@@ -33,12 +35,24 @@ public class QuadStoreClient extends com.atomgraph.core.client.QuadStoreClient i
         return new QuadStoreClient(endpoint);
     }
     
+    @Override
+    public void add(Dataset dataset)
+    {
+        add(dataset, DatasetAccessorAsync.Mode.NOTIFY);
+    }
+    
     public void add(Dataset dataset, DatasetAccessorAsync.Mode mode)
     {
         MultivaluedHashMap headers = new MultivaluedHashMap();
         headers.add(mode.getHeaderName(), mode.getHeaderValue());
         
         post(dataset, getDefaultMediaType(), new MediaType[]{}, new MultivaluedHashMap(), headers).close();
+    }
+
+    @Override
+    public void replace(Dataset dataset)
+    {
+        replace(dataset, DatasetAccessorAsync.Mode.NOTIFY);
     }
 
     public void replace(Dataset dataset, DatasetAccessorAsync.Mode mode)
