@@ -1,0 +1,4 @@
+src/main/webapp/static/css/* linguist-vendored
+src/main/webapp/static/com/atomgraph/linkeddatahub/js/saxon-js/* linguist-vendored
+src/main/webapp/static/com/atomgraph/linkeddatahub/js/wymeditor/* linguist-vendored
+src/main/webapp/static/com/atomgraph/linkeddatahub/js/jquery.js linguist-vendored
