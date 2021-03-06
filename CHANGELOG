@@ -1,0 +1,14 @@
+## [2.1.28] - 2021-03-06
+### Added
+- `$request_base` parameter support in scripts allows to use a base URI for HTTP requests which is different from the RDF dataset base URI. Useful when multiple LDH instances on different domains or port numbers are backed by the same dataset. E.g. one with WebID-TLS auth enabled and the other without.
+- Dydra-specific `QuadStoreClient` and `GraphStoreClient` with support for [asynchonous GSP requests](https://api.dydra.com/graphstore/asynchronous.html)
+
+### Changed
+- Ontology classes that used to be in the `ns:` namespace (`${base}ns#`) moved to `nsds:` (`${base}ns/domain/system#`)
+- Ontology classes that used to be in the `def:` namespace (`${base}def#`) moved to `nsdd:` (`${base}ns/domain/default#`)
+- `python` usages replaced with `python2` in CLI scripts
+- Mounting only `ssl/owner/public.pem` instead of the whole `ssl/owner` folder which includes the private key
+
+### Removed
+- Expensive join with the provenance graph from the `laclt:ConstructAgentItem` query. As a result, `dct:created` value is not included in agent's description.
+- Unnecessary methods from the `Import` Java interface. Passing arguments directly to `ImportListener` instead
