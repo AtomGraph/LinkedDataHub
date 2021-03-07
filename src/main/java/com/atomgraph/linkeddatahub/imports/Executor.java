@@ -222,12 +222,12 @@ public class Executor
         accessor.add(provGraph.getURI(), provImport.getModel());
     }
 
-    protected CSVStreamRDFOutputWriter getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
+    protected Function<Response, CSVStreamRDFOutput> getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
     {
         return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
     }
 
-    protected StreamRDFOutputWriter getStreamRDFOutputWriter(RDFImport imp, DataManager dataManager, String baseURI, Query query)
+    protected Function<Response, StreamRDFOutput> getStreamRDFOutputWriter(RDFImport imp, DataManager dataManager, String baseURI, Query query)
     {
         return new StreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query);
     }
