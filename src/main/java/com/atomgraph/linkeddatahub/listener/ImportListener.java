@@ -40,7 +40,7 @@ public class ImportListener implements ServletContextListener
 
     private static final Logger log = LoggerFactory.getLogger(ImportListener.class);
     
-    private static final int MAX_THREADS = 1; // Graph Store Protocol cannot accept concurrent write requests TO-DO: make configurable
+    private static final int MAX_THREADS = 10; // TO-DO: make configurable
     private static final ExecutorService THREAD_POOL = Executors.newFixedThreadPool(MAX_THREADS);
     
     @Override
