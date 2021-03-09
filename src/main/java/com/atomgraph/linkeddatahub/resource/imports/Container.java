@@ -124,8 +124,6 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         ImportListener.submit(topic.as(CSVImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
                     if (topic.canAs(RDFImport.class))
                         ImportListener.submit(topic.as(RDFImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
-                    
-                    throw new IllegalStateException("Unsupported Import type");
                 }
             }
             else
