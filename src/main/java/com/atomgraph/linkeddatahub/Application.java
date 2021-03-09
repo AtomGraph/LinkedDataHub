@@ -629,8 +629,8 @@ public class Application extends ResourceConfig
     public void init()
     {
         register(MultiPartFeature.class);
-        register(ResourceBase.class); // handles /
-        
+
+        registerResourceClasses();
         registerContainerRequestFilters();
         registerExceptionMappers();
         
@@ -742,6 +742,11 @@ public class Application extends ResourceConfig
         });
         
 //        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
+    }
+    
+    protected void registerResourceClasses()
+    {
+        register(ResourceBase.class); // handles /
     }
     
     protected void registerContainerRequestFilters()
