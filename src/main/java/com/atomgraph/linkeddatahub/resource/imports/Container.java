@@ -27,7 +27,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
-import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
@@ -63,7 +62,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
     @Inject
-    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
+    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
             Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
@@ -121,9 +120,9 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
                      // start the import asynchroniously
                     if (topic.canAs(CSVImport.class))
-                        ImportListener.submit(topic.as(CSVImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
                     if (topic.canAs(RDFImport.class))
-                        ImportListener.submit(topic.as(RDFImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
                 }
             }
             else

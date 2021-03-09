@@ -71,6 +71,7 @@ import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.linkeddatahub.client.writer.DatasetXSLTWriter;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
@@ -194,6 +195,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
@@ -918,6 +920,16 @@ public class Application extends ResourceConfig
         }
         
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
+    }
+    
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
+    {
+        ImportListener.submit(csvImport, importRes, provGraph, accessor, baseURI, dataManager);
+    }
+    
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
+    {
+        ImportListener.submit(rdfImport, importRes, provGraph, accessor, baseURI, dataManager);
     }
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
