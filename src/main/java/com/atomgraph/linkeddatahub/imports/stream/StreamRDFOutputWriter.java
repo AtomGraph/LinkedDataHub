@@ -27,6 +27,7 @@ import java.net.URI;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
@@ -71,8 +72,7 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
             
             StreamRDFOutput rdfOutput = new StreamRDFOutput(is, getBaseURI(), getQuery(), lang);
             
-            try (Response cr = getTarget().request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
-                    post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
+            try (Response cr = getInvocationBuilder().post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
             {
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
@@ -93,6 +93,11 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
     public WebTarget getTarget()
     {
         return getDataManager().getEndpoint(URI.create(getURI()));
+    }
+    
+    public Invocation.Builder getInvocationBuilder()
+    {
+        return getTarget().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
     }
     
     public String getURI()
