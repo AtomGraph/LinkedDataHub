@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.imports.csv.stream;
+package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.MediaType;
 import com.atomgraph.client.util.DataManager;
@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
@@ -63,13 +64,13 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
     @Override
     public CSVStreamRDFOutput apply(Response input)
     {
-        if (input == null) throw new IllegalArgumentException("Model cannot be null");
+        if (input == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try (input; InputStream is = input.readEntity(InputStream.class)) {
+        try (input; InputStream is = input.readEntity(InputStream.class))
+        {
             CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
             
-            try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
-                    request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
+            try (Response cr = getTarget().request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
                     post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
             {
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -88,6 +89,11 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
         }
     }
 
+    public WebTarget getTarget()
+    {
+        return getDataManager().getEndpoint(URI.create(getURI()));
+    }
+    
     public String getURI()
     {
         return uri;

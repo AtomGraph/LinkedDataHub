@@ -18,9 +18,9 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutput;
-import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutputWriter;
-import com.atomgraph.linkeddatahub.imports.csv.stream.ClientResponseSupplier;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutput;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutputWriter;
+import com.atomgraph.linkeddatahub.imports.stream.csv.ClientResponseSupplier;
 import com.atomgraph.linkeddatahub.imports.stream.StreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;

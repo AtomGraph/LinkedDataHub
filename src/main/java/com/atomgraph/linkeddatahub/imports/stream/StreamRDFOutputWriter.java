@@ -20,13 +20,14 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaType;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.imports.StreamRDFOutput;
-import com.atomgraph.linkeddatahub.imports.csv.stream.CSVStreamRDFOutputWriter;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutputWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
@@ -60,30 +61,26 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
     @Override
     public StreamRDFOutput apply(Response input)
     {
-        if (input == null) throw new IllegalArgumentException("Model cannot be null");
+        if (input == null) throw new IllegalArgumentException("Response cannot be null");
         
-        try
+        try (input; InputStream is = input.readEntity(InputStream.class))
         {
-            try (InputStream is = input.readEntity(InputStream.class))
-            {
-                MediaType mediaType = new MediaType(input.getMediaType().getType(), input.getMediaType().getSubtype()); // discard charset param
-                Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
-                if (lang == null) throw new IllegalStateException("Content type '" + mediaType + "' is not an RDF media type");
-                
-                StreamRDFOutput rdfOutput = new StreamRDFOutput(is, getBaseURI(), getQuery(), lang);
-
-                try (Response cr = getDataManager().getEndpoint(URI.create(getURI())).
-                    request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
+            MediaType mediaType = new MediaType(input.getMediaType().getType(), input.getMediaType().getSubtype()); // discard charset param
+            Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
+            if (lang == null) throw new IllegalStateException("Content type '" + mediaType + "' is not an RDF media type");
+            
+            StreamRDFOutput rdfOutput = new StreamRDFOutput(is, getBaseURI(), getQuery(), lang);
+            
+            try (Response cr = getTarget().request(MediaType.APPLICATION_NTRIPLES). // could be all RDF formats - we just want to avoid XHTML response
                     post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
+            {
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                    {
-                        //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
-                        throw new ImportException(cr.toString(), cr.readEntity(Model.class));
-                    }
-
-                    return rdfOutput;
+                    //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
+                    throw new ImportException(cr.toString(), cr.readEntity(Model.class));
                 }
+                
+                return rdfOutput;
             }
         }
         catch (IOException ex)
@@ -91,10 +88,11 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
             if (log.isErrorEnabled()) log.error("Error reading RDF InputStream: {}", ex);
             throw new WebApplicationException(ex);
         }
-        finally
-        {
-            input.close(); // close response
-        }
+    }
+    
+    public WebTarget getTarget()
+    {
+        return getDataManager().getEndpoint(URI.create(getURI()));
     }
     
     public String getURI()
