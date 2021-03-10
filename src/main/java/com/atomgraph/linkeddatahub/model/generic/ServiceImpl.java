@@ -170,8 +170,7 @@ public class ServiceImpl extends ResourceImpl implements Service
     @Override
     public QuadStoreClient getQuadStoreClient()
     {
-        if (getQuadStore() != null) 
-            return getQuadStoreClient(getClient().target(getProxiedURI(URI.create(getQuadStore().getURI()))));
+        if (getQuadStore() != null) return getQuadStoreClient(getClient().target(getProxiedURI(URI.create(getQuadStore().getURI()))));
         
         return null;
     }

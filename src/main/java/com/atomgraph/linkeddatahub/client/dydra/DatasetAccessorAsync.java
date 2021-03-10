@@ -29,4 +29,6 @@ public interface DatasetAccessorAsync extends Async
     
     void putModel(Model model, Mode mode);
     
+    void putModel(String uri, Model model, Mode mode);
+
 }
