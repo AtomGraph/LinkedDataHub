@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.model.dydra.impl;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.model.DatasetQuadAccessor;
 import com.atomgraph.linkeddatahub.vocabulary.Dydra;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -25,12 +26,15 @@ import com.atomgraph.linkeddatahub.model.dydra.Service;
 import com.atomgraph.linkeddatahub.vocabulary.dydra.URN;
 import org.apache.jena.rdf.model.Statement;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
+import com.atomgraph.linkeddatahub.client.dydra.impl.DatasetAccessorAsyncImpl;
 import com.atomgraph.linkeddatahub.client.dydra.GraphStoreClient;
 import com.atomgraph.linkeddatahub.client.dydra.QuadStoreClient;
+import com.atomgraph.linkeddatahub.client.dydra.impl.DatasetQuadAccessorAsyncImpl;
 import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
+import org.apache.jena.query.DatasetAccessor;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 /**
@@ -116,7 +120,19 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
         
         return sparqlClient;
     }
-
+    
+    @Override
+    public DatasetAccessor getDatasetAccessor()
+    {
+        return new DatasetAccessorAsyncImpl(getGraphStoreClient());
+    }
+    
+    @Override
+    public GraphStoreClient getGraphStoreClient()
+    {
+        return getGraphStoreClient(getClient().target(getProxiedURI(URI.create(getGraphStore().getURI()))));
+    }
+    
     @Override
     public GraphStoreClient getGraphStoreClient(WebTarget resource)
     {
@@ -134,6 +150,20 @@ public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.Servi
         if (getAccessToken() != null) graphStoreClient.register(new AuthTokenFilter(getAccessToken())); // TO-DO
         
         return graphStoreClient;
+    }
+    
+    @Override
+    public DatasetQuadAccessor getDatasetQuadAccessor()
+    {
+        return new DatasetQuadAccessorAsyncImpl(getQuadStoreClient());
+    }
+    
+    @Override
+    public QuadStoreClient getQuadStoreClient()
+    {
+        if (getQuadStore() != null) return getQuadStoreClient(getClient().target(getProxiedURI(URI.create(getQuadStore().getURI()))));
+        
+        return null;
     }
     
     @Override

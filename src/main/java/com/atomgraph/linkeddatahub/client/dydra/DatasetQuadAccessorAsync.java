@@ -16,19 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.client.dydra;
 
-import org.apache.jena.rdf.model.Model;
+import org.apache.jena.query.Dataset;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public interface DatasetAccessorAsync extends Async
+public interface DatasetQuadAccessorAsync extends Async
 {
     
-    void add(Model model, Mode mode);
+    void add(Dataset dataset, Mode mode);
     
-    void putModel(Model model, Mode mode);
+    void replace(Dataset dataset, Mode mode);
     
-    void putModel(String uri, Model model, Mode mode);
-
 }

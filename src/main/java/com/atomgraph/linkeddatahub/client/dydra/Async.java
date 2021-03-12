@@ -16,19 +16,37 @@
  */
 package com.atomgraph.linkeddatahub.client.dydra;
 
-import org.apache.jena.rdf.model.Model;
-
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-public interface DatasetAccessorAsync extends Async
+public interface Async
 {
     
-    void add(Model model, Mode mode);
+    public static final String HEADER_NAME = "Accept-Asynchronous";
     
-    void putModel(Model model, Mode mode);
+    public enum Mode {
+        
+        NOTIFY("notify"),
+        EXECUTE("execute");
     
-    void putModel(String uri, Model model, Mode mode);
+        private final String headerValue;
+        
+        Mode(String headerValue)
+        {
+            this.headerValue = headerValue;
+        }
 
+        public String getHeaderName()
+        {
+            return HEADER_NAME;
+        }
+
+        public String getHeaderValue()
+        {
+            return headerValue;
+        }
+        
+    };
+    
 }

@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.imports.csv.stream;
+package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import java.io.InputStreamReader;
 import javax.ws.rs.core.StreamingOutput;

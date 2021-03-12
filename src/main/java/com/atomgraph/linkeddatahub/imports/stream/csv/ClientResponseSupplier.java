@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.imports.csv.stream;
+package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.client.util.DataManager;
 import java.util.function.Supplier;
