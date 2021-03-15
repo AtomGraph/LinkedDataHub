@@ -905,13 +905,11 @@ exclude-result-prefixes="#all">
 
             <div class="controls">
                 <!-- $forClass value is used in client.xsl -->
-                <xsl:for-each select="$forClass">
-                    <button type="button" id="button-{generate-id()}" class="btn add-value" value="{.}">
-                        <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                            <xsl:with-param name="class" select="'btn add-value'"/>
-                        </xsl:apply-templates>
-                    </button>
-                </xsl:for-each>
+                <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
+                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn add-value'"/>
+                    </xsl:apply-templates>
+                </button>
             </div>
         </div>
     </xsl:template>
