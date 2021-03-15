@@ -872,7 +872,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <div class="control-group">
             <span class="control-label">
@@ -905,11 +905,13 @@ exclude-result-prefixes="#all">
 
             <div class="controls">
                 <!-- $forClass value is used in client.xsl -->
-                <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
-                    <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn add-value'"/>
-                    </xsl:apply-templates>
-                </button>
+                <xsl:for-each select="$forClass">
+                    <button type="button" id="button-{generate-id()}" class="btn add-value" value="{.}">
+                        <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn add-value'"/>
+                        </xsl:apply-templates>
+                    </button>
+                </xsl:for-each>
             </div>
         </div>
     </xsl:template>
