@@ -1782,7 +1782,9 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <div class="alert alert-block">Error loading result count</div>
+                </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
