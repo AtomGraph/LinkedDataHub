@@ -500,7 +500,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[not($lacl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <xsl:param name="uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
-        <xsl:param name="google-signup" select="$google:clientID" as="xs:boolean"/>
+        <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
         
         <xsl:if test="$google-signup or $webid-signup">
