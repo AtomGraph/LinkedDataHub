@@ -1783,7 +1783,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">Error loading result count</div>
+                    <p class="alert alert-block">Error loading result count</p>
                 </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>

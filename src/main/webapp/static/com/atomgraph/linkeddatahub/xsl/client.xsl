@@ -1214,7 +1214,10 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
+                    <div class="alert alert-block">Error loading root children</div>
+                </xsl:result-document>
+                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1258,7 +1261,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:result-document href="#{$id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">Error loading breadcrumbs</div>
+                    <p class="alert alert-block">Error loading breadcrumbs</p>
                 </xsl:result-document>
                 <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
