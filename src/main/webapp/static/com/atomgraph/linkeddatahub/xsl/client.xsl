@@ -1261,7 +1261,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:result-document href="#{$id}" method="ixsl:replace-content">
-                    <p class="alert alert-block">Error loading breadcrumbs</p>
+                    <p class="alert">Error loading breadcrumbs</p>
                 </xsl:result-document>
                 <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
