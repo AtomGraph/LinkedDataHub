@@ -88,6 +88,7 @@ exclude-result-prefixes="#all">
 
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
+    <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="lacl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
