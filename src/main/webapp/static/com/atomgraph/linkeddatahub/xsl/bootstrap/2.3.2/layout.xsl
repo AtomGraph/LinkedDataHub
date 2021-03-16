@@ -499,21 +499,27 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[not($lacl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <xsl:param name="uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
-            
-        <p class="pull-right">
-            <xsl:if test="$google:clientID">
-                <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $ldt:base)}">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
-                    </xsl:value-of>
-                </a>
-            </xsl:if>
-            <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $ac:contextUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
-                </xsl:value-of>
-            </a>
-        </p>
+        <xsl:param name="google-signup" select="$google:clientID" as="xs:boolean"/>
+        <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
+        
+        <xsl:if test="$google-signup or $webid-signup">
+            <p class="pull-right">
+                <xsl:if test="$google-signup">
+                    <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $apl:baseUri)}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
+                </xsl:if>
+                <xsl:if test="$webid-signup">
+                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $apl:baseUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
+                </xsl:if>
+            </p>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:SignUp"/>
