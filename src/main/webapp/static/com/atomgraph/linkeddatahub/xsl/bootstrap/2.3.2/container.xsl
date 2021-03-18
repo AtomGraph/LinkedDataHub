@@ -1728,7 +1728,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
-                <!-- unset LIMIT and OFFSET - we want to COUNT all of the container's children -->
+                <!-- unset ORDER BY/LIMIT/OFFSET - we want to COUNT all of the container's children; ordering is irrelevant -->
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
                         <xsl:apply-templates select="$select-xml" mode="apl:replace-limit"/>
@@ -1737,6 +1737,11 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="select-xml" as="document-node()">
                     <xsl:document>
                         <xsl:apply-templates select="$select-xml" mode="apl:replace-offset"/>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by"/>
                     </xsl:document>
                 </xsl:variable>
                 <xsl:apply-templates select="$select-xml" mode="apl:result-count">
