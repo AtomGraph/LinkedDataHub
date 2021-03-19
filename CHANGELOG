@@ -1,3 +1,15 @@
+## [2.1.49] - 2021-03-19
+### Added
+- `apl:baseUri` as a static XSLT stylesheet param
+
+### Changed
+- `bs2:PropertyControl` XSLT mode can handle multiple RDF types on a resource
+- Replaced error alerts with inline HTML warning blocks
+- `Refactored bs2:SignUp template to make it more extensible`
+
+### Removed
+- `ORDER BY` in `apl:ResultCounts` mode in client.xsl
+
 ## [2.1.28] - 2021-03-06
 ### Added
 - `$request_base` parameter support in scripts allows to use a base URI for HTTP requests which is different from the RDF dataset base URI. Useful when multiple LDH instances on different domains or port numbers are backed by the same dataset. E.g. one with WebID-TLS auth enabled and the other without.
