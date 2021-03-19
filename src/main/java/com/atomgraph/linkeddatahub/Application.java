@@ -635,6 +635,7 @@ public class Application extends ResourceConfig
 
         registerResourceClasses();
         registerContainerRequestFilters();
+        registerContainerResponseFilters();
         registerExceptionMappers();
         
         eventBus.register(this); // this system application will be receiving events about context changes
