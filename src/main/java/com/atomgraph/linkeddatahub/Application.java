@@ -104,6 +104,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -763,6 +764,11 @@ public class Application extends ResourceConfig
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
         register(new RDFPostCleanupInterceptor());
+    }
+
+    protected void registerContainerResponseFilters()
+    {
+        register(new CacheInvalidationFilter());
     }
     
     protected void registerExceptionMappers()

@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
@@ -230,7 +229,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             getApplication().getService();
     }
     
-    public Application getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app;
     }
