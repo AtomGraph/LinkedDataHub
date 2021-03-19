@@ -83,6 +83,19 @@ services:
       - ./config/fuseki/end-user.ttl:/var/fuseki/config.ttl:ro
       - ./data/end-user:/var/fuseki/data
     command: [ "--config", "/var/fuseki/config.ttl" ]
+  varnish-admin:
+    image: atomgraph/varnish
+    depends_on:
+      - linkeddatahub
+    environment:
+      - BACKEND_HOST=fuseki-admin
+      - BACKEND_PORT=3030
+      - CLIENT_HOST=linkeddatahub
+      - VARNISH_TTL=86400
+    privileged: true
+    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /bin/sh ./entrypoint.sh"
+    volumes:
+      - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
     image: atomgraph/varnish
     depends_on:
