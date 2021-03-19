@@ -16,6 +16,7 @@ body.embed { padding-top: 0; }
 .action-bar .breadcrumb .container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar #result-counts p { font-weight: bold; margin-top: 10px; padding-top: 8px; float: right; }
+.action-bar p.alert { margin-bottom: 0; }
 .nav-header.btn { color: inherit; }
 ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }

@@ -872,7 +872,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
-        <xsl:param name="forClass" as="xs:anyURI?"/>
+        <xsl:param name="forClass" as="xs:anyURI*"/>
 
         <div class="control-group">
             <span class="control-label">

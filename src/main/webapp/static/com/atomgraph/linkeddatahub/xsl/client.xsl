@@ -620,13 +620,21 @@ extension-element-prefixes="ixsl"
                             </xsl:choose>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Container''s SELECT query string ''' || $select-uri || ''' could not be loaded' ])"/>
+                            <!-- error response - could not load query results -->
+                            <xsl:call-template name="render-container-error">
+                                <xsl:with-param name="message" select="'Container''s SELECT query string ''' || $select-uri || ''' could not be loaded'"/>
+                            </xsl:call-template>
+                            <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Container''s SELECT query string ''' || $select-uri || ''' could not be loaded' ])"/>-->
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <!-- error response - could not load query results -->
+                <xsl:call-template name="render-container-error">
+                    <xsl:with-param name="message" select="?message"/>
+                </xsl:call-template>
+                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -649,7 +657,11 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <!-- error response - could not load query results -->
+                <xsl:call-template name="render-container-error">
+                    <xsl:with-param name="message" select="?message"/>
+                </xsl:call-template>
+                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1202,7 +1214,10 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
+                    <div class="alert alert-block">Error loading root children</div>
+                </xsl:result-document>
+                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1245,7 +1260,10 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
+                    <p class="alert">Error loading breadcrumbs</p>
+                </xsl:result-document>
+                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -1279,8 +1297,6 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
-
-                    <!--<ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
                     <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
                     
