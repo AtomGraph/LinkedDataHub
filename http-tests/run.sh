@@ -80,8 +80,8 @@ function restart_backend_cache()
 
     echo "RESTART $service_name !!!"
 
-    if [ -z "$(docker-compose ps -q | grep "$( docker-compose ps -q $service_name )" )" ]; then
-        docker-compose restart "$1"
+    if [ -z "$(docker-compose -f ../docker-compose.yml -f docker-compose.no-cache.yml --env-file ../.env ps -q | grep "$(docker-compose -f ../docker-compose.yml -f docker-compose.no-cache.yml --env-file ../.env ps -q $service_name )" )" ]; then
+        docker-compose -f ../docker-compose.yml -f docker-compose.no-cache.yml --env-file ../.env restart "$1"
     fi
 }
 
