@@ -80,8 +80,8 @@ function restart_backend_cache()
 
     echo "RESTART $service_name !!!"
 
-    if [ -z "$(docker-compose -f ../docker-compose.yml -f docker-compose.no-cache.yml --env-file ../.env ps -q | grep "$(docker-compose -f ../docker-compose.yml -f docker-compose.no-cache.yml --env-file ../.env ps -q $service_name )" )" ]; then
-        docker-compose -f ../docker-compose.yml -f docker-compose.no-cache.yml --env-file ../.env restart "$1"
+    if [ -z "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
+        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" restart "$1"
     fi
 }
 
@@ -94,6 +94,7 @@ printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 export -f initialize_dataset
 export -f restart_backend_cache
 
+export HTTP_TEST_ROOT="$PWD"
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
 export END_USER_BASE_URL="https://localhost:4443/"
