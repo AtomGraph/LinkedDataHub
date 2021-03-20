@@ -49,7 +49,7 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
         {
             if (req.getUriInfo().getAbsolutePath().toString().contains("acl/authorizations/"))
             {
-                ban(UriBuilder.fromUri(getAdminBaseURI()).path("acl/authorizations/").build());
+                ban(UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build()); // "agents/" ?
             }
         }
     }
