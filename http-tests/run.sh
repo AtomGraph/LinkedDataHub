@@ -81,7 +81,7 @@ function restart_backend_cache()
     echo "RESTART $service_name ???"
     docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q
 
-    if [ -z "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
+    if [ -n "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
 
         echo "RESTART $service_name !!!"
 
