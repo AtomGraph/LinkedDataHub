@@ -74,6 +74,17 @@ function initialize_dataset()
       "${3}" > /dev/null
 }
 
+function restart_backend_cache()
+{
+    local service_name="$1"
+
+    echo "RESTART $service_name !!!"
+
+    if [ -z "$(docker-compose ps -q | grep "$( docker-compose ps -q $service_name )" )" ]
+        docker-compose restart "$1"
+    fi
+}
+
 export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
 printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
@@ -86,6 +97,8 @@ export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://localhost:4443/admin/"
+export END_USER_VARNISH_SERVICE="varnish-end-user"
+export ADMIN_VARNISH_SERVICE="varnish-admin"
 
 error_count=0
 
