@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +29,7 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
 /**
@@ -49,17 +51,31 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
             {
                 ban(UriBuilder.fromUri(getAdminBaseURI()).path("acl/authorizations/").build());
             }
-        };
+        }
     }
-
-    public Response ban(URI... resources)
+    
+    public void ban(URI... resources)
+    {
+        if (getApplication().canAs(EndUserApplication.class))
+        {
+            ban(getApplication().getService().getProxy(), resources);
+            ban(getApplication().as(EndUserApplication.class).getAdminApplication().getService().getProxy(), resources);
+        }
+        if (getApplication().canAs(AdminApplication.class))
+        {
+            ban(getApplication().getService().getProxy(), resources);
+            ban(getApplication().as(AdminApplication.class).getEndUserApplication().getService().getProxy(), resources);
+        }
+    }
+    
+    public Response ban(Resource proxy, URI... resources)
     {
         if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
         
-        if (getApplication().getService().getProxy() != null)
+        if (resources.length > 0)
         {
             // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-            Invocation.Builder builder = getClient().target(getApplication().getService().getProxy().getURI()).request();
+            Invocation.Builder builder = getClient().target(proxy.getURI()).request();
 
             for (URI uri : resources) builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(uri.toString(), UriComponent.Type.UNRESERVED));
 
