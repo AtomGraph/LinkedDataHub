@@ -29,6 +29,9 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -60,6 +63,21 @@ public class AuthorizationFilter implements ContainerRequestFilter
 {
     private static final Logger log = LoggerFactory.getLogger(AuthorizationFilter.class);
 
+    public static final Map<String, Resource> ACCESS_MODES;
+    static
+    {
+        final Map<String, Resource> accessModes = new HashMap<>();
+        
+        accessModes.put(HttpMethod.GET, ACL.Read);
+        accessModes.put(HttpMethod.HEAD, ACL.Read);
+        accessModes.put(HttpMethod.POST, ACL.Append);
+        accessModes.put(HttpMethod.PUT, ACL.Write);
+        accessModes.put(HttpMethod.DELETE, ACL.Write);
+        accessModes.put(HttpMethod.PATCH, ACL.Write);
+        
+        ACCESS_MODES = Collections.unmodifiableMap(accessModes);
+    }
+    
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
     
@@ -81,12 +99,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         // skip filter if no application has matched
         if (getApplication() == null) return;
             
-        Resource accessMode = null;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.GET) || request.getMethod().equalsIgnoreCase(HttpMethod.HEAD)) accessMode = ACL.Read;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.POST)) accessMode = ACL.Append;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.PUT)) accessMode = ACL.Write;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.DELETE)) accessMode = ACL.Write;
-        if (request.getMethod().equalsIgnoreCase(HttpMethod.PATCH)) accessMode = ACL.Write;
+        Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
         {
