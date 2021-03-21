@@ -9,7 +9,7 @@ echo "WTF????"
 
 # access is unauthorized
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-quads" \
