@@ -5,6 +5,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 restart_backend_cache "$END_USER_VARNISH_SERVICE"
 restart_backend_cache "$ADMIN_VARNISH_SERVICE"
 
+echo "WTF????"
+
 # access is unauthorized
 
 curl -k -w "%{http_code}\n" -f -s \
@@ -14,6 +16,8 @@ curl -k -w "%{http_code}\n" -f -s \
   -X PUT \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
+
+echo "AAA!!!"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
@@ -27,6 +31,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
   --agent "$AGENT_URI" \
   --to-all-in "${END_USER_BASE_URL}ns/domain/default#Root" \
   --write
+
+echo "BBB!!!"
 
 popd > /dev/null
 
