@@ -47,10 +47,14 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     {
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE))
         {
-            if (req.getUriInfo().getAbsolutePath().toString().contains("acl/authorizations/"))
-            {
-                ban(UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build()); // "agents/" ?
-            }
+            URI aclUrl = UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build();
+            if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl);
+
+            URI modelUrl = UriBuilder.fromUri(getAdminBaseURI()).path("model/").build();
+            if (!modelUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(modelUrl);
+
+            URI sitemapUrl = UriBuilder.fromUri(getAdminBaseURI()).path("sitemap/").build();
+            if (!sitemapUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(sitemapUrl);
         }
     }
     
