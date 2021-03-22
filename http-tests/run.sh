@@ -74,7 +74,7 @@ function initialize_dataset()
       "${3}" > /dev/null
 }
 
-function restart_backend_cache()
+function purge_backend_cache()
 {
     local service_name="$1"
 
@@ -85,7 +85,7 @@ function restart_backend_cache()
 
         echo "RESTART $service_name !!!"
 
-        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" restart "$1"
+        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" exec "$1" varnishadm "ban req.url ~ /" # purge all entries
     fi
 }
 
@@ -96,7 +96,7 @@ export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
-export -f restart_backend_cache
+export -f purge_backend_cache
 
 export HTTP_TEST_ROOT="$PWD"
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
