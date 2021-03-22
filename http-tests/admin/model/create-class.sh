@@ -29,7 +29,7 @@ popd > /dev/null
 
 # check that the class is present in the ontology
 
-curl -k -f-v-N \
+curl -k -f-v -N \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}ns/domain" \
 | grep -q "$class"
@@ -62,7 +62,7 @@ popd > /dev/null
 mode=$(urlencode "https://w3id.org/atomgraph/client#ConstructMode")
 forClass=$(urlencode "$class")
 
-curl -k -f-v\
+curl -k -f-v \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   "${END_USER_BASE_URL}?forClass=${forClass}&mode=${mode}" \
   -H "Accept: text/turtle"
