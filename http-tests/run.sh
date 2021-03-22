@@ -78,12 +78,9 @@ function purge_backend_cache()
 {
     local service_name="$1"
 
-    echo "RESTART $service_name ???"
-    docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q
-
     if [ -n "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
 
-        echo "RESTART $service_name !!!"
+        echo "PURGE $service_name !!!"
 
         docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" exec "$1" varnishadm "ban req.url ~ /" # purge all entries
     fi
