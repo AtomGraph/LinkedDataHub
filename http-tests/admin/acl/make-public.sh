@@ -7,7 +7,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # unauthenticated access is forbidden
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
@@ -29,7 +29,7 @@ popd > /dev/null
 
 # public access is allowed after authorization is created
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_OK}"
