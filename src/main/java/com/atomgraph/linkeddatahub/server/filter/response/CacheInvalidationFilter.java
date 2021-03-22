@@ -45,7 +45,7 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
-        if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE))
+        if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
             URI aclUrl = UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build();
             if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl);
