@@ -74,8 +74,8 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
             endUserApp = adminApp.getEndUserApplication();
         }
         
-        if (endUserApp.getService().getProxy() != null) ban(endUserApp.getService().getProxy(), resources);
-        if (adminApp.getService().getProxy() != null) ban(adminApp.getService().getProxy(), resources);
+        if (endUserApp.getService().getProxy() != null) ban(endUserApp.getService().getProxy(), resources).close(); // release connection
+        if (adminApp.getService().getProxy() != null) ban(adminApp.getService().getProxy(), resources).close();
     }
     
     public Response ban(Resource proxy, URI... resources)
