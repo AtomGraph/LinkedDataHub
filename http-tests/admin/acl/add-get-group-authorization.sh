@@ -7,7 +7,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # access is unauthorized
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}" \
@@ -24,7 +24,7 @@ group_doc=$(./create-group.sh \
   --name "Test group" \
   --member "$AGENT_URI")
 
-group=$(curl -s -k \
+group=$(curl -v -k \
   -E "${OWNER_CERT_FILE}":"${OWNER_CERT_PWD}" \
   "$group_doc" \
   -H "Accept: application/n-triples" \
@@ -46,7 +46,7 @@ popd > /dev/null
 
 # access is allowed after authorization is created
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}" \
