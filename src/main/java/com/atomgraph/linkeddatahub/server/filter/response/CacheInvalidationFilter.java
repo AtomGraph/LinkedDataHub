@@ -18,10 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.io.IOException;
-import java.net.URI;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
@@ -51,34 +48,24 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
-//            URI graphUrl = UriBuilder.fromUri(getAdminBaseURI()).path("graphs/").build();
-//            if (!graphUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(getAdminBaseURI());
-//            
-//            URI aclUrl = UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build();
-//            if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl, URI.create(FOAF.Agent.getURI()), URI.create(ACL.AuthenticatedAgent.getURI()));
-//
-//            URI modelUrl = UriBuilder.fromUri(getAdminBaseURI()).path("model/").build();
-//            if (!modelUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(modelUrl);
-//
-//            URI sitemapUrl = UriBuilder.fromUri(getAdminBaseURI()).path("sitemap/").build();
-//            if (!sitemapUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(sitemapUrl);
-            
-            if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute())
+            if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
             {
-                ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI()).close();
-                ban(getAdminApplication().getService().getProxy(), URI.create(FOAF.Agent.getURI())).close();
-                ban(getAdminApplication().getService().getProxy(), URI.create(ACL.AuthenticatedAgent.getURI())).close();
+                ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI().toString()).close();
+//                ban(getAdminApplication().getService().getProxy(), FOAF.Agent.getURI()).close();
+                ban(getAdminApplication().getService().getProxy(), "foaf:Agent").close();
+//                ban(getAdminApplication().getService().getProxy(), ACL.AuthenticatedAgent.getURI()).close();
+                ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
         }
     }
     
-    public Response ban(Resource proxy, URI url)
+    public Response ban(Resource proxy, String url)
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return getClient().target(proxy.getURI()).request().
-            header("X-Escaped-Request-URI", UriComponent.encode(url.toString(), UriComponent.Type.UNRESERVED)).
+            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
             method("BAN", Response.class);
     }
 
@@ -104,4 +91,5 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     {
         return getSystem().getClient();
     }
+    
 }
