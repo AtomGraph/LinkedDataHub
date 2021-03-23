@@ -18,6 +18,8 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.io.IOException;
 import java.net.URI;
 import javax.inject.Inject;
@@ -33,8 +35,10 @@ import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
 /**
- *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * Attempts to make proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
+ * Currently implemented as a crude URL pattern-based heuristic. This filter works correctly if HTTP tests pass with both enabled and disabled proxy cache.
+ * 
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class CacheInvalidationFilter implements ContainerResponseFilter
 {
@@ -51,7 +55,7 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
             if (!graphUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(getAdminBaseURI());
             
             URI aclUrl = UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build();
-            if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl);
+            if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl, URI.create(FOAF.Agent.getURI()), URI.create(ACL.AuthenticatedAgent.getURI()));
 
             URI modelUrl = UriBuilder.fromUri(getAdminBaseURI()).path("model/").build();
             if (!modelUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(modelUrl);
