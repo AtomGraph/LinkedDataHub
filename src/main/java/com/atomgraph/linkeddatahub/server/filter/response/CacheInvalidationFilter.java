@@ -64,9 +64,9 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
             
             if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute())
             {
-                ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI());
-                ban(getAdminApplication().getService().getProxy(), URI.create(FOAF.Agent.getURI()));
-                ban(getAdminApplication().getService().getProxy(), URI.create(ACL.AuthenticatedAgent.getURI()));
+                ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI()).close();
+                ban(getAdminApplication().getService().getProxy(), URI.create(FOAF.Agent.getURI())).close();
+                ban(getAdminApplication().getService().getProxy(), URI.create(ACL.AuthenticatedAgent.getURI())).close();
             }
         }
     }
