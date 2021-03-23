@@ -25,14 +25,11 @@ import java.net.URI;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
-import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Attempts to make proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
@@ -49,6 +46,8 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
+        if (getAdminApplication().getService().getProxy() == null) return;
+        
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
 //            URI graphUrl = UriBuilder.fromUri(getAdminBaseURI()).path("graphs/").build();
@@ -63,52 +62,31 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
 //            URI sitemapUrl = UriBuilder.fromUri(getAdminBaseURI()).path("sitemap/").build();
 //            if (!sitemapUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(sitemapUrl);
             
-            if (!getAdminBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(getAdminBaseURI(), URI.create(FOAF.Agent.getURI()), URI.create(ACL.AuthenticatedAgent.getURI()));
+            if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute())
+            {
+                ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI());
+                ban(getAdminApplication().getService().getProxy(), URI.create(FOAF.Agent.getURI()));
+                ban(getAdminApplication().getService().getProxy(), URI.create(ACL.AuthenticatedAgent.getURI()));
+            }
         }
     }
     
-    public void ban(URI... resources)
+    public Response ban(Resource proxy, URI url)
     {
-        final EndUserApplication endUserApp;
-        final AdminApplication adminApp;
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
+        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
+        return getClient().target(proxy.getURI()).request().
+            header("X-Escaped-Request-URI", url).
+            method("BAN", Response.class);
+    }
+
+    public AdminApplication getAdminApplication()
+    {
         if (getApplication().canAs(EndUserApplication.class))
-        {
-            endUserApp = getApplication().as(EndUserApplication.class);
-            adminApp = endUserApp.getAdminApplication();
-        }
+            return getApplication().as(EndUserApplication.class).getAdminApplication();
         else
-        {
-            adminApp = getApplication().as(AdminApplication.class);
-            endUserApp = adminApp.getEndUserApplication();
-        }
-        
-        if (endUserApp.getService().getProxy() != null) ban(endUserApp.getService().getProxy(), resources).close(); // release connection
-        if (adminApp.getService().getProxy() != null) ban(adminApp.getService().getProxy(), resources).close();
-    }
-    
-    public Response ban(Resource proxy, URI... resources)
-    {
-        if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        if (resources.length > 0)
-        {
-            // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-            Invocation.Builder builder = getClient().target(proxy.getURI()).request();
-
-            for (URI uri : resources) builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(uri.toString(), UriComponent.Type.UNRESERVED));
-
-            return builder.method("BAN", Response.class);
-        }
-
-        return null;
-    }
-    
-    protected URI getAdminBaseURI()
-    {
-        return getApplication().canAs(EndUserApplication.class) ?
-            getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI() :
-            getApplication().getBaseURI();
+            return getApplication().as(AdminApplication.class);
     }
     
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
