@@ -30,6 +30,7 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
 import org.apache.jena.rdf.model.Resource;
+import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * Attempts to make proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
@@ -77,7 +78,7 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
         
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return getClient().target(proxy.getURI()).request().
-            header("X-Escaped-Request-URI", url).
+            header("X-Escaped-Request-URI", UriComponent.encode(url.toString(), UriComponent.Type.UNRESERVED)).
             method("BAN", Response.class);
     }
 
