@@ -51,17 +51,19 @@ public class CacheInvalidationFilter implements ContainerResponseFilter
     {
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
-            URI graphUrl = UriBuilder.fromUri(getAdminBaseURI()).path("graphs/").build();
-            if (!graphUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(getAdminBaseURI());
+//            URI graphUrl = UriBuilder.fromUri(getAdminBaseURI()).path("graphs/").build();
+//            if (!graphUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(getAdminBaseURI());
+//            
+//            URI aclUrl = UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build();
+//            if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl, URI.create(FOAF.Agent.getURI()), URI.create(ACL.AuthenticatedAgent.getURI()));
+//
+//            URI modelUrl = UriBuilder.fromUri(getAdminBaseURI()).path("model/").build();
+//            if (!modelUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(modelUrl);
+//
+//            URI sitemapUrl = UriBuilder.fromUri(getAdminBaseURI()).path("sitemap/").build();
+//            if (!sitemapUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(sitemapUrl);
             
-            URI aclUrl = UriBuilder.fromUri(getAdminBaseURI()).path("acl/").build();
-            if (!aclUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(aclUrl, URI.create(FOAF.Agent.getURI()), URI.create(ACL.AuthenticatedAgent.getURI()));
-
-            URI modelUrl = UriBuilder.fromUri(getAdminBaseURI()).path("model/").build();
-            if (!modelUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(modelUrl);
-
-            URI sitemapUrl = UriBuilder.fromUri(getAdminBaseURI()).path("sitemap/").build();
-            if (!sitemapUrl.relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(sitemapUrl);
+            if (!getAdminBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) ban(getAdminBaseURI(), URI.create(FOAF.Agent.getURI()), URI.create(ACL.AuthenticatedAgent.getURI()));
         }
     }
     
