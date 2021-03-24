@@ -682,7 +682,7 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
-                proxy(true).proxyForSameScope(false).
+                //proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
