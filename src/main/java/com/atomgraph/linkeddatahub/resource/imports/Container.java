@@ -120,9 +120,9 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
                      // start the import asynchroniously
                     if (topic.canAs(CSVImport.class))
-                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService(), getUriInfo().getBaseUri().toString(), getDataManager());
                     if (topic.canAs(RDFImport.class))
-                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService(), getUriInfo().getBaseUri().toString(), getDataManager());
                 }
             }
             else

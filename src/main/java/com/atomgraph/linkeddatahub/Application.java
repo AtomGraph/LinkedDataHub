@@ -196,7 +196,6 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
-import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
@@ -929,14 +928,14 @@ public class Application extends ResourceConfig
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(csvImport, importRes, provGraph, accessor, baseURI, dataManager);
+        ImportListener.submit(csvImport, importRes, provGraph, service, baseURI, dataManager);
     }
     
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(rdfImport, importRes, provGraph, accessor, baseURI, dataManager);
+        ImportListener.submit(rdfImport, importRes, provGraph, service, baseURI, dataManager);
     }
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException
