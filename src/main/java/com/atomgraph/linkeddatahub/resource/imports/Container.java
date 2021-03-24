@@ -49,6 +49,7 @@ import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.LocationMapper;
+import org.glassfish.jersey.process.internal.RequestScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@RequestScoped
 public class Container extends com.atomgraph.linkeddatahub.server.model.impl.ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
