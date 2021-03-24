@@ -125,7 +125,7 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
     <dt><code>SELF_SIGNED_CERT</code></dt>
     <dd><code>true</code> if the server certificate is self-signed</dd>
     <dt><code>SIGN_UP_CERT_VALIDITY</code></dt>
-    <dd>Validity of the WebID certificates of signed up users (<em>not the owner's</em)</dd>
+    <dd>Validity of the WebID certificates of signed up users (<em>not the owner's</em>)</dd>
     <dt><code>IMPORT_KEEPALIVE</code></dt>
     <dd>The period for which the data import can keep an open HTTP connection before it times out, in ms. The larger files are being imported, the longer it has to be in order for the import to complete.</dd>
     <dt><code>MAX_CONTENT_LENGTH</code></dt>
