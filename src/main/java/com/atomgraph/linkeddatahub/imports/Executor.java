@@ -18,8 +18,6 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.imports.stream.csv.ClientResponseSupplier;
@@ -27,6 +25,7 @@ import com.atomgraph.linkeddatahub.imports.stream.StreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
@@ -86,7 +85,7 @@ public class Executor
         this.threadPool = threadPool;
     }
     
-    public void start(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Application app, String baseURI, DataManager dataManager)
+    public void start(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -103,11 +102,11 @@ public class Executor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
                 dataManager, baseURI, pss.asQuery()), getExecutorService()).
-            thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, app, dataManager), getExecutorService()).
-            exceptionally(failure(csvImport, importRes, provImport, provGraph, app));
+            thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(csvImport, importRes, provImport, provGraph, service));
     }
 
-    public void start(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Application app, String baseURI, DataManager dataManager)
+    public void start(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -125,11 +124,11 @@ public class Executor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
                 dataManager, baseURI, pss.asQuery()), getExecutorService()).
-            thenAcceptAsync(success(rdfImport, importRes, provImport, provGraph, app, dataManager), getExecutorService()).
-            exceptionally(failure(rdfImport, importRes, provImport, provGraph, app));
+            thenAcceptAsync(success(rdfImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(rdfImport, importRes, provImport, provGraph, service));
     }
     
-    protected Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Application app, final DataManager dataManager)
+    protected Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (CSVStreamRDFOutput output) ->
         {
@@ -140,16 +139,15 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, provGraph, app.getService().getDatasetAccessor());
+            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
-            if (app.getService().getProxy() != null) ban(dataManager, app.getService().getProxy(), csvImport.getContainer().getURI());
-            // if the current app is EndUserApplication, also purge entries of its AdminApplication
-            if (app.canAs(EndUserApplication.class)) ban(dataManager, app.as(EndUserApplication.class).getAdminApplication().getService().getProxy(), csvImport.getContainer().getURI());
+            if (service.getProxy() != null) ban(dataManager, service.getProxy(), csvImport.getContainer().getURI());
+            if (adminService != null && adminService.getProxy() != null) ban(dataManager, adminService.getProxy(), csvImport.getContainer().getURI());
         };
     }
     
-    protected Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Application app, final DataManager dataManager)
+    protected Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (StreamRDFOutput output) ->
         {
@@ -160,16 +158,15 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, provGraph, app.getService().getDatasetAccessor());
+            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
-            if (app.getService().getProxy() != null) ban(dataManager, app.getService().getProxy(), rdfImport.getContainer().getURI());
-            // if the current app is EndUserApplication, also purge entries of its AdminApplication
-            if (app.canAs(EndUserApplication.class)) ban(dataManager, app.as(EndUserApplication.class).getAdminApplication().getService().getProxy(), rdfImport.getContainer().getURI());
+            if (service.getProxy() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
+            if (adminService != null && adminService.getProxy() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
         };
     }
 
-    protected Function<Throwable, Void> failure(final Import importInst, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Application app)
+    protected Function<Throwable, Void> failure(final Import importInst, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service)
     {
         return new Function<Throwable, Void>()
         {
@@ -189,7 +186,7 @@ public class Executor
                             addLiteral(DCTerms.description, tpe.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        appendProvGraph(provImport, provGraph, app.getService().getDatasetAccessor());
+                        appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
                     }
                     
                     if (t.getCause() instanceof ImportException) // could not save RDF
@@ -204,7 +201,7 @@ public class Executor
                             response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
                         }
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        appendProvGraph(provImport, provGraph, app.getService().getDatasetAccessor());
+                        appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
                     }
                 }
                 

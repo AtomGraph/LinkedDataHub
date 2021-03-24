@@ -26,6 +26,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -49,7 +50,6 @@ import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.util.LocationMapper;
-import org.glassfish.jersey.process.internal.RequestScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,6 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-@RequestScoped
 public class Container extends com.atomgraph.linkeddatahub.server.model.impl.ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
@@ -120,11 +119,12 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         throw new IllegalStateException("Document provenance graph query returned no results");
                     }
 
-                     // start the import asynchroniously
+                    Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+                    // start the import asynchroniously
                     if (topic.canAs(CSVImport.class))
-                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getApplication(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                     if (topic.canAs(RDFImport.class))
-                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getApplication(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                 }
             }
             else
