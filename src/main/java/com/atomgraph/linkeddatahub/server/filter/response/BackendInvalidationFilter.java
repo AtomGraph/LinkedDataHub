@@ -26,16 +26,17 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
 /**
- * Attempts to make proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
+ * Attempts to make backend (triplestore) proxy cache layer transparent by invalidating cache entries that potentially become stale after a write/update request.
  * Currently implemented as a crude URL pattern-based heuristic. This filter works correctly if HTTP tests pass with both enabled and disabled proxy cache.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class CacheInvalidationFilter implements ContainerResponseFilter
+public class BackendInvalidationFilter implements ContainerResponseFilter
 {
 
     @Inject com.atomgraph.linkeddatahub.Application system;

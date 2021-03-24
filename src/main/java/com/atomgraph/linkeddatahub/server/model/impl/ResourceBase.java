@@ -648,7 +648,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof SkolemizingModelProvider) model = ((SkolemizingModelProvider)reader).process(model);
-            if (log.isDebugEnabled()) log.debug("POSTed Model size: {} Model: {}", model.size(), model);
+            if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
             int count = processFormDataMultiPart(model, multiPart);

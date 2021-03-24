@@ -104,7 +104,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.CacheInvalidationFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -769,7 +769,7 @@ public class Application extends ResourceConfig
 
     protected void registerContainerResponseFilters()
     {
-        register(new CacheInvalidationFilter());
+        register(new BackendInvalidationFilter());
     }
     
     protected void registerExceptionMappers()
