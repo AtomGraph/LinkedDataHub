@@ -104,6 +104,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -195,7 +196,6 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
-import org.apache.jena.query.DatasetAccessor;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
@@ -634,6 +634,7 @@ public class Application extends ResourceConfig
 
         registerResourceClasses();
         registerContainerRequestFilters();
+        registerContainerResponseFilters();
         registerExceptionMappers();
         
         eventBus.register(this); // this system application will be receiving events about context changes
@@ -763,6 +764,11 @@ public class Application extends ResourceConfig
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
         register(new RDFPostCleanupInterceptor());
+    }
+
+    protected void registerContainerResponseFilters()
+    {
+        if (isInvalidateCache()) register(new BackendInvalidationFilter());
     }
     
     protected void registerExceptionMappers()
@@ -922,14 +928,14 @@ public class Application extends ResourceConfig
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
+    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(csvImport, importRes, provGraph, accessor, baseURI, dataManager);
+        ImportListener.submit(csvImport, importRes, provGraph, service, adminService, baseURI, dataManager);
     }
     
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, DatasetAccessor accessor, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(rdfImport, importRes, provGraph, accessor, baseURI, dataManager);
+        ImportListener.submit(rdfImport, importRes, provGraph, service, adminService, baseURI, dataManager);
     }
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException

@@ -74,6 +74,15 @@ function initialize_dataset()
       "${3}" > /dev/null
 }
 
+function purge_backend_cache()
+{
+    local service_name="$1"
+
+    if [ -n "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q | grep "$(docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" ps -q $service_name )" )" ]; then
+        docker-compose -f "$HTTP_TEST_ROOT/../docker-compose.yml" -f "$HTTP_TEST_ROOT/docker-compose.no-cache.yml" --env-file "$HTTP_TEST_ROOT/.env" exec -T "$service_name" varnishadm "ban req.url ~ /" # purge all entries
+    fi
+}
+
 export OWNER_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$OWNER_CERT_FILE")"
 printf "### Owner agent URI: %s\n" "$OWNER_URI"
 
@@ -81,11 +90,15 @@ export SECRETARY_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$SECRETARY_CERT_FILE")"
 printf "### Secretary agent URI: %s\n" "$SECRETARY_URI"
 
 export -f initialize_dataset
+export -f purge_backend_cache
 
+export HTTP_TEST_ROOT="$PWD"
 export END_USER_ENDPOINT_URL="http://localhost:3031/ds/"
 export ADMIN_ENDPOINT_URL="http://localhost:3030/ds/"
 export END_USER_BASE_URL="https://localhost:4443/"
 export ADMIN_BASE_URL="https://localhost:4443/admin/"
+export END_USER_VARNISH_SERVICE="varnish-end-user"
+export ADMIN_VARNISH_SERVICE="varnish-admin"
 
 error_count=0
 
