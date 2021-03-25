@@ -48,6 +48,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
         {
+            // ban all admin/ entries when the admin dataset is changed - not perfect, but works
             if (!getAdminApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).isAbsolute()) // URL is relative to the admin app's base URI
             {
                 ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI().toString()).close();
@@ -57,8 +58,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-            ban(getApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString());
-            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()); // URIs can be relative in queries
+            ban(getApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
         }
     }
     
@@ -68,7 +69,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         
         // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return getClient().target(proxy.getURI()).request().
-            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)).
+            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }
 

@@ -768,7 +768,7 @@ public class Application extends ResourceConfig
 
     protected void registerContainerResponseFilters()
     {
-        register(new BackendInvalidationFilter());
+        if (isInvalidateCache()) register(new BackendInvalidationFilter());
     }
     
     protected void registerExceptionMappers()
