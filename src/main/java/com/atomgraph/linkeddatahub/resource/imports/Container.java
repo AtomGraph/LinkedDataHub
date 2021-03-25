@@ -26,6 +26,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -118,11 +119,12 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                         throw new IllegalStateException("Document provenance graph query returned no results");
                     }
 
-                     // start the import asynchroniously
+                    Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+                    // start the import asynchroniously
                     if (topic.canAs(CSVImport.class))
-                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                     if (topic.canAs(RDFImport.class))
-                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService().getDatasetAccessor(), getUriInfo().getBaseUri().toString(), getDataManager());
+                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                 }
             }
             else
