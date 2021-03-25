@@ -599,8 +599,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             response = Response.created(getURI()).build();
         }
 
-        Response banResponse = ban(getOntResource());
-        if (banResponse != null) banResponse.close();
+//        Response banResponse = ban(getOntResource());
+//        if (banResponse != null) banResponse.close();
             
         return response;
     }

@@ -26,7 +26,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
@@ -53,10 +52,13 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             {
                 ban(getAdminApplication().getService().getProxy(), getAdminApplication().getBaseURI().toString()).close();
 //                ban(getAdminApplication().getService().getProxy(), FOAF.Agent.getURI()).close();
-                ban(getAdminApplication().getService().getProxy(), "foaf:Agent").close();
+                ban(getAdminApplication().getService().getProxy(), "foaf:Agent").close(); // queries use prefixed names instead of absolute URIs
 //                ban(getAdminApplication().getService().getProxy(), ACL.AuthenticatedAgent.getURI()).close();
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
+            
+            ban(getApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString());
+            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()); // URIs can be relative in queries
         }
     }
     
