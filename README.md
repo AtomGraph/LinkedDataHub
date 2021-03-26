@@ -22,7 +22,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 
 ### Prerequisites
 
-* `bash` shell. It should be included by default on Linux. On Windows you can install the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
+* `bash` shell 4.x. It should be included by default on Linux. On Windows you can install the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 * Java's [`keytool`](https://docs.oracle.com/en/java/javase/11/tools/keytool.html) available on `$PATH`. It comes with the JDK.
 * [`openssl`](https://www.openssl.org/) 1.1.x available on `$PATH`
 * [Docker](https://docs.docker.com/install/) installed
@@ -96,7 +96,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
 
   ### Base URI
 
-  Besides owner WebID configuration, the most common case is changing the base URI from the default `https://localhost:4443/` to your own.
+  A common case is changing the base URI from the default `https://localhost:4443/` to your own.
 
   Lets use `https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/` as an example. We need to split the URI into components and set them in the `.env` file using the following parameters:
   ```
@@ -114,6 +114,31 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
   Dataspaces are configured in [`config/system.trig`](https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig). Relative URIs will be resolved against the base URI configured in the `.env` file.
 
 _:warning: Do not use blank nodes to identify applications or services. We recommend using the `urn:` URI scheme, since LinkedDataHub application resources are not accessible under their own dataspace._
+
+  ### Environment
+
+  LinkedDataHub supports a range of configuration options that can be passed as environment parameters in `docker-compose.yml`. The most common ones are:
+
+  <dl>
+    <dt><code>CATALINA_OPTS</code></dt>
+    <dd>Tomcat's <a href="https://tomcat.apache.org/tomcat-9.0-doc/RUNNING.txt">command line options</a></dd>
+    <dt><code>SELF_SIGNED_CERT</code></dt>
+    <dd><code>true</code> if the server certificate is self-signed</dd>
+    <dt><code>SIGN_UP_CERT_VALIDITY</code></dt>
+    <dd>Validity of the WebID certificates of signed up users (<em>not the owner's</em>)</dd>
+    <dt><code>IMPORT_KEEPALIVE</code></dt>
+    <dd>The period for which the data import can keep an open HTTP connection before it times out, in ms. The larger files are being imported, the longer it has to be in order for the import to complete.</dd>
+    <dt><code>MAX_CONTENT_LENGTH</code></dt>
+    <dd>Maximum allowed size of the request body, in bytes</dd>
+    <dt><code>MAIL_SMTP_HOST</code></dt>
+    <dd>Hostname of the mail server</dd>
+    <dt><code>MAIL_SMTP_PORT</code></dt>
+    <dd>Port number of the mail server</dd>
+    <dt><code>GOOGLE_CLIENT_ID</code></dt>
+    <dd>OAuth 2.0 Client ID from Google. When provided, enables the <samp>Login with Google</samp> authentication method.</dd>
+    <dt><code>GOOGLE_CLIENT_SECRET</code></dt>
+    <dd>Client secret from Google</dd>
+  </dl>
 
   ## Reset
 

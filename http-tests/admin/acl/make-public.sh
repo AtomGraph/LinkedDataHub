@@ -2,10 +2,12 @@
 
 initialize_dataset "$END_USER_BASE_URL" "$TMP_END_USER_DATASET" "$END_USER_ENDPOINT_URL"
 initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
+purge_backend_cache "$END_USER_VARNISH_SERVICE"
+purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
-# unauthenticated access is forbidden
+# public access is forbidden
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
@@ -27,7 +29,7 @@ popd > /dev/null
 
 # public access is allowed after authorization is created
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -v \
   -H "Accept: application/n-quads" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_OK}"
