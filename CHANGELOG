@@ -1,3 +1,21 @@
+## [2.1.55] - 2021-03-26
+### Added
+- varnish-admin service that proxy-caches the fuseki-admin triplestore
+- `purge_backend_cache` function to the HTTP test runner script run.sh
+- `purge_backend_cache` calls to clear proxy caches before each HTTP script
+- `BackendInvalidationFilter` response filter with backend proxy cache invalidation heuristics
+- Basic environment variable documentation to README
+
+### Changed
+- Upgraded Processor and Web-Client to the latest versions
+- Upgraded Saxon-JS to 2.1
+- End-user and admin Services passed to import `Executor` instead of `DatasetAccessor`
+- Defined HTTP method -> ACL mode mapping as the `AuthorizationFilter.ACCESS_MODES` map
+
+### Removed
+- Unused Docker mounts from linkeddatahub service
+- `ban()` calls from `ResourceBase` -- now handled by the `BackendInvalidationFilter`
+
 ## [2.1.49] - 2021-03-19
 ### Added
 - `apl:baseUri` as a static XSLT stylesheet param
