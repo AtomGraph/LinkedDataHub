@@ -299,18 +299,6 @@ exclude-result-prefixes="#all">
         </xsl:variable>
         <xsl:sequence select="$images"/>
     </xsl:function>
-
-    <xsl:function name="ac:svg-label" as="xs:string?">
-        <xsl:param name="resource" as="element()"/>
-
-        <xsl:sequence select="ac:label($resource)"/>
-    </xsl:function>
-
-    <xsl:function name="ac:svg-object-label" as="xs:string?">
-        <xsl:param name="object" as="attribute()"/>
-
-        <xsl:sequence select="ac:object-label($object)"/>
-    </xsl:function>
     
     <xsl:function name="lapp:base" as="node()?">
         <xsl:param name="uri" as="xs:anyURI"/>
