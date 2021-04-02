@@ -1790,7 +1790,7 @@ exclude-result-prefixes="#all">
                                 <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
                             </li>
                             <li>
-                                <a href="https://www.youtube.com/playlist?list=PLnDXST4pVcQQr-j3YXrVvGRP46E2Nnn5l" target="_blank">Screencasts</a>
+                                <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a>
                             </li>
                             <li>
                                 <a href="https://linkeddatahub.com/demo/" target="_blank">Demo apps</a> <!-- built-in Context -->
