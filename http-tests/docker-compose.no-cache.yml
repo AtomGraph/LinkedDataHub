@@ -14,4 +14,3 @@ services:
       - ./http-tests/ssl/server:/var/linkeddatahub/ssl/server
       - ./http-tests/ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem
       - ./http-tests/ssl/secretary:/var/linkeddatahub/ssl/secretary
-      - ./config/system.trig:/var/linkeddatahub/datasets/system.trig:ro
