@@ -43,7 +43,9 @@ xmlns:void="&void;"
 xmlns:dydra="&dydra;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"
-exclude-result-prefixes="#all">
+exclude-result-prefixes="#all"
+extension-element-prefixes="ixsl"
+>
 
     <xsl:param name="default-query" as="xs:string">SELECT DISTINCT *
 WHERE
