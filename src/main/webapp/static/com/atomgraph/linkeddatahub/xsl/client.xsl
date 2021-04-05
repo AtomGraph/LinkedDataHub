@@ -123,8 +123,6 @@ extension-element-prefixes="ixsl"
     <xsl:template name="main">
         <xsl:message>xsl:product-name: <xsl:value-of select="system-property('xsl:product-name')"/></xsl:message>
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
-        <xsl:message use-when="not(system-property('saxon:platform') eq 'Browser')">NOT BROWSER</xsl:message>
-        <xsl:message use-when="system-property('saxon:platform') eq 'Browser'">BROWSER</xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
         <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
@@ -279,12 +277,12 @@ extension-element-prefixes="ixsl"
     </xsl:function>
 
     <!-- format external URLs in DataTable as HTML links with ?uri= indirection (which leads back to the app in LD browser mode -->
-    <xsl:template match="@rdf:about[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:about[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('saxon:platform') eq 'Browser'" priority="1">
+    <xsl:template match="@rdf:about[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:about[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="1">
         "&lt;a href=\"?uri=<xsl:value-of select="encode-for-uri(.)"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
 
     <!-- format URLs in DataTable as HTML links -->
-    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('saxon:platform') eq 'Browser'">
+    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         "&lt;a href=\"<xsl:value-of select="."/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
     

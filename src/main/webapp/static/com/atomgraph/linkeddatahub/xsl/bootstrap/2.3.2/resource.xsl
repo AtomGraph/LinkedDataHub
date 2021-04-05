@@ -19,7 +19,6 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:saxon="http://saxon.sf.net/"
 xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
@@ -43,25 +42,25 @@ extension-element-prefixes="ixsl"
 
     <!-- CSS -->
     
-    <xsl:template use-when="not(system-property('saxon:platform') eq 'Browser')" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Container']" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Container']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="not(system-property('saxon:platform') eq 'Browser')" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Item']" mode="apl:logo">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('saxon:platform') eq 'Browser'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('saxon:platform') eq 'Browser'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Item', $ldt:base))]" mode="apl:logo" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Item', $ldt:base))]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
@@ -155,18 +154,18 @@ extension-element-prefixes="ixsl"
             </button>
         </div>
 
-        <xsl:variable name="logged-in" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean" use-when="not(system-property('saxon:platform') eq 'Browser')"/>
-        <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'])" as="xs:boolean" use-when="system-property('saxon:platform') eq 'Browser'"/>
+        <xsl:variable name="logged-in" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
         <xsl:if test="$logged-in">
             <!-- show delete button only for document resources -->
             <xsl:if test="ac:document-uri(@rdf:about) = @rdf:about">
                 <div class="pull-right">
                     <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
                         <button class="btn btn-delete" type="submit">
-                            <xsl:value-of use-when="not(system-property('saxon:platform') eq 'Browser')">
+                            <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
                                 <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label"/>
                             </xsl:value-of>
-                            <xsl:text use-when="system-property('saxon:platform') eq 'Browser'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
+                            <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
                         </button>
                     </form>
                 </div>
@@ -209,8 +208,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[@rdf:about or @rdf:nodeID][rdf:type/@rdf:resource]" mode="bs2:TypeList">
         <ul class="inline">
             <xsl:for-each select="rdf:type/@rdf:resource">
-                <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ldt:lang}" use-when="not(system-property('saxon:platform') eq 'Browser')"/>
-                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('saxon:platform') eq 'Browser'"/>
+                <xsl:sort select="ac:object-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                <xsl:sort select="ac:object-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
 
                 <!-- TO-DO: find a way to use only cached documents, otherwise this will execute a synchronous HTTP request which slows down the UI -->
                 <li>

@@ -26,7 +26,6 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:saxon="http://saxon.sf.net/"
 xmlns:lapp="&lapp;"
 xmlns:a="&a;"
 xmlns:ac="&ac;"
@@ -42,6 +41,7 @@ xmlns:spl="&spl;"
 xmlns:void="&void;"
 xmlns:dydra="&dydra;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
+xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all"
 >
 
@@ -71,7 +71,7 @@ LIMIT 100</xsl:param>
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not(key('resources-by-type', '&http;Response'))][$ac:mode = '&ac;QueryEditorMode']" mode="bs2:Main" priority="2" use-when="not(system-property('saxon:platform') eq 'Browser')">
+    <xsl:template match="rdf:RDF[not(key('resources-by-type', '&http;Response'))][$ac:mode = '&ac;QueryEditorMode']" mode="bs2:Main" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
         <xsl:param name="id" select="'main-content'" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
         
