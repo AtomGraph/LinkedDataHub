@@ -27,6 +27,7 @@ xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:json="http://www.w3.org/2005/xpath-functions"
 xmlns:array="http://www.w3.org/2005/xpath-functions/array"
+xmlns:saxon="http://saxon.sf.net/"
 xmlns:ac="&ac;"
 xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
@@ -315,7 +316,7 @@ exclude-result-prefixes="#all"
 
     <!-- BLOCK LIST MODE -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:BlockList" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="rdf:RDF" mode="bs2:BlockList" use-when="system-property('saxon:platform') eq 'Browser'">
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
         <xsl:call-template name="bs2:PagerList">
@@ -368,7 +369,7 @@ exclude-result-prefixes="#all"
 
     <!-- GRID MODE -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Grid" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="rdf:RDF" mode="bs2:Grid" use-when="system-property('saxon:platform') eq 'Browser'">
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
         <xsl:call-template name="bs2:PagerList">
@@ -384,7 +385,7 @@ exclude-result-prefixes="#all"
 
     <!-- TABLE MODE -->
 
-    <xsl:template match="rdf:RDF" mode="xhtml:Table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="rdf:RDF" mode="xhtml:Table" use-when="system-property('saxon:platform') eq 'Browser'">
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
         <xsl:call-template name="bs2:PagerList">
@@ -473,7 +474,7 @@ exclude-result-prefixes="#all"
 
     <!-- graph chart (for RDF/XML results) -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="rdf:RDF" mode="bs2:Chart" use-when="system-property('saxon:platform') eq 'Browser'">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -488,7 +489,7 @@ exclude-result-prefixes="#all"
         <div id="{$canvas-id}"></div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
+    <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('saxon:platform') eq 'Browser'" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="type" select="resolve-uri('ns/domain/default#GraphChart', $ldt:base)" as="xs:anyURI"/>
@@ -596,7 +597,7 @@ exclude-result-prefixes="#all"
                                 <select id="endpoint-uri" name="ou" class="input-xxlarge">
                                     <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
 
-                                    <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
+                                    <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="not(system-property('saxon:platform') eq 'Browser')">
                                         <xsl:sort select="ac:label(.)"/>
 
                                         <xsl:apply-templates select="." mode="xhtml:Option">
@@ -604,7 +605,7 @@ exclude-result-prefixes="#all"
                                             <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
                                         </xsl:apply-templates>
                                     </xsl:for-each>
-                                    <xsl:if test="true()"  use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+                                    <xsl:if test="true()"  use-when="system-property('saxon:platform') eq 'Browser'">
                                         <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
                                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                             <xsl:call-template name="onchartModeServiceLoad"/>
@@ -624,10 +625,10 @@ exclude-result-prefixes="#all"
                             </xsl:if>
 
                             <label for="{$chart-type-id}">
-                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                <xsl:value-of use-when="not(system-property('saxon:platform') eq 'Browser')">
                                     <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label"/>
                                 </xsl:value-of>
-                                <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
+                                <xsl:value-of use-when="system-property('saxon:platform') eq 'Browser'">Chart type</xsl:value-of>
                             </label>
                             <br/>
                             <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/apl.xsl -->
@@ -691,8 +692,8 @@ exclude-result-prefixes="#all"
                                 </option>
 
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="not(system-property('saxon:platform') eq 'Browser')"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('saxon:platform') eq 'Browser'"/>
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$category = current-grouping-key()">
@@ -719,8 +720,8 @@ exclude-result-prefixes="#all"
                             <br/>
                             <select id="{$series-id}" name="ou" multiple="multiple" class="input-large">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="not(system-property('saxon:platform') eq 'Browser')"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('saxon:platform') eq 'Browser'"/>
 
                                     <option value="{current-grouping-key()}">
                                         <xsl:if test="$series = current-grouping-key()">
@@ -821,7 +822,7 @@ exclude-result-prefixes="#all"
 
     <!-- table chart (for SPARQL XML results) -->
 
-    <xsl:template match="srx:sparql" mode="bs2:Chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="srx:sparql" mode="bs2:Chart" use-when="system-property('saxon:platform') eq 'Browser'">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
@@ -836,7 +837,7 @@ exclude-result-prefixes="#all"
         <div id="{$canvas-id}"></div>
     </xsl:template>
 
-    <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('saxon:platform') eq 'Browser'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="type" select="resolve-uri('ns/domain/default#ResultSetChart', $ldt:base)" as="xs:anyURI"/>
@@ -944,7 +945,7 @@ exclude-result-prefixes="#all"
                                 <select id="endpoint-uri" name="ou" class="input-xxlarge">
                                     <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
 
-                                    <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
+                                    <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="not(system-property('saxon:platform') eq 'Browser')">
                                         <xsl:sort select="ac:label(.)"/>
 
                                         <xsl:apply-templates select="." mode="xhtml:Option">
@@ -952,7 +953,7 @@ exclude-result-prefixes="#all"
                                             <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
                                         </xsl:apply-templates>
                                     </xsl:for-each>
-                                    <xsl:if test="true()"  use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+                                    <xsl:if test="true()"  use-when="system-property('saxon:platform') eq 'Browser'">
                                         <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
                                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                             <xsl:call-template name="onchartModeServiceLoad"/>
@@ -972,10 +973,10 @@ exclude-result-prefixes="#all"
                             </xsl:if>
 
                             <label for="{$chart-type-id}">
-                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                <xsl:value-of use-when="not(system-property('saxon:platform') eq 'Browser')">
                                     <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label"/>
                                 </xsl:value-of>
-                                <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
+                                <xsl:value-of use-when="system-property('saxon:platform') eq 'Browser'">Chart type</xsl:value-of>
                             </label>
                             <br/>
                             <select id="{$chart-type-id}" name="ou" class="input-medium">

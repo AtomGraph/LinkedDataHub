@@ -21,6 +21,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:saxon="http://saxon.sf.net/"
 xmlns:lapp="&lapp;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
@@ -80,8 +81,8 @@ exclude-result-prefixes="#all">
                         <!--
                         <span>
                             <button type="button" class="btn add-type">
-                                <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="key('resources', 'add', document('translations.rdf'))" mode="apl:logo"/>
-                                <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">&#x2715;</xsl:text>
+                                <xsl:apply-templates use-when="not(system-property('saxon:platform') eq 'Browser')" select="key('resources', 'add', document('translations.rdf'))" mode="apl:logo"/>
+                                <xsl:text use-when="system-property('saxon:platform') eq 'Browser'">&#x2715;</xsl:text>
                             </button>
                         </span>
                         -->

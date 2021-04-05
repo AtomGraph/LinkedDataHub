@@ -19,6 +19,7 @@
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:saxon="http://saxon.sf.net/"
 xmlns:lapp="&lapp;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
@@ -433,7 +434,7 @@ exclude-result-prefixes="#all"
             </xsl:apply-templates>
             <xsl:if test="$label">
                 <label class="control-label" for="{$for}" title="{$this}">
-                    <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
+                    <xsl:choose use-when="not(system-property('saxon:platform') eq 'Browser')">
                         <xsl:when test="doc-available(ac:document-uri(xs:anyURI($this)))">
                             <xsl:choose>
                                 <xsl:when test="key('resources', $this, document(ac:document-uri(xs:anyURI($this))))">
@@ -457,7 +458,7 @@ exclude-result-prefixes="#all"
                         </xsl:otherwise>
                     </xsl:choose>
 
-                    <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select="local-name()"/>
+                    <xsl:value-of use-when="system-property('saxon:platform') eq 'Browser'" select="local-name()"/>
                 </label>
             </xsl:if>
             
@@ -744,7 +745,7 @@ exclude-result-prefixes="#all"
                         <xsl:sort select="ac:property-label(.)"/>
                         <xsl:variable name="this" select="xs:anyURI(current-grouping-key())" as="xs:anyURI"/>
                         <xsl:variable name="available" select="doc-available(ac:document-uri($this))" as="xs:boolean"/>
-                        <xsl:choose use-when="system-property('xsl:product-name') = 'SAXON'">
+                        <xsl:choose use-when="not(system-property('saxon:platform') eq 'Browser')">
                             <xsl:when test="$available and key('resources', $this, document(ac:document-uri($this)))">
                                 <xsl:apply-templates select="key('resources', $this, document(ac:document-uri($this)))" mode="xhtml:Option">
                                     <!-- <xsl:with-param name="selected" select="@rdf:about = $this"/> -->
@@ -756,7 +757,7 @@ exclude-result-prefixes="#all"
                                 </option>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:for-each use-when="system-property('xsl:product-name') eq 'Saxon-JS'" select=".">
+                        <xsl:for-each use-when="system-property('saxon:platform') eq 'Browser'" select=".">
                             <option value="{current-grouping-key()}">
                                 <xsl:value-of select="local-name()"/>
                             </option>
