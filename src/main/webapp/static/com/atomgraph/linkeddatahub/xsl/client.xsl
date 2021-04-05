@@ -107,6 +107,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:order-by" select="ixsl:query-params()?order-by" as="xs:string?"/>
     <xsl:param name="ac:desc" select="map:contains(ixsl:query-params(), 'desc')" as="xs:boolean?"/>
     <xsl:param name="ac:mode" select="if (ixsl:query-params()?mode) then xs:anyURI(ixsl:query-params()?mode) else xs:anyURI('&ac;ReadMode')" as="xs:anyURI?"/>
+    <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
 

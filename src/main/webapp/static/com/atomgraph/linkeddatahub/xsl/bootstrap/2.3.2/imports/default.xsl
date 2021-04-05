@@ -193,7 +193,7 @@ exclude-result-prefixes="#all">
         "&lt;a href=\"<xsl:value-of select="."/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
     </xsl:template>
     
-    <xsl:function name="ac:rdf-data-table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:function name="ac:rdf-data-table">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -223,7 +223,7 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
-    <xsl:function name="ac:sparql-results-data-table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:function name="ac:sparql-results-data-table">
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
@@ -243,7 +243,7 @@ exclude-result-prefixes="#all">
     </xsl:function>
     
     <!-- TO-DO: make 'data-table' configurable -->
-    <xsl:template name="ac:draw-chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template name="ac:draw-chart">
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>

@@ -45,6 +45,18 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
+    <xsl:param name="default-query" as="xs:string">SELECT DISTINCT *
+WHERE
+{
+    { ?s ?p ?o }
+    UNION
+    {
+        GRAPH ?g
+        { ?s ?p ?o }
+    }
+}
+LIMIT 100</xsl:param>
+
     <xsl:template match="*[@rdf:nodeID = 'run']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
@@ -153,7 +165,7 @@ exclude-result-prefixes="#all">
     
     <!-- render dropdown from SPARQL service results -->
     
-    <xsl:template name="onServiceLoad" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template name="onServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="service-select" as="element()"/>
         <xsl:param name="selected-service" as="xs:anyURI?"/>
