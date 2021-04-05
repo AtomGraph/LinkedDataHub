@@ -1622,6 +1622,38 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <!-- render dropdown from SPARQL service results -->
+    
+    <xsl:template name="onServiceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="service-select" as="element()"/>
+        <xsl:param name="selected-service" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    
+                    <xsl:for-each select="$service-select">
+                        <xsl:result-document href="?.">
+                            <xsl:for-each select="$results//*[@rdf:about]">
+                                <xsl:sort select="ac:label(.)"/>
+
+                                <xsl:apply-templates select="." mode="xhtml:Option">
+                                    <xsl:with-param name="value" select="@rdf:about"/>
+                                    <xsl:with-param name="selected" select="@rdf:about = $selected-service"/>
+                                </xsl:apply-templates>
+                            </xsl:for-each>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- EVENT LISTENERS -->
     
     <xsl:template match="form[tokenize(../@class, ' ') = 'modal']" mode="ixsl:onsubmit">
