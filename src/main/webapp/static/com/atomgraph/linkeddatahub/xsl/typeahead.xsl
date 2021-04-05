@@ -8,6 +8,7 @@
     <!ENTITY sparql     "http://www.w3.org/2005/sparql-results#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY c          "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
@@ -26,6 +27,7 @@ xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:sparql="&sparql;"
 xmlns:sd="&sd;"
+xmlns:ldt="&ldt;"
 xmlns:c="&c;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
