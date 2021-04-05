@@ -166,7 +166,7 @@ exclude-result-prefixes="#all">
     <!-- CLIENT-SIDE FUNCTIONS -->
     
     <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString', []) to get SPARQL string -->
-    <xsl:function name="ac:paginate" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:function name="ac:paginate">
         <xsl:param name="select-builder"/> <!-- as SelectBuilder -->
         <xsl:param name="limit" as="xs:integer?"/>
         <xsl:param name="offset" as="xs:integer?"/>
