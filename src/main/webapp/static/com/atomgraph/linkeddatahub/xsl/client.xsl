@@ -145,7 +145,6 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="offset" select="$ac:offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="order-by" select="$ac:order-by" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="desc" select="$ac:desc" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="active-class" select="'list-mode'" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
         <!-- load application's ontology RDF document -->
 <!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -591,6 +590,9 @@ extension-element-prefixes="ixsl"
                 <xsl:choose>
                     <!-- current resource is a Container (only containers have select-uri) - show results unless we're showing a constructed resource -->
                     <xsl:when test="$select-uri and not($ac:forClass)">
+                        <!-- list mode is default for containers -->
+                        <ixsl:set-property name="active-class" select="'list-mode'" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                        
                         <xsl:variable name="body" select="." as="document-node()"/>
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onContainerQueryLoad">
@@ -598,7 +600,7 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                         </ixsl:schedule-action>
 
-                        <!-- container progress bar -->
+                        <!-- progress bar -->
                         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 40%;"></div>
@@ -606,9 +608,18 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:when>
                     <xsl:otherwise>
-                        <!-- container progress bar -->
+                        <!-- read mode is default for documents -->
+                        <ixsl:set-property name="active-class" select="'read-mode'" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+                        <xsl:call-template name="render-document">
+                            <xsl:with-param name="results" select="root(.)"/>
+                        </xsl:call-template>
+                        
+                        <!-- progress bar -->
                         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                            <!-- do not show progress bar for Items - only for Containers -->
+                            <div class="progress progress-striped active">
+                                <div class="bar" style="width: 50%;"></div>
+                            </div>
                         </xsl:result-document>
                     </xsl:otherwise>
                 </xsl:choose>
@@ -722,7 +733,7 @@ extension-element-prefixes="ixsl"
                             <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                             <xsl:variable name="service-uri" select="$select-resource/apl:service/@rdf:resource" as="xs:anyURI?"/>
 
-                            <!-- container progress bar -->
+                            <!-- progress bar -->
                             <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
                                 <div class="progress progress-striped active">
                                     <div class="bar" style="width: 60%;"></div>
@@ -798,7 +809,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
         
-        <!-- container progress bar -->
+        <!-- progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
             <div class="progress progress-striped active">
                 <div class="bar" style="width: 80%;"></div>
@@ -908,7 +919,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="'container-order'" as="xs:string?"/>
 
-        <!-- remove container progress bar -->
+        <!-- remove progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:choose>
@@ -1034,7 +1045,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="render-container-error">
         <xsl:param name="message" as="xs:string"/>
 
-        <!-- remove container progress bar -->
+        <!-- remove progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:choose>
@@ -1239,6 +1250,160 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
             </xsl:call-template>
         </ixsl:schedule-action>
+    </xsl:template>
+    
+    <!-- render document -->
+    
+    <xsl:template name="render-document">
+        <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
+
+        <!-- remove progress bar -->
+        <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
+        
+        <xsl:choose>
+            <!-- container results are already rendered -->
+            <xsl:when test="id('container-pane', ixsl:page())">
+                <xsl:result-document href="#container-pane" method="ixsl:replace-content">
+                    <xsl:call-template name="document-mode">
+                        <xsl:with-param name="results" select="$results"/>
+                    </xsl:call-template>
+                </xsl:result-document>
+            </xsl:when>
+            <!-- first time rendering the document results -->
+            <xsl:otherwise>
+                <xsl:result-document href="#main-content" method="ixsl:append-content">
+                    <div id="container-pane">
+                        <xsl:call-template name="document-mode">
+                            <xsl:with-param name="results" select="$results"/>
+                        </xsl:call-template>
+                    </div>
+                </xsl:result-document>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <!-- after we've created the map or chart container element, create the JS objects using it -->
+        <xsl:if test="$active-class = 'map-mode' or (not($active-class) and $ac:mode = '&ac;MapMode')">
+            <xsl:variable name="initial-load" select="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.map'))" as="xs:boolean"/>
+            <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+            <xsl:variable name="center-lat" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.map'), 'getCenter', []), 'lat', [])) else 56" as="xs:float"/>
+            <xsl:variable name="center-lng" select="if (not($initial-load)) then xs:float(ixsl:call(ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.map'), 'getCenter', []), 'lng', [])) else 10" as="xs:float"/>
+            <xsl:variable name="zoom" select="if (not($initial-load)) then xs:integer(ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.map'), 'getZoom', [])) else 4" as="xs:integer"/>
+            
+            <ixsl:set-property name="map" select="ac:create-map('map-canvas', $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+            <xsl:variable name="select-string" as="xs:string">
+<![CDATA[
+PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX  dct:  <http://purl.org/dc/terms/>
+
+SELECT  DISTINCT ?resource
+WHERE
+{ GRAPH ?graph
+  { ?resource  geo:lat  ?lat ;
+              geo:long  ?long
+    OPTIONAL
+      { ?resource  a                    ?type }
+    OPTIONAL
+      { ?resource  dct:title  ?title }
+  }
+}
+# ORDER BY ?title
+]]>
+                
+            </xsl:variable>
+            <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+            <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+            <!-- do not use the initial LinkedDataHub.focus-var-name since parallax is changing the SELECT var name -->
+            <xsl:variable name="focus-var-name" select="'resource'" as="xs:string"/>
+            <xsl:variable name="graph-var-name" select="'g'" as="xs:string?"/>
+
+            <ixsl:set-property name="geo" select="ac:create-geo-object($ac:uri, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+            <xsl:call-template name="ac:add-geo-listener"/>
+        </xsl:if>
+        <xsl:if test="$active-class = 'chart-mode' or (not($active-class) and $ac:mode = '&ac;ChartMode')">
+            <xsl:variable name="canvas-id" select="'chart-canvas'" as="xs:string"/>
+            <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+            <xsl:variable name="category" as="xs:string?"/>
+            <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+
+            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
+            <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+            <xsl:call-template name="render-chart">
+                <xsl:with-param name="canvas-id" select="$canvas-id"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template name="document-mode">
+        <xsl:param name="results" as="document-node()"/>
+        <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
+        
+        <div>
+            <ul class="nav nav-tabs">
+                <li class="read-mode">
+                    <xsl:if test="$active-class = 'read-mode' or (not($active-class) and $ac:container-mode = '&ac;ReadMode')">
+                        <xsl:attribute name="class" select="'read-mode active'"/>
+                    </xsl:if>
+
+                    <a>
+                        <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    </a>
+                </li>
+                <li class="chart-mode">
+                    <xsl:if test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
+                        <xsl:attribute name="class" select="'chart-mode active'"/>
+                    </xsl:if>
+
+                    <a>
+                        <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    </a>
+                </li>
+                <li class="map-mode">
+                    <xsl:if test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
+                        <xsl:attribute name="class" select="'map-mode active'"/>
+                    </xsl:if>
+
+                    <a>
+                        <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    </a>
+                </li>
+                <li class="graph-mode">
+                    <xsl:if test="$active-class = 'graph-mode' or (not($active-class) and $ac:container-mode = '&ac;GraphMode')">
+                        <xsl:attribute name="class" select="'graph-mode active'"/>
+                    </xsl:if>
+
+                    <a>
+                        <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    </a>
+                </li>
+            </ul>
+        
+            <div id="container-results">
+                <xsl:choose>
+                    <xsl:when test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
+                        <xsl:apply-templates select="$results" mode="bs2:Chart"/>
+                    </xsl:when>
+                    <xsl:when test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
+                        <xsl:apply-templates select="$results" mode="bs2:Map"/>
+                    </xsl:when>
+                    <xsl:when test="$active-class = 'graph-mode' or (not($active-class) and $ac:container-mode = '&ac;GraphMode')">
+                        <xsl:apply-templates select="$results" mode="bs2:Graph"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="$results" mode="bs2:Block"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
+        </div>
     </xsl:template>
     
     <!-- root children list -->
