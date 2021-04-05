@@ -38,7 +38,6 @@ xmlns:spin="&spin;"
 xmlns:sp="&sp;"
 xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
-xmlns:saxon="http://saxon.sf.net/"
 exclude-result-prefixes="#all">
 
     <!-- shortened version of @rdf:resource bs2:FormControl -->
