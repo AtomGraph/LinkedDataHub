@@ -19,7 +19,6 @@
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:lapp="&lapp;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
@@ -37,7 +36,6 @@ xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
-extension-element-prefixes="ixsl"
 >
 
     <xsl:key name="predicates-by-object" match="*[@rdf:about]/* | *[@rdf:nodeID]/*" use="@rdf:resource | @rdf:nodeID"/>
@@ -164,131 +162,6 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:if>
     </xsl:function>
-    
-    <!-- CLIENT-SIDE FUNCTIONS -->
-    
-    <!-- accepts and returns SelectBuilder. Use ixsl:call(ac:paginate(...), 'toString', []) to get SPARQL string -->
-    <xsl:function name="ac:paginate">
-        <xsl:param name="select-builder"/> <!-- as SelectBuilder -->
-        <xsl:param name="limit" as="xs:integer?"/>
-        <xsl:param name="offset" as="xs:integer?"/>
-        <xsl:param name="order-by" as="xs:string?"/>
-        <xsl:param name="desc" as="xs:boolean?"/>
-
-        <xsl:choose>
-            <xsl:when test="$order-by and exists($desc)">
-                <xsl:sequence select="ixsl:call(ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ]), 'orderBy', [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'ordering',  [ ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'var', [ $order-by ]), $desc ]) ])"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:call($select-builder, 'limit', [ $limit ]), 'offset', [ $offset ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
-    <!-- format external URLs in DataTable as HTML links with ?uri= indirection (which leads back to the app in LD browser mode -->
-    <xsl:template match="@rdf:about[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:about[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="1">
-        "&lt;a href=\"?uri=<xsl:value-of select="encode-for-uri(.)"/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
-    </xsl:template>
-
-    <!-- format URLs in DataTable as HTML links -->
-    <xsl:template match="@rdf:about[starts-with(., 'http://')] | @rdf:about[starts-with(., 'https://')] | @rdf:resource[starts-with(., 'http://')] | @rdf:resource[starts-with(., 'https://')] | srx:uri[starts-with(., 'http://')] | srx:uri[starts-with(., 'https://')]" mode="ac:DataTable" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
-        "&lt;a href=\"<xsl:value-of select="."/>\"&gt;<xsl:value-of select="."/>&lt;/a&gt;"
-    </xsl:template>
-    
-    <xsl:function name="ac:rdf-data-table">
-        <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
-        
-        <xsl:variable name="json" as="xs:string">
-            <xsl:value-of>
-                <xsl:choose>
-                    <xsl:when test="$category">
-                        <xsl:apply-templates select="$results" mode="ac:DataTable">
-                            <xsl:with-param name="property-uris" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <!-- if no $category specified, show resource URI/ID as category -->
-                        <xsl:apply-templates select="$results" mode="ac:DataTable">
-                            <xsl:with-param name="resource-ids" select="true()" tunnel="yes"/>
-                            <xsl:with-param name="property-uris" select="xs:anyURI($category), for $i in $series return xs:anyURI($i)" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:value-of>
-        </xsl:variable>
-        
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:function>
-    
-    <xsl:function name="ac:sparql-results-data-table">
-        <xsl:param name="results" as="document-node()"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
-        
-        <xsl:variable name="json" as="xs:string">
-            <xsl:value-of>
-                <xsl:apply-templates select="$results" mode="ac:DataTable">
-                    <xsl:with-param name="var-names" select="$category, $series" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:value-of>
-        </xsl:variable>
-
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.visualization.DataTable(JSON.parse(String.raw`{$json}`))"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:function>
-    
-    <!-- TO-DO: make 'data-table' configurable -->
-    <xsl:template name="ac:draw-chart">
-        <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="chart-type" as="xs:anyURI"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
-        <xsl:param name="width" as="xs:string?"/>
-        <xsl:param name="height" as="xs:string?"/>
-        
-        <xsl:variable name="chart-class" as="xs:string?">
-            <xsl:choose>
-                <xsl:when test="$chart-type = '&ac;Table'">google.visualization.Table</xsl:when>
-                <xsl:when test="$chart-type = '&ac;LineChart'">google.visualization.LineChart</xsl:when>
-                <xsl:when test="$chart-type = '&ac;BarChart'">google.visualization.BarChart</xsl:when>
-                <xsl:when test="$chart-type = '&ac;ScatterChart'">google.visualization.ScatterChart</xsl:when>
-                <xsl:when test="$chart-type = '&ac;Timeline'">google.visualization.Timeline</xsl:when>
-                <xsl:otherwise>
-                    <xsl:message terminate="yes">
-                        Chart type '<xsl:value-of select="$chart-type"/>' unknown
-                    </xsl:message>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-        
-        <xsl:choose>
-            <xsl:when test="$chart-type = '&ac;Table'">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true }})"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-            </xsl:when>
-            <xsl:when test="$chart-type = '&ac;BarChart'">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }})"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$category}' }}, vAxis: {{ title: '{$series}' }} }})"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
     
     <!-- SHARED FUNCTIONS -->
 
