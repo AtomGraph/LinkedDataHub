@@ -39,8 +39,8 @@ import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
-import com.atomgraph.server.exception.ConstraintViolationException;
 import com.atomgraph.processor.vocabulary.SIOC;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
@@ -197,7 +197,7 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
                 List<SimplePropertyPath> paths = new ArrayList<>();
                 paths.add(new ObjectPropertyPath(resource, SP.text));
                 cvs.add(new ConstraintViolation(resource, paths, null, ex.getMessage(), null));
-                throw new ConstraintViolationException(cvs, resource.getModel());
+                throw new SPINConstraintViolationException(cvs, resource.getModel());
             }
         }
         
@@ -223,7 +223,7 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
                 List<SimplePropertyPath> paths = new ArrayList<>();
                 paths.add(new ObjectPropertyPath(resource, SP.text));
                 cvs.add(new ConstraintViolation(resource, paths, null, ex.getMessage(), null));
-                throw new ConstraintViolationException(cvs, resource.getModel());
+                throw new SPINConstraintViolationException(cvs, resource.getModel());
             }
         }
         

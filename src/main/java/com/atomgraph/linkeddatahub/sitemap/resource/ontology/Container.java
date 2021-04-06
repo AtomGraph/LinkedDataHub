@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
-import com.atomgraph.server.exception.ConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.util.List;
 import java.util.Optional;
@@ -108,7 +108,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 if (!cvs.isEmpty())
                 {
                     if (log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
-                    throw new ConstraintViolationException(cvs, transformedModel);
+                    throw new SPINConstraintViolationException(cvs, transformedModel);
                 }
 
                 transformedModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(transformedModel);

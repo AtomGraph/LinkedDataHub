@@ -42,7 +42,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
-import com.atomgraph.server.exception.ConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
@@ -281,7 +281,7 @@ public class SignUp extends ResourceBase
                     }
                 }
             }
-            catch (ConstraintViolationException ex)
+            catch (SPINConstraintViolationException ex)
             {
                 throw ex; // propagate
             }
@@ -302,33 +302,33 @@ public class SignUp extends ResourceBase
         return super.construct(infModel);
     }
 
-    public String validateAndRemovePassword(Resource agent) throws ConstraintViolationException
+    public String validateAndRemovePassword(Resource agent) throws SPINConstraintViolationException
     {
         Statement certStmt = agent.getProperty(Cert.key);
         if (certStmt == null)
-            throw createConstraintViolationException(agent, Cert.key, "cert:key is missing");
+            throw createSPINConstraintViolationException(agent, Cert.key, "cert:key is missing");
         
         if (certStmt.getResource().listProperties(LACL.password).toList().size() > 1)
-            throw createConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate passwords do not match");
+            throw createSPINConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate passwords do not match");
         Statement passwordStmt = certStmt.getResource().getProperty(LACL.password);
         if (passwordStmt == null)
-            throw createConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate password is missing");
+            throw createSPINConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate password is missing");
         String password = passwordStmt.getString();
         if (password.length() < MIN_PASSWORD_LENGTH)
-            throw createConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate password must be at least " + MIN_PASSWORD_LENGTH + " characters long");
+            throw createSPINConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate password must be at least " + MIN_PASSWORD_LENGTH + " characters long");
         // remove password so we don't store it as RDF
         passwordStmt.remove();
         certStmt.remove();
         return password;
     }
     
-    public ConstraintViolationException createConstraintViolationException(Resource resource, Property property, String message)
+    public SPINConstraintViolationException createSPINConstraintViolationException(Resource resource, Property property, String message)
     {
         List<ConstraintViolation> cvs = new ArrayList<>();
         List<SimplePropertyPath> paths = new ArrayList<>();
         paths.add(new ObjectPropertyPath(resource, property));
         cvs.add(new ConstraintViolation(resource, paths, null, message, null));
-        return new ConstraintViolationException(cvs, resource.getModel());
+        return new SPINConstraintViolationException(cvs, resource.getModel());
     }
 
     public Resource createPublicKey(Model model, String namespace, RSAPublicKey publicKey)
