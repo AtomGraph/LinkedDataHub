@@ -902,7 +902,7 @@ exclude-result-prefixes="#all"
 
     <!-- structured data for the JSON-LD script tag -->
     
-    <xsl:template match="node()" mode="ac:JSON-LD"/>
+    <xsl:template match="node()" mode="ac:JSON-LD">NOPE</xsl:template>
     
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
     

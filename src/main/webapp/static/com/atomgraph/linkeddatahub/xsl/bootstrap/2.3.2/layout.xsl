@@ -1841,4 +1841,10 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
+    <xsl:template match="dct:title" mode="ac:JSON-LD">
+        // HELLO???
+        
+        <xsl:apply-imports/>
+    </xsl:template>
+    
 </xsl:stylesheet>
