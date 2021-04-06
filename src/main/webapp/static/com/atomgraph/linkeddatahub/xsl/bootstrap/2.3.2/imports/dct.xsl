@@ -21,7 +21,7 @@ xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="dct:title" mode="ac:JSON-LD">
+    <xsl:template match="dct:title" mode="ac:JSON-LDPropertyGroup">
         <xsl:apply-imports/>
     </xsl:template>
     

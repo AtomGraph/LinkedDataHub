@@ -902,7 +902,7 @@ exclude-result-prefixes="#all"
 
     <!-- structured data for the JSON-LD script tag -->
     
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:JSON-LD"/>
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:JSON-LDPropertyGroup"/>
     
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
     
