@@ -19,6 +19,10 @@ xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+    <xsl:template match="dct:title" mode="ac:JSON-LD">
+        <xsl:apply-imports/>
+    </xsl:template>
+    
     <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>

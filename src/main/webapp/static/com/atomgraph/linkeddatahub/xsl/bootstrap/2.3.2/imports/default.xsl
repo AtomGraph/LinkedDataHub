@@ -900,6 +900,10 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
 
+    <!-- structured data for the JSON-LD script tag -->
+    
+    <xsl:template match="node()" mode="ac:JSON-LD"/>
+    
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
     
     <xsl:template match="*" mode="apl:XHTMLContent" priority="1">

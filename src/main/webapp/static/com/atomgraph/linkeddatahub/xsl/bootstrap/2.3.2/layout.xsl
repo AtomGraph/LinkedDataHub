@@ -67,6 +67,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
+    <xsl:import href="../../../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/apl.xsl"/>
@@ -271,6 +272,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-builder" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="output-json-ld" select="true()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
@@ -354,6 +356,12 @@ exclude-result-prefixes="#all">
                 <![CDATA[
                     google.charts.load('current', {packages: ['corechart', 'table', 'timeline', 'map']});
                 ]]>
+            </script>
+        </xsl:if>
+        <xsl:if test="$output-json-ld">
+            <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
+            <script type="application/ld+json">
+                <xsl:apply-templates select="." mode="ac:JSON-LD"/>
             </script>
         </xsl:if>
     </xsl:template>
