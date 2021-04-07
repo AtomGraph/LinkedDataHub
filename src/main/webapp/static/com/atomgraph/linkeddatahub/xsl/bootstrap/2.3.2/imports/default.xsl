@@ -902,7 +902,20 @@ exclude-result-prefixes="#all"
 
     <!-- structured data for the JSON-LD script tag -->
     
-    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:JSON-LDPropertyGroup"/>
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="ac:JSON-LDPropertyGroup">
+        <xsl:param name="suppress" select="true()" as="xs:boolean"/> <!-- by default, suppress JSON-LD output of a property -->
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="grouping-key" as="xs:anyAtomicType?"/>
+        <xsl:param name="group" as="item()*"/>
+        
+        <xsl:if test="not($suppress)">
+            <xsl:next-match>
+                <xsl:with-param name="resource" select="$resource"/>
+                <xsl:with-param name="grouping-key" select="$grouping-key"/>
+                <xsl:with-param name="group" select="$group"/>
+            </xsl:next-match>
+        </xsl:if>
+    </xsl:template>
     
     <!-- XHTML CONTENT IDENTITY TRANSFORM -->
     

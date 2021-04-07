@@ -26,11 +26,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="grouping-key" as="xs:anyAtomicType?"/>
         <xsl:param name="group" as="item()*"/>
         
-        <xsl:apply-imports>
+        <xsl:next-match>
+            <xsl:with-param name="suppress" select="$false"/>
             <xsl:with-param name="resource" select="$resource"/>
             <xsl:with-param name="grouping-key" select="$grouping-key"/>
             <xsl:with-param name="group" select="$group"/>
-        </xsl:apply-imports>
+        </xsl:next-match>
     </xsl:template>
     
     <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
