@@ -22,7 +22,15 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="dct:title" mode="ac:JSON-LDPropertyGroup">
-        <xsl:apply-imports/>
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="grouping-key" as="xs:anyAtomicType?"/>
+        <xsl:param name="group" as="item()*"/>
+        
+        <xsl:apply-imports>
+            <xsl:with-param name="resource" select="$resource"/>
+            <xsl:with-param name="grouping-key" select="$grouping-key"/>
+            <xsl:with-param name="group" select="$group"/>
+        </xsl:apply-imports>
     </xsl:template>
     
     <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
