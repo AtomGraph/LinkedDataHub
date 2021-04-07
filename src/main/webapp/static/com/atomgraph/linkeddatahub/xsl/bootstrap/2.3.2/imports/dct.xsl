@@ -22,12 +22,13 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="dct:title" mode="ac:JSON-LDPropertyGroup">
+        <xsl:param name="suppress" select="false()" as="xs:boolean"/>
         <xsl:param name="resource" as="element()"/>
         <xsl:param name="grouping-key" as="xs:anyAtomicType?"/>
         <xsl:param name="group" as="item()*"/>
         
         <xsl:next-match>
-            <xsl:with-param name="suppress" select="$false"/>
+            <xsl:with-param name="suppress" select="$suppress"/>
             <xsl:with-param name="resource" select="$resource"/>
             <xsl:with-param name="grouping-key" select="$grouping-key"/>
             <xsl:with-param name="group" select="$group"/>
