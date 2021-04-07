@@ -21,6 +21,10 @@ xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+    <xsl:template match="dct:title" mode="ac:JSON-LDContext" priority="1">
+        <xsl:sequence select="concat('&quot;', local-name(), '&quot; : { &quot;@id&quot;: &quot;', 'http://schema.org/name', '&quot; }')"/>
+    </xsl:template>
+    
     <xsl:template match="dct:title" mode="ac:JSON-LDPropertyGroup">
         <xsl:param name="suppress" select="false()" as="xs:boolean"/>
         <xsl:param name="resource" as="element()"/>
