@@ -21,7 +21,7 @@ xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="dct:title" mode="ac:JSON-LDContext" priority="1">
+<!--    <xsl:template match="dct:title" mode="ac:JSON-LDContext" priority="1">
         <xsl:sequence select="concat('&quot;', local-name(), '&quot; : { &quot;@id&quot;: &quot;', 'http://schema.org/name', '&quot; }')"/>
     </xsl:template>
     
@@ -37,7 +37,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="grouping-key" select="$grouping-key"/>
             <xsl:with-param name="group" select="$group"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>

@@ -14,7 +14,6 @@
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
-    <!ENTITY c          "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
@@ -45,7 +44,6 @@ xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:ldt="&ldt;"
-xmlns:core="&c;"
 xmlns:dh="&dh;"
 xmlns:srx="&srx;"
 xmlns:sd="&sd;"
