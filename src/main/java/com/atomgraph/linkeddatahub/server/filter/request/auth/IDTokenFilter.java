@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -187,7 +188,15 @@ public class IDTokenFilter extends AuthenticationFilter
     
     public URI getLoginURL()
     {
-        return getApplication().getBaseURI().resolve("oauth2/authorize/google"); // TO-DO: move to config?
+        return getAdminBaseURI().resolve("oauth2/authorize/google"); // TO-DO: move to config?
+    }
+    
+    public URI getAdminBaseURI()
+    {
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI();
+        else
+            return getApplication().getBaseURI();
     }
     
     public ParameterizedSparqlString getUserAccountQuery()
