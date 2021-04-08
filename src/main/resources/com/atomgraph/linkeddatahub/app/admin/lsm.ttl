@@ -351,6 +351,7 @@ WHERE {}""" ;
           ?this rdfs:label [ a xsd:string ] ;
             owl:onProperty [ a rdf:Property ] ;
             owl:allValuesFrom [ a rdfs:Resource ] ;
+            owl:hasValue [ a rdfs:Resource ] ;
             rdfs:isDefinedBy [ a lsm:Ontology ] .
       }
       WHERE {}""" ;

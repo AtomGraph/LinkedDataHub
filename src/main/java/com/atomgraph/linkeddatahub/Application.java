@@ -1098,6 +1098,11 @@ public class Application extends ResourceConfig
         return client;
     }
     
+    public URI getBaseURI()
+    {
+        return baseURI;
+    }
+    
     public URI getSecretaryWebIDURI()
     {
         return secretaryWebIDURI;

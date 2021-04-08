@@ -85,7 +85,7 @@ public class IDTokenFilter extends AuthenticationFilter
         DecodedJWT idToken = getJWTToken(request);
         if (idToken == null) return null;
 
-        if (!verify(idToken)) return null;
+        if (!request.getUriInfo().getAbsolutePath().equals(getLoginURL()) && !verify(idToken)) return null; // do not verify token for the login endpoint URL
         
         String cacheKey = idToken.getIssuer() + idToken.getSubject();
         final Model agentModel;
@@ -161,8 +161,7 @@ public class IDTokenFilter extends AuthenticationFilter
     @Override
     public void login(Application app, ContainerRequestContext request)
     {
-        URI location = app.getBaseURI().resolve("oauth2/authorize/google");
-        Response response = Response.seeOther(location).build();
+        Response response = Response.seeOther(getLoginURL()).build();
         throw new WebApplicationException(response);
     }
 
@@ -184,6 +183,11 @@ public class IDTokenFilter extends AuthenticationFilter
                 build();
             throw new WebApplicationException(response);
         }
+    }
+    
+    public URI getLoginURL()
+    {
+        return getApplication().getBaseURI().resolve("oauth2/authorize/google"); // TO-DO: move to config?
     }
     
     public ParameterizedSparqlString getUserAccountQuery()
