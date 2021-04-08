@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.auth0.jwt.exceptions.TokenExpiredException;
@@ -57,6 +58,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         
         URI redirectUri = UriBuilder.fromUri(getAdminBaseURI()).
             path("/oauth2/authorize/google"). // TO-DO: move to config?
+            queryParam(REFERER_PARAM_NAME, getUriInfo().getAbsolutePath()).
             build();
         
         if (!getUriInfo().getAbsolutePath().equals(redirectUri)) // prevent a perpetual redirect loop

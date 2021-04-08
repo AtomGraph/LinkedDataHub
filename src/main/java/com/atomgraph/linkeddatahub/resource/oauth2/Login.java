@@ -244,7 +244,7 @@ public class Login extends ResourceBase
             NewCookie jwtCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, idToken, path, null, NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
             URI originalReferer = URI.create(new String(Base64.getDecoder().decode(stateCookie.getValue())).split(Pattern.quote(";"))[1]);
             
-            return Response.seeOther(originalReferer). // redirect to where s/he started authentication
+            return Response.seeOther(originalReferer). // redirect to where the user started authentication
                 cookie(jwtCookie).
                 build();
         }

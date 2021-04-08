@@ -514,7 +514,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">
                 <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $apl:baseUri)}">
+                    <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google?referer=' || encode-for-uri($ac:uri), $apl:baseUri)}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
