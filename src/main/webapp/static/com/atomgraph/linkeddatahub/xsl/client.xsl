@@ -2384,7 +2384,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="$ac:uri" as="xs:anyURI"/>
-        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="id" select="concat('form-add-data')" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -2429,10 +2429,17 @@ extension-element-prefixes="ixsl"
                                 <input type="hidden" name="pu" value="&rdf;type"/>
                                 <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
                                 <div class="control-group">
-                                    <input type="hidden" name="pu" value="&dct;format"/>
-                                    <label class="control-label">Format</label>
+                                    <input type="hidden" name="pu" value="&dct;title"/>
+                                    <label class="control-label" for="add-rdf-title">Title</label>
                                     <div class="controls">
-                                        <select name="ol">
+                                        <input id="add-rdf-title" type="text" name="ol"/>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <input type="hidden" name="pu" value="&dct;format"/>
+                                    <label class="control-label" for="add-rdf-title">Format</label>
+                                    <div class="controls">
+                                        <select id="add-rdf-title" name="ol">
                                             <option value="">[browser-defined]</option>
                                             <optgroup label="RDF triples">
                                                 <option value="text/turtle">Turtle (.ttl)</option>
@@ -2448,9 +2455,9 @@ extension-element-prefixes="ixsl"
                                 </div>
                                 <div class="control-group">
                                     <input type="hidden" name="pu" value="&nfo;fileName"/>
-                                    <label class="control-label">FileName</label>
+                                    <label class="control-label" for="add-rdf-filename">FileName</label>
                                     <div class="controls">
-                                        <input type="file" name="ol"/>
+                                        <input id="add-rdf-filename" type="file" name="ol"/>
                                     </div>
                                 </div>
                             </fieldset>
