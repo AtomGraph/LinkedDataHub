@@ -432,6 +432,24 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*" mode="bs2:SearchBar"/>
 
+    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:Create"/>
+            
+            <xsl:apply-templates select="." mode="bs2:AddData"/>
+        </div>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarMain">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
@@ -473,8 +491,6 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
-
-            <!--<xsl:apply-templates select="." mode="bs2:ModeList"/>-->
         </div>
     </xsl:template>
     
@@ -720,6 +736,22 @@ exclude-result-prefixes="#all">
                 </xsl:apply-templates>
             </li>
         </xsl:if>
+    </xsl:template>
+    
+    <!-- ADD DATA -->
+    
+    <xsl:template match="rdf:RDF[$lacl:Agent][$ldt:ontology]" mode="bs2:Create" priority="1">
+        <div class="btn-group pull-left">
+            <button type="button" title="{ac:label(key('resources', 'add-data-title, document('translations.rdf')))}" class="btn btn-primary add-data-action">
+<!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
+                </xsl:apply-templates>-->
+<!--                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="ac:label"/>
+                </xsl:value-of>-->
+                <xsl:text>Add data</xsl:text>
+            </button>
+        </div>
     </xsl:template>
     
     <!-- LEFT NAV MODE -->
