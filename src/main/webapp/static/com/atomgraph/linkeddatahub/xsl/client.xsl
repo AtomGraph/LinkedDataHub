@@ -2388,7 +2388,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" select="multipart/form-data" as="xs:string?"/>
+        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
 
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
