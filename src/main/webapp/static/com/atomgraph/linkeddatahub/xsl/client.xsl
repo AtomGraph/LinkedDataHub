@@ -2381,7 +2381,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
-        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then xs:anyURI(resolve-uri(concat('?uri=', encode-for-uri($ac:uri), if ($modal) then concat('&amp;mode=', encode-for-uri('&ac;ModalMode')) else ()), lapp:base($ac:contextUri, $lapp:Application))) else if ($modal) then if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri('&ac;ModalMode')) else concat($ac:uri, '?mode=', encode-for-uri('&ac;ModalMode')) else $ac:uri)" as="xs:anyURI"/>
+        <xsl:param name="action" select="xs:anyURI(if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else resolve-uri(concat('?uri=', encode-for-uri(ac:document-uri(.))), $ldt:base))" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
