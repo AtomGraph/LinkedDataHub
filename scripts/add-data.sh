@@ -4,7 +4,7 @@ print_usage()
 {
     printf "Appends RDF description to the dataset.\n"
     printf "\n"
-    printf "Usage:  echo -e \$rdf_body | %s options TARGET_URI\n" "$0"
+    printf "Usage:  cat data.ttl | %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
