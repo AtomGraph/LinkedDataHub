@@ -2380,6 +2380,62 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
 
+    <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
+        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then xs:anyURI(resolve-uri(concat('?uri=', encode-for-uri($ac:uri), if ($modal) then concat('&amp;mode=', encode-for-uri('&ac;ModalMode')) else ()), lapp:base($ac:contextUri, $lapp:Application))) else if ($modal) then if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri('&ac;ModalMode')) else concat($ac:uri, '?mode=', encode-for-uri('&ac;ModalMode')) else $ac:uri)" as="xs:anyURI"/>
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+
+        <xsl:for-each select="ixsl:page()//body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <!-- append modal div to body -->
+                
+                <div class="modal modal-constructor fade in">
+                    <form method="{$method}" action="{$action}">
+                        <xsl:if test="$id">
+                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$class">
+                            <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$accept-charset">
+                            <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$enctype">
+                            <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                        </xsl:if>
+
+                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'rdf'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+
+                        <input type="hidden" class="target-id"/>
+
+                        <div class="modal-header">
+                            <button type="button" class="close">&#215;</button>
+
+                            <xsl:apply-templates select="." mode="bs2:Legend"/>
+                        </div>
+
+                        <div class="modal-body">
+                            <p>WTF???</p>
+                        </div>
+
+                        <xsl:apply-templates select="." mode="bs2:FormActions">
+                            <xsl:with-param name="button-class" select="$button-class"/>
+                        </xsl:apply-templates>
+                    </form>
+                </div>
+            </xsl:result-document>
+
+            <ixsl:set-style name="cursor" select="'default'"/>
+        </xsl:for-each>
+    </xsl:template>
+
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
         <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
