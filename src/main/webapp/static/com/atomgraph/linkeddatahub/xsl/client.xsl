@@ -2385,7 +2385,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="action" select="xs:anyURI(if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else resolve-uri(concat('?uri=', encode-for-uri(ac:document-uri(.))), $ldt:base))" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
 
@@ -2419,16 +2419,18 @@ extension-element-prefixes="ixsl"
                         <div class="modal-header">
                             <button type="button" class="close">&#215;</button>
 
-                            <xsl:apply-templates select="." mode="bs2:Legend"/>
+                            <legend title="Add RDF data">Add RDF data</legend>
                         </div>
 
                         <div class="modal-body">
                             <p>WTF???</p>
                         </div>
 
-                        <xsl:apply-templates select="." mode="bs2:FormActions">
-                            <xsl:with-param name="button-class" select="$button-class"/>
-                        </xsl:apply-templates>
+                        <div class="form-actions modal-footer">
+                            <button type="submit" class="{$button-class}">Save</button>
+                            <button type="button" class="btn">Close</button>
+                            <button type="reset" class="btn">Reset</button>
+                        </div>
                     </form>
                 </div>
             </xsl:result-document>
