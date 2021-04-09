@@ -196,6 +196,13 @@ DESCRIBE ?this
     spl:optional true ;
     rdfs:isDefinedBy : .
 
+:UploadRDF a ldt:Parameter ;
+    rdfs:label "RDF data upload" ;
+    spl:predicate :upload ;
+    spl:valueType xsd:boolean ;
+    spl:optional true ;
+    rdfs:isDefinedBy : .
+
 :Ban a ldt:Parameter ;
     rdfs:label "BAN resource from cache" ;
     spl:predicate :ban ;

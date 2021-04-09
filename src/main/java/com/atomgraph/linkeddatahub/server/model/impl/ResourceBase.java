@@ -24,6 +24,7 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
@@ -365,7 +366,10 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         if (getTemplateCall().get().hasArgument(APLT.forClass)) // resource instance
             return construct(dataset.getDefaultModel());
-        
+
+        if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
+            return upload(dataset.getDefaultModel());
+
         if (getService().getDatasetQuadAccessor() != null)
         {
             getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
@@ -457,6 +461,36 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return null;
     }
 
+    public Response upload(Model model)
+    {
+        // we need inference to support subclasses
+        InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
+        return upload(infModel);
+    }
+    
+    public Response upload(InfModel model)
+    {
+        if (model == null) throw new IllegalArgumentException("InfModel cannot be null");
+        
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, APL.File);
+        try
+        {
+            if (it.hasNext())
+            {
+                Resource fileRes = it.next();
+                com.atomgraph.linkeddatahub.model.File file = fileRes.as(com.atomgraph.linkeddatahub.model.File.class);
+                LinkedDataClient ldc = LinkedDataClient.create(getClient().target(file.getURI()), getMediaTypes());
+                post(DatasetFactory.create(ldc.get()));
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return Response.ok().build();
+    }
+    
     /**
      * Splits the input graph into multiple RDF graphs based on the hash of the subject URI or bnode ID.
      * 
