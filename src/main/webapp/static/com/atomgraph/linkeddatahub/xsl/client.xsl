@@ -22,6 +22,7 @@
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
+    <!ENTITY nfo        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -2385,9 +2386,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="action" select="xs:anyURI(if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else resolve-uri(concat('?uri=', encode-for-uri(ac:document-uri(.))), $ldt:base))" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?"/>
+        <xsl:param name="enctype" select="multipart/form-data" as="xs:string?"/>
 
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -2423,13 +2424,42 @@ extension-element-prefixes="ixsl"
                         </div>
 
                         <div class="modal-body">
-                            <p>WTF???</p>
+                            <fieldset>
+                                <input type="hidden" name="sb" value="file"/>
+                                <input type="hidden" name="pu" value="&rdf;type"/>
+                                <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+                                <div class="control-group">
+                                    <input type="hidden" name="pu" value="&dct;format"/>
+                                    <label class="control-label">Format</label>
+                                    <div class="control-group">
+                                        <select name="ol">
+                                            <option value="">[browser-defined]</option>
+                                            <optgroup label="RDF triples">
+                                                <option value="text/turtle">Turtle (.ttl)</option>
+                                                <option value="application/n-triples">N-Triples (.nt)</option>
+                                                <option value="application/rdf+xml">RDF/XML (.rdf)</option>
+                                            </optgroup>
+                                            <optgroup label="RDF quads">
+                                                <option value="text/trig">TriG (.trig)</option>
+                                                <option value="application/n-quads">N-Quads (.nq)</option>
+                                            </optgroup>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="control-group">
+                                    <input type="hidden" name="pu" value="&nfo;fileName"/>
+                                    <label class="control-label">FileName</label>
+                                    <div class="control-group">
+                                        <input type="file" name="ol"/>
+                                    </div>
+                                </div>
+                            </fieldset>
                         </div>
 
                         <div class="form-actions modal-footer">
                             <button type="submit" class="{$button-class}">Save</button>
-                            <button type="button" class="btn">Close</button>
-                            <button type="reset" class="btn">Reset</button>
+                            <button type="button" class="btn btn-close">Close</button>
+                            <button type="reset" class="btn btn-reset">Reset</button>
                         </div>
                     </form>
                 </div>
