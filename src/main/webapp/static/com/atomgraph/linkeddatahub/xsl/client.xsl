@@ -2383,7 +2383,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="$ac:uri?upload=true" as="xs:anyURI"/>
+        <xsl:param name="action" select="xs:anyURI($ac:uri || '?upload=true')" as="xs:anyURI"/>
         <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
