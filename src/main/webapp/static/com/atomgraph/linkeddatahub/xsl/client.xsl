@@ -2431,7 +2431,7 @@ extension-element-prefixes="ixsl"
                                 <div class="control-group">
                                     <input type="hidden" name="pu" value="&dct;format"/>
                                     <label class="control-label">Format</label>
-                                    <div class="control-group">
+                                    <div class="controls">
                                         <select name="ol">
                                             <option value="">[browser-defined]</option>
                                             <optgroup label="RDF triples">
@@ -2449,7 +2449,7 @@ extension-element-prefixes="ixsl"
                                 <div class="control-group">
                                     <input type="hidden" name="pu" value="&nfo;fileName"/>
                                     <label class="control-label">FileName</label>
-                                    <div class="control-group">
+                                    <div class="controls">
                                         <input type="file" name="ol"/>
                                     </div>
                                 </div>
