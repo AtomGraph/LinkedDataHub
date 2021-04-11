@@ -376,25 +376,6 @@ printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS
 OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
 
-# create data/query files by injecting environmental variables into template files
-
-envsubst < split-default-graph.rq.template > split-default-graph.rq
-envsubst < root-owner.trig.template > root-owner.trig
-
-trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
-
-printf "\n### Uploading the metadata of the owner agent...\n\n"
-
-append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
-
-rm -f root-owner.trig root-owner.nq split.root-owner.nq
-
-# append ownership metadata to apps (have to be URI resources!)
-
-echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-
 # copy mounted client keystore to a location where the webapp can access it
 
 mkdir -p "$(dirname "$CLIENT_KEYSTORE")"
@@ -407,45 +388,6 @@ cp -f "$CLIENT_KEYSTORE_MOUNT" "$(dirname "$CLIENT_KEYSTORE")"
 # 3. import the secretary metadata metadata into the quad store
 
 if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
-    SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
-
-    if [ -z "$SECRETARY_URI" ] ; then
-        echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
-        exit 1
-    fi
-
-    printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
-
-    # strip fragment from the URL, if any
-
-    case "$SECRETARY_URI" in
-      *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
-      *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
-    esac
-
-    SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
-    printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
-
-    SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
-    export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
-
-    # append secretary metadata to the root admin dataset
-
-    envsubst < root-secretary.trig.template > root-secretary.trig
-
-    trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
-    sparql --data root-secretary.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-secretary.nq
-
-    printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
-
-    wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
-
-    printf "\n### Uploading the metadata of the secretary agent...\n\n"
-
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-secretary.nq "application/n-quads"
-
-    rm -f root-secretary.trig root-secretary.nq split.root-secretary.nq
-
     # if server certificate is self-signed, import it into client truststore
 
     if [ "$SELF_SIGNED_CERT" = true ] ; then
@@ -476,6 +418,28 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
         -srcstorepass changeit
 fi
 
+SECRETARY_URI=$(get_webid_uri "$SECRETARY_CERT")
+
+if [ -z "$SECRETARY_URI" ] ; then
+    echo "Secretary's public key does not contain a SAN:URI (subjectAlternativeName) extension with a WebID URI"
+    exit 1
+fi
+
+printf "\n### Secretary's WebID URI: %s\n" "$SECRETARY_URI"
+
+# strip fragment from the URL, if any
+
+case "$SECRETARY_URI" in
+  *#*) SECRETARY_DOC_URI=$(echo "$SECRETARY_URI" | cut -d "#" -f 1) ;;
+  *) SECRETARY_DOC_URI="$SECRETARY_URI" ;;
+esac
+
+SECRETARY_CERT_MODULUS=$(get_modulus "$SECRETARY_CERT")
+printf "\n### Secretary WebID certificate's modulus: %s\n" "$SECRETARY_CERT_MODULUS"
+
+SECRETARY_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
+export SECRETARY_URI SECRETARY_DOC_URI SECRETARY_CERT_MODULUS SECRETARY_KEY_UUID
+
 if [ -z "$LOAD_DATASETS" ]; then
     if [ ! -d /var/linkeddatahub/based-datasets ]; then
         LOAD_DATASETS=true
@@ -503,6 +467,41 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
+
+    # create query file by injecting environmental variables into the template
+
+    envsubst < split-default-graph.rq.template > split-default-graph.rq
+
+    # append owner metadata to the root admin dataset
+
+    envsubst < root-owner.trig.template > root-owner.trig
+
+    trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
+    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
+
+    printf "\n### Uploading the metadata of the owner agent...\n\n"
+
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
+
+    rm -f root-owner.trig root-owner.nq split.root-owner.nq
+
+    # append ownership metadata to apps (have to be URI resources!)
+
+    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+
+    # append secretary metadata to the root admin dataset
+
+    envsubst < root-secretary.trig.template > root-secretary.trig
+
+    trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
+    sparql --data root-secretary.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-secretary.nq
+
+    printf "\n### Uploading the metadata of the secretary agent...\n\n"
+
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-secretary.nq "application/n-quads"
+
+    rm -f root-secretary.trig root-secretary.nq split.root-secretary.nq
 fi
 
 # change context configuration
