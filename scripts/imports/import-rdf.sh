@@ -25,7 +25,7 @@ print_usage()
     printf "  --slug STRING                         String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
-    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
+    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string (optional)\n"
     printf "  --query-doc-slug STRING              String that will be used as the query's URI path segment (optional)\n"
     printf "  --file ABS_PATH                      Absolute path to the CSV file (optional)\n"
     printf "  --file-slug STRING                   String that will be used as the file's URI path segment (optional)\n"
@@ -133,10 +133,6 @@ if [ -z "$action" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$query_file" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$file" ] ; then
     print_usage
     exit 1
@@ -150,17 +146,19 @@ if [ -z "$request_base" ] ; then
     request_base="$base"
 fi
 
-query_container="${request_base}queries/"
-query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
-query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
+if [ -n "$query_file" ] ; then
+    query_container="${request_base}queries/"
+    query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
+    query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
+    pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-query_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --accept 'application/n-triples' "$query_doc")
+    query_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --accept 'application/n-triples' "$query_doc")
 
-popd > /dev/null
+    popd > /dev/null
 
-query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+    query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+fi
 
 file_container="${request_base}files/"
 file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "$file_content_type" "$file_container")
@@ -175,4 +173,8 @@ popd > /dev/null
 file=$(echo "$file_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
 
 import_container="${request_base}imports/"
-./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" "$import_container"
+if [ -n "$query" ] ; then
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" "$import_container"
+else
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --file "$file" "$import_container"
+fi

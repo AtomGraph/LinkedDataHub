@@ -16,7 +16,7 @@ print_usage()
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
-    printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query\n"
+    printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query (optional)\n"
     printf "  --file FILE_URI                      URI of the RDF file\n"
 }
 
