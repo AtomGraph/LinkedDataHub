@@ -480,7 +480,15 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 Resource fileRes = it.next();
                 com.atomgraph.linkeddatahub.model.File file = fileRes.as(com.atomgraph.linkeddatahub.model.File.class);
                 LinkedDataClient ldc = LinkedDataClient.create(getClient().target(file.getURI()), getMediaTypes());
-                post(DatasetFactory.create(ldc.get()));
+                List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
+                readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
+                try (Response cr = ldc.get(readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()])))
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        throw new WebApplicationException(new IOException("RDF document could not be successfully loaded over HTTP. Status code: " + cr.getStatus()));
+
+                    post(DatasetFactory.create(cr.readEntity(Model.class)));
+                }
             }
         }
         finally
