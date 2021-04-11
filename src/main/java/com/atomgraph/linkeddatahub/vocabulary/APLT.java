@@ -56,7 +56,7 @@ public class APLT
     
     public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
 
-    public static final ObjectProperty upload = m_model.createObjectProperty( NS + "upload" );
+    public static final DatatypeProperty upload = m_model.createDatatypeProperty( NS + "upload" );
 
     public static final DatatypeProperty login = m_model.createDatatypeProperty( NS + "login" );
 
