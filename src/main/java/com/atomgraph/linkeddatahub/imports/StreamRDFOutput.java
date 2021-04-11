@@ -63,7 +63,7 @@ public class StreamRDFOutput implements StreamingOutput
         
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, getInputStream(), getBase(), getLang());
-        model = new ModelTransformer().apply(getQuery(), model);
+        if (getQuery() != null) model = new ModelTransformer().apply(getQuery(), model); // don't transform if query is null
         StreamRDFOps.sendTriplesToStream(model.getGraph(), stream); // send the transformed RDF to the stream
         
         stream.finish(); // flush the statements into the stream

@@ -301,7 +301,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:subClassOf :Import ; # restriction on media type?
     rdfs:label "RDF import" ;
     spin:constructor :RDFImportConstructor ;
-    spin:constraint :MissingQuery ;
     rdfs:isDefinedBy : .
 
 #:XMLImport a rdfs:Class, owl:Class ;
