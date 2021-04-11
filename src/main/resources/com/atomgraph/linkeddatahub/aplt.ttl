@@ -95,7 +95,7 @@ WHERE
 
 :Document a ldt:Template ;
     ldt:extends thgt:Document ;
-    ldt:param ct:Query, :ForClass, :Ban, :Debug ; # :Login, :Logout
+    ldt:param ct:Query, :ForClass, :UploadRDF, :Ban, :Debug ; # :Login, :Logout
     ac:mode ac:ReadMode ;
     rdfs:label "Document" ;
     rdfs:isDefinedBy : .
