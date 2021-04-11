@@ -367,17 +367,24 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (getTemplateCall().get().hasArgument(APLT.forClass)) // resource instance
             return construct(dataset.getDefaultModel());
 
-        if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
-            return upload(dataset.getDefaultModel());
-
         if (getService().getDatasetQuadAccessor() != null)
         {
             getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
-            
+
+            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
+                return upload(dataset.getDefaultModel());
+
             return Response.ok().build();
         }
-        
-        return super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
+        else
+        {
+            Response response = super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
+            
+            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
+                return upload(dataset.getDefaultModel());
+            
+            return response;
+        }
     }
     
     @Override
