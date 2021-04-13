@@ -108,7 +108,25 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
     @Inject
     public ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
+            Service service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system)
+    {
+        this(uriInfo, clientUriInfo, request, mediaTypes,
+            uriInfo.getAbsolutePath(),
+            service, application.get(),
+            ontology.get(), templateCall,
+            httpHeaders, resourceContext,
+            httpServletRequest, securityContext,
+            dataManager, providers,
+            system);
+    }
+
+    protected ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+            Service service,com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
@@ -124,7 +142,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             dataManager, providers,
             system);
     }
-    
+
     protected ResourceBase(final UriInfo uriInfo, final ClientUriInfo clientUriInfo, final Request request, final MediaTypes mediaTypes, final URI uri, 
             final Service service, final com.atomgraph.linkeddatahub.apps.model.Application application,
             final Ontology ontology, final Optional<TemplateCall> templateCall,
