@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import java.net.URI;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.NewCookie;
@@ -43,7 +44,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
 
     @Context UriInfo uriInfo;
     
-    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
+    @Inject Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
 
     @Override
     public Response toResponse(TokenExpiredException ex)
