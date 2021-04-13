@@ -387,7 +387,7 @@ public class SignUp extends ResourceBase
     {
         return new ResourceBase(
             new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-            getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
+            getService(), Optional.of(getApplication()), Optional.of(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }
