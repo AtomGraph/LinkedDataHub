@@ -94,8 +94,8 @@ public class Login extends ResourceBase
     
     @Inject
     public Login(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-            Ontology ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
@@ -343,7 +343,7 @@ public class Login extends ResourceBase
     {
         return new ResourceBase(
             new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-            getService(), getApplication(), getOntology(), getTemplateCall(), getHttpHeaders(), getResourceContext(),
+            Optional.of(getService()), Optional.of(getApplication()), Optional.of(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }

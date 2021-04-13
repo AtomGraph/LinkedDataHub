@@ -98,7 +98,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     private static final Logger log = LoggerFactory.getLogger(ResourceBase.class);
     
     private final com.atomgraph.linkeddatahub.Application system;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application;
     private final DataManager dataManager;
     private final SecurityContext securityContext;
     private final Providers providers;
@@ -108,8 +108,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
     @Inject
     public ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-            Ontology ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
@@ -126,15 +126,15 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     }
     
     protected ResourceBase(final UriInfo uriInfo, final ClientUriInfo clientUriInfo, final Request request, final MediaTypes mediaTypes, final URI uri, 
-            final Service service, final com.atomgraph.linkeddatahub.apps.model.Application application,
-            final Ontology ontology, final Optional<TemplateCall> templateCall,
+            final Optional<Service> service, final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            final Optional<Ontology> ontology, final Optional<TemplateCall> templateCall,
             final HttpHeaders httpHeaders, final ResourceContext resourceContext,
             final HttpServletRequest httpServletRequest, final SecurityContext securityContext,
             final DataManager dataManager, final Providers providers,
             final com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, request, mediaTypes, uri,
-                service, application, ontology, templateCall,
+                service.orElse(null), application.orElse(null), ontology.orElse(null), templateCall, // Processor's ResourceBase does not accept Optionals
                 httpHeaders, resourceContext);
         if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext cannot be null");
@@ -1099,7 +1099,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
-        return application;
+        return application.orElse(null);
     }
 
     @Override

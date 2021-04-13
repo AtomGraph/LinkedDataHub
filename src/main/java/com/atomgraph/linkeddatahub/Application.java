@@ -672,7 +672,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ServiceFactory.class).to(Service.class).
+                bindFactory(ServiceFactory.class).to(new TypeLiteral<Optional<Service>>() {}).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -682,7 +682,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
@@ -692,7 +692,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(OntologyFactory.class).to(Ontology.class).
+                bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
                 proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }

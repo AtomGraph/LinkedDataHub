@@ -86,8 +86,8 @@ public class RequestAccess extends ResourceBase
 
     @Inject
     public RequestAccess(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-                  Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-                  Ontology ontology, Optional<TemplateCall> templateCall,
+                  Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+                  Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
                   @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
                   @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
                   @Context DataManager dataManager, @Context Providers providers,

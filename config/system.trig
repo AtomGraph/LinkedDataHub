@@ -32,8 +32,14 @@
     ldt:base <> ;
     ldt:ontology <ns#> ;
     ldt:service <urn:linkeddatahub:services/end-user> ;
-    lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
-    lapp:public true .
+    lapp:adminApplication <urn:linkeddatahub:apps/admin> .
+
+<urn:linkeddatahub:apps/unesco> a lapp:EndUserApplication ;
+    dct:title "LinkedDataHub" ;
+    ldt:base <http://vocabularies.unesco.org/> ;
+    ldt:ontology <ns#> ;
+    ldt:service <urn:linkeddatahub:services/end-user> ;
+    lapp:adminApplication <urn:linkeddatahub:apps/admin> .
 
 # SERVICES
 
