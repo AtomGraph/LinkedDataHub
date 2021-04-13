@@ -16,45 +16,43 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import java.util.Optional;
-import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.vocabulary.OWL;
+import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.util.Optional;
+import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS provider of application ontology .
+ * JAX-RS provider of LinkedDataHub application.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class OntologyFactory implements Factory<Ontology>
+public class ApplicationOptionalFactory implements Factory<Optional<Application>>
 {
-
+    private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
+    
     @Context private ServiceLocator serviceLocator;
-
-    @Inject Application application;
-    @Inject Optional<Application> optional;
-
+    
     @Override
-    public Ontology provide()
+    public Optional<Application> provide()
     {
-        return getOntology(getContainerRequestContext());
+        return getApplication(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Ontology t)
+    public void dispose(Optional<Application> t)
     {
     }
     
-    public Ontology getOntology(ContainerRequestContext crc)
+    public Optional<Application> getApplication(ContainerRequestContext crc)
     {
-        return (Ontology)crc.getProperty(OWL.Ontology.getURI());
+        return (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()

@@ -84,6 +84,7 @@ import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
+import com.atomgraph.linkeddatahub.server.factory.ApplicationOptionalFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
 import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
@@ -687,6 +688,17 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ApplicationOptionalFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                //proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        
         register(new AbstractBinder()
         {
             @Override
