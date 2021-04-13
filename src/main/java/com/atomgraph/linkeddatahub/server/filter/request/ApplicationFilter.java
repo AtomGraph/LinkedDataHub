@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
@@ -59,7 +60,8 @@ public class ApplicationFilter implements ContainerRequestFilter
 
             com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
             request.setProperty(LAPP.Application.getURI(), app);
-
+            request.setProperty("OptionalApplication", Optional.of(app));
+        
             request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri());
         }
         else

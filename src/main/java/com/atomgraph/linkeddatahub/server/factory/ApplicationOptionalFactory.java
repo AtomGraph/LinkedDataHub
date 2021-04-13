@@ -52,7 +52,7 @@ public class ApplicationOptionalFactory implements Factory<Optional<Application>
     
     public Optional<Application> getApplication(ContainerRequestContext crc)
     {
-        return (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
+        return (Optional<Application>)crc.getProperty("OptionalApplication");
     }
     
     public ContainerRequestContext getContainerRequestContext()
