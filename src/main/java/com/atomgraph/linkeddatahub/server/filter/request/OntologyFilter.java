@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -60,7 +61,8 @@ public class OntologyFilter extends SPARQLClientOntologyLoader implements Contai
     
     public Application getApplication(ContainerRequestContext crc)
     {
-        return (Application)crc.getProperty(LAPP.Application.getURI());
+        //return (Application)crc.getProperty(LAPP.Application.getURI());
+        return ((Optional<Application>)crc.getProperty("OptionalApplication")).get();
     }
     
 }
