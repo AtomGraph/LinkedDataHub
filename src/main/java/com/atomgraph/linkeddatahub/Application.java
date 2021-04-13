@@ -96,6 +96,7 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
+import com.atomgraph.linkeddatahub.server.factory.OntologyOptionalFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
@@ -709,6 +710,17 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(OntologyOptionalFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
+//                proxy(true).proxyForSameScope(false).
+                in(RequestScoped.class);
+            }
+        });
+        
         register(new AbstractBinder()
         {
             @Override

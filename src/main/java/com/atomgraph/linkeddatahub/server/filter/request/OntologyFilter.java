@@ -47,6 +47,7 @@ public class OntologyFilter extends SPARQLClientOntologyLoader implements Contai
     public void filter(ContainerRequestContext crc) throws IOException
     {
         crc.setProperty(OWL.Ontology.getURI(), getOntology(crc));
+        crc.setProperty("OptionalOntology", getOntology(crc));
     }
     
     public Ontology getOntology(ContainerRequestContext crc)
