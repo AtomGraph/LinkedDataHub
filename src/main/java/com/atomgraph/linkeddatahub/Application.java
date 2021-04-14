@@ -699,17 +699,6 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-        
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(OntologyFactory.class).to(Ontology.class).
-                proxy(true).proxyForSameScope(false).
-                in(RequestScoped.class);
-            }
-        });
         register(new AbstractBinder()
         {
             @Override

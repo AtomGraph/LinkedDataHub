@@ -42,7 +42,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -60,7 +59,6 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -88,7 +86,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject Application application;
-//    @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject ClientUriInfo clientUriInfo;
     @Inject DataManager dataManager;
     @Inject XsltExecutableSupplier xsltExecSupplier;
@@ -222,11 +219,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return securityContext;
     }
     
-//    public javax.inject.Provider<Optional<Ontology>> getOntology()
-//    {
-//        return ontology;
-//    }
-
     public Application getApplication()
     {
         return application;
