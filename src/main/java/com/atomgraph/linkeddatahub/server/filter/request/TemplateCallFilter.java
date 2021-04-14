@@ -88,7 +88,7 @@ public class TemplateCallFilter implements ContainerRequestFilter
     public Ontology getOntology(ContainerRequestContext crc)
     {
         //return (Ontology)crc.getProperty(OWL.Ontology.getURI());
-        return (Ontology)crc.getProperty("OptionalOntology");
+        return ((Optional<Ontology>)crc.getProperty("OptionalOntology")).get();
     }
     
 }
