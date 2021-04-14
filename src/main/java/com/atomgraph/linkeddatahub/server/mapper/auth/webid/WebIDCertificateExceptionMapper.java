@@ -16,10 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDCertificateException;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 
@@ -30,6 +35,12 @@ import org.apache.jena.rdf.model.ResourceFactory;
  */
 public class WebIDCertificateExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<WebIDCertificateException>
 {
+
+    @Inject
+    public WebIDCertificateExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    {
+        super(ontology, templateCall, mediaTypes);
+    }
 
     @Override
     public Response toResponse(WebIDCertificateException ex)

@@ -16,9 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper;
 
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.model.QueriedResource;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -26,6 +30,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 
@@ -36,9 +41,16 @@ import org.apache.jena.rdf.model.Resource;
  */
 public class ResourceExistsExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<ResourceExistsException>
 {
-    
-    @Context private ResourceContext resourceContext;
 
+    private final ResourceContext resourceContext;
+    
+    @Inject
+    public ResourceExistsExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context ResourceContext resourceContext)
+    {
+        super(ontology, templateCall, mediaTypes);
+        this.resourceContext = resourceContext;
+    }
+    
     @Override
     public Response toResponse(ResourceExistsException ex)
     {

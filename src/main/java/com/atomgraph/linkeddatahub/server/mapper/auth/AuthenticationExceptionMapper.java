@@ -16,6 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
+import com.atomgraph.core.MediaTypes;
+import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
@@ -24,7 +26,10 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 
 /**
@@ -35,6 +40,12 @@ import org.apache.jena.query.DatasetFactory;
 @Provider
 public class AuthenticationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<NotAuthorizedException>
 {
+
+    @Inject
+    public AuthenticationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    {
+        super(ontology, templateCall, mediaTypes);
+    }
 
     @Override
     public Response toResponse(NotAuthorizedException ex)

@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -25,14 +26,17 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
 import java.net.URI;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
@@ -46,9 +50,16 @@ import org.glassfish.jersey.uri.UriComponent;
 public class AuthorizationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<AuthorizationException>
 {
     
-    @Context SecurityContext securityContext;
-    
-    @Inject Application application;
+    private final SecurityContext securityContext;
+    private final Application application;
+
+    @Inject
+    public AuthorizationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context SecurityContext securityContext, Application application)
+    {
+        super(ontology, templateCall, mediaTypes);
+        this.securityContext = securityContext;
+        this.application = application;
+    }
     
     @Override
     public Response toResponse(AuthorizationException ex)

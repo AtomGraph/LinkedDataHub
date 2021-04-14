@@ -16,11 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.jena;
 
+import com.atomgraph.core.MediaTypes;
+import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.riot.RiotParseException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
+import java.util.Optional;
+import javax.inject.Inject;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 
 /**
@@ -32,9 +37,14 @@ public class RiotParseExceptionMapper extends ExceptionMapperBase implements Exc
 {
     // TO-DO: remove or move to Processor?
 
-    @Override
-    public Response toResponse(RiotParseException ex)
+    @Inject
+    public RiotParseExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
     {
+        super(ontology, templateCall, mediaTypes);
+    }
+
+    @Override
+    public Response toResponse(RiotParseException ex) {
         return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.BAD_REQUEST,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
                 getModel())).

@@ -16,11 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper;
 
+import com.atomgraph.core.MediaTypes;
+import com.atomgraph.processor.model.TemplateCall;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import com.atomgraph.server.exception.ModelException;
 import com.atomgraph.server.model.QueriedResource;
+import java.util.Optional;
 import javax.ws.rs.container.ResourceContext;
+import org.apache.jena.ontology.Ontology;
 
 /**
  * JAX-RS mapper for model exceptions.
@@ -29,7 +33,13 @@ import javax.ws.rs.container.ResourceContext;
  */
 public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExceptionMapper
 {
-    @Context private ResourceContext resourceContext;
+    private final ResourceContext resourceContext;
+
+    public ModelExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context ResourceContext resourceContext)
+    {
+        super(ontology, templateCall, mediaTypes);
+        this.resourceContext = resourceContext;
+    }
 
     @Override
     public Response toResponse(ModelException ex)
