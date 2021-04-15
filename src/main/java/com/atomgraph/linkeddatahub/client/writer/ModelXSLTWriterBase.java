@@ -86,7 +86,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Context SecurityContext securityContext;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Optional<Application> application;
+    @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject ClientUriInfo clientUriInfo;
     //@Inject DataManager dataManager;
     @Inject XsltExecutableSupplier xsltExecSupplier;
@@ -132,7 +132,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
-            Optional<Application> app = getApplication();
+            Optional<Application> app = getApplication().get();
             if (app.isPresent())
             {
                 // base URI can be null when writing SPARQL results?
@@ -220,7 +220,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return securityContext;
     }
     
-    public Optional<Application> getApplication()
+    public javax.inject.Provider<Optional<Application>> getApplication()
     {
         return application;
     }
