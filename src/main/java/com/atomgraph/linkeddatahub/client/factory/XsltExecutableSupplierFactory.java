@@ -57,12 +57,12 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableSupplierFactory.class);
 
     private final com.atomgraph.linkeddatahub.Application system;
-    private final Optional<Application> application;
+    private final javax.inject.Provider<Optional<Application>> application;
     
     @Context UriInfo uriInfo;
 
     @Inject
-    public XsltExecutableSupplierFactory(com.atomgraph.linkeddatahub.Application system, Optional<Application> application)
+    public XsltExecutableSupplierFactory(com.atomgraph.linkeddatahub.Application system, javax.inject.Provider<Optional<Application>> application)
     {
         this.system = system;
         this.application = application;
@@ -84,8 +84,8 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
     {
         try
         {
-            if (getApplication().isPresent() && getApplication().get().getStylesheet() != null)
-                return getXsltExecutable(getApplication().get().getStylesheet().getURI(), getXsltExecutableCache());
+            if (getApplication().get().isPresent() && getApplication().get().get().getStylesheet() != null)
+                return getXsltExecutable(getApplication().get().get().getStylesheet().getURI(), getXsltExecutableCache());
             
             return getSystem().getXsltExecutable();
         }
@@ -203,7 +203,7 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
         return system;
     }
     
-    public Optional<Application> getApplication()
+    public javax.inject.Provider<Optional<Application>> getApplication()
     {
         return application;
     }
