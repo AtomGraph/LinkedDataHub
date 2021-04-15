@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
@@ -56,12 +57,12 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableSupplierFactory.class);
 
     private final com.atomgraph.linkeddatahub.Application system;
-    private final Application application;
+    private final Optional<Application> application;
     
     @Context UriInfo uriInfo;
 
     @Inject
-    public XsltExecutableSupplierFactory(com.atomgraph.linkeddatahub.Application system, Application application)
+    public XsltExecutableSupplierFactory(com.atomgraph.linkeddatahub.Application system, Optional<Application> application)
     {
         this.system = system;
         this.application = application;
@@ -83,8 +84,8 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
     {
         try
         {
-            if (getApplication() != null && getApplication().getStylesheet() != null)
-                return getXsltExecutable(getApplication().getStylesheet().getURI(), getXsltExecutableCache());
+            if (getApplication().isPresent() && getApplication().get().getStylesheet() != null)
+                return getXsltExecutable(getApplication().get().getStylesheet().getURI(), getXsltExecutableCache());
             
             return getSystem().getXsltExecutable();
         }
@@ -202,7 +203,7 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
         return system;
     }
     
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return application;
     }
