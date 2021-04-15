@@ -679,23 +679,22 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
-                proxy(true).proxyForSameScope(false).
-                in(RequestScoped.class);
-            }
-        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
+//                proxy(true).proxyForSameScope(false).
+//                in(RequestScoped.class);
+//            }
+//        });
         register(new AbstractBinder()
         {
             @Override
             protected void configure()
             {
                 bindFactory(ApplicationOptionalFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
-                //proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
@@ -705,7 +704,6 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(OntologyOptionalFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
-//                proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
