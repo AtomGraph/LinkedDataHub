@@ -51,10 +51,10 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     private final SecurityContext securityContext;
-    private final Application application;
+    private final Optional<Application> application;
 
     @Inject
-    public AuthorizationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context SecurityContext securityContext, Application application)
+    public AuthorizationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context SecurityContext securityContext, Optional<Application> application)
     {
         super(ontology, templateCall, mediaTypes);
         this.securityContext = securityContext;
@@ -69,11 +69,11 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 addLiteral(HTTP.absoluteURI, ex.getAbsolutePath().toString());
         
         // add link to the endpoint for access requests. TO-DO: make the URIs configurable or best - retrieve from sitemap/dataset
-        if (getSecurityContext().getUserPrincipal() != null)
+        if (getApplication().isPresent() && getSecurityContext().getUserPrincipal() != null)
         {
-            if (getApplication().canAs(EndUserApplication.class))
+            if (getApplication().get().canAs(EndUserApplication.class))
             {
-                Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
+                Resource adminBase = getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase();
 
                 URI requestClassURI = UriBuilder.fromUri(adminBase.getURI()).path("ns").fragment(LACL.AuthorizationRequest.getLocalName()).build();
                 // we URI-encode values ourselves because Jersey 1.x UriBuilder fails to do so: https://java.net/jira/browse/JERSEY-1717
@@ -102,7 +102,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
         return securityContext;
     }
     
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return application;
     }

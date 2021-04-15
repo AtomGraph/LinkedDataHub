@@ -47,10 +47,10 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
 {
 
     private final UriInfo uriInfo;
-    private final com.atomgraph.linkeddatahub.apps.model.Application app;
+    private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
 
     @Inject
-    public TokenExpiredExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context UriInfo uriInfo, Application app)
+    public TokenExpiredExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context UriInfo uriInfo, Optional<Application> app)
     {
         super(ontology, templateCall, mediaTypes);
         this.uriInfo = uriInfo;
@@ -60,7 +60,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     @Override
     public Response toResponse(TokenExpiredException ex)
     {
-        String path = getApplication().getBaseURI().getPath();
+        String path = getApplication().get().getBaseURI().getPath();
         NewCookie expiredCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, "", path, null, NewCookie.DEFAULT_VERSION, null, 0, false);
 
         ResponseBuilder builder = getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.BAD_REQUEST,
@@ -82,13 +82,13 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     
     public URI getAdminBaseURI()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication().getBaseURI();
         else
-            return getApplication().getBaseURI();
+            return getApplication().get().getBaseURI();
     }
     
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return app;
     }
