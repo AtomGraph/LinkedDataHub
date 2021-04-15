@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -85,7 +86,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Context SecurityContext securityContext;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Application application;
+    @Inject Optional<Application> application;
     @Inject ClientUriInfo clientUriInfo;
     @Inject DataManager dataManager;
     @Inject XsltExecutableSupplier xsltExecSupplier;
@@ -131,37 +132,37 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
-            Application app = getApplication();
-            if (app != null)
+            Optional<Application> app = getApplication();
+            if (app.isPresent())
             {
                 // base URI can be null when writing SPARQL results?
                 if (getBaseUri() != null) params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
-                StmtIterator appStmts = app.listProperties();
+                StmtIterator appStmts = app.get().listProperties();
                 Model appModel = ModelFactory.createDefaultModel().add(appStmts);
                 appStmts.close();
 
                 // for AdminApplication, add EndUserApplication statements
-                if (app.canAs(AdminApplication.class))
+                if (app.get().canAs(AdminApplication.class))
                 {
-                    AdminApplication adminApp = app.as(AdminApplication.class);
+                    AdminApplication adminApp = app.get().as(AdminApplication.class);
                     StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
                     appModel.add(endUserAppStmts);
                     endUserAppStmts.close();
                 }
                 // for EndUserApplication, add AdminApplication statements
-                if (app.canAs(EndUserApplication.class))
+                if (app.get().canAs(EndUserApplication.class))
                 {
-                    EndUserApplication endUserApp = app.as(EndUserApplication.class);
+                    EndUserApplication endUserApp = app.get().as(EndUserApplication.class);
                     StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
                     appModel.add(adminApp);
                     adminApp.close();
                 }
 
                 Source source = getSource(appModel); // TO-DO: change hash code?
-                if (app.hasProperty(FOAF.isPrimaryTopicOf) && app.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
-                    source.setSystemId(app.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
+                if (app.get().hasProperty(FOAF.isPrimaryTopicOf) && app.get().getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
+                    source.setSystemId(app.get().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
 
                 params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
@@ -219,7 +220,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return securityContext;
     }
     
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return application;
     }

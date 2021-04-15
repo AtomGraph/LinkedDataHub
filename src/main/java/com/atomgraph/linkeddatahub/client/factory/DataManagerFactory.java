@@ -27,6 +27,7 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
@@ -57,7 +58,7 @@ public class DataManagerFactory implements Factory<DataManager>
     
     @Inject MediaTypes mediaTypes;
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Application application;
+    @Inject Optional<Application> application;
     
     @Override
     public DataManager provide()
@@ -74,7 +75,7 @@ public class DataManagerFactory implements Factory<DataManager>
     {
         return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),
                 isPreemptiveAuth(), isResolvingUncached(),
-                getApplication(), getSecurityContext(),
+                getApplication().orElse(null), getSecurityContext(),
                 URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
     }
     
@@ -94,7 +95,7 @@ public class DataManagerFactory implements Factory<DataManager>
         return dataManager;
     }
     
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return application;
     }

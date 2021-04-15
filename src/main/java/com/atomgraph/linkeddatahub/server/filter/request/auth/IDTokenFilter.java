@@ -210,10 +210,10 @@ public class IDTokenFilter extends AuthenticationFilter
     
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().as(AdminApplication.class);
+            return getApplication().get().as(AdminApplication.class);
     }
     
     public ParameterizedSparqlString getUserAccountQuery()

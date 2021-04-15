@@ -25,6 +25,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.io.IOException;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -51,7 +52,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
+    @Inject Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
 
     public abstract String getScheme();
     
@@ -67,10 +68,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
-        // skip filter if agent already authorized
-        if (request.getSecurityContext().getUserPrincipal() != null) return;
-        // skip filter if no application has matched
-        if (getApplication() == null) return;
+        if (getApplication().isEmpty()) return; // skip filter if no application has matched
+        if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
         
@@ -83,9 +82,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     protected Service getAgentService()
     {
-        return getApplication().canAs(EndUserApplication.class) ?
-            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().getService();
+        return getApplication().get().canAs(EndUserApplication.class) ?
+            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().get().getService();
     }
     
     /**
@@ -160,7 +159,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         return false;
     }
     
-    public Application getApplication()
+    public Optional<Application> getApplication()
     {
         return app;
     }
