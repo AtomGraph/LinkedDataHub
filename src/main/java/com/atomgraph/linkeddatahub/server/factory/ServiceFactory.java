@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.factory;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
@@ -53,11 +54,12 @@ public class ServiceFactory implements Factory<Service>
     
     public Service getService(ContainerRequestContext crc)
     {
-        Application app = ((Application)crc.getProperty(LAPP.Application.getURI()));
+        //Application app = ((Application)crc.getProperty(LAPP.Application.getURI()));
+        Optional<Application> app = (Optional<Application>)crc.getProperty("OptionalApplication");
         
-        if (app != null)
+        if (app.isPresent())
         {
-            Service service = app.getService();
+            Service service = app.get().getService();
 
             // cast to specific implementations
             if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) service = service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
