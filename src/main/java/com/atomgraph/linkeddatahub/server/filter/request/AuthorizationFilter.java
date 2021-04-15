@@ -79,7 +79,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
     
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
@@ -96,7 +96,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().isEmpty()) return; // skip filter if no application has matched
+        if (getApplication().get().isEmpty()) return; // skip filter if no application has matched
             
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
@@ -126,7 +126,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
         qsm.add("Mode", accessMode);
-        qsm.add(LDT.Ontology.getLocalName(), getApplication().get().getOntology());
+        qsm.add(LDT.Ontology.getLocalName(), getApplication().get().get().getOntology());
         
         if (agent != null)
         {
@@ -162,10 +162,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
 
-        final ParameterizedSparqlString pss = getApplication().get().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
+        final ParameterizedSparqlString pss = getApplication().get().get().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
         
-        if (getApplication().get().canAs(EndUserApplication.class))
-            pss.setIri(SD.endpoint.getLocalName(), getApplication().get().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
+        if (getApplication().get().get().canAs(EndUserApplication.class))
+            pss.setIri(SD.endpoint.getLocalName(), getApplication().get().get().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
 
         return loadModel(getAdminService(), pss, qsm);
     }
@@ -224,12 +224,12 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     protected Service getAdminService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getApplication().get().get().canAs(EndUserApplication.class) ?
+            getApplication().get().get().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().get().get().getService();
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> getApplication()
     {
         return app;
     }

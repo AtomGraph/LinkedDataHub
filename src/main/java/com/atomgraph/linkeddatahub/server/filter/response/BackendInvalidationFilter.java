@@ -40,7 +40,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 {
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
     
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
@@ -59,8 +59,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-            ban(getApplication().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
-            ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
+            ban(getApplication().get().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+            ban(getApplication().get().get().getService().getProxy(), getApplication().get().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
         }
     }
     
@@ -76,13 +76,13 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().get().get().canAs(EndUserApplication.class))
+            return getApplication().get().get().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().get().as(AdminApplication.class);
+            return getApplication().get().get().as(AdminApplication.class);
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> getApplication()
     {
         return app;
     }
