@@ -130,12 +130,12 @@ public class SignUp extends ResourceBase
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-                  Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-                  Ontology ontology, Optional<TemplateCall> templateCall,
-                  @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-                  @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-                  @Context DataManager dataManager, @Context Providers providers,
-                  com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            Service service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
+            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
+            @Context DataManager dataManager, @Context Providers providers,
+            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
                 service, application,
@@ -146,7 +146,7 @@ public class SignUp extends ResourceBase
                 system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
-        if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
+        if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))

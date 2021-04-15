@@ -126,7 +126,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     }
 
     protected ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service,com.atomgraph.linkeddatahub.apps.model.Application application,
+            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
             Ontology ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
