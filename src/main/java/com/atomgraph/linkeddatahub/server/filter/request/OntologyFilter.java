@@ -47,20 +47,20 @@ public class OntologyFilter extends SPARQLClientOntologyLoader implements Contai
     @Override
     public void filter(ContainerRequestContext crc) throws IOException
     {
-        crc.setProperty(OWL.Ontology.getURI(), Optional.of(getOntology(crc)));
+        crc.setProperty(OWL.Ontology.getURI(), getOntology(crc));
     }
     
-    public Ontology getOntology(ContainerRequestContext crc)
+    public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
-        Application app = getApplication(crc);
-        if (app == null) return null; // throw exception instead?
+        Optional<Application> app = getApplication(crc);
+        if (app.isEmpty()) return Optional.empty();
         
-        return getOntology(app);
+        return Optional.of(getOntology(app.get()));
     }
     
-    public Application getApplication(ContainerRequestContext crc)
+    public Optional<Application> getApplication(ContainerRequestContext crc)
     {
-        return ((Optional<Application>)crc.getProperty(LAPP.Application.getURI())).get();
+        return ((Optional<Application>)crc.getProperty(LAPP.Application.getURI()));
     }
     
 }

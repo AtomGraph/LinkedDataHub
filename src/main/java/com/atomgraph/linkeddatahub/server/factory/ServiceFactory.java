@@ -66,7 +66,7 @@ public class ServiceFactory implements Factory<Optional<Service>>
             return Optional.of(service);
         }
         
-        return null;
+        return Optional.empty();
     }
     
     public ContainerRequestContext getContainerRequestContext()

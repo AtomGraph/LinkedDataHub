@@ -75,7 +75,7 @@ public class TemplateCallFilter implements ContainerRequestFilter
 
     public Template getTemplate(ContainerRequestContext crc)
     {
-        if (getOntology(crc) != null) return getTemplate(getOntology(crc), crc.getUriInfo());
+        if (getOntology(crc).isPresent()) return getTemplate(getOntology(crc).get(), crc.getUriInfo());
         
         return null;
     }
@@ -85,9 +85,9 @@ public class TemplateCallFilter implements ContainerRequestFilter
         return new TemplateMatcher(ontology).match(uriInfo.getAbsolutePath(), uriInfo.getBaseUri());
     }
     
-    public Ontology getOntology(ContainerRequestContext crc)
+    public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
-        return ((Optional<Ontology>)crc.getProperty(OWL.Ontology.getURI())).get();
+        return ((Optional<Ontology>)crc.getProperty(OWL.Ontology.getURI()));
     }
     
 }
