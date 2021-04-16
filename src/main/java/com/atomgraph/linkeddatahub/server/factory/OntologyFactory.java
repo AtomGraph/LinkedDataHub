@@ -31,7 +31,7 @@ import org.glassfish.hk2.api.ServiceLocator;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class OntologyOptionalFactory implements Factory<Optional<Ontology>>
+public class OntologyFactory implements Factory<Optional<Ontology>>
 {
 
     @Context private ServiceLocator serviceLocator;

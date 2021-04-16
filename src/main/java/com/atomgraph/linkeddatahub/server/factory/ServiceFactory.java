@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ServiceFactory implements Factory<Service>
+public class ServiceFactory implements Factory<Optional<Service>>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceFactory.class);
@@ -42,17 +42,17 @@ public class ServiceFactory implements Factory<Service>
     @Context private ServiceLocator serviceLocator;
     
     @Override
-    public Service provide()
+    public Optional<Service> provide()
     {
         return getService(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Service t)
+    public void dispose(Optional<Service> t)
     {
     }
     
-    public Service getService(ContainerRequestContext crc)
+    public Optional<Service> getService(ContainerRequestContext crc)
     {
         Optional<Application> app = (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
         
@@ -63,7 +63,7 @@ public class ServiceFactory implements Factory<Service>
             // cast to specific implementations
             if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) service = service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
             
-            return service;
+            return Optional.of(service);
         }
         
         return null;

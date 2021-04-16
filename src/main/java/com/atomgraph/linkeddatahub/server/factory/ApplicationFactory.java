@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ApplicationOptionalFactory implements Factory<Optional<Application>>
+public class ApplicationFactory implements Factory<Optional<Application>>
 {
-    private static final Logger log = LoggerFactory.getLogger(ApplicationOptionalFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
     
     @Context private ServiceLocator serviceLocator;
     

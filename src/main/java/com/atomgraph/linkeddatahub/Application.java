@@ -83,7 +83,7 @@ import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
-import com.atomgraph.linkeddatahub.server.factory.ApplicationOptionalFactory;
+import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
 import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
@@ -94,7 +94,7 @@ import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.server.factory.OntologyOptionalFactory;
+import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
@@ -672,8 +672,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ServiceFactory.class).to(Service.class).
-                proxy(true).proxyForSameScope(false).
+                bindFactory(ServiceFactory.class).to(new TypeLiteral<Optional<Service>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -682,7 +681,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationOptionalFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -691,7 +690,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(OntologyOptionalFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
+                bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
                 in(RequestScoped.class);
             }
         });

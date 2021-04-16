@@ -130,7 +130,7 @@ public class SignUp extends ResourceBase
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
@@ -387,7 +387,7 @@ public class SignUp extends ResourceBase
     {
         return new ResourceBase(
             new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-            getService(), Optional.of(getApplication()), Optional.of(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
+            Optional.ofNullable(getService()), Optional.ofNullable(getApplication()), Optional.ofNullable(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
             getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
             getSystem());
     }

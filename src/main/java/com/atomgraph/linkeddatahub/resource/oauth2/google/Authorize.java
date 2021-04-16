@@ -67,7 +67,7 @@ public class Authorize extends ResourceBase
     
     @Inject
     public Authorize(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,

@@ -108,7 +108,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
     @Inject
     public ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
@@ -117,26 +117,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     {
         this(uriInfo, clientUriInfo, request, mediaTypes,
             uriInfo.getAbsolutePath(),
-            service, application.get(),
-            ontology.get(), templateCall,
-            httpHeaders, resourceContext,
-            httpServletRequest, securityContext,
-            dataManager, providers,
-            system);
-    }
-
-    protected ResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-            Ontology ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
-    {
-        this(uriInfo, clientUriInfo, request, mediaTypes,
-            uriInfo.getAbsolutePath(),
-            service, application,
-            ontology, templateCall,
+            service.orElse(null), application.orElse(null),
+            ontology.orElse(null), templateCall,
             httpHeaders, resourceContext,
             httpServletRequest, securityContext,
             dataManager, providers,
@@ -154,7 +136,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         super(uriInfo, request, mediaTypes, uri,
                 service, application, ontology, templateCall,
                 httpHeaders, resourceContext);
-        if (application == null) throw new IllegalArgumentException("Application cannot be null");
+//        if (application == null) throw new IllegalArgumentException("Application cannot be null");
         if (securityContext == null) throw new IllegalArgumentException("SecurityContext cannot be null");
         if (dataManager == null) throw new IllegalArgumentException("DataManager cannot be null");
         if (providers == null) throw new IllegalArgumentException("Providers cannot be null");
