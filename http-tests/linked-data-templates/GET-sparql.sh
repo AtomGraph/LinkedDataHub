@@ -19,10 +19,10 @@ popd > /dev/null
 
 # check that SPARQL endpoint works
 
-curl --head -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode "SELECT ?s { GRAPH ?g { ?s ?p ?o } }" \
+  --data-urlencode 'query=SELECT ?s { GRAPH ?g { ?s ?p ?o } }' \
   "${END_USER_BASE_URL}sparql" \
 | grep -q "${STATUS_OK}"
