@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 @Provider
 public class ApplicationOptionalFactory implements Factory<Optional<Application>>
 {
-    private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
+    private static final Logger log = LoggerFactory.getLogger(ApplicationOptionalFactory.class);
     
     @Context private ServiceLocator serviceLocator;
     
@@ -52,7 +52,7 @@ public class ApplicationOptionalFactory implements Factory<Optional<Application>
     
     public Optional<Application> getApplication(ContainerRequestContext crc)
     {
-        return (Optional<Application>)crc.getProperty("OptionalApplication");
+        return (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()

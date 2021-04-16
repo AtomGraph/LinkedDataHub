@@ -54,8 +54,7 @@ public class ServiceFactory implements Factory<Service>
     
     public Service getService(ContainerRequestContext crc)
     {
-        //Application app = ((Application)crc.getProperty(LAPP.Application.getURI()));
-        Optional<Application> app = (Optional<Application>)crc.getProperty("OptionalApplication");
+        Optional<Application> app = (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
         
         if (app.isPresent())
         {

@@ -76,7 +76,6 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.UserAccount;
 import com.atomgraph.linkeddatahub.server.mapper.auth.webid.WebIDDelegationExceptionMapper;
-import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.model.impl.AgentImpl;
 import com.atomgraph.linkeddatahub.model.impl.CSVImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.FileImpl;
@@ -95,7 +94,6 @@ import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
-import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.OntologyOptionalFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
@@ -679,16 +677,6 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-//        register(new AbstractBinder()
-//        {
-//            @Override
-//            protected void configure()
-//            {
-//                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
-//                proxy(true).proxyForSameScope(false).
-//                in(RequestScoped.class);
-//            }
-//        });
         register(new AbstractBinder()
         {
             @Override
@@ -707,7 +695,6 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-        
         register(new AbstractBinder()
         {
             @Override

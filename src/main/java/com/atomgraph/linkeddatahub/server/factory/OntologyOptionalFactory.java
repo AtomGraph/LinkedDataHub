@@ -49,7 +49,7 @@ public class OntologyOptionalFactory implements Factory<Optional<Ontology>>
     
     public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
-        return (Optional<Ontology>)crc.getProperty("OptionalOntology");
+        return (Optional<Ontology>)crc.getProperty(OWL.Ontology.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()
