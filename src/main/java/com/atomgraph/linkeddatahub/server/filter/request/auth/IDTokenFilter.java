@@ -83,6 +83,9 @@ public class IDTokenFilter extends AuthenticationFilter
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
+        if (getApplication().get().isEmpty()) return; // skip filter if no application has matched
+        if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
+
         // do not verify token for auth endpoints as that will lead to redirect loops
         if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
         if (request.getUriInfo().getAbsolutePath().equals(getAuthorizeGoogleURL())) return;
