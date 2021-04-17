@@ -25,7 +25,7 @@ import javax.ws.rs.Path;
  *
  * @author Martynas Jusevičius <martynas@atomgraph.com>
  */
-@Path("{path: .+}")
+@Path("/")
 public class Dispatcher
 {
     
