@@ -106,6 +106,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
+import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -747,7 +748,8 @@ public class Application extends ResourceConfig
     
     protected void registerResourceClasses()
     {
-        register(ResourceBase.class); // handles /
+        //register(ResourceBase.class); // handles /
+        register(Dispatcher.class);
     }
     
     protected void registerContainerRequestFilters()
