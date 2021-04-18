@@ -49,7 +49,6 @@ public class Dispatcher
         this.templateCall = templateCall;
     }
     
-    
     @Path("{path: .*}")
     public Object getSubResource()
     {
@@ -59,6 +58,7 @@ public class Dispatcher
             return ProxyResourceBase.class;
         }
 
+        // resource class loading based on the ldt:loadClass value
         if (getTemplateCall().isPresent() && getTemplateCall().get().getTemplate().getLoadClass() != null)
         {
             Resource javaClass = getTemplateCall().get().getTemplate().getLoadClass();
@@ -79,6 +79,11 @@ public class Dispatcher
             return clazz;
         }
         
+        return getResourceClass();
+    }
+    
+    public Class getResourceClass()
+    {
         return ResourceBase.class;
     }
     
