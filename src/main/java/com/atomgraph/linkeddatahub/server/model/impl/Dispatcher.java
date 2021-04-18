@@ -37,7 +37,7 @@ public class Dispatcher
     }
     
     
-    @Path("{path: .+}")
+    @Path("{path: .*}")
     public Object getSubResource()
     {
         if (getApplication().isEmpty()) return ProxyResourceBase.class;
