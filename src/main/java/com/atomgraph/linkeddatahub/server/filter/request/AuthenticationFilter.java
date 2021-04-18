@@ -68,7 +68,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().get().isEmpty()) return; // skip filter if no application has matched
+        if (getApplication().isEmpty()) return; // skip filter if no application has matched
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
@@ -82,9 +82,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     protected Service getAgentService()
     {
-        return getApplication().get().get().canAs(EndUserApplication.class) ?
-            getApplication().get().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().get().getService();
+        return getApplication().get().canAs(EndUserApplication.class) ?
+            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().get().getService();
     }
     
     /**
@@ -159,9 +159,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         return false;
     }
     
-    public javax.inject.Provider<Optional<Application>> getApplication()
+    public Optional<Application> getApplication()
     {
-        return app;
+        return app.get();
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()

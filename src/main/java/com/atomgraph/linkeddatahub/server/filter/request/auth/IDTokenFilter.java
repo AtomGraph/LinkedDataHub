@@ -83,7 +83,7 @@ public class IDTokenFilter extends AuthenticationFilter
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
-        if (getApplication().get().isEmpty()) return; // skip filter if no application has matched
+        if (getApplication().isEmpty()) return; // skip filter if no application has matched
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         // do not verify token for auth endpoints as that will lead to redirect loops
@@ -213,10 +213,10 @@ public class IDTokenFilter extends AuthenticationFilter
     
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().get().get().canAs(EndUserApplication.class))
-            return getApplication().get().get().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().get().get().as(AdminApplication.class);
+            return getApplication().get().as(AdminApplication.class);
     }
     
     public ParameterizedSparqlString getUserAccountQuery()

@@ -84,8 +84,8 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
     {
         try
         {
-            if (getApplication().get().isPresent() && getApplication().get().get().getStylesheet() != null)
-                return getXsltExecutable(getApplication().get().get().getStylesheet().getURI(), getXsltExecutableCache());
+            if (getApplication().isPresent() && getApplication().get().getStylesheet() != null)
+                return getXsltExecutable(getApplication().get().getStylesheet().getURI(), getXsltExecutableCache());
             
             return getSystem().getXsltExecutable();
         }
@@ -203,9 +203,9 @@ public class XsltExecutableSupplierFactory implements Factory<XsltExecutableSupp
         return system;
     }
     
-    public javax.inject.Provider<Optional<Application>> getApplication()
+    public Optional<Application> getApplication()
     {
-        return application;
+        return application.get();
     }
     
     public UriInfo getUriInfo()

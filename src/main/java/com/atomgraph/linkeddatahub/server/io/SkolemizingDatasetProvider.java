@@ -60,12 +60,12 @@ public class SkolemizingDatasetProvider extends com.atomgraph.server.io.Skolemiz
     {
         super.process(resource);
         
-        if (getOntology().get().isPresent() && !resource.hasProperty(DH.slug))
+        if (getOntology().isPresent() && !resource.hasProperty(DH.slug))
         {
             Statement typeStmt = resource.getProperty(RDF.type);
             if (typeStmt != null && typeStmt.getObject().isURIResource())
             {
-                OntClass ontClass = getOntology().get().get().getOntModel().getOntClass(typeStmt.getResource().getURI());
+                OntClass ontClass = getOntology().get().getOntModel().getOntClass(typeStmt.getResource().getURI());
                 if (ontClass != null)
                 {
                     // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
