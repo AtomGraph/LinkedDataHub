@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 
 /**
@@ -41,7 +40,7 @@ public class Dispatcher
     @Path("{path: .+}")
     public Object getSubResource()
     {
-        if (getApplication().isEmpty()) throw new NotFoundException("Application not found");
+        if (getApplication().isEmpty()) return ProxyResourceBase.class;
 
         return ResourceBase.class;
     }

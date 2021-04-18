@@ -25,11 +25,13 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
@@ -65,6 +67,18 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         if (securityContext.getUserPrincipal() instanceof Agent &&
             securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
             super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+    }
+    
+    /**
+     * Forwards GET request and returns response from remote resource.
+     * 
+     * @return response
+     */
+    @GET
+    @Override
+    public Response get()
+    {
+        return super.get();
     }
     
     public DataManager getDataManager()
