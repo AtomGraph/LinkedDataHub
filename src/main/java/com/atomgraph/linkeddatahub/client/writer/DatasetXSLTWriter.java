@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.client.writer;
 
+import com.atomgraph.client.util.DataManager;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -24,7 +25,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import javax.inject.Inject;
 import javax.ws.rs.ext.MessageBodyWriter;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.jena.ontology.OntModelSpec;
@@ -43,10 +43,9 @@ public class DatasetXSLTWriter extends ModelXSLTWriterBase implements MessageBod
 {
     private static final Logger log = LoggerFactory.getLogger(DatasetXSLTWriter.class);
 
-    @Inject
-    public DatasetXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec)
+    public DatasetXSLTWriter(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
-        super(xsltExec, ontModelSpec);
+        super(xsltExec, ontModelSpec, dataManager);
     }
     
     @Override

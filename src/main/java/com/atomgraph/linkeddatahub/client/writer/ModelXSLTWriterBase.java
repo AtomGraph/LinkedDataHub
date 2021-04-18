@@ -91,10 +91,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject XsltExecutableSupplier xsltExecSupplier;
 
-    @Inject
-    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec)
+    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
-        super(xsltExec, ontModelSpec);
+        super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
     }
     
     @Override
