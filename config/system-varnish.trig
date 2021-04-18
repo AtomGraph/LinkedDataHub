@@ -35,6 +35,14 @@
     lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
     lapp:public true .
 
+<urn:linkeddatahub:apps/musicbrainz> a lapp:EndUserApplication ;
+    dct:title "MusicBrainz" ;
+    ldt:base <http://musicbrainz.org/> ;
+    ldt:ontology <ns#> ;
+    ldt:service <urn:linkeddatahub:services/musicbrainz>;
+    lapp:adminApplication <urn:linkeddatahub:apps/admin> ;
+    lapp:public true .
+
 # SERVICES
 
 # root admin
@@ -56,3 +64,10 @@
     a:graphStore <http://fuseki-end-user:3030/ds/> ;
     a:quadStore <http://fuseki-end-user:3030/ds/> ;
     lapp:proxy <http://varnish-end-user/> .
+
+# MusicBrainz
+
+<urn:linkeddatahub:services/musicbrainz> a apl:GenericService ;
+    dct:title "MusicBrainz service" ;
+    sd:supportedLanguage sd:SPARQL11Query ;
+    sd:endpoint <https://musictest.ontopic.dev/data/sparql> .
