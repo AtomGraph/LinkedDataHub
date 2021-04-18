@@ -718,7 +718,7 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
-                proxy(true).proxyForSameScope(false).
+                //proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });

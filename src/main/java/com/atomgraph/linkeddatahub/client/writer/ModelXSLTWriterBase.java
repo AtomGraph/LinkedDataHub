@@ -88,7 +88,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject ClientUriInfo clientUriInfo;
-    @Inject DataManager dataManager;
+    @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject XsltExecutableSupplier xsltExecSupplier;
 
     @Inject
@@ -228,9 +228,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public DataManager getDataManager()
     {
-        return dataManager;
+        return getDataManagerProvider().get();
     }
 
+    public javax.inject.Provider<DataManager> getDataManagerProvider()
+    {
+        return dataManager;
+    }
+    
     @Override
     public URI getURI() throws URISyntaxException
     {
