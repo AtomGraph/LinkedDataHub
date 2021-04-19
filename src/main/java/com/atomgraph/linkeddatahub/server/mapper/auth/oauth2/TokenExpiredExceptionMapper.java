@@ -70,7 +70,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         
         URI redirectUri = UriBuilder.fromUri(getAdminBaseURI()).
             path("/oauth2/authorize/google"). // TO-DO: move to config?
-            queryParam(REFERER_PARAM_NAME, getUriInfo().getAbsolutePath()).
+            queryParam(REFERER_PARAM_NAME, getUriInfo().getRequestUri()). // we need to retain URL query parameters
             build();
         
         if (!getUriInfo().getAbsolutePath().equals(redirectUri)) // prevent a perpetual redirect loop
