@@ -79,8 +79,7 @@ public class ApplicationFilter implements ContainerRequestFilter
         }
         else
         {
-            if (log.isDebugEnabled()) log.debug("Resource {} has not matched any Application", matchURI);
-//            throw new NotFoundException("Application not found");
+            if (log.isDebugEnabled()) log.debug("Request URI {} has not matched any Application", matchURI);
             request.setProperty(LAPP.Application.getURI(), Optional.empty());
         }
     }
