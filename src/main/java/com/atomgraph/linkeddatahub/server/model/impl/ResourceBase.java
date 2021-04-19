@@ -39,7 +39,6 @@ import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
-import com.atomgraph.spinrdf.vocabulary.SPIN;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
@@ -79,7 +78,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
-import org.apache.jena.util.FileManager;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -932,65 +930,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public Dataset describe()
     {
-        if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
-        {
-            URI uri = URI.create(getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-//            if (getUriInfo().getBaseUri().relativize(uri).isAbsolute()) // external URI resource (not relative to the base URI)
-            {
-            
-                // #1 check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-                if (((FileManager)getDataManager()).hasCachedModel(uri.toString()) ||
-                        (getDataManager().isResolvingMapped() && getDataManager().isMapped(uri.toString()))) // read mapped URIs (such as system ontologies) from a file
-                {
-                    if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", uri, ((FileManager)getDataManager()).hasCachedModel(uri.toString()));
-                    if (log.isDebugEnabled()) log.debug("isMapped({}): {}", uri, getDataManager().isMapped(uri.toString()));
-                    return DatasetFactory.create(getDataManager().loadModel(uri.toString()));
-                }
-                
-                // #2 load description from local service
-                Dataset description = describe(uri);
-                if (!description.isEmpty()) return description;
-                
-                // #3 load description from the remote service
-                if (log.isDebugEnabled()) log.debug("GET request URI overridden with: {}", uri);
-                // TO-DO: MediaTypes???
-                ProxyResourceBase proxy = new ProxyResourceBase(getUriInfo(), getClientUriInfo(), getRequest(), getHttpHeaders(), getSystem().getMediaTypes(), getSecurityContext(),
-                    uri,
-                    getUriInfo().getQueryParameters().containsKey(AC.endpoint.getLocalName()) ? URI.create(getUriInfo().getQueryParameters().getFirst(AC.endpoint.getLocalName())) : null,
-                    getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()) ? MediaType.valueOf(getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName())) : null,
-                    getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) ? URI.create(getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName())) : null,
-                    getSystem(),
-                    getHttpServletRequest(),
-                    getDataManager());
-                
-                try (Response cr = proxy.getClientResponse())
-                {
-                    Model model = cr.readEntity(Model.class);
-
-                    // do not return the whole document if only a single resource (fragment) is requested
-                    if (getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && 
-                            getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()).equals("fragment")) // used in client.xsl
-                    {
-                        model = ModelFactory.createDefaultModel().add(model.getResource(uri.toString()).listProperties());
-                    }
-
-                    return DatasetFactory.create(model);
-                }
-                catch (Exception ex)
-                {
-                    if (log.isDebugEnabled()) log.debug("Could not load RDF document from URI: {}", uri);
-                    throw new NotFoundException("RDF document not available at '" + uri + "'", ex);
-                }
-            }
-        }
-        
-        return describe(getURI());
-    }
-    
-    public Dataset describe(URI uri)
-    {
-        if (uri == null) throw new IllegalArgumentException("URI cannot be null");
-
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
         {
@@ -998,29 +937,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             Query query = new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
                 getUriInfo().getBaseUri().toString()).asQuery();
             
-            QuerySolutionMap qsm = getQuerySolutionMap();
-            if (!uri.equals(getURI())) qsm.add(SPIN.THIS_VAR_NAME, ResourceFactory.createResource(uri.toString())); // override ?this binding value with ?uri query param value
-            
-            try (Response cr = ((SesameProtocolClient)getService().getSPARQLClient()).query(query, Dataset.class, qsm, new MultivaluedHashMap()))
+            try (Response cr = ((SesameProtocolClient)getService().getSPARQLClient()).query(query, Dataset.class, getQuerySolutionMap(), new MultivaluedHashMap()))
             {
                 return cr.readEntity(Dataset.class);
             }
         }
         else
         {
-            Query query = getQuery();
-            
-            if (!uri.equals(getURI()))
-            {
-                QuerySolutionMap qsm = getQuerySolutionMap();
-                qsm.add(SPIN.THIS_VAR_NAME, ResourceFactory.createResource(uri.toString())); // override ?this binding value with ?uri query param value
-
-                // apply bindings on the original query string
-                query = new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
-                    qsm, getUriInfo().getBaseUri().toString()).asQuery();
-            }
-                
-            try (Response cr = getService().getSPARQLClient().query(query, Dataset.class, new MultivaluedHashMap()))
+            try (Response cr = getService().getSPARQLClient().query(getQuery(), Dataset.class, new MultivaluedHashMap()))
             {
                 return cr.readEntity(Dataset.class);
             }
