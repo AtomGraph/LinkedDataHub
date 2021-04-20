@@ -46,6 +46,7 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
         if (getApplication().isEmpty()) return;
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
         if (getAdminApplication().getService().getProxy() == null) return;
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))

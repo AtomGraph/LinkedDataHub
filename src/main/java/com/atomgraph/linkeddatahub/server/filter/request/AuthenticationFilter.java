@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -69,6 +70,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
         if (getApplication().isEmpty()) return; // skip filter if no application has matched
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);

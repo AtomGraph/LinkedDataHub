@@ -84,7 +84,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Override
     public Response get()
     {
-//        // #1 check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
+        // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
         if (((FileManager)getDataManager()).hasCachedModel(getURI().toString()) ||
                 (getDataManager().isResolvingMapped() && getDataManager().isMapped(getURI().toString()))) // read mapped URIs (such as system ontologies) from a file
         {

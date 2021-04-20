@@ -85,6 +85,7 @@ public class IDTokenFilter extends AuthenticationFilter
     {
         if (getApplication().isEmpty()) return; // skip filter if no application has matched
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
 
         // do not verify token for auth endpoints as that will lead to redirect loops
         if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
