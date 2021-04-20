@@ -35,6 +35,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.query.DatasetFactory;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
 
     private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
 
+    private final UriInfo uriInfo;
     private final DataManager dataManager;
     
     @Inject
@@ -64,6 +67,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
                 clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
                 clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 mode, system.getClient(), httpServletRequest);
+        this.uriInfo = uriInfo;
         this.dataManager = dataManager;
         
         if (securityContext.getUserPrincipal() instanceof Agent &&
@@ -89,7 +93,24 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             return getResponse(DatasetFactory.create(getDataManager().loadModel(getURI().toString())));
         }
         
+        // do not return the whole document if only a single resource (fragment) is requested
+        if (getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && 
+                getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()).equals("fragment")) // used in client.xsl
+        {
+            try (Response cr = getClientResponse())
+            {
+                Model description = cr.readEntity(Model.class);
+                description = ModelFactory.createDefaultModel().add(description.getResource(getURI().toString()).listProperties());
+                return getResponse(DatasetFactory.create(description));
+            }
+        }
+
         return super.get();
+    }
+    
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
     }
     
     public DataManager getDataManager()
