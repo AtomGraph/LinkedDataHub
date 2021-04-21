@@ -11,7 +11,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">    
+    <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
@@ -125,8 +125,8 @@ LIMIT 100</xsl:param>
             <fieldset>
                 <label for="service">Service</label>
                 <xsl:text> </xsl:text>
-                    <select id="service" name="service" class="input-xxlarge">
-                        <option value="">[SPARQL service]</option>
+                <select id="query-service" name="service" class="input-xxlarge">
+                    <option value="">[SPARQL service]</option>
                 </select>
         
                 <textarea id="query-string" name="query" class="span12" rows="15">

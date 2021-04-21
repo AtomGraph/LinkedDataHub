@@ -409,6 +409,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ldt:base]" mode="bs2:SearchBar" priority="1">
         <form action="{$ac:requestUri}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
+                <select id="search-service" name="service" class="input-xxlarge">
+                    <option value="">[SPARQL service]</option>
+                </select>
+                
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with($ac:uri, $ldt:base))">
                         <xsl:attribute name="value">

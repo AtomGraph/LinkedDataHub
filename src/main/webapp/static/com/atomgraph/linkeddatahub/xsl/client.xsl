@@ -109,6 +109,20 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
+    <xsl:param name="service-query" as="xs:string">
+        CONSTRUCT 
+          { 
+            ?service &lt;&dct;title&gt; ?title .
+          }
+        WHERE
+          { GRAPH ?g
+              { ?service  &lt;&dct;title&gt;  ?title
+                  { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
+                UNION
+                  { ?service  &lt;&dydra;repository&gt;  ?repository }
+              }
+          }
+    </xsl:param>
 
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
     <xsl:key name="violations-by-value" match="*" use="apl:violationValue/text()"/>
@@ -192,24 +206,10 @@ extension-element-prefixes="ixsl"
                 <xsl:call-template name="onrdfBodyLoad"/>
             </ixsl:schedule-action>
         </xsl:if>
-        <!-- initialize SPARQL endpoint dropdown -->
-        <xsl:for-each select="id('service', ixsl:page())">
+        <!-- initialize SPARQL query service dropdown -->
+        <xsl:for-each select="id('query-service', ixsl:page())">
             <xsl:variable name="service-select" select="." as="element()"/>
-            <xsl:variable name="query" as="xs:string">
-                CONSTRUCT 
-                  { 
-                    ?service &lt;&dct;title&gt; ?title .
-                  }
-                WHERE
-                  { GRAPH ?g
-                      { ?service  &lt;&dct;title&gt;  ?title
-                          { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
-                        UNION
-                          { ?service  &lt;&dydra;repository&gt;  ?repository }
-                      }
-                  }
-            </xsl:variable>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($service-query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad">
                     <xsl:with-param name="service-select" select="$service-select"/>
                     <xsl:with-param name="selected-service" select="$ac:service"/>
@@ -229,6 +229,16 @@ extension-element-prefixes="ixsl"
             <xsl:result-document href="?." method="ixsl:append-content">
                 <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
             </xsl:result-document>
+        </xsl:for-each>
+        <!-- initialize search service dropdown -->
+        <xsl:for-each select="id('search-service', ixsl:page())">
+            <xsl:variable name="service-select" select="." as="element()"/>
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($service-query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onServiceLoad">
+                    <xsl:with-param name="service-select" select="$service-select"/>
+                    <xsl:with-param name="selected-service" select="$ac:service"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:for-each>
     </xsl:template>
 
@@ -1964,7 +1974,7 @@ extension-element-prefixes="ixsl"
     <!-- prompt for query title (also reused for its document) -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-query']" mode="ixsl:onclick">
-        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('service'), 'value'))" as="xs:anyURI?"/>
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <!-- get query string from YASQE and set the hidden input value in the query save form -->
         <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/>
         <xsl:for-each select="id('save-query-string')"> <!-- using a different ID from 'query-string' which is the visible YasQE textarea -->
@@ -2026,7 +2036,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-run-query']" mode="ixsl:onclick">
         <xsl:variable name="query-string" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('service'), 'value'))" as="xs:anyURI?"/>
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
