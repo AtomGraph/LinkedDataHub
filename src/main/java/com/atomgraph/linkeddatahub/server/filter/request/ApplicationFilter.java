@@ -66,7 +66,9 @@ public class ApplicationFilter implements ContainerRequestFilter
         if (appResource != null)
         {
             // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
-            if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class))
+            if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
+                    !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
+                    !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
                 throw new IllegalStateException("Resource with ldt:base <" + appResource.getPropertyResourceValue(LDT.base) + "> cannot be cast to lapp:Application");
             
             appResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
