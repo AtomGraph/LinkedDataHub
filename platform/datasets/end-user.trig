@@ -163,10 +163,16 @@ PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
 
 SELECT DISTINCT  ?resource
 WHERE
-{ GRAPH ?graph
-  { ?resource a ?Type .
-    ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
-    FILTER isURI(?resource)
+  {   { ?resource  rdf:type  ?Type .
+        ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+        FILTER isURI(?resource)
+      }
+    UNION
+      { GRAPH ?graph
+          { ?resource  rdf:type  ?Type .
+            ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+            FILTER isURI(?resource)
+          }
+      }
   }
-}
 """ .

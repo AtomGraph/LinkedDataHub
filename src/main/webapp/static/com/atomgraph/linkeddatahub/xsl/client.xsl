@@ -1609,32 +1609,6 @@ extension-element-prefixes="ixsl"
              <xsl:with-param name="series" select="$series"/>
         </xsl:call-template>
     </xsl:template>
-
-<!--    <xsl:template name="onSPARQLQueryServiceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="service-uri" as="xs:anyURI"/>
-        <xsl:param name="query-string" as="xs:string"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
-                    <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
-
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                     TO-DO: unify dydra: and dydra-urn: ? 
-                    <xsl:variable name="results-uri" select="xs:anyURI(if ($service/dydra-urn:accessToken) then ($endpoint || '?auth_token=' || $service/dydra-urn:accessToken || '&amp;query=' || encode-for-uri($query-string)) else ($endpoint || '?query=' || encode-for-uri($query-string)))" as="xs:anyURI"/>
-
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onSPARQLResultsLoad"/>
-                    </ixsl:schedule-action>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
     
     <!-- render dropdown from SPARQL service results -->
     
