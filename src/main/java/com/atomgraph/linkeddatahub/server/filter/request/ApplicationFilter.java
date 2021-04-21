@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class ApplicationFilter implements ContainerRequestFilter
         {
             // override request URI using ?uri query param
             requestURI = URI.create(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            matchURI = requestURI; // TO-DO: strip query parameters
+            matchURI = UriBuilder.fromUri(requestURI).replaceQuery(null).build(); // strip query parameters
         }
         else
         {
