@@ -16,8 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import javax.inject.Inject;
+import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
@@ -32,27 +31,25 @@ import org.glassfish.hk2.api.ServiceLocator;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class OntologyFactory implements Factory<Ontology>
+public class OntologyFactory implements Factory<Optional<Ontology>>
 {
 
     @Context private ServiceLocator serviceLocator;
 
-    @Inject Application application;
-
     @Override
-    public Ontology provide()
+    public Optional<Ontology> provide()
     {
         return getOntology(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Ontology t)
+    public void dispose(Optional<Ontology> t)
     {
     }
     
-    public Ontology getOntology(ContainerRequestContext crc)
+    public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
-        return (Ontology)crc.getProperty(OWL.Ontology.getURI());
+        return (Optional<Ontology>)crc.getProperty(OWL.Ontology.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()

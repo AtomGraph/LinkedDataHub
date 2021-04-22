@@ -7,6 +7,7 @@ body.embed { padding-top: 0; }
 .btn.dropdown-toggle.btn-notifications { background-image: url('../icons/notifications-white-24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-agent { background-image: url('../icons/ic_account_circle_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .navbar-form .input-append { margin-top: 10px; }
+.navbar-form .input-append select { margin-top: 0; height: 34px; }
 .navbar-form .btn-search { background-image: url('../icons/ic_search_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .action-bar { background-color: #dfdfdf; }
 .action-bar form { margin-bottom: 0; }

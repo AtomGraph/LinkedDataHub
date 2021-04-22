@@ -16,11 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 
+import com.atomgraph.core.MediaTypes;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import java.net.URI;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.NewCookie;
@@ -30,6 +35,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ExceptionMapper;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 
@@ -40,14 +46,21 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<TokenExpiredException>
 {
 
-    @Context UriInfo uriInfo;
-    
-    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
+    private final UriInfo uriInfo;
+    private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
+
+    @Inject
+    public TokenExpiredExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context UriInfo uriInfo, Optional<Application> app)
+    {
+        super(ontology, templateCall, mediaTypes);
+        this.uriInfo = uriInfo;
+        this.app = app;
+    }
 
     @Override
     public Response toResponse(TokenExpiredException ex)
     {
-        String path = getApplication().getBaseURI().getPath();
+        String path = getApplication().get().getBaseURI().getPath();
         NewCookie expiredCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, "", path, null, NewCookie.DEFAULT_VERSION, null, 0, false);
 
         ResponseBuilder builder = getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.BAD_REQUEST,
@@ -57,6 +70,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         
         URI redirectUri = UriBuilder.fromUri(getAdminBaseURI()).
             path("/oauth2/authorize/google"). // TO-DO: move to config?
+            queryParam(REFERER_PARAM_NAME, getUriInfo().getRequestUri()). // we need to retain URL query parameters
             build();
         
         if (!getUriInfo().getAbsolutePath().equals(redirectUri)) // prevent a perpetual redirect loop
@@ -68,13 +82,13 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     
     public URI getAdminBaseURI()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication().getBaseURI();
         else
-            return getApplication().getBaseURI();
+            return getApplication().get().getBaseURI();
     }
     
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return app;
     }

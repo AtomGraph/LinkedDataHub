@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Validator;
-import com.atomgraph.server.exception.ConstraintViolationException;
+import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import java.util.List;
 import java.util.Optional;
@@ -69,8 +69,8 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
 
     @Inject
     public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-            Ontology ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
@@ -108,7 +108,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
                 if (!cvs.isEmpty())
                 {
                     if (log.isDebugEnabled()) log.debug("SPIN constraint violations: {}", cvs);
-                    throw new ConstraintViolationException(cvs, transformedModel);
+                    throw new SPINConstraintViolationException(cvs, transformedModel);
                 }
 
                 transformedModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(transformedModel);

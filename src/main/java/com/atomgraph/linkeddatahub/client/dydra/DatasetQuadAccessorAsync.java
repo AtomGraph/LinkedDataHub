@@ -20,7 +20,7 @@ import org.apache.jena.query.Dataset;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public interface DatasetQuadAccessorAsync extends Async
 {

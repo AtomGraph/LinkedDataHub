@@ -60,7 +60,6 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -87,16 +86,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Context SecurityContext securityContext;
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject Application application;
-    @Inject Ontology ontology;
-    @Inject ClientUriInfo clientUriInfo;
-    @Inject DataManager dataManager;
-    @Inject XsltExecutableSupplier xsltExecSupplier;
+    @Inject javax.inject.Provider<Optional<Application>> application;
+    @Inject javax.inject.Provider<ClientUriInfo> clientUriInfo;
+    @Inject javax.inject.Provider<DataManager> dataManager;
+    @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
 
-    @Inject
-    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec)
+    public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
-        super(xsltExec, ontModelSpec);
+        super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
     }
     
     @Override
@@ -134,37 +131,37 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
-            Application app = getApplication();
-            if (app != null)
+            Optional<Application> app = getApplication().get();
+            if (app.isPresent())
             {
                 // base URI can be null when writing SPARQL results?
                 if (getBaseUri() != null) params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
-                StmtIterator appStmts = app.listProperties();
+                StmtIterator appStmts = app.get().listProperties();
                 Model appModel = ModelFactory.createDefaultModel().add(appStmts);
                 appStmts.close();
 
                 // for AdminApplication, add EndUserApplication statements
-                if (app.canAs(AdminApplication.class))
+                if (app.get().canAs(AdminApplication.class))
                 {
-                    AdminApplication adminApp = app.as(AdminApplication.class);
+                    AdminApplication adminApp = app.get().as(AdminApplication.class);
                     StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
                     appModel.add(endUserAppStmts);
                     endUserAppStmts.close();
                 }
                 // for EndUserApplication, add AdminApplication statements
-                if (app.canAs(EndUserApplication.class))
+                if (app.get().canAs(EndUserApplication.class))
                 {
-                    EndUserApplication endUserApp = app.as(EndUserApplication.class);
+                    EndUserApplication endUserApp = app.get().as(EndUserApplication.class);
                     StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
                     appModel.add(adminApp);
                     adminApp.close();
                 }
 
                 Source source = getSource(appModel); // TO-DO: change hash code?
-                if (app.hasProperty(FOAF.isPrimaryTopicOf) && app.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
-                    source.setSystemId(app.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
+                if (app.get().hasProperty(FOAF.isPrimaryTopicOf) && app.get().getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
+                    source.setSystemId(app.get().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
 
                 params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
@@ -222,12 +219,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return securityContext;
     }
     
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-
-    public Application getApplication()
+    public javax.inject.Provider<Optional<Application>> getApplication()
     {
         return application;
     }
@@ -235,9 +227,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public DataManager getDataManager()
     {
-        return dataManager;
+        return getDataManagerProvider().get();
     }
 
+    public javax.inject.Provider<DataManager> getDataManagerProvider()
+    {
+        return dataManager;
+    }
+    
     @Override
     public URI getURI() throws URISyntaxException
     {
@@ -262,13 +259,13 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public XsltExecutable getXsltExecutable()
     {
-        return xsltExecSupplier.get();
+        return xsltExecSupplier.get().get();
     }
     
     @Override
     public UriInfo getUriInfo()
     {
-        return clientUriInfo;
+        return clientUriInfo.get();
     }
     
     @Override

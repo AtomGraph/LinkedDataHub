@@ -195,6 +195,13 @@ LinkedDataHub includes an HTTP [test suite](https://github.com/AtomGraph/LinkedD
 
 ## Dependencies
 
+### Browser
+
+* [Saxon-JS](https://www.saxonica.com/saxon-js/)
+* [SPARQLMap](https://github.com/AtomGraph/SPARQLMap)
+* [Google Maps](https://developers.google.com/maps/)
+* [Google Charts](https://developers.google.com/chart)
+
 ### Java
 
 * [Jersey](https://eclipse-ee4j.github.io/jersey/)

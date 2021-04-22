@@ -8,6 +8,8 @@
     <!ENTITY sparql     "http://www.w3.org/2005/sparql-results#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
+    <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
+    <!ENTITY c          "https://www.w3.org/ns/ldt/core/domain#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
@@ -25,6 +27,8 @@ xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
 xmlns:sparql="&sparql;"
 xmlns:sd="&sd;"
+xmlns:ldt="&ldt;"
+xmlns:c="&c;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
@@ -122,7 +126,7 @@ version="3.0"
                     <xsl:call-template name="typeahead:process">
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
-                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(core:stateOf)][not(core:viewOf)][not(dh:pageOf)][not(ldt:paramName)]"/>
+                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(c:stateOf)][not(c:viewOf)][not(ldt:paramName)]"/>
                         <xsl:with-param name="resource-types" select="$resource-types"/>
                         <xsl:with-param name="element" select="$element"/>
                         <xsl:with-param name="name" select="'ou'"/>

@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
+import java.util.Optional;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 
@@ -30,9 +31,9 @@ import javax.ws.rs.core.Request;
 public class SPARQLEndpointImpl extends com.atomgraph.core.model.impl.SPARQLEndpointImpl
 {
     
-    public SPARQLEndpointImpl(@Context Request request, Service service, MediaTypes mediaTypes)
+    public SPARQLEndpointImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes)
     {
-        super(request, service, mediaTypes);
+        super(request, service.get(), mediaTypes);
     }
     
 }

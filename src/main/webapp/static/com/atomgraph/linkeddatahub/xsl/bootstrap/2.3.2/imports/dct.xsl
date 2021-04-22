@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
@@ -11,6 +12,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:ldt="&ldt;"
@@ -19,6 +21,24 @@ xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+<!--    <xsl:template match="dct:title" mode="ac:JSON-LDContext" priority="1">
+        <xsl:sequence select="concat('&quot;', local-name(), '&quot; : { &quot;@id&quot;: &quot;', 'http://schema.org/name', '&quot; }')"/>
+    </xsl:template>
+    
+    <xsl:template match="dct:title" mode="ac:JSON-LDPropertyGroup">
+        <xsl:param name="suppress" select="false()" as="xs:boolean"/>
+        <xsl:param name="resource" as="element()"/>
+        <xsl:param name="grouping-key" as="xs:anyAtomicType?"/>
+        <xsl:param name="group" as="item()*"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="suppress" select="$suppress"/>
+            <xsl:with-param name="resource" select="$resource"/>
+            <xsl:with-param name="grouping-key" select="$grouping-key"/>
+            <xsl:with-param name="group" select="$group"/>
+        </xsl:next-match>
+    </xsl:template>-->
+    
     <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>

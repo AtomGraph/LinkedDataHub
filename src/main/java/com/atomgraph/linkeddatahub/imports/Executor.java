@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class Executor
 {
@@ -97,11 +97,12 @@ public class Executor
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, csvImport.getContainer()); // target container becomes ?this
         ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
+        final Query query = pss.asQuery();
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                dataManager, baseURI, pss.asQuery()), getExecutorService()).
+                dataManager, baseURI, query), getExecutorService()).
             thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, importRes, provImport, provGraph, service));
     }
@@ -114,16 +115,22 @@ public class Executor
         Resource provImport = ModelFactory.createDefaultModel().createResource(rdfImport.getURI()).
                 addProperty(PROV.startedAtTime, rdfImport.getModel().createTypedLiteral(Calendar.getInstance()));
         
-        // TO-DO: make query optional
-        QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager);
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(SPIN.THIS_VAR_NAME, rdfImport.getContainer()); // target container becomes ?this
-        ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
+        final Query query;
+        if (rdfImport.getQuery() != null) // query is optional on RDFImport
+        {
+            QueryLoader queryLoader = new QueryLoader(rdfImport.getQuery().getURI(), baseURI, dataManager);
+            QuerySolutionMap qsm = new QuerySolutionMap();
+            qsm.add(SPIN.THIS_VAR_NAME, rdfImport.getContainer()); // target container becomes ?this
+            ParameterizedSparqlString pss = new ParameterizedSparqlString(queryLoader.get().toString(), qsm, baseURI);
+            query = pss.asQuery();
+        }
+        else
+            query = null;
         
         Supplier<Response> fileSupplier = new ClientResponseSupplier(rdfImport.getFile().getURI(), RDF_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
-                dataManager, baseURI, pss.asQuery()), getExecutorService()).
+                dataManager, baseURI, query), getExecutorService()).
             thenAcceptAsync(success(rdfImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(rdfImport, importRes, provImport, provGraph, service));
     }

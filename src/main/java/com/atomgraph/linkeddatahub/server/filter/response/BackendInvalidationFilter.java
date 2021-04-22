@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
@@ -39,11 +40,13 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 {
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject com.atomgraph.linkeddatahub.apps.model.Application app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
     
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
+        if (getApplication().isEmpty()) return;
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
         if (getAdminApplication().getService().getProxy() == null) return;
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
@@ -58,8 +61,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-            ban(getApplication().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
-            ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
+            ban(getApplication().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+            ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
         }
     }
     
@@ -75,15 +78,15 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().canAs(EndUserApplication.class))
-            return getApplication().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().as(AdminApplication.class);
+            return getApplication().get().as(AdminApplication.class);
     }
     
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
-        return app;
+        return app.get();
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()

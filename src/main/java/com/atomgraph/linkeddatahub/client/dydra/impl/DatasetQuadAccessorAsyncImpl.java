@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Martynas Jusevičius <martynas@atomgraph.com>
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 public class DatasetQuadAccessorAsyncImpl extends DatasetQuadAccessorImpl implements DatasetQuadAccessorAsync
 {

@@ -16,13 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request.auth;
 
+import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -75,6 +78,20 @@ public class IDTokenFilter extends AuthenticationFilter
     public String getScheme()
     {
         return AUTH_SCHEME;
+    }
+    
+    @Override
+    public void filter(ContainerRequestContext request) throws IOException
+    {
+        if (getApplication().isEmpty()) return; // skip filter if no application has matched
+        if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+
+        // do not verify token for auth endpoints as that will lead to redirect loops
+        if (request.getUriInfo().getAbsolutePath().equals(getLoginURL())) return;
+        if (request.getUriInfo().getAbsolutePath().equals(getAuthorizeGoogleURL())) return;
+        
+        super.filter(request);
     }
     
     @Override
@@ -161,8 +178,7 @@ public class IDTokenFilter extends AuthenticationFilter
     @Override
     public void login(Application app, ContainerRequestContext request)
     {
-        URI location = app.getBaseURI().resolve("oauth2/authorize/google");
-        Response response = Response.seeOther(location).build();
+        Response response = Response.seeOther(getAuthorizeGoogleURL()).build();
         throw new WebApplicationException(response);
     }
 
@@ -184,6 +200,24 @@ public class IDTokenFilter extends AuthenticationFilter
                 build();
             throw new WebApplicationException(response);
         }
+    }
+
+    public URI getLoginURL()
+    {
+        return getAdminApplication().getBaseURI().resolve("oauth2/login"); // TO-DO: extract from ontology Template
+    }
+    
+    public URI getAuthorizeGoogleURL()
+    {
+        return getAdminApplication().getBaseURI().resolve("oauth2/authorize/google"); // TO-DO: extract from ontology Template
+    }
+    
+    public AdminApplication getAdminApplication()
+    {
+        if (getApplication().get().canAs(EndUserApplication.class))
+            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
+        else
+            return getApplication().get().as(AdminApplication.class);
     }
     
     public ParameterizedSparqlString getUserAccountQuery()

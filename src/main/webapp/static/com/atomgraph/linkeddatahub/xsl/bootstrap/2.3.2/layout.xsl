@@ -67,6 +67,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:import href="imports/xml-to-string.xsl"/>
+    <xsl:import href="../../../../client/xsl/converters/RDFXML2JSON-LD.xsl"/>
     <xsl:import href="../../../../client/xsl/bootstrap/2.3.2/internal-layout.xsl"/>
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/apl.xsl"/>
@@ -271,6 +272,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-builder" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
@@ -356,6 +358,12 @@ exclude-result-prefixes="#all">
                 ]]>
             </script>
         </xsl:if>
+        <xsl:if test="$output-json-ld">
+            <!-- output structured data: https://developers.google.com/search/docs/guides/intro-structured-data -->
+            <script type="application/ld+json">
+                <xsl:apply-templates select="." mode="ac:JSON-LD"/>
+            </script>
+        </xsl:if>
     </xsl:template>
     
     <!-- NAVBAR -->
@@ -401,6 +409,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ldt:base]" mode="bs2:SearchBar" priority="1">
         <form action="{$ac:requestUri}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
+                <select id="search-service" name="service">
+                    <option value="">[SPARQL service]</option>
+                </select>
+                
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
                     <xsl:if test="not(starts-with($ac:uri, $ldt:base))">
                         <xsl:attribute name="value">
@@ -506,7 +518,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">
                 <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google', $apl:baseUri)}">
+                    <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google?referer=' || encode-for-uri($ac:uri), $apl:baseUri)}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1790,7 +1802,7 @@ exclude-result-prefixes="#all">
                                 <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
                             </li>
                             <li>
-                                <a href="https://www.youtube.com/playlist?list=PLnDXST4pVcQQr-j3YXrVvGRP46E2Nnn5l" target="_blank">Screencasts</a>
+                                <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a>
                             </li>
                             <li>
                                 <a href="https://linkeddatahub.com/demo/" target="_blank">Demo apps</a> <!-- built-in Context -->

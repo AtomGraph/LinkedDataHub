@@ -16,7 +16,7 @@ print_usage()
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
-    printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query\n"
+    printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query (optional)\n"
     printf "  --file FILE_URI                      URI of the RDF file\n"
 }
 
@@ -101,10 +101,6 @@ if [ -z "$action" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$query" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$file" ] ; then
     print_usage
     exit 1
@@ -135,7 +131,6 @@ turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a nsds:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
-turtle+="_:import spin:query <${query}> .\n"
 turtle+="_:import apl:action <${action}> .\n"
 turtle+="_:import apl:file <${file}> .\n"
 turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
@@ -144,6 +139,9 @@ turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item foaf:primaryTopic _:import .\n"
 
+if [ -n "$query" ] ; then
+    turtle+="_:import spin:query <${query}> .\n"
+fi
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
 fi

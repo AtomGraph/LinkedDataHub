@@ -61,20 +61,20 @@ public class Authorize extends ResourceBase
     public static final String ENDPOINT_URI = "https://accounts.google.com/o/oauth2/v2/auth";
     public static final String SCOPE = "openid email profile";
     public static final String COOKIE_NAME = "LinkedDataHub.state";
+    public static final String REFERER_PARAM_NAME = "referer";
 
     private final String clientID;
     
     @Inject
     public Authorize(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Service service, com.atomgraph.linkeddatahub.apps.model.Application application,
-            Ontology ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
             @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
             DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, clientUriInfo, request, mediaTypes,
-            uriInfo.getAbsolutePath(),
             service, application,
             ontology, templateCall,
             httpHeaders, resourceContext,
@@ -92,8 +92,9 @@ public class Authorize extends ResourceBase
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
         
         final String originUri;
-        if (getHttpHeaders().getHeaderString("Referer") != null) originUri = getHttpHeaders().getHeaderString("Referer");
-        else originUri  = getEndUserBaseURI().toString();
+        //if (getHttpHeaders().getHeaderString("Referer") != null) originUri = getHttpHeaders().getHeaderString("Referer"); // Referer value missing after redirect
+        if (getUriInfo().getQueryParameters().containsKey(REFERER_PARAM_NAME)) originUri = getUriInfo().getQueryParameters().getFirst(REFERER_PARAM_NAME);
+        else originUri = getEndUserBaseURI().toString();
         
         URI redirectUri = getUriInfo().getBaseUriBuilder().
             path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).

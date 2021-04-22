@@ -20,6 +20,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -32,26 +33,26 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Provider
-public class ApplicationFactory implements Factory<Application>
+public class ApplicationFactory implements Factory<Optional<Application>>
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationFactory.class);
     
     @Context private ServiceLocator serviceLocator;
     
     @Override
-    public Application provide()
+    public Optional<Application> provide()
     {
         return getApplication(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Application t)
+    public void dispose(Optional<Application> t)
     {
     }
     
-    public Application getApplication(ContainerRequestContext crc)
+    public Optional<Application> getApplication(ContainerRequestContext crc)
     {
-        return (Application)crc.getProperty(LAPP.Application.getURI());
+        return (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()

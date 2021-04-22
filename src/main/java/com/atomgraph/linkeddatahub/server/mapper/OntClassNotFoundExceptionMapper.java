@@ -21,6 +21,11 @@ import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.rdf.model.ResourceFactory;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.client.exception.OntClassNotFoundException;
+import com.atomgraph.core.MediaTypes;
+import com.atomgraph.processor.model.TemplateCall;
+import java.util.Optional;
+import javax.inject.Inject;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.DatasetFactory;
 
 /**
@@ -30,6 +35,12 @@ import org.apache.jena.query.DatasetFactory;
  */
 public class OntClassNotFoundExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<OntClassNotFoundException>
 {
+
+    @Inject
+    public OntClassNotFoundExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    {
+        super(ontology, templateCall, mediaTypes);
+    }
 
     @Override
     public Response toResponse(OntClassNotFoundException ex)
