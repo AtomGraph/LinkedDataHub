@@ -151,7 +151,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         WebTarget endpoint = super.getEndpoint(uri);
         
-        if (delegateWebID && !getBaseURI().relativize(uri).isAbsolute())
+        if (delegateWebID) // getBaseURI() != null && !getBaseURI().relativize(uri).isAbsolute()
         {
             ClientRequestFilter filter = getClientAuthFilter();
             if (filter != null) endpoint.register(filter);
