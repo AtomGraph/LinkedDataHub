@@ -87,9 +87,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
-    @Inject ClientUriInfo clientUriInfo;
+    @Inject javax.inject.Provider<ClientUriInfo> clientUriInfo;
     @Inject javax.inject.Provider<DataManager> dataManager;
-    @Inject XsltExecutableSupplier xsltExecSupplier;
+    @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
 
     public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
@@ -259,13 +259,13 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public XsltExecutable getXsltExecutable()
     {
-        return xsltExecSupplier.get();
+        return xsltExecSupplier.get().get();
     }
     
     @Override
     public UriInfo getUriInfo()
     {
-        return clientUriInfo;
+        return clientUriInfo.get();
     }
     
     @Override

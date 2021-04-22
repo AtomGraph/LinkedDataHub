@@ -93,7 +93,6 @@ import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
@@ -718,7 +717,6 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
-                //proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
@@ -728,7 +726,6 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(ClientUriInfoFactory.class).to(ClientUriInfo.class).
-                proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
@@ -738,7 +735,6 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
-                proxy(true).proxyForSameScope(false).
                 in(RequestScoped.class);
             }
         });
