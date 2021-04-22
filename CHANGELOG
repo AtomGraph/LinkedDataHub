@@ -1,3 +1,28 @@
+## [2.2.9] - 2021-04-22
+### Added
+- HTTP smoke tests for SPARQL endpoint and Graph Store
+- HTTP test for RDF import without mapping query
+- `add-data.sh` CLI script which POSTs RDF data to URL
+- `ExceptionMapper` constructors with injection in order to align with Processor
+- An option to override request URI using the `?uri=` URL param, implemented in `ApplicationFilter`
+- `Dispatcher` as the new "entrypoint" JAX-RS resource which routes between `ResourceBase` (if app is not empty) and `ProxyResourceBase` (if app is empty)
+- Missing XML namespace definitions to client-side XSLT stylesheets
+- `$output-json-ld` parameter in `xhtml:Script` template which outputs the RDF document as JSON-LD in the `<script>` element
+
+### Changed
+- `select-labelled` query in the end-user dataset to include a default graph pattern
+- `spin:query` property is now optional for `apl:RDFImport`
+- Entrypoint script logic to load agent metadata only when `$LOAD_DATASETS` is true
+- Injecting `Optional<Application>`, `Optional<Service>`, `Optional<Ontology>` instead of `Application`, `Service`, `Ontology`
+- Using `javax.inject.Provider<>` for injection into providers that are not in the request scope
+- If no application matches request URI, `NotFoundException` is not thrown anymore -- `Optional.empty()` is used as application instead
+- Auth filters skipped if the matched application is not an instance of `lapp:EndUserApplication` or `lapp:AdminApplication`
+- Simplified `ResourceBase::describe` by removing the `?uri=` indirection logic
+
+### Removed
+- Proxy injections from injection factory binders
+
+
 ## [2.1.49] - 2021-03-19
 ### Added
 - `apl:baseUri` as a static XSLT stylesheet param
@@ -5,7 +30,7 @@
 ### Changed
 - `bs2:PropertyControl` XSLT mode can handle multiple RDF types on a resource
 - Replaced error alerts with inline HTML warning blocks
-- `Refactored bs2:SignUp template to make it more extensible`
+- Refactored `bs2:SignUp` template to make it more extensible
 
 ### Removed
 - `ORDER BY` in `apl:ResultCounts` mode in client.xsl
