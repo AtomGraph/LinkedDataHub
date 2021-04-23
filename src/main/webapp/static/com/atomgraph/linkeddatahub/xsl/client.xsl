@@ -1905,9 +1905,8 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$menu/li[tokenize(@class, ' ') = 'active']">
                     <!-- redirect to the resource URI selected in the typeahead -->
                     <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <xsl:call-template name="redirect">
-                        <xsl:with-param name="uri" select="$resource-uri"/>
-                    </xsl:call-template>
+                    <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>
+                    <ixsl:set-property name="location.href" select="$redirect-uri"/>
                 </xsl:if>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -1941,17 +1940,10 @@ extension-element-prefixes="ixsl"
     <!-- navbar search typeahead item selected -->
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']//ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown" priority="1">
-        <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- redirect to the resource URI selected in the typeahead -->
-        <xsl:call-template name="redirect">
-            <xsl:with-param name="uri" select="$resource-uri"/>
-        </xsl:call-template>
-    </xsl:template>
-    
-    <xsl:template name="redirect">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        
-        <ixsl:set-property name="location.href" select="$uri"/>
+        <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>        
+        <ixsl:set-property name="location.href" select="$redirect-uri"/>
     </xsl:template>
     
     <!-- prompt for query title (also reused for its document) -->
