@@ -1644,6 +1644,36 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <!-- Linked Data browser -->
+    
+    <xsl:template name="onRDFDocumentLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:variable name="response" select="." as="map(*)"/>
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml')">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    
+                    <xsl:result-document href="#main-content" method="ixsl:replace-content">
+                        <xsl:apply-templates select="results" mode="bs2:Block"/>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- error response - could not load query results -->
+                <xsl:result-document href="#main-content" method="ixsl:replace-content">
+                    <div class="alert alert-block">
+                        <strong>Error loading RDF document:</strong>
+                        <pre>
+                            <xsl:value-of select="$response?message"/>
+                        </pre>
+                    </div>
+                </xsl:result-document>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- EVENT LISTENERS -->
     
     <xsl:template match="form[tokenize(../@class, ' ') = 'modal']" mode="ixsl:onsubmit">
@@ -1905,8 +1935,14 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$menu/li[tokenize(@class, ' ') = 'active']">
                     <!-- redirect to the resource URI selected in the typeahead -->
                     <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>
-                    <ixsl:set-property name="location.href" select="$redirect-uri"/>
+<!--                    <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>
+                    <ixsl:set-property name="location.href" select="$redirect-uri"/>-->
+                    <!-- load resource using the ?uri= indirection -->
+                    <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri))" as="xs:anyURI"/>
+                    <!-- load resource using the ?uri= indirection -->
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                        <xsl:call-template name="onRDFDocumentLoad"/>
+                    </ixsl:schedule-action>
                 </xsl:if>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -1942,8 +1978,12 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']//ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown" priority="1">
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>        
-        <ixsl:set-property name="location.href" select="$redirect-uri"/>
+<!--        <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>        
+        <ixsl:set-property name="location.href" select="$redirect-uri"/>-->
+        <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri))" as="xs:anyURI"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+            <xsl:call-template name="onRDFDocumentLoad"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- prompt for query title (also reused for its document) -->
