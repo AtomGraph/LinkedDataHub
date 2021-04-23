@@ -812,6 +812,10 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 
                 if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
                 {
+                    MediaType mediaType = null;
+                    if (file.hasProperty(DCTerms.format)) mediaType = MediaType.valueOf(file.getProperty(DCTerms.format).getString());
+                    if (mediaType != null) bodyPart.setMediaType(mediaType);
+
                     Dataset dataset = bodyPart.getValueAs(Dataset.class);
                     post(dataset);
                 }
