@@ -24,7 +24,6 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
@@ -813,7 +812,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
                 {
                     MediaType mediaType = null;
-                    if (file.hasProperty(DCTerms.format)) mediaType = MediaType.valueOf(file.getProperty(DCTerms.format).getString());
+                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
                     if (mediaType != null) bodyPart.setMediaType(mediaType);
 
                     Dataset dataset = bodyPart.getValueAs(Dataset.class);
