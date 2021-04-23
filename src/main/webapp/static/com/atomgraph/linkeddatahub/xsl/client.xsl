@@ -1933,16 +1933,22 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:if test="$menu/li[tokenize(@class, ' ') = 'active']">
-                    <!-- redirect to the resource URI selected in the typeahead -->
+                    <!-- resource URI selected in the typeahead -->
                     <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-<!--                    <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>
-                    <ixsl:set-property name="location.href" select="$redirect-uri"/>-->
-                    <!-- load resource using the ?uri= indirection -->
+                    <!-- indirect resource URI, dereferenced through a proxy -->
                     <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri))" as="xs:anyURI"/>
-                    <!-- load resource using the ?uri= indirection -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onRDFDocumentLoad"/>
-                    </ixsl:schedule-action>
+                    <xsl:choose>
+                        <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
+                        <xsl:when test="starts-with($resource-uri, $ldt:base)">
+                            <ixsl:set-property name="location.href" select="$request-uri"/>
+                        </xsl:when>
+                        <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
+                        <xsl:otherwise>
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                                <xsl:call-template name="onRDFDocumentLoad"/>
+                            </ixsl:schedule-action>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:if>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -1978,12 +1984,20 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']//ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown" priority="1">
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-<!--        <xsl:variable name="redirect-uri" select="if (not(starts-with($resource-uri, $ldt:base))) then xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri)) else $resource-uri" as="xs:anyURI"/>        
-        <ixsl:set-property name="location.href" select="$redirect-uri"/>-->
+        <!-- indirect resource URI, dereferenced through a proxy -->
         <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri))" as="xs:anyURI"/>
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-            <xsl:call-template name="onRDFDocumentLoad"/>
-        </ixsl:schedule-action>
+        <xsl:choose>
+            <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
+            <xsl:when test="starts-with($resource-uri, $ldt:base)">
+                <ixsl:set-property name="location.href" select="$request-uri"/>
+            </xsl:when>
+            <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
+            <xsl:otherwise>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                    <xsl:call-template name="onRDFDocumentLoad"/>
+                </ixsl:schedule-action>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- prompt for query title (also reused for its document) -->
