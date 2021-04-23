@@ -1656,7 +1656,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="results" select="." as="document-node()"/>
                     
                     <xsl:result-document href="#main-content" method="ixsl:replace-content">
-                        <xsl:apply-templates select="results" mode="bs2:Block"/>
+                        <xsl:apply-templates select="$results" mode="bs2:Block"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
