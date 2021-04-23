@@ -628,7 +628,7 @@ extension-element-prefixes="ixsl"
                 <!-- breadcrumbs -->
                 <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                     <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                        <ul class="breadcrumb">
+                        <ul class="breadcrumb pull-left">
                             <xsl:apply-templates select="." mode="bs2:BreadCrumbListItem">
                                 <xsl:with-param name="leaf" select="true()"/>
                             </xsl:apply-templates>
@@ -1664,13 +1664,15 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
                         
                         <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                            <ul class="breadcrumb">
+                            <ul class="breadcrumb pull-left">
                                 <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
                                     <xsl:with-param name="leaf" select="true()"/>
                                 </xsl:apply-templates>
                             </ul>
-                            <span class="label label-info">External</span>
+                            <span class="label label-info pull-left">External</span>
                         </xsl:result-document>
+                        
+                        <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:when>
