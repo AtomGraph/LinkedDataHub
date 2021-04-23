@@ -1680,7 +1680,7 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string"/>
         
-        <xsl:if test="$uri-string castable as xs:anyURI and (starts($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
+        <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="$uri" as="xs:anyURI"/>
             <!-- indirect resource URI, dereferenced through a proxy -->
             <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($uri))" as="xs:anyURI"/>
