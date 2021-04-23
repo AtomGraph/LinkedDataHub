@@ -1648,16 +1648,30 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onRDFDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
-
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
-                    
+
                     <xsl:result-document href="#main-content" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Block"/>
                     </xsl:result-document>
+                    
+                    <xsl:if test="$uri and id('breadcrumb-nav', ixsl:page())">
+                        <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
+                        
+                        <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                            <ul class="breadcrumb">
+                                <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
+                                    <xsl:with-param name="leaf" select="true()"/>
+                                </xsl:apply-templates>
+                            </ul>
+                            <span class="label label-info">External</span>
+                        </xsl:result-document>
+                    </xsl:if>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1968,7 +1982,9 @@ extension-element-prefixes="ixsl"
                         <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
                         <xsl:otherwise>
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                                <xsl:call-template name="onRDFDocumentLoad"/>
+                                <xsl:call-template name="onRDFDocumentLoad">
+                                    <xsl:with-param name="uri" select="$resource-uri"/>
+                                </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -2017,7 +2033,9 @@ extension-element-prefixes="ixsl"
             <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
             <xsl:otherwise>
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                    <xsl:call-template name="onRDFDocumentLoad"/>
+                    <xsl:call-template name="onRDFDocumentLoad">
+                        <xsl:with-param name="uri" select="$resource-uri"/>
+                    </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:otherwise>
         </xsl:choose>
@@ -2497,13 +2515,11 @@ extension-element-prefixes="ixsl"
                                 <input type="hidden" name="sb" value="file"/>
                                 <input type="hidden" name="pu" value="&rdf;type"/>
                                 <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
-                                <div class="control-group">
-                                    <input type="hidden" name="pu" value="&dct;title"/>
-                                    <label class="control-label" for="add-rdf-title">Title</label>
-                                    <div class="controls">
-                                        <input id="add-rdf-title" type="text" name="ol"/>
-                                    </div>
-                                </div>
+
+                                <!-- file title is unused, just needed to pass the apl:File constraints -->
+                                <input type="hidden" name="pu" value="&dct;title"/>
+                                <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+
                                 <div class="control-group">
                                     <input type="hidden" name="pu" value="&dct;format"/>
                                     <label class="control-label" for="add-rdf-title">Format</label>
