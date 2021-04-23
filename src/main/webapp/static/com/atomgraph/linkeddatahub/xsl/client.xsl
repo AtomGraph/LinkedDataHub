@@ -1672,7 +1672,7 @@ extension-element-prefixes="ixsl"
                             <span class="label label-info pull-left">External</span>
                         </xsl:result-document>
                         
-                        <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content"/>
+                        <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:when>
