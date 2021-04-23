@@ -1677,7 +1677,26 @@ extension-element-prefixes="ixsl"
     <!-- EVENT LISTENERS -->
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'HELLO!' ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string"/>
+        
+        <xsl:if test="$uri-string castable as xs:anyURI and (starts($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
+            <xsl:variable name="uri" select="$uri" as="xs:anyURI"/>
+            <!-- indirect resource URI, dereferenced through a proxy -->
+            <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($uri))" as="xs:anyURI"/>
+            <xsl:choose>
+                <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
+                <xsl:when test="starts-with($resource-uri, $ldt:base)">
+                    <ixsl:set-property name="location.href" select="$request-uri"/>
+                </xsl:when>
+                <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
+                <xsl:otherwise>
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                        <xsl:call-template name="onRDFDocumentLoad"/>
+                    </ixsl:schedule-action>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="form[tokenize(../@class, ' ') = 'modal']" mode="ixsl:onsubmit">

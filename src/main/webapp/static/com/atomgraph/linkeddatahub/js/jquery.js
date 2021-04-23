@@ -154,17 +154,4 @@ $(document).ready(function()
     $("input.typeahead").on("blur", onTypeaheadInputBlur);
     
     $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
-
-    // already done in client.xsl?
-    $("form").on("submit", function()
-    {
-        if ($(this).find("input[name=rdf]").length)
-        {
-            // remove names of RDF/POST inputs with empty values
-            $(this).find("input[name=ob]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-            $(this).find("input[name=ou]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-            $(this).find("input[name=ol]").filter(function() { return $(this).val() === ""; }).removeAttr("name");
-        }
-    });
-    
 });
