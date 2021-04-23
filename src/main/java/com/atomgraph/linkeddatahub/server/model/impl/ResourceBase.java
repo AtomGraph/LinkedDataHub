@@ -371,8 +371,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         {
             getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
 
-            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
-                return upload(dataset.getDefaultModel());
+//            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
+//                return upload(dataset.getDefaultModel());
 
             return Response.ok().build();
         }
@@ -380,8 +380,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         {
             Response response = super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
             
-            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
-                return upload(dataset.getDefaultModel());
+//            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
+//                return upload(dataset.getDefaultModel());
             
             return response;
         }
@@ -468,43 +468,43 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return null;
     }
 
-    public Response upload(Model model)
-    {
-        // we need inference to support subclasses
-        InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
-        return upload(infModel);
-    }
-    
-    public Response upload(InfModel model)
-    {
-        if (model == null) throw new IllegalArgumentException("InfModel cannot be null");
-        
-        ResIterator it = model.listSubjectsWithProperty(RDF.type, APL.File);
-        try
-        {
-            if (it.hasNext())
-            {
-                Resource fileRes = it.next();
-                com.atomgraph.linkeddatahub.model.File file = fileRes.as(com.atomgraph.linkeddatahub.model.File.class);
-                LinkedDataClient ldc = LinkedDataClient.create(getClient().target(file.getURI()), getMediaTypes());
-                List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
-                readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
-                try (Response cr = ldc.get(readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()])))
-                {
-                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                        throw new WebApplicationException(new IOException("RDF document could not be successfully loaded over HTTP. Status code: " + cr.getStatus()));
-
-                    post(DatasetFactory.create(cr.readEntity(Model.class)));
-                }
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-
-        return Response.ok().build();
-    }
+//    public Response upload(Model model)
+//    {
+//        // we need inference to support subclasses
+//        InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
+//        return upload(infModel);
+//    }
+//    
+//    public Response upload(InfModel model)
+//    {
+//        if (model == null) throw new IllegalArgumentException("InfModel cannot be null");
+//        
+//        ResIterator it = model.listSubjectsWithProperty(RDF.type, APL.File);
+//        try
+//        {
+//            if (it.hasNext())
+//            {
+//                Resource fileRes = it.next();
+//                com.atomgraph.linkeddatahub.model.File file = fileRes.as(com.atomgraph.linkeddatahub.model.File.class);
+//                LinkedDataClient ldc = LinkedDataClient.create(getClient().target(file.getURI()), getMediaTypes());
+//                List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
+//                readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
+//                try (Response cr = ldc.get(readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()])))
+//                {
+//                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+//                        throw new WebApplicationException(new IOException("RDF document could not be successfully loaded over HTTP. Status code: " + cr.getStatus()));
+//
+//                    post(DatasetFactory.create(cr.readEntity(Model.class)));
+//                }
+//            }
+//        }
+//        finally
+//        {
+//            it.close();
+//        }
+//
+//        return Response.ok().build();
+//    }
     
     /**
      * Splits the input graph into multiple RDF graphs based on the hash of the subject URI or bnode ID.
@@ -809,8 +809,17 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 Resource file = resIt.next();
                 String fileName = file.getProperty(NFO.fileName).getString();
                 FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
-                if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
-                writeFile(file, bodyPart);
+                
+                if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
+                {
+                    Dataset dataset = bodyPart.getValueAs(Dataset.class);
+                    post(dataset);
+                }
+                else // write file
+                {
+                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
+                    writeFile(file, bodyPart);
+                }
                 count++;
             }
         }
