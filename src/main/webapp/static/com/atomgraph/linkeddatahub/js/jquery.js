@@ -167,13 +167,4 @@ $(document).ready(function()
         }
     });
     
-    $(".faceted-nav .nav-header.btn").on("click", function()
-    {
-        $(this).find("span.caret").toggleClass("caret-reversed");
-        $(this).nextAll(".nav").toggle(); // hide the list with options
-        var hidden = $(this).nextAll(".nav").is(":hidden");
-        $(this).parent().find("input").prop("disabled", hidden); // disable all FILTER inputs if facet is hidden
-        if (!hidden) $(this).parent().find("input[type='text']").focus(); // focus on text input if facet is visible
-    });
-    
 });

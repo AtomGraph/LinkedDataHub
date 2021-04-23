@@ -1676,6 +1676,10 @@ extension-element-prefixes="ixsl"
     
     <!-- EVENT LISTENERS -->
     
+    <xsl:template match="form[tokenize(../@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'HELLO!' ])"/>
+    </xsl:template>
+    
     <xsl:template match="form[tokenize(../@class, ' ') = 'modal']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
