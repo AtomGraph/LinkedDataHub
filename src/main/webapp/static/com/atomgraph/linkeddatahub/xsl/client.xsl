@@ -1686,7 +1686,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($uri))" as="xs:anyURI"/>
             <xsl:choose>
                 <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
-                <xsl:when test="starts-with($resource-uri, $ldt:base)">
+                <xsl:when test="starts-with($uri, $ldt:base)">
                     <ixsl:set-property name="location.href" select="$request-uri"/>
                 </xsl:when>
                 <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
