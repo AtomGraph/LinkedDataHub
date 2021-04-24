@@ -370,20 +370,10 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         {
             getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
 
-//            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
-//                return upload(dataset.getDefaultModel());
-
             return Response.ok().build();
         }
-        else
-        {
-            Response response = super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
-            
-//            if (getTemplateCall().get().hasArgument(APLT.upload)) // RDF data upload
-//                return upload(dataset.getDefaultModel());
-            
-            return response;
-        }
+        
+        return super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
     }
     
     @Override
@@ -466,44 +456,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return null;
     }
-
-//    public Response upload(Model model)
-//    {
-//        // we need inference to support subclasses
-//        InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
-//        return upload(infModel);
-//    }
-//    
-//    public Response upload(InfModel model)
-//    {
-//        if (model == null) throw new IllegalArgumentException("InfModel cannot be null");
-//        
-//        ResIterator it = model.listSubjectsWithProperty(RDF.type, APL.File);
-//        try
-//        {
-//            if (it.hasNext())
-//            {
-//                Resource fileRes = it.next();
-//                com.atomgraph.linkeddatahub.model.File file = fileRes.as(com.atomgraph.linkeddatahub.model.File.class);
-//                LinkedDataClient ldc = LinkedDataClient.create(getClient().target(file.getURI()), getMediaTypes());
-//                List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
-//                readableMediaTypesList.addAll(getMediaTypes().getReadable(Model.class));
-//                try (Response cr = ldc.get(readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()])))
-//                {
-//                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-//                        throw new WebApplicationException(new IOException("RDF document could not be successfully loaded over HTTP. Status code: " + cr.getStatus()));
-//
-//                    post(DatasetFactory.create(cr.readEntity(Model.class)));
-//                }
-//            }
-//        }
-//        finally
-//        {
-//            it.close();
-//        }
-//
-//        return Response.ok().build();
-//    }
     
     /**
      * Splits the input graph into multiple RDF graphs based on the hash of the subject URI or bnode ID.
@@ -524,7 +476,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 
         Dataset dataset = DatasetFactory.create();
 
-        StmtIterator it = model.listStatements();
+        StmtIterator it = model.listStatements(); // TO-DO: refactor using ResIterator?
         try
         {
             while (it.hasNext())
@@ -563,8 +515,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     graph.addProperty(RDF.type, APL.Dataset).
                         addProperty(FOAF.isPrimaryTopicOf, graphDoc);
 
-                    // add provenance metadata for documents
-                    if (docURI != null)
+                    // add provenance metadata for base URI-relative (internal) documents
+                    if (docURI != null && !getUriInfo().getBaseUri().relativize(URI.create(docURI)).isAbsolute())
                     {
                         Resource doc = namedMetaModel.createResource(docURI).
                             addProperty(SIOC.HAS_SPACE, namedMetaModel.createResource(getUriInfo().getBaseUri().toString())).
@@ -710,7 +662,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * @param multiPart multipart form data
      * @return RDF graph
      * @throws URISyntaxException thrown if there is a syntax error in RDF/POST data
-     * @see <a href="http://www.lsrn.org/semweb/rdfpost.html">RDF/POST Encoding for RDF</a>
+     * @see <a href="https://atomgraph.github.io/RDF-POST/">RDF/POST Encoding for RDF</a>
      */
     public Model parseModel(FormDataMultiPart multiPart) throws URISyntaxException
     {
@@ -786,11 +738,11 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     }
     
     /**
-     * Writes files from multipart form data parts.
+     * Writes multipart form data parts as files or forwards them to the HTTP <code>POST</code>.
      * 
      * @param model RDF graph parsed from multipart form data
      * @param fileNameBodyPartMap map of file parts
-     * @return number of files written
+     * @return number of processed body parts
      * @throws IOException processing error
      * @see <a href="http://oscaf.sourceforge.net/nfo.html">NFO - Nepomuk File Ontology</a>
      */
@@ -811,11 +763,15 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 
                 if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
                 {
+                    Resource container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+                    Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("/ns/domain/default#Item").toString());
+
                     MediaType mediaType = null;
                     if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
                     if (mediaType != null) bodyPart.setMediaType(mediaType);
 
                     Dataset dataset = bodyPart.getValueAs(Dataset.class);
+                    dataset = processExternalResources(dataset, container, itemClass);
                     post(dataset);
                 }
                 else // write file
@@ -921,6 +877,57 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         }
     }
 
+    /**
+     * Attaches external resources to the document hierarchy.
+     * External resources: resources with URIs not relative to the app's base URI and without a fragment identifier
+     * 
+     * @param dataset with external URIs
+     * @param container target container
+     * @param itemClass RDF type of the internal documents that will be paired with external resources
+     * @return augmented dataset
+     */
+    public Dataset processExternalResources(Dataset dataset, Resource container, Resource itemClass)
+    {
+        Model model = dataset.getDefaultModel();
+        
+        ResIterator it = model.listSubjects();
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource res = it.next();
+                // pair external resources with internal resources
+                if (res.isURIResource() && getUriInfo().getBaseUri().relativize(URI.create(res.getURI())).isAbsolute())
+                {
+                    model.createResource().
+                        addProperty(RDF.type, itemClass).
+                        addProperty(SIOC.HAS_CONTAINER, container).
+                        addProperty(DCTerms.title, "Whatever " + res.getURI()).
+                        addProperty(FOAF.primaryTopic, res);
+                }
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        
+            
+//            Iterator<String> it = dataset.listNames();
+//            while (it.hasNext())
+//            {
+//                String graphURI = it.next();
+//            }
+            
+        return dataset;
+    }
+    
+    /**
+     * Bans up to 2 request URLs from Varnish proxy cache
+     * @param resources request URLs
+     * @return response from the proxy
+     * @see <a href="https://varnish-cache.org/docs/trunk/users-guide/purging.html#bans">Purging and banning</a>
+     */
     public Response ban(org.apache.jena.rdf.model.Resource... resources)
     {
         if (resources == null) throw new IllegalArgumentException("Resource cannot be null");
@@ -935,7 +942,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 {
                     // make URIs relative *iff* they will appear in SPARQL queries with BASE
                     URI uri = URI.create(resource.getURI());
-//                    uri = getApplication().getBaseURI().relativize(uri);
 
                     // encode the URI, because that is how it will appear in SPARQL Protocol URLs cached by the backend proxy
                     builder = builder.header("X-Escaped-Request-URI", UriComponent.encode(uri.toString(), UriComponent.Type.UNRESERVED));

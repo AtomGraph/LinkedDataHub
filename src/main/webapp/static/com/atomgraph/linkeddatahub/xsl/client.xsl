@@ -2549,6 +2549,13 @@ extension-element-prefixes="ixsl"
                                         <input id="add-rdf-filename" type="file" name="ol"/>
                                     </div>
                                 </div>
+                                <div class="control-group">
+                                    <input type="hidden" name="pu" value="&sioc;has_container"/>
+                                    <label class="control-label" for="add-rdf-container">Container</label>
+                                    <div class="controls">
+                                        <input id="add-rdf-container" type="text" name="ou"/>
+                                    </div>
+                                </div>
                             </fieldset>
                         </div>
 
