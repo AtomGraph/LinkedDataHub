@@ -889,6 +889,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     public Dataset processExternalResources(Dataset dataset, Resource container, Resource itemClass)
     {
         Model model = dataset.getDefaultModel();
+        URI containerURI = URI.create(container.getURI());
         
         ResIterator it = model.listSubjects();
         try
@@ -899,7 +900,8 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 // pair external resources with internal resources
                 if (res.isURIResource() && getUriInfo().getBaseUri().relativize(URI.create(res.getURI())).isAbsolute())
                 {
-                    model.createResource().
+                    URI docURI = UriBuilder.fromUri(containerURI).path("{external_uri}/").build(res.getURI());
+                    model.createResource(docURI.toString()).
                         addProperty(RDF.type, itemClass).
                         addProperty(SIOC.HAS_CONTAINER, container).
                         addProperty(DCTerms.title, "Whatever " + res.getURI()).
