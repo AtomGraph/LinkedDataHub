@@ -2524,12 +2524,12 @@ extension-element-prefixes="ixsl"
                                 <input type="hidden" name="pu" value="&dct;title"/>
                                 <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
 
-                                <div class="control-group">
+                                <div class="control-group required">
                                     <input type="hidden" name="pu" value="&dct;format"/>
                                     <label class="control-label" for="add-rdf-title">Format</label>
                                     <div class="controls">
                                         <select id="add-rdf-title" name="ol">
-                                            <option value="">[browser-defined]</option>
+                                            <!--<option value="">[browser-defined]</option>-->
                                             <optgroup label="RDF triples">
                                                 <option value="text/turtle">Turtle (.ttl)</option>
                                                 <option value="application/n-triples">N-Triples (.nt)</option>
@@ -2542,14 +2542,14 @@ extension-element-prefixes="ixsl"
                                         </select>
                                     </div>
                                 </div>
-                                <div class="control-group">
+                                <div class="control-group required">
                                     <input type="hidden" name="pu" value="&nfo;fileName"/>
                                     <label class="control-label" for="add-rdf-filename">FileName</label>
                                     <div class="controls">
                                         <input id="add-rdf-filename" type="file" name="ol"/>
                                     </div>
                                 </div>
-                                <div class="control-group">
+                                <div class="control-group required">
                                     <input type="hidden" name="pu" value="&sioc;has_container"/>
                                     <label class="control-label" for="add-rdf-container">Container</label>
                                     <div class="controls">

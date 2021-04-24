@@ -901,7 +901,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 if (res.isURIResource() && getUriInfo().getBaseUri().relativize(URI.create(res.getURI())).isAbsolute())
                 {
                     // encode external URI as a path fragment
-                    URI docURI = UriBuilder.fromUri(containerURI).path("{external_uri}/").build(UriComponent.encode(res.getURI(), UriComponent.Type.UNRESERVED));
+                    URI docURI = UriBuilder.fromUri(containerURI).path(UriComponent.encode(res.getURI(), UriComponent.Type.UNRESERVED)).build();
                     model.createResource(docURI.toString()).
                         addProperty(RDF.type, itemClass).
                         addProperty(SIOC.HAS_CONTAINER, container).
