@@ -2560,7 +2560,7 @@ extension-element-prefixes="ixsl"
                                             <label class="control-label" for="add-rdf-container">Container</label>
                                             <div class="controls">
                                                 <span>
-                                                    <input type="text" name="ou" id="add-rdf-container" class="resource-typeahead typeahead">
+                                                    <input type="text" name="ou" id="add-rdf-container" class="resource-typeahead typeahead"/>
                                                     <ul class="resource-typeahead typeahead dropdown-menu" id="ul-add-rdf-container" style="display: none;"></ul>
                                             <!--         <div class="tooltip fade top in" style="top: 417px; left: 198px; display: none;">
                                                         <div class="tooltip-arrow"></div>
