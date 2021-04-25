@@ -905,7 +905,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     model.createResource(docURI.toString()).
                         addProperty(RDF.type, itemClass).
                         addProperty(SIOC.HAS_CONTAINER, container).
-                        addProperty(DCTerms.title, "Whatever " + res.getURI()).
                         addProperty(FOAF.primaryTopic, res);
                 }
             }

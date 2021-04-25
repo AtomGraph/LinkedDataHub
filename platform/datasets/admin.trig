@@ -556,7 +556,7 @@ nsdd:Item a adm:Class ;
     foaf:isPrimaryTopicOf <model/classes/default/item/> ;
     rdfs:subClassOf dh:Item ;
     spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
-    spin:constraint nsdd:MissingContainer, nsdd:MissingTitle ;
+    spin:constraint nsdd:MissingContainer ;
     rdfs:label "Item" ;
     rdfs:isDefinedBy nsdd: .
 
