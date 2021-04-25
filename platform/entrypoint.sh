@@ -4,7 +4,7 @@ set -e
 # set timezone
 
 if [ -n "$TZ" ] ; then
-    export CATALINA_OPTS="$CATALINA_OPTS -Duser.timezone=$TZ"
+    export CATALINA_OPTS="$CATALINA_OPTS -Duser.timezone=$TZ -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"
 fi
 
 # ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
