@@ -2532,9 +2532,9 @@ extension-element-prefixes="ixsl"
 
                                         <div class="control-group required">
                                             <input type="hidden" name="pu" value="&dct;format"/>
-                                            <label class="control-label" for="add-rdf-title">Format</label>
+                                            <label class="control-label" for="add-rdf-format">Format</label>
                                             <div class="controls">
-                                                <select id="add-rdf-title" name="ol">
+                                                <select id="add-rdf-format" name="ol">
                                                     <!--<option value="">[browser-defined]</option>-->
                                                     <optgroup label="RDF triples">
                                                         <option value="text/turtle">Turtle (.ttl)</option>

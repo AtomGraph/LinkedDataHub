@@ -46,6 +46,8 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
+    <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
+
     <!-- PARALLAX -->
     
     <xsl:template name="bs2:Parallax">
@@ -360,7 +362,8 @@ exclude-result-prefixes="#all"
         </div>
     </xsl:template>
 
-    <xsl:template match="*[key('resources', foaf:isPrimaryTopicOf/@rdf:resource)]" mode="bs2:BlockList" priority="1"/>
+    <!-- hide resources that will be shown paired/nested with a document -->
+    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:BlockList" priority="1"/>
 
     <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:BlockList" priority="0.8">
         <xsl:apply-templates select="." mode="bs2:Header"/>
