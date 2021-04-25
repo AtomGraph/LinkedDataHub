@@ -228,7 +228,7 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
-        <!-- append typeahead list after search/URI input -->
+        <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
@@ -2559,7 +2559,22 @@ extension-element-prefixes="ixsl"
                                             <input type="hidden" name="pu" value="&sioc;has_container"/>
                                             <label class="control-label" for="add-rdf-container">Container</label>
                                             <div class="controls">
-                                                <input id="add-rdf-container" type="text" name="ou"/>
+                                                <span>
+                                                    <input type="text" name="ou" id="add-rdf-container" class="resource-typeahead typeahead">
+                                                    <ul class="resource-typeahead typeahead dropdown-menu" id="ul-add-rdf-container" style="display: none;"></ul>
+                                            <!--         <div class="tooltip fade top in" style="top: 417px; left: 198px; display: none;">
+                                                        <div class="tooltip-arrow"></div>
+                                                        <div class="tooltip-inner">A Container or Forum that this Container or Forum is a child of.</div>
+                                                    </div>
+                                                     -->    </span>
+                                                <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
+                                                <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
+                                                <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn dropdown-toggle create-action"></button>
+                                                    <ul class="dropdown-menu"></ul>
+                                                </div>
+                                                <span class="help-inline">Container</span>
                                             </div>
                                         </div>
                                     </fieldset>
