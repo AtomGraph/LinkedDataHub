@@ -2514,49 +2514,60 @@ extension-element-prefixes="ixsl"
                             <legend title="Add RDF data">Add RDF data</legend>
                         </div>
 
-                        <div class="modal-body">
-                            <fieldset>
-                                <input type="hidden" name="sb" value="file"/>
-                                <input type="hidden" name="pu" value="&rdf;type"/>
-                                <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+                        <div class="modal-body tabbable">
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a>Upload file</a></li>
+                                <li class=""><a>From URI</a></li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active">
+                                    <fieldset>
+                                        <input type="hidden" name="sb" value="file"/>
+                                        <input type="hidden" name="pu" value="&rdf;type"/>
+                                        <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
 
-                                <!-- file title is unused, just needed to pass the apl:File constraints -->
-                                <input type="hidden" name="pu" value="&dct;title"/>
-                                <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+                                        <!-- file title is unused, just needed to pass the apl:File constraints -->
+                                        <input type="hidden" name="pu" value="&dct;title"/>
+                                        <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
 
-                                <div class="control-group required">
-                                    <input type="hidden" name="pu" value="&dct;format"/>
-                                    <label class="control-label" for="add-rdf-title">Format</label>
-                                    <div class="controls">
-                                        <select id="add-rdf-title" name="ol">
-                                            <!--<option value="">[browser-defined]</option>-->
-                                            <optgroup label="RDF triples">
-                                                <option value="text/turtle">Turtle (.ttl)</option>
-                                                <option value="application/n-triples">N-Triples (.nt)</option>
-                                                <option value="application/rdf+xml">RDF/XML (.rdf)</option>
-                                            </optgroup>
-                                            <optgroup label="RDF quads">
-                                                <option value="text/trig">TriG (.trig)</option>
-                                                <option value="application/n-quads">N-Quads (.nq)</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
+                                        <div class="control-group required">
+                                            <input type="hidden" name="pu" value="&dct;format"/>
+                                            <label class="control-label" for="add-rdf-title">Format</label>
+                                            <div class="controls">
+                                                <select id="add-rdf-title" name="ol">
+                                                    <!--<option value="">[browser-defined]</option>-->
+                                                    <optgroup label="RDF triples">
+                                                        <option value="text/turtle">Turtle (.ttl)</option>
+                                                        <option value="application/n-triples">N-Triples (.nt)</option>
+                                                        <option value="application/rdf+xml">RDF/XML (.rdf)</option>
+                                                    </optgroup>
+                                                    <optgroup label="RDF quads">
+                                                        <option value="text/trig">TriG (.trig)</option>
+                                                        <option value="application/n-quads">N-Quads (.nq)</option>
+                                                    </optgroup>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="control-group required">
+                                            <input type="hidden" name="pu" value="&nfo;fileName"/>
+                                            <label class="control-label" for="add-rdf-filename">FileName</label>
+                                            <div class="controls">
+                                                <input id="add-rdf-filename" type="file" name="ol"/>
+                                            </div>
+                                        </div>
+                                        <div class="control-group required">
+                                            <input type="hidden" name="pu" value="&sioc;has_container"/>
+                                            <label class="control-label" for="add-rdf-container">Container</label>
+                                            <div class="controls">
+                                                <input id="add-rdf-container" type="text" name="ou"/>
+                                            </div>
+                                        </div>
+                                    </fieldset>
                                 </div>
-                                <div class="control-group required">
-                                    <input type="hidden" name="pu" value="&nfo;fileName"/>
-                                    <label class="control-label" for="add-rdf-filename">FileName</label>
-                                    <div class="controls">
-                                        <input id="add-rdf-filename" type="file" name="ol"/>
-                                    </div>
+                                <div class="tab-pane">
+                                    <p>TO-DO</p>
                                 </div>
-                                <div class="control-group required">
-                                    <input type="hidden" name="pu" value="&sioc;has_container"/>
-                                    <label class="control-label" for="add-rdf-container">Container</label>
-                                    <div class="controls">
-                                        <input id="add-rdf-container" type="text" name="ou"/>
-                                    </div>
-                                </div>
-                            </fieldset>
+                            </div>
                         </div>
 
                         <div class="form-actions modal-footer">
