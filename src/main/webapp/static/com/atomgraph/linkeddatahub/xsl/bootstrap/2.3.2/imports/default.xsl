@@ -812,7 +812,10 @@ exclude-result-prefixes="#all"
                         </button>
                         <ul class="dropdown-menu">
                             <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
-
+WTF
+$subclasses: <xsl:value-of select="$subclasses"/>
+$self-and-subclasses: <xsl:copy-of select="$self-and-subclasses"/>
+/WTF
                             <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
                             <xsl:for-each select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
