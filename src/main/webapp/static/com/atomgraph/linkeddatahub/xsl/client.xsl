@@ -1908,6 +1908,10 @@ extension-element-prefixes="ixsl"
             <!-- container value empty -->
             <xsl:when test="not(ixsl:get(id('add-rdf-container'), 'value'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <!-- don't show error on the filename input anymore, since it passed validation above -->
+                <xsl:for-each select="id('add-rdf-filename')/ancestor::div[tokenize(@class, ' ') = 'control-group'][tokenize(@class, ' ') = 'error']">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
                 <xsl:for-each select="id('add-rdf-container')/ancestor::div[tokenize(@class, ' ') = 'control-group']">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
