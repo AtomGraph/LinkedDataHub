@@ -1899,14 +1899,14 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
         <xsl:choose>
             <!-- filename value empty -->
-            <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']][descendant::input[@name = 'ol']]/ixsl:get(., 'value'))">
+            <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']]/descendant::input[@name = 'ol']/ixsl:get(., 'value'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <!-- container value empty -->
-            <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']][descendant::input[@name = 'ou']]/ixsl:get(., 'value'))">
+            <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]/descendant::input[@name = 'ou']/ixsl:get(., 'value'))">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <!-- don't show error on the filename input anymore, since it passed validation above -->
                 <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']][tokenize(@class, ' ') = 'error']">
