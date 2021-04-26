@@ -812,30 +812,27 @@ exclude-result-prefixes="#all"
                         </button>
                         <ul class="dropdown-menu">
                             <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
-WTF
-$subclasses: <xsl:value-of select="$subclasses"/>
-$self-and-subclasses: <xsl:copy-of select="$self-and-subclasses"/>
-deepest subclasses: <xsl:copy-of select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]"/>
-/WTF
+
                             <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
-                            <xsl:for-each select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]">
+                            <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
+                            <xsl:for-each-group select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" group-by="@rdf:about">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
 
-<!--                                <xsl:variable name="action" select="$self-and-subclasses/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>-->
-                                <xsl:variable name="action" select="@rdf:about" as="xs:anyURI?"/>
+                                <!-- won't traverse blank nodes, only URI resources -->
+                                <xsl:variable name="action" select="current-group()/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
                                 <li>
-                                    <button type="button" class="btn add-constructor" title="{@rdf:about}">
+                                    <button type="button" class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
-                                        <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about), '&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
+                                        <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(current-grouping-key()), '&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
 
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </xsl:value-of>
                                     </button>
                                 </li>
-                            </xsl:for-each>
+                            </xsl:for-each-group>
                         </ul>
                     </div>
                 </xsl:when>
