@@ -17,8 +17,6 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 # upload RDF file
 
 urlencode()
