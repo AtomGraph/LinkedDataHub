@@ -1678,7 +1678,7 @@ exclude-result-prefixes="#all">
                         <a href="{resolve-uri('ns', $ldt:base)}" target="_blank">Namespace</a>
                     </li>
                     <li>
-                        <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Help</a>
+                        <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
                     </li>
                 </ul>
             </div>

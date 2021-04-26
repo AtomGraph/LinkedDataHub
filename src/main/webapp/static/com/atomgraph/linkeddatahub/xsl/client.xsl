@@ -2500,79 +2500,87 @@ extension-element-prefixes="ixsl"
                             <legend title="Add RDF data">Add RDF data</legend>
                         </div>
 
-                        <div class="modal-body tabbable">
-                            <ul class="nav nav-tabs">
-                                <li class="active"><a>Upload file</a></li>
-                                <li class=""><a>From URI</a></li>
-                            </ul>
-                            <div class="tab-content">
-                                <div class="tab-pane active">
-                                    <fieldset>
-                                        <input type="hidden" name="sb" value="file"/>
-                                        <input type="hidden" name="pu" value="&rdf;type"/>
-                                        <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+                        <div class="modal-body">
+                            <div class="tabbable">
+                                <ul class="nav nav-tabs">
+                                    <li class="active"><a>Upload file</a></li>
+                                    <li class=""><a>From URI</a></li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane active">
+                                        <fieldset>
+                                            <input type="hidden" name="sb" value="file"/>
+                                            <input type="hidden" name="pu" value="&rdf;type"/>
+                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
 
-                                        <!-- file title is unused, just needed to pass the apl:File constraints -->
-                                        <input type="hidden" name="pu" value="&dct;title"/>
-                                        <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+                                            <!-- file title is unused, just needed to pass the apl:File constraints -->
+                                            <input type="hidden" name="pu" value="&dct;title"/>
+                                            <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
 
-                                        <div class="control-group required">
-                                            <input type="hidden" name="pu" value="&dct;format"/>
-                                            <label class="control-label" for="add-rdf-format">Format</label>
-                                            <div class="controls">
-                                                <select id="add-rdf-format" name="ol">
-                                                    <!--<option value="">[browser-defined]</option>-->
-                                                    <optgroup label="RDF triples">
-                                                        <option value="text/turtle">Turtle (.ttl)</option>
-                                                        <option value="application/n-triples">N-Triples (.nt)</option>
-                                                        <option value="application/rdf+xml">RDF/XML (.rdf)</option>
-                                                    </optgroup>
-                                                    <optgroup label="RDF quads">
-                                                        <option value="text/trig">TriG (.trig)</option>
-                                                        <option value="application/n-quads">N-Quads (.nq)</option>
-                                                    </optgroup>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="control-group required">
-                                            <input type="hidden" name="pu" value="&nfo;fileName"/>
-                                            <label class="control-label" for="add-rdf-filename">FileName</label>
-                                            <div class="controls">
-                                                <input id="add-rdf-filename" type="file" name="ol"/>
-                                            </div>
-                                        </div>
-                                        <div class="control-group required">
-                                            <input type="hidden" name="pu" value="&sioc;has_container"/>
-                                            <label class="control-label" for="add-rdf-container">Container</label>
-                                            <div class="controls">
-                                                <span>
-                                                    <input type="text" name="ou" id="add-rdf-container" class="resource-typeahead typeahead"/>
-                                                    <ul class="resource-typeahead typeahead dropdown-menu" id="ul-add-rdf-container" style="display: none;"></ul>
-                                            <!--         <div class="tooltip fade top in" style="top: 417px; left: 198px; display: none;">
-                                                        <div class="tooltip-arrow"></div>
-                                                        <div class="tooltip-inner">A Container or Forum that this Container or Forum is a child of.</div>
-                                                    </div>
-                                                     -->    </span>
-                                                <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
-                                                <div class="btn-group">
-                                                    <button type="button" class="btn dropdown-toggle create-action"></button>
-                                                    <ul class="dropdown-menu">
-                                                        <li>
-                                                            <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-add-rdf-constructor">
-                                                                <input type="hidden" class="action" value="{$ldt:base}?forClass={encode-for-uri(resolve-uri('ns/domain/default#Container', $ldt:base))}&amp;mode={encode-for-uri('&ac;ModalMode')}" autocomplete="off"/>
-                                                                <xsl:text>Container</xsl:text>
-                                                            </button>
-                                                        </li>
-                                                    </ul>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&dct;format"/>
+                                                <label class="control-label" for="add-rdf-format">Format</label>
+                                                <div class="controls">
+                                                    <select id="add-rdf-format" name="ol">
+                                                        <!--<option value="">[browser-defined]</option>-->
+                                                        <optgroup label="RDF triples">
+                                                            <option value="text/turtle">Turtle (.ttl)</option>
+                                                            <option value="application/n-triples">N-Triples (.nt)</option>
+                                                            <option value="application/rdf+xml">RDF/XML (.rdf)</option>
+                                                        </optgroup>
+                                                        <optgroup label="RDF quads">
+                                                            <option value="text/trig">TriG (.trig)</option>
+                                                            <option value="application/n-quads">N-Quads (.nq)</option>
+                                                        </optgroup>
+                                                    </select>
                                                 </div>
-                                                <span class="help-inline">Container</span>
                                             </div>
-                                        </div>
-                                    </fieldset>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&nfo;fileName"/>
+                                                <label class="control-label" for="add-rdf-filename">FileName</label>
+                                                <div class="controls">
+                                                    <input id="add-rdf-filename" type="file" name="ol"/>
+                                                </div>
+                                            </div>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&sioc;has_container"/>
+                                                <label class="control-label" for="add-rdf-container">Container</label>
+                                                <div class="controls">
+                                                    <span>
+                                                        <input type="text" name="ou" id="add-rdf-container" class="resource-typeahead typeahead"/>
+                                                        <ul class="resource-typeahead typeahead dropdown-menu" id="ul-add-rdf-container" style="display: none;"></ul>
+                                                <!--         <div class="tooltip fade top in" style="top: 417px; left: 198px; display: none;">
+                                                            <div class="tooltip-arrow"></div>
+                                                            <div class="tooltip-inner">A Container or Forum that this Container or Forum is a child of.</div>
+                                                        </div>
+                                                         -->    
+                                                    </span>
+                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
+                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn dropdown-toggle create-action"></button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-add-rdf-constructor">
+                                                                    <input type="hidden" class="action" value="{$ldt:base}?forClass={encode-for-uri(resolve-uri('ns/domain/default#Container', $ldt:base))}&amp;mode={encode-for-uri('&ac;ModalMode')}" autocomplete="off"/>
+                                                                    <xsl:text>Container</xsl:text>
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <span class="help-inline">Container</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                    <div class="tab-pane">
+                                        <p>TO-DO</p>
+                                    </div>
                                 </div>
-                                <div class="tab-pane">
-                                    <p>TO-DO</p>
-                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
                             </div>
                         </div>
 
