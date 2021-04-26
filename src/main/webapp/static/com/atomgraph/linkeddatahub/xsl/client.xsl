@@ -1926,6 +1926,12 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
+    <!-- open drop-down by toggling its CSS class -->
+
+    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="onclick" priority="1">
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+    
     <xsl:template match="div[tokenize(@class, ' ') = 'hero-unit']/button[tokenize(@class, ' ') = 'close']" mode="ixsl:onclick" priority="1">
         <!-- remove the hero-unit -->
         <xsl:for-each select="..">
@@ -2871,11 +2877,11 @@ extension-element-prefixes="ixsl"
     </xsl:template>
         
     <!-- constructor dropdown -->
-    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="apl:PostConstructMode" priority="1">
+<!--    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener',  ['click', ixsl:get(ixsl:window(), 'onDropdownClick') ])"/>
         </xsl:message>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="textarea[tokenize(@class, ' ') = 'wymeditor']" mode="apl:PostConstructMode" priority="1">
         <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
