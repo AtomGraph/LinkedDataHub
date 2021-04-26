@@ -815,6 +815,7 @@ exclude-result-prefixes="#all"
 WTF
 $subclasses: <xsl:value-of select="$subclasses"/>
 $self-and-subclasses: <xsl:copy-of select="$self-and-subclasses"/>
+deepest subclasses: <xsl:copy-of select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]"/>
 /WTF
                             <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
                             <xsl:for-each select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]">
