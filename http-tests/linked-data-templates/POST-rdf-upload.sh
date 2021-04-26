@@ -24,7 +24,7 @@ urlencode()
     python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
 }
 
-file=$(realpath "timbl.ttl")
+file="timbl.ttl"
 file_content_type="text/turtle"
 subject="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
 path_segment=$(urlencode "$subject")
@@ -44,7 +44,7 @@ rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
 rdf_post+="-F \"ou=${END_USER_BASE_URL}\"\n"
 
 # POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" --config - "$END_USER_BASE_URL" -v -D -
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" --config - "${END_USER_BASE_URL}?upload=true" -v -D -
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
