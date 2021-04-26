@@ -814,12 +814,11 @@ exclude-result-prefixes="#all"
                             <xsl:variable name="self-and-subclasses" select="key('resources', $forClass, document(ac:document-uri($forClass))), $subclasses/.." as="element()*"/>
 WTF
 $subclasses: <xsl:value-of select="$subclasses"/>
-$self-and-subclasses/@rdf:about: <xsl:value-of select="$self-and-subclasses/@rdf:about"/>
-$self-and-subclasses/rdfs:subClassOf/@rdf:resource: <xsl:value-of select="$self-and-subclasses/rdfs:subClassOf/@rdf:resource"/>
-deepest subclasses: <xsl:copy-of select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]"/>
+$self-and-subclasses: <xsl:copy-of select="$self-and-subclasses"/>
+deepest subclasses: <xsl:copy-of select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]"/>
 /WTF
                             <!-- apply on the "deepest" subclass of $forClass and its subclasses -->
-                            <xsl:for-each select="$self-and-subclasses[not(@rdf:about = $self-and-subclasses/rdfs:subClassOf/@rdf:resource)]">
+                            <xsl:for-each select="$self-and-subclasses[let $about := @rdf:about return not($about = $self-and-subclasses[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
 
                                 <xsl:variable name="action" select="$self-and-subclasses/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:allValuesFrom/@rdf:*/key('resources', ., document(ac:document-uri(.)))/rdfs:subClassOf/@rdf:*/key('resources', ., document(ac:document-uri(.)))/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
