@@ -26,11 +26,13 @@ urlencode()
     python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
 }
 
-file="timbl.ttl"
+file=$(realpath "timbl.ttl")
 file_content_type="text/turtle"
 subject="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
 path_segment=$(urlencode "$subject")
 doc="${END_USER_BASE_URL}${path_segment}/"
+
+echo "Importing file: $file"
 
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=file\"\n"
