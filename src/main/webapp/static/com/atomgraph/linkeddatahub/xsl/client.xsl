@@ -2378,9 +2378,9 @@ extension-element-prefixes="ixsl"
     </xsl:template>-->
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="ixsl:onclick" priority="1">
-        <xsl:for-each select="../../..">
-            <xsl:result-document href="?." method="ixsl:replace-content"/>
-        </xsl:for-each>
+        <xsl:message>
+            <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
+        </xsl:message>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-type']" mode="ixsl:onclick" priority="1">
