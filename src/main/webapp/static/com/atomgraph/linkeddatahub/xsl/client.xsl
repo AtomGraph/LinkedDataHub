@@ -2574,11 +2574,16 @@ extension-element-prefixes="ixsl"
                                                     </div>
                                                      -->    </span>
                                                 <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
-                                                <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
-                                                <input type="hidden" class="forClass" value="&dh;Container" autocomplete="off"/>
                                                 <div class="btn-group">
                                                     <button type="button" class="btn dropdown-toggle create-action"></button>
-                                                    <ul class="dropdown-menu"></ul>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-add-rdf-constructor">
+                                                                <input type="hidden" class="action" value="{$ldt:base}?forClass={encode-for-uri(resolve-uri('ns/domain/default#Container', $ldt:base))}&amp;mode={encode-for-uri('&ac;ModalMode')}" autocomplete="off"/>
+                                                                <xsl:text>Container</xsl:text>
+                                                            </button>
+                                                        </li>
+                                                    </ul>
                                                 </div>
                                                 <span class="help-inline">Container</span>
                                             </div>
