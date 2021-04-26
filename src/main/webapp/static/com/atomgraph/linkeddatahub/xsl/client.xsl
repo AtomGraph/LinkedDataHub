@@ -1928,7 +1928,7 @@ extension-element-prefixes="ixsl"
     
     <!-- open drop-down by toggling its CSS class -->
 
-    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="onclick" priority="1">
+    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
