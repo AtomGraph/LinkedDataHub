@@ -130,7 +130,6 @@ fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
-# rdf_post+="-s -k -H "Accept: text/turtle" -E ${cert_pem_file}:${cert_password} "
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=file\"\n"
 rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
