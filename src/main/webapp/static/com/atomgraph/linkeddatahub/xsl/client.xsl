@@ -2504,7 +2504,7 @@ extension-element-prefixes="ixsl"
                             <div class="tabbable">
                                 <ul class="nav nav-tabs">
                                     <li class="active"><a>Upload file</a></li>
-                                    <li class=""><a>From URI</a></li>
+                                    <!--<li class=""><a>From URI</a></li>-->
                                 </ul>
                                 <div class="tab-content">
                                     <div class="tab-pane active">
@@ -2573,9 +2573,9 @@ extension-element-prefixes="ixsl"
                                             </div>
                                         </fieldset>
                                     </div>
-                                    <div class="tab-pane">
+<!--                                    <div class="tab-pane">
                                         <p>TO-DO</p>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
                             
