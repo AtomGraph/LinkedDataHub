@@ -1895,35 +1895,24 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onTypeaheadResourceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="resource-uri" as="xs:anyURI"/>
-        <xsl:param name="typeahead-span" as="element()"/>
-        <xsl:param name="form" as="element()"/>
-
+    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
+    <xsl:template match="form[tokenize(../@class, ' ') = 'form-add-data']" mode="ixsl:onsubmit">
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()"/>
-
-                    <!-- remove modal constructor form -->
-                    <xsl:message>
-                        <xsl:sequence select="ixsl:call($form/.., 'remove', [])"/>
-                    </xsl:message>
-
-                    <xsl:for-each select="$typeahead-span">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
-                        </xsl:result-document>
-                    </xsl:for-each>
+            <!-- filename value empty -->
+            <xsl:when test="not(ixsl:get(id('add-rdf-filename'), 'value'))">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:for-each select="id('add-rdf-filename')/ancestor::div[tokenize(@class, ' ') = 'control-group']">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
+            <!-- container value empty -->
+            <xsl:when test="not(ixsl:get(id('add-rdf-container'), 'value'))">
+                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                <xsl:for-each select="id('add-rdf-container')/ancestor::div[tokenize(@class, ' ') = 'control-group']">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+            </xsl:when>
         </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->
@@ -2296,10 +2285,6 @@ extension-element-prefixes="ixsl"
                             </xsl:apply-templates>
                         </xsl:result-document>
                     </xsl:for-each>
-
-<!--                    <xsl:call-template name="resource-typeahead">
-                        <xsl:with-param name="id" select="generate-id($resource)"/>
-                    </xsl:call-template>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -2360,22 +2345,7 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </xsl:result-document>
         </xsl:for-each>
-
-<!--        <xsl:call-template name="resource-typeahead">
-            <xsl:with-param name="id" select="generate-id($resource)"/>
-        </xsl:call-template>-->
     </xsl:template>
-
-<!--    <xsl:template name="resource-typeahead">
-        <xsl:param name="id" as="xs:string"/>
-        
-        <xsl:for-each select="id($id, ixsl:page())/preceding-sibling::div[1]/button[tokenize(@class, ' ') = 'btn-remove']">
-             TO-DO: refactor into apl:PostConstructMode 
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
-            </xsl:message>
-        </xsl:for-each>
-    </xsl:template>-->
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="ixsl:onclick" priority="1">
         <xsl:message>
@@ -2743,6 +2713,37 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- CALLBACKS -->
+    
+    <xsl:template name="onTypeaheadResourceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="resource-uri" as="xs:anyURI"/>
+        <xsl:param name="typeahead-span" as="element()"/>
+        <xsl:param name="form" as="element()"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:for-each select="?body">
+                    <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()"/>
+
+                    <!-- remove modal constructor form -->
+                    <xsl:message>
+                        <xsl:sequence select="ixsl:call($form/.., 'remove', [])"/>
+                    </xsl:message>
+
+                    <xsl:for-each select="$typeahead-span">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:apply-templates select="$resource" mode="apl:Typeahead"/>
+                        </xsl:result-document>
+                    </xsl:for-each>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
     
     <xsl:template name="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
