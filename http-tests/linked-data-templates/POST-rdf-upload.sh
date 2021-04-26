@@ -46,11 +46,15 @@ rdf_post+="-F \"ou=${END_USER_BASE_URL}\"\n"
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" --config - "$END_USER_BASE_URL" -v -D -
 
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
 doc_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
   "$doc")
+
+popd > /dev/null
 
 # check that the intermediary document has been created and is connected to the imported subject
 
