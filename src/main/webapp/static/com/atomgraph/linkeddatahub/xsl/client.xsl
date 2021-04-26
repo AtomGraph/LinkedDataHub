@@ -2297,9 +2297,9 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:for-each>
 
-                    <xsl:call-template name="resource-typeahead">
+<!--                    <xsl:call-template name="resource-typeahead">
                         <xsl:with-param name="id" select="generate-id($resource)"/>
-                    </xsl:call-template>
+                    </xsl:call-template>-->
                 </xsl:for-each>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -2361,19 +2361,25 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="resource-typeahead">
+<!--        <xsl:call-template name="resource-typeahead">
             <xsl:with-param name="id" select="generate-id($resource)"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
     </xsl:template>
 
-    <xsl:template name="resource-typeahead">
+<!--    <xsl:template name="resource-typeahead">
         <xsl:param name="id" as="xs:string"/>
         
         <xsl:for-each select="id($id, ixsl:page())/preceding-sibling::div[1]/button[tokenize(@class, ' ') = 'btn-remove']">
-            <!-- TO-DO: refactor into apl:PostConstructMode -->
+             TO-DO: refactor into apl:PostConstructMode 
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
             </xsl:message>
+        </xsl:for-each>
+    </xsl:template>-->
+
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="ixsl:onclick" priority="1">
+        <xsl:for-each select="../../..">
+            <xsl:result-document href="?." method="ixsl:replace-content"/>
         </xsl:for-each>
     </xsl:template>
 
@@ -2868,11 +2874,11 @@ extension-element-prefixes="ixsl"
     <xsl:template match="text()" mode="apl:PostConstructMode"/>
 
     <!-- remove property button -->
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="apl:PostConstructMode" priority="1">
+<!--    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
         </xsl:message>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- subject type change -->
     <xsl:template match="select[tokenize(@class, ' ') = 'subject-type']" mode="apl:PostConstructMode" priority="1">
