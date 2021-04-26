@@ -1896,7 +1896,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[tokenize(../@class, ' ') = 'form-add-data']" mode="ixsl:onsubmit">
+    <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
         <xsl:choose>
             <!-- filename value empty -->
             <xsl:when test="not(ixsl:get(id('add-rdf-filename'), 'value'))">
