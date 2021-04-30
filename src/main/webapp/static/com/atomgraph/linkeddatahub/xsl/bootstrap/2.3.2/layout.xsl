@@ -868,7 +868,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class">active</xsl:attribute>
             </xsl:if>
 
-            <a href="{if (not(starts-with($href, $ac:contextUri))) then ac:build-uri((), map{ 'uri': string($href), 'mode': string(@rdf:about) }) else if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri(@rdf:about)) else ac:build($ac:uri, map{ 'mode': string(@rdf:about) })}" title="{@rdf:about}">
+            <a href="{if (not(starts-with($href, $ac:contextUri))) then ac:build-uri((), map{ 'uri': string($href), 'mode': string(@rdf:about) }) else if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri(@rdf:about)) else ac:build-uri($ac:uri, map{ 'mode': string(@rdf:about) })}" title="{@rdf:about}">
                 <xsl:apply-templates select="." mode="apl:logo"/>
             </a>
         </li>
