@@ -43,8 +43,6 @@ exclude-result-prefixes="#all"
     <xsl:key name="resources-by-type" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="rdf:type/@rdf:resource"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
-    <xsl:param name="uri" as="xs:anyURI"/>
-    <!-- <xsl:param name="lapp:Application" as="document-node()?"/> -->
 
     <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
@@ -231,7 +229,7 @@ exclude-result-prefixes="#all"
 
     <!-- add ?uri= indirection on external HTTP(S) links -->
     <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
-        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(@rdf:about)))" as="xs:anyURI"/>
+        <xsl:param name="href" select="ac:build-uri($ldt:base, map{ 'uri': @rdf:about })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -245,7 +243,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="@rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]">
-        <xsl:param name="href" select="xs:anyURI(concat('?uri=', encode-for-uri(if (contains(., '#')) then substring-before(., '#') else .), if (substring-after(., '#')) then concat('#', substring-after(., '#')) else ()))" as="xs:anyURI"/>
+        <xsl:param name="href" select="ac:build-uri($ldt:base, map{ 'uri': if (contains(., '#')) then substring-before(., '#') else . }) || (if (substring-after(., '#')) then '#' || substring-after(., '#') else ())" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -504,7 +502,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
-        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else resolve-uri(concat('?uri=', encode-for-uri(ac:document-uri(.))), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- loop if node not visited already -->
@@ -767,7 +765,10 @@ exclude-result-prefixes="#all"
 
             <div class="controls">
                 <!-- $forClass value is used in client.xsl -->
-                <button type="button" id="button-{generate-id()}" class="btn add-value" value="{$forClass}">
+                <xsl:for-each select="$forClass">
+                    <input type="hidden" name="forClass" value="."/>
+                </xsl:for-each>
+                <button type="button" id="button-{generate-id()}" class="btn add-value">
                     <xsl:apply-templates select="key('resources', 'add', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn add-value'"/>
                     </xsl:apply-templates>

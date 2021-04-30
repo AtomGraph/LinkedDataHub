@@ -1101,7 +1101,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
-        <xsl:variable name="results-uri" select="resolve-uri('?uri=' || encode-for-uri($predicate) || '&amp;accept=' || encode-for-uri('application/rdf+xml') || '&amp;mode=' || encode-for-uri('fragment'), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="bs2:FilterIn">
@@ -1241,7 +1241,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:variable name="id" select="generate-id()" as="xs:string"/>
         <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="resolve-uri('?uri=' || encode-for-uri($predicate) || '&amp;accept=' || encode-for-uri('application/rdf+xml') || '&amp;mode=' || encode-for-uri('fragment'), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="bs2:OrderBy">
@@ -1699,7 +1699,7 @@ extension-element-prefixes="ixsl"
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- indirect resource URI, dereferenced through a proxy -->
-            <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($uri))" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
             <xsl:choose>
                 <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
                 <xsl:when test="starts-with($uri, $ldt:base)">
@@ -1976,7 +1976,7 @@ extension-element-prefixes="ixsl"
                     <!-- resource URI selected in the typeahead -->
                     <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- indirect resource URI, dereferenced through a proxy -->
-                    <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri))" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
                     <xsl:choose>
                         <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
                         <xsl:when test="starts-with($resource-uri, $ldt:base)">
@@ -2027,7 +2027,7 @@ extension-element-prefixes="ixsl"
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
-        <xsl:variable name="request-uri" select="xs:anyURI($ldt:base || '?uri=' || encode-for-uri($resource-uri))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
         <xsl:choose>
             <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
             <xsl:when test="starts-with($resource-uri, $ldt:base)">
@@ -2423,10 +2423,9 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'add-value']" mode="ixsl:onclick">
         <xsl:message>Adding property for class: <xsl:value-of select="@value"/></xsl:message>
-        <xsl:variable name="button" select="." as="element()"/>
-        <xsl:variable name="control-group" select="$button/../.." as="element()"/>
-        <xsl:variable name="property" select="$button/../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="forClass" select="@value" as="xs:anyURI"/>
+        <xsl:variable name="control-group" select="../.." as="element()"/>
+        <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
         <xsl:variable name="constructor-uri" select="resolve-uri(concat('?forClass=', encode-for-uri($forClass), '&amp;', 'mode=', encode-for-uri('&ac;ConstructMode')), $ac:uri)" as="xs:anyURI"/>
         <xsl:message>Constructor URI: <xsl:value-of select="$constructor-uri"/></xsl:message>
         

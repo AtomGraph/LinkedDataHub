@@ -32,7 +32,7 @@
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -540,7 +540,7 @@ exclude-result-prefixes="#all">
                     </a>
                 </xsl:if>
                 <xsl:if test="$webid-signup">
-                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $apl:baseUri))) then concat('?uri=', encode-for-uri($uri)) else $uri}">
+                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $apl:baseUri))) then ac:build-uri((), map{ 'uri': string($uri) }) else $uri}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -868,7 +868,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class">active</xsl:attribute>
             </xsl:if>
 
-            <a href="{if (not(starts-with($href, $ac:contextUri))) then xs:anyURI(concat('?uri=', encode-for-uri($href), '&amp;mode=', encode-for-uri(@rdf:about))) else if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri(@rdf:about)) else concat($ac:uri, '?mode=', encode-for-uri(@rdf:about))}" title="{@rdf:about}">
+            <a href="{if (not(starts-with($href, $ac:contextUri))) then ac:build-uri((), map{ 'uri': string($href), 'mode': string(@rdf:about) }) else if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri(@rdf:about)) else ac:build($ac:uri, map{ 'mode', string(@rdf:about) })}" title="{@rdf:about}">
                 <xsl:apply-templates select="." mode="apl:logo"/>
             </a>
         </li>
@@ -1104,10 +1104,10 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="href" as="xs:anyURI">
                         <xsl:choose>
                             <xsl:when test="$ac:uri">
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('application/rdf+xml')) else concat($ac:requestUri, '?uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('application/rdf+xml')))"/>
+                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('application/rdf+xml')) else ac:build-uri($ac:requestUri, map{ 'uri', string(ac:document-uri($ac:uri)), 'accept': 'application/rdf+xml' }))"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;accept=', encode-for-uri('application/rdf+xml')) else concat($ac:requestUri, '?accept=', encode-for-uri('application/rdf+xml')))"/>
+                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;accept=', encode-for-uri('application/rdf+xml')) else ac:build-uri($ac:requestUri, map{ 'accept': 'application/rdf+xml' }))"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
@@ -1117,10 +1117,10 @@ exclude-result-prefixes="#all">
                     <xsl:variable name="href" as="xs:anyURI">
                         <xsl:choose>
                             <xsl:when test="$ac:uri">
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('text/turtle')) else concat($ac:requestUri, '?uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('text/turtle')))"/>
+                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('text/turtle')) else ac:build-uri($ac:requestUri, map{ 'uri', string(ac:document-uri($ac:uri)), 'accept': 'text/turtle' }))"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;accept=', encode-for-uri('text/turtle')) else concat($ac:requestUri, '?accept=', encode-for-uri('text/turtle')))"/>
+                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;accept=', encode-for-uri('text/turtle')) else ac:build-uri($ac:requestUri, map{ 'accept': 'text/turtle' }))"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
@@ -1171,7 +1171,7 @@ exclude-result-prefixes="#all">
             <h2>
                 <xsl:apply-templates select="." mode="apl:logo"/>
                 
-                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then resolve-uri(concat('?uri=', encode-for-uri(lacl:requestAccess/@rdf:resource), '&amp;access-to=', encode-for-uri($ac:uri)), $ldt:base) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri($ac:uri))}" class="btn btn-primary pull-right">Request access</a>
+                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri', string(lacl:requestAccess/@rdf:resource), 'access-to': string($ac:uri) }) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri($ac:uri))}" class="btn btn-primary pull-right">Request access</a>
             </h2>
         </div>
     </xsl:template>
@@ -1251,7 +1251,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
 
         <xsl:next-match>
-            <xsl:with-param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then xs:anyURI(concat(lapp:base($ac:contextUri, $lapp:Application), '?uri=', encode-for-uri($ac:uri), '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else xs:anyURI(concat($ac:uri, '?_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), '')))" as="xs:anyURI"/>
+            <xsl:with-param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': $ac:mode/string(.) }) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': $ac:mode/string(.) })" as="xs:anyURI"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -1260,7 +1260,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <!-- append client mode parameter (which does not reach the server and therefore is not part of the hypermedia state arguments -->
         <!-- TO-DO: make action a tunnel param? -->
-        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then xs:anyURI(resolve-uri(concat('?uri=', encode-for-uri($ac:uri), if ($modal) then concat('&amp;mode=', encode-for-uri('&ac;ModalMode')) else ()), lapp:base($ac:contextUri, $lapp:Application))) else if ($modal) then if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri('&ac;ModalMode')) else concat($ac:uri, '?mode=', encode-for-uri('&ac;ModalMode')) else $ac:uri)" as="xs:anyURI"/>
+        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map { 'uri': string($ac:uri), 'mode': if ($modal) then '&ac;ModalMode' else () }) else if ($modal) then if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri('&ac;ModalMode')) else ac:build-uri($ac:uri, map{ 'mode', '&ac;ModalMode' }) else $ac:uri)" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
