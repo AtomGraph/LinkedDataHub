@@ -74,7 +74,7 @@ WHERE
 
 :SubOntology a ldt:Template ;
     ldt:extends thgt:Document ;
-    ldt:match "/ns/{slug}" ;
+    ldt:match "/ns/{.*}" ;
     ldt:query [ a sp:Construct ;
         sp:text """
 PREFIX  c:    <https://www.w3.org/ns/ldt/core/domain#>

@@ -55,7 +55,7 @@ public class ApplicationFilter implements ContainerRequestFilter
         {
             // override request URI using ?uri query param
             requestURI = URI.create(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            matchURI = UriBuilder.fromUri(requestURI).replaceQuery(null).build(); // strip query parameters
+            matchURI = UriBuilder.fromUri(requestURI).replaceQuery(null).fragment(null).build(); // strip query parameters and fragment
         }
         else
         {
