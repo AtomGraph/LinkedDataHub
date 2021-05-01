@@ -36,6 +36,7 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lapp="&lapp;"
