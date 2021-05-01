@@ -22,7 +22,7 @@
     <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -187,7 +187,7 @@ LIMIT 100</xsl:param>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
-        <xsl:param name="action" select="resolve-uri(concat('queries/?forClass=', encode-for-uri(resolve-uri($type, $ldt:base))), $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('queries/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" select="'save-query-form'" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>

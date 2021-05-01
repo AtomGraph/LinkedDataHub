@@ -15,7 +15,7 @@
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
 ]>
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -174,7 +174,7 @@ extension-element-prefixes="ixsl"
             <xsl:for-each select="key('resources', @rdf:about)/void:inDataset/@rdf:resource">
                 <xsl:if test="not($ac:mode = '&ac;EditMode')">
                     <div class="pull-right">
-                        <xsl:variable name="graph-uri" select="xs:anyURI(concat(ac:document-uri(.), '?mode=', encode-for-uri('&ac;EditMode'), '&amp;mode=', encode-for-uri('&ac;ModalMode')))" as="xs:anyURI"/>
+                        <xsl:variable name="graph-uri" select="ac:build-uri(ac:document-uri(.), map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
                         <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>

@@ -826,7 +826,7 @@ exclude-result-prefixes="#all"
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
-                                        <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(current-grouping-key()), '&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
+                                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, map{ 'forClass': string(current-grouping-key()), 'mode': '&ac;ModalMode' })}"/>
 
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -863,7 +863,7 @@ exclude-result-prefixes="#all"
                             </xsl:otherwise>
                         </xsl:choose>
 
-                        <input type="hidden" class="action" value="{concat(if ($action) then $action else $ac:uri, '?forClass=', encode-for-uri(@rdf:about),'&amp;mode=', encode-for-uri('&ac;ModalMode'))}"/>
+                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, map{ 'forClass': string(@rdf:about), 'mode': '&ac;ModalMode' })}"/>
                     </button>
                 </xsl:otherwise>
             </xsl:choose>

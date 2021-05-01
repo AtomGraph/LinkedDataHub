@@ -501,7 +501,7 @@ exclude-result-prefixes="#all">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <a href="?mode={encode-for-uri('&ac;QueryEditorMode')}">SPARQL editor</a>
+                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}">SPARQL editor</a>
                 </li>
                 <li>
                     <div class="btn-group">
@@ -526,14 +526,14 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF[not($lacl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
-        <xsl:param name="uri" select="xs:anyURI(concat(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), '?forClass=', encode-for-uri(resolve-uri('admin/ns#Person', $ldt:base))))" as="xs:anyURI"/>
+        <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), map{ 'forClass': string(resolve-uri('admin/ns#Person', $ldt:base)) })" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
         
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">
                 <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{resolve-uri('admin/oauth2/authorize/google?referer=' || encode-for-uri($ac:uri), $apl:baseUri)}">
+                    <a class="btn btn-primary" href="{ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $apl:baseUri), map{ 'referer': string($ac:uri) })}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -1129,7 +1129,7 @@ exclude-result-prefixes="#all">
                 <xsl:if test="key('resources', $ac:uri)">
                     <li class="divider"></li>
                     
-                    <xsl:variable name="href" select="xs:anyURI(concat($ac:uri, '?debug=', encode-for-uri('http://www.w3.org/ns/sparql-service-description#SPARQL11Query')))" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri($ac:uri, map{ 'debug': 'http://www.w3.org/ns/sparql-service-description#SPARQL11Query' })" as="xs:anyURI"/>
                     <li>
                         <a href="{$href}" title="application/sparql-query">SPARQL query</a>
                     </li>
@@ -1230,7 +1230,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <object data="{sioc:attachment/@rdf:resource}?mode={encode-for-uri('&aplt;ObjectMode')}" type="text/html"></object>
+            <object data="{ac:build-uri(xs:anyURI(sioc:attachment/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>
         </div>
     </xsl:template>
 
@@ -1242,7 +1242,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
 
         <xsl:next-match> <!-- TO-DO: account for external $ac:uri -->
-            <xsl:with-param name="action" select="xs:anyURI(concat($ac:uri, '?forClass=', encode-for-uri($ac:forClass), if ($modal) then concat('&amp;mode=', encode-for-uri('&ac;ModalMode')) else ()))" as="xs:anyURI"/>
+            <xsl:with-param name="action" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge($params, map{ 'mode', '&ac;ModalMode' }) else $params)" as="xs:anyURI"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -1587,7 +1587,7 @@ exclude-result-prefixes="#all">
             <xsl:for-each select="key('resources', $ac:uri)/void:inDataset/@rdf:resource">
                 <xsl:if test="not($ac:mode = '&ac;EditMode')">
                     <div class="pull-right">
-                        <xsl:variable name="graph-uri" select="xs:anyURI(concat(ac:document-uri(.), '?mode=', encode-for-uri('&ac;EditMode'), '&amp;mode=', encode-for-uri('&ac;ModalMode')))" as="xs:anyURI"/>
+                        <xsl:variable name="graph-uri" select="ac:build-uri(ac:document-uri(.), map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
                         <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>

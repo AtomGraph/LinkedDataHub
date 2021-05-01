@@ -495,7 +495,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="type" select="resolve-uri('ns/domain/default#GraphChart', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="action" select="resolve-uri(concat('charts/?forClass=', encode-for-uri(resolve-uri($type, $ldt:base))), $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -586,36 +586,6 @@ exclude-result-prefixes="#all"
                         </xsl:call-template>
                     </xsl:if>
 
-<!--                    <div class="row-fluid">
-                        <div class="span12">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;endpoint'"/>
-                            </xsl:call-template>
-
-                            <label for="endpoint-uri">Endpoint</label>
-                            <xsl:text> </xsl:text>
-                                <select id="endpoint-uri" name="ou" class="input-xxlarge">
-                                    <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
-
-                                    <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
-                                        <xsl:sort select="ac:label(.)"/>
-
-                                        <xsl:apply-templates select="." mode="xhtml:Option">
-                                            <xsl:with-param name="value" select="sd:endpoint/@rdf:resource"/>
-                                            <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
-                                        </xsl:apply-templates>
-                                    </xsl:for-each>
-                                    <xsl:if test="true()"  use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
-                                        <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
-                                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                            <xsl:call-template name="onchartModeServiceLoad"/>
-                                        </ixsl:schedule-action>
-                                    </xsl:if>
-                            </select>
-                        </div>
-                    </div>-->
                     <div class="row-fluid">
                         <div class="span4">
                             <xsl:if test="$show-save">
@@ -843,7 +813,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="type" select="resolve-uri('ns/domain/default#ResultSetChart', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="action" select="resolve-uri(concat('charts/?forClass=', encode-for-uri(resolve-uri($type, $ldt:base))), $ldt:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -934,36 +904,6 @@ exclude-result-prefixes="#all"
                         </xsl:call-template>
                     </xsl:if>
 
-<!--                    <div class="row-fluid">
-                        <div class="span12">
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'pu'"/>
-                                <xsl:with-param name="type" select="'hidden'"/>
-                                <xsl:with-param name="value" select="'&apl;endpoint'"/>
-                            </xsl:call-template>
-
-                            <label for="endpoint-uri">Endpoint</label>
-                            <xsl:text> </xsl:text>
-                                <select id="endpoint-uri" name="ou" class="input-xxlarge">
-                                    <option value="{resolve-uri('sparql', $ldt:base)}">[SPARQL endpoint]</option>
-
-                                    <xsl:for-each select="document(resolve-uri('services/', $ldt:base))//*[sd:endpoint/@rdf:resource]" use-when="system-property('xsl:product-name') = 'SAXON'">
-                                        <xsl:sort select="ac:label(.)"/>
-
-                                        <xsl:apply-templates select="." mode="xhtml:Option">
-                                            <xsl:with-param name="value" select="sd:endpoint/@rdf:resource"/>
-                                            <xsl:with-param name="selected" select="sd:endpoint/@rdf:resource = $endpoint"/>
-                                        </xsl:apply-templates>
-                                    </xsl:for-each>
-                                    <xsl:if test="true()"  use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
-                                        <xsl:variable name="query" select="'DESCRIBE ?service { GRAPH ?g { ?service &lt;&sd;endpoint&gt; ?endpoint } }'"/>
-                                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': resolve-uri(concat('sparql?query=', encode-for-uri($query)), $ldt:base), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                            <xsl:call-template name="onchartModeServiceLoad"/>
-                                        </ixsl:schedule-action>
-                                    </xsl:if>
-                            </select>
-                        </div>
-                    </div>-->
                     <div class="row-fluid">
                         <div class="span4">
                             <xsl:if test="$show-save">
