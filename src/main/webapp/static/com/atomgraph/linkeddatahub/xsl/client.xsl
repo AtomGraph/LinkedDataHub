@@ -237,7 +237,7 @@ extension-element-prefixes="ixsl"
         <!-- initialize search service dropdown -->
         <xsl:for-each select="id('search-service', ixsl:page())">
             <xsl:variable name="service-select" select="." as="element()"/>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': string($service-query) }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad">
                     <xsl:with-param name="service-select" select="$service-select"/>
                     <xsl:with-param name="selected-service" select="$ac:service"/>
@@ -1639,7 +1639,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+                <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
