@@ -63,7 +63,7 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
         
-        <form method="post" action="{resolve-uri('acl/authorizations/?forClass=' || encode-for-uri(resolve-uri('ns#Authorization', $ldt:base)), $ldt:base)}">
+        <form method="post" action="{ac:build-uri(resolve-uri('acl/authorizations/', $ldt:base), map{ 'forClass': string(resolve-uri('ns#Authorization', $ldt:base)) })}">
             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>

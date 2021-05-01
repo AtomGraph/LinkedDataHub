@@ -32,7 +32,7 @@ exclude-result-prefixes="#all">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <a href="?mode={encode-for-uri('&ac;QueryEditorMode')}">SPARQL editor</a>
+                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}">SPARQL editor</a>
                 </li>
 
                 <xsl:variable name="notification-query" as="xs:string">
@@ -68,8 +68,8 @@ WHERE
                 <xsl:variable name="notification-query" select="replace($notification-query, '\$type', '&lt;' || $ldt:ontology || 'AuthorizationRequest' || '&gt;')" as="xs:string"/>
                 <xsl:variable name="notification-query" select="replace($notification-query, '\$container', '&lt;' || resolve-uri('acl/authorization-requests/', $ldt:base) || '&gt;')" as="xs:string"/>
 
-                <xsl:if test="doc-available(resolve-uri('sparql?query=' || encode-for-uri($notification-query), $ldt:base))">
-                    <xsl:variable name="notifications" select="document(resolve-uri('sparql?query=' || encode-for-uri($notification-query), $ldt:base))" as="document-node()"/>
+                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))">
+                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))" as="document-node()"/>
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
