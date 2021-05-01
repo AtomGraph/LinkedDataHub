@@ -229,7 +229,7 @@ exclude-result-prefixes="#all"
 
     <!-- add ?uri= indirection on external HTTP(S) links -->
     <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
-        <xsl:param name="href" select="ac:build-uri($ldt:base, map{ 'uri': @rdf:about })" as="xs:anyURI"/>
+        <xsl:param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(@rdf:about) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
