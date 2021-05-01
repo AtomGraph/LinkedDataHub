@@ -1251,7 +1251,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
 
         <xsl:next-match>
-            <xsl:with-param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': $ac:mode/string(.) }) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': $ac:mode/string(.) })" as="xs:anyURI"/>
+            <xsl:with-param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $ac:mode return string(.) }) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $ac:mode return string(.) })" as="xs:anyURI"/>
         </xsl:next-match>
     </xsl:template>
     
