@@ -74,7 +74,7 @@ WHERE
 
 :SubOntology a ldt:Template ;
     ldt:extends thgt:Document ;
-    ldt:match "/ns/{.*}" ;
+    ldt:match "/ns/{path: .+}" ;
     ldt:query [ a sp:Construct ;
         sp:text """
 PREFIX  c:    <https://www.w3.org/ns/ldt/core/domain#>
