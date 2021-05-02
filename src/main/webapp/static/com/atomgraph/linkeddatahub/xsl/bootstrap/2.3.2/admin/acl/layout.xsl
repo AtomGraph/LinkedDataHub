@@ -45,9 +45,9 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 CONSTRUCT 
 { 
-?authRequest a $type .
-?authRequest rdfs:label ?label .
-?authRequest dct:created ?created .
+    ?authRequest a $type .
+    ?authRequest rdfs:label ?label .
+    ?authRequest dct:created ?created .
 }
 WHERE
 { GRAPH ?authRequestGraph
