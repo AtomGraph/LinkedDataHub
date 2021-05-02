@@ -81,7 +81,7 @@ WHERE
                                 </button>
                                 <ul class="dropdown-menu pull-right">
                                     <xsl:for-each select="$notifications/rdf:RDF/*[@rdf:about]">
-                                        <xsl:sort select="max((../../dct:created/text()[. castable as xs:date]/xs:date(.), ../../dct:created/text()[. castable as xs:dateTime]/xs:dateTime(.)))" order="descending"/>
+                                        <xsl:sort select="dct:created/xs:dateTime(.)" order="descending"/>
 
                                         <xsl:apply-templates select="." mode="bs2:List"/>
                                     </xsl:for-each>
