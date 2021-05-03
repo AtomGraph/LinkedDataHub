@@ -755,6 +755,8 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
+    <xsl:template match="*" mode="bs2:AddData"/>
+
     <!-- LEFT NAV MODE -->
     
     <xsl:template match="rdf:RDF[$ldt:base][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Left" priority="1">
