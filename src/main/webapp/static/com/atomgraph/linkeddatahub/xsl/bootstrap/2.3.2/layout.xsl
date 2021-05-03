@@ -1105,12 +1105,13 @@ exclude-result-prefixes="#all">
             <ul class="dropdown-menu">
                 <li>
                     <xsl:variable name="href" as="xs:anyURI">
+                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'application/rdf+xml' }))" as="xs:anyURI"/>
                         <xsl:choose>
-                            <xsl:when test="$ac:uri">
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('application/rdf+xml')) else ac:build-uri($ac:requestUri, map{ 'uri': string(ac:document-uri($ac:uri)), 'accept': 'application/rdf+xml' }))"/>
+                            <xsl:when test="starts-with($ac:uri, $ldt:base)">
+                                <xsl:sequence select="$accept-href"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;accept=', encode-for-uri('application/rdf+xml')) else ac:build-uri($ac:requestUri, map{ 'accept': 'application/rdf+xml' }))"/>
+                                <xsl:sequence select="ac:build-uri($ac:uri, map{ 'uri': encode-for-uri($accept-href) })"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
@@ -1118,12 +1119,13 @@ exclude-result-prefixes="#all">
                 </li>
                 <li>
                     <xsl:variable name="href" as="xs:anyURI">
+                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'text/turtle' }))" as="xs:anyURI"/>
                         <xsl:choose>
-                            <xsl:when test="$ac:uri">
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;uri=', encode-for-uri(ac:document-uri($ac:uri)), '&amp;accept=', encode-for-uri('text/turtle')) else ac:build-uri($ac:requestUri, map{ 'uri': string(ac:document-uri($ac:uri)), 'accept': 'text/turtle' }))"/>
+                            <xsl:when test="starts-with($ac:uri, $ldt:base)">
+                                <xsl:sequence select="$accept-href"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="xs:anyURI(if (contains($ac:requestUri, '?')) then concat($ac:requestUri, '&amp;accept=', encode-for-uri('text/turtle')) else ac:build-uri($ac:requestUri, map{ 'accept': 'text/turtle' }))"/>
+                                <xsl:sequence select="ac:build-uri($ac:uri, map{ 'uri': encode-for-uri($accept-href) })"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
