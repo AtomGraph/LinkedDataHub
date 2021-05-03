@@ -638,21 +638,70 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             if (reader instanceof SkolemizingModelProvider) model = ((SkolemizingModelProvider)reader).process(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
-            // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
-            int count = processFormDataMultiPart(model, multiPart);
-            if (log.isDebugEnabled()) log.debug("{} Files uploaded from FormDataMultiPart: {} ", count, multiPart);
-
-            return post(DatasetFactory.create(model));
+            return postMultipart(model, getFileNameBodyPartMap(multiPart));
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
             throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
         }
+    }
+    
+    public Response postMultipart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
+        
+        Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("ns/domain/default#Item").toString()); // TO-DO: make class URI configurable?
+        if (itemClass == null) throw new IllegalStateException("nsdd:Item class not found in the application ontology");
+        Resource container = null; // for uploaded triples/quads
+        
+        int count = 0;
+        ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
+        try
+        {
+            while (resIt.hasNext())
+            {
+                Resource file = resIt.next();
+                String fileName = file.getProperty(NFO.fileName).getString();
+                FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
+                
+                if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
+                {
+                    container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+
+                    MediaType mediaType = null;
+                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
+                    if (mediaType != null) bodyPart.setMediaType(mediaType);
+
+                    Dataset dataset = bodyPart.getValueAs(Dataset.class);
+                    dataset = processExternalResources(dataset, container, itemClass);
+                    post(dataset); // append uploaded triples/quads
+                }
+                else // write file
+                {
+                    // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
+                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
+                    writeFile(file, bodyPart);
+                }
+                count++;
+            }
+        }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("Error reading multipart request");
             throw new WebApplicationException(ex);
+        }
+        finally
+        {
+            resIt.close();
+        }
+        
+        if (container != null) return Response.seeOther(URI.create(container.getURI())).build(); // redirect to the container that data was added to
+        else
+        {
+            if (log.isDebugEnabled()) log.debug("{} Files uploaded: {} ", count);
+            return post(DatasetFactory.create(model));
         }
     }
     
@@ -722,74 +771,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             }
         }
         return fileNameBodyPartMap;
-    }
-
-    /**
-     * Processes file parts in multipart form data.
-     * 
-     * @param model RDF graph parsed from multipart form data
-     * @param multiPart multipart form data
-     * @return number of files written
-     * @throws IOException processing error
-     */
-    public int processFormDataMultiPart(Model model, FormDataMultiPart multiPart) throws IOException
-    {
-        return processFormDataBodyParts(model, getFileNameBodyPartMap(multiPart));
-    }
-    
-    /**
-     * Writes multipart form data parts as files or forwards them to the HTTP <code>POST</code>.
-     * 
-     * @param model RDF graph parsed from multipart form data
-     * @param fileNameBodyPartMap map of file parts
-     * @return number of processed body parts
-     * @throws IOException processing error
-     * @see <a href="http://oscaf.sourceforge.net/nfo.html">NFO - Nepomuk File Ontology</a>
-     */
-    public int processFormDataBodyParts(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap) throws IOException
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
-        
-        Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("ns/domain/default#Item").toString()); // TO-DO: make class URI configurable?
-        if (itemClass == null) throw new IllegalStateException("nsdd:Item class not found in the application ontology");
-
-        int count = 0;
-        ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
-        try
-        {
-            while (resIt.hasNext())
-            {
-                Resource file = resIt.next();
-                String fileName = file.getProperty(NFO.fileName).getString();
-                FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
-                
-                if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
-                {
-                    Resource container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-
-                    MediaType mediaType = null;
-                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
-                    if (mediaType != null) bodyPart.setMediaType(mediaType);
-
-                    Dataset dataset = bodyPart.getValueAs(Dataset.class);
-                    dataset = processExternalResources(dataset, container, itemClass);
-                    post(dataset);
-                }
-                else // write file
-                {
-                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
-                    writeFile(file, bodyPart);
-                }
-                count++;
-            }
-        }
-        finally
-        {
-            resIt.close();
-        }
-        
-        return count;
     }
 
     /**
