@@ -751,6 +751,9 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
         
+        Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("ns/domain/default#Item").toString()); // TO-DO: make class URI configurable?
+        if (itemClass == null) throw new IllegalStateException("nsdd:Item class not found in the application ontology");
+
         int count = 0;
         ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
         try
@@ -764,7 +767,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                 if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
                 {
                     Resource container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-                    Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("/ns/domain/default#Item").toString());
 
                     MediaType mediaType = null;
                     if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
