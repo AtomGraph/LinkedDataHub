@@ -1105,7 +1105,7 @@ exclude-result-prefixes="#all">
             <ul class="dropdown-menu">
                 <li>
                     <xsl:variable name="href" as="xs:anyURI">
-                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'application/rdf+xml' }))" as="xs:anyURI"/>
+                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
                         <xsl:choose>
                             <xsl:when test="starts-with($ac:uri, $ldt:base)">
                                 <xsl:sequence select="$accept-href"/>
@@ -1119,7 +1119,7 @@ exclude-result-prefixes="#all">
                 </li>
                 <li>
                     <xsl:variable name="href" as="xs:anyURI">
-                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'text/turtle' }))" as="xs:anyURI"/>
+                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'text/turtle' })" as="xs:anyURI"/>
                         <xsl:choose>
                             <xsl:when test="starts-with($ac:uri, $ldt:base)">
                                 <xsl:sequence select="$accept-href"/>
