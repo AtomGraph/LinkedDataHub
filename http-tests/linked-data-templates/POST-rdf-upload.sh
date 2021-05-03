@@ -44,7 +44,12 @@ rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
 rdf_post+="-F \"ou=${END_USER_BASE_URL}\"\n"
 
 # POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" --config - "${END_USER_BASE_URL}?upload=true" -v -D -
+echo -e "$rdf_post" \
+| curl -w "%{http_code}\n" -v -k -D - --config - \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: text/turtle" \
+  "${END_USER_BASE_URL}?upload=true"  \
+| grep -q "${STATUS_SEE_OTHER}"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
