@@ -643,7 +643,7 @@ exclude-result-prefixes="#all">
 
     <!-- CREATE -->
     
-    <xsl:template match="rdf:RDF[$lacl:Agent][$ldt:ontology]" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF[$lacl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:Create" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
@@ -741,7 +741,7 @@ exclude-result-prefixes="#all">
     
     <!-- ADD DATA -->
     
-    <xsl:template match="rdf:RDF[$lacl:Agent][$ldt:ontology]" mode="bs2:AddData" priority="1">
+    <xsl:template match="rdf:RDF[$lacl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary add-data">
 <!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
