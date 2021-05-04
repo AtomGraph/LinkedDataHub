@@ -433,7 +433,7 @@ extension-element-prefixes="ixsl"
                 <xsl:value-of select="sioc:name"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="@rdf:about | @rdf:nodeID"/>
+                <xsl:next-match/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
