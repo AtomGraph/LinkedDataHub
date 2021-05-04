@@ -243,7 +243,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="@rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]">
-        <xsl:param name="href" select="xs:anyURI(ac:build-uri($ldt:base, map{ 'uri': if (contains(., '#')) then substring-before(., '#') else . }) || (if (substring-after(., '#')) then '#' || substring-after(., '#') else ()))" as="xs:anyURI"/>
+        <xsl:param name="href" select="xs:anyURI(ac:build-uri($ldt:base, map{ 'uri': if (contains(., '#')) then substring-before(., '#') else string(.) }) || (if (substring-after(., '#')) then '#' || substring-after(., '#') else ()))" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="title" select="." as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
