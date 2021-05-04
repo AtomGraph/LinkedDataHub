@@ -13,6 +13,7 @@
     <!ENTITY skos       "http://www.w3.org/2004/02/skos/core#">
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http       "http://www.w3.org/2011/http#">
+    <!ENTITY acl        "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
@@ -44,6 +45,7 @@ xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:srx="&srx;"
@@ -567,6 +569,44 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
+    <xsl:template match="rdf:RDF" mode="bs2:Right">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span4'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <xsl:apply-templates mode="#current"/>
+        </div>
+    </xsl:template>
+    
+    <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
+    <xsl:template match="*[@rdf:about = $ac:uri][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
+        <xsl:variable name="definitions" as="document-node()">
+            <xsl:document>
+                <dl class="dl-horizontal">
+                    <xsl:apply-templates select="dct:created | dct:modified | foaf:maker | acl:owner | foaf:primaryTopic | dh:select" mode="bs2:PropertyList">
+                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                    </xsl:apply-templates>
+                </dl>
+            </xsl:document>
+        </xsl:variable>
+
+        <xsl:if test="$definitions/*/*">
+            <div class="well well-small">
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
+
     <xsl:template name="first-time-message">
         <div class="hero-unit">
             <button type="button" class="close">×</button>
@@ -1674,6 +1714,11 @@ extension-element-prefixes="ixsl"
                         
                         <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
                     </xsl:if>
+                    
+                    <!-- update right nav -->
+                    <xsl:result-document href="#right-nav" method="ixsl:replace-content">
+                        <xsl:apply-templates select="$results" mode="bs2:Right"/>
+                    </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
