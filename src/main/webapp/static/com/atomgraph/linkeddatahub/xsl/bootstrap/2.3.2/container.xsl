@@ -97,9 +97,15 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="var-name-resources" select="//srx:binding[@name = $var-name]/srx:uri" as="xs:anyURI*"/>
 
                     <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
-                        <xsl:call-template name="parallax-property-load-despatch">
-                            <xsl:with-param name="container-id" select="$container-id"/>
-                        </xsl:call-template>
+                        <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
+                        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="onParallaxPropertyLoad">
+                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <xsl:with-param name="predicate" select="$predicate"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
                     </xsl:for-each-group>
                 </xsl:for-each>
             </xsl:when>
@@ -115,21 +121,6 @@ exclude-result-prefixes="#all"
                 </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
-    <xsl:template name="parallax-property-load-despatch">
-        <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="predicate" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
-        
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onParallaxPropertyLoad">
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="predicate" select="$predicate"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template name="onParallaxPropertyLoad">
@@ -1339,11 +1330,48 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:call-template name="render-facet-values-despatch">
-                        <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="service" select="$service"/>
-                    </xsl:call-template>
+                    <xsl:variable name="container-id" select="@id" as="xs:string"/>
+                    <!-- the subject is a variable - trim the leading question mark -->
+                    <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
+                    <!-- predicate is a URI -->
+                    <xsl:variable name="predicate" select="$bgp-triples-map/json:string[@key = 'predicate']" as="xs:anyURI"/>
+                    <!-- the object is a variable - trim the leading question mark -->
+                    <xsl:variable name="object-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'object'], '?')" as="xs:string"/>
+                    <!-- generate unique variable name for COUNT(?subject) -->
+                    <xsl:variable name="count-var-name" select="'count' || $subject-var-name || generate-id()" as="xs:string"/>
+                    <!-- generate unique variable name for ?label -->
+                    <xsl:variable name="label-var-name" select="'label' || $object-var-name || generate-id()" as="xs:string"/>
+                    <xsl:variable name="label-sample-var-name" select="$label-var-name || 'sample'" as="xs:string"/>
+                    <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
+                    <!-- generate the XML structure of a SPARQL query which is used to load facet values, their counts and labels -->
+                    <xsl:variable name="select-xml" as="document-node()">
+                        <xsl:document>
+                            <xsl:apply-templates select="$select-xml" mode="apl:bgp-value-counts">
+                                <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map" tunnel="yes"/>
+                                <xsl:with-param name="subject-var-name" select="$subject-var-name" tunnel="yes"/>
+                                <xsl:with-param name="object-var-name" select="$object-var-name" tunnel="yes"/>
+                                <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
+                                <xsl:with-param name="label-var-name" select="$label-var-name" tunnel="yes"/>
+                                <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:document>
+                    </xsl:variable>
+                    <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
+                    <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
+                    <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
+                    <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge($params, map{ 'auth_token': $service/dydra-urn:accessToken }) else $params)" as="xs:anyURI"/>
+
+                    <!-- load facet values, their counts and optional labels -->
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                        <xsl:call-template name="onFacetValueResultsLoad">
+                            <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="predicate" select="$predicate"/>
+                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                            <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                            <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1366,56 +1394,6 @@ exclude-result-prefixes="#all"
                 </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
-    <xsl:template name="render-facet-values-despatch">
-        <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="container-id" select="@id" as="xs:string"/>
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="service" as="element()?"/>
-        <xsl:param name="bgp-triples-map" as="element()"/>
-        <!-- the subject is a variable - trim the leading question mark -->
-        <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
-        <!-- predicate is a URI -->
-        <xsl:variable name="predicate" select="$bgp-triples-map/json:string[@key = 'predicate']" as="xs:anyURI"/>
-        <!-- the object is a variable - trim the leading question mark -->
-        <xsl:variable name="object-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'object'], '?')" as="xs:string"/>
-        <!-- generate unique variable name for COUNT(?subject) -->
-        <xsl:variable name="count-var-name" select="'count' || $subject-var-name || generate-id()" as="xs:string"/>
-        <!-- generate unique variable name for ?label -->
-        <xsl:variable name="label-var-name" select="'label' || $object-var-name || generate-id()" as="xs:string"/>
-        <xsl:variable name="label-sample-var-name" select="$label-var-name || 'sample'" as="xs:string"/>
-        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
-        <!-- generate the XML structure of a SPARQL query which is used to load facet values, their counts and labels -->
-        <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:bgp-value-counts">
-                    <xsl:with-param name="bgp-triples-map" select="$bgp-triples-map" tunnel="yes"/>
-                    <xsl:with-param name="subject-var-name" select="$subject-var-name" tunnel="yes"/>
-                    <xsl:with-param name="object-var-name" select="$object-var-name" tunnel="yes"/>
-                    <xsl:with-param name="count-var-name" select="$count-var-name" tunnel="yes"/>
-                    <xsl:with-param name="label-var-name" select="$label-var-name" tunnel="yes"/>
-                    <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="select-json-string" select="xml-to-json($select-xml)" as="xs:string"/>
-        <xsl:variable name="select-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $select-json-string ])"/>
-        <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
-        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge($params, map{ 'auth_token': $service/dydra-urn:accessToken }) else $params)" as="xs:anyURI"/>
-
-        <!-- load facet values, their counts and optional labels -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-            <xsl:call-template name="onFacetValueResultsLoad">
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="predicate" select="$predicate"/>
-                <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template name="onFacetValueResultsLoad">
@@ -1442,14 +1420,18 @@ exclude-result-prefixes="#all"
                                 
                                     <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                     <xsl:variable name="value-result" select="." as="element()"/>
+                                    <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
-                                    <xsl:call-template name="facet-value-type-load-despatch">
-                                        <xsl:with-param name="container-id" select="$container-id"/>
-                                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                                        <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                                        <xsl:with-param name="object-type" select="$object-type"/>
-                                        <xsl:with-param name="value-result" select="$value-result"/>
-                                    </xsl:call-template>
+                                    <!-- load the label of the object type -->
+                                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                        <xsl:call-template name="onFacetValueTypeLoad">
+                                            <xsl:with-param name="container-id" select="$container-id"/>
+                                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                                            <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                                            <xsl:with-param name="object-type" select="$object-type"/>
+                                            <xsl:with-param name="value-result" select="$value-result"/>
+                                        </xsl:call-template>
+                                    </ixsl:schedule-action>
                                 </xsl:for-each>
                             </xsl:when>
                             <xsl:otherwise>
@@ -1494,27 +1476,6 @@ exclude-result-prefixes="#all"
         
         <!-- done loading, restore normal cursor -->
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-    </xsl:template>
-    
-    <xsl:template name="facet-value-type-load-despatch">
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="object-var-name" as="xs:string"/>
-        <xsl:param name="count-var-name" as="xs:string"/>
-        <xsl:param name="object-type" as="xs:anyURI"/>
-        <xsl:param name="value-result" as="element()"/>
-
-        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
-
-        <!-- load the label of the object type -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onFacetValueTypeLoad">
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                <xsl:with-param name="object-type" select="$object-type"/>
-                <xsl:with-param name="value-result" select="$value-result"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template match="srx:result" mode="bs2:FacetValueItem">

@@ -980,9 +980,9 @@ extension-element-prefixes="ixsl"
             <xsl:otherwise>
                 <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                 <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-                <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                 
                 <xsl:for-each select="$bgp-triples-map">
+                    <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
@@ -1134,9 +1134,9 @@ extension-element-prefixes="ixsl"
 
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-        <xsl:variable name="id" select="generate-id()" as="xs:string"/>
 
         <xsl:for-each select="$bgp-triples-map">
+            <xsl:variable name="id" select="generate-id()" as="xs:string"/>
             <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
             <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
             <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
@@ -1153,27 +1153,6 @@ extension-element-prefixes="ixsl"
             </ixsl:schedule-action>
         </xsl:for-each>
     </xsl:template>
-    
-    <!-- need a separate template due to Saxon-JS bug: https://saxonica.plan.io/issues/4767 -->
-<!--    <xsl:template name="render-facet-headers-despatch">
-        <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-        <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
-        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-        <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
-        
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="bs2:FilterIn">
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="id" select="$id"/>
-                <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
-                <xsl:with-param name="predicate" select="$predicate"/>
-                <xsl:with-param name="object-var-name" select="$object-var-name"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
-    </xsl:template>-->
     
     <!-- container results layout -->
     
@@ -1295,24 +1274,6 @@ extension-element-prefixes="ixsl"
             </div>
         </div>
     </xsl:template>
-
-<!--    <xsl:template name="render-order-by-despatch">
-        <xsl:context-item as="element()" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
-        <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-        <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
-        
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="bs2:OrderBy">
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="id" select="$id"/>
-                <xsl:with-param name="predicate" select="$predicate"/>
-                <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
-    </xsl:template>-->
     
     <!-- root children list -->
     
