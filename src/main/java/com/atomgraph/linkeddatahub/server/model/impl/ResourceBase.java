@@ -697,10 +697,14 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             resIt.close();
         }
         
-        if (container != null) return Response.seeOther(URI.create(container.getURI())).build(); // redirect to the container that data was added to
+        if (container != null)
+        {
+            if (log.isDebugEnabled()) log.debug("Redirecting to container: {} ", container.getURI());
+            return Response.seeOther(URI.create(container.getURI())).build();
+        }
         else
         {
-            if (log.isDebugEnabled()) log.debug("{} Files uploaded: {} ", count);
+            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", count);
             return post(DatasetFactory.create(model));
         }
     }
