@@ -78,11 +78,11 @@ ENV OWNER_PUBLIC_KEY=/var/linkeddatahub/ssl/owner/public.pem
 
 ENV LOAD_DATASETS=
 
-ENV CONTEXT_DATASET=/var/linkeddatahub/datasets/system.trig
+ENV CONTEXT_DATASET_URL=file:///var/linkeddatahub/datasets/system.trig
 
-ENV ADMIN_DATASET=/var/linkeddatahub/datasets/admin.trig
+ENV ADMIN_DATASET_URL=file:///var/linkeddatahub/datasets/admin.trig
 
-ENV END_USER_DATASET=/var/linkeddatahub/datasets/end-user.trig
+ENV END_USER_DATASET_URL=file:///var/linkeddatahub/datasets/end-user.trig
 
 ENV UPLOAD_CONTAINER_PATH=uploads
 

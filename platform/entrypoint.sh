@@ -282,6 +282,23 @@ envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.r
 
 webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
 based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
+
+if [[ "$CONTEXT_DATASET_URL" == file:* ]]; then
+    CONTEXT_DATASET="${$CONTEXT_DATASET_URL:7}" # strip leading file://
+
+    printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET"
+else
+    CONTEXT_DATASET="/var/linkeddatahub/datasets/end-user.trig"
+
+    pushd && cd /var/linkeddatahub/datasets/
+    
+    printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
+
+    curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET"
+    
+    popd
+fi
+
 trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
 
 sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
@@ -456,8 +473,40 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
     envsubst < split-default-graph.rq.template > split-default-graph.rq
 
+    if [[ "$END_USER_DATASET_URL" == file:* ]]; then
+        END_USER_DATASET="${$END_USER_DATASET_URL:7}" # strip leading file://
+
+        printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET"
+    else
+        END_USER_DATASET="/var/linkeddatahub/datasets/end-user.trig"
+
+        pushd && cd /var/linkeddatahub/datasets/
+        
+        printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
+
+        curl "$END_USER_DATASET_URL" > "$END_USER_DATASET"
+        
+        popd
+    fi
+
     trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
     sparql --data /var/linkeddatahub/based-datasets/end-user.nq --base "$BASE_URI" --query split-default-graph.rq | trig --output=nq > /var/linkeddatahub/based-datasets/split.end-user.nq
+
+    if [[ "$ADMIN_DATASET_URL" == file:* ]]; then
+        ADMIN_DATASET="${$ADMIN_DATASET_URL:7}" # strip leading file://
+
+        printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET"
+    else
+        ADMIN_DATASET="/var/linkeddatahub/datasets/admin.trig"
+
+        pushd && cd /var/linkeddatahub/datasets/
+        
+        printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
+
+        curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET"
+        
+        popd
+    fi
 
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
     sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > /var/linkeddatahub/based-datasets/split.admin.nq
