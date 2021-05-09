@@ -295,7 +295,7 @@ based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
 
 case "$CONTEXT_DATASET_URL" in
     "file:"*)
-        CONTEXT_DATASET="${CONTEXT_DATASET_URL:7}" # strip leading file://
+        CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
 
         printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
     *)  
@@ -486,7 +486,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
     case "$END_USER_DATASET_URL" in
         "file:"*)
-            END_USER_DATASET="${END_USER_DATASET_URL:7}" # strip leading file://
+            END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
 
             printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
         *)  
@@ -507,7 +507,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
     case "$ADMIN_DATASET_URL" in
         "file:"*)
-            ADMIN_DATASET="${ADMIN_DATASET_URL:7}" # strip leading file://
+            ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
 
             printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
         *)  
