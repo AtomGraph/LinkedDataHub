@@ -143,8 +143,18 @@ if [ -z "$SIGN_UP_CERT_VALIDITY" ] ; then
     exit 1
 fi
 
-if [ -z "$CONTEXT_DATASET" ] ; then
-    echo '$CONTEXT_DATASET not set'
+if [ -z "$CONTEXT_DATASET_URL" ] ; then
+    echo '$CONTEXT_DATASET_URL not set'
+    exit 1
+fi
+
+if [ -z "$END_USER_DATASET_URL" ] ; then
+    echo '$END_USER_DATASET_URL not set'
+    exit 1
+fi
+
+if [ -z "$ADMIN_DATASET_URL" ] ; then
+    echo '$ADMIN_DATASET_URL not set'
     exit 1
 fi
 
