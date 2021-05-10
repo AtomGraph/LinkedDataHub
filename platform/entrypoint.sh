@@ -294,7 +294,7 @@ webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
 based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
 
 case "$CONTEXT_DATASET_URL" in
-    "file:"*)
+    "file://"*)
         CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
 
         printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
@@ -481,7 +481,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     envsubst < split-default-graph.rq.template > split-default-graph.rq
 
     case "$END_USER_DATASET_URL" in
-        "file:"*)
+        "file://"*)
             END_USER_DATASET=$(echo "$END_USER_DATASET_URL" | cut -c 8-) # strip leading file://
 
             printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
@@ -498,7 +498,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
 
     case "$ADMIN_DATASET_URL" in
-        "file:"*)
+        "file://"*)
             ADMIN_DATASET=$(echo "$ADMIN_DATASET_URL" | cut -c 8-) # strip leading file://
 
             printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
