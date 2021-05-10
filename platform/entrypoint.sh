@@ -299,15 +299,11 @@ case "$CONTEXT_DATASET_URL" in
 
         printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
     *)  
-        CONTEXT_DATASET="/var/linkeddatahub/datasets/end-user.trig"
+        CONTEXT_DATASET=$(mktemp)
 
-        pushd && cd /var/linkeddatahub/datasets/
-        
         printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
 
-        curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET"
-        
-        popd ;;
+        curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
 esac
 
 trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
@@ -490,15 +486,11 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
             printf "\n### Reading end-user dataset from a local file: %s\n" "$END_USER_DATASET" ;;
         *)  
-            END_USER_DATASET="/var/linkeddatahub/datasets/end-user.trig"
+            END_USER_DATASET=$(mktemp)
 
-            pushd && cd /var/linkeddatahub/datasets/
-            
             printf "\n### Downloading end-user dataset from a URL: %s\n" "$END_USER_DATASET_URL"
 
-            curl "$END_USER_DATASET_URL" > "$END_USER_DATASET"
-            
-            popd ;;
+            curl "$END_USER_DATASET_URL" > "$END_USER_DATASET" ;;
     esac
 
     trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
@@ -511,15 +503,11 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
             printf "\n### Reading admin dataset from a local file: %s\n" "$ADMIN_DATASET" ;;
         *)  
-            ADMIN_DATASET="/var/linkeddatahub/datasets/admin.trig"
+            ADMIN_DATASET=$(mktemp)
 
-            pushd && cd /var/linkeddatahub/datasets/
-            
             printf "\n### Downloading admin dataset from a URL: %s\n" "$ADMIN_DATASET_URL"
 
-            curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET"
-            
-            popd ;;
+            curl "$ADMIN_DATASET_URL" > "$ADMIN_DATASET" ;;
     esac
 
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
