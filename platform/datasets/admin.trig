@@ -1109,7 +1109,7 @@ DESCRIBE ?this ?primaryTopic ?seeAlso ?content WHERE {
     { ?this ?p ?o .
       OPTIONAL { ?this foaf:primaryTopic ?primaryTopic }
       OPTIONAL { ?this rdfs:seeAlso ?seeAlso }
-      OPTIONAL { ?this apl:content/rdf:rest*/rdf:first ?content }
+      OPTIONAL { ?this apl:content/rdf:rest* ?content }
     }
 }
 """ ;
