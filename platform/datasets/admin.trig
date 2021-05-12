@@ -1099,6 +1099,7 @@ nst:DescribeDocument a adm:Describe ;
     foaf:isPrimaryTopicOf <sitemap/queries/templates/describe-document/> ;
     rdfs:label "Describe document" ;
     sp:text """
+PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  apl:  <https://w3id.org/atomgraph/linkeddatahub/domain#>
@@ -1108,7 +1109,7 @@ DESCRIBE ?this ?primaryTopic ?seeAlso ?content WHERE {
     { ?this ?p ?o .
       OPTIONAL { ?this foaf:primaryTopic ?primaryTopic }
       OPTIONAL { ?this rdfs:seeAlso ?seeAlso }
-      OPTIONAL { ?this apl:content ?content }
+      OPTIONAL { ?this apl:content/rdf:rest*/rdf:first ?content }
     }
 }
 """ ;
