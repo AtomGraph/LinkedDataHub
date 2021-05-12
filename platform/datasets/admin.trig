@@ -1011,6 +1011,7 @@ nst:GraphStore a adm:Template ;
 nst:Document a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
     ldt:extends aplt:Document ;
+    ldt:query nst:DescribeDocument ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Document" ;
     rdfs:isDefinedBy nst: .
@@ -1085,6 +1086,32 @@ nst:ImportItem a adm:Template ;
     ldt:extends aplt:ImportItem ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Import item" ;
+    rdfs:isDefinedBy nst: .
+
+# QUERIES
+
+<sitemap/queries/templates/describe-document/> a adm:QueryItem ;
+    sioc:has_container <sitemap/queries/templates/> ;
+    dct:title "Describe document" ;
+    foaf:primaryTopic nst:DescribeDocument .
+
+nst:DescribeDocument a adm:Describe ;
+    foaf:isPrimaryTopicOf <sitemap/queries/templates/describe-document/> ;
+    rdfs:label "Describe document" ;
+    sp:text """
+PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  apl:  <https://w3id.org/atomgraph/linkeddatahub/domain#>
+
+DESCRIBE ?this ?primaryTopic ?seeAlso ?content WHERE {
+    GRAPH ?graph
+    { ?this ?p ?o .
+      OPTIONAL { ?this foaf:primaryTopic ?primaryTopic }
+      OPTIONAL { ?this rdfs:seeAlso ?seeAlso }
+      OPTIONAL { ?this apl:content ?content }
+    }
+}
+""" ;
     rdfs:isDefinedBy nst: .
 
 ### NAMESPACE
