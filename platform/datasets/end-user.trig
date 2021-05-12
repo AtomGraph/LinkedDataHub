@@ -13,7 +13,11 @@
     dh:select <queries/default/select-children/#this> ;
     dct:title "Root" ;
     dct:description "Root container" ;
-    apl:content (<queries/default/select-geo-resources/#this> """<div xmlns="http://www.w3.org/1999/xhtml"><p>WTF</p></div>"""^^rdf:XMLLiteral) .
+    apl:content <#content1> .
+    <#content1> rdf:first <queries/default/select-geo-resources/#this> .
+    <#content1> rdf:rest <#content2> .
+    <#content2> rdf:first "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>second</p></div>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> .
+    <#content2> rdf:rest rdf:nil .
 
 # CONTAINERS
 
