@@ -478,6 +478,8 @@ if [ "$LOAD_DATASETS" = "true" ]; then
 
     printf "\n### Loading default datasets into the end-user/admin triplestores...\n"
 
+    # create query file by injecting environmental variables into the template
+
     envsubst < split-default-graph.rq.template > split-default-graph.rq
 
     case "$END_USER_DATASET_URL" in
@@ -494,8 +496,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     esac
 
     trig --base="$BASE_URI" "$END_USER_DATASET" > /var/linkeddatahub/based-datasets/end-user.nq
-    sparql --data /var/linkeddatahub/based-datasets/end-user.nq --base "$BASE_URI" --query split-default-graph.rq | trig --output=nq > /var/linkeddatahub/based-datasets/split.end-user.nq
-
+    sparql --data /var/linkeddatahub/based-datasets/end-user.nq --base "$BASE_URI" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.end-user.nq
 
     case "$ADMIN_DATASET_URL" in
         "file://"*)
@@ -511,7 +512,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     esac
 
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
-    sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > /var/linkeddatahub/based-datasets/split.admin.nq
+    sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.admin.nq
 
     wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
@@ -519,16 +520,12 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
 
-    # create query file by injecting environmental variables into the template
-
-    envsubst < split-default-graph.rq.template > split-default-graph.rq
-
     # append owner metadata to the root admin dataset
 
     envsubst < root-owner.trig.template > root-owner.trig
 
     trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-owner.nq
+    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > split.root-owner.nq
 
     printf "\n### Uploading the metadata of the owner agent...\n\n"
 
@@ -546,7 +543,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     envsubst < root-secretary.trig.template > root-secretary.trig
 
     trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
-    sparql --data root-secretary.nq --base "$root_admin_base_uri" --query split-default-graph.rq | trig --output=nq > split.root-secretary.nq
+    sparql --data root-secretary.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > split.root-secretary.nq
 
     printf "\n### Uploading the metadata of the secretary agent...\n\n"
 
