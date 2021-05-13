@@ -225,11 +225,12 @@ wait_for_url()
     local counter="$4"
     local accept="$5"
     i=1
-
+echo "WTF counter: $counter"
     # use HTTP Basic auth if username/password are provided
     if [ -n "$auth_user" ] && [ -n "$auth_pwd" ] ; then
         while [ "$i" -le "$counter" ] && ! curl -s -f -X OPTIONS "$url" --user "$auth_user":"$auth_pwd" -H "Accept: ${accept}" >/dev/null 2>&1
         do
+echo "WTF i: $i"
             sleep 1 ;
             i=$(( i+1 ))
         done
@@ -476,8 +477,6 @@ fi
 if [ "$LOAD_DATASETS" = "true" ]; then
     mkdir -p /var/linkeddatahub/based-datasets
 
-    printf "\n### Loading default datasets into the end-user/admin triplestores...\n"
-
     # create query file by injecting environmental variables into the template
 
     envsubst < split-default-graph.rq.template > split-default-graph.rq
@@ -515,13 +514,15 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.admin.nq
 
     printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_end_user_quad_store_url" "$TIMEOUT"
-
     wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+
+    printf "\n### Loading end-user dataset into the triplestore...\n"
     append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
 
     printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_admin_quad_store_url" "$TIMEOUT"
-
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
+
+    printf "\n### Loading admin dataset into the triplestore...\n"
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
 
     # append owner metadata to the root admin dataset
