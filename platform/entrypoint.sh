@@ -519,7 +519,7 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
 
-    printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_admin_quad_store_url "$TIMEOUT"
+    printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_admin_quad_store_url" "$TIMEOUT"
 
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" /var/linkeddatahub/based-datasets/split.admin.nq "application/n-quads"
