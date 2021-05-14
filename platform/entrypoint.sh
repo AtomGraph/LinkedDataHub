@@ -512,9 +512,6 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
     sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.admin.nq
 
-    echo "WTF"
-    curl "$root_end_user_quad_store_url"
-
     printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_end_user_quad_store_url" "$TIMEOUT"
     wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
