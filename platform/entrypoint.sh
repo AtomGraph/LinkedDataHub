@@ -68,11 +68,6 @@ eval "$transform"
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
 
-if [ -z "$PROXY_HOST" ] ; then
-    echo '$PROXY_HOST not set'
-    exit 1
-fi
-
 if [ -z "$TIMEOUT" ] ; then
     echo '$TIMEOUT not set'
     exit 1
@@ -672,17 +667,19 @@ printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
 
 wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
-# wait for the proxy server
+if [ -n "$PROXY_HOST" ] ; then
+    # wait for the proxy server
 
-printf "\n### Waiting for %s...\n" "$PROXY_HOST"
+    printf "\n### Waiting for %s...\n" "$PROXY_HOST"
 
-wait_for_host "$PROXY_HOST" "$TIMEOUT"
+    wait_for_host "$PROXY_HOST" "$TIMEOUT"
 
-# set localhost to the nginx IP address - we want to loopback to it
+    # set localhost to the nginx IP address - we want to loopback to it
 
-proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
+    proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
 
-echo "${proxy_ip} localhost" >> /etc/hosts
+    echo "${proxy_ip} localhost" >> /etc/hosts
+fi
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 
