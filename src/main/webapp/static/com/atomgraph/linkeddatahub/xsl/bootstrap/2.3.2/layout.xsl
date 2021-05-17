@@ -1593,7 +1593,7 @@ exclude-result-prefixes="#all">
 
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <div class="pull-right">
-                    <xsl:variable name="graph-uri" select="ac:build-uri($a:graphStore, map{ 'graph': $ac:uri, 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                    <xsl:variable name="graph-uri" select="ac:build-uri($a:graphStore, map{ 'graph': string($ac:uri), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
                     <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
