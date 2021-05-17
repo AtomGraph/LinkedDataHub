@@ -1010,7 +1010,9 @@ nst:GraphStore a adm:Template ;
 
 nst:Document a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
+    ldt:match "{path: .*}" ;
     ldt:extends aplt:GraphItem ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.graph.Item> ;
     # ldt:query nst:DescribeDocument ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Document" ;
