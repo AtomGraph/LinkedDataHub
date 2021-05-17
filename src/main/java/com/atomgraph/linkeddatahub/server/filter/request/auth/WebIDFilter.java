@@ -227,10 +227,14 @@ public class WebIDFilter extends AuthenticationFilter
                 cr1.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
                 model.add(cr1.readEntity(Model.class));
                 
-                Resource certKey = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
-                if (certKey != null)
+                Resource certKeyRes = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
+                if (certKeyRes != null)
                 {
-                    try (Response cr2 = getNoCertClient().target(certKey.getURI()).
+                    URI certKey = URI.create(certKeyRes.getURI());
+                    // remove fragment identifier to get document URI
+                    URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
+
+                    try (Response cr2 = getNoCertClient().target(certKeyDoc).
                             request(getAcceptableMediaTypes()).
                             get())
                     {
