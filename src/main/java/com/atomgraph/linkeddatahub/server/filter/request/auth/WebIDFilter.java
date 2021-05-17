@@ -244,7 +244,6 @@ public class WebIDFilter extends AuthenticationFilter
                             throw new WebIDLoadingException(webID, cr2);
                         }
                         cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.toString()); // provide a base URI hint to ModelProvider
-
                         model.add(cr2.readEntity(Model.class));
                     }
                 }
