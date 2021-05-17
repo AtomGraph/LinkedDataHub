@@ -104,12 +104,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         // set request attributes based on response headers if they are not already set by Web-Client's ProxyResourceBase
         try
         {
-            Link ontologyLink = getLink(headerMap, "Link", LDT.ontology.getURI());
-            if (ontologyLink != null && getHttpServletRequest().getAttribute(LDT.ontology.getURI()) == null)
-                getHttpServletRequest().setAttribute(LDT.ontology.getURI(), ontologyLink.getHref());
-            Link baseLink = getLink(headerMap, "Link", LDT.base.getURI());
-            if (baseLink != null && getHttpServletRequest().getAttribute(LDT.base.getURI()) == null)
-                getHttpServletRequest().setAttribute(LDT.base.getURI(), baseLink.getHref());
+//            Link ontologyLink = getLink(headerMap, "Link", LDT.ontology.getURI());
+//            if (ontologyLink != null && getHttpServletRequest().getAttribute(LDT.ontology.getURI()) == null)
+//                getHttpServletRequest().setAttribute(LDT.ontology.getURI(), ontologyLink.getHref());
+//            Link baseLink = getLink(headerMap, "Link", LDT.base.getURI());
+//            if (baseLink != null && getHttpServletRequest().getAttribute(LDT.base.getURI()) == null)
+//                getHttpServletRequest().setAttribute(LDT.base.getURI(), baseLink.getHref());
             Link templateLink = getLink(headerMap, "Link", LDT.template.getURI());
             if (templateLink != null && getHttpServletRequest().getAttribute(LDT.template.getURI()) == null)
                 getHttpServletRequest().setAttribute(LDT.template.getURI(), templateLink.getHref());
@@ -137,11 +137,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (app.isPresent())
             {
                 // base URI can be null when writing SPARQL results?
-                if (getBaseUri() != null)
+//                if (getBaseUri() != null)
                 {
-                    params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
-                    params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(getBaseUri().resolve("sparql")));
-                    params.put(new QName("a", A.graphStore.getNameSpace(), A.graphStore.getLocalName()), new XdmAtomicValue(getBaseUri().resolve("service")));
+                    params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
+                    params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.get().getOntology().getURI())));
+                    params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(URI.create(app.get().getService().getGraphStore().getURI())));
+                    params.put(new QName("a", A.graphStore.getNameSpace(), A.graphStore.getLocalName()), new XdmAtomicValue(URI.create(app.get().getService().getSPARQLEndpoint().getURI())));
                 }
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
