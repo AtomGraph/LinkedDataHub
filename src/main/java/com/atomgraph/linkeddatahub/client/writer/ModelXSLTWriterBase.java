@@ -141,8 +141,8 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 {
                     params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
                     params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.get().getOntology().getURI())));
-                    params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(URI.create(app.get().getService().getGraphStore().getURI())));
-                    params.put(new QName("a", A.graphStore.getNameSpace(), A.graphStore.getLocalName()), new XdmAtomicValue(URI.create(app.get().getService().getSPARQLEndpoint().getURI())));
+                    params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(app.get().getBaseURI().resolve("sparql")));
+                    params.put(new QName("a", A.graphStore.getNameSpace(), A.graphStore.getLocalName()), new XdmAtomicValue(app.get().getBaseURI().resolve("service")));
                 }
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
