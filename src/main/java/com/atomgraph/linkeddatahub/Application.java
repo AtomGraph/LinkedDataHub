@@ -744,7 +744,6 @@ public class Application extends ResourceConfig
     
     protected void registerResourceClasses()
     {
-        //register(ResourceBase.class); // handles /
         register(Dispatcher.class);
     }
     
