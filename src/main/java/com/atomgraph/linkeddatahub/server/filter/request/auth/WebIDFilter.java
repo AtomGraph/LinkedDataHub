@@ -242,9 +242,9 @@ public class WebIDFilter extends AuthenticationFilter
 
                         model.add(cr2.readEntity(Model.class));
                     }
-
-                    model.add(cr1.readEntity(Model.class));
                 }
+                
+                return model.add(cr1.readEntity(Model.class));
             }
         }
         catch (URISyntaxException ex)
