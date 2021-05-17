@@ -1273,9 +1273,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?">
-            <xsl:for-each select="apl:listSuperTemplates($ldt:template)/../../aplt:consumes[1]">
-                <xsl:sequence select="key('resources', (@rdf:nodeID, @rdf:resource))/aplt:mediaType"/>
-            </xsl:for-each>
+            <xsl:if test="$ldt:template">
+                <xsl:for-each select="apl:listSuperTemplates($ldt:template)/../../aplt:consumes[1]">
+                    <xsl:sequence select="key('resources', (@rdf:nodeID, @rdf:resource))/aplt:mediaType"/>
+                </xsl:for-each>
+            </xsl:if>
         </xsl:param>
 
         <xsl:choose>
