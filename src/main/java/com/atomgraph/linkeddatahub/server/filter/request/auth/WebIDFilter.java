@@ -240,10 +240,10 @@ public class WebIDFilter extends AuthenticationFilter
                     {
                         if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                         {
-                            if (log.isErrorEnabled()) log.error("Could not load WebID Key: {}", certKey.getURI());
+                            if (log.isErrorEnabled()) log.error("Could not load WebID Key: {}", certKey.toString());
                             throw new WebIDLoadingException(webID, cr2);
                         }
-                        cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.getURI()); // provide a base URI hint to ModelProvider
+                        cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.toString()); // provide a base URI hint to ModelProvider
 
                         model.add(cr2.readEntity(Model.class));
                     }
