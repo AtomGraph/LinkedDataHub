@@ -998,6 +998,7 @@ nst:SPARQLEndpoint a adm:Template ;
 
 nst:GraphStore a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-store/> ;
+    ldt:match "/service" ;
     ldt:extends aplt:GraphStore ;
     rdfs:label "Graph store" ;
     rdfs:isDefinedBy nst: .

@@ -92,6 +92,8 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
+    <xsl:param name="sd:endpoint" as="xs:anyURI?"/>
+    <xsl:param name="a:graphStore" as="xs:anyURI?"/>
     <xsl:param name="lacl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ldt:template" as="xs:anyURI?"/>
@@ -1265,7 +1267,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <!-- append client mode parameter (which does not reach the server and therefore is not part of the hypermedia state arguments -->
         <!-- TO-DO: make action a tunnel param? -->
-        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map { 'uri': string($ac:uri), 'mode': if ($modal) then '&ac;ModalMode' else () }) else if ($modal) then if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri('&ac;ModalMode')) else ac:build-uri($ac:uri, map{ 'mode': '&ac;ModalMode' }) else $ac:uri)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'graph': $ac:uri, 'method': 'PUT' })" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>

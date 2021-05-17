@@ -19,6 +19,8 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
 import static com.atomgraph.client.writer.ModelXSLTWriterBase.getSource;
 import com.atomgraph.core.util.Link;
+import com.atomgraph.core.vocabulary.A;
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -135,7 +137,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (app.isPresent())
             {
                 // base URI can be null when writing SPARQL results?
-                if (getBaseUri() != null) params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
+                if (getBaseUri() != null)
+                {
+                    params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(getBaseUri()));
+                    params.put(new QName("sd", SD.endpoint.getNameSpace(), SD.endpoint.getLocalName()), new XdmAtomicValue(getBaseUri().resolve("sparql")));
+                    params.put(new QName("a", A.graphStore.getNameSpace(), A.graphStore.getLocalName()), new XdmAtomicValue(getBaseUri().resolve("service")));
+                }
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
                 StmtIterator appStmts = app.get().listProperties();
