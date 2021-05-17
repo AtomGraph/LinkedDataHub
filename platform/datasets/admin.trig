@@ -1010,8 +1010,8 @@ nst:GraphStore a adm:Template ;
 
 nst:Document a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
-    ldt:extends aplt:Document ;
-    ldt:query nst:DescribeDocument ;
+    ldt:extends aplt:GraphItem ;
+    # ldt:query nst:DescribeDocument ;
     ldt:cacheControl "public, max-age=3600" ;
     rdfs:label "Document" ;
     rdfs:isDefinedBy nst: .
