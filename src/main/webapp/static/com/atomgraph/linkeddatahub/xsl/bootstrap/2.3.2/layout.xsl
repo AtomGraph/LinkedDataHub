@@ -1591,20 +1591,18 @@ exclude-result-prefixes="#all">
                     </form>
                 </div>
 
-            <xsl:for-each select="key('resources', $ac:uri)/void:inDataset/@rdf:resource">
-                <xsl:if test="not($ac:mode = '&ac;EditMode')">
-                    <div class="pull-right">
-                        <xsl:variable name="graph-uri" select="ac:build-uri(ac:document-uri(.), map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
-                        <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
-                                <xsl:with-param name="class" select="'btn'"/>
-                            </xsl:apply-templates>
-                            
-                            <input type="hidden" value="{$graph-uri}"/>
-                        </button>
-                    </div>
-                </xsl:if>
-            </xsl:for-each>
+            <xsl:if test="not($ac:mode = '&ac;EditMode')">
+                <div class="pull-right">
+                    <xsl:variable name="graph-uri" select="ac:build-uri($a:graphStore, map{ 'graph': $ac:uri, 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                    <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
+
+                        <input type="hidden" value="{$graph-uri}"/>
+                    </button>
+                </div>
+            </xsl:if>
             
             <div class="pull-right">
                 <form action="{$ac:uri}?ban=true" method="post">
