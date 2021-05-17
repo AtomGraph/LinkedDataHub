@@ -227,22 +227,24 @@ public class WebIDFilter extends AuthenticationFilter
                 cr1.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
 
                 Resource certKey = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
-                
-                try (Response cr2 = getNoCertClient().target(certKey.getURI()).
-                        request(getAcceptableMediaTypes()).
-                        get())
+                if (certKey != null)
                 {
-                    if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    try (Response cr2 = getNoCertClient().target(certKey.getURI()).
+                            request(getAcceptableMediaTypes()).
+                            get())
                     {
-                        if (log.isErrorEnabled()) log.error("Could not load WebID Key: {}", certKey.getURI());
-                        throw new WebIDLoadingException(webID, cr2);
+                        if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("Could not load WebID Key: {}", certKey.getURI());
+                            throw new WebIDLoadingException(webID, cr2);
+                        }
+                        cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.getURI()); // provide a base URI hint to ModelProvider
+
+                        model.add(cr2.readEntity(Model.class));
                     }
-                    cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.getURI()); // provide a base URI hint to ModelProvider
-                    
-                    model.add(cr2.readEntity(Model.class));
+
+                    model.add(cr1.readEntity(Model.class));
                 }
-                
-                model.add(cr1.readEntity(Model.class));
             }
         }
         catch (URISyntaxException ex)
