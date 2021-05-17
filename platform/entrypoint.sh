@@ -507,13 +507,13 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     trig --base="$root_admin_base_uri" "$ADMIN_DATASET" > /var/linkeddatahub/based-datasets/admin.nq
     sparql --data /var/linkeddatahub/based-datasets/admin.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > /var/linkeddatahub/based-datasets/split.admin.nq
 
-    printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_end_user_quad_store_url" "$TIMEOUT"
+    printf "\n### Waiting for %s...\n" "$root_end_user_quad_store_url"
     wait_for_url "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
     printf "\n### Loading end-user dataset into the triplestore...\n"
     append_quads "$root_end_user_quad_store_url" "$root_end_user_service_auth_user" "$root_end_user_service_auth_pwd" /var/linkeddatahub/based-datasets/split.end-user.nq "application/n-quads"
 
-    printf "\n### Waiting for %s... TIMEOUT: %s\n" "$root_admin_quad_store_url" "$TIMEOUT"
+    printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
     wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
     printf "\n### Loading admin dataset into the triplestore...\n"
