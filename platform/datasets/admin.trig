@@ -984,6 +984,7 @@ nst:SubOntology a adm:Template ;
 
 nst:SPARQLEndpoint a adm:Template ;
     foaf:isPrimaryTopicOf <sitemap/templates/templates/sparql-endpoint/> ;
+    ldt:match "/sparql" ;
     ldt:extends aplt:SPARQLEndpoint ;
     rdfs:label "SPARQL endpoint" ;
     rdfs:isDefinedBy nst: .
