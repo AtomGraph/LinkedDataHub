@@ -225,7 +225,8 @@ public class WebIDFilter extends AuthenticationFilter
                     throw new WebIDLoadingException(webID, cr1);
                 }
                 cr1.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
-
+                model.add(cr1.readEntity(Model.class));
+                
                 Resource certKey = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
                 if (certKey != null)
                 {
@@ -244,7 +245,7 @@ public class WebIDFilter extends AuthenticationFilter
                     }
                 }
                 
-                return model.add(cr1.readEntity(Model.class));
+                return model;
             }
         }
         catch (URISyntaxException ex)
