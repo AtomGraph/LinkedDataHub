@@ -49,7 +49,6 @@ import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
-import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
 import com.atomgraph.core.vocabulary.A;
@@ -154,8 +153,6 @@ import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.processor.vocabulary.LDT;
-import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
-import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import java.util.Iterator;
@@ -743,12 +740,12 @@ public class Application extends ResourceConfig
     
     protected void registerExceptionMappers()
     {
-        register(NotFoundExceptionMapper.class);
+//        register(NotFoundExceptionMapper.class);
 //        register(ConfigurationExceptionMapper.class);
 //        register(OntologyExceptionMapper.class);
         register(ModelExceptionMapper.class);
-        register(SPINConstraintViolationExceptionMapper.class);
-        register(SHACLConstraintViolationExceptionMapper.class);
+//        register(SPINConstraintViolationExceptionMapper.class);
+//        register(SHACLConstraintViolationExceptionMapper.class);
 //        register(DatatypeFormatExceptionMapper.class);
         register(QueryExecExceptionMapper.class);
 //        register(RiotExceptionMapper.class);
