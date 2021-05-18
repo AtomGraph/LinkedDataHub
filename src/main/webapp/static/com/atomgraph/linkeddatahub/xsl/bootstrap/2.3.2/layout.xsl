@@ -1133,14 +1133,6 @@ exclude-result-prefixes="#all">
                     </xsl:variable>
                     <a href="{$href}" title="text/turtle">Turtle</a>
                 </li>
-                <xsl:if test="key('resources', $ac:uri)">
-                    <li class="divider"></li>
-                    
-                    <xsl:variable name="href" select="ac:build-uri($ac:uri, map{ 'debug': 'http://www.w3.org/ns/sparql-service-description#SPARQL11Query' })" as="xs:anyURI"/>
-                    <li>
-                        <a href="{$href}" title="application/sparql-query">SPARQL query</a>
-                    </li>
-                </xsl:if>
             </ul>
         </div>
     </xsl:template>

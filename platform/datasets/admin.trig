@@ -1,17 +1,11 @@
 @prefix adm:	<ns#> .
-@prefix admt:	<ns/templates#> .
 @prefix ns:	<../ns#> .
 @prefix nsd:	<../ns/domain#> .
 @prefix nsdd:	<../ns/domain/default#> .
 @prefix nsds:	<../ns/domain/system#> .
-@prefix nst:	<../ns/templates#> .
-@prefix ladmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/templates#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
-@prefix laclt:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
-@prefix lsmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
-@prefix aplt:	<https://w3id.org/atomgraph/linkeddatahub/templates#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
@@ -196,8 +190,8 @@ WHERE
     foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
     rdfs:label "Public access" ;
     rdfs:comment "Allows unauthorized access" ;
-    acl:accessTo <ns>, <ns/domain>, <ns/templates>, # admin ontologies are public
-        <../ns>, <../ns/domain/default>, <../ns/domain/system>, <../ns/domain>, <../ns/templates> ; # end-user ontologies are public
+    acl:accessTo <ns>, <ns/domain>, # admin ontologies are public
+        <../ns>, <../ns/domain/default>, <../ns/domain/system>, <../ns/domain> ; # end-user ontologies are public
     acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
     acl:mode acl:Read ;
     acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
@@ -863,262 +857,6 @@ nsdd:MissingSelect a adm:MissingPropertyValue ;
     sp:arg1 dh:select ;
     rdfs:isDefinedBy nsdd: .
 
-### SITEMAP ###
-
-# CONTAINERS
-
-<sitemap/> a adm:Container ;
-    sioc:has_parent <> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Sitemap" ;
-    dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
-
-<sitemap/ontologies/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Ontologies" ;
-    dct:description "Manage ontologies that define application structure" .
-
-<sitemap/queries/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Queries" ;
-    dct:description "Manage SPARQL queries that are used by templates and constraints" .
-
-<sitemap/updates/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Updates" ;
-    dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
-
-<sitemap/templates/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Templates" ;
-    dct:description "Manage LDT template that define the Linked Data API of the application by mapping URI templates to SPARQL" .
-
-<sitemap/templates/templates/> a adm:Container ;
-    sioc:has_parent <sitemap/templates/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Templates of the Templates ontology" .
-
-<sitemap/parameters/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Parameters" ;
-    dct:description "Manage LDT template parameters that define what values can be passed to resources" .
-
-<sitemap/command-templates/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Command templates" ;
-    dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
-
-# ONTOLOGIES
-
-# namespace
-
-<model/ontologies/namespace/> a adm:OntologyItem ;
-    sioc:has_container <model/ontologies/> ;
-    dct:title "Namespace" ;
-    foaf:primaryTopic ns: .
-
-ns: a adm:Ontology ;
-    foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
-    rdfs:label "Namespace" ;
-    rdfs:comment "Namespace of the application" ;
-    owl:imports nsd:, nsds:, nst: ;
-    owl:versionInfo "1.0-SNAPSHOT" .
-
-# templates
-
-<sitemap/ontologies/templates/> a adm:OntologyItem ;
-    sioc:has_container <sitemap/ontologies/> ;
-    dct:title "Templates" ;
-    foaf:primaryTopic nst: .
-
-nst: a adm:Ontology ;
-    foaf:isPrimaryTopicOf <sitemap/ontologies/templates/>, <../ns/templates> ;
-    rdfs:label "Templates" ;
-    rdfs:comment "Templates of the application" ;
-    owl:imports aplt: ;
-    owl:versionInfo "1.0-SNAPSHOT" .
-
-# TEMPLATES
-
-# namespace ontology
-
-<sitemap/templates/templates/namespace-ontology/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Namespace ontology" ;
-    foaf:primaryTopic nst:NamespaceOntology .
-
-nst:NamespaceOntology a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/namespace-ontology/> ;
-    ldt:extends aplt:NamespaceOntology ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Namespace ontology" ;
-    rdfs:isDefinedBy nst: .
-
-# sub-ontology
-
-<sitemap/templates/templates/sub-ontology/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Sub-ontology" ;
-    foaf:primaryTopic nst:SubOntology .
-
-nst:SubOntology a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/sub-ontology/> ;
-    ldt:extends aplt:SubOntology ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Sub-ontology" ;
-    rdfs:isDefinedBy nst: .
-
-# SPARQL endpoint
-
-<sitemap/templates/templates/sparql-endpoint/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "SPARQL endpoint" ;
-    foaf:primaryTopic nst:SPARQLEndpoint .
-
-nst:SPARQLEndpoint a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/sparql-endpoint/> ;
-    ldt:match "/sparql" ;
-    ldt:extends aplt:SPARQLEndpoint ;
-    rdfs:label "SPARQL endpoint" ;
-    rdfs:isDefinedBy nst: .
-
-# graph store
-
-<sitemap/templates/templates/graph-store/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Graph store" ;
-    foaf:primaryTopic nst:GraphStore .
-
-nst:GraphStore a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-store/> ;
-    ldt:match "/service" ;
-    ldt:extends aplt:GraphStore ;
-    rdfs:label "Graph store" ;
-    rdfs:isDefinedBy nst: .
-
-# item
-
-<sitemap/templates/templates/document/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Document" ;
-    foaf:primaryTopic nst:Document .
-
-nst:Document a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
-    ldt:match "{path: .*}" ;
-    ldt:extends aplt:GraphItem ;
-    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.graph.Item> ;
-    # ldt:query nst:DescribeDocument ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Document" ;
-    rdfs:isDefinedBy nst: .
-
-# graph item
-
-<sitemap/templates/templates/graph-item/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Graph item" ;
-    foaf:primaryTopic nst:GraphItem .
-
-nst:GraphItem a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-item/> ;
-    ldt:extends aplt:GraphItem ;
-    rdfs:label "Graph item" ;
-    rdfs:isDefinedBy nst: .
-
-# file container
-
-<sitemap/templates/templates/file-container/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "File container" ;
-    foaf:primaryTopic nst:FileContainer .
-
-nst:FileContainer a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/file-container/> ;
-    ldt:extends aplt:FileContainer ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "File container" ;
-    rdfs:comment "Provides multipart file upload capability to matching containers" ;
-    rdfs:isDefinedBy nst: .
-
-# file
-
-<sitemap/templates/templates/file/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "File" ;
-    foaf:primaryTopic nst:File .
-
-nst:File a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/file/> ;
-    ldt:extends aplt:File ;
-    ldt:cacheControl "public, max-age=31536000" ; # content-addressed documents never change, therefore never expire
-    rdfs:label "File" ;
-    rdfs:comment "A document that represents an uploaded file" ;
-    rdfs:isDefinedBy nst: .
-
-# import container
-
-<sitemap/templates/templates/import-container/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Import container" ;
-    foaf:primaryTopic nst:ImportContainer .
-
-nst:ImportContainer a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/import-container/> ;
-    ldt:extends aplt:ImportContainer ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Import container" ;
-    rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
-    rdfs:isDefinedBy nst: .
-
-# import item
-
-<sitemap/templates/templates/import-item/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Import item" ;
-    foaf:primaryTopic nst:ImportItem .
-
-nst:ImportItem a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/import-item/> ;
-    ldt:extends aplt:ImportItem ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Import item" ;
-    rdfs:isDefinedBy nst: .
-
-# QUERIES
-
-<sitemap/queries/templates/describe-document/> a adm:QueryItem ;
-    sioc:has_container <sitemap/queries/templates/> ;
-    dct:title "Describe document" ;
-    foaf:primaryTopic nst:DescribeDocument .
-
-nst:DescribeDocument a adm:Describe ;
-    foaf:isPrimaryTopicOf <sitemap/queries/templates/describe-document/> ;
-    rdfs:label "Describe document" ;
-    sp:text """
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  apl:  <https://w3id.org/atomgraph/linkeddatahub/domain#>
-
-DESCRIBE ?this ?primaryTopic ?seeAlso ?content WHERE {
-    GRAPH ?graph
-    { ?this ?p ?o .
-      OPTIONAL { ?this foaf:primaryTopic ?primaryTopic }
-      OPTIONAL { ?this rdfs:seeAlso ?seeAlso }
-      OPTIONAL { ?this apl:content/rdf:rest* ?content }
-    }
-}
-""" ;
-    rdfs:isDefinedBy nst: .
-
 ### NAMESPACE
 
 # CLASSES
@@ -1500,47 +1238,12 @@ nsds:ItemOfChartsContainer a adm:Restriction ;
 
 adm: a owl:Ontology ;
     foaf:isPrimaryTopicOf <ns> ;
-    owl:imports apl:, lacl:, lsm:, admt: ;
+    owl:imports apl:, lacl:, lsm: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "Admin ontology" ;
     rdfs:comment "AtomGraph admin application ontology" .
 
-admt: a owl:Ontology, ldt:Ontology ;
-    foaf:isPrimaryTopicOf <ns/templates> ;
-    owl:imports ladmt: ;
-    owl:versionInfo "1.1.4" ;
-    rdfs:label "Admin ontology" ;
-    rdfs:comment "AtomGraph admin application templates" .
-
-admt:SignUp a ldt:Template ;
-    ldt:extends laclt:SignUp ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Sign up" ;
-    rdfs:isDefinedBy admt: .
-
-admt:OAuth2Login a ldt:Template ;
-    ldt:extends laclt:OAuth2Login ;
-    rdfs:label "OAuth 2.0 login" ;
-    rdfs:isDefinedBy admt: .
-
-admt:AuthorizeGoogle a ldt:Template ;
-    ldt:extends laclt:AuthorizeGoogle ;
-    rdfs:label "Google OAuth 2.0 authorization endpoint" ;
-    rdfs:isDefinedBy admt: .
-
-admt:RequestAccess a ldt:Template ;
-    ldt:extends laclt:RequestAccess ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Request access" ;
-    rdfs:isDefinedBy admt: .
-
-admt:OntologyContainer a ldt:Template ;
-    ldt:extends lsmt:OntologyContainer ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Ontology container" ;
-    rdfs:isDefinedBy admt: .
-
-# SITEMAP
+# DOMAIN
 
 adm:Container a rdfs:Class ;
     rdfs:subClassOf dh:Container ;
@@ -1625,32 +1328,6 @@ adm:ItemOfPropertyContainer a owl:Restriction ;
     owl:onProperty sioc:has_container ;
     owl:hasValue <model/properties/> ;
     rdfs:label "Has property container" ;
-    rdfs:isDefinedBy adm: .
-
-# template
-
-adm:Template a rdfs:Class ;
-    rdfs:subClassOf lsm:Template, adm:TopicOfTemplateItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Template" ;
-    rdfs:isDefinedBy adm: .
-
-adm:TemplateItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfTemplateContainer ;
-    rdfs:label "Template item" ;
-    rdfs:isDefinedBy adm: .
-
-adm:TopicOfTemplateItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:TemplateItem ;
-    rdfs:label "Topic of template item" ;
-    rdfs:isDefinedBy adm: .
-
-adm:ItemOfTemplateContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <sitemap/templates/> ;
-    rdfs:label "Has template container" ;
     rdfs:isDefinedBy adm: .
 
 # query

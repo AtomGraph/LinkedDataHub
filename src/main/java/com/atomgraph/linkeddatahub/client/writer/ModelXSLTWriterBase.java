@@ -35,9 +35,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
@@ -47,9 +44,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -96,31 +91,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
         super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
-    }
-    
-    @Override
-    public void writeTo(Model model, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException
-    {
-        // set request attributes based on response headers if they are not already set by Web-Client's ProxyResourceBase
-        try
-        {
-//            Link ontologyLink = getLink(headerMap, "Link", LDT.ontology.getURI());
-//            if (ontologyLink != null && getHttpServletRequest().getAttribute(LDT.ontology.getURI()) == null)
-//                getHttpServletRequest().setAttribute(LDT.ontology.getURI(), ontologyLink.getHref());
-//            Link baseLink = getLink(headerMap, "Link", LDT.base.getURI());
-//            if (baseLink != null && getHttpServletRequest().getAttribute(LDT.base.getURI()) == null)
-//                getHttpServletRequest().setAttribute(LDT.base.getURI(), baseLink.getHref());
-            Link templateLink = getLink(headerMap, "Link", LDT.template.getURI());
-            if (templateLink != null && getHttpServletRequest().getAttribute(LDT.template.getURI()) == null)
-                getHttpServletRequest().setAttribute(LDT.template.getURI(), templateLink.getHref());
-        }
-        catch (URISyntaxException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Could not parse Link URI: {}", ex.getInput());
-            throw new WebApplicationException(ex); // TO-DO: specific Exception and Mapper?
-        }
-
-        super.writeTo(model, type, genericType, annotations, mediaType, headerMap, entityStream);
     }
     
     @Override
