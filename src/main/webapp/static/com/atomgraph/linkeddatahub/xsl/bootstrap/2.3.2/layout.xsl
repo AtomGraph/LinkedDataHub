@@ -96,7 +96,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="a:graphStore" as="xs:anyURI?"/>
     <xsl:param name="lacl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
-    <xsl:param name="ldt:template" as="xs:anyURI?"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:requestUri" as="xs:anyURI?"/>
@@ -1265,13 +1264,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" as="xs:string?">
-            <xsl:if test="$ldt:template">
-                <xsl:for-each select="apl:listSuperTemplates($ldt:template)/../../aplt:consumes[1]">
-                    <xsl:sequence select="key('resources', (@rdf:nodeID, @rdf:resource))/aplt:mediaType"/>
-                </xsl:for-each>
-            </xsl:if>
-        </xsl:param>
+        <xsl:param name="enctype" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="$modal">

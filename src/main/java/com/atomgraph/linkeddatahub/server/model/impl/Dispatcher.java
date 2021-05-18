@@ -56,13 +56,37 @@ public class Dispatcher
             return ProxyResourceBase.class;
         }
 
-        if (getClientUriInfo().getAbsolutePath().equals(getClientUriInfo().getBaseUri().resolve("sparql"))) return SPARQLEndpointImpl.class;
-        if (getClientUriInfo().getAbsolutePath().equals(getClientUriInfo().getBaseUri().resolve("service"))) return GraphStoreImpl.class;
-        if (getClientUriInfo().getAbsolutePath().toString().startsWith(getClientUriInfo().getBaseUri().resolve("ns").toString())) return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+//        if (getClientUriInfo().getAbsolutePath().equals(getClientUriInfo().getBaseUri().resolve("sparql"))) return SPARQLEndpointImpl.class;
+//        if (getClientUriInfo().getAbsolutePath().equals(getClientUriInfo().getBaseUri().resolve("service"))) return GraphStoreImpl.class;
+//        if (getClientUriInfo().getAbsolutePath().toString().startsWith(getClientUriInfo().getBaseUri().resolve("ns").toString())) return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
         
         return getResourceClass();
     }
     
+    @Path("sparql")
+    public Object getSPARQLEndpoint()
+    {
+        return SPARQLEndpointImpl.class;
+    }
+
+    @Path("service")
+    public Object getGraphStore()
+    {
+        return GraphStoreImpl.class;
+    }
+
+    @Path("ns")
+    public Object getOntology()
+    {
+        return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+    }
+
+    @Path("ns/{slug}/")
+    public Object getSubOntology()
+    {
+        return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+    }
+
     public Class getResourceClass()
     {
         return Item.class;
