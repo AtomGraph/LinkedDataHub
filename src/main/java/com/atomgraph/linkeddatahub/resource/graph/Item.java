@@ -67,8 +67,7 @@ public class Item extends GraphStoreImpl implements Patchable // com.atomgraph.c
     private final Service service;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, @Context MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application)
+    public Item(@Context UriInfo uriInfo, @Context Request request, @Context MediaTypes mediaTypes, Optional<Service> service)
     {
         super(request, service, mediaTypes);
         this.uriInfo = uriInfo;

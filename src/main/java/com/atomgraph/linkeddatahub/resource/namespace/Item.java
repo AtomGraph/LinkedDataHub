@@ -17,27 +17,21 @@
 package com.atomgraph.linkeddatahub.resource.namespace;
 
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
-import com.atomgraph.processor.model.TemplateCall;
+import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
-import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -49,33 +43,27 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends ResourceBase
+public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
 {
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    private final Application application;
     private final OntologyLoader ontLoader;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
+    public Item(@Context UriInfo uriInfo, @Context Request request, @Context MediaTypes mediaTypes,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
             com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application, ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(uriInfo, request, mediaTypes, service);
+        this.application = application.get();
         ontLoader = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
     }
     
+    @GET
     @Override
-    public Response get()
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         //Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
         // hard-coding "#" is not great but it does not seem possible to construct the ontology URI in aplt:SubOntology query
@@ -87,7 +75,12 @@ public class Item extends ResourceBase
         else
             model = getOntologyLoader().getModel(getApplication().getService(), ontology.getURI());
         
-        return getResponse(DatasetFactory.create(model));
+        return getResponse(model);
+    }
+    
+    public Application getApplication()
+    {
+        return application;
     }
     
     public OntologyLoader getOntologyLoader()
