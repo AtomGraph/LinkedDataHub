@@ -212,6 +212,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Override
+    public URI getBaseUri()
+    {
+        if (getApplication().get().isPresent()) return getApplication().get().get().getBaseURI();
+        
+        return null;
+    }
+    
+    @Override
     public URI getOntologyURI()
     {
         if (getApplication().get().isPresent()) return URI.create(getApplication().get().get().getOntology().getURI());
