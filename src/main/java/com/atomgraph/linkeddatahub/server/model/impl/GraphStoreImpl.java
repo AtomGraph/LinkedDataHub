@@ -63,36 +63,23 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
         else
         {
-            if (graphUri != null)
-            {
-                boolean existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
-
-                // is this implemented correctly? The specification is not very clear.
-                if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
-                getDatasetAccessor().add(graphUri.toString(), model);
-
-                if (existingGraph) return Response.ok().build();
-                else return Response.created(graphUri).build();
-            }
+            final boolean existingGraph;
+            if (graphUri != null) existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
             else
             {
-                ResIterator it = model.listSubjects();
-                try
-                {
-                    if (it.hasNext())
-                    {
-                        graphUri = URI.create(it.next().getURI());
-
-                        return Response.created(graphUri).build();
-                    }
-                }
-                finally
-                {
-                    it.close();
-                }
+                existingGraph = false;
                 
-                return Response.ok().build();
+                ResIterator it = model.listSubjects();
+                graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
+                it.close();
             }
+
+            // is this implemented correctly? The specification is not very clear.
+            if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
+            getDatasetAccessor().add(graphUri.toString(), model);
+
+            if (existingGraph) return Response.ok().build();
+            else return Response.created(graphUri).build();
         }
     }
     
