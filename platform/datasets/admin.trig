@@ -466,6 +466,20 @@ WHERE
 
 # ONTOLOGIES
 
+# namespace
+
+<model/ontologies/namespace/> a adm:OntologyItem ;
+    sioc:has_container <model/ontologies/> ;
+    dct:title "Namespace" ;
+    foaf:primaryTopic ns: .
+
+ns: a adm:Ontology ;
+    foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
+    rdfs:label "Namespace" ;
+    rdfs:comment "Namespace of the application" ;
+    owl:imports nsd:, nsds: ;
+    owl:versionInfo "1.0-SNAPSHOT" .
+
 # default
 
 <model/ontologies/default/> a adm:OntologyItem ;
