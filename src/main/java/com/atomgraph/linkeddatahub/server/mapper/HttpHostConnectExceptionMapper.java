@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -37,9 +36,9 @@ public class HttpHostConnectExceptionMapper extends ExceptionMapperBase implemen
 {
 
     @Inject
-    public HttpHostConnectExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public HttpHostConnectExceptionMapper(Optional<Ontology> ontology, MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(ontology, Optional.empty(), mediaTypes);
     }
     
     @Override

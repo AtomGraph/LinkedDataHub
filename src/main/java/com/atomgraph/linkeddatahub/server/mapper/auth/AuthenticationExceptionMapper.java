@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
@@ -42,9 +41,9 @@ public class AuthenticationExceptionMapper extends ExceptionMapperBase implement
 {
 
     @Inject
-    public AuthenticationExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public AuthenticationExceptionMapper(Optional<Ontology> ontology, MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(ontology, Optional.empty(), mediaTypes);
     }
 
     @Override

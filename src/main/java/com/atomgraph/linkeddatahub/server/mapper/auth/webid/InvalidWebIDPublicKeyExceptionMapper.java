@@ -21,7 +21,6 @@ import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPubli
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -43,9 +42,9 @@ public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase im
 {
 
     @Inject
-    public InvalidWebIDPublicKeyExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public InvalidWebIDPublicKeyExceptionMapper(Optional<Ontology> ontology, MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(ontology, Optional.empty(), mediaTypes);
     }
     
     // TO-DO: use a non-standard SSL-specific status code such as 495 SSL Certificate Error?

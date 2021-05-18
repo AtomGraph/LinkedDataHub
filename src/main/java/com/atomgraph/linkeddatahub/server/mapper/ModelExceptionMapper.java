@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import com.atomgraph.server.exception.ModelException;
@@ -35,9 +34,9 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
 {
     private final ResourceContext resourceContext;
 
-    public ModelExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes, @Context ResourceContext resourceContext)
+    public ModelExceptionMapper(Optional<Ontology> ontology, MediaTypes mediaTypes, @Context ResourceContext resourceContext)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(ontology, Optional.empty(), mediaTypes);
         this.resourceContext = resourceContext;
     }
 

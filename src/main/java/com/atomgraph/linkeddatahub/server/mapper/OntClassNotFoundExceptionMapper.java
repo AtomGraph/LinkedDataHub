@@ -22,7 +22,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.client.exception.OntClassNotFoundException;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.apache.jena.ontology.Ontology;
@@ -37,9 +36,9 @@ public class OntClassNotFoundExceptionMapper extends ExceptionMapperBase impleme
 {
 
     @Inject
-    public OntClassNotFoundExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public OntClassNotFoundExceptionMapper(Optional<Ontology> ontology, MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(ontology, Optional.empty(), mediaTypes);
     }
 
     @Override

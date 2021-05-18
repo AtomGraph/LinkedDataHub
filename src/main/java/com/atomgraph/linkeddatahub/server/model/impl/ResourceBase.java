@@ -91,6 +91,7 @@ import org.glassfish.jersey.uri.UriComponent;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("/")
+@Deprecated
 public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase implements com.atomgraph.linkeddatahub.server.model.Resource
 {
     private static final Logger log = LoggerFactory.getLogger(ResourceBase.class);

@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper.jena;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.query.QueryExecException;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
@@ -39,9 +38,9 @@ public class QueryExecExceptionMapper extends ExceptionMapperBase implements Exc
 {
 
     @Inject
-    public QueryExecExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public QueryExecExceptionMapper(Optional<Ontology> ontology, MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(ontology, Optional.empty(), mediaTypes);
     }
 
     @Override

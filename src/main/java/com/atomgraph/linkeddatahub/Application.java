@@ -92,7 +92,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
@@ -109,11 +108,6 @@ import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.processor.vocabulary.AP;
-import com.atomgraph.server.mapper.OntologyExceptionMapper;
-import com.atomgraph.server.mapper.ParameterExceptionMapper;
-import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
-import com.atomgraph.server.mapper.jena.QueryParseExceptionMapper;
-import com.atomgraph.server.mapper.jena.RiotExceptionMapper;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.apache.jena.enhanced.BuiltinPersonalities;
@@ -503,8 +497,6 @@ public class Application extends ResourceConfig
             }
             
             SP.init(BuiltinPersonalities.model);
-//            BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
-//            BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
             BuiltinPersonalities.model.add(AdminApplication.class, AdminApplicationImpl.factory);
@@ -687,15 +679,6 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-//        register(new AbstractBinder()
-//        {
-//            @Override
-//            protected void configure()
-//            {
-//                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
-//                in(RequestScoped.class);
-//            }
-//        });
         register(new AbstractBinder()
         {
             @Override
@@ -746,7 +729,6 @@ public class Application extends ResourceConfig
         register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
-//        register(TemplateCallFilter.class);
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
@@ -762,15 +744,14 @@ public class Application extends ResourceConfig
     protected void registerExceptionMappers()
     {
         register(NotFoundExceptionMapper.class);
-        register(ConfigurationExceptionMapper.class);
-        register(OntologyExceptionMapper.class);
+//        register(ConfigurationExceptionMapper.class);
+//        register(OntologyExceptionMapper.class);
         register(ModelExceptionMapper.class);
         register(SPINConstraintViolationExceptionMapper.class);
         register(SHACLConstraintViolationExceptionMapper.class);
-        register(DatatypeFormatExceptionMapper.class);
-        register(ParameterExceptionMapper.class);
+//        register(DatatypeFormatExceptionMapper.class);
         register(QueryExecExceptionMapper.class);
-        register(RiotExceptionMapper.class);
+//        register(RiotExceptionMapper.class);
         register(RiotParseExceptionMapper.class); // move to Processor?
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
@@ -782,7 +763,7 @@ public class Application extends ResourceConfig
         register(WebIDLoadingExceptionMapper.class);
         register(TokenExpiredExceptionMapper.class);
         register(ResourceExistsExceptionMapper.class);
-        register(QueryParseExceptionMapper.class);
+//        register(QueryParseExceptionMapper.class);
         register(AuthenticationExceptionMapper.class);
         register(AuthorizationExceptionMapper.class);
         register(MessagingExceptionMapper.class);
