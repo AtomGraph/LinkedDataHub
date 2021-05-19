@@ -1238,19 +1238,21 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="action" select="$a:graphStore" as="xs:anyURI"/>
 
         <xsl:next-match> <!-- TO-DO: account for external $ac:uri -->
             <!--<xsl:with-param name="action" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)"/>-->
-            <xsl:with-param name="action" select="$a:graphStore"/>
+            <xsl:with-param name="action" select="$action"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- override form action in Client template -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
 
         <xsl:next-match>
-            <xsl:with-param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+            <xsl:with-param name="action" select="$action" as="xs:anyURI"/>
         </xsl:next-match>
     </xsl:template>
     
