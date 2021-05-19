@@ -1,5 +1,6 @@
 @prefix nsds:	<ns/domain/system#> .
 @prefix nsdd:	<ns/domain/default#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
@@ -11,7 +12,14 @@
 <> a nsdd:Root ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Root" ;
-    dct:description "Root container" .
+    dct:description "Root container" ;
+    apl:content <#content1> .
+<#content1> a apl:Content ;
+    rdf:first <queries/default/select-geo-resources/#this> ;
+    rdf:rest <#content2> .
+<#content2> a apl:Content ;
+    rdf:first "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>second</p></div>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> ;
+    rdf:rest rdf:nil .
 
 # CONTAINERS
 

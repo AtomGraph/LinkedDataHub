@@ -15,15 +15,7 @@ CONSTRUCT
             sioc:has_container <graphs/> ;
             foaf:maker <${OWNER_URI}> ;
             acl:owner <${OWNER_URI}> ;
-            foaf:primaryTopic ?graph ;
             prov:generatedAtTime ?now .
-        ?graph a apl:Dataset ;
-            foaf:isPrimaryTopicOf ?graphDoc .
-        ?doc sioc:has_space <> ;
-            foaf:maker <${OWNER_URI}> ;
-            acl:owner <${OWNER_URI}> ;
-            dct:created ?now ;
-            void:inDataset ?graph .
     }
     GRAPH ?graphDoc {
         ?s ?p ?o
@@ -38,8 +30,9 @@ WHERE
             BIND (URI(IF (CONTAINS(STR(?s), "#"), STRBEFORE(STR(?s), "#"), ?s)) AS ?doc)
         }
     }
-    BIND(SHA1(STR(?doc)) AS ?docSha1)
-    BIND (URI(CONCAT(STR(<graphs/>), ?docSha1, "/")) AS ?graphDoc)
+    #BIND(SHA1(STR(?doc)) AS ?docSha1)
+    #BIND (URI(CONCAT(STR(<graphs/>), ?docSha1, "/")) AS ?graphDoc)
+    BIND (?doc AS ?graphDoc)
     BIND (URI(CONCAT(STR(?graphDoc), "#this")) AS ?graph)
     BIND(SHA1(STR(?graph)) AS ?graphSha1)
     BIND (URI(CONCAT(STR(<graphs/>), ?graphSha1, "/")) AS ?graphGraphDoc)

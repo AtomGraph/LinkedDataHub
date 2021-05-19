@@ -100,6 +100,12 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:label "Series variable name" ;
     rdfs:isDefinedBy : .
 
+:content a owl:ObjectProperty ;
+    rdfs:domain foaf:Document ;
+    rdfs:range :Content ;
+    rdfs:label "Content" ;
+    rdfs:isDefinedBy : .
+
 # CLASSES
 
 # service
@@ -408,6 +414,13 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
       }
       WHERE {}""" ;
     rdfs:label "Model chart constructor" ;
+    rdfs:isDefinedBy : .
+
+:Content a rdfs:Class, owl:Class ;
+    rdfs:subClassOf rdf:List ;
+    rdfs:label "Content" ;
+    # spin:constructor :ContentConstructor ;
+    # spin:constraint :MissingFirst, :MissingNext ;
     rdfs:isDefinedBy : .
 
 # exception

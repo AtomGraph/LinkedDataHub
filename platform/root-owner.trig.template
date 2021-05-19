@@ -1,39 +1,57 @@
 @prefix adm:    <ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
+@prefix acl:    <http://www.w3.org/ns/auth/acl#> .
 @prefix cert:   <http://www.w3.org/ns/auth/cert#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:    <http://purl.org/dc/terms/> .
 
 # AGENT
 
-<${OWNER_DOC_URI}> a adm:AgentItem ;
-    sioc:has_container <acl/agents/> ;
-    dct:title "${OWNER_COMMON_NAME}" ;
-    foaf:primaryTopic <${OWNER_URI}> .
+<${OWNER_DOC_URI}>
+{
 
-<${OWNER_URI}> a adm:Agent ;
-    foaf:name "${OWNER_COMMON_NAME}" ;
-    foaf:mbox <mailto:${OWNER_MBOX}> ;
-    foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
-    cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
+    <${OWNER_DOC_URI}> a adm:AgentItem ;
+        sioc:has_container <acl/agents/> ;
+        dct:title "${OWNER_COMMON_NAME}" ;
+        foaf:primaryTopic <${OWNER_URI}> .
+
+    <${OWNER_URI}> a adm:Agent ;
+        foaf:name "${OWNER_COMMON_NAME}" ;
+        foaf:mbox <mailto:${OWNER_MBOX}> ;
+        foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
+        cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
+
+    # secretary delegates the owner agent
+
+    <${SECRETARY_URI}> acl:delegates <${OWNER_URI}> .
+
+}
 
 # PUBLIC KEY
 
-<acl/public-keys/${OWNER_KEY_UUID}/> a adm:PublicKeyItem ;
-    dct:title "${OWNER_COMMON_NAME}" ;
-    foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> .
+<acl/public-keys/${OWNER_KEY_UUID}/>
+{
 
-<acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
-    rdfs:label "${OWNER_COMMON_NAME}" ;
-    foaf:isPrimaryTopicOf <acl/public-keys/${OWNER_KEY_UUID}/> ;
-    cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
-    cert:exponent 65537 .
+    <acl/public-keys/${OWNER_KEY_UUID}/> a adm:PublicKeyItem ;
+        dct:title "${OWNER_COMMON_NAME}" ;
+        foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> .
+
+    <acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
+        rdfs:label "${OWNER_COMMON_NAME}" ;
+        foaf:isPrimaryTopicOf <acl/public-keys/${OWNER_KEY_UUID}/> ;
+        cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
+        cert:exponent 65537 .
+
+}
 
 # AUTHORIZATION
 
 # root owner is a member of the owners group
 
-<acl/groups/owners/#this> foaf:member <${OWNER_URI}> .
+<acl/groups/owners/>
+{
+
+    <acl/groups/owners/#this> foaf:member <${OWNER_URI}> .
+}
