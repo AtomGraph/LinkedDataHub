@@ -15,15 +15,7 @@ CONSTRUCT
             sioc:has_container <graphs/> ;
             foaf:maker <${OWNER_URI}> ;
             acl:owner <${OWNER_URI}> ;
-            foaf:primaryTopic ?graph ;
             prov:generatedAtTime ?now .
-        ?graph a apl:Dataset ;
-            foaf:isPrimaryTopicOf ?graphDoc .
-        ?doc sioc:has_space <> ;
-            foaf:maker <${OWNER_URI}> ;
-            acl:owner <${OWNER_URI}> ;
-            dct:created ?now ;
-            void:inDataset ?graph .
     }
     GRAPH ?graphDoc {
         ?s ?p ?o
