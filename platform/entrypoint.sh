@@ -524,13 +524,12 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     envsubst < root-owner.trig.template > root-owner.trig
 
     trig --base="$root_admin_base_uri" --output=nq root-owner.trig > root-owner.nq
-    sparql --data root-owner.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > split.root-owner.nq
 
     printf "\n### Uploading the metadata of the owner agent...\n\n"
 
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-owner.nq "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-owner.nq "application/n-quads"
 
-    rm -f root-owner.trig root-owner.nq split.root-owner.nq
+    rm -f root-owner.trig root-owner.nq
 
     # append ownership metadata to apps (have to be URI resources!)
 
@@ -542,13 +541,12 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     envsubst < root-secretary.trig.template > root-secretary.trig
 
     trig --base="$root_admin_base_uri" --output=nq root-secretary.trig > root-secretary.nq
-    sparql --data root-secretary.nq --base "$root_admin_base_uri" --query split-default-graph.rq --results=nq > split.root-secretary.nq
 
     printf "\n### Uploading the metadata of the secretary agent...\n\n"
 
-    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" split.root-secretary.nq "application/n-quads"
+    append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-secretary.nq "application/n-quads"
 
-    rm -f root-secretary.trig root-secretary.nq split.root-secretary.nq
+    rm -f root-secretary.trig root-secretary.nq
 fi
 
 # change context configuration
