@@ -20,6 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.net.URI;
 import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
@@ -42,7 +43,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
 
-    public GraphStoreImpl(@Context Request request, Optional<Service> service, @Context MediaTypes mediaTypes)
+    @Inject
+    public GraphStoreImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes)
     {
         super(request, service.get(), mediaTypes);
     }

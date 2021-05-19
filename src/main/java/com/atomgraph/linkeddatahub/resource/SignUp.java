@@ -123,7 +123,7 @@ public class SignUp extends Item
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
-    public SignUp(@Context UriInfo uriInfo, @Context Request request, @Context MediaTypes mediaTypes,
+    public SignUp(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {

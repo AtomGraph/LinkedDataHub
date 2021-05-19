@@ -16,8 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.resource.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
-import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.util.Optional;
 import javax.inject.Inject;

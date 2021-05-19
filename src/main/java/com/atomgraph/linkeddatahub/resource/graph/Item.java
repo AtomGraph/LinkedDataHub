@@ -67,7 +67,7 @@ public class Item extends GraphStoreImpl implements Patchable
     private final Service service;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, @Context MediaTypes mediaTypes)
+    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes)
     {
         super(request, service, mediaTypes);
         this.uriInfo = uriInfo;
