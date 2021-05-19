@@ -94,6 +94,7 @@ WHERE
     rdfs:isDefinedBy : .
 
 :Document a ldt:Template ;
+    ldt:extends thgt:Document ;
     ldt:query :ConstructNamedGraph ;
     ldt:update :DropNamedGraph ;
     ldt:param ct:Query, :ForClass, :UploadRDF, :Ban, :Debug ; # :Login, :Logout
