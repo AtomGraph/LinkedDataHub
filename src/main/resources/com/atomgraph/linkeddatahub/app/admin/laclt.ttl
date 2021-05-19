@@ -145,49 +145,16 @@ WHERE
 :ConstructAgentItem a sp:Construct, ldt:Query ;
     rdfs:label "CONSTRUCT AgentItem" ;
     sp:text """
-PREFIX  cert: <http://www.w3.org/ns/auth/cert#>
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 CONSTRUCT 
-  { 
-    ?this foaf:primaryTopic ?agent .
-    ?this ?thisP ?thisO .
-    ?agent ?agentP ?agentO .
-    ?secretary a ?secretaryType .
-    ?secretary acl:delegates ?agent .
-    ?secretary foaf:name ?secretaryName .
-    ?key ?keyP ?keyO .
-    ?agent foaf:account ?account .
-    ?account ?accountP ?accountO .
+  {
+    ?s ?p ?o .
   }
 WHERE
-  { GRAPH ?graph
-      { ?this   foaf:primaryTopic  ?agent ;
-                ?thisP             ?thisO .
-        ?agent  ?agentP            ?agentO
-        FILTER ( ?agentP != foaf:mbox )
-        OPTIONAL
-          { GRAPH ?secretaryGraph
-              { ?secretary  a            ?secretaryType ;
-                          acl:delegates  ?agent
-                OPTIONAL
-                  { ?secretary  foaf:name  ?secretaryName }
-              }
-          }
-        OPTIONAL
-          { ?agent  cert:key  ?key
-            GRAPH ?keyGraph
-              { ?key  ?keyP  ?keyO }
-          }
-        OPTIONAL
-          { ?agent  foaf:account  ?account
-            GRAPH ?accountGraph
-              { ?account  ?accountP  ?accountO
-                FILTER ( ?accountP != sioc:email )
-              }
-          }
+  { GRAPH ?this
+      { ?s ?p ?o
+        FILTER ( ?p != foaf:mbox )
       }
   }
 """ ;
