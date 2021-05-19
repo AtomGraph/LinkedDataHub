@@ -56,7 +56,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, request, mediaTypes, service);
+        super(uriInfo, request, service, mediaTypes);
         this.application = application.get();
         ontLoader = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
     }

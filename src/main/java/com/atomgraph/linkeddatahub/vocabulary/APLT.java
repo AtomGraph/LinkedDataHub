@@ -49,10 +49,10 @@ public class APLT
     public static final ObjectProperty aclEndpoint = m_model.createObjectProperty( NS + "aclEndpoint" );
 
     // TEMPLATES
-    
-    public static final OntClass File = m_model.createClass(NS + "File");
-    
-    public static final OntClass Document = m_model.createClass(NS + "Document");
+//    
+//    public static final OntClass File = m_model.createClass(NS + "File");
+//    
+//    public static final OntClass Document = m_model.createClass(NS + "Document");
     
     public static final ObjectProperty forClass = m_model.createObjectProperty( NS + "forClass" );
 

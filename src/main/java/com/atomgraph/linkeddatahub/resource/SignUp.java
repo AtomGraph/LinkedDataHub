@@ -16,22 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
-import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
+import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -40,7 +35,6 @@ import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
@@ -70,13 +64,11 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.POST;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -105,7 +97,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends ResourceBase
+public class SignUp extends Item
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
@@ -118,7 +110,9 @@ public class SignUp extends ResourceBase
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
-    
+    private final Application application;
+    private final Ontology ontology;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final Model countryModel;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
@@ -129,25 +123,19 @@ public class SignUp extends ResourceBase
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
-    public SignUp(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
+    public SignUp(@Context UriInfo uriInfo, @Context Request request, @Context MediaTypes mediaTypes,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application,
-                ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(uriInfo, request, service, mediaTypes);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
+        
+        this.application = application.get();
+        this.ontology = ontology.get();
+        this.system = system;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -188,20 +176,31 @@ public class SignUp extends ResourceBase
         
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
-
+    
+    @POST
     @Override
-    public Response construct(InfModel infModel)
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getTemplateCall().get().hasArgument(APLT.forClass)) throw new BadRequestException("dh:forClass argument is mandatory for aplt:SignUp template");
+        if (getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) // create resource instance
+        {
+            Resource forClass = model.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+            // we need inference to support subclasses
+            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
+            return construct(infModel, forClass);
+        }
         
-        Model model = infModel.getRawModel();
+        return super.post(model, defaultGraph, graphUri);
+    }
+    
+    public Response construct(InfModel infModel, Resource forClass)
+    {
+        Model agentModel = infModel.getRawModel();
         try
         {
             // need to skolemize early to build the agent URI
-            model = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
+            agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
             
-            Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
-            ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
+            ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
 
             try
             {
@@ -235,48 +234,61 @@ public class SignUp extends ResourceBase
                 {
                     keyStore.load(bis, password.toCharArray());
                     Certificate cert = keyStore.getCertificate(KEY_ALIAS);
-                    if (cert.getPublicKey() instanceof RSAPublicKey)
+                    if (!(cert.getPublicKey() instanceof RSAPublicKey)) throw new IllegalStateException("Certificate PublicKey is not an RSAPublicKey");
+
+                    RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
+//                        Model publicKeyModel = ModelFactory.createDefaultModel();
+                    Resource publicKey = createPublicKey(ModelFactory.createDefaultModel(), forClass.getNameSpace(), certPublicKey);
+
+                    Response publicKeyResponse = post(publicKey.getModel(), false, null);
+                    if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
-                        agent.addProperty(Cert.key, createPublicKey(model, forClass.getNameSpace(), publicKey)); // add public key
-                        model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+                        if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
+                        throw new WebApplicationException("Cannot create PublicKey");
+                    }
+                        
+                    URI publicKeyGraphURI = publicKeyResponse.getLocation();
+                    Model publicKeyResponseModel = (Model)publicKeyResponse.getEntity();
+                    publicKey = publicKeyResponseModel.createResource(publicKeyGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
-                        // skolemize once again to build the public key URI
-                        model = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
-            
-                        // store Agent data
+                    agent.addProperty(Cert.key, publicKey); // add public key
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                        URI agentContainerURI = getAgentContainerUriBuilder(). queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
-                        // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                        try (Response postResponse = createContainer(agentContainerURI, forClass, securityContext).construct(model))
+                    // skolemize once again to build the public key URI
+//                    agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
+
+                    // store Agent data
+
+//                        URI agentContainerURI = getAgentContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
+//                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
+                    // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
+                    try (Response agentResponse = post(agentModel, false, null))
+                    {
+                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {
-                            if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                            {
-                                if (log.isErrorEnabled()) log.error("Cannot create Agent with URI: {}", agent.getURI());
-                                throw new WebApplicationException("Cannot create Agent with URI: " + agent.getURI());
-                            }
+                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                            throw new WebApplicationException("Cannot create Agent");
+                        }
 
-                            // remove secretary WebID from cache
-                            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-        
-                            if (download)
-                            {
-                                return Response.ok(keyStoreBytes).
-                                    type(PKCS12_MEDIA_TYPE).
-                                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                                    build();
-                            }
-                            else
-                            {
-                                LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                                sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+                        // remove secretary WebID from cache
+                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
-                                // append Agent data to response
-                                Dataset description = describe();
-                                description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
-                                return getResponseBuilder(description).build();
-                            }
+                        if (download)
+                        {
+                            return Response.ok(keyStoreBytes).
+                                type(PKCS12_MEDIA_TYPE).
+                                header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                                build();
+                        }
+                        else
+                        {
+                            LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                            sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                            // append Agent data to response
+                            Model description = getDatasetAccessor().getModel(getURI().toString());
+                            description.add(((Dataset)agentResponse.getEntity()).getDefaultModel());
+                            return getResponseBuilder(description).build();
                         }
                     }
                 }
@@ -296,10 +308,8 @@ public class SignUp extends ResourceBase
         }
         catch (IllegalArgumentException ex)
         {
-            throw new SkolemizationException(ex, model);
+            throw new SkolemizationException(ex, agentModel);
         }
-        
-        return super.construct(infModel);
     }
 
     public String validateAndRemovePassword(Resource agent) throws SPINConstraintViolationException
@@ -362,40 +372,57 @@ public class SignUp extends ResourceBase
         // labels and links need to come from the end-user app
         EMailListener.submit(getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
-                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserApplication().getProperty(DCTerms.title).getString(),
                 fullName)).
             from(getSignUpAddress()).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
-                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
-                getApplication().getEndUserApplication().getBase(),
+                getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserApplication().getBase(),
                 agent.getURI(),
                 certExpires.format(DateTimeFormatter.ISO_LOCAL_DATE))).
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
             build());
     }
 
-    public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
+//    public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
+//    {
+//        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
+//        queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
+//        
+//        return createResource(uri, queryParams, securityContext);
+//    }
+//    
+//    public com.atomgraph.linkeddatahub.server.model.Resource createResource(URI requestUri, MultivaluedMap<String, String> queryParams, SecurityContext securityContext)
+//    {
+//        return new ResourceBase(
+//            new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
+//            Optional.ofNullable(getService()), Optional.ofNullable(getApplication()), Optional.ofNullable(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
+//            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
+//            getSystem());
+//    }
+    
+    public EndUserApplication getEndUserApplication()
     {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
-        queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
-        
-        return createResource(uri, queryParams, securityContext);
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class);
+        else
+            return getApplication().as(AdminApplication.class).getEndUserApplication();
+    }
+
+    public Application getApplication()
+    {
+        return application;
     }
     
-    public com.atomgraph.linkeddatahub.server.model.Resource createResource(URI requestUri, MultivaluedMap<String, String> queryParams, SecurityContext securityContext)
+    public Ontology getOntology()
     {
-        return new ResourceBase(
-            new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-            Optional.ofNullable(getService()), Optional.ofNullable(getApplication()), Optional.ofNullable(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
-            getSystem());
+        return ontology;
     }
     
-    @Override
-    public AdminApplication getApplication()
+    public com.atomgraph.linkeddatahub.Application getSystem()
     {
-        return super.getApplication().as(AdminApplication.class);
+        return system;
     }
     
     public int getValidityDays()

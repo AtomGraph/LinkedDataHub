@@ -16,10 +16,12 @@
  */
 package com.atomgraph.linkeddatahub.server.io;
 
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
+import com.atomgraph.server.exception.SkolemizationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
@@ -29,10 +31,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntDocumentManager;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.QueryParseException;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -55,6 +60,19 @@ public class SkolemizingDatasetProvider extends com.atomgraph.server.io.Skolemiz
     
     private static final Logger log = LoggerFactory.getLogger(SkolemizingDatasetProvider.class);
 
+    @Override
+    public Model skolemize(Ontology ontology, UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder, Model model)
+    {
+        try
+        {
+            return new Skolemizer(ontology, baseUriBuilder, absolutePathBuilder).build(model); // not optimal to create Skolemizer for each Model
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new SkolemizationException(ex, model);
+        }
+    }
+    
     @Override
     public Resource process(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {

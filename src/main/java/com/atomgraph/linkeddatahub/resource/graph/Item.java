@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl implements Patchable // com.atomgraph.core.model.impl.QuadStoreBase 
+public class Item extends GraphStoreImpl implements Patchable
 {
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
@@ -67,7 +67,7 @@ public class Item extends GraphStoreImpl implements Patchable // com.atomgraph.c
     private final Service service;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, @Context MediaTypes mediaTypes, Optional<Service> service)
+    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, @Context MediaTypes mediaTypes)
     {
         super(request, service, mediaTypes);
         this.uriInfo = uriInfo;

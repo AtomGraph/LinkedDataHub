@@ -37,10 +37,12 @@ import org.apache.jena.rdf.model.RDFWriter;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
+import com.atomgraph.server.exception.SkolemizationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
@@ -48,7 +50,9 @@ import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.Set;
 import java.util.UUID;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
@@ -85,6 +89,19 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
         return model;
     }
 
+    @Override
+    public Model skolemize(Ontology ontology, UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder, Model model)
+    {
+        try
+        {
+            return new Skolemizer(ontology, baseUriBuilder, absolutePathBuilder).build(model); // not optimal to create Skolemizer for each Model
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new SkolemizationException(ex, model);
+        }
+    }
+    
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
     {
