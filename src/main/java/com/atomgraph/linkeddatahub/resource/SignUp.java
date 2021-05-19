@@ -254,7 +254,7 @@ public class SignUp extends GraphStoreImpl
                         
                     URI publicKeyGraphURI = publicKeyResponse.getLocation();
                     Model publicKeyResponseModel = (Model)publicKeyResponse.getEntity();
-                    publicKey = publicKeyResponseModel.createResource(publicKeyGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                    Resource publicKey = publicKeyResponseModel.createResource(publicKeyGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
                     agent.addProperty(Cert.key, publicKey); // add public key
                     agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
