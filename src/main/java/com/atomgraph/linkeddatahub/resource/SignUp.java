@@ -240,7 +240,7 @@ public class SignUp extends Item
 //                        Model publicKeyModel = ModelFactory.createDefaultModel();
                     Resource publicKey = createPublicKey(ModelFactory.createDefaultModel(), forClass.getNameSpace(), certPublicKey);
 
-                    Response publicKeyResponse = post(publicKey.getModel(), false, null);
+                    Response publicKeyResponse = super.post(publicKey.getModel(), false, null);
                     if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
@@ -262,7 +262,7 @@ public class SignUp extends Item
 //                        URI agentContainerURI = getAgentContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
 //                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
                     // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                    try (Response agentResponse = post(agentModel, false, null))
+                    try (Response agentResponse = super.post(agentModel, false, null))
                     {
                         if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {
