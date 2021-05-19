@@ -202,7 +202,7 @@ public class SignUp extends GraphStoreImpl
         try
         {
             // need to skolemize early to build the agent URI
-            agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
+//            agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
             
             ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
 
@@ -244,7 +244,7 @@ public class SignUp extends GraphStoreImpl
 //                        Model publicKeyModel = ModelFactory.createDefaultModel();
                     Resource publicKey = createPublicKey(ModelFactory.createDefaultModel(), forClass.getNameSpace(), certPublicKey);
 
-                    Response publicKeyResponse = post(publicKey.getModel(), false, null);
+                    Response publicKeyResponse = super.post(publicKey.getModel(), false, null);
                     if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
