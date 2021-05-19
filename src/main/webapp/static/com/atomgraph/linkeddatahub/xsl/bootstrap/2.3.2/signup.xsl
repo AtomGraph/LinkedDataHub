@@ -93,6 +93,7 @@ exclude-result-prefixes="#all">
                     
         <xsl:next-match>
             <!-- <xsl:with-param name="modal" select="false()"/> -->
+            <xsl:with-param name="action" select="$ac:uri"/>
         </xsl:next-match>
     </xsl:template>
     

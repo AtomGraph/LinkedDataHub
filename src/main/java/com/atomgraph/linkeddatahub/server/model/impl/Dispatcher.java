@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -85,6 +86,12 @@ public class Dispatcher
     public Object getSubOntology()
     {
         return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+    }
+
+    @Path("sign up")
+    public Object getSignUp()
+    {
+        return SignUp.class;
     }
 
     public Class getResourceClass()
