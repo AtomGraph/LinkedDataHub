@@ -26,7 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
-import com.atomgraph.linkeddatahub.resource.graph.Item;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -97,7 +97,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends Item
+public class SignUp extends GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
@@ -110,6 +110,8 @@ public class SignUp extends Item
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
+    private final UriInfo uriInfo;
+    private final URI uri;
     private final Application application;
     private final Ontology ontology;
     private final com.atomgraph.linkeddatahub.Application system;
@@ -127,12 +129,14 @@ public class SignUp extends Item
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, request, service, mediaTypes);
+        super(request, service, mediaTypes);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
+        this.uriInfo = uriInfo;
+        this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
         this.ontology = ontology.get();
         this.system = system;
@@ -189,7 +193,7 @@ public class SignUp extends Item
             return construct(infModel, forClass);
         }
         
-        return super.post(model, defaultGraph, graphUri);
+        return post(model, defaultGraph, graphUri);
     }
     
     public Response construct(InfModel infModel, Resource forClass)
@@ -240,7 +244,7 @@ public class SignUp extends Item
 //                        Model publicKeyModel = ModelFactory.createDefaultModel();
                     Resource publicKey = createPublicKey(ModelFactory.createDefaultModel(), forClass.getNameSpace(), certPublicKey);
 
-                    Response publicKeyResponse = super.post(publicKey.getModel(), false, null);
+                    Response publicKeyResponse = post(publicKey.getModel(), false, null);
                     if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
@@ -384,23 +388,6 @@ public class SignUp extends Item
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
             build());
     }
-
-//    public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
-//    {
-//        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
-//        queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
-//        
-//        return createResource(uri, queryParams, securityContext);
-//    }
-//    
-//    public com.atomgraph.linkeddatahub.server.model.Resource createResource(URI requestUri, MultivaluedMap<String, String> queryParams, SecurityContext securityContext)
-//    {
-//        return new ResourceBase(
-//            new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-//            Optional.ofNullable(getService()), Optional.ofNullable(getApplication()), Optional.ofNullable(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-//            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
-//            getSystem());
-//    }
     
     public EndUserApplication getEndUserApplication()
     {
@@ -410,6 +397,16 @@ public class SignUp extends Item
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
 
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+
+    public URI getURI()
+    {
+        return uri;
+    }
+    
     public Application getApplication()
     {
         return application;
