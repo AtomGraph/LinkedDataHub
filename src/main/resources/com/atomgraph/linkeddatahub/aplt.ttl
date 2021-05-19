@@ -94,7 +94,8 @@ WHERE
     rdfs:isDefinedBy : .
 
 :Document a ldt:Template ;
-    ldt:extends thgt:Document ;
+    ldt:query :ConstructNamedGraph ;
+    ldt:update :DropNamedGraph ;
     ldt:param ct:Query, :ForClass, :UploadRDF, :Ban, :Debug ; # :Login, :Logout
     ac:mode ac:ReadMode ;
     rdfs:label "Document" ;
@@ -219,6 +220,22 @@ DESCRIBE ?this
 
 # QUERIES
 
+# named graph
+
+:ConstructNamedGraph a sp:Construct, sp:Query ;
+    sp:text """
+CONSTRUCT 
+  { 
+    ?s ?p ?o .
+  }
+WHERE
+  { GRAPH ?this
+      { ?s  ?p  ?o }
+  }
+""" ;
+    rdfs:label "Construct named graph" ;
+    rdfs:isDefinedBy : .
+
 # sitemap
 
 :DescribeOntology a sp:Construct, sp:Query ;
@@ -258,4 +275,13 @@ WHERE
       }
   }""" ;
     rdfs:label "Describe with topic" ;
+    rdfs:isDefinedBy : .
+
+# UPDATES
+
+:DropNamedGraph a sp:Drop, sp:Update ;
+    sp:text """
+DROP SILENT GRAPH ?this
+""" ;
+    rdfs:label "Drop named graph" ;
     rdfs:isDefinedBy : .
