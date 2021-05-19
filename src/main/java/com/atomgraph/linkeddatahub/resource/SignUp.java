@@ -241,10 +241,11 @@ public class SignUp extends GraphStoreImpl
                     if (!(cert.getPublicKey() instanceof RSAPublicKey)) throw new IllegalStateException("Certificate PublicKey is not an RSAPublicKey");
 
                     RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
-//                        Model publicKeyModel = ModelFactory.createDefaultModel();
-                    Resource publicKey = createPublicKey(ModelFactory.createDefaultModel(), forClass.getNameSpace(), certPublicKey);
+                    Model publicKeyModel = ModelFactory.createDefaultModel();
+                    createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
+                    publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
 
-                    Response publicKeyResponse = super.post(publicKey.getModel(), false, null);
+                    Response publicKeyResponse = super.post(publicKeyModel, false, null);
                     if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
