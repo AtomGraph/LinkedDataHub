@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDCertificateE
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
@@ -50,6 +51,7 @@ import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.slf4j.Logger;
@@ -208,21 +210,45 @@ public class WebIDFilter extends AuthenticationFilter
     {
         try
         {
+            Model model = ModelFactory.createDefaultModel();
+            
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
             
-            try (Response cr = getNoCertClient().target(webIDDoc).
+            try (Response cr1 = getNoCertClient().target(webIDDoc).
                     request(getAcceptableMediaTypes()).
                     get())
             {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                if (!cr1.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
-                    if (log.isErrorEnabled()) log.error("Could not load WebID: {}", webID.toString());
-                    throw new WebIDLoadingException(webID, cr);
+                    if (log.isErrorEnabled()) log.error("Could not load WebID Agent: {}", webID.toString());
+                    throw new WebIDLoadingException(webID, cr1);
                 }
-                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
+                cr1.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, webIDDoc.toString()); // provide a base URI hint to ModelProvider
+                model.add(cr1.readEntity(Model.class));
+                
+                Resource certKeyRes = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
+                if (certKeyRes != null)
+                {
+                    URI certKey = URI.create(certKeyRes.getURI());
+                    // remove fragment identifier to get document URI
+                    URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 
-                return cr.readEntity(Model.class);
+                    try (Response cr2 = getNoCertClient().target(certKeyDoc).
+                            request(getAcceptableMediaTypes()).
+                            get())
+                    {
+                        if (!cr2.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                        {
+                            if (log.isErrorEnabled()) log.error("Could not load WebID Key: {}", certKey.toString());
+                            throw new WebIDLoadingException(webID, cr2);
+                        }
+                        cr2.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, certKey.toString()); // provide a base URI hint to ModelProvider
+                        model.add(cr2.readEntity(Model.class));
+                    }
+                }
+                
+                return model;
             }
         }
         catch (URISyntaxException ex)
