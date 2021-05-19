@@ -740,30 +740,30 @@ public class Application extends ResourceConfig
     
     protected void registerExceptionMappers()
     {
-////        register(NotFoundExceptionMapper.class);
-////        register(ConfigurationExceptionMapper.class);
-////        register(OntologyExceptionMapper.class);
-//        register(ModelExceptionMapper.class);
-////        register(SPINConstraintViolationExceptionMapper.class);
-////        register(SHACLConstraintViolationExceptionMapper.class);
-////        register(DatatypeFormatExceptionMapper.class);
-//        register(QueryExecExceptionMapper.class);
-////        register(RiotExceptionMapper.class);
-//        register(RiotParseExceptionMapper.class); // move to Processor?
-//        register(ClientErrorExceptionMapper.class);
-//        register(HttpHostConnectExceptionMapper.class);
-//        register(OntClassNotFoundExceptionMapper.class);
-//        register(InvalidWebIDPublicKeyExceptionMapper.class);
-//        register(InvalidWebIDURIExceptionMapper.class);
-//        register(WebIDCertificateExceptionMapper.class);
-//        register(WebIDDelegationExceptionMapper.class);
-//        register(WebIDLoadingExceptionMapper.class);
-//        register(TokenExpiredExceptionMapper.class);
-//        register(ResourceExistsExceptionMapper.class);
-////        register(QueryParseExceptionMapper.class);
-//        register(AuthenticationExceptionMapper.class);
-//        register(AuthorizationExceptionMapper.class);
-//        register(MessagingExceptionMapper.class);
+//        register(NotFoundExceptionMapper.class);
+//        register(ConfigurationExceptionMapper.class);
+//        register(OntologyExceptionMapper.class);
+        register(ModelExceptionMapper.class);
+//        register(SPINConstraintViolationExceptionMapper.class);
+//        register(SHACLConstraintViolationExceptionMapper.class);
+//        register(DatatypeFormatExceptionMapper.class);
+        register(QueryExecExceptionMapper.class);
+//        register(RiotExceptionMapper.class);
+        register(RiotParseExceptionMapper.class); // move to Processor?
+        register(ClientErrorExceptionMapper.class);
+        register(HttpHostConnectExceptionMapper.class);
+        register(OntClassNotFoundExceptionMapper.class);
+        register(InvalidWebIDPublicKeyExceptionMapper.class);
+        register(InvalidWebIDURIExceptionMapper.class);
+        register(WebIDCertificateExceptionMapper.class);
+        register(WebIDDelegationExceptionMapper.class);
+        register(WebIDLoadingExceptionMapper.class);
+        register(TokenExpiredExceptionMapper.class);
+        register(ResourceExistsExceptionMapper.class);
+//        register(QueryParseExceptionMapper.class);
+        register(AuthenticationExceptionMapper.class);
+        register(AuthorizationExceptionMapper.class);
+        register(MessagingExceptionMapper.class);
     }
     
     public static Dataset getDataset(final ServletContext servletContext, final URI uri) throws FileNotFoundException, MalformedURLException, IOException
