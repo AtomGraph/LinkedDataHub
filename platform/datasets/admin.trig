@@ -1015,19 +1015,6 @@ nst:Document a adm:Template ;
     rdfs:label "Document" ;
     rdfs:isDefinedBy nst: .
 
-# graph item
-
-<sitemap/templates/templates/graph-item/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Graph item" ;
-    foaf:primaryTopic nst:GraphItem .
-
-nst:GraphItem a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-item/> ;
-    ldt:extends aplt:GraphItem ;
-    rdfs:label "Graph item" ;
-    rdfs:isDefinedBy nst: .
-
 # file container
 
 <sitemap/templates/templates/file-container/> a adm:TemplateItem ;
