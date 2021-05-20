@@ -925,14 +925,14 @@ public class Application extends ResourceConfig
         throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
     }
     
-    public void submitImport(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(csvImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        ImportListener.submit(csvImport, provGraph, service, adminService, baseURI, dataManager);
     }
     
-    public void submitImport(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(rdfImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        ImportListener.submit(rdfImport, provGraph, service, adminService, baseURI, dataManager);
     }
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException

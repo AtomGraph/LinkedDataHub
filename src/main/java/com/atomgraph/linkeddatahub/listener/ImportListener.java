@@ -56,20 +56,20 @@ public class ImportListener implements ServletContextListener
         THREAD_POOL.shutdown();
     }
 
-    public static void submit(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public static void submit(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new CSVImport to thread pool: {}", csvImport.toString());
         
-        new Executor(THREAD_POOL).start(csvImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        new Executor(THREAD_POOL).start(csvImport, provGraph, service, adminService, baseURI, dataManager);
     }
 
-    public static void submit(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public static void submit(RDFImport rdfImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new RDFImport to thread pool: {}", rdfImport.toString());
         
-        new Executor(THREAD_POOL).start(rdfImport, importRes, provGraph, service, adminService, baseURI, dataManager);
+        new Executor(THREAD_POOL).start(rdfImport, provGraph, service, adminService, baseURI, dataManager);
     }
     
 }

@@ -22,7 +22,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apache.jena.rdf.model.Model;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 /**
@@ -37,8 +36,6 @@ public interface Resource extends com.atomgraph.core.model.Resource
     
     boolean exists(org.apache.jena.rdf.model.Resource resource);
 
-    Response construct(Model model);
-    
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     Response postMultipart(FormDataMultiPart multiPart);

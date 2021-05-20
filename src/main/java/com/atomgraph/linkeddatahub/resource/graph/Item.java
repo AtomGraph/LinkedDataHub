@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends ResourceBase implements Patchable // com.atomgraph.core.model.impl.QuadStoreBase 
+public class Item extends ResourceBase implements Patchable // TO-DO: extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);

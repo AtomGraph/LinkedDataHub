@@ -362,9 +362,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             if (log.isDebugEnabled()) log.debug("POST request URI overridden with: {}", uri);
             return getResourceContext().getResource(ProxyResourceBase.class).post(dataset);
         }
-        
-        if (getTemplateCall().get().hasArgument(APLT.forClass)) // resource instance
-            return construct(dataset.getDefaultModel());
 
         if (getService().getDatasetQuadAccessor() != null)
         {
@@ -375,54 +372,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
     }
-    
-    @Override
-    public Response construct(Model model)
-    {
-        // we need inference to support subclasses
-        InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
-        return construct(infModel);
-    }
 
-    /**
-     * Constructs an individual RDF resource for a given ontology class.
-     * 
-     * @param infModel ontology model with inference (to infer subclass hierarchies)
-     * @return HTTP response
-     */
-    public Response construct(InfModel infModel)
-    {
-        if (infModel == null) throw new IllegalArgumentException("InfModel cannot be null");
-        
-        Resource document = getCreatedDocument(infModel);
-        if (document == null || !document.isURIResource())
-        {
-            if (log.isErrorEnabled()) log.error("No URI resource found in constructor POST payload");
-            throw new WebApplicationException(Status.BAD_REQUEST); // TO-DO: more specific Exception
-        }
-
-        if (exists(document))
-        {
-            URI uri = URI.create(document.getURI());
-            document = ResourceUtils.renameResource(document, null); // turn the skolemized URI into blank node again
-            if (log.isDebugEnabled()) log.debug("Bad request - resource '" + uri + "' already exists");
-            throw new ResourceExistsException(uri, document, infModel.getRawModel());
-        }
-
-        super.post(splitDefaultModel(infModel.getRawModel())); // append description
-        
-        Variant variant = getRequest().selectVariant(getVariants(getWritableMediaTypes(Dataset.class)));
-        if (variant == null)  // if quads are not acceptable, fallback to responding with the default graph
-            return getResponseBuilder(infModel.getRawModel()).
-                status(Response.Status.CREATED).
-                location(URI.create(document.getURI())).
-                build();
-            
-        return getResponseBuilder(DatasetFactory.create(infModel.getRawModel())).
-            status(Response.Status.CREATED).
-            location(URI.create(document.getURI())).
-            build();
-    }
     
     /**
      * Extracts the individual that is being created from the input RDF graph.

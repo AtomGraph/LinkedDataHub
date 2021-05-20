@@ -17,39 +17,31 @@
 package com.atomgraph.linkeddatahub.resource.imports;
 
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.model.TemplateCall;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.MultivaluedHashMap;
+import javax.servlet.ServletConfig;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.ParameterizedSparqlString;
-import org.apache.jena.query.QuerySolution;
-import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetRewindable;
-import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.util.LocationMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,74 +50,64 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Container extends com.atomgraph.linkeddatahub.server.model.impl.ResourceBase
+public class Container extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
+    private final UriInfo uriInfo;
+    private final URI uri;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final DataManager dataManager;
+    private com.atomgraph.linkeddatahub.Application system;
+
     @Inject
-    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+    public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            DataManager dataManager,
+            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes, 
-                service, application,
-                ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(request, service, mediaTypes);
+        this.uriInfo = uriInfo;
+        this.uri = uriInfo.getAbsolutePath();
+        this.application = application.get();
+        this.dataManager = dataManager;
+        this.system = system;
+        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
+    @GET
     @Override
-    public Response construct(InfModel infModel)
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (infModel == null) throw new IllegalArgumentException("Model cannot be null");
-        
-        Response constructor = super.construct(infModel); // construct Import
+        return super.get(false, getURI());
+    }
+    
+    @POST
+    @Override
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        Response constructor = super.post(model, false, null); // construct Import
         
         if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
-            Resource document = getCreatedDocument(infModel);
-            Resource topic = document.getPropertyResourceValue(FOAF.primaryTopic);
+            URI importGraphUri = constructor.getLocation();
+            Model importModel = (Model)get(false, importGraphUri).getEntity();
+            Resource doc = importModel.createResource(importGraphUri.toString());
+            Resource topic = doc.getPropertyResourceValue(FOAF.primaryTopic);
             
             if (topic != null && topic.canAs(Import.class))
             {
                 Resource provGraph = null;
-                QuerySolutionMap qsm = new QuerySolutionMap();
-                qsm.add(FOAF.Document.getLocalName(), document);
+//                QuerySolutionMap qsm = new QuerySolutionMap();
+//                qsm.add(FOAF.Document.getLocalName(), doc);
                 
-                try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
-                        qsm, getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,
-                        new MultivaluedHashMap()))
-                {
-                    ResultSet resultSet = cr.readEntity(ResultSetRewindable.class);
-                    if (resultSet.hasNext())
-                    {
-                        QuerySolution qs = resultSet.next();
-                        if (qs.contains("provGraph")) provGraph = qs.getResource("provGraph");
-                        else
-                        {
-                            if (log.isErrorEnabled()) log.error("Document provenance graph not found for Import '{}'", topic);
-                            throw new IllegalStateException("Document provenance graph not found");
-                        }
-                    }
-                    else
-                    {
-                        if (log.isErrorEnabled()) log.error("Document provenance graph query returned no results for Import '{}'", topic);
-                        throw new IllegalStateException("Document provenance graph query returned no results");
-                    }
 
-                    Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
-                    // start the import asynchroniously
-                    if (topic.canAs(CSVImport.class))
-                        getSystem().submitImport(topic.as(CSVImport.class), this, provGraph, getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
-                    if (topic.canAs(RDFImport.class))
-                        getSystem().submitImport(topic.as(RDFImport.class), this, provGraph, getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
-                }
+                Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+                // start the import asynchroniously
+                if (topic.canAs(CSVImport.class))
+                    getSystem().submitImport(topic.as(CSVImport.class), provGraph, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                if (topic.canAs(RDFImport.class))
+                    getSystem().submitImport(topic.as(RDFImport.class), provGraph, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
             }
             else
                 if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
@@ -134,14 +116,29 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         return constructor;
     }
     
-    @Override
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
+    }
+    
+    public URI getURI()
+    {
+        return uri;
+    }
+ 
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
+    }
+    
     public DataManager getDataManager()
     {
-        // create new DataManager with constructor-injected values instead provider proxies that are not visible in other threads
-        // TO-DO: move inside construct()? Use config properties
-        return new DataManagerImpl(LocationMapper.get(), super.getDataManager().getModelCache(), getSystem().getImportClient(), getMediaTypes(), true, true, false,
-                URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"),
-                getApplication(), getSecurityContext());
+        return dataManager;
     }
     
 }

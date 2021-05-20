@@ -16,22 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.resource;
 
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.exception.ConfigurationException;
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
+import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
-import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
-import com.atomgraph.linkeddatahub.server.model.impl.ClientUriInfoImpl;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -39,8 +34,8 @@ import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
+import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
@@ -70,20 +65,19 @@ import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -105,7 +99,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class SignUp extends ResourceBase
+public class SignUp extends GraphStoreImpl
 {
     
     private static final Logger log = LoggerFactory.getLogger(SignUp.class);
@@ -118,7 +112,12 @@ public class SignUp extends ResourceBase
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
-    
+    private final UriInfo uriInfo;
+    private final URI uri;
+    private final Application application;
+    private final Ontology ontology;
+    private final TemplateCall templateCall;
+    private final com.atomgraph.linkeddatahub.Application system;
     private final Model countryModel;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
@@ -129,25 +128,22 @@ public class SignUp extends ResourceBase
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
-    public SignUp(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            @Context DataManager dataManager, @Context Providers providers,
+    public SignUp(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application,
-                ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(request, service, mediaTypes);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
+        
+        this.uriInfo = uriInfo;
+        this.uri = uriInfo.getAbsolutePath();
+        this.application = application.get();
+        this.ontology = ontology.get();
+        this.templateCall = templateCall.get();
+        this.system = system;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -188,118 +184,130 @@ public class SignUp extends ResourceBase
         
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
-
+    
+    @GET
     @Override
-    public Response construct(InfModel infModel)
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getTemplateCall().get().hasArgument(APLT.forClass)) throw new BadRequestException("dh:forClass argument is mandatory for aplt:SignUp template");
-        
-        Model model = infModel.getRawModel();
+        return super.get(false, getURI());
+    }
+    
+    @POST
+    @Override
+    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        if (!getTemplateCall().hasArgument(APLT.forClass)) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
+
+        Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
+        ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
         try
         {
-            // need to skolemize early to build the agent URI
-            model = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
-            
-            Resource forClass = getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource();
-            ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
-
-            try
+            Resource agent = it.next();
+            String password = validateAndRemovePassword(agent);
+            // TO-DO: trim values
+            String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
+            String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
+            String fullName = givenName + " " + familyName;
+            String orgName = null;
+            if (agent.hasProperty(FOAF.member))
             {
-                Resource agent = it.next();
-                String password = validateAndRemovePassword(agent);
-                // TO-DO: trim values
-                String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
-                String familyName = agent.getRequiredProperty(FOAF.familyName).getString();
-                String fullName = givenName + " " + familyName;
-                String orgName = null;
-                if (agent.hasProperty(FOAF.member))
+                Resource org = agent.getPropertyResourceValue(FOAF.member);
+                if (org.hasProperty(FOAF.name)) orgName = org.getProperty(FOAF.name).getString();
+            }
+            Resource country = agent.getRequiredProperty(FOAF.based_near).getResource();
+            String countryName = getCountryModel().createResource(country.getURI()).
+                    getRequiredProperty(DCTerms.title).getString();
+
+            String uuid = UUID.randomUUID().toString();
+            String keyStoreFileName = uuid + ".p12";
+            java.nio.file.Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
+
+            new WebIDCertGen("RSA", STORE_TYPE).generate(keyStorePath, password, password, KEY_ALIAS,
+                fullName, null, orgName, null, null, countryName, agent.getURI(), getValidityDays());
+
+            // load certificate to retrieve public key metadata
+            KeyStore keyStore = KeyStore.getInstance(STORE_TYPE);
+            byte[] keyStoreBytes = Files.readAllBytes(keyStorePath);
+            try (InputStream bis = new ByteArrayInputStream(keyStoreBytes))
+            {
+                keyStore.load(bis, password.toCharArray());
+                Certificate cert = keyStore.getCertificate(KEY_ALIAS);
+                if (!(cert.getPublicKey() instanceof RSAPublicKey)) throw new IllegalStateException("Certificate PublicKey is not an RSAPublicKey");
+
+                RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
+                Model publicKeyModel = ModelFactory.createDefaultModel();
+                createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
+                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
+
+                Response publicKeyResponse = super.post(publicKeyModel, false, null);
+                if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
-                    Resource org = agent.getPropertyResourceValue(FOAF.member);
-                    if (org.hasProperty(FOAF.name)) orgName = org.getProperty(FOAF.name).getString();
+                    if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
+                    throw new WebApplicationException("Cannot create PublicKey");
                 }
-                Resource country = agent.getRequiredProperty(FOAF.based_near).getResource();
-                String countryName = getCountryModel().createResource(country.getURI()).
-                        getRequiredProperty(DCTerms.title).getString();
 
-                String uuid = UUID.randomUUID().toString();
-                String keyStoreFileName = uuid + ".p12";
-                java.nio.file.Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
+                URI publicKeyGraphURI = publicKeyResponse.getLocation();
+                Model publicKeyResponseModel = (Model)publicKeyResponse.getEntity();
+                Resource publicKey = publicKeyResponseModel.createResource(publicKeyGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
-                new WebIDCertGen("RSA", STORE_TYPE).generate(keyStorePath, password, password, KEY_ALIAS,
-                    fullName, null, orgName, null, null, countryName, agent.getURI(), getValidityDays());
+                agent.addProperty(Cert.key, publicKey); // add public key
+                model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                // load certificate to retrieve public key metadata
-                KeyStore keyStore = KeyStore.getInstance(STORE_TYPE);
-                byte[] keyStoreBytes = Files.readAllBytes(keyStorePath);
-                try (InputStream bis = new ByteArrayInputStream(keyStoreBytes))
+                // skolemize once again to build the public key URI
+//                    agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
+
+                // store Agent data
+
+//                        URI agentContainerURI = getAgentContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
+//                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
+                // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
+                try (Response agentResponse = super.post(model, false, null))
                 {
-                    keyStore.load(bis, password.toCharArray());
-                    Certificate cert = keyStore.getCertificate(KEY_ALIAS);
-                    if (cert.getPublicKey() instanceof RSAPublicKey)
+                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
-                        agent.addProperty(Cert.key, createPublicKey(model, forClass.getNameSpace(), publicKey)); // add public key
-                        model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                        throw new WebApplicationException("Cannot create Agent");
+                    }
 
-                        // skolemize once again to build the public key URI
-                        model = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
-            
-                        // store Agent data
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
-                        URI agentContainerURI = getAgentContainerUriBuilder(). queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
-                        // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                        try (Response postResponse = createContainer(agentContainerURI, forClass, securityContext).construct(model))
-                        {
-                            if (postResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                            {
-                                if (log.isErrorEnabled()) log.error("Cannot create Agent with URI: {}", agent.getURI());
-                                throw new WebApplicationException("Cannot create Agent with URI: " + agent.getURI());
-                            }
+                    if (download)
+                    {
+                        return Response.ok(keyStoreBytes).
+                            type(PKCS12_MEDIA_TYPE).
+                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                            build();
+                    }
+                    else
+                    {
+                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
-                            // remove secretary WebID from cache
-                            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-        
-                            if (download)
-                            {
-                                return Response.ok(keyStoreBytes).
-                                    type(PKCS12_MEDIA_TYPE).
-                                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                                    build();
-                            }
-                            else
-                            {
-                                LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                                sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
-
-                                // append Agent data to response
-                                Dataset description = describe();
-                                description.getDefaultModel().add(((Dataset)postResponse.getEntity()).getDefaultModel());
-                                return getResponseBuilder(description).build();
-                            }
-                        }
+                        // append Agent data to response
+                        Model description = getDatasetAccessor().getModel(getURI().toString());
+                        description.add(((Dataset)agentResponse.getEntity()).getDefaultModel());
+                        return getResponseBuilder(description).build();
                     }
                 }
             }
-            catch (SPINConstraintViolationException ex)
-            {
-                throw ex; // propagate
-            }
-            catch (Exception ex)
-            {
-                throw new MappableException(ex);
-            }
-            finally
-            {
-                it.close();
-            }
+        }
+        catch (SPINConstraintViolationException ex)
+        {
+            throw ex; // propagate
         }
         catch (IllegalArgumentException ex)
         {
             throw new SkolemizationException(ex, model);
         }
-        
-        return super.construct(infModel);
+        catch (Exception ex)
+        {
+            throw new MappableException(ex);
+        }
+        finally
+        {
+            it.close();
+        }
     }
 
     public String validateAndRemovePassword(Resource agent) throws SPINConstraintViolationException
@@ -362,40 +370,55 @@ public class SignUp extends ResourceBase
         // labels and links need to come from the end-user app
         EMailListener.submit(getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
-                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserApplication().getProperty(DCTerms.title).getString(),
                 fullName)).
             from(getSignUpAddress()).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
-                getApplication().getEndUserApplication().getProperty(DCTerms.title).getString(),
-                getApplication().getEndUserApplication().getBase(),
+                getEndUserApplication().getProperty(DCTerms.title).getString(),
+                getEndUserApplication().getBase(),
                 agent.getURI(),
                 certExpires.format(DateTimeFormatter.ISO_LOCAL_DATE))).
             byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
             build());
     }
+    
+    public EndUserApplication getEndUserApplication()
+    {
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class);
+        else
+            return getApplication().as(AdminApplication.class).getEndUserApplication();
+    }
 
-    public com.atomgraph.linkeddatahub.server.model.Resource createContainer(URI uri, Resource forClass, SecurityContext securityContext)
+    public UriInfo getUriInfo()
     {
-        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap();
-        queryParams.add(APLT.forClass.getLocalName(), forClass.getURI());
-        
-        return createResource(uri, queryParams, securityContext);
+        return uriInfo;
+    }
+
+    public URI getURI()
+    {
+        return uri;
     }
     
-    public com.atomgraph.linkeddatahub.server.model.Resource createResource(URI requestUri, MultivaluedMap<String, String> queryParams, SecurityContext securityContext)
+    public Application getApplication()
     {
-        return new ResourceBase(
-            new ClientUriInfoImpl(getUriInfo().getBaseUri(), requestUri, queryParams), getClientUriInfo(), getRequest(), getMediaTypes(),
-            Optional.ofNullable(getService()), Optional.ofNullable(getApplication()), Optional.ofNullable(getOntology()), getTemplateCall(), getHttpHeaders(), getResourceContext(),
-            getHttpServletRequest(), securityContext, getDataManager(), getProviders(),
-            getSystem());
+        return application;
     }
     
-    @Override
-    public AdminApplication getApplication()
+    public Ontology getOntology()
     {
-        return super.getApplication().as(AdminApplication.class);
+        return ontology;
+    }
+    
+    public TemplateCall getTemplateCall()
+    {
+        return templateCall;
+    }
+    
+    public com.atomgraph.linkeddatahub.Application getSystem()
+    {
+        return system;
     }
     
     public int getValidityDays()

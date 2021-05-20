@@ -135,15 +135,15 @@ WHERE
     rdfs:label "Graph Store" ;
     rdfs:isDefinedBy : .
 
-:GraphItem a ldt:Template ;
-    ldt:extends thgt:Document ;
-    ldt:match "/graphs/{slug}/" ;
-    ldt:param :ForClass ; # is ForClass used? # :EditMode
-    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.graph.Item> ;
-    ldt:cacheControl "no-cache" ;
-    ac:mode ac:EditMode ;
-    rdfs:label "Graph document" ;
-    rdfs:isDefinedBy : .
+#:GraphItem a ldt:Template ;
+#    ldt:extends thgt:Document ;
+#    ldt:match "/graphs/{slug}/" ;
+#    ldt:param :ForClass ; # is ForClass used? # :EditMode
+#    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.graph.Item> ;
+#    ldt:cacheControl "no-cache" ;
+#    ac:mode ac:EditMode ;
+#    rdfs:label "Graph document" ;
+#    rdfs:isDefinedBy : .
 
 # files
 

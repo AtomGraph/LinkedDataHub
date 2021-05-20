@@ -85,7 +85,7 @@ public class Executor
         this.threadPool = threadPool;
     }
     
-    public void start(CSVImport csvImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void start(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -103,11 +103,11 @@ public class Executor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
                 dataManager, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(csvImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(csvImport, importRes, provImport, provGraph, service));
+            thenAcceptAsync(success(csvImport, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(csvImport, provImport, provGraph, service));
     }
 
-    public void start(RDFImport rdfImport, com.atomgraph.linkeddatahub.server.model.Resource importRes, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void start(RDFImport rdfImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -131,11 +131,11 @@ public class Executor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
                 dataManager, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(rdfImport, importRes, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(rdfImport, importRes, provImport, provGraph, service));
+            thenAcceptAsync(success(rdfImport, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(rdfImport, provImport, provGraph, service));
     }
     
-    protected Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (CSVStreamRDFOutput output) ->
         {
@@ -154,7 +154,7 @@ public class Executor
         };
     }
     
-    protected Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<StreamRDFOutput> success(final RDFImport rdfImport, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (StreamRDFOutput output) ->
         {
@@ -173,7 +173,7 @@ public class Executor
         };
     }
 
-    protected Function<Throwable, Void> failure(final Import importInst, final com.atomgraph.linkeddatahub.server.model.Resource importRes, final Resource provImport, final Resource provGraph, final Service service)
+    protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Resource provGraph, final Service service)
     {
         return new Function<Throwable, Void>()
         {
