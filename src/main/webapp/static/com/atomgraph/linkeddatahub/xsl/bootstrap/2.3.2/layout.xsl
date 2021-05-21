@@ -623,7 +623,7 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="." mode="apl:ChildrenCountMode"/>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="apl:Content"/>
+            <!--<xsl:apply-templates select="." mode="apl:Content"/>-->
 
             <xsl:apply-templates select="." mode="ac:ModeChoice"/>
         </div>
@@ -1203,45 +1203,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <!-- CONTENT MODE -->
-
-    <xsl:template match="*[$ac:mode = '&ac;EditMode']" mode="apl:Content" priority="1"/>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:Content" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'content xhtml-content'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <!--  remove XHTML namespace -->
-            <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
-            <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="apl:Content" priority="1">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="apl:Content"/>
+    <!-- FORM -->
 
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
@@ -1744,6 +1706,40 @@ exclude-result-prefixes="#all">
 
     <!-- SERVER-SIDE BLOCK LIST -->
     
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="bs2:Block" priority="2">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'content xhtml-content'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <!--  remove XHTML namespace -->
+            <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
+            <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="bs2:Block" priority="2">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
+        </div>
+    </xsl:template>
+    
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
@@ -1766,7 +1762,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <!-- suppres types in property list - we show them in the bs2:Header instead -->
+    <!-- suppress types in property list - we show them in the bs2:Header instead -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:PropertyList"/>
     
     <!-- OBJECT -->
