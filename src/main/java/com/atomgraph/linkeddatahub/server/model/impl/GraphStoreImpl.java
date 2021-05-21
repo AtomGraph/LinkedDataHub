@@ -21,7 +21,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
-import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
@@ -76,7 +75,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 ResIterator it = model.listSubjects();
                 try
                 {
-                    // TO-DO: handle blank nodes somehow?
+                    // TO-DO: this is really fragile, we should get rid of this and require an explicit graphUri
                     graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
                     graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
                 }

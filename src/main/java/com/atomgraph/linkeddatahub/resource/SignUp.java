@@ -244,15 +244,9 @@ public class SignUp extends GraphStoreImpl
                 agent.addProperty(Cert.key, publicKey); // add public key
                 model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                // skolemize once again to build the public key URI
-//                    agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(agentModel);
-
-                // store Agent data
-
-//                        URI agentContainerURI = getAgentContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
-//                        SecurityContext securityContext = new AgentContext(SecurityContext.CLIENT_CERT_AUTH, agent.inModel(infModel).as(Agent.class));
-                // not using getResourceContext().matchResource() as we want to supply SecurityContext with the new Agent
-                try (Response agentResponse = super.post(model, false, null))
+                URI agentGraphUri = URI.create(agent.getURI());
+                agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+                try (Response agentResponse = super.post(model, false, agentGraphUri))
                 {
                     if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {

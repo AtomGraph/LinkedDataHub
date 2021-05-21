@@ -228,7 +228,8 @@ public class WebIDFilter extends AuthenticationFilter
                 model.add(cr1.readEntity(Model.class));
                 
                 Resource certKeyRes = model.createResource(webID.toString()).getPropertyResourceValue(Cert.key);
-                if (certKeyRes != null)
+                // load PublicKey separately - only if it's a URI resource. If it's a blank node, its description should be present in the WebID model
+                if (certKeyRes != null && certKeyRes.isURIResource())
                 {
                     URI certKey = URI.create(certKeyRes.getURI());
                     // remove fragment identifier to get document URI
