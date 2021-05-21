@@ -91,7 +91,7 @@ public class Container extends GraphStoreImpl
         if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
             URI importGraphUri = constructor.getLocation();
-            Model importModel = (Model)get(false, importGraphUri).getEntity();
+            Model importModel = (Model)super.get(false, importGraphUri).getEntity();
             Resource doc = importModel.createResource(importGraphUri.toString());
             Resource topic = doc.getPropertyResourceValue(FOAF.primaryTopic);
             

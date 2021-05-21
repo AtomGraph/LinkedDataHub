@@ -185,13 +185,6 @@ public class SignUp extends GraphStoreImpl
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
     }
     
-    @GET
-    @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        return super.get(false, getURI());
-    }
-    
     @POST
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
@@ -247,7 +240,7 @@ public class SignUp extends GraphStoreImpl
                 }
 
                 URI publicKeyGraphUri = publicKeyResponse.getLocation();
-                publicKeyModel = (Model)get(false, publicKeyGraphUri).getEntity();
+                publicKeyModel = (Model)super.get(false, publicKeyGraphUri).getEntity();
                 Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
                 agent.addProperty(Cert.key, publicKey); // add public key
