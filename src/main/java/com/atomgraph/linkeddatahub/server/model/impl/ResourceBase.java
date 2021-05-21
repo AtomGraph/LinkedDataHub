@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
+import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
@@ -71,6 +72,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.container.ResourceContext;
@@ -78,6 +80,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.update.UpdateRequest;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -91,7 +94,7 @@ import org.glassfish.jersey.uri.UriComponent;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
 @Path("/")
-public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase implements com.atomgraph.linkeddatahub.server.model.Resource
+public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase implements com.atomgraph.linkeddatahub.server.model.Resource, Patchable
 {
     private static final Logger log = LoggerFactory.getLogger(ResourceBase.class);
     
@@ -859,6 +862,16 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 //            }
             
         return dataset;
+    }
+    
+    @PATCH
+    @Override
+    public Response patch(UpdateRequest updateRequest)
+    {
+        // TO-DO: do a check that the update only uses this named graph
+        getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        
+        return Response.ok().build();
     }
     
     /**
