@@ -19,8 +19,6 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
 import static com.atomgraph.client.writer.ModelXSLTWriterBase.getSource;
 import com.atomgraph.core.util.Link;
-import com.atomgraph.core.vocabulary.A;
-import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -33,6 +31,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
@@ -84,6 +83,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
+    @Inject javax.inject.Provider<Optional<TemplateCall>> templateCall;
     @Inject javax.inject.Provider<ClientUriInfo> clientUriInfo;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
@@ -195,6 +195,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         return null;
     }
     
+    @Override
+    public URI getTemplateURI()
+    {
+        if (getTemplateCall().get().isPresent()) return URI.create(getTemplateCall().get().get().getTemplate().getURI());
+        
+        return null;
+    }
+    
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
@@ -214,6 +222,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public javax.inject.Provider<Optional<Application>> getApplication()
     {
         return application;
+    }
+    
+    public javax.inject.Provider<Optional<TemplateCall>> getTemplateCall()
+    {
+        return templateCall;
     }
     
     @Override
