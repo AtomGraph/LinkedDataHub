@@ -67,7 +67,6 @@ import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -77,7 +76,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -279,7 +277,7 @@ public class SignUp extends GraphStoreImpl
 
                         // append Agent data to response
                         Model description = getDatasetAccessor().getModel(getURI().toString());
-                        description.add(((Dataset)agentResponse.getEntity()).getDefaultModel());
+                        description.add(model);
                         return getResponseBuilder(description).build();
                     }
                 }
