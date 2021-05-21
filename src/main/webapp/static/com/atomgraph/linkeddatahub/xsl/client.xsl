@@ -629,7 +629,7 @@ extension-element-prefixes="ixsl"
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id($container-id, ixsl:page()))">
             <xsl:result-document href="#main-content" method="ixsl:append-content">
-                <div id="$container-id"/>
+                <div id="{$container-id}"/>
             </xsl:result-document>
         </xsl:if>
         
@@ -2203,7 +2203,7 @@ extension-element-prefixes="ixsl"
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id($container-id, ixsl:page()))">
             <xsl:result-document href="#main-content" method="ixsl:append-content">
-                <div id="$container-id"/>
+                <div id="{$container-id}"/>
             </xsl:result-document>
         </xsl:if>
         
