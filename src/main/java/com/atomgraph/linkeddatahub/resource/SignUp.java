@@ -237,7 +237,7 @@ public class SignUp extends GraphStoreImpl
                 RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
                 Model publicKeyModel = ModelFactory.createDefaultModel();
                 createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
-                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(model);
+                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(publicKeyModel);
 
                 Response publicKeyResponse = super.post(publicKeyModel, false, null);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
