@@ -1207,9 +1207,9 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[$ac:mode = '&ac;EditMode']" mode="apl:Content" priority="1"/>
 
-    <xsl:template match="*[@rdf:about = $ac:uri][sioc:content[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:Content" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:Content" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ContentMode'" as="xs:string?"/>
+        <xsl:param name="class" select="'content xhtml-content'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -1221,13 +1221,13 @@ exclude-result-prefixes="#all">
             
             <!--  remove XHTML namespace -->
             <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
-            <xsl:apply-templates select="sioc:content/xhtml:div" mode="apl:XHTMLContent"/>
+            <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
         </div>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = $ac:uri][sioc:attachment/@rdf:resource]" mode="apl:Content" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="apl:Content" priority="1">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'ContentMode'" as="xs:string?"/>
+        <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -1237,7 +1237,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <object data="{ac:build-uri(xs:anyURI(sioc:attachment/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>
+            <object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>
         </div>
     </xsl:template>
 

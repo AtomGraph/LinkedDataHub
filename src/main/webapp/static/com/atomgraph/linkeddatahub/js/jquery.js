@@ -127,7 +127,7 @@ var onPrependedAppendedInputChange = function()
 
 var onContentDisplayToggle = function()
 {
-    $('body').find(".ContentMode").toggle();
+    $('body').find(".content").toggle();
 };
 
 $(document).ready(function()
