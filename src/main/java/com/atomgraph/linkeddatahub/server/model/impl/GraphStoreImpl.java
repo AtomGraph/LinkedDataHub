@@ -19,7 +19,9 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
+import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
@@ -72,8 +74,20 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 existingGraph = false;
                 
                 ResIterator it = model.listSubjects();
-                graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
-                it.close();
+                try
+                {
+                    // TO-DO: handle blank nodes somehow?
+                    graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
+                    graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+                }
+                catch (URISyntaxException ex)
+                {
+                    // shouldn't happen
+                }
+                finally
+                {
+                    it.close();
+                }
             }
 
             // is this implemented correctly? The specification is not very clear.
