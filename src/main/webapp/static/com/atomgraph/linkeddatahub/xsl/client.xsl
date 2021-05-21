@@ -170,7 +170,7 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <!-- disable SPARQL editor's server-side submission -->
-        <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]">
+        <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]"> <!-- TO-DO: use the 'elements-by-class' key -->
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
@@ -243,6 +243,16 @@ extension-element-prefixes="ixsl"
                 <xsl:call-template name="onServiceLoad">
                     <xsl:with-param name="service-select" select="$service-select"/>
                     <xsl:with-param name="selected-service" select="$ac:service"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:for-each>
+        <!-- load content -->
+        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
+            <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
+            
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onContentLoad">
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
@@ -607,6 +617,32 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
 
+    <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
+        <xsl:variable name="query-string" select="sp:text" as="xs:string"/>
+        <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="container-id" select="'sparql-results'" as="xs:string"/>
+        <!-- is SPARQL results element does not already exist, create one -->
+        <xsl:if test="not(id($container-id, ixsl:page()))">
+            <xsl:result-document href="#main-content" method="ixsl:append-content">
+                <div id="$container-id"/>
+            </xsl:result-document>
+        </xsl:if>
+        
+        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+            <xsl:call-template name="onSPARQLResultsLoad">
+                <xsl:with-param name="container-id" select="$container-id"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
     <xsl:template name="first-time-message">
         <div class="hero-unit">
             <button type="button" class="close">×</button>
@@ -1462,7 +1498,9 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge($params, map{ 'auth_token': $service/dydra-urn:accessToken }) else $params)" as="xs:anyURI"/>
                     
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onSPARQLResultsLoad"/>
+                        <xsl:call-template name="onSPARQLResultsLoad">
+                            <xsl:with-param name="container-id" select="'sparql-results'"/>
+                        </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
             </xsl:when>
@@ -1517,7 +1555,9 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
                             
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                                <xsl:call-template name="onSPARQLResultsLoad"/>
+                                <xsl:call-template name="onSPARQLResultsLoad">
+                                    <xsl:with-param name="container-id" select="'sparql-results'"/>
+                                </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -1542,6 +1582,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
 
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -1581,7 +1622,7 @@ extension-element-prefixes="ixsl"
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-                    <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
@@ -1602,7 +1643,7 @@ extension-element-prefixes="ixsl"
                 <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                     <div class="alert alert-block">
                         <strong>Error during query execution:</strong>
                         <pre>
@@ -1666,6 +1707,22 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <!-- embed content -->
+    
+    <xsl:template name="onContentLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- Linked Data browser -->
     
     <xsl:template name="onRDFDocumentLoad">
@@ -2142,22 +2199,21 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <xsl:variable name="container-id" select="'sparql-results'" as="xs:string"/>
         <!-- is SPARQL results element does not already exist, create one -->
-        <xsl:if test="not(id('sparql-results', ixsl:page()))">
+        <xsl:if test="not(id($container-id, ixsl:page()))">
             <xsl:result-document href="#main-content" method="ixsl:append-content">
-                <div id="sparql-results"/>
+                <div id="$container-id"/>
             </xsl:result-document>
         </xsl:if>
         
-<!--        <xsl:if test="ixsl:contains(ixsl:window(), 'LinkedDataHub.service')">
-            <ixsl:remove-property name="service" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        </xsl:if>-->
-
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-            <xsl:call-template name="onSPARQLResultsLoad"/>
+            <xsl:call-template name="onSPARQLResultsLoad">
+                <xsl:with-param name="container-id" select="$container-id"/>
+            </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
     

@@ -1737,6 +1737,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
+            <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
         </div>
     </xsl:template>
     
