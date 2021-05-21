@@ -86,13 +86,14 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>
     </xsl:template>
        
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Form" priority="3">
+    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Form" priority="5">
         <xsl:if test="not($ac:method = 'POST')">
             <xsl:apply-templates select="." mode="apl:Content"/>
         </xsl:if>
                     
         <xsl:next-match>
             <!-- <xsl:with-param name="modal" select="false()"/> -->
+            <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
         </xsl:next-match>
     </xsl:template>
     
