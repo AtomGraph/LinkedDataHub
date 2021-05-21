@@ -246,9 +246,9 @@ public class SignUp extends GraphStoreImpl
                     throw new WebApplicationException("Cannot create PublicKey");
                 }
 
-                URI publicKeyGraphURI = publicKeyResponse.getLocation();
-                Model publicKeyResponseModel = (Model)publicKeyResponse.getEntity();
-                Resource publicKey = publicKeyResponseModel.createResource(publicKeyGraphURI.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                URI publicKeyGraphUri = publicKeyResponse.getLocation();
+                publicKeyModel = (Model)get(false, publicKeyGraphUri).getEntity();
+                Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
                 agent.addProperty(Cert.key, publicKey); // add public key
                 model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
