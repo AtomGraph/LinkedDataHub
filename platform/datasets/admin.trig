@@ -782,12 +782,10 @@ nsdd:ContentConstructor a adm:Construct ;
     foaf:isPrimaryTopicOf <model/queries/default/content-constructor/> ;
     rdfs:label "Content constructor" ;
     sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+        PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
 
         CONSTRUCT {
-          ?this sioc:content "<div xmlns=\\"http://www.w3.org/1999/xhtml\\"></div>"^^rdf:XMLLiteral .
+          ?this apl:content [ a apl:Content ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy nsdd: .
