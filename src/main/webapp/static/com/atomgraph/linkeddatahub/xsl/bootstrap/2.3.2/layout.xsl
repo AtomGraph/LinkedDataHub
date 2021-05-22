@@ -1318,12 +1318,12 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:TypeControl"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:TypeControl" priority="1"/>
     
     <!-- hide property dropdown -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:PropertyControl"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:PropertyControl" priority="1"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:FormControl">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="legend" select="false()"/>
         </xsl:next-match>
