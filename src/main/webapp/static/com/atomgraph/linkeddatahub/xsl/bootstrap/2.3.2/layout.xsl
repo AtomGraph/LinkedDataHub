@@ -1317,9 +1317,9 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <!-- show property dropdown -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:TypeControl"/>
-    
+    <!-- hide property dropdown -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:PropertyControl"/>
+
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:FormControl">
         <xsl:next-match>
             <xsl:with-param name="legend" select="false()"/>
