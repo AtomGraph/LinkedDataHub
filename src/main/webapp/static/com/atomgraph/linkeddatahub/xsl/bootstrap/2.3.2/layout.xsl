@@ -1286,9 +1286,7 @@ exclude-result-prefixes="#all">
                                 </xsl:otherwise>
                             </xsl:choose>
                             
-                            <p>
-                                <button type="button" class="btn btn-large btn-primary pull-right btn-add-resource">+</button>
-                            </p>
+                            <xsl:apply-templates select="." mode="bs2:Create"/>
                         </div>
 
                         <xsl:apply-templates select="." mode="bs2:FormActions">
@@ -1485,6 +1483,10 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
+            <div class="btn-group pull-right">
+                <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource">&#x2715;</button>
+            </div>
+
             <xsl:if test="$legend">
                 <legend>
                     <xsl:value-of select="ac:label(.)"/>
@@ -1495,10 +1497,6 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
             </xsl:apply-templates>
     
-            <div class="btn-group pull-right">
-                <button type="button" class="btn btn-small pull-right btn-remove-resource" title="Remove this resource">&#x2715;</button>
-            </div>
-
             <xsl:apply-templates select="." mode="bs2:TypeControl"/>
 
             <xsl:apply-templates select="$violations" mode="bs2:Violation"/>
