@@ -1789,6 +1789,8 @@ exclude-result-prefixes="#all">
     
     <!-- match instances of types that have an apl:template annotation property -->
     <xsl:template match="*[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="bs2:Block" priority="2">
+        <xsl:next-match/>
+        
         <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="#current"/>
     </xsl:template>
     

@@ -2708,21 +2708,26 @@ adm:Authorization
         rdfs:subClassOf lacl:Authorization, adm:TopicOfAuthorizationItem ;
         ldt:path "{isPrimaryTopicOf.slug}/" ;
         ldt:fragment "this" ;
-        apl:template adm:AuthorizationTemplate ;
+        apl:template adm:AuthorizationAgents ;
         rdfs:label "Authorization" ;
         rdfs:isDefinedBy adm: .
 
 }
 
-adm:AuthorizationTemplate
+adm:AuthorizationAgents
 {
 
-    adm:AuthorizationTemplate a apl:Content ;
-        rdf:first adm:SelectAgents ;
-        rdf:rest rdf:nil ;
+    adm:AuthorizationAgents a apl:Content ;
+        rdf:first adm:SelectAuthorizationAgents ;
+        rdf:rest adm:AuthorizationAccessTo ;
         rdfs:isDefinedBy adm: .
 
-    adm:SelectAgents a sp:Select ;
+}
+
+adm:SelectAuthorizationAgents
+{
+
+    adm:SelectAuthorizationAgents a sp:Select ;
         dct:title "Select agents" ;
         sp:text """
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
@@ -2730,10 +2735,40 @@ PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
 SELECT DISTINCT  ?agent
 WHERE
-  { GRAPH ?agentGraph
-      { GRAPH ?authGraph
-          { ?this  foaf:primaryTopic  ?auth }
-        ?auth  acl:agent  ?agent
+  { GRAPH ?authGraph
+      { ?this  foaf:primaryTopic  ?auth .
+        ?auth  acl:agent          ?agent
+      }
+  }
+    """ ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:AuthorizationAccessTo
+{
+
+    adm:AuthorizationAccessTo a apl:Content ;
+        rdf:first adm:SelectAuthorizationAccessTo ;
+        rdf:rest rdf:nil ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:SelectAuthorizationAccessTo
+{
+
+    adm:SelectAuthorizationAccessTo a sp:Select ;
+        dct:title "Select access resources" ;
+        sp:text """
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT DISTINCT  ?accessTo
+WHERE
+  { GRAPH ?authGraph
+      { ?this  foaf:primaryTopic  ?auth .
+        ?auth  acl:accessTo       ?accessTo
       }
   }
     """ ;
