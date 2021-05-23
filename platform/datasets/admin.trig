@@ -1,5 +1,10 @@
 @prefix adm:	<ns#> .
 @prefix admt:	<ns/templates#> .
+@prefix ns:	<../ns#> .
+@prefix nsd:	<../ns/domain#> .
+@prefix nsdd:	<../ns/domain/default#> .
+@prefix nsds:	<../ns/domain/system#> .
+@prefix nst:	<../ns/templates#> .
 @prefix ladmt:	<https://w3id.org/atomgraph/linkeddatahub/admin/templates#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix laclt:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/templates#> .
@@ -23,1049 +28,1484 @@
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 
-<> a adm:Container ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Root" ;
-    dct:description "Root container" .
+<>
+{
 
-<search/> a adm:Container ;
-    dh:select <queries/default/select-labelled/#this> ;
-    dct:title "Search" ;
-    dct:description "Search resources by label" .
+    <> a adm:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Root" ;
+        dct:description "Root container" .
 
-<queries/> a adm:Container ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Queries" ;
-    dct:description "SPARQL queries" .
+}
 
-<queries/default/> a adm:Container ;
-    sioc:has_parent <queries/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Default queries" .
+<search/>
+{
 
-<sign%20up> a adm:SignUp ;
-    dct:title "Sign up" ;
-    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
-<p class="lead">Welcome. Create your free account and join the web of data.</p>
-<p>LinkedDataHub uses WebID as the single sign-on (SSO) protocol for distributed applications, which is based on
-    authentication using client certficates. <a href="http://webid.info">Read more about WebID</a>.</p>
-<div class="alert alert-info">
-    <p>Unlike most LinkedDataHub resources, your WebID profile will have <em>public access</em> as required by the
-    protocol. We will hide your email address however.</p>
-</div>
-</div>"""^^rdf:XMLLiteral .
+    <search/> a adm:Container ;
+        dh:select <queries/default/select-labelled/#this> ;
+        dct:title "Search" ;
+        dct:description "Search resources by label" .
 
-<request%20access> a adm:RequestAccess ;
-    dct:title "Request access" ;
-    sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
-<p class="lead">Request access</p>
-<p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
-    administrators.</p>
-</div>"""^^rdf:XMLLiteral .
+}
 
-<oauth2/login> a adm:OAuth2Login ;
-    dct:title "OAuth 2.0 login" .
+<queries/>
+{
 
-<oauth2/authorize/google> a adm:AuthorizeGoogle ;
-    dct:title "Google OAuth2.0 authorization" .
+    <queries/> a adm:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Queries" ;
+        dct:description "SPARQL queries" .
+
+}
+
+<queries/default/>
+{
+
+    <queries/default/> a adm:Container ;
+        sioc:has_parent <queries/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Default" ;
+        dct:description "Default queries" .
+
+}
+
+<sign%20up>
+{
+
+    <sign%20up> a adm:SignUp ;
+        dct:title "Sign up" ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">Welcome. Create your free account and join the web of data.</p>
+    <p>LinkedDataHub uses WebID as the single sign-on (SSO) protocol for distributed applications, which is based on
+        authentication using client certficates. <a href="http://webid.info">Read more about WebID</a>.</p>
+    <div class="alert alert-info">
+        <p>Unlike most LinkedDataHub resources, your WebID profile will have <em>public access</em> as required by the
+        protocol. We will hide your email address however.</p>
+    </div>
+    </div>"""^^rdf:XMLLiteral .
+
+}
+
+<request%20access>
+{
+
+    <request%20access> a adm:RequestAccess ;
+        dct:title "Request access" ;
+        sioc:content """<div xmlns="http://www.w3.org/1999/xhtml">
+    <p class="lead">Request access</p>
+    <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
+        administrators.</p>
+    </div>"""^^rdf:XMLLiteral .
+
+}
+
+<oauth2/login>
+{
+
+    <oauth2/login> a adm:OAuth2Login ;
+        dct:title "OAuth 2.0 login" .
+
+}
+
+<oauth2/authorize/google>
+{
+
+    <oauth2/authorize/google> a adm:AuthorizeGoogle ;
+        dct:title "Google OAuth2.0 authorization" .
+
+}
 
 # QUERIES
 
 # select children
 
-<queries/default/select-children/> a adm:QueryItem ;
-    sioc:has_container <queries/default/> ;
-    dct:title "Select children" ;
-    foaf:primaryTopic <queries/default/select-children/#this> .
+<queries/default/select-children/>
+{
 
-<queries/default/select-children/#this> a adm:Select ;
-    foaf:isPrimaryTopicOf <queries/default/select-children/> ;
-    dct:title "Select children" ;
-    sp:text """
-PREFIX  dct:  <http://purl.org/dc/terms/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+    <queries/default/select-children/> a adm:QueryItem ;
+        sioc:has_container <queries/default/> ;
+        dct:title "Select children" ;
+        foaf:primaryTopic <queries/default/select-children/#this> .
 
-SELECT DISTINCT  ?child ?title ?thing
-WHERE
-{ GRAPH ?childGraphGraph
-  {   { ?child  sioc:has_parent  ?this }
-    UNION
-      { ?child  sioc:has_container  ?this }
-  }
-GRAPH ?childGraph
-  { ?child  a                     ?Type
-    OPTIONAL
-      { ?child  dct:title  ?title }
-    OPTIONAL
-      { ?child  foaf:primaryTopic ?thing }
-  }
+    <queries/default/select-children/#this> a adm:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-children/> ;
+        dct:title "Select children" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+
+    SELECT DISTINCT  ?child ?title ?thing
+    WHERE
+    { GRAPH ?childGraphGraph
+      {   { ?child  sioc:has_parent  ?this }
+        UNION
+          { ?child  sioc:has_container  ?this }
+      }
+    GRAPH ?childGraph
+      { ?child  a                     ?Type
+        OPTIONAL
+          { ?child  dct:title  ?title }
+        OPTIONAL
+          { ?child  foaf:primaryTopic ?thing }
+      }
+    }
+    """ .
+
 }
-""" .
 
 # select labelled
 
-<queries/default/select-labelled/> a adm:QueryItem ;
-    sioc:has_container <queries/default/> ;
-    dct:title "Select labelled" ;
-    foaf:primaryTopic <queries/default/select-labelled/#this> .
+<queries/default/select-labelled/>
+{
 
-<queries/default/select-labelled/#this> a adm:Select ;
-    foaf:isPrimaryTopicOf <queries/default/select-labelled/> ;
-    dct:title "Select labelled" ;
-    sp:text """
-PREFIX  dct:  <http://purl.org/dc/terms/>
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+    <queries/default/select-labelled/> a adm:QueryItem ;
+        sioc:has_container <queries/default/> ;
+        dct:title "Select labelled" ;
+        foaf:primaryTopic <queries/default/select-labelled/#this> .
 
-SELECT DISTINCT  ?resource ?label
-WHERE
-{ GRAPH ?graph
-  { ?resource a ?Type .
-    ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
-    FILTER isURI(?resource)
-    OPTIONAL
-      { ?resource  dct:created  ?created }
-  }
-}""" .
+    <queries/default/select-labelled/#this> a adm:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-labelled/> ;
+        dct:title "Select labelled" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+    PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+    PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+    SELECT DISTINCT  ?resource ?label
+    WHERE
+    { GRAPH ?graph
+      { ?resource a ?Type .
+        ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+        FILTER isURI(?resource)
+        OPTIONAL
+          { ?resource  dct:created  ?created }
+      }
+    }""" .
+
+}
 
 ### ACL ###
 
-<acl/> a adm:Container ;
-    sioc:has_parent <> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Access control" ;
-    dct:description "Manage agents, user accounts and authorizations" .
+<acl/>
+{
 
-<acl/authorizations/> a adm:Container ;
-    sioc:has_parent <acl/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Authorizations" ;
-    dct:description "Manage who has access to which resources" .
+    <acl/> a adm:Container ;
+        sioc:has_parent <> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Access control" ;
+        dct:description "Manage agents, user accounts and authorizations" .
 
-<acl/authorization-requests/> a adm:Container ;
-    sioc:has_parent <acl/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Authorization requests" ;
-    dct:description "Manage who has access to which resources" .
+}
 
-<acl/agents/> a adm:Container ;
-    sioc:has_parent <acl/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Agents" ;
-    dct:description "Manage people and software agents that have access" .
+<acl/authorizations/>
+{
 
-<acl/public-keys/> a adm:Container ;
-    sioc:has_parent <acl/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Public keys" ;
-    dct:description "Manage RSA public keys" .
+    <acl/authorizations/> a adm:Container ;
+        sioc:has_parent <acl/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Authorizations" ;
+        dct:description "Manage who has access to which resources" .
 
-<acl/users/> a adm:Container ;
-    sioc:has_parent <acl/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Users" ;
-    dct:description "Manage agent user accounts and credentials" .
+}
 
-<acl/groups/> a adm:Container ;
-    sioc:has_parent <acl/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Groups" ;
-    dct:description "Manage agent groups that have access" .
+<acl/authorization-requests/>
+{
+
+    <acl/authorization-requests/> a adm:Container ;
+        sioc:has_parent <acl/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Authorization requests" ;
+        dct:description "Manage who has access to which resources" .
+
+}
+
+<acl/agents/>
+{
+
+    <acl/agents/> a adm:Container ;
+        sioc:has_parent <acl/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Agents" ;
+        dct:description "Manage people and software agents that have access" .
+
+}
+
+<acl/public-keys/>
+{
+
+    <acl/public-keys/> a adm:Container ;
+        sioc:has_parent <acl/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Public keys" ;
+        dct:description "Manage RSA public keys" .
+
+}
+
+<acl/users/>
+{
+
+    <acl/users/> a adm:Container ;
+        sioc:has_parent <acl/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Users" ;
+        dct:description "Manage agent user accounts and credentials" .
+
+}
+
+<acl/groups/>
+{
+
+    <acl/groups/> a adm:Container ;
+        sioc:has_parent <acl/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Groups" ;
+        dct:description "Manage agent groups that have access" .
+
+}
 
 # AUTHORIZATIONS
 
 # public
 
-<acl/authorizations/public/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Public access" ;
-    foaf:primaryTopic <acl/authorizations/public/#this> .
+<acl/authorizations/public/>
+{
 
-<acl/authorizations/public/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
-    rdfs:label "Public access" ;
-    rdfs:comment "Allows unauthorized access" ;
-    acl:accessTo <ns>, <ns/domain>, <ns/templates>, # admin ontologies are public
-        <../ns>, <../ns/domain/default>, <../ns/domain/system>, <../ns/domain>, <../ns/templates> ; # end-user ontologies are public
-    acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
-    acl:mode acl:Read ;
-    acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+    <acl/authorizations/public/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Public access" ;
+        foaf:primaryTopic <acl/authorizations/public/#this> .
+
+    <acl/authorizations/public/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
+        rdfs:label "Public access" ;
+        rdfs:comment "Allows unauthorized access" ;
+        acl:accessTo <ns>, <ns/domain>, <ns/templates>, # admin ontologies are public
+            <../ns>, <../ns/domain/default>, <../ns/domain/system>, <../ns/domain>, <../ns/templates> ; # end-user ontologies are public
+        acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
+}
 
 # sign up
 
-<acl/authorizations/sign-up/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Signup access" ;
-    foaf:primaryTopic <acl/authorizations/sign-up/#this> .
+<acl/authorizations/sign-up/>
+{
 
-<acl/authorizations/sign-up/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/sign-up/> ;
-    rdfs:label "Signup access" ;
-    rdfs:comment "Required to enable public signup" ;
-    acl:accessToClass adm:SignUp ;
-    acl:mode acl:Read, acl:Append ;
-    acl:agentClass foaf:Agent .
+    <acl/authorizations/sign-up/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Signup access" ;
+        foaf:primaryTopic <acl/authorizations/sign-up/#this> .
+
+    <acl/authorizations/sign-up/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/sign-up/> ;
+        rdfs:label "Signup access" ;
+        rdfs:comment "Required to enable public signup" ;
+        acl:accessToClass adm:SignUp ;
+        acl:mode acl:Read, acl:Append ;
+        acl:agentClass foaf:Agent .
+
+}
 
 # request access
 
-<acl/authorizations/request-access/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Authorization request access" ;
-    foaf:primaryTopic <acl/authorizations/request-access/#this> .
+<acl/authorizations/request-access/>
+{
 
-<acl/authorizations/request-access/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/request-access/> ;
-    rdfs:label "Request access" ;
-    rdfs:comment "Required to enable authorization requests" ;
-    acl:accessToClass adm:RequestAccess ;
-    acl:mode acl:Read, acl:Append ;
-    acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
+    <acl/authorizations/request-access/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Authorization request access" ;
+        foaf:primaryTopic <acl/authorizations/request-access/#this> .
+
+    <acl/authorizations/request-access/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/request-access/> ;
+        rdfs:label "Request access" ;
+        rdfs:comment "Required to enable authorization requests" ;
+        acl:accessToClass adm:RequestAccess ;
+        acl:mode acl:Read, acl:Append ;
+        acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
+
+}
 
 # OAuth2 login
 
-<acl/authorizations/oauth2-login/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "OAuth2 login access" ;
-    foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
+<acl/authorizations/oauth2-login/>
+{
 
-<acl/authorizations/oauth2-login/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/oauth2-login/> ;
-    rdfs:label "OAuth2 login access" ;
-    rdfs:comment "Required to enable public OAuth2 login" ;
-    acl:accessToClass adm:OAuth2Login ;
-    acl:mode acl:Read ;
-    acl:agentClass foaf:Agent .
+    <acl/authorizations/oauth2-login/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "OAuth2 login access" ;
+        foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
+
+    <acl/authorizations/oauth2-login/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/oauth2-login/> ;
+        rdfs:label "OAuth2 login access" ;
+        rdfs:comment "Required to enable public OAuth2 login" ;
+        acl:accessToClass adm:OAuth2Login ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent .
+
+}
 
 # Google authorization
 
-<acl/authorizations/authorize-google/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Google's OAuth2 authorization" ;
-    foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
+<acl/authorizations/authorize-google/>
+{
 
-<acl/authorizations/authorize-google/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/authorize-google/> ;
-    rdfs:label "Google's OAuth2 authorization" ;
-    rdfs:comment "Required to enable public OAuth2 login" ;
-    acl:accessToClass adm:AuthorizeGoogle ;
-    acl:mode acl:Read ;
-    acl:agentClass foaf:Agent .
+    <acl/authorizations/authorize-google/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Google's OAuth2 authorization" ;
+        foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
+
+    <acl/authorizations/authorize-google/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/authorize-google/> ;
+        rdfs:label "Google's OAuth2 authorization" ;
+        rdfs:comment "Required to enable public OAuth2 login" ;
+        acl:accessToClass adm:AuthorizeGoogle ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent .
+
+}
 
 # append authorization request
 
-<acl/authorizations/append-request/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Append authorization request" ;
-    foaf:primaryTopic <acl/authorizations/append-request/#this> .
+<acl/authorizations/append-request/>
+{
 
-<acl/authorizations/append-request/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/append-request/> ;
-    rdfs:label "Append authorization request" ;
-    rdfs:comment "Required to enable authorization requests" ;
-    acl:accessTo <acl/authorization-requests/> ;
-    acl:mode acl:Append ;
-    acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
+    <acl/authorizations/append-request/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Append authorization request" ;
+        foaf:primaryTopic <acl/authorizations/append-request/#this> .
+
+    <acl/authorizations/append-request/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/append-request/> ;
+        rdfs:label "Append authorization request" ;
+        rdfs:comment "Required to enable authorization requests" ;
+        acl:accessTo <acl/authorization-requests/> ;
+        acl:mode acl:Append ;
+        acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
+
+}
 
 # OAuth
 
-<acl/authorizations/oauth2/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "OAuth 2.0 access" ;
-    foaf:primaryTopic <acl/authorizations/oauth2/#this> .
+<acl/authorizations/oauth2/>
+{
 
-<acl/authorizations/oauth2/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/oauth2/> ;
-    rdfs:label "OAuth 2.0 access" ;
-    rdfs:comment "Required to enable login with external accounts" ;
-    acl:accessTo apl:OAuth2Login, apl:AuthorizeGoogle ;
-    acl:mode acl:Read ;
-    acl:agentClass foaf:Agent .
+    <acl/authorizations/oauth2/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "OAuth 2.0 access" ;
+        foaf:primaryTopic <acl/authorizations/oauth2/#this> .
+
+    <acl/authorizations/oauth2/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/oauth2/> ;
+        rdfs:label "OAuth 2.0 access" ;
+        rdfs:comment "Required to enable login with external accounts" ;
+        acl:accessTo apl:OAuth2Login, apl:AuthorizeGoogle ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent .
+
+}
 
 # full access
 
 
-<acl/authorizations/full-control/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Full control" ;
-    foaf:primaryTopic <acl/authorizations/full-control/#this> .
+<acl/authorizations/full-control/>
+{
 
-<acl/authorizations/full-control/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/full-control/> ;
-    rdfs:label "Full control" ;
-    rdfs:comment "Allows full read/write access to all application resources" ;
-    acl:accessToClass dh:Item, dh:Container ;
-    acl:accessTo <../sparql>, <../service> ;
-    acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
-    acl:agentClass <acl/groups/owners/#this> .
+    <acl/authorizations/full-control/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Full control" ;
+        foaf:primaryTopic <acl/authorizations/full-control/#this> .
+
+    <acl/authorizations/full-control/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/full-control/> ;
+        rdfs:label "Full control" ;
+        rdfs:comment "Allows full read/write access to all application resources" ;
+        acl:accessToClass dh:Item, dh:Container ;
+        acl:accessTo <../sparql>, <../service> ;
+        acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
+        acl:agentClass <acl/groups/owners/#this> .
+
+}
 
 # write/append access
 
-<acl/authorizations/write-append/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Write/append access" ;
-    foaf:primaryTopic <acl/authorizations/write-append/#this> .
+<acl/authorizations/write-append/>
+{
 
-<acl/authorizations/write-append/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/write-append/> ;
-    rdfs:label "Write/append access" ;
-    rdfs:comment "Allows write access to all documents and containers" ;
-    acl:accessToClass dh:Item, dh:Container ;
-    acl:accessTo <../sparql>, <../service> ;
-    acl:mode acl:Write, acl:Append ;
-    acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this> .
+    <acl/authorizations/write-append/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Write/append access" ;
+        foaf:primaryTopic <acl/authorizations/write-append/#this> .
+
+    <acl/authorizations/write-append/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/write-append/> ;
+        rdfs:label "Write/append access" ;
+        rdfs:comment "Allows write access to all documents and containers" ;
+        acl:accessToClass dh:Item, dh:Container ;
+        acl:accessTo <../sparql>, <../service> ;
+        acl:mode acl:Write, acl:Append ;
+        acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this> .
+
+}
 
 # read access
 
-<acl/authorizations/read/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Read access" ;
-    foaf:primaryTopic <acl/authorizations/read/#this> .
+<acl/authorizations/read/>
+{
 
-<acl/authorizations/read/#this> a adm:Authorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/read/> ;
-    rdfs:label "Read access" ;
-    rdfs:comment "Allows read access to all resources" ;
-    acl:accessToClass c:Document, dh:Item, dh:Container, apl:File ;
-    acl:accessTo <../sparql>, <../service> ;
-    acl:mode acl:Read ;
-    acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
+    <acl/authorizations/read/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Read access" ;
+        foaf:primaryTopic <acl/authorizations/read/#this> .
+
+    <acl/authorizations/read/#this> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/read/> ;
+        rdfs:label "Read access" ;
+        rdfs:comment "Allows read access to all resources" ;
+        acl:accessToClass c:Document, dh:Item, dh:Container, apl:File ;
+        acl:accessTo <../sparql>, <../service> ;
+        acl:mode acl:Read ;
+        acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
+
+}
 
 # creator access
 
-<acl/authorizations/creator/> a adm:AuthorizationItem ;
-    sioc:has_container <acl/authorizations/> ;
-    dct:title "Creator access" ;
-    foaf:primaryTopic <acl/authorizations/creator/#this> .
+<acl/authorizations/creator/>
+{
 
-<acl/authorizations/creator/#this> a adm:CreatorAuthorization ;
-    foaf:isPrimaryTopicOf <acl/authorizations/creator/> ;
-    rdfs:label "Creator access" ;
-    rdfs:comment "Creators have full control of their created resources" ;
-    lacl:accessProperty foaf:maker ;
-    acl:accessToClass dh:Item, dh:Container ;
-    acl:agentClass acl:AuthenticatedAgent .
+    <acl/authorizations/creator/> a adm:AuthorizationItem ;
+        sioc:has_container <acl/authorizations/> ;
+        dct:title "Creator access" ;
+        foaf:primaryTopic <acl/authorizations/creator/#this> .
+
+    <acl/authorizations/creator/#this> a adm:CreatorAuthorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/creator/> ;
+        rdfs:label "Creator access" ;
+        rdfs:comment "Creators have full control of their created resources" ;
+        lacl:accessProperty foaf:maker ;
+        acl:accessToClass dh:Item, dh:Container ;
+        acl:agentClass acl:AuthenticatedAgent .
+
+}
 
 # GROUPS
 
 # owners
 
-<acl/groups/owners/> a adm:GroupItem ;
-    sioc:has_container <acl/groups/> ;
-    dct:title "Owners" ;
-    foaf:primaryTopic <acl/groups/owners/#this> .
+<acl/groups/owners/>
+{
 
-<acl/groups/owners/#this> a adm:Group ;
-    foaf:name "Owners" ;
-    dct:description "Group of agents that own the application" ;
-    foaf:isPrimaryTopicOf <acl/groups/owners/> .
+    <acl/groups/owners/> a adm:GroupItem ;
+        sioc:has_container <acl/groups/> ;
+        dct:title "Owners" ;
+        foaf:primaryTopic <acl/groups/owners/#this> .
+
+    <acl/groups/owners/#this> a adm:Group ;
+        foaf:name "Owners" ;
+        dct:description "Group of agents that own the application" ;
+        foaf:isPrimaryTopicOf <acl/groups/owners/> .
+
+}
 
 # writers
 
-<acl/groups/writers/> a adm:GroupItem ;
-    sioc:has_container <acl/groups/> ;
-    dct:title "Writers" ;
-    foaf:primaryTopic <acl/groups/writers/#this> .
+<acl/groups/writers/>
+{
 
-<acl/groups/writers/#this> a adm:Group ;
-    foaf:name "Writers" ;
-    dct:description "Group of agents that have write access" ;
-    foaf:isPrimaryTopicOf <acl/groups/writers/> .
+    <acl/groups/writers/> a adm:GroupItem ;
+        sioc:has_container <acl/groups/> ;
+        dct:title "Writers" ;
+        foaf:primaryTopic <acl/groups/writers/#this> .
+
+    <acl/groups/writers/#this> a adm:Group ;
+        foaf:name "Writers" ;
+        dct:description "Group of agents that have write access" ;
+        foaf:isPrimaryTopicOf <acl/groups/writers/> .
+
+}
 
 # readers
 
-<acl/groups/readers/> a adm:GroupItem ;
-    sioc:has_container <acl/groups/> ;
-    dct:title "Readers" ;
-    foaf:primaryTopic <acl/groups/readers/#this> .
+<acl/groups/readers/>
+{
 
-<acl/groups/readers/#this> a adm:Group ;
-    foaf:name "Readers" ;
-    dct:description "Group of agents that have read access" ;
-    foaf:isPrimaryTopicOf <acl/groups/readers/> .
+    <acl/groups/readers/> a adm:GroupItem ;
+        sioc:has_container <acl/groups/> ;
+        dct:title "Readers" ;
+        foaf:primaryTopic <acl/groups/readers/#this> .
+
+    <acl/groups/readers/#this> a adm:Group ;
+        foaf:name "Readers" ;
+        dct:description "Group of agents that have read access" ;
+        foaf:isPrimaryTopicOf <acl/groups/readers/> .
+
+}
 
 ### MODEL ###
 
 # CONTAINERS
 
-<model/> a adm:Container ;
-    sioc:has_parent <> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Model" ;
-    dct:description "Manage application model: classes, properties, constraints etc." .
+<model/>
+{
 
-<model/ontologies/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Ontologies" ;
-    dct:description "Manage ontologies that define application domain" .
+    <model/> a adm:Container ;
+        sioc:has_parent <> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Model" ;
+        dct:description "Manage application model: classes, properties, constraints etc." .
 
-<model/queries/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Queries" ;
-    dct:description "Manage SPARQL queries that are used by constructors and constraints" .
+}
 
-<model/queries/default/> a adm:Container ;
-    sioc:has_parent <model/queries/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Queries of the Default ontology" .
+<model/ontologies/>
+{
 
-<model/classes/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Classes" ;
-    dct:description "Manage application classes to define the domain model" .
+    <model/ontologies/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Ontologies" ;
+        dct:description "Manage ontologies that define application domain" .
 
-<model/classes/default/> a adm:Container ;
-    sioc:has_parent <model/classes/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Classes of the Default ontology" .
+}
 
-<model/properties/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Properties" ;
-    dct:description "Manage properties of the domain model" .
+<model/queries/>
+{
 
-<model/constraints/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Constraints" ;
-    dct:description "Manage SPIN constraints to control the quality of incoming data" .
+    <model/queries/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Queries" ;
+        dct:description "Manage SPARQL queries that are used by constructors and constraints" .
 
-<model/constraints/default/> a adm:Container ;
-    sioc:has_parent <model/constraints/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Constraints of the Default ontology" .
+}
 
-<model/restrictions/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Restrictions" ;
-    dct:description "Manage OWL restrictions on properties" .
+<model/queries/default/>
+{
 
-<model/restrictions/namespace/> a adm:Container ;
-    sioc:has_parent <model/restrictions/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Namespace" ;
-    dct:description "Restrictions of the Namespace ontology" .
+    <model/queries/default/> a adm:Container ;
+        sioc:has_parent <model/queries/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Default" ;
+        dct:description "Queries of the Default ontology" .
 
-<model/command-templates/> a adm:Container ;
-    sioc:has_parent <model/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Command templates" ;
-    dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
+}
+
+<model/classes/>
+{
+
+    <model/classes/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Classes" ;
+        dct:description "Manage application classes to define the domain model" .
+
+}
+
+<model/classes/default/>
+{
+
+    <model/classes/default/> a adm:Container ;
+        sioc:has_parent <model/classes/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Default" ;
+        dct:description "Classes of the Default ontology" .
+
+}
+
+<model/properties/>
+{
+
+    <model/properties/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Properties" ;
+        dct:description "Manage properties of the domain model" .
+
+}
+
+<model/constraints/>
+{
+
+    <model/constraints/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Constraints" ;
+        dct:description "Manage SPIN constraints to control the quality of incoming data" .
+
+}
+
+<model/constraints/default/>
+{
+
+    <model/constraints/default/> a adm:Container ;
+        sioc:has_parent <model/constraints/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Default" ;
+        dct:description "Constraints of the Default ontology" .
+
+}
+
+<model/restrictions/>
+{
+
+    <model/restrictions/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Restrictions" ;
+        dct:description "Manage OWL restrictions on properties" .
+
+}
+
+<model/restrictions/namespace/>
+{
+
+    <model/restrictions/namespace/> a adm:Container ;
+        sioc:has_parent <model/restrictions/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Namespace" ;
+        dct:description "Restrictions of the Namespace ontology" .
+
+}
+
+<model/command-templates/>
+{
+
+    <model/command-templates/> a adm:Container ;
+        sioc:has_parent <model/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Command templates" ;
+        dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
+
+}
 
 # ONTOLOGIES
 
 # default
 
-<model/ontologies/default/> a adm:OntologyItem ;
-    sioc:has_container <model/ontologies/> ;
-    dct:title "Default" ;
-    foaf:primaryTopic <model/ontologies/default/#this> .
+<model/ontologies/default/>
+{
 
-<model/ontologies/default/#this> a adm:Ontology ;
-    foaf:isPrimaryTopicOf <model/ontologies/default/>, <../ns/domain/default> ;
-    rdfs:label "Default" ;
-    rdfs:comment "Default document model" ;
-    owl:imports apl: ;
-    owl:versionInfo "1.0-SNAPSHOT" .
+    <model/ontologies/default/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
+        dct:title "Default" ;
+        foaf:primaryTopic nsdd: .
+
+    nsdd: a adm:Ontology ;
+        foaf:isPrimaryTopicOf <model/ontologies/default/>, <../ns/domain/default> ;
+        rdfs:label "Default" ;
+        rdfs:comment "Default document model" ;
+        owl:imports apl: ;
+        owl:versionInfo "1.0-SNAPSHOT" .
+
+}
 
 # system
 
-<model/ontologies/system/> a adm:OntologyItem ;
-    sioc:has_container <model/ontologies/> ;
-    dct:title "System domain" ;
-    foaf:primaryTopic <model/ontologies/system/#this> .
+<model/ontologies/system/>
+{
 
-<model/ontologies/system/#this> a adm:Ontology ;
-    foaf:isPrimaryTopicOf <model/ontologies/system/>, <../ns/domain/system> ;
-    rdfs:label "System domain" ;
-    rdfs:comment "System ontology of the application" ;
-    owl:imports <model/ontologies/default/#this> ;
-    owl:versionInfo "1.0-SNAPSHOT" .
+    <model/ontologies/system/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
+        dct:title "System domain" ;
+        foaf:primaryTopic nsds: .
+
+    nsds: a adm:Ontology ;
+        foaf:isPrimaryTopicOf <model/ontologies/system/>, <../ns/domain/system> ;
+        rdfs:label "System domain" ;
+        rdfs:comment "System ontology of the application" ;
+        owl:imports nsdd: ;
+        owl:versionInfo "1.0-SNAPSHOT" .
+
+}
 
 # domain
 
-<model/ontologies/domain/> a adm:OntologyItem ;
-    sioc:has_container <model/ontologies/> ;
-    dct:title "Domain" ;
-    foaf:primaryTopic <model/ontologies/domain/#this> .
+<model/ontologies/domain/>
+{
 
-<model/ontologies/domain/#this> a adm:Ontology ;
-    foaf:isPrimaryTopicOf <model/ontologies/domain/>, <../ns/domain> ;
-    rdfs:label "Domain" ;
-    rdfs:comment "Domain ontology of the application" ;
-    owl:versionInfo "1.0-SNAPSHOT" .
+    <model/ontologies/domain/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
+        dct:title "Domain" ;
+        foaf:primaryTopic nsd: .
+
+    nsd: a adm:Ontology ;
+        foaf:isPrimaryTopicOf <model/ontologies/domain/>, <../ns/domain> ;
+        rdfs:label "Domain" ;
+        rdfs:comment "Domain ontology of the application" ;
+        owl:versionInfo "1.0-SNAPSHOT" .
+
+}
 
 # CLASSES
 
 # root (space/container)
 
-<model/classes/default/root/> a adm:ClassItem ;
-    sioc:has_root <model/classes/default/> ;
-    dct:title "Root" ;
-    foaf:primaryTopic <model/classes/default/root/#this> .
+<model/classes/default/root/>
+{
 
-<model/classes/default/root/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/root/> ;
-    rdfs:subClassOf sioc:Space, dh:Container ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this>, <model/constraints/default/missing-select/#this> ; # roots do not have parents, therefore no <model/constraints/default/missing-parent/#this>
-    rdfs:label "Root" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/root/> a adm:ClassItem ;
+        sioc:has_root <model/classes/default/> ;
+        dct:title "Root" ;
+        foaf:primaryTopic nsdd:Root .
+
+    nsdd:Root a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/root/> ;
+        rdfs:subClassOf sioc:Space, dh:Container ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingTitle, nsdd:MissingSelect ; # roots do not have parents, therefore no nsdd:MissingParent
+        rdfs:label "Root" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # container
 
-<model/classes/default/container/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "Container" ;
-    foaf:primaryTopic <model/classes/default/container/#this> .
+<model/classes/default/container/>
+{
 
-<model/classes/default/container/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/container/> ;
-    rdfs:subClassOf dh:Container ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-parent/#this>, <model/constraints/default/missing-title/#this>, <model/constraints/default/missing-select/#this> ;
-    rdfs:label "Container" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/container/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "Container" ;
+        foaf:primaryTopic nsdd:Container .
+
+    nsdd:Container a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/container/> ;
+        rdfs:subClassOf dh:Container ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingParent, nsdd:MissingTitle, nsdd:MissingSelect ;
+        rdfs:label "Container" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # item
 
-<model/classes/default/item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "Item" ;
-    foaf:primaryTopic <model/classes/default/item/#this> .
+<model/classes/default/item/>
+{
 
-<model/classes/default/item/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/item/> ;
-    rdfs:subClassOf dh:Item ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-container/#this> ;
-    rdfs:label "Item" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "Item" ;
+        foaf:primaryTopic nsdd:Item .
+
+    nsdd:Item a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/item/> ;
+        rdfs:subClassOf dh:Item ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingContainer ;
+        rdfs:label "Item" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # generic service
 
-<model/classes/default/generic-service/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "Generic service" ;
-    foaf:primaryTopic <model/classes/default/generic-service/#this> .
+<model/classes/default/generic-service/>
+{
 
-<model/classes/default/generic-service/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/generic-service/> ;
-    rdfs:subClassOf apl:GenericService ;
-    spin:constructor <model/queries/default/title-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "Generic service" ;
-    rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/generic-service/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "Generic service" ;
+        foaf:primaryTopic nsdd:GenericService .
+
+    nsdd:GenericService a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/generic-service/> ;
+        rdfs:subClassOf apl:GenericService ;
+        spin:constructor nsdd:TitleConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "Generic service" ;
+        rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # Dydra service
 
-<model/classes/default/dydra-service/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "Dydra service" ;
-    foaf:primaryTopic <model/classes/default/dydra-service/#this> .
+<model/classes/default/dydra-service/>
+{
 
-<model/classes/default/dydra-service/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/dydra-service/> ;
-    rdfs:subClassOf apl:DydraService ;
-    spin:constructor <model/queries/default/title-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "Dydra service" ;
-    rdfs:comment "Dydra cloud repository" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/dydra-service/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "Dydra service" ;
+        foaf:primaryTopic nsdd:DydraService .
+
+    nsdd:DydraService a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/dydra-service/> ;
+        rdfs:subClassOf apl:DydraService ;
+        spin:constructor nsdd:TitleConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "Dydra service" ;
+        rdfs:comment "Dydra cloud repository" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # file
 
-<model/classes/default/file/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "File" ;
-    foaf:primaryTopic <model/classes/default/file/#this> .
+<model/classes/default/file/>
+{
 
-<model/classes/default/file/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/file/> ;
-    rdfs:subClassOf apl:File ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "File" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/file/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "File" ;
+        foaf:primaryTopic nsdd:File .
+
+    nsdd:File a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/file/> ;
+        rdfs:subClassOf apl:File ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "File" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # construct
 
-<model/classes/default/construct/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "CONSTRUCT" ;
-    foaf:primaryTopic <model/classes/default/construct/#this> .
+<model/classes/default/construct/>
+{
 
-<model/classes/default/construct/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/construct/> ;
-    rdfs:subClassOf apl:Construct ;
-    spin:constructor <model/queries/default/title-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "CONSTRUCT" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/construct/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "CONSTRUCT" ;
+        foaf:primaryTopic nsdd:Construct .
+
+    nsdd:Construct a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/construct/> ;
+        rdfs:subClassOf apl:Construct ;
+        spin:constructor nsdd:TitleConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "CONSTRUCT" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # describe
 
-<model/classes/default/describe/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "DESCRIBE" ;
-    foaf:primaryTopic <model/classes/default/describe/#this> .
+<model/classes/default/describe/>
+{
 
-<model/classes/default/describe/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/describe/> ;
-    rdfs:subClassOf apl:Describe ;
-    spin:constructor <model/queries/default/title-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "DESCRIBE" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/describe/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "DESCRIBE" ;
+        foaf:primaryTopic nsdd:Describe .
+
+    nsdd:Describe a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/describe/> ;
+        rdfs:subClassOf apl:Describe ;
+        spin:constructor nsdd:TitleConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "DESCRIBE" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # select
 
-<model/classes/default/select/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "SELECT" ;
-    foaf:primaryTopic <model/classes/default/select/#this> .
+<model/classes/default/select/>
+{
 
-<model/classes/default/select/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/select/> ;
-    rdfs:subClassOf apl:Select ;
-    spin:constructor <model/queries/default/title-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "SELECT" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/select/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "SELECT" ;
+        foaf:primaryTopic nsdd:Select .
+
+    nsdd:Select a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/select/> ;
+        rdfs:subClassOf apl:Select ;
+        spin:constructor nsdd:TitleConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "SELECT" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # ask
 
-<model/classes/default/ask/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "ASK" ;
-    foaf:primaryTopic <model/classes/default/ask/#this> .
+<model/classes/default/ask/>
+{
 
-<model/classes/default/ask/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/ask/> ;
-    rdfs:subClassOf apl:Ask ;
-    spin:constructor <model/queries/default/title-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "ASK" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/ask/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "ASK" ;
+        foaf:primaryTopic nsdd:Ask .
+
+    nsdd:Ask a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/ask/> ;
+        rdfs:subClassOf apl:Ask ;
+        spin:constructor nsdd:TitleConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "ASK" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # RDF import
 
-<model/classes/default/rdf-import/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "RDF import" ;
-    foaf:primaryTopic <model/classes/default/rdf-import/#this> .
+<model/classes/default/rdf-import/>
+{
 
-<model/classes/default/rdf-import/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/rdf-import/> ;
-    rdfs:subClassOf apl:RDFImport ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "RDF import" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/rdf-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "RDF import" ;
+        foaf:primaryTopic nsdd:RDFImport .
+
+    nsdd:RDFImport a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/rdf-import/> ;
+        rdfs:subClassOf apl:RDFImport ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "RDF import" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # CSV import
 
-<model/classes/default/csv-import/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "CSV import" ;
-    foaf:primaryTopic <model/classes/default/csv-import/#this> .
+<model/classes/default/csv-import/>
+{
 
-<model/classes/default/csv-import/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/csv-import/> ;
-    rdfs:subClassOf apl:CSVImport ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "CSV import" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/csv-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "CSV import" ;
+        foaf:primaryTopic nsdd:CSVImport .
+
+    nsdd:CSVImport a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/csv-import/> ;
+        rdfs:subClassOf apl:CSVImport ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "CSV import" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # graph chart
 
-<model/classes/default/graph-chart/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "Graph chart" ;
-    foaf:primaryTopic <model/classes/default/graph-chart/#this> .
+<model/classes/default/graph-chart/>
+{
 
-<model/classes/default/graph-chart/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/graph-chart/> ;
-    rdfs:subClassOf apl:GraphChart ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "Graph chart" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/graph-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "Graph chart" ;
+        foaf:primaryTopic nsdd:GraphChart .
+
+    nsdd:GraphChart a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/graph-chart/> ;
+        rdfs:subClassOf apl:GraphChart ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "Graph chart" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # result set chart
 
-<model/classes/default/result-set-chart/> a adm:ClassItem ;
-    sioc:has_container <model/classes/default/> ;
-    dct:title "Result set chart" ;
-    foaf:primaryTopic <model/classes/default/result-set-chart/#this> .
+<model/classes/default/result-set-chart/>
+{
 
-<model/classes/default/result-set-chart/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/default/result-set-chart/> ;
-    rdfs:subClassOf apl:ResultSetChart ;
-    spin:constructor <model/queries/default/title-constructor/#this>, <model/queries/default/content-constructor/#this>, <model/queries/default/attachment-constructor/#this> ;
-    spin:constraint <model/constraints/default/missing-title/#this> ;
-    rdfs:label "Result set chart" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/classes/default/result-set-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/default/> ;
+        dct:title "Result set chart" ;
+        foaf:primaryTopic nsdd:ResultSetChart .
+
+    nsdd:ResultSetChart a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/default/result-set-chart/> ;
+        rdfs:subClassOf apl:ResultSetChart ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constraint nsdd:MissingTitle ;
+        rdfs:label "Result set chart" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # QUERIES
 
 # title constructor
 
-<model/queries/default/title-constructor/> a adm:QueryItem ;
-    sioc:has_container <model/queries/default/> ;
-    dct:title "Title constructor" ;
-    foaf:primaryTopic <model/queries/default/title-constructor/#this> .
+<model/queries/default/title-constructor/>
+{
 
-<model/queries/default/title-constructor/#this> a adm:Construct ;
-    foaf:isPrimaryTopicOf <model/queries/default/title-constructor/> ;
-    rdfs:label "Title constructor" ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dct:     <http://purl.org/dc/terms/>
+    <model/queries/default/title-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
+        dct:title "Title constructor" ;
+        foaf:primaryTopic nsdd:TitleConstructor .
 
-        CONSTRUCT {
-          ?this dct:title [ a xsd:string ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    nsdd:TitleConstructor a adm:Construct ;
+        foaf:isPrimaryTopicOf <model/queries/default/title-constructor/> ;
+        rdfs:label "Title constructor" ;
+        sp:text """
+            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX dct:     <http://purl.org/dc/terms/>
+
+            CONSTRUCT {
+              ?this dct:title [ a xsd:string ] .
+            }
+            WHERE {}""" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # description constructor
 
-<model/queries/default/description-constructor/> a adm:QueryItem ;
-    sioc:has_container <model/queries/default/> ;
-    dct:description "Description constructor" ;
-    foaf:primaryTopic <model/queries/default/description-constructor/#this> .
+<model/queries/default/description-constructor/>
+{
 
-<model/queries/default/description-constructor/#this> a adm:Construct ;
-    foaf:isPrimaryTopicOf <model/queries/default/description-constructor/> ;
-    rdfs:label "Description constructor" ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dct:     <http://purl.org/dc/terms/>
+    <model/queries/default/description-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
+        dct:description "Description constructor" ;
+        foaf:primaryTopic nsdd:DescriptionConstructor .
 
-        CONSTRUCT {
-          ?this dct:description [ a xsd:string ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    nsdd:DescriptionConstructor a adm:Construct ;
+        foaf:isPrimaryTopicOf <model/queries/default/description-constructor/> ;
+        rdfs:label "Description constructor" ;
+        sp:text """
+            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX dct:     <http://purl.org/dc/terms/>
+
+            CONSTRUCT {
+              ?this dct:description [ a xsd:string ] .
+            }
+            WHERE {}""" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # content constructor
 
-<model/queries/default/content-constructor/> a adm:QueryItem ;
-    sioc:has_container <model/queries/default/> ;
-    dct:title "Content constructor" ;
-    foaf:primaryTopic <model/queries/default/content-constructor/#this> .
+<model/queries/default/content-constructor/>
+{
 
-<model/queries/default/content-constructor/#this> a adm:Construct ;
-    foaf:isPrimaryTopicOf <model/queries/default/content-constructor/> ;
-    rdfs:label "Content constructor" ;
-    sp:text """
-        PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+    <model/queries/default/content-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
+        dct:title "Content constructor" ;
+        foaf:primaryTopic nsdd:ContentConstructor .
 
-        CONSTRUCT {
-          ?this apl:content [ a apl:Content ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    nsdd:ContentConstructor a adm:Construct ;
+        foaf:isPrimaryTopicOf <model/queries/default/content-constructor/> ;
+        rdfs:label "Content constructor" ;
+        sp:text """
+            PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+
+            CONSTRUCT {
+              ?this apl:content [ a apl:Content ] .
+            }
+            WHERE {}""" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # attachment constructor
 
-<model/queries/default/attachment-constructor/> a adm:QueryItem ;
-    sioc:has_container <model/queries/default/> ;
-    dct:title "Attachment constructor" ;
-    foaf:primaryTopic <model/queries/default/attachment-constructor/#this> .
+<model/queries/default/attachment-constructor/>
+{
 
-<model/queries/default/attachment-constructor/#this> a adm:Construct ;
-    foaf:isPrimaryTopicOf <model/queries/default/attachment-constructor/> ;
-    rdfs:label "Attachment constructor" ;
-    sp:text """
-        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+    <model/queries/default/attachment-constructor/> a adm:QueryItem ;
+        sioc:has_container <model/queries/default/> ;
+        dct:title "Attachment constructor" ;
+        foaf:primaryTopic nsdd:AttachmentConstructor .
 
-        CONSTRUCT {
-          ?this sioc:attachment [ a rdfs:Resource ] .
-        }
-        WHERE {}""" ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    nsdd:AttachmentConstructor a adm:Construct ;
+        foaf:isPrimaryTopicOf <model/queries/default/attachment-constructor/> ;
+        rdfs:label "Attachment constructor" ;
+        sp:text """
+            PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX sioc:    <http://rdfs.org/sioc/ns#>
+
+            CONSTRUCT {
+              ?this sioc:attachment [ a rdfs:Resource ] .
+            }
+            WHERE {}""" ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 # CONSTRAINTS
 
-<model/constraints/default/missing-parent/> a adm:ConstraintItem ;
-    sioc:has_container <model/constraints/default/> ;
-    dct:title "Missing parent" ;
-    foaf:primaryTopic <model/constraints/default/missing-parent/#this> .
+<model/constraints/default/missing-parent/>
+{
 
-<model/constraints/default/missing-parent/#this> a adm:MissingPropertyValue ;
-    foaf:isPrimaryTopicOf <model/constraints/default/missing-parent/> ;
-    rdfs:label "Missing parent" ;
-    rdfs:comment "Requires containers to have a parent container" ;
-    sp:arg1 sioc:has_parent ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/constraints/default/missing-parent/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
+        dct:title "Missing parent" ;
+        foaf:primaryTopic nsdd:MissingParent .
 
-<model/constraints/default/missing-container/> a adm:ConstraintItem ;
-    sioc:has_container <model/constraints/default/> ;
-    dct:title "Missing container" ;
-    foaf:primaryTopic <model/constraints/default/missing-container/#this> .
+    nsdd:MissingParent a adm:MissingPropertyValue ;
+        foaf:isPrimaryTopicOf <model/constraints/default/missing-parent/> ;
+        rdfs:label "Missing parent" ;
+        rdfs:comment "Requires containers to have a parent container" ;
+        sp:arg1 sioc:has_parent ;
+        rdfs:isDefinedBy nsdd: .
 
-<model/constraints/default/missing-container/#this> a adm:MissingPropertyValue ;
-    foaf:isPrimaryTopicOf <model/constraints/default/missing-container/> ;
-    rdfs:label "Missing container" ;
-    rdfs:comment "Requires items to have a parent container" ;
-    sp:arg1 sioc:has_container ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+}
 
-<model/constraints/default/missing-title/> a adm:ConstraintItem ;
-    sioc:has_container <model/constraints/default/> ;
-    dct:title "Missing title" ;
-    foaf:primaryTopic <model/constraints/default/missing-title/#this> .
+<model/constraints/default/missing-container/>
+{
 
-<model/constraints/default/missing-title/#this> a adm:MissingPropertyValue ;
-    foaf:isPrimaryTopicOf <model/constraints/default/missing-title/> ;
-    rdfs:label "Missing title" ;
-    rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
-    sp:arg1 dct:title ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+    <model/constraints/default/missing-container/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
+        dct:title "Missing container" ;
+        foaf:primaryTopic nsdd:MissingContainer .
 
-<model/constraints/default/missing-select/> a adm:ConstraintItem ;
-    sioc:has_container <model/constraints/default/> ;
-    dct:title "Missing select" ;
-    foaf:primaryTopic <model/constraints/default/missing-select/#this> .
+    nsdd:MissingContainer a adm:MissingPropertyValue ;
+        foaf:isPrimaryTopicOf <model/constraints/default/missing-container/> ;
+        rdfs:label "Missing container" ;
+        rdfs:comment "Requires items to have a parent container" ;
+        sp:arg1 sioc:has_container ;
+        rdfs:isDefinedBy nsdd: .
 
-<model/constraints/default/missing-select/#this> a adm:MissingPropertyValue ;
-    foaf:isPrimaryTopicOf <model/constraints/default/missing-select/> ;
-    rdfs:label "Missing select" ;
-    rdfs:comment "Requires container to have an attached SPIN SELECT query" ;
-    sp:arg1 dh:select ;
-    rdfs:isDefinedBy <model/ontologies/default/#this> .
+}
+
+<model/constraints/default/missing-title/>
+{
+
+    <model/constraints/default/missing-title/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
+        dct:title "Missing title" ;
+        foaf:primaryTopic nsdd:MissingTitle .
+
+    nsdd:MissingTitle a adm:MissingPropertyValue ;
+        foaf:isPrimaryTopicOf <model/constraints/default/missing-title/> ;
+        rdfs:label "Missing title" ;
+        rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
+        sp:arg1 dct:title ;
+        rdfs:isDefinedBy nsdd: .
+
+}
+
+<model/constraints/default/missing-select/>
+{
+
+    <model/constraints/default/missing-select/> a adm:ConstraintItem ;
+        sioc:has_container <model/constraints/default/> ;
+        dct:title "Missing select" ;
+        foaf:primaryTopic nsdd:MissingSelect .
+
+    nsdd:MissingSelect a adm:MissingPropertyValue ;
+        foaf:isPrimaryTopicOf <model/constraints/default/missing-select/> ;
+        rdfs:label "Missing select" ;
+        rdfs:comment "Requires container to have an attached SPIN SELECT query" ;
+        sp:arg1 dh:select ;
+        rdfs:isDefinedBy nsdd: .
+
+}
 
 ### SITEMAP ###
 
 # CONTAINERS
 
-<sitemap/> a adm:Container ;
-    sioc:has_parent <> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Sitemap" ;
-    dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
+<sitemap/>
+{
 
-<sitemap/ontologies/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Ontologies" ;
-    dct:description "Manage ontologies that define application structure" .
+    <sitemap/> a adm:Container ;
+        sioc:has_parent <> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Sitemap" ;
+        dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
 
-<sitemap/queries/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Queries" ;
-    dct:description "Manage SPARQL queries that are used by templates and constraints" .
+}
 
-<sitemap/updates/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Updates" ;
-    dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
+<sitemap/ontologies/>
+{
 
-<sitemap/templates/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Templates" ;
-    dct:description "Manage LDT template that define the Linked Data API of the application by mapping URI templates to SPARQL" .
+    <sitemap/ontologies/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Ontologies" ;
+        dct:description "Manage ontologies that define application structure" .
 
-<sitemap/templates/templates/> a adm:Container ;
-    sioc:has_parent <sitemap/templates/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Templates of the Templates ontology" .
+}
 
-<sitemap/parameters/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Parameters" ;
-    dct:description "Manage LDT template parameters that define what values can be passed to resources" .
+<sitemap/queries/>
+{
 
-<sitemap/command-templates/> a adm:Container ;
-    sioc:has_parent <sitemap/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Command templates" ;
-    dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
+    <sitemap/queries/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Queries" ;
+        dct:description "Manage SPARQL queries that are used by templates and constraints" .
+
+}
+
+<sitemap/updates/>
+{
+
+    <sitemap/updates/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Updates" ;
+        dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
+
+}
+
+<sitemap/templates/>
+{
+
+    <sitemap/templates/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Templates" ;
+        dct:description "Manage LDT template that define the Linked Data API of the application by mapping URI templates to SPARQL" .
+
+}
+
+<sitemap/templates/templates/>
+{
+
+    <sitemap/templates/templates/> a adm:Container ;
+        sioc:has_parent <sitemap/templates/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Default" ;
+        dct:description "Templates of the Templates ontology" .
+
+}
+
+<sitemap/parameters/>
+{
+
+    <sitemap/parameters/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Parameters" ;
+        dct:description "Manage LDT template parameters that define what values can be passed to resources" .
+
+}
+
+<sitemap/command-templates/>
+{
+
+    <sitemap/command-templates/> a adm:Container ;
+        sioc:has_parent <sitemap/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Command templates" ;
+        dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
+
+}
 
 # ONTOLOGIES
 
 # namespace
 
-<model/ontologies/namespace/> a adm:OntologyItem ;
-    sioc:has_container <model/ontologies/> ;
-    dct:title "Namespace" ;
-    foaf:primaryTopic <model/ontologies/namespace/#this> .
+<model/ontologies/namespace/>
+{
 
-<model/ontologies/namespace/#this> a adm:Ontology ;
-    foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
-    rdfs:label "Namespace" ;
-    rdfs:comment "Namespace of the application" ;
-    owl:imports <model/ontologies/domain/#this>, <model/ontologies/system/#this>, <sitemap/ontologies/templates/#this> ;
-    owl:versionInfo "1.0-SNAPSHOT" .
+    <model/ontologies/namespace/> a adm:OntologyItem ;
+        sioc:has_container <model/ontologies/> ;
+        dct:title "Namespace" ;
+        foaf:primaryTopic ns: .
+
+    ns: a adm:Ontology ;
+        foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
+        rdfs:label "Namespace" ;
+        rdfs:comment "Namespace of the application" ;
+        owl:imports nsd:, nsds:, nst: ;
+        owl:versionInfo "1.0-SNAPSHOT" .
+
+}
 
 # templates
 
-<sitemap/ontologies/templates/> a adm:OntologyItem ;
-    sioc:has_container <sitemap/ontologies/> ;
-    dct:title "Templates" ;
-    foaf:primaryTopic <sitemap/ontologies/templates/#this> .
+<sitemap/ontologies/templates/>
+{
 
-<sitemap/ontologies/templates/#this> a adm:Ontology ;
-    foaf:isPrimaryTopicOf <sitemap/ontologies/templates/>, <../ns/templates> ;
-    rdfs:label "Templates" ;
-    rdfs:comment "Templates of the application" ;
-    owl:imports aplt: ;
-    owl:versionInfo "1.0-SNAPSHOT" .
+    <sitemap/ontologies/templates/> a adm:OntologyItem ;
+        sioc:has_container <sitemap/ontologies/> ;
+        dct:title "Templates" ;
+        foaf:primaryTopic nst: .
+
+    nst: a adm:Ontology ;
+        foaf:isPrimaryTopicOf <sitemap/ontologies/templates/>, <../ns/templates> ;
+        rdfs:label "Templates" ;
+        rdfs:comment "Templates of the application" ;
+        owl:imports aplt: ;
+        owl:versionInfo "1.0-SNAPSHOT" .
+
+}
 
 # TEMPLATES
 
 # namespace ontology
 
-<sitemap/templates/templates/namespace-ontology/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Namespace ontology" ;
-    foaf:primaryTopic <sitemap/templates/templates/namespace-ontology/#this> .
+<sitemap/templates/templates/namespace-ontology/>
+{
 
-<sitemap/templates/templates/namespace-ontology/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/namespace-ontology/> ;
-    ldt:extends aplt:NamespaceOntology ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Namespace ontology" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/namespace-ontology/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Namespace ontology" ;
+        foaf:primaryTopic nst:NamespaceOntology .
+
+    nst:NamespaceOntology a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/namespace-ontology/> ;
+        ldt:extends aplt:NamespaceOntology ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Namespace ontology" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # sub-ontology
 
-<sitemap/templates/templates/sub-ontology/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Sub-ontology" ;
-    foaf:primaryTopic <sitemap/templates/templates/sub-ontology/#this> .
+<sitemap/templates/templates/sub-ontology/>
+{
 
-<sitemap/templates/templates/sub-ontology/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/sub-ontology/> ;
-    ldt:extends aplt:SubOntology ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Sub-ontology" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/sub-ontology/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Sub-ontology" ;
+        foaf:primaryTopic nst:SubOntology .
+
+    nst:SubOntology a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/sub-ontology/> ;
+        ldt:extends aplt:SubOntology ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Sub-ontology" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # SPARQL endpoint
 
-<sitemap/templates/templates/sparql-endpoint/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "SPARQL endpoint" ;
-    foaf:primaryTopic <sitemap/templates/templates/sparql-endpoint/#this> .
+<sitemap/templates/templates/sparql-endpoint/>
+{
 
-<sitemap/templates/templates/sparql-endpoint/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/sparql-endpoint/> ;
-    ldt:extends aplt:SPARQLEndpoint ;
-    rdfs:label "SPARQL endpoint" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/sparql-endpoint/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "SPARQL endpoint" ;
+        foaf:primaryTopic nst:SPARQLEndpoint .
+
+    nst:SPARQLEndpoint a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/sparql-endpoint/> ;
+        ldt:extends aplt:SPARQLEndpoint ;
+        rdfs:label "SPARQL endpoint" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # graph store
 
-<sitemap/templates/templates/graph-store/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Graph store" ;
-    foaf:primaryTopic <sitemap/templates/templates/graph-store/#this> .
+<sitemap/templates/templates/graph-store/>
+{
 
-<sitemap/templates/templates/graph-store/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-store/> ;
-    ldt:extends aplt:GraphStore ;
-    rdfs:label "Graph store" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/graph-store/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Graph store" ;
+        foaf:primaryTopic nst:GraphStore .
+
+    nst:GraphStore a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/graph-store/> ;
+        ldt:extends aplt:GraphStore ;
+        rdfs:label "Graph store" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # item
 
-<sitemap/templates/templates/document/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Document" ;
-    foaf:primaryTopic <sitemap/templates/templates/document/#this> .
+<sitemap/templates/templates/document/>
+{
 
-<sitemap/templates/templates/document/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
-    ldt:extends aplt:Document ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Document" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/document/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Document" ;
+        foaf:primaryTopic nst:Document .
+
+    nst:Document a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/document/> ;
+        ldt:extends aplt:Document ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Document" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # file container
 
-<sitemap/templates/templates/file-container/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "File container" ;
-    foaf:primaryTopic <sitemap/templates/templates/file-container/#this> .
+<sitemap/templates/templates/file-container/>
+{
 
-<sitemap/templates/templates/file-container/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/file-container/> ;
-    ldt:extends aplt:FileContainer ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "File container" ;
-    rdfs:comment "Provides multipart file upload capability to matching containers" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/file-container/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "File container" ;
+        foaf:primaryTopic nst:FileContainer .
+
+    nst:FileContainer a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/file-container/> ;
+        ldt:extends aplt:FileContainer ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "File container" ;
+        rdfs:comment "Provides multipart file upload capability to matching containers" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # file
 
-<sitemap/templates/templates/file/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "File" ;
-    foaf:primaryTopic <sitemap/templates/templates/file/#this> .
+<sitemap/templates/templates/file/>
+{
 
-<sitemap/templates/templates/file/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/file/> ;
-    ldt:extends aplt:File ;
-    ldt:cacheControl "public, max-age=31536000" ; # content-addressed documents never change, therefore never expire
-    rdfs:label "File" ;
-    rdfs:comment "A document that represents an uploaded file" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/file/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "File" ;
+        foaf:primaryTopic nst:File .
+
+    nst:File a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/file/> ;
+        ldt:extends aplt:File ;
+        ldt:cacheControl "public, max-age=31536000" ; # content-addressed documents never change, therefore never expire
+        rdfs:label "File" ;
+        rdfs:comment "A document that represents an uploaded file" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # import container
 
-<sitemap/templates/templates/import-container/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Import container" ;
-    foaf:primaryTopic <sitemap/templates/templates/import-container/#this> .
+<sitemap/templates/templates/import-container/>
+{
 
-<sitemap/templates/templates/import-container/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/import-container/> ;
-    ldt:extends aplt:ImportContainer ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Import container" ;
-    rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/import-container/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Import container" ;
+        foaf:primaryTopic nst:ImportContainer .
+
+    nst:ImportContainer a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/import-container/> ;
+        ldt:extends aplt:ImportContainer ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Import container" ;
+        rdfs:comment "Provides CSV-to-RDF import capability to matching containers" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 # import item
 
-<sitemap/templates/templates/import-item/> a adm:TemplateItem ;
-    sioc:has_container <sitemap/templates/templates/> ;
-    dct:title "Import item" ;
-    foaf:primaryTopic <sitemap/templates/templates/import-item/#this> .
+<sitemap/templates/templates/import-item/>
+{
 
-<sitemap/templates/templates/import-item/#this> a adm:Template ;
-    foaf:isPrimaryTopicOf <sitemap/templates/templates/import-item/> ;
-    ldt:extends aplt:ImportItem ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Import item" ;
-    rdfs:isDefinedBy <sitemap/ontologies/templates/#this> .
+    <sitemap/templates/templates/import-item/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Import item" ;
+        foaf:primaryTopic nst:ImportItem .
+
+    nst:ImportItem a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/import-item/> ;
+        ldt:extends aplt:ImportItem ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Import item" ;
+        rdfs:isDefinedBy nst: .
+
+}
 
 ### NAMESPACE
 
@@ -1073,949 +1513,1486 @@ WHERE
 
 # generic service
 
-<model/classes/domain/services/generic/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/services/> ;
-    dct:title "Generic service" ;
-    foaf:primaryTopic <model/classes/domain/services/generic/#this> .
+<model/classes/domain/services/generic/>
+{
 
-<model/classes/domain/services/generic/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/services/generic/> ;
-    rdfs:subClassOf <model/classes/default/generic-service/#this>, <model/restrictions/topic-of-service-item/#this> ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Generic service" ;
-    rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/services/generic/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/services/> ;
+        dct:title "Generic service" ;
+        foaf:primaryTopic nsds:GenericService .
+
+    nsds:GenericService a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/services/generic/> ;
+        rdfs:subClassOf nsdd:GenericService, nsds:TopicOfServiceItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Generic service" ;
+        rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # Dydra service
 
-<model/classes/domain/services/dydra/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/services/> ;
-    dct:title "Dydra service" ;
-    foaf:primaryTopic <model/classes/domain/services/dydra/#this> .
+<model/classes/domain/services/dydra/>
+{
 
-<model/classes/domain/services/dydra/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/services/dydra/> ;
-    rdfs:subClassOf <model/classes/default/dydra-service/#this>, <model/restrictions/topic-of-service-item/#this> ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Dydra service" ;
-    rdfs:comment "Dydra cloud repository" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/services/dydra/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/services/> ;
+        dct:title "Dydra service" ;
+        foaf:primaryTopic nsds:DydraService .
+
+    nsds:DydraService a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/services/dydra/> ;
+        rdfs:subClassOf nsdd:DydraService, nsds:TopicOfServiceItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Dydra service" ;
+        rdfs:comment "Dydra cloud repository" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # service item
 
-<model/classes/domain/services/service-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/services/> ;
-    dct:title "Service item" ;
-    foaf:primaryTopic <model/classes/domain/services/service-item/#this> .
+<model/classes/domain/services/service-item/>
+{
 
-<model/classes/domain/services/service-item/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/services/service-item/> ;
-    rdfs:subClassOf <model/classes/default/item/#this>, <model/restrictions/domain/services-container/#this> ; # <model/classes/default/item/#this>, <model/restrictions/domain/services-container/#this> ;
-    rdfs:label "Service item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/services/service-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/services/> ;
+        dct:title "Service item" ;
+        foaf:primaryTopic nsds:ServiceItem .
+
+    nsds:ServiceItem a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/services/service-item/> ;
+        rdfs:subClassOf nsdd:Item, nsds:ItemOfServiceContainer ; # nsdd:Item, nsds:ItemOfServiceContainer ;
+        rdfs:label "Service item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # file
 
-<model/classes/domain/file/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "File" ;
-    foaf:primaryTopic <model/classes/domain/file/#this> .
+<model/classes/domain/file/>
+{
 
-<model/classes/domain/file/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/file/> ;
-    rdfs:subClassOf <model/classes/default/file/#this>, <model/restrictions/domain/topic-of-file-item/#this>, <model/restrictions/domain/uploads-container/#this> ;
-    rdfs:label "File" ;
-    rdfs:comment "A document that represents an uploaded file" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/file/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "File" ;
+        foaf:primaryTopic nsds:File .
+
+    nsds:File a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/file/> ;
+        rdfs:subClassOf nsdd:File, nsds:TopicOfFileItem, nsds:ItemOfFileContainer ;
+        rdfs:label "File" ;
+        rdfs:comment "A document that represents an uploaded file" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # file item
 
-<model/classes/domain/file-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "File item" ;
-    foaf:primaryTopic <model/classes/domain/file-item/#this> .
+<model/classes/domain/file-item/>
+{
 
-<model/classes/domain/file-item/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/file-item/> ;
-    rdfs:subClassOf <model/classes/default/item/#this>, <model/restrictions/domain/files-container/#this> ;
-    rdfs:label "File item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/file-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "File item" ;
+        foaf:primaryTopic nsds:FileItem .
+
+    nsds:FileItem a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/file-item/> ;
+        rdfs:subClassOf nsdd:Item, nsds:ItemOfFilesContainer ;
+        rdfs:label "File item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # RDF import
 
-<model/classes/domain/rdf-import/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "RDF import" ;
-    foaf:primaryTopic <model/classes/domain/rdf-import/#this> .
+<model/classes/domain/rdf-import/>
+{
 
-<model/classes/domain/rdf-import/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/rdf-import/> ;
-    rdfs:subClassOf <model/classes/default/rdf-import/#this>, <model/restrictions/domain/topic-of-import-item/#this> ;
-    rdfs:label "RDF import" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/rdf-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "RDF import" ;
+        foaf:primaryTopic nsds:RDFImport .
+
+    nsds:RDFImport a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/rdf-import/> ;
+        rdfs:subClassOf nsdd:RDFImport, nsds:TopicOfImportItem ;
+        rdfs:label "RDF import" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # CSV import
 
-<model/classes/domain/csv-import/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "CSV import" ;
-    foaf:primaryTopic <model/classes/domain/csv-import/#this> .
+<model/classes/domain/csv-import/>
+{
 
-<model/classes/domain/csv-import/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/csv-import/> ;
-    rdfs:subClassOf <model/classes/default/csv-import/#this>, <model/restrictions/domain/topic-of-import-item/#this> ;
-    rdfs:label "CSV import" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/csv-import/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "CSV import" ;
+        foaf:primaryTopic nsds:CSVImport .
+
+    nsds:CSVImport a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/csv-import/> ;
+        rdfs:subClassOf nsdd:CSVImport, nsds:TopicOfImportItem ;
+        rdfs:label "CSV import" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # import item
 
-<model/classes/domain/import-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "Import item" ;
-    foaf:primaryTopic <model/classes/domain/import-item/#this> .
+<model/classes/domain/import-item/>
+{
 
-<model/classes/domain/import-item/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/import-item/> ;
-    rdfs:subClassOf <model/classes/default/item/#this>, <model/restrictions/domain/imports-container/#this> ;
-    rdfs:label "Import item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/import-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "Import item" ;
+        foaf:primaryTopic nsds:ImportItem .
+
+    nsds:ImportItem a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/import-item/> ;
+        rdfs:subClassOf nsdd:Item, nsds:ItemOfImportsContainer ;
+        rdfs:label "Import item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # construct
 
-<model/classes/domain/construct/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "CONSTRUCT" ;
-    foaf:primaryTopic <model/classes/domain/construct/#this> .
+<model/classes/domain/construct/>
+{
 
-<model/classes/domain/construct/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/construct/> ;
-    rdfs:subClassOf <model/classes/default/construct/#this>, <model/restrictions/domain/topic-of-query-item/#this> ;
-    rdfs:label "CONSTRUCT" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/construct/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "CONSTRUCT" ;
+        foaf:primaryTopic nsds:Construct .
+
+    nsds:Construct a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/construct/> ;
+        rdfs:subClassOf nsdd:Construct, nsds:TopicOfQueryItem ;
+        rdfs:label "CONSTRUCT" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # describe
 
-<model/classes/domain/describe/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "DESCRIBE" ;
-    foaf:primaryTopic <model/classes/domain/describe/#this> .
+<model/classes/domain/describe/>
+{
 
-<model/classes/domain/describe/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/describe/> ;
-    rdfs:subClassOf <model/classes/default/describe/#this>, <model/restrictions/domain/topic-of-query-item/#this> ;
-    rdfs:label "DESCRIBE" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/describe/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "DESCRIBE" ;
+        foaf:primaryTopic nsds:Describe .
+
+    nsds:Describe a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/describe/> ;
+        rdfs:subClassOf nsdd:Describe, nsds:TopicOfQueryItem ;
+        rdfs:label "DESCRIBE" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # select
 
-<model/classes/domain/select/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "SELECT" ;
-    foaf:primaryTopic <model/classes/domain/select/#this> .
+<model/classes/domain/select/>
+{
 
-<model/classes/domain/select/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/select/> ;
-    rdfs:subClassOf <model/classes/default/select/#this>, <model/restrictions/domain/topic-of-query-item/#this> ;
-    rdfs:label "SELECT" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/select/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "SELECT" ;
+        foaf:primaryTopic nsds:Select .
+
+    nsds:Select a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/select/> ;
+        rdfs:subClassOf nsdd:Select, nsds:TopicOfQueryItem ;
+        rdfs:label "SELECT" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # ask
 
-<model/classes/domain/ask/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "ASK" ;
-    foaf:primaryTopic <model/classes/domain/ask/#this> .
+<model/classes/domain/ask/>
+{
 
-<model/classes/domain/ask/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/ask/> ;
-    rdfs:subClassOf <model/classes/default/ask/#this>, <model/restrictions/domain/topic-of-query-item/#this> ;
-    rdfs:label "ASK" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/ask/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "ASK" ;
+        foaf:primaryTopic nsds:Ask .
+
+    nsds:Ask a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/ask/> ;
+        rdfs:subClassOf nsdd:Ask, nsds:TopicOfQueryItem ;
+        rdfs:label "ASK" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # query item
 
-<model/classes/domain/query-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "Query item" ;
-    foaf:primaryTopic <model/classes/domain/query-item/#this> .
+<model/classes/domain/query-item/>
+{
 
-<model/classes/domain/query-item/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/query-item/> ;
-    rdfs:subClassOf <model/classes/default/item/#this>, <model/restrictions/domain/queries-container/#this> ;
-    rdfs:label "Query item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/query-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "Query item" ;
+        foaf:primaryTopic nsds:QueryItem .
+
+    nsds:QueryItem a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/query-item/> ;
+        rdfs:subClassOf nsdd:Item, nsds:ItemOfQueriesContainer ;
+        rdfs:label "Query item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # graph chart
 
-<model/classes/domain/graph-chart/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "Graph chart" ;
-    foaf:primaryTopic <model/classes/domain/graph-chart/#this> .
+<model/classes/domain/graph-chart/>
+{
 
-<model/classes/domain/graph-chart/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/graph-chart/> ;
-    rdfs:subClassOf <model/classes/default/graph-chart/#this>, <model/restrictions/domain/topic-of-chart-item/#this> ;
-    rdfs:label "Graph chart" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/graph-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "Graph chart" ;
+        foaf:primaryTopic nsds:GraphChart .
+
+    nsds:GraphChart a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/graph-chart/> ;
+        rdfs:subClassOf nsdd:GraphChart, nsds:TopicOfChartItem ;
+        rdfs:label "Graph chart" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # result set chart
 
-<model/classes/domain/result-set-chart/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "Result set chart" ;
-    foaf:primaryTopic <model/classes/domain/result-set-chart/#this> .
+<model/classes/domain/result-set-chart/>
+{
 
-<model/classes/domain/result-set-chart/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/result-set-chart/> ;
-    rdfs:subClassOf <model/classes/default/result-set-chart/#this>, <model/restrictions/domain/topic-of-chart-item/#this> ;
-    rdfs:label "Result set chart" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/result-set-chart/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "Result set chart" ;
+        foaf:primaryTopic nsds:ResultSetChart .
+
+    nsds:ResultSetChart a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/result-set-chart/> ;
+        rdfs:subClassOf nsdd:ResultSetChart, nsds:TopicOfChartItem ;
+        rdfs:label "Result set chart" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # chart item
 
-<model/classes/domain/chart-item/> a adm:ClassItem ;
-    sioc:has_container <model/classes/domain/> ;
-    dct:title "Chart item" ;
-    foaf:primaryTopic <model/classes/domain/chart-item/#this> .
+<model/classes/domain/chart-item/>
+{
 
-<model/classes/domain/chart-item/#this> a adm:Class ;
-    foaf:isPrimaryTopicOf <model/classes/domain/chart-item/> ;
-    rdfs:subClassOf <model/classes/default/item/#this>, <model/restrictions/domain/charts-container/#this> ;
-    rdfs:label "Chart item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/classes/domain/chart-item/> a adm:ClassItem ;
+        sioc:has_container <model/classes/domain/> ;
+        dct:title "Chart item" ;
+        foaf:primaryTopic nsds:ChartItem .
+
+    nsds:ChartItem a adm:Class ;
+        foaf:isPrimaryTopicOf <model/classes/domain/chart-item/> ;
+        rdfs:subClassOf nsdd:Item, nsds:ItemOfChartsContainer ;
+        rdfs:label "Chart item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # RESTRICTIONS
 
 # topic of service item
 
-<model/restrictions/topic-of-service-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/> ;
-    dct:title "Topic of service item" ;
-    foaf:primaryTopic <model/restrictions/topic-of-service-item/#this> .
+<model/restrictions/topic-of-service-item/>
+{
 
-<model/restrictions/topic-of-service-item/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/topic-of-service-item/> ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom <model/classes/domain/services/service-item/#this> ;
-    rdfs:label "Topic of service item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/topic-of-service-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/> ;
+        dct:title "Topic of service item" ;
+        foaf:primaryTopic nsds:TopicOfServiceItem .
+
+    nsds:TopicOfServiceItem a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/topic-of-service-item/> ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom nsds:ServiceItem ;
+        rdfs:label "Topic of service item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # topic of query item
 
-<model/restrictions/domain/topic-of-query-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Topic of query item" ;
-    foaf:primaryTopic <model/restrictions/domain/topic-of-query-item/#this> .
+<model/restrictions/domain/topic-of-query-item/>
+{
 
-<model/restrictions/domain/topic-of-query-item/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-query-item/> ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom <model/classes/domain/query-item/#this> ;
-    rdfs:label "Topic of query item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/topic-of-query-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Topic of query item" ;
+        foaf:primaryTopic nsds:TopicOfQueryItem .
+
+    nsds:TopicOfQueryItem a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-query-item/> ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom nsds:QueryItem ;
+        rdfs:label "Topic of query item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # topic of import item
 
-<model/restrictions/domain/topic-of-import-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Topic of import item" ;
-    foaf:primaryTopic <model/restrictions/domain/topic-of-import-item/#this> .
+<model/restrictions/domain/topic-of-import-item/>
+{
 
-<model/restrictions/domain/topic-of-import-item/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-import-item/> ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom <model/classes/domain/import-item/#this> ;
-    rdfs:label "Topic of import item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/topic-of-import-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Topic of import item" ;
+        foaf:primaryTopic nsds:TopicOfImportItem .
+
+    nsds:TopicOfImportItem a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-import-item/> ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom nsds:ImportItem ;
+        rdfs:label "Topic of import item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # topic of file item
 
-<model/restrictions/domain/topic-of-file-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Topic of file item" ;
-    foaf:primaryTopic <model/restrictions/domain/topic-of-file-item/#this> .
+<model/restrictions/domain/topic-of-file-item/>
+{
 
-<model/restrictions/domain/topic-of-file-item/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-file-item/> ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom <model/classes/domain/file-item/#this> ;
-    rdfs:label "Topic of file item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/topic-of-file-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Topic of file item" ;
+        foaf:primaryTopic nsds:TopicOfFileItem .
+
+    nsds:TopicOfFileItem a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-file-item/> ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom nsds:FileItem ;
+        rdfs:label "Topic of file item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # topic of chart item
 
-<model/restrictions/domain/topic-of-chart-item/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Topic of chart item" ;
-    foaf:primaryTopic <model/restrictions/domain/topic-of-chart-item/#this> .
+<model/restrictions/domain/topic-of-chart-item/>
+{
 
-<model/restrictions/domain/topic-of-chart-item/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-chart-item/> ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom <model/classes/domain/chart-item/#this> ;
-    rdfs:label "Topic of chart item" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/topic-of-chart-item/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Topic of chart item" ;
+        foaf:primaryTopic nsds:TopicOfChartItem .
+
+    nsds:TopicOfChartItem a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-chart-item/> ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom nsds:ChartItem ;
+        rdfs:label "Topic of chart item" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # has services container
 
-<model/restrictions/domain/services-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/> ;
-    dct:title "Has services container" ;
-    foaf:primaryTopic <model/restrictions/domain/services-container/#this> .
+<model/restrictions/domain/services-container/>
+{
 
-<model/restrictions/domain/services-container/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/services-container/> ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <../services/> ;
-    rdfs:label "Has services container" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/services-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/> ;
+        dct:title "Has services container" ;
+        foaf:primaryTopic nsds:ItemOfServiceContainer .
+
+    nsds:ItemOfServiceContainer a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/services-container/> ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <../services/> ;
+        rdfs:label "Has services container" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # has uploads container
 
-<model/restrictions/domain/uploads-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Has uploads container" ;
-    foaf:primaryTopic <model/restrictions/domain/uploads-container/#this> .
+<model/restrictions/domain/uploads-container/>
+{
 
-<model/restrictions/domain/uploads-container/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/uploads-container/> ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <../uploads/> ;
-    rdfs:label "Has uploads container" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/uploads-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Has uploads container" ;
+        foaf:primaryTopic nsds:ItemOfFileContainer .
+
+    nsds:ItemOfFileContainer a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/uploads-container/> ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <../uploads/> ;
+        rdfs:label "Has uploads container" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # has imports container
 
-<model/restrictions/domain/imports-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Has imports container" ;
-    foaf:primaryTopic <model/restrictions/domain/imports-container/#this> .
+<model/restrictions/domain/imports-container/>
+{
 
-<model/restrictions/domain/imports-container/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/imports-container/> ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <../imports/> ;
-    rdfs:label "Has imports container" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/imports-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Has imports container" ;
+        foaf:primaryTopic nsds:ItemOfImportsContainer .
+
+    nsds:ItemOfImportsContainer a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/imports-container/> ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <../imports/> ;
+        rdfs:label "Has imports container" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # has files container
 
-<model/restrictions/domain/files-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Has files container" ;
-    foaf:primaryTopic <model/restrictions/domain/files-container/#this> .
+<model/restrictions/domain/files-container/>
+{
 
-<model/restrictions/domain/files-container/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/files-container/> ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <../files/> ;
-    rdfs:label "Has files container" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/files-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Has files container" ;
+        foaf:primaryTopic nsds:ItemOfFilesContainer .
+
+    nsds:ItemOfFilesContainer a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/files-container/> ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <../files/> ;
+        rdfs:label "Has files container" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # has queries container
 
-<model/restrictions/domain/queries-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Has queries container" ;
-    foaf:primaryTopic <model/restrictions/domain/queries-container/#this> .
+<model/restrictions/domain/queries-container/>
+{
 
-<model/restrictions/domain/queries-container/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/queries-container/> ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <../queries/> ;
-    rdfs:label "Has queries container" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/queries-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Has queries container" ;
+        foaf:primaryTopic nsds:ItemOfQueriesContainer .
+
+    nsds:ItemOfQueriesContainer a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/queries-container/> ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <../queries/> ;
+        rdfs:label "Has queries container" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 # has charts container
 
-<model/restrictions/domain/charts-container/> a adm:RestrictionItem ;
-    sioc:has_container <model/restrictions/domain/> ;
-    dct:title "Has charts container" ;
-    foaf:primaryTopic <model/restrictions/domain/charts-container/#this> .
+<model/restrictions/domain/charts-container/>
+{
 
-<model/restrictions/domain/charts-container/#this> a adm:Restriction ;
-    foaf:isPrimaryTopicOf <model/restrictions/domain/charts-container/> ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <../charts/> ;
-    rdfs:label "Has charts container" ;
-    rdfs:isDefinedBy <model/ontologies/system/#this> .
+    <model/restrictions/domain/charts-container/> a adm:RestrictionItem ;
+        sioc:has_container <model/restrictions/domain/> ;
+        dct:title "Has charts container" ;
+        foaf:primaryTopic nsds:ItemOfChartsContainer .
+
+    nsds:ItemOfChartsContainer a adm:Restriction ;
+        foaf:isPrimaryTopicOf <model/restrictions/domain/charts-container/> ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <../charts/> ;
+        rdfs:label "Has charts container" ;
+        rdfs:isDefinedBy nsds: .
+
+}
 
 ### ADMIN ###
 
 # not accessible to users but required for query-able rdfs:subClassOf relationships
 
-adm: a owl:Ontology ;
-    foaf:isPrimaryTopicOf <ns> ;
-    owl:imports apl:, lacl:, lsm:, admt: ;
-    owl:versionInfo "1.1.4" ;
-    rdfs:label "Admin ontology" ;
-    rdfs:comment "AtomGraph admin application ontology" .
+adm:
+{
 
-admt: a owl:Ontology, ldt:Ontology ;
-    foaf:isPrimaryTopicOf <ns/templates> ;
-    owl:imports ladmt: ;
-    owl:versionInfo "1.1.4" ;
-    rdfs:label "Admin ontology" ;
-    rdfs:comment "AtomGraph admin application templates" .
+    adm: a owl:Ontology ;
+        foaf:isPrimaryTopicOf <ns> ;
+        owl:imports apl:, lacl:, lsm:, admt: ;
+        owl:versionInfo "1.1.4" ;
+        rdfs:label "Admin ontology" ;
+        rdfs:comment "AtomGraph admin application ontology" .
 
-admt:SignUp a ldt:Template ;
-    ldt:extends laclt:SignUp ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Sign up" ;
-    rdfs:isDefinedBy admt: .
+}
 
-admt:OAuth2Login a ldt:Template ;
-    ldt:extends laclt:OAuth2Login ;
-    rdfs:label "OAuth 2.0 login" ;
-    rdfs:isDefinedBy admt: .
+admt:
+{
 
-admt:AuthorizeGoogle a ldt:Template ;
-    ldt:extends laclt:AuthorizeGoogle ;
-    rdfs:label "Google OAuth 2.0 authorization endpoint" ;
-    rdfs:isDefinedBy admt: .
+    admt: a owl:Ontology, ldt:Ontology ;
+        foaf:isPrimaryTopicOf <ns/templates> ;
+        owl:imports ladmt: ;
+        owl:versionInfo "1.1.4" ;
+        rdfs:label "Admin ontology" ;
+        rdfs:comment "AtomGraph admin application templates" .
 
-admt:RequestAccess a ldt:Template ;
-    ldt:extends laclt:RequestAccess ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Request access" ;
-    rdfs:isDefinedBy admt: .
+}
 
-admt:OntologyContainer a ldt:Template ;
-    ldt:extends lsmt:OntologyContainer ;
-    ldt:cacheControl "public, max-age=3600" ;
-    rdfs:label "Ontology container" ;
-    rdfs:isDefinedBy admt: .
+admt:SignUp
+{
+
+    admt:SignUp a ldt:Template ;
+        ldt:extends laclt:SignUp ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Sign up" ;
+        rdfs:isDefinedBy admt: .
+
+}
+
+admt:OAuth2Login
+{
+
+    admt:OAuth2Login a ldt:Template ;
+        ldt:extends laclt:OAuth2Login ;
+        rdfs:label "OAuth 2.0 login" ;
+        rdfs:isDefinedBy admt: .
+
+}
+
+admt:AuthorizeGoogle
+{
+
+    admt:AuthorizeGoogle a ldt:Template ;
+        ldt:extends laclt:AuthorizeGoogle ;
+        rdfs:label "Google OAuth 2.0 authorization endpoint" ;
+        rdfs:isDefinedBy admt: .
+}
+
+admt:RequestAccess
+{
+
+    admt:RequestAccess a ldt:Template ;
+        ldt:extends laclt:RequestAccess ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Request access" ;
+        rdfs:isDefinedBy admt: .
+
+}
+
+admt:OntologyContainer
+{
+
+    admt:OntologyContainer a ldt:Template ;
+        ldt:extends lsmt:OntologyContainer ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Ontology container" ;
+        rdfs:isDefinedBy admt: .
+
+}
 
 # SITEMAP
 
-adm:Container a rdfs:Class ;
-    rdfs:subClassOf dh:Container ;
-    spin:constructor adm:DocumentConstructor ;
-    # spin:constraint adm:MissingTitle ;
-    rdfs:label "Container" ;
-    rdfs:isDefinedBy adm: .
+adm:Container
+{
 
-adm:Item a rdfs:Class ;
-    rdfs:subClassOf dh:Item ;
-    spin:constructor adm:DocumentConstructor ;
-    # spin:constraint adm:MissingTitle ;
-    rdfs:label "Item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Container a rdfs:Class ;
+        rdfs:subClassOf dh:Container ;
+        spin:constructor adm:DocumentConstructor ;
+        # spin:constraint adm:MissingTitle ;
+        rdfs:label "Container" ;
+        rdfs:isDefinedBy adm: .
 
-adm:DocumentConstructor a sp:Construct ;
-    sp:text """
-        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-        PREFIX dct:     <http://purl.org/dc/terms/>
+}
 
-        CONSTRUCT {
-          ?this dct:title [ a xsd:string ] ;
-              dct:description [ a xsd:string ] .
-        }
-        WHERE {}""" ;
-    rdfs:label "Document constructor" ;
-    rdfs:isDefinedBy adm: .
+adm:Item
+{
 
-adm:MissingTitle a apl:MissingPropertyValue ;
-    sp:arg1 dct:title ;
-    rdfs:label "Missing title" ;
-    rdfs:isDefinedBy adm: .
+    adm:Item a rdfs:Class ;
+        rdfs:subClassOf dh:Item ;
+        spin:constructor adm:DocumentConstructor ;
+        # spin:constraint adm:MissingTitle ;
+        rdfs:label "Item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:DocumentConstructor
+{
+
+    adm:DocumentConstructor a sp:Construct ;
+        sp:text """
+            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+            PREFIX dct:     <http://purl.org/dc/terms/>
+
+            CONSTRUCT {
+              ?this dct:title [ a xsd:string ] ;
+                  dct:description [ a xsd:string ] .
+            }
+            WHERE {}""" ;
+        rdfs:label "Document constructor" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:MissingTitle
+{
+
+    adm:MissingTitle a apl:MissingPropertyValue ;
+        sp:arg1 dct:title ;
+        rdfs:label "Missing title" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # class
 
-adm:Class a rdfs:Class ;
-    rdfs:subClassOf lsm:Class, adm:TopicOfClassItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Class" ;
-    rdfs:isDefinedBy adm: .
+adm:Class
+{
 
-adm:ClassItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfClassContainer ;
-    rdfs:label "Class item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Class a rdfs:Class ;
+        rdfs:subClassOf lsm:Class, adm:TopicOfClassItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Class" ;
+        rdfs:isDefinedBy adm: .
+}
 
-adm:TopicOfClassItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:ClassItem ;
-    rdfs:label "Topic of class item" ;
-    rdfs:isDefinedBy adm: .
+adm:ClassItem
+{
 
-adm:ItemOfClassContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <model/classes/> ;
-    rdfs:label "Has class container" ;
-    rdfs:isDefinedBy adm: .
+    adm:ClassItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfClassContainer ;
+        rdfs:label "Class item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfClassItem
+{
+
+    adm:TopicOfClassItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:ClassItem ;
+        rdfs:label "Topic of class item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfClassContainer
+{
+
+    adm:ItemOfClassContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <model/classes/> ;
+        rdfs:label "Has class container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # property
 
-adm:Property a rdfs:Class ;
-    rdfs:subClassOf lsm:Property, adm:TopicOfPropertyItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Property" ;
-    rdfs:isDefinedBy adm: .
+adm:Property
+{
 
-adm:PropertyItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfPropertyContainer ;
-    rdfs:label "Property item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Property a rdfs:Class ;
+        rdfs:subClassOf lsm:Property, adm:TopicOfPropertyItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Property" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfPropertyItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:PropertyItem ;
-    rdfs:label "Topic of property item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfPropertyContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <model/properties/> ;
-    rdfs:label "Has property container" ;
-    rdfs:isDefinedBy adm: .
+adm:PropertyItem
+{
+
+    adm:PropertyItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfPropertyContainer ;
+        rdfs:label "Property item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfPropertyItem
+{
+
+    adm:TopicOfPropertyItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:PropertyItem ;
+        rdfs:label "Topic of property item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfPropertyContainer
+{
+
+    adm:ItemOfPropertyContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <model/properties/> ;
+        rdfs:label "Has property container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # template
 
-adm:Template a rdfs:Class ;
-    rdfs:subClassOf lsm:Template, adm:TopicOfTemplateItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Template" ;
-    rdfs:isDefinedBy adm: .
+adm:Template
+{
 
-adm:TemplateItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfTemplateContainer ;
-    rdfs:label "Template item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Template a rdfs:Class ;
+        rdfs:subClassOf lsm:Template, adm:TopicOfTemplateItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Template" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfTemplateItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:TemplateItem ;
-    rdfs:label "Topic of template item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfTemplateContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <sitemap/templates/> ;
-    rdfs:label "Has template container" ;
-    rdfs:isDefinedBy adm: .
+adm:TemplateItem
+{
+
+    adm:TemplateItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfTemplateContainer ;
+        rdfs:label "Template item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfTemplateItem
+{
+
+    adm:TopicOfTemplateItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:TemplateItem ;
+        rdfs:label "Topic of template item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfTemplateContainer
+{
+
+    adm:ItemOfTemplateContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <sitemap/templates/> ;
+        rdfs:label "Has template container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # query
 
-adm:Query a rdfs:Class ;
-    rdfs:subClassOf lsm:Query, adm:TopicOfQueryItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Query" ;
-    rdfs:isDefinedBy adm: .
+adm:Query
+{
 
-adm:Construct a rdfs:Class ;
-    rdfs:subClassOf adm:Query, lsm:Construct, adm:TopicOfQueryItem ;
-    rdfs:label "CONSTRUCT" ;
-    rdfs:isDefinedBy adm: .
+    adm:Query a rdfs:Class ;
+        rdfs:subClassOf lsm:Query, adm:TopicOfQueryItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Query" ;
+        rdfs:isDefinedBy adm: .
 
-adm:Describe a rdfs:Class ;
-    rdfs:subClassOf adm:Query, lsm:Describe, adm:TopicOfQueryItem ;
-    rdfs:label "DESCRIBE" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:Select a rdfs:Class ;
-    rdfs:subClassOf adm:Query, adm:TopicOfQueryItem ;
-    rdfs:label "SELECT" ;
-    rdfs:isDefinedBy adm: .
+adm:Construct
+{
 
-adm:Ask a rdfs:Class ;
-    rdfs:subClassOf adm:Query, adm:TopicOfQueryItem ;
-    rdfs:label "ASK" ;
-    rdfs:isDefinedBy adm: .
+    adm:Construct a rdfs:Class ;
+        rdfs:subClassOf adm:Query, lsm:Construct, adm:TopicOfQueryItem ;
+        rdfs:label "CONSTRUCT" ;
+        rdfs:isDefinedBy adm: .
 
-adm:QueryItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfQueryContainer ;
-    rdfs:label "Query item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:TopicOfQueryItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:QueryItem ;
-    rdfs:label "Topic of query item" ;
-    rdfs:isDefinedBy adm: .
+adm:Describe
+{
 
-adm:ItemOfQueryContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <sitemap/queries/> ;
-    rdfs:label "Has query container" ;
-    rdfs:isDefinedBy adm: .
+    adm:Describe a rdfs:Class ;
+        rdfs:subClassOf adm:Query, lsm:Describe, adm:TopicOfQueryItem ;
+        rdfs:label "DESCRIBE" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:Select
+{
+
+    adm:Select a rdfs:Class ;
+        rdfs:subClassOf adm:Query, adm:TopicOfQueryItem ;
+        rdfs:label "SELECT" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:Ask
+{
+
+    adm:Ask a rdfs:Class ;
+        rdfs:subClassOf adm:Query, adm:TopicOfQueryItem ;
+        rdfs:label "ASK" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:QueryItem
+{
+
+    adm:QueryItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfQueryContainer ;
+        rdfs:label "Query item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfQueryItem
+{
+
+    adm:TopicOfQueryItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:QueryItem ;
+        rdfs:label "Topic of query item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfQueryContainer
+{
+
+    adm:ItemOfQueryContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <sitemap/queries/> ;
+        rdfs:label "Has query container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # update
 
-adm:Update a rdfs:Class ;
-    rdfs:subClassOf lsm:Update, adm:TopicOfUpdateItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Update" ;
-    rdfs:isDefinedBy adm: .
+adm:Update
+{
 
-adm:UpdateItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfUpdateContainer ;
-    rdfs:label "Update item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Update a rdfs:Class ;
+        rdfs:subClassOf lsm:Update, adm:TopicOfUpdateItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Update" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfUpdateItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:UpdateItem ;
-    rdfs:label "Topic of update item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfUpdateContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <sitemap/updates/> ;
-    rdfs:label "Has update container" ;
-    rdfs:isDefinedBy adm: .
+adm:UpdateItem
+{
+
+    adm:UpdateItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfUpdateContainer ;
+        rdfs:label "Update item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfUpdateItem
+{
+
+    adm:TopicOfUpdateItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:UpdateItem ;
+        rdfs:label "Topic of update item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfUpdateContainer
+{
+
+    adm:ItemOfUpdateContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <sitemap/updates/> ;
+        rdfs:label "Has update container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # parameter
 
-adm:Parameter a rdfs:Class ;
-    rdfs:subClassOf lsm:Parameter, adm:TopicOfParameterItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Parameter" ;
-    rdfs:isDefinedBy adm: .
+adm:Parameter
+{
 
-adm:ParameterItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfParameterContainer ;
-    rdfs:label "Parameter item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Parameter a rdfs:Class ;
+        rdfs:subClassOf lsm:Parameter, adm:TopicOfParameterItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Parameter" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfParameterItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:ParameterItem ;
-    rdfs:label "Topic of parameter item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfParameterContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <sitemap/parameters/> ;
-    rdfs:label "Has parameter container" ;
-    rdfs:isDefinedBy adm: .
+adm:ParameterItem
+{
+
+    adm:ParameterItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfParameterContainer ;
+        rdfs:label "Parameter item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfParameterItem
+{
+
+    adm:TopicOfParameterItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:ParameterItem ;
+        rdfs:label "Topic of parameter item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfParameterContainer
+{
+
+    adm:ItemOfParameterContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <sitemap/parameters/> ;
+        rdfs:label "Has parameter container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # constraint
 
-adm:MissingPropertyValue a rdfs:Class ;
-    rdfs:subClassOf lsm:MissingPropertyValue, adm:TopicOfConstraintItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Missing property value" ;
-    rdfs:isDefinedBy adm: .
+adm:MissingPropertyValue
+{
 
-adm:ConstraintItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfConstraintContainer ;
-    rdfs:label "Missing property value item" ;
-    rdfs:isDefinedBy adm: .
+    adm:MissingPropertyValue a rdfs:Class ;
+        rdfs:subClassOf lsm:MissingPropertyValue, adm:TopicOfConstraintItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Missing property value" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfConstraintItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:ConstraintItem ;
-    rdfs:label "Topic of missing property value item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfConstraintContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <model/constraints/> ;
-    rdfs:label "Has class container" ;
-    rdfs:isDefinedBy adm: .
+adm:ConstraintItem
+{
+
+    adm:ConstraintItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfConstraintContainer ;
+        rdfs:label "Missing property value item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfConstraintItem
+{
+
+    adm:TopicOfConstraintItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:ConstraintItem ;
+        rdfs:label "Topic of missing property value item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfConstraintContainer
+{
+
+    adm:ItemOfConstraintContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <model/constraints/> ;
+        rdfs:label "Has class container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # command template
 
-adm:CommandTemplate a rdfs:Class ;
-    rdfs:subClassOf lsm:CommandTemplate, adm:TopicOfCommandTemplateItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Command template" ;
-    rdfs:isDefinedBy adm: .
+adm:CommandTemplate
+{
 
-adm:CommandTemplateItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfCommandTemplateContainer ;
-    rdfs:label "Command template item" ;
-    rdfs:isDefinedBy adm: .
+    adm:CommandTemplate a rdfs:Class ;
+        rdfs:subClassOf lsm:CommandTemplate, adm:TopicOfCommandTemplateItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Command template" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfCommandTemplateItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:CommandTemplateItem ;
-    rdfs:label "Topic of command template item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfCommandTemplateContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <sitemap/command-templates/> ;
-    rdfs:label "Has command template container" ;
-    rdfs:isDefinedBy adm: .
+adm:CommandTemplateItem
+{
+
+    adm:CommandTemplateItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfCommandTemplateContainer ;
+        rdfs:label "Command template item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfCommandTemplateItem
+{
+
+    adm:TopicOfCommandTemplateItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:CommandTemplateItem ;
+        rdfs:label "Topic of command template item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfCommandTemplateContainer
+{
+
+    adm:ItemOfCommandTemplateContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <sitemap/command-templates/> ;
+        rdfs:label "Has command template container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # ontology
 
-adm:Ontology a rdfs:Class ;
-    rdfs:subClassOf lsm:Ontology, adm:TopicOfOntologyItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Ontology" ;
-    rdfs:isDefinedBy adm: .
+adm:Ontology
+{
 
-adm:OntologyItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfOntologyContainer ;
-    rdfs:label "Ontology item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Ontology a rdfs:Class ;
+        rdfs:subClassOf lsm:Ontology, adm:TopicOfOntologyItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Ontology" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfOntologyItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:OntologyItem ;
-    rdfs:label "Topic of ontology item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfOntologyContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <model/ontologies/> ;
-    rdfs:label "Has ontology container" ;
-    rdfs:isDefinedBy adm: .
+adm:OntologyItem
+{
+
+    adm:OntologyItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfOntologyContainer ;
+        rdfs:label "Ontology item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfOntologyItem
+{
+
+    adm:TopicOfOntologyItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:OntologyItem ;
+        rdfs:label "Topic of ontology item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfOntologyContainer
+{
+
+    adm:ItemOfOntologyContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <model/ontologies/> ;
+        rdfs:label "Has ontology container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # restriction
 
-adm:Restriction a rdfs:Class ;
-    rdfs:subClassOf lsm:Restriction, adm:TopicOfRestrictionItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Restriction" ;
-    rdfs:isDefinedBy adm: .
+adm:Restriction
+{
 
-adm:RestrictionItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfRestrictionContainer ;
-    rdfs:label "Restriction item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Restriction a rdfs:Class ;
+        rdfs:subClassOf lsm:Restriction, adm:TopicOfRestrictionItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Restriction" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfRestrictionItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:RestrictionItem ;
-    rdfs:label "Topic of restriction item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfRestrictionContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <model/restrictions/> ;
-    rdfs:label "Has restriction container" ;
-    rdfs:isDefinedBy adm: .
+adm:RestrictionItem
+{
+
+    adm:RestrictionItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfRestrictionContainer ;
+        rdfs:label "Restriction item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfRestrictionItem
+{
+
+    adm:TopicOfRestrictionItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:RestrictionItem ;
+        rdfs:label "Topic of restriction item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfRestrictionContainer
+{
+
+    adm:ItemOfRestrictionContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <model/restrictions/> ;
+        rdfs:label "Has restriction container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # ACCESS CONTROL
 
 # signup
 
-adm:SignUp a rdfs:Class ;
-    rdfs:subClassOf c:Document ;
-    rdfs:label "Sign up" ;
-    rdfs:isDefinedBy adm: .
+adm:SignUp
+{
+
+    adm:SignUp a rdfs:Class ;
+        rdfs:subClassOf c:Document ;
+        rdfs:label "Sign up" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # request access
 
-adm:RequestAccess a rdfs:Class ;
-    rdfs:subClassOf c:Document ;
-    rdfs:label "Request access" ;
-    rdfs:isDefinedBy adm: .
+adm:RequestAccess
+{
+
+    adm:RequestAccess a rdfs:Class ;
+        rdfs:subClassOf c:Document ;
+        rdfs:label "Request access" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # OAuth 2.0
 
-adm:OAuth2Login a rdfs:Class ;
-    rdfs:subClassOf c:Document ;
-    rdfs:label "OAuth 2.0 login endpoint" ;
-    rdfs:isDefinedBy adm: .
+adm:OAuth2Login
+{
 
-adm:AuthorizeGoogle a rdfs:Class ;
-    rdfs:subClassOf c:Document ;
-    rdfs:label "OAuth 2.0 authorization endpoint" ;
-    rdfs:isDefinedBy adm: .
+    adm:OAuth2Login a rdfs:Class ;
+        rdfs:subClassOf c:Document ;
+        rdfs:label "OAuth 2.0 login endpoint" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:AuthorizeGoogle
+{
+
+    adm:AuthorizeGoogle a rdfs:Class ;
+        rdfs:subClassOf c:Document ;
+        rdfs:label "OAuth 2.0 authorization endpoint" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # authorization
 
-adm:Authorization a rdfs:Class ;
-    rdfs:subClassOf lacl:Authorization, adm:TopicOfAuthorizationItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    apl:template adm:AuthorizationTemplate ;
-    rdfs:label "Authorization" ;
-    rdfs:isDefinedBy adm: .
+adm:Authorization
+{
 
-adm:AuthorizationTemplate a adm:ContentTemplate ;
-    rdf:first adm:SelectAgents ;
-    rdf:rest rdf:nil .
+    adm:Authorization a rdfs:Class ;
+        rdfs:subClassOf lacl:Authorization, adm:TopicOfAuthorizationItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Authorization" ;
+        rdfs:isDefinedBy adm: .
 
-adm:SelectAgents a sp:Select ;
-    dct:title "Select agents" ;
-    sp:text """
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+}
 
-SELECT DISTINCT  ?agent
-WHERE
-  { GRAPH ?agentGraph
-      { GRAPH ?authGraph
-          { ?this  foaf:primaryTopic  ?auth }
-        ?auth  acl:agent  ?agent
-      }
-  }
-""" .
+adm:CreatorAuthorization
+{
 
-adm:CreatorAuthorization a rdfs:Class ;
-    rdfs:subClassOf lacl:CreatorAuthorization, adm:TopicOfAuthorizationItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Creator authorization" ;
-    rdfs:isDefinedBy adm: .
+    adm:CreatorAuthorization a rdfs:Class ;
+        rdfs:subClassOf lacl:CreatorAuthorization, adm:TopicOfAuthorizationItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Creator authorization" ;
+        rdfs:isDefinedBy adm: .
 
-adm:AuthorizationItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfAuthorizationContainer ;
-    rdfs:label "Authorization item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:TopicOfAuthorizationItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:AuthorizationItem ;
-    rdfs:label "Topic of authorization item" ;
-    rdfs:isDefinedBy adm: .
+adm:AuthorizationItem
+{
 
-adm:ItemOfAuthorizationContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <acl/authorizations/> ;
-    rdfs:label "Has authorization container" ;
-    rdfs:isDefinedBy adm: .
+    adm:AuthorizationItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfAuthorizationContainer ;
+        rdfs:label "Authorization item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfAuthorizationItem
+{
+
+    adm:TopicOfAuthorizationItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:AuthorizationItem ;
+        rdfs:label "Topic of authorization item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfAuthorizationContainer
+{
+
+    adm:ItemOfAuthorizationContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <acl/authorizations/> ;
+        rdfs:label "Has authorization container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # authorization request
 
-adm:AuthorizationRequest a rdfs:Class ;
-    rdfs:subClassOf lacl:AuthorizationRequest, adm:TopicOfAuthorizationRequestItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Authorization request" ;
-    rdfs:isDefinedBy adm: .
+adm:AuthorizationRequest
+{
 
-adm:AuthorizationRequestItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfAuthorizationRequestContainer ;
-    rdfs:label "Authorization request item" ;
-    rdfs:isDefinedBy adm: .
+    adm:AuthorizationRequest a rdfs:Class ;
+        rdfs:subClassOf lacl:AuthorizationRequest, adm:TopicOfAuthorizationRequestItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Authorization request" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfAuthorizationRequestItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:AuthorizationRequestItem ;
-    rdfs:label "Topic of authorization request item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfAuthorizationRequestContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <acl/authorization-requests/> ;
-    rdfs:label "Has authorization request container" ;
-    rdfs:isDefinedBy adm: .
+adm:AuthorizationRequestItem
+{
+
+    adm:AuthorizationRequestItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfAuthorizationRequestContainer ;
+        rdfs:label "Authorization request item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfAuthorizationRequestItem
+{
+
+    adm:TopicOfAuthorizationRequestItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:AuthorizationRequestItem ;
+        rdfs:label "Topic of authorization request item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfAuthorizationRequestContainer
+{
+
+    adm:ItemOfAuthorizationRequestContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <acl/authorization-requests/> ;
+        rdfs:label "Has authorization request container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # user account
 
-adm:UserAccount a rdfs:Class ;
-    rdfs:subClassOf lacl:UserAccount, adm:TopicOfUserAccountItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "User account" ;
-    rdfs:isDefinedBy adm: .
+adm:UserAccount
+{
 
-adm:UserAccountItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfUserAccountContainer ;
-    rdfs:label "User account item" ;
-    rdfs:isDefinedBy adm: .
+    adm:UserAccount a rdfs:Class ;
+        rdfs:subClassOf lacl:UserAccount, adm:TopicOfUserAccountItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "User account" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfUserAccountItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:UserAccountItem ;
-    rdfs:label "Topic of user account item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfUserAccountContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <acl/users/> ;
-    rdfs:label "Has user account container" ;
-    rdfs:isDefinedBy adm: .
+adm:UserAccountItem
+{
+
+    adm:UserAccountItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfUserAccountContainer ;
+        rdfs:label "User account item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfUserAccountItem
+{
+
+    adm:TopicOfUserAccountItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:UserAccountItem ;
+        rdfs:label "Topic of user account item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfUserAccountContainer
+{
+
+    adm:ItemOfUserAccountContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <acl/users/> ;
+        rdfs:label "Has user account container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # agent
 
-adm:Agent a rdfs:Class ;
-    rdfs:subClassOf lacl:Agent, adm:TopicOfAgentItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Agent" ;
-    rdfs:isDefinedBy adm: .
+adm:Agent
+{
 
-adm:Person a rdfs:Class ;
-    rdfs:subClassOf lacl:Person, adm:Agent, adm:TopicOfAgentItem ;
-    rdfs:label "Person" ;
-    rdfs:isDefinedBy adm: .
+    adm:Agent a rdfs:Class ;
+        rdfs:subClassOf lacl:Agent, adm:TopicOfAgentItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Agent" ;
+        rdfs:isDefinedBy adm: .
 
-adm:AgentItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfAgentContainer ;
-    rdfs:label "Agent item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:TopicOfAgentItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:AgentItem ;
-    rdfs:label "Topic of agent item" ;
-    rdfs:isDefinedBy adm: .
+adm:Person
+{
 
-adm:ItemOfAgentContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <acl/agents/> ;
-    rdfs:label "Has agent container" ;
-    rdfs:isDefinedBy adm: .
+    adm:Person a rdfs:Class ;
+        rdfs:subClassOf lacl:Person, adm:Agent, adm:TopicOfAgentItem ;
+        rdfs:label "Person" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:AgentItem
+{
+
+    adm:AgentItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfAgentContainer ;
+        rdfs:label "Agent item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfAgentItem
+{
+
+    adm:TopicOfAgentItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:AgentItem ;
+        rdfs:label "Topic of agent item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfAgentContainer
+{
+
+    adm:ItemOfAgentContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <acl/agents/> ;
+        rdfs:label "Has agent container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # public key
 
-adm:PublicKey a rdfs:Class ;
-    rdfs:subClassOf lacl:PublicKey, adm:TopicOfPublicKeyItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Public key" ;
-    rdfs:isDefinedBy adm: .
+adm:PublicKey
+{
 
-adm:PublicKeyItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfPublicKeyContainer ;
-    rdfs:label "Public key item" ;
-    rdfs:isDefinedBy adm: .
+    adm:PublicKey a rdfs:Class ;
+        rdfs:subClassOf lacl:PublicKey, adm:TopicOfPublicKeyItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Public key" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfPublicKeyItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:PublicKeyItem ;
-    rdfs:label "Topic of public key item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfPublicKeyContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <acl/public-keys/> ;
-    rdfs:label "Has public key container" ;
-    rdfs:isDefinedBy adm: .
+adm:PublicKeyItem
+{
+
+    adm:PublicKeyItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfPublicKeyContainer ;
+        rdfs:label "Public key item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfPublicKeyItem
+{
+
+    adm:TopicOfPublicKeyItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:PublicKeyItem ;
+        rdfs:label "Topic of public key item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfPublicKeyContainer
+{
+
+    adm:ItemOfPublicKeyContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <acl/public-keys/> ;
+        rdfs:label "Has public key container" ;
+        rdfs:isDefinedBy adm: .
+
+}
 
 # group
 
-adm:Group a rdfs:Class ;
-    rdfs:subClassOf lacl:Group, adm:TopicOfGroupItem ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Group" ;
-    rdfs:isDefinedBy adm: .
+adm:Group
+{
 
-adm:GroupItem a rdfs:Class ;
-    rdfs:subClassOf adm:Item, adm:ItemOfGroupContainer ;
-    rdfs:label "Group item" ;
-    rdfs:isDefinedBy adm: .
+    adm:Group a rdfs:Class ;
+        rdfs:subClassOf lacl:Group, adm:TopicOfGroupItem ;
+        ldt:path "{isPrimaryTopicOf.slug}/" ;
+        ldt:fragment "this" ;
+        rdfs:label "Group" ;
+        rdfs:isDefinedBy adm: .
 
-adm:TopicOfGroupItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom adm:GroupItem ;
-    rdfs:label "Topic of group item" ;
-    rdfs:isDefinedBy adm: .
+}
 
-adm:ItemOfGroupContainer a owl:Restriction ;
-    owl:onProperty sioc:has_container ;
-    owl:hasValue <acl/groups/> ;
-    rdfs:label "Has group container" ;
-    rdfs:isDefinedBy adm: .
+adm:GroupItem
+{
+
+    adm:GroupItem a rdfs:Class ;
+        rdfs:subClassOf adm:Item, adm:ItemOfGroupContainer ;
+        rdfs:label "Group item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:TopicOfGroupItem
+{
+
+    adm:TopicOfGroupItem a owl:Restriction ;
+        owl:onProperty foaf:isPrimaryTopicOf ;
+        owl:allValuesFrom adm:GroupItem ;
+        rdfs:label "Topic of group item" ;
+        rdfs:isDefinedBy adm: .
+
+}
+
+adm:ItemOfGroupContainer
+{
+
+    adm:ItemOfGroupContainer a owl:Restriction ;
+        owl:onProperty sioc:has_container ;
+        owl:hasValue <acl/groups/> ;
+        rdfs:label "Has group container" ;
+        rdfs:isDefinedBy adm: .
+
+}

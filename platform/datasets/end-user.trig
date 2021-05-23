@@ -1,3 +1,5 @@
+@prefix nsds:	<ns/domain/system#> .
+@prefix nsdd:	<ns/domain/default#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -7,178 +9,245 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 
-<> a <admin/model/classes/default/root/#this> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Root" ;
-    dct:description "Root container" ;
-    apl:content <#content1> .
-<#content1> a apl:Content ;
-    rdf:first <queries/default/select-geo-resources/#this> ;
-    rdf:rest <#content2> .
-<#content2> a apl:Content ;
-    rdf:first "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>second</p></div>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> ;
-    rdf:rest rdf:nil .
+<>
+{
+
+    <> a nsdd:Root ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Root" ;
+        dct:description "Root container" ;
+        apl:content <#content1> .
+
+    <#content1> a apl:Content ;
+        rdf:first <queries/default/select-geo-resources/#this> ;
+        rdf:rest <#content2> .
+
+    <#content2> a apl:Content ;
+        rdf:first "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p>second</p></div>"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral> ;
+        rdf:rest rdf:nil .
+
+}
 
 # CONTAINERS
 
-<search/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-labelled/#this> ;
-    dct:title "Search" ;
-    dct:description "Search resources by keyword" .
+<search/>
+{
 
-<queries/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Queries" ;
-    dct:description "SPARQL queries" .
+    <search/> a nsdd:Container ;
+        dh:select <queries/default/select-labelled/#this> ;
+        dct:title "Search" ;
+        dct:description "Search resources by keyword" .
 
-<queries/default/> a <admin/model/classes/default/container/#this> ;
-    sioc:has_parent <queries/> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Default" ;
-    dct:description "Default queries" .
+}
 
-<files/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Files" ;
-    dct:description "Uploaded files" .
+<queries/>
+{
 
-<imports/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Imports" ;
-    dct:description "Data imports" .
+    <queries/> a nsdd:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Queries" ;
+        dct:description "SPARQL queries" .
 
-<geo/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-geo-resources/#this> ;
-    dct:title "geo" ;
-    dct:description "Geolocated resources" .
+}
 
-<latest/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-latest/#this> ;
-    dct:title "Latest" ;
-    dct:description "Latest resources" .
+<queries/default/>
+{
 
-<charts/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Charts" ;
-    dct:description "Saved charts" .
+    <queries/default/> a nsdd:Container ;
+        sioc:has_parent <queries/> ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Default" ;
+        dct:description "Default queries" .
 
-<services/> a <admin/model/classes/default/container/#this> ;
-    dh:select <queries/default/select-children/#this> ;
-    dct:title "Services" ;
-    dct:description "SPARQL services" .
+}
+
+<files/>
+{
+
+    <files/> a nsdd:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Files" ;
+        dct:description "Uploaded files" .
+
+}
+
+<imports/>
+{
+
+    <imports/> a nsdd:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Imports" ;
+        dct:description "Data imports" .
+
+}
+
+<geo/>
+{
+
+    <geo/> a nsdd:Container ;
+        dh:select <queries/default/select-geo-resources/#this> ;
+        dct:title "geo" ;
+        dct:description "Geolocated resources" .
+
+}
+
+<latest/>
+{
+
+    <latest/> a nsdd:Container ;
+        dh:select <queries/default/select-latest/#this> ;
+        dct:title "Latest" ;
+        dct:description "Latest resources" .
+
+}
+
+<charts/>
+{
+
+    <charts/> a nsdd:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Charts" ;
+        dct:description "Saved charts" .
+
+}
+
+<services/>
+{
+
+    <services/> a nsdd:Container ;
+        dh:select <queries/default/select-children/#this> ;
+        dct:title "Services" ;
+        dct:description "SPARQL services" .
+
+}
 
 # QUERIES
 
 # select children
 
-<queries/default/select-children/> a <admin/model/classes/domain/query-item/#this> ;
-    sioc:has_container <queries/default/> ;
-    dct:title "Select children" ;
-    foaf:primaryTopic <queries/default/select-children/#this> .
+<queries/default/select-children/>
+{
 
-<queries/default/select-children/#this> a <admin/model/classes/domain/select/#this> ;
-    foaf:isPrimaryTopicOf <queries/default/select-children/> ;
-    dct:title "Select children" ;
-    sp:text """
-PREFIX  dct:  <http://purl.org/dc/terms/>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+    <queries/default/select-children/> a nsds:QueryItem ;
+        sioc:has_container <queries/default/> ;
+        dct:title "Select children" ;
+        foaf:primaryTopic <queries/default/select-children/#this> .
 
-SELECT DISTINCT  ?child ?thing
-WHERE
-{ GRAPH ?childGraph
-  {   { ?child  sioc:has_parent  ?this }
-    UNION
-      { ?child  sioc:has_container  ?this }
-    ?child  a                     ?Type
-    OPTIONAL
-      { ?child  dct:title  ?title }
-    OPTIONAL
-      { ?child  foaf:primaryTopic  ?thing }
-  }
+    <queries/default/select-children/#this> a nsds:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-children/> ;
+        dct:title "Select children" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+    SELECT DISTINCT  ?child ?thing
+    WHERE
+    { GRAPH ?childGraph
+      {   { ?child  sioc:has_parent  ?this }
+        UNION
+          { ?child  sioc:has_container  ?this }
+        ?child  a                     ?Type
+        OPTIONAL
+          { ?child  dct:title  ?title }
+        OPTIONAL
+          { ?child  foaf:primaryTopic  ?thing }
+      }
+    }
+    ORDER BY ?title
+    """ .
+
 }
-ORDER BY ?title
-""" .
 
 # select geo resources
 
-<queries/default/select-geo-resources/> a <admin/model/classes/domain/query-item/#this> ;
-    sioc:has_container <queries/default/> ;
-    dct:title "Select geo resources" ;
-    foaf:primaryTopic <queries/default/select-geo-resources/#this> .
+<queries/default/select-geo-resources/>
+{
 
-<queries/default/select-geo-resources/#this> a <admin/model/classes/domain/select/#this> ;
-    foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
-    dct:title "Select geo resources" ;
-    sp:text """
-PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX  dct:  <http://purl.org/dc/terms/>
+    <queries/default/select-geo-resources/> a nsds:QueryItem ;
+        sioc:has_container <queries/default/> ;
+        dct:title "Select geo resources" ;
+        foaf:primaryTopic <queries/default/select-geo-resources/#this> .
 
-SELECT  DISTINCT ?resource
-WHERE
-{ GRAPH ?graph
-  { ?resource  geo:lat  ?lat ;
-              geo:long  ?long
-    OPTIONAL
-      { ?resource  a                    ?type }
-    OPTIONAL
-      { ?resource  dct:title  ?title }
-  }
+    <queries/default/select-geo-resources/#this> a nsds:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
+        dct:title "Select geo resources" ;
+        sp:text """
+    PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+
+    SELECT  DISTINCT ?resource
+    WHERE
+    { GRAPH ?graph
+      { ?resource  geo:lat  ?lat ;
+                  geo:long  ?long
+        OPTIONAL
+          { ?resource  a                    ?type }
+        OPTIONAL
+          { ?resource  dct:title  ?title }
+      }
+    }
+    ORDER BY ?title
+    """ .
+
 }
-ORDER BY ?title
-""" .
 
 # select latest
 
-<queries/default/select-latest/> a <admin/model/classes/domain/query-item/#this> ;
-    sioc:has_container <queries/default/> ;
-    dct:title "Select latest" ;
-    foaf:primaryTopic <queries/default/select-latest/#this> .
+<queries/default/select-latest/>
+{
 
-<queries/default/select-latest/#this> a <admin/model/classes/domain/select/#this> ;
-    foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
-    dct:title "Select latest" ;
-    sp:text """
-PREFIX  dct:  <http://purl.org/dc/terms/>
+    <queries/default/select-latest/> a nsds:QueryItem ;
+        sioc:has_container <queries/default/> ;
+        dct:title "Select latest" ;
+        foaf:primaryTopic <queries/default/select-latest/#this> .
 
-SELECT DISTINCT  ?dated
-WHERE
-{ GRAPH ?graph
-  { ?dated  dct:created  ?created }
-}
-ORDER BY DESC(?created)
-""" .
+    <queries/default/select-latest/#this> a nsds:Select ;
+        foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
+        dct:title "Select latest" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
 
-# select labelled
+    SELECT DISTINCT  ?dated
+    WHERE
+    { GRAPH ?graph
+      { ?dated  dct:created  ?created }
+    }
+    ORDER BY DESC(?created)
+    """ .
 
-<queries/default/select-labelled/> a <admin/model/classes/domain/query-item/#this> ;
-    sioc:has_container <queries/default/> ;
-    dct:title "Select labelled" ;
-    foaf:primaryTopic <queries/default/select-labelled/#this> .
+    # select labelled
 
-<queries/default/select-labelled/#this> a <admin/model/classes/domain/select/#this> ;
-    dct:title "Select labelled" ;
-    sp:text """
-PREFIX  dct:  <http://purl.org/dc/terms/>
-PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+    <queries/default/select-labelled/> a nsds:QueryItem ;
+        sioc:has_container <queries/default/> ;
+        dct:title "Select labelled" ;
+        foaf:primaryTopic <queries/default/select-labelled/#this> .
 
-SELECT DISTINCT  ?resource
-WHERE
-  {   { ?resource  a  ?Type .
-        ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
-        FILTER isURI(?resource)
-      }
-    UNION
-      { GRAPH ?graph
-          { ?resource  a  ?Type .
+    <queries/default/select-labelled/#this> a nsds:Select ;
+        dct:title "Select labelled" ;
+        sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+    PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+    PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+    SELECT DISTINCT  ?resource
+    WHERE
+      {   { ?resource  a  ?Type .
             ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
             FILTER isURI(?resource)
           }
+        UNION
+          { GRAPH ?graph
+              { ?resource  a  ?Type .
+                ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+                FILTER isURI(?resource)
+              }
+          }
       }
-  }
-""" .
+    """ .
+
+}
