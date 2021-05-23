@@ -2434,7 +2434,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-property']" mode="ixsl:onclick" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
         </xsl:message>
@@ -2911,7 +2911,7 @@ extension-element-prefixes="ixsl"
 
                                 <div class="controls">
                                     <div class="btn-group pull-right">
-                                        <button type="button" class="btn btn-small pull-right btn-remove" title="Remove this statement"></button>
+                                        <button type="button" class="btn btn-small pull-right btn-remove-property" title="Remove this statement"></button>
                                     </div>
 
                                     <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
@@ -2969,7 +2969,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="text()" mode="apl:PostConstructMode"/>
 
     <!-- remove property button -->
-<!--    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove']" mode="apl:PostConstructMode" priority="1">
+<!--    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-property']" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
         </xsl:message>

@@ -1285,6 +1285,10 @@ exclude-result-prefixes="#all">
                                     <xsl:apply-templates mode="#current"/>
                                 </xsl:otherwise>
                             </xsl:choose>
+                            
+                            <p>
+                                <button type="button" class="btn btn-large btn-primary pull-right btn-add-resource">+</button>
+                            </p>
                         </div>
 
                         <xsl:apply-templates select="." mode="bs2:FormActions">
@@ -1311,6 +1315,7 @@ exclude-result-prefixes="#all">
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:Form" priority="2"/>
 
+    <!-- TO-DO: move to resource.xsl? -->
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
@@ -1459,6 +1464,7 @@ exclude-result-prefixes="#all">
 
     <!-- FORM CONTROL -->
 
+    <!-- TO-DO: move to resource.xsl? -->
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -1489,6 +1495,10 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
             </xsl:apply-templates>
     
+            <div class="btn-group pull-right">
+                <button type="button" class="btn btn-small pull-right btn-remove-resource" title="Remove this resource">&#x2715;</button>
+            </div>
+
             <xsl:apply-templates select="." mode="bs2:TypeControl"/>
 
             <xsl:apply-templates select="$violations" mode="bs2:Violation"/>

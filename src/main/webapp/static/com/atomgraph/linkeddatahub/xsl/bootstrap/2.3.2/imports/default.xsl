@@ -191,7 +191,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[@rdf:nodeID = 'remove']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-remove-property')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = '&ac;EditMode']" mode="apl:logo">
