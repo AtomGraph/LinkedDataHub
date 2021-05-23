@@ -1334,7 +1334,9 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
+        
         <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current"/>
+        
         <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>

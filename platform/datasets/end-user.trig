@@ -1,5 +1,3 @@
-@prefix nsds:	<ns/domain/system#> .
-@prefix nsdd:	<ns/domain/default#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -9,7 +7,7 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 @prefix foaf:	<http://xmlns.com/foaf/0.1/> .
 
-<> a nsdd:Root ;
+<> a <admin/model/classes/default/root/#this> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Root" ;
     dct:description "Root container" ;
@@ -23,48 +21,48 @@
 
 # CONTAINERS
 
-<search/> a nsdd:Container ;
+<search/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-labelled/#this> ;
     dct:title "Search" ;
     dct:description "Search resources by keyword" .
 
-<queries/> a nsdd:Container ;
+<queries/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Queries" ;
     dct:description "SPARQL queries" .
 
-<queries/default/> a nsdd:Container ;
+<queries/default/> a <admin/model/classes/default/container/#this> ;
     sioc:has_parent <queries/> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Default" ;
     dct:description "Default queries" .
 
-<files/> a nsdd:Container ;
+<files/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Files" ;
     dct:description "Uploaded files" .
 
-<imports/> a nsdd:Container ;
+<imports/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Imports" ;
     dct:description "Data imports" .
 
-<geo/> a nsdd:Container ;
+<geo/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-geo-resources/#this> ;
     dct:title "geo" ;
     dct:description "Geolocated resources" .
 
-<latest/> a nsdd:Container ;
+<latest/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-latest/#this> ;
     dct:title "Latest" ;
     dct:description "Latest resources" .
 
-<charts/> a nsdd:Container ;
+<charts/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Charts" ;
     dct:description "Saved charts" .
 
-<services/> a nsdd:Container ;
+<services/> a <admin/model/classes/default/container/#this> ;
     dh:select <queries/default/select-children/#this> ;
     dct:title "Services" ;
     dct:description "SPARQL services" .
@@ -73,12 +71,12 @@
 
 # select children
 
-<queries/default/select-children/> a nsds:QueryItem ;
+<queries/default/select-children/> a <admin/model/classes/domain/query-item/#this> ;
     sioc:has_container <queries/default/> ;
     dct:title "Select children" ;
     foaf:primaryTopic <queries/default/select-children/#this> .
 
-<queries/default/select-children/#this> a nsds:Select ;
+<queries/default/select-children/#this> a <admin/model/classes/domain/select/#this> ;
     foaf:isPrimaryTopicOf <queries/default/select-children/> ;
     dct:title "Select children" ;
     sp:text """
@@ -104,12 +102,12 @@ ORDER BY ?title
 
 # select geo resources
 
-<queries/default/select-geo-resources/> a nsds:QueryItem ;
+<queries/default/select-geo-resources/> a <admin/model/classes/domain/query-item/#this> ;
     sioc:has_container <queries/default/> ;
     dct:title "Select geo resources" ;
     foaf:primaryTopic <queries/default/select-geo-resources/#this> .
 
-<queries/default/select-geo-resources/#this> a nsds:Select ;
+<queries/default/select-geo-resources/#this> a <admin/model/classes/domain/select/#this> ;
     foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
     dct:title "Select geo resources" ;
     sp:text """
@@ -132,12 +130,12 @@ ORDER BY ?title
 
 # select latest
 
-<queries/default/select-latest/> a nsds:QueryItem ;
+<queries/default/select-latest/> a <admin/model/classes/domain/query-item/#this> ;
     sioc:has_container <queries/default/> ;
     dct:title "Select latest" ;
     foaf:primaryTopic <queries/default/select-latest/#this> .
 
-<queries/default/select-latest/#this> a nsds:Select ;
+<queries/default/select-latest/#this> a <admin/model/classes/domain/select/#this> ;
     foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
     dct:title "Select latest" ;
     sp:text """
@@ -153,12 +151,12 @@ ORDER BY DESC(?created)
 
 # select labelled
 
-<queries/default/select-labelled/> a nsds:QueryItem ;
+<queries/default/select-labelled/> a <admin/model/classes/domain/query-item/#this> ;
     sioc:has_container <queries/default/> ;
     dct:title "Select labelled" ;
     foaf:primaryTopic <queries/default/select-labelled/#this> .
 
-<queries/default/select-labelled/#this> a nsds:Select ;
+<queries/default/select-labelled/#this> a <admin/model/classes/domain/select/#this> ;
     dct:title "Select labelled" ;
     sp:text """
 PREFIX  dct:  <http://purl.org/dc/terms/>
