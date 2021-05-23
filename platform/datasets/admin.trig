@@ -758,7 +758,7 @@
     nsdd:Root a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/root/> ;
         rdfs:subClassOf sioc:Space, dh:Container ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle, nsdd:MissingSelect ; # roots do not have parents, therefore no nsdd:MissingParent
         rdfs:label "Root" ;
         rdfs:isDefinedBy nsdd: .
@@ -2708,8 +2708,34 @@ adm:Authorization
         rdfs:subClassOf lacl:Authorization, adm:TopicOfAuthorizationItem ;
         ldt:path "{isPrimaryTopicOf.slug}/" ;
         ldt:fragment "this" ;
+        apl:template adm:AuthorizationTemplate ;
         rdfs:label "Authorization" ;
         rdfs:isDefinedBy adm: .
+
+}
+
+adm:AuthorizationTemplate
+{
+
+    adm:AuthorizationTemplate a adm:ContentTemplate ;
+        rdf:first adm:SelectAgents ;
+        rdf:rest rdf:nil .
+
+    adm:SelectAgents a sp:Select ;
+        dct:title "Select agents" ;
+        sp:text """
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT DISTINCT  ?agent
+WHERE
+  { GRAPH ?agentGraph
+      { GRAPH ?authGraph
+          { ?this  foaf:primaryTopic  ?auth }
+        ?auth  acl:agent  ?agent
+      }
+  }
+    """ .
 
 }
 
