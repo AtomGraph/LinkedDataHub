@@ -2717,7 +2717,7 @@ adm:Authorization
 adm:AuthorizationTemplate
 {
 
-    adm:AuthorizationTemplate a adm:ContentTemplate ;
+    adm:AuthorizationTemplate a apl:Content ;
         rdf:first adm:SelectAgents ;
         rdf:rest rdf:nil ;
         rdfs:isDefinedBy adm: .
