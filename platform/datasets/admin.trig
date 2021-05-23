@@ -2719,7 +2719,8 @@ adm:AuthorizationTemplate
 
     adm:AuthorizationTemplate a adm:ContentTemplate ;
         rdf:first adm:SelectAgents ;
-        rdf:rest rdf:nil .
+        rdf:rest rdf:nil ;
+        rdfs:isDefinedBy adm: .
 
     adm:SelectAgents a sp:Select ;
         dct:title "Select agents" ;
@@ -2735,7 +2736,8 @@ WHERE
         ?auth  acl:agent  ?agent
       }
   }
-    """ .
+    """ ;
+        rdfs:isDefinedBy adm: .
 
 }
 

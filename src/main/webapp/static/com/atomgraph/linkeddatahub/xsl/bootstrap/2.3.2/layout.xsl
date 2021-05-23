@@ -1787,6 +1787,12 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
+    <!-- match instances of types that have an apl:template -->
+    <xsl:template match="*[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource]" mode="bs2:Block" priority="2">
+        TYPE: <xsl:value-of select="rdf:type/@rdf:resource"/>
+        CONTENT TEMPLATE: <xsl:value-of select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource"/>
+    </xsl:template>
+    
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
