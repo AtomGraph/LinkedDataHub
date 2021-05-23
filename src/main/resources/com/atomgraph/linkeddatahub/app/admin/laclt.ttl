@@ -97,42 +97,6 @@
     spl:optional true ;
     rdfs:isDefinedBy : .
 
-# authorization
-
-:AuthorizationItem a ldt:Template ;
-    ldt:extends aplt:Document ;
-    ldt:match "/acl/authorizations/{slug}/" ;
-    ldt:query :DescribeAuthorizationItem ;
-    rdfs:label "Authorization Item template" ;
-    rdfs:isDefinedBy : .
-
-:DescribeAuthorizationItem a sp:Construct, ldt:Query ;
-    rdfs:label "DESCRIBE Authorization Item" ;
-    sp:text """
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-DESCRIBE ?this ?authorization ?class ?agent ?agentClass
-WHERE
-  { GRAPH ?graph
-      { ?this  foaf:primaryTopic  ?authorization
-        OPTIONAL
-          { ?authorization
-                      acl:accessToClass  ?class
-          }
-        OPTIONAL
-          { ?authorization
-                      acl:agent  ?agent
-          }
-        OPTIONAL
-          { ?authorization
-                      acl:agentClass  ?agentClass
-          }
-      }
-  }""" ;
-    rdfs:isDefinedBy : .
-
 # agent
 
 :AgentItem a ldt:Template ;
@@ -172,52 +136,17 @@ WHERE
 :ConstructUserAccountItem a sp:Construct, ldt:Query ;
     rdfs:label "DESCRIBE UserAccountItem" ;
     sp:text """
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 
 CONSTRUCT 
-  { 
-    ?this foaf:primaryTopic ?agent .
-    ?this ?thisP ?thisO .
-    ?account ?accountP ?accountO .
+  {
+    ?s ?p ?o .
   }
 WHERE
-  { GRAPH ?graph
-      { ?this     foaf:primaryTopic  ?account ;
-                  ?thisP             ?thisO .
-        ?account  ?accountP          ?accountO
-        FILTER ( ?accountP != sioc:email )
+  { GRAPH ?this
+      { ?s ?p ?o
+        FILTER ( ?p != sioc:email )
       }
   }
 """ ;
-    rdfs:isDefinedBy : .
-
-# group
-
-:GroupItem a ldt:Template ;
-    ldt:extends aplt:Document ;
-    ldt:match "/acl/groups/{slug}/" ;
-    ldt:query :DescribeGroupItem ;
-    rdfs:label "Group item template" ;
-    rdfs:isDefinedBy : .
-
-:DescribeGroupItem a sp:Construct, ldt:Query ;
-    rdfs:label "DESCRIBE Group Item" ;
-    sp:text """
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-DESCRIBE ?this ?group ?agent ?auth
-WHERE
-  { GRAPH ?graph
-      { ?this  foaf:primaryTopic  ?group
-        OPTIONAL
-          { ?group  foaf:member  ?agent }
-        OPTIONAL
-          { GRAPH ?authGraph
-              { ?auth  acl:agentClass  ?group }
-          }
-      }
-  }""" ;
     rdfs:isDefinedBy : .
