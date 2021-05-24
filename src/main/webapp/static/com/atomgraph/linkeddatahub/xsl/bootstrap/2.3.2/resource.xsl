@@ -75,7 +75,12 @@ extension-element-prefixes="ixsl"
     
     <!-- BLOCK -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
+    <!-- match instances of types that have an apl:template annotation property -->
+    <xsl:template match="*[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="bs2:Block" priority="2">
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+    </xsl:template>
+
+    <xsl:template match="*[apl:content/@rdf:resource]" mode="bs2:Block">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
 
@@ -84,7 +89,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="class" select="$class"/>
         </xsl:next-match>
         
-        <xsl:apply-templates select="." mode="apl:ContentList"/>
+        <xsl:apply-templates select="key('resources', apl:content/@rdf:resource)" mode="apl:ContentList"/>
     </xsl:template>
     
     <!-- HEADER -->
@@ -276,11 +281,6 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
-    <!-- match instances of types that have an apl:template annotation property -->
-    <xsl:template match="*[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="apl:ContentList" priority="2">
-        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="#current"/>
-    </xsl:template>
-
     <xsl:template match="*" mode="apl:ContentList"/>
 
 </xsl:stylesheet>
