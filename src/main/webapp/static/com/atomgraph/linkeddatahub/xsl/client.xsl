@@ -1598,7 +1598,7 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                 <xsl:for-each select="?body">
                     <!-- create new cache entry using content URI as key -->
-                    <ixsl:set-property name="$content-uri" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <!-- update progress bar, if it's present -->
                     <xsl:if test="id('progress-bar', ixsl:page())">
