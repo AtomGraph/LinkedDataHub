@@ -73,7 +73,21 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="$class"/>
     </xsl:template>
     
-    <!-- HEADER MODE -->
+    <!-- BLOCK -->
+    
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+        
+        <xsl:apply-templates select="." mode="apl:Content"/>
+    </xsl:template>
+    
+    <!-- HEADER -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
         <xsl:param name="id" as="xs:string?"/>
@@ -219,4 +233,54 @@ extension-element-prefixes="ixsl"
         </ul>
     </xsl:template>
     
+    <!-- CONTENT -->
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:Content" priority="2">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'content xhtml-content'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <!--  remove XHTML namespace -->
+            <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
+            <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
+        </div>
+
+        <!-- process the next apl:Content in the list -->
+        <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="apl:Content" priority="2">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
+            <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
+        </div>
+        
+        <!-- process the next apl:Content in the list -->
+        <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
+    </xsl:template>
+    
+    <!-- match instances of types that have an apl:template annotation property -->
+    <xsl:template match="*[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="apl:Content" priority="2">
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="#current"/>
+    </xsl:template>
+
+    <xsl:template match="*" mode="apl:Content"/>
+
 </xsl:stylesheet>
