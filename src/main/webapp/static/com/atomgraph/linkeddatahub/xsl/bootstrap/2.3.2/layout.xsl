@@ -1749,7 +1749,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[$ldt:ontology][@rdf:about = $ac:uri][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="bs2:Block"/>
 
     <!-- hide Content instances in bs2:Block mode as they will be rendered by apl:Content mode -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="bs2:Block" priority="2"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
 
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
