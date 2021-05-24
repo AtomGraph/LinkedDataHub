@@ -392,26 +392,6 @@
 
 }
 
-# OAuth
-
-<acl/authorizations/oauth2/>
-{
-
-    <acl/authorizations/oauth2/> a adm:AuthorizationItem ;
-        sioc:has_container <acl/authorizations/> ;
-        dct:title "OAuth 2.0 access" ;
-        foaf:primaryTopic <acl/authorizations/oauth2/#this> .
-
-    <acl/authorizations/oauth2/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/oauth2/> ;
-        rdfs:label "OAuth 2.0 access" ;
-        rdfs:comment "Required to enable login with external accounts" ;
-        acl:accessTo apl:OAuth2Login, apl:AuthorizeGoogle ;
-        acl:mode acl:Read ;
-        acl:agentClass foaf:Agent .
-
-}
-
 # full access
 
 
@@ -2733,7 +2713,7 @@ adm:SelectAuthorizationAgents
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
-SELECT DISTINCT  ?agent
+SELECT DISTINCT  ?auth ?agent
 WHERE
   { GRAPH ?authGraph
       { ?this  foaf:primaryTopic  ?auth .
@@ -2764,7 +2744,7 @@ adm:SelectAuthorizationAccessTo
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
-SELECT DISTINCT  ?accessTo
+SELECT DISTINCT  ?auth ?accessTo
 WHERE
   { GRAPH ?authGraph
       { ?this  foaf:primaryTopic  ?auth .

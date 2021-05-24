@@ -249,10 +249,12 @@ extension-element-prefixes="ixsl"
         <!-- load content -->
         <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
             <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
+            <xsl:variable name="container-id" select="generate-id()" as="xs:string"/>
             
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentLoad">
                     <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
@@ -618,20 +620,13 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
 
     <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:variable name="query-string" select="sp:text" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="()" as="element()?"/> <!-- TO-DO: load from $service-uri -->
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="container-id" select="'sparql-results'" as="xs:string"/>
-        <!-- is SPARQL results element does not already exist, create one -->
-        <xsl:if test="not(id($container-id, ixsl:page()))">
-            <xsl:result-document href="#main-content" method="ixsl:append-content">
-                <div id="{$container-id}"/>
-            </xsl:result-document>
-        </xsl:if>
         
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
@@ -1712,10 +1707,13 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="container-id" as="xs:string"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content"/>
+                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
