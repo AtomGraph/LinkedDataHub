@@ -595,7 +595,7 @@ exclude-result-prefixes="#all"
                             </label>
                             <br/>
                             <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/apl.xsl -->
-                            <select id="{$chart-type-id}" name="ou" class="input-medium">
+                            <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
@@ -644,7 +644,7 @@ exclude-result-prefixes="#all"
 
                             <label for="{$category-id}">Category</label>
                             <br/>
-                            <select id="{$category-id}" name="ou" class="input-large">
+                            <select id="{$category-id}" name="ou" class="input-large chart-category">
                                 <option value="">
                                     <!-- URI is the default category -->
                                     <xsl:if test="not($category)">
@@ -681,7 +681,7 @@ exclude-result-prefixes="#all"
 
                             <label for="{$series-id}">Series</label>
                             <br/>
-                            <select id="{$series-id}" name="ou" multiple="multiple" class="input-large">
+                            <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
                                 <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
                                     <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
                                     <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>

@@ -363,6 +363,7 @@ extension-element-prefixes="ixsl"
     
     <!-- TO-DO: make 'data-table' configurable -->
     <xsl:template name="ac:draw-chart">
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -388,19 +389,19 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="$chart-type = '&ac;Table'">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true }})"/>
+                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub'][{$content-uri}]['data-table'], {{ allowHtml: true }})"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:when>
             <xsl:when test="$chart-type = '&ac;BarChart'">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }})"/>
+                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub'][{$content-uri}]['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }})"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub']['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$category}' }}, vAxis: {{ title: '{$series}' }} }})"/>
+                    <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}'))).draw(window['LinkedDataHub'][{$content-uri}]['data-table'], {{ allowHtml: true, hAxis: {{ title: '{$category}' }}, vAxis: {{ title: '{$series}' }} }})"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:otherwise>
@@ -621,6 +622,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="sp:text" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="()" as="element()?"/> <!-- TO-DO: load from $service-uri -->
@@ -634,6 +636,7 @@ extension-element-prefixes="ixsl"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
             <xsl:call-template name="onSPARQLResultsLoad">
                 <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="content-uri" select="$content-uri"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -1495,6 +1498,9 @@ extension-element-prefixes="ixsl"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
                             <xsl:with-param name="container-id" select="'sparql-results'"/>
+                            <xsl:with-param name="chart-type" select="$chart-type"/>
+                            <xsl:with-param name="category" select="$category"/>
+                            <xsl:with-param name="series" select="$series"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
@@ -1552,6 +1558,9 @@ extension-element-prefixes="ixsl"
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                                 <xsl:call-template name="onSPARQLResultsLoad">
                                     <xsl:with-param name="container-id" select="'sparql-results'"/>
+                                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                                    <xsl:with-param name="category" select="$category"/>
+                                    <xsl:with-param name="series" select="$series"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:otherwise>
@@ -1578,12 +1587,18 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
-
+        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+        <xsl:param name="category" select="if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name" as="xs:string?"/>
+        <xsl:param name="series" select="if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name" as="xs:string*"/>
+        
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                 <xsl:for-each select="?body">
-                    <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <!-- create new cache entry using content URI as key -->
+                    <ixsl:set-property name="$content-uri" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <!-- update progress bar, if it's present -->
                     <xsl:if test="id('progress-bar', ixsl:page())">
@@ -1594,24 +1609,15 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:if>
 
-                    <xsl:variable name="results" select="." as="document-node()"/>
-                    <!-- values may already be initialized from chart properties in onrdfBodyLoad -->
-                    <xsl:variable name="chart-type" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.chart-type')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type')) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-                    <xsl:variable name="category" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.category')) then ixsl:get(ixsl:window(), 'LinkedDataHub.category') else (if (srx:sparql) then srx:sparql/srx:head/srx:variable[1]/@name else ())" as="xs:string?"/>
-                    <xsl:variable name="series" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.series')) then ixsl:get(ixsl:window(), 'LinkedDataHub.series') else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
-
-                    <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                    <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                    <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                    <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
+                    <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                    <!-- window.LinkedDataHub[{$content-uri}]['data-table'] object is used by ac:draw-chart() -->
                     <!-- TO-DO: pass data-table as a param to ac:draw-chart() instead? -->
                     <xsl:choose>
                         <xsl:when test="rdf:RDF">
-                            <ixsl:set-property name="data-table" select="ac:rdf-data-table(., $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <ixsl:set-property name="data-table" select="ac:rdf-data-table(., $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                         </xsl:when>
                         <xsl:when test="srx:sparql">
-                            <ixsl:set-property name="data-table" select="ac:sparql-results-data-table(., $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <ixsl:set-property name="data-table" select="ac:sparql-results-data-table(., $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                         </xsl:when>
                     </xsl:choose>
 
@@ -1619,6 +1625,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
+                            <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
@@ -1626,7 +1633,8 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
 
                     <xsl:call-template name="render-chart">
-                        <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                         <xsl:with-param name="chart-type" select="$chart-type"/>
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
@@ -1651,6 +1659,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template name="render-chart">
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -1662,6 +1671,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
         
         <xsl:call-template name="ac:draw-chart">
+             <xsl:with-param name="content-uri" select="$content-uri"/>
              <xsl:with-param name="canvas-id" select="$canvas-id"/>
              <xsl:with-param name="chart-type" select="$chart-type"/>
              <xsl:with-param name="category" select="$category"/>
@@ -2219,10 +2229,19 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="select[@id = 'chart-type']" mode="ixsl:onchange">
         <xsl:param name="chart-type" select="xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI?"/>
-        <xsl:param name="category" select="ixsl:get(ixsl:window(), 'LinkedDataHub.category')" as="xs:string?"/>
-        <xsl:param name="series" select="ixsl:get(ixsl:window(), 'LinkedDataHub.series')" as="xs:string*"/>
+        <xsl:param name="category" select="../../select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*">
+            <xsl:for-each select="../../select[tokenize(@class, ' ') = 'chart-series']">
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:variable name="js-statement" as="element()">
+                        <root statement="document.getElementById('series').selectedOptions.item({.}).value"/>
+                    </xsl:variable>
+                    <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:param>
 
-        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!--<ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
         <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
@@ -2248,11 +2267,20 @@ extension-element-prefixes="ixsl"
     <!-- category onchange -->
 
     <xsl:template match="select[@id = 'category']" mode="ixsl:onchange">
-        <xsl:param name="chart-type" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type'))" as="xs:anyURI?"/>
+        <xsl:param name="chart-type" select="../../select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:param name="category" select="ixsl:get(., 'value')" as="xs:string?"/>
-        <xsl:param name="series" select="ixsl:get(ixsl:window(), 'LinkedDataHub.series')" as="xs:string*"/>
+        <xsl:param name="series" as="xs:string*">
+            <xsl:for-each select="../../select[tokenize(@class, ' ') = 'chart-series']">
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:variable name="js-statement" as="element()">
+                        <root statement="document.getElementById('series').selectedOptions.item({.}).value"/>
+                    </xsl:variable>
+                    <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:param>
 
-        <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!--<ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
         <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
@@ -2278,8 +2306,8 @@ extension-element-prefixes="ixsl"
     <!-- series onchange -->
 
     <xsl:template match="select[@id = 'series']" mode="ixsl:onchange">
-        <xsl:param name="chart-type" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.chart-type'))" as="xs:anyURI?"/>
-        <xsl:param name="category" select="ixsl:get(ixsl:window(), 'LinkedDataHub.category')" as="xs:string?"/>
+        <xsl:param name="chart-type" select="../../select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:param name="category" select="../../select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
             <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                 <xsl:variable name="js-statement" as="element()">
@@ -2289,7 +2317,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:param>
 
-        <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!--<ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
         <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
