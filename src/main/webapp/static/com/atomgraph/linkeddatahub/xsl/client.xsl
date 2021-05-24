@@ -1609,7 +1609,8 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:if>
 
-                    <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     <!-- window.LinkedDataHub[{$content-uri}]['data-table'] object is used by ac:draw-chart() -->
                     <!-- TO-DO: pass data-table as a param to ac:draw-chart() instead? -->
                     <xsl:choose>
