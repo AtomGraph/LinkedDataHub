@@ -1589,9 +1589,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
-        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
-        <xsl:param name="category" select="if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name" as="xs:string?"/>
-        <xsl:param name="series" select="if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name" as="xs:string*"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -1610,6 +1607,10 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <xsl:variable name="results" select="." as="document-node()"/>
+                    <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                    <xsl:variable name="category" select="if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name" as="xs:string?"/>
+                    <xsl:variable name="series" select="if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name" as="xs:string*"/>
+
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     <!-- window.LinkedDataHub[{$content-uri}]['data-table'] object is used by ac:draw-chart() -->
                     <!-- TO-DO: pass data-table as a param to ac:draw-chart() instead? -->
