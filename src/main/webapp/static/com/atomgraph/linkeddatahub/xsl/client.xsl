@@ -249,7 +249,7 @@ extension-element-prefixes="ixsl"
         <!-- load content -->
         <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
             <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
-            <xsl:variable name="container-id" select="generate-id()" as="xs:string"/>
+            <xsl:variable name="container-id" select="@id" as="xs:string"/>
             
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentLoad">

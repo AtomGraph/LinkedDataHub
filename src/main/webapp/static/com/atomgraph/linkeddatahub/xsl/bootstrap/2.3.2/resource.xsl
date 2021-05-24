@@ -249,7 +249,7 @@ extension-element-prefixes="ixsl"
     <!-- CONTENT -->
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:ContentList" priority="2">
-        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'content xhtml-content'" as="xs:string?"/>
         
         <div>
@@ -270,7 +270,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="apl:ContentList" priority="2">
-        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
         
         <div>
