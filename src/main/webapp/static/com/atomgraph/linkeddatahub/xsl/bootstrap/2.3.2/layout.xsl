@@ -1746,7 +1746,9 @@ exclude-result-prefixes="#all">
     <!-- BLOCK MODE -->
     
     <!-- hide only those documents (already shown in the breadcrumb bar) which types are subclasses of dh:Container/dh:Item -->
-    <xsl:template match="*[$ldt:ontology][@rdf:about = $ac:uri][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="bs2:Block"/>
+    <xsl:template match="*[$ldt:ontology][@rdf:about = $ac:uri][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="bs2:Block">
+        <xsl:apply-templates select="." mode="apl:ContentList"/>
+    </xsl:template>
 
     <!-- hide Content instances in bs2:Block mode as they will be rendered by apl:Content mode -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
