@@ -1768,6 +1768,9 @@ exclude-result-prefixes="#all">
             <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
             <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
         </div>
+
+        <!-- process the next apl:Content in the list -->
+        <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
     </xsl:template>
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="bs2:Block" priority="2">
@@ -1785,6 +1788,9 @@ exclude-result-prefixes="#all">
             <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
             <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
         </div>
+        
+        <!-- process the next apl:Content in the list -->
+        <xsl:apply-templates select="key('resources', rdf:rest/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
     <!-- match instances of types that have an apl:template annotation property -->
