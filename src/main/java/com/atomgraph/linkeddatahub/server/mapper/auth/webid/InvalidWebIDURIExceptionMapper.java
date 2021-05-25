@@ -25,7 +25,6 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
@@ -49,7 +48,7 @@ public class InvalidWebIDURIExceptionMapper extends ExceptionMapperBase implemen
         Resource resource = toResource(ex, Response.Status.BAD_REQUEST,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest"));
                 
-        return getResponseBuilder(DatasetFactory.create(resource.getModel())).
+        return getResponseBuilder(resource.getModel()).
             status(Response.Status.BAD_REQUEST).
             build();
     }

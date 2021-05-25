@@ -75,7 +75,7 @@ public class Item extends ResourceBase
     @PostConstruct
     public void init()
     {
-        getOntResource().getOntModel().add(describe().getDefaultModel());
+        getOntResource().getOntModel().add(describe());
     }
     
     @Override

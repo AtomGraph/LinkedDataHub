@@ -44,7 +44,7 @@ public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExcep
     @Override
     public Response toResponse(ModelException ex)
     {
-        if (getQueriedResource() != null) ex.getModel().add(getQueriedResource().describe().getDefaultModel());
+        if (getQueriedResource() != null) ex.getModel().add(getQueriedResource().describe());
         
         return super.toResponse(ex);
     }

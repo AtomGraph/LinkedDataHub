@@ -43,7 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
@@ -79,13 +79,13 @@ public class Item extends ResourceBase
     public void init()
     {
         // InfModel too expensive to create on each request
-        getOntResource().getOntModel().add(describe().getDefaultModel());
+        getOntResource().getOntModel().add(describe());
     }
     
     @Override
-    public ResponseBuilder getResponseBuilder(Dataset dataset)
+    public ResponseBuilder getResponseBuilder(Model model)
     {
-        List<Variant> variants = getVariants(getWritableMediaTypes(Dataset.class));
+        List<Variant> variants = getVariants(getWritableMediaTypes(Model.class));
         Variant variant = getRequest().selectVariant(variants);
         if (variant == null)
         {
@@ -103,7 +103,7 @@ public class Item extends ResourceBase
             {
                 if (!file.exists()) throw new FileNotFoundException();
 
-                return super.getResponseBuilder(dataset).entity(file).
+                return super.getResponseBuilder(model).entity(file).
                         type(variant.getMediaType());
                 //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
             }
@@ -114,7 +114,7 @@ public class Item extends ResourceBase
             }
         }
         
-        return super.getResponseBuilder(dataset);
+        return super.getResponseBuilder(model);
     }
     
     public javax.ws.rs.core.MediaType getFormat()

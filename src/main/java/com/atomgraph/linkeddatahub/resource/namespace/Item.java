@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -87,7 +86,7 @@ public class Item extends ResourceBase
         else
             model = getOntologyLoader().getModel(getApplication().getService(), ontology.getURI());
         
-        return getResponse(DatasetFactory.create(model));
+        return getResponse(model);
     }
     
     public OntologyLoader getOntologyLoader()

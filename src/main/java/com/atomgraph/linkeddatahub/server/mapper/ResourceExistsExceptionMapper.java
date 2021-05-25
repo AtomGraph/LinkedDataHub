@@ -20,7 +20,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import com.atomgraph.server.model.QueriedResource;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.container.ResourceContext;
@@ -31,7 +30,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -54,13 +52,11 @@ public class ResourceExistsExceptionMapper extends ExceptionMapperBase implement
     @Override
     public Response toResponse(ResourceExistsException ex)
     {
-        //ex.getModel().add(getQueriedResource().describe().getDefaultModel());
-
         Resource exception = toResource(ex, Response.Status.CONFLICT,
             ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#Conflict"));
         ex.getModel().add(exception.getModel());
         
-        return getResponseBuilder(DatasetFactory.create(ex.getModel())).
+        return getResponseBuilder(ex.getModel()).
             status(Response.Status.CONFLICT).
             header(HttpHeaders.LOCATION, ex.getURI()).
             build();

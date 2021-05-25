@@ -26,7 +26,6 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.exception.ResourceExistsException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
@@ -44,7 +43,6 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.vocabulary.FOAF;
-import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -55,7 +53,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Providers;
 import java.io.File;
@@ -70,7 +67,6 @@ import java.util.*;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.client.Client;
@@ -189,7 +185,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             header(HttpHeaders.ALLOW, HttpMethod.GET).
             header(HttpHeaders.ALLOW, HttpMethod.POST);
         
-        String acceptWritable = StringUtils.join(getWritableMediaTypes(Dataset.class), ",");
+        String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
         rb.header("Accept-Post", acceptWritable);
         
         return rb.build();
@@ -211,10 +207,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             String forClassURI = getClientUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
             Resource instance = new Constructor().construct(getOntology().getOntModel().getOntClass(forClassURI), ModelFactory.createDefaultModel(), getApplication().getBase().getURI());
 
-            Variant variant = getRequest().selectVariant(getVariants(getWritableMediaTypes(Dataset.class)));
-            if (variant == null) return getResponseBuilder(instance.getModel()).build(); // if quads are not acceptable, fallback to responding with the default graph
-
-            return getResponseBuilder(DatasetFactory.create(instance.getModel())).build();
+            return getResponseBuilder(instance.getModel()).build();
         }
         
         if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
@@ -234,26 +227,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         long eTagHash = ModelUtils.hashModel(model);
 
         List<Variant> variants = getVariants(getWritableMediaTypes(Model.class));
-        Variant variant = getRequest().selectVariant(variants);
-        if (variant != null && variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
-        {
-            // authenticated agents get a different HTML representation
-            if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
-            {
-                Agent agent = (Agent)getSecurityContext().getUserPrincipal();
-                eTagHash += agent.hashCode();
-            }
-        }
-        
-        return new EntityTag(Long.toHexString(eTagHash));
-    }
-    
-    @Override
-    public EntityTag getEntityTag(Dataset dataset)
-    {
-        long eTagHash = com.atomgraph.core.model.impl.Response.hashDataset(dataset);
-        
-        List<Variant> variants = getVariants(getWritableMediaTypes(Dataset.class));
         Variant variant = getRequest().selectVariant(variants);
         if (variant != null && variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
         {
@@ -310,12 +283,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return null;
     }
     
-    @Override
-    public Date getLastModified(Dataset dataset)
-    {
-        return getLastModified(dataset.getDefaultModel()); // TO-DO: we probably shouldn't be looking in the default model only
-    }
-    
     /**
      * Checks whether URI resource already exists in the application's service dataset.
      * 
@@ -341,74 +308,33 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * Handles <code>POST</code> method, stores the submitted RDF dataset, and returns response.
      * Supports dataset append operation as well as creation of an individual resource using <code>forClass</code> parameter.
      * 
-     * @param dataset the RDF payload
+     * @param model the RDF payload
      * @return response
      */
-    @Override
-    public Response post(Dataset dataset)
-    {
-        return post(dataset, getAgent(), Calendar.getInstance());
-    }
-    
-    public Response post(Dataset dataset, Agent agent, Calendar created)
-    {
-        if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
-        {
-            if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
-            Response response = ban(getOntResource());
-            if (response != null) response.close();
-        }
-
-        if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
-        {
-            String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource
-            if (log.isDebugEnabled()) log.debug("POST request URI overridden with: {}", uri);
-            return getResourceContext().getResource(ProxyResourceBase.class).post(dataset);
-        }
-
-        if (getService().getDatasetQuadAccessor() != null)
-        {
-            getService().getDatasetQuadAccessor().add(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
-
-            return Response.ok().build();
-        }
-        
-        return super.post(splitDefaultModel(dataset.getDefaultModel(), getUriInfo().getBaseUri(), agent, created)); // append dataset to service
-    }
-
-    
-    /**
-     * Extracts the individual that is being created from the input RDF graph.
-     * 
-     * @param model RDF input graph
-     * @return RDF resource
-     */
-    public Resource getCreatedDocument(InfModel model)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        
-        ResIterator it = model.listSubjectsWithProperty(RDF.type,
-                getTemplateCall().get().getArgumentProperty(APLT.forClass).getResource());
-        try
-        {
-            if (it.hasNext())
-            {
-                Resource created = it.next();
-                
-                // handle creation of "things"- they are not documents themselves, so we return the attached document instead
-                if (created.hasProperty(FOAF.isPrimaryTopicOf))
-                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
-                else
-                    return created;
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-        
-        return null;
-    }
+//    @Override
+//    public Response post(Model model)
+//    {
+//        return post(model, getAgent(), Calendar.getInstance());
+//    }
+//    
+//    public Response post(Model model, Agent agent, Calendar created)
+//    {
+//        if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
+//        {
+//            if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
+//            Response response = ban(getOntResource());
+//            if (response != null) response.close();
+//        }
+//
+//        if (getService().getDatasetQuadAccessor() != null)
+//        {
+//            getService().getDatasetQuadAccessor().add(splitDefaultModel(model.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
+//
+//            return Response.ok().build();
+//        }
+//        
+//        return super.post(splitDefaultModel(model, getUriInfo().getBaseUri(), agent, created)); // append dataset to service
+//    }
     
     /**
      * Splits the input graph into multiple RDF graphs based on the hash of the subject URI or bnode ID.
@@ -494,57 +420,50 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     /**
      * Handles <code>PUT</code> requests, stores the input RDF data in the application's dataset, and returns response.
      * 
-     * @param dataset RDF input dataset
+     * @param model RDF input model
      * @return response <code>201 Created</code> if resource did not exist, <code>200 OK</code> if it did
      */
-    @Override
-    public Response put(Dataset dataset)
-    {
-        if (getClientUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName())) // TO-DO: move to ResourceFilter?
-        {
-            String uri = getClientUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()); // external URI resource
-            if (log.isDebugEnabled()) log.debug("PUT request URI overridden with: {}", uri);
-            return getResourceContext().getResource(ProxyResourceBase.class).put(dataset);
-        }
-        
-        Response response;
-        try
-        {
-            Calendar created = null;
-            // workaround in order to retain the dct:created value in the meta-graph - without it delete() will wipe all statements about the current resource
-            Dataset description = describe();
-            Statement createdStmt = description.getDefaultModel().createResource(getURI().toString()).getProperty(DCTerms.created);
-            if (createdStmt != null)
-            {
-                RDFNode object = createdStmt.getObject();
-                if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
-                    created = (((XSDDateTime)object.asLiteral().getValue()).asCalendar());
-            }
-            
-            delete();
-            
-            response = post(dataset, getAgent(), created); // add the original dct:created value to the meta-graph
-            
-            if (created != null)
-            {
-                ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-                    getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
-                    getQuerySolutionMap());
-                updateString.setLiteral(DCTerms.created.getLocalName(), created); // only match the dct:created value we had before this request, not the one we just added
-
-                if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
-                getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
-            }
-        }
-        catch (NotFoundException ex)
-        {
-            post(dataset);
-            
-            response = Response.created(getURI()).build();
-        }
-            
-        return response;
-    }
+//    @Override
+//    public Response put(Model model)
+//    {
+//        Response response;
+//        try
+//        {
+//            Calendar created = null;
+//            // workaround in order to retain the dct:created value in the meta-graph - without it delete() will wipe all statements about the current resource
+//            Model description = describe();
+//            Statement createdStmt = description.createResource(getURI().toString()).getProperty(DCTerms.created);
+//            if (createdStmt != null)
+//            {
+//                RDFNode object = createdStmt.getObject();
+//                if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
+//                    created = (((XSDDateTime)object.asLiteral().getValue()).asCalendar());
+//            }
+//            
+//            delete();
+//            
+//            response = post(model, getAgent(), created); // add the original dct:created value to the meta-graph
+//            
+//            if (created != null)
+//            {
+//                ParameterizedSparqlString updateString = new ParameterizedSparqlString(
+//                    getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
+//                    getQuerySolutionMap());
+//                updateString.setLiteral(DCTerms.created.getLocalName(), created); // only match the dct:created value we had before this request, not the one we just added
+//
+//                if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
+//                getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+//            }
+//        }
+//        catch (NotFoundException ex)
+//        {
+//            post(model);
+//            
+//            response = Response.created(getURI()).build();
+//        }
+//            
+//        return response;
+//    }
     
     /**
      * Handles <code>DELETE</code> method, deletes the RDF representation of this resource as well as its meta-graph from the application's dataset, and
@@ -552,23 +471,23 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * 
      * @return response <code>204 No Content</code>
      */
-    @Override
-    public Response delete()
-    {
-        Response response = super.delete();
-        
-        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-                getSystem().getDeleteUpdate(getUriInfo().getBaseUri().toString()).toString(),
-                getQuerySolutionMap());
-        
-        if (getRequest().getMethod().equals(HttpMethod.DELETE)) // don't delete the meta-graph if it's a PUT request
-        {
-            if (log.isDebugEnabled()) log.debug("Delete meta-graph: {}", updateString);
-            getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
-        }
-        
-        return response;
-    }
+//    @Override
+//    public Response delete()
+//    {
+//        Response response = super.delete();
+//        
+//        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
+//                getSystem().getDeleteUpdate(getUriInfo().getBaseUri().toString()).toString(),
+//                getQuerySolutionMap());
+//        
+//        if (getRequest().getMethod().equals(HttpMethod.DELETE)) // don't delete the meta-graph if it's a PUT request
+//        {
+//            if (log.isDebugEnabled()) log.debug("Delete meta-graph: {}", updateString);
+//            getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
+//        }
+//        
+//        return response;
+//    }
     
     /**
      * Handles multipart <code>POST</code> requests, stores uploaded files, and returns response.
@@ -627,9 +546,9 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
                     if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
                     if (mediaType != null) bodyPart.setMediaType(mediaType);
 
-                    Dataset dataset = bodyPart.getValueAs(Dataset.class);
-                    dataset = processExternalResources(dataset, container, itemClass);
-                    post(dataset); // append uploaded triples/quads
+                    Model partModel = bodyPart.getValueAs(Model.class);
+                    partModel = processExternalResources(partModel, container, itemClass);
+                    post(partModel); // append uploaded triples/quads
                 }
                 else // write file
                 {
@@ -658,7 +577,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         else
         {
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", count);
-            return post(DatasetFactory.create(model));
+            return post(model);
         }
     }
     
@@ -821,14 +740,13 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * Attaches external resources to the document hierarchy.
      * External resources: resources with URIs not relative to the app's base URI and without a fragment identifier
      * 
-     * @param dataset with external URIs
+     * @param model with external URIs
      * @param container target container
      * @param itemClass RDF type of the internal documents that will be paired with external resources
      * @return augmented dataset
      */
-    public Dataset processExternalResources(Dataset dataset, Resource container, Resource itemClass)
+    public Model processExternalResources(Model model, Resource container, Resource itemClass)
     {
-        Model model = dataset.getDefaultModel();
         URI containerURI = URI.create(container.getURI());
         
         ResIterator it = model.listSubjects();
@@ -861,7 +779,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
 //                String graphURI = it.next();
 //            }
             
-        return dataset;
+        return model;
     }
     
     @PATCH
@@ -947,7 +865,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * @return RDF dataset
      */
     @Override
-    public Dataset describe()
+    public Model describe()
     {
         // send query bindings separately from the query if the service supports the Sesame protocol
         if (getService().getSPARQLClient() instanceof SesameProtocolClient)
@@ -956,16 +874,16 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
             Query query = new ParameterizedSparqlString(getTemplateCall().get().getTemplate().getQuery().as(com.atomgraph.spinrdf.model.Query.class).getText(),
                 getUriInfo().getBaseUri().toString()).asQuery();
             
-            try (Response cr = ((SesameProtocolClient)getService().getSPARQLClient()).query(query, Dataset.class, getQuerySolutionMap(), new MultivaluedHashMap()))
+            try (Response cr = ((SesameProtocolClient)getService().getSPARQLClient()).query(query, Model.class, getQuerySolutionMap(), new MultivaluedHashMap()))
             {
-                return cr.readEntity(Dataset.class);
+                return cr.readEntity(Model.class);
             }
         }
         else
         {
-            try (Response cr = getService().getSPARQLClient().query(getQuery(), Dataset.class, new MultivaluedHashMap()))
+            try (Response cr = getService().getSPARQLClient().query(getQuery(), Model.class, new MultivaluedHashMap()))
             {
-                return cr.readEntity(Dataset.class);
+                return cr.readEntity(Model.class);
             }
         }
     }

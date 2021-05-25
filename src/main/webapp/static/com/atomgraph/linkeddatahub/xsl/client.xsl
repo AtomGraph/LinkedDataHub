@@ -724,7 +724,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <!-- chart query -->
-                <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
+<!--                <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
                     <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI?"/>
 
                     <xsl:if test="$query-uri">
@@ -736,7 +736,7 @@ extension-element-prefixes="ixsl"
                         <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                         <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                        <!-- query progress bar -->
+                         query progress bar 
                         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 40%;"></div>
@@ -752,7 +752,7 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:if>
-                </xsl:for-each>
+                </xsl:for-each>-->
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>

@@ -59,8 +59,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.InfModel;
@@ -214,9 +212,8 @@ public class Login extends ResourceBase
                     agent = it.next();
                     
                     SecurityContext securityContext = new AgentContext("JWT", agent.inModel(infModel).as(Agent.class));
-                    Dataset dataset = DatasetFactory.create(model);
                     Response resp = createContainer(getUriInfo().getBaseUri().resolve("acl/users/"), LACL.UserAccount, securityContext).
-                        post(dataset);
+                        post(model);
 
                     if (resp.getStatus() != Status.OK.getStatusCode())
                     {

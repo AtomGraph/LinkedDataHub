@@ -36,7 +36,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
@@ -63,9 +62,9 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
         String path = getApplication().get().getBaseURI().getPath();
         NewCookie expiredCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, "", path, null, NewCookie.DEFAULT_VERSION, null, 0, false);
 
-        ResponseBuilder builder = getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.BAD_REQUEST,
+        ResponseBuilder builder = getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#BadRequest")).
-                getModel())).
+                getModel()).
             cookie(expiredCookie);
         
         URI redirectUri = UriBuilder.fromUri(getAdminBaseURI()).

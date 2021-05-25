@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -63,7 +62,7 @@ public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase im
                 addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(ex.getPublicKey().getModulus().toString(16), XSDDatatype.XSDhexBinary)).
                 addLiteral(Cert.exponent, ResourceFactory.createTypedLiteral(ex.getPublicKey().getPublicExponent())));
                 
-        return getResponseBuilder(DatasetFactory.create(resource.getModel())).
+        return getResponseBuilder(resource.getModel()).
             status(Response.Status.BAD_REQUEST).
             build();
     }

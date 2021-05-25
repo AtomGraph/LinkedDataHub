@@ -37,7 +37,6 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.glassfish.jersey.uri.UriComponent;
 
@@ -91,7 +90,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
         }
         
 
-        return getResponseBuilder(DatasetFactory.create(exRes.getModel())).
+        return getResponseBuilder(exRes.getModel()).
             status(Response.Status.FORBIDDEN).
             tag((EntityTag)null). // unset EntityTag as it leads to caching of the 403 responses?
             build();

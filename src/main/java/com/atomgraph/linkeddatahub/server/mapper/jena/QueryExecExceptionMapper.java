@@ -27,7 +27,6 @@ import com.atomgraph.server.mapper.ExceptionMapperBase;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 
 /**
  * JAX-RS mapper for query execution exceptions.
@@ -47,9 +46,9 @@ public class QueryExecExceptionMapper extends ExceptionMapperBase implements Exc
     @Override
     public Response toResponse(QueryExecException ex)
     {
-        return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
+        return getResponseBuilder(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#InternalServerError")).
-                getModel())).
+                getModel()).
             status(Response.Status.INTERNAL_SERVER_ERROR).
             build();
     }

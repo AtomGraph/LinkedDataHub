@@ -25,7 +25,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
@@ -45,9 +44,9 @@ public class HttpHostConnectExceptionMapper extends ExceptionMapperBase implemen
     @Override
     public Response toResponse(HttpHostConnectException ex)
     {
-        return getResponseBuilder(DatasetFactory.create(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
+        return getResponseBuilder(toResource(ex, Response.Status.INTERNAL_SERVER_ERROR,
                     ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#InternalServerError")).
-                getModel())).
+                getModel()).
             status(Response.Status.INTERNAL_SERVER_ERROR).
             build();
     }

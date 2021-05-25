@@ -30,7 +30,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.NotAuthorizedException;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.DatasetFactory;
 
 /**
  * JAX-RS mapper for authentication exceptions.
@@ -54,7 +53,7 @@ public class AuthenticationExceptionMapper extends ExceptionMapperBase implement
                 ResourceFactory.createResource("http://www.w3.org/2011/http-statusCodes#Unauthorized")).
             getModel();
         
-        ResponseBuilder builder = getResponseBuilder(DatasetFactory.create(model));
+        ResponseBuilder builder = getResponseBuilder(model);
         // if (ex.getRealm() != null) builder.header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + ex.getRealm() + "\""); // TO-DO
 
         return builder.status(Status.UNAUTHORIZED).build();

@@ -125,13 +125,13 @@ public class Item extends ResourceBase implements Patchable // TO-DO: extends Gr
     }
 
     @Override
-    public Response post(Dataset dataset)
+    public Response post(Model model)
     {
         boolean existingGraph = getService().getDatasetAccessor().containsModel(getURI().toString());
 
         // is this implemented correctly? The specification is not very clear.
         if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
-        getService().getDatasetAccessor().add(getURI().toString(), dataset.getDefaultModel());
+        getService().getDatasetAccessor().add(getURI().toString(), model);
 
         if (existingGraph) return Response.ok().build();
         else return Response.created(getURI()).build();
@@ -139,13 +139,13 @@ public class Item extends ResourceBase implements Patchable // TO-DO: extends Gr
 
     @Override
     @PUT
-    public Response put(Dataset dataset)
+    public Response put(Model model)
     {
         boolean existingGraph = getService().getDatasetAccessor().containsModel(getURI().toString());
         if (!existingGraph)
         {
-            Model model = getService().getDatasetAccessor().getModel(getURI().toString());
-            EntityTag entityTag = new EntityTag(Long.toHexString(ModelUtils.hashModel(model)));
+            Model existingModel = getService().getDatasetAccessor().getModel(getURI().toString());
+            EntityTag entityTag = new EntityTag(Long.toHexString(ModelUtils.hashModel(existingModel)));
             ResponseBuilder rb = getRequest().evaluatePreconditions(entityTag);
             if (rb != null)
             {
@@ -155,7 +155,7 @@ public class Item extends ResourceBase implements Patchable // TO-DO: extends Gr
         }
         
         if (log.isDebugEnabled()) log.debug("PUT Model to named graph with URI: {} Did it already exist? {}", getURI(), existingGraph);
-        getService().getDatasetAccessor().putModel(getURI().toString(), dataset.getDefaultModel());
+        getService().getDatasetAccessor().putModel(getURI().toString(), model);
 
         try (Response cr = getService().getSPARQLClient().query(new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(),
                 getQuerySolutionMap(), getUriInfo().getBaseUri().toString()).asQuery(), ResultSet.class,

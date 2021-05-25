@@ -34,7 +34,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
@@ -90,7 +89,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
         {
             if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", getURI(), ((FileManager)getDataManager()).hasCachedModel(getURI().toString()));
             if (log.isDebugEnabled()) log.debug("isMapped({}): {}", getURI(), getDataManager().isMapped(getURI().toString()));
-            return getResponse(DatasetFactory.create(getDataManager().loadModel(getURI().toString())));
+            return getResponse(getDataManager().loadModel(getURI().toString()));
         }
         
         // do not return the whole document if only a single resource (fragment) is requested
@@ -101,7 +100,7 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
             {
                 Model description = cr.readEntity(Model.class);
                 description = ModelFactory.createDefaultModel().add(description.getResource(getURI().toString()).listProperties());
-                return getResponse(DatasetFactory.create(description));
+                return getResponse(description);
             }
         }
 
