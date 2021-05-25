@@ -2287,7 +2287,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
-        
+<xsl:message>
+    $category: <xsl:value-of select="$category"/>
+    $series: <xsl:value-of select="$series"/>
+    $content-uri: <xsl:value-of select="$content-uri"/>
+    $chart-canvas-id: <xsl:value-of select="$chart-canvas-id"/>
+</xsl:message>
+
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
@@ -2325,6 +2331,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
+<xsl:message>
+    $category: <xsl:value-of select="$category"/>
+    $series: <xsl:value-of select="$series"/>
+    $content-uri: <xsl:value-of select="$content-uri"/>
+    $chart-canvas-id: <xsl:value-of select="$chart-canvas-id"/>
+</xsl:message>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
