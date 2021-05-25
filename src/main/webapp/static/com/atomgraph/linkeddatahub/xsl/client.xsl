@@ -1627,7 +1627,7 @@ extension-element-prefixes="ixsl"
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -2244,10 +2244,10 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
-
-        <!--<ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
-
-        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
+        
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
@@ -2260,7 +2260,8 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
             
             <xsl:call-template name="render-chart">
-                <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                <xsl:with-param name="content-uri" select="$content-uri"/>
+                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
@@ -2283,10 +2284,10 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
-
-        <!--<ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
-
-        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
+        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
+        
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
@@ -2299,7 +2300,8 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
             
             <xsl:call-template name="render-chart">
-                <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                <xsl:with-param name="content-uri" select="$content-uri"/>
+                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
@@ -2320,10 +2322,10 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
             </xsl:for-each>
         </xsl:param>
+        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
+        <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
-        <!--<ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
-
-        <xsl:variable name="results" select="ixsl:get(ixsl:window(), 'LinkedDataHub.results')" as="document-node()"/>
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
             <xsl:choose>
@@ -2336,7 +2338,8 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
             
             <xsl:call-template name="render-chart">
-                <xsl:with-param name="canvas-id" select="'chart-canvas'"/>
+                <xsl:with-param name="content-uri" select="$content-uri"/>
+                <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
