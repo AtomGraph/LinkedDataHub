@@ -202,13 +202,13 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     public Response get()
     {
         // special case for constructors. We want to control cache based on the latest constructor, not the Linked Data resource it was invoked on
-        if (getClientUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && getClientUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
-        {
-            String forClassURI = getClientUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
-            Resource instance = new Constructor().construct(getOntology().getOntModel().getOntClass(forClassURI), ModelFactory.createDefaultModel(), getApplication().getBase().getURI());
-
-            return getResponseBuilder(instance.getModel()).build();
-        }
+//        if (getClientUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && getClientUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
+//        {
+//            String forClassURI = getClientUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
+//            Resource instance = new Constructor().construct(getOntology().getOntModel().getOntClass(forClassURI), ModelFactory.createDefaultModel(), getApplication().getBase().getURI());
+//
+//            return getResponseBuilder(instance.getModel()).build();
+//        }
         
         if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
         {
@@ -289,20 +289,20 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
      * @param resource URI resource
      * @return true if resource already exists
      */
-    @Override
-    public boolean exists(Resource resource)
-    {
-        if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        qsm.add(FOAF.Document.getLocalName(), resource);
-        Query query = new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(), qsm).asQuery();
-        
-        if (query.isSelectType()) return getService().getSPARQLClient().select(query).hasNext();
-        if (query.isAskType()) return getService().getSPARQLClient().ask(query);
-        
-        throw new IllegalStateException("Configured graph document query is neither ASK nor SELECT");
-    }
+//    @Override
+//    public boolean exists(Resource resource)
+//    {
+//        if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
+//        
+//        QuerySolutionMap qsm = new QuerySolutionMap();
+//        qsm.add(FOAF.Document.getLocalName(), resource);
+//        Query query = new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(), qsm).asQuery();
+//        
+//        if (query.isSelectType()) return getService().getSPARQLClient().select(query).hasNext();
+//        if (query.isAskType()) return getService().getSPARQLClient().ask(query);
+//        
+//        throw new IllegalStateException("Configured graph document query is neither ASK nor SELECT");
+//    }
     
     /**
      * Handles <code>POST</code> method, stores the submitted RDF dataset, and returns response.

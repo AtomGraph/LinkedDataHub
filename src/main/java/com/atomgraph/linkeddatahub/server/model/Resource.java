@@ -34,7 +34,7 @@ public interface Resource extends com.atomgraph.core.model.Resource
     
     Application getApplication();
     
-    boolean exists(org.apache.jena.rdf.model.Resource resource);
+//    boolean exists(org.apache.jena.rdf.model.Resource resource);
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)

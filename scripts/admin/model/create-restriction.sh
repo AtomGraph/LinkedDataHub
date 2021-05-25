@@ -106,11 +106,6 @@ fi
 
 container="${base}model/restrictions/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
-fi
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     restriction="<${uri}>" # URI
@@ -122,8 +117,6 @@ args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Restriction") # class
 args+=("-t")
 args+=("text/turtle") # content type
 

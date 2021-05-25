@@ -67,9 +67,11 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
+if [ -z "$container" ] ; then
+    print_usage
+    exit 1
+fi
 
-args+=("-c")
-args+=("${base}ns/domain/default#Item")
 args+=("-t")
 args+=("text/turtle")
 

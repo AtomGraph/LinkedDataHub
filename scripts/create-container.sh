@@ -78,8 +78,6 @@ if [ -z "$parent" ] ; then
     exit 1
 fi
 
-args+=("-c")
-args+=("${base}ns/domain/default#Container")
 args+=("-t")
 args+=("text/turtle")
 

@@ -126,21 +126,6 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
         return super.resolve(href, base);
     }
     
-//    @Override
-//    public Source getSource(Model model, String systemId) throws IOException
-//    {
-//        if (log.isDebugEnabled()) log.debug("Number of Model stmts read: {}", model.size());
-//        try (ByteArrayOutputStream stream = new ByteArrayOutputStream())
-//        {
-//            // if the model uses inference, discard the inferred statements - XSLT functions will be traversing ontology documents as Linked Data anyway
-//            if (model instanceof InfModel) model = ((InfModel)model).getRawModel();
-//            
-//            model.write(stream);
-//            if (log.isDebugEnabled()) log.debug("RDF/XML bytes written: {}", stream.toByteArray().length);
-//            return new StreamSource(new ByteArrayInputStream(stream.toByteArray()), systemId);
-//        }
-//    }
-    
     @Override
     public WebTarget getEndpoint(URI uri)
     {
