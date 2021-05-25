@@ -17,12 +17,19 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# check that SPARQL endpoint works
+# request N-Triples twice - supply ETag second time and expect 304 Not Modified
 
-curl -k -w "%{http_code}\n" -f -s \
-  -G \
+etag=$(
+curl -k -f -s -I -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode 'query=SELECT ?s { GRAPH ?g { ?s ?p ?o } }' \
-  "${END_USER_BASE_URL}sparql" \
-| grep -q "$STATUS_OK"
+  -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL" \
+| grep 'ETag' \
+| sed -En 's/^ETag: (.*)/\1/p')
+
+curl -k -w "%{http_code}\n" -f -s -G \
+  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+  -H "Accept: application/n-triples" \
+  "$END_USER_BASE_URL" \
+  -H "If-None-Match: $etag" \
+| grep -q "$STATUS_NOT_MODIFIED"

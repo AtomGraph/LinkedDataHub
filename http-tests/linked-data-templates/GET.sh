@@ -7,7 +7,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
+# add agent to the readers group
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
@@ -17,10 +17,10 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 popd > /dev/null
 
-# check that HTML response works (use Chrome's default Accept value)
+# GET the graph (use Chrome's default Accept value)
 
-curl --head -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
+  -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_OK}"
+| grep -q "$STATUS_OK"

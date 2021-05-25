@@ -7,22 +7,22 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the readers group
+# add agent to the writers group
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
   --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/readers/"
+  "${ADMIN_BASE_URL}acl/groups/writers/"
 
 popd > /dev/null
 
-# check that SPARQL endpoint works
+# attempt to create a new named graph using direct identification fails due to missing authorizations
+# the current W3C ACL ontology-based model does not support "unknown" URIs that are not attached to any acl:Authorization using acl:accessTo or acl:accessToClass
 
 curl -k -w "%{http_code}\n" -f -s \
-  -G \
+  -X PUT \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H 'Accept: application/sparql-results+xml' \
-  --data-urlencode 'query=SELECT ?s { GRAPH ?g { ?s ?p ?o } }' \
-  "${END_USER_BASE_URL}sparql" \
-| grep -q "$STATUS_OK"
+  -H "Content-Type: application/n-triples" \
+  "${END_USER_BASE_URL}non-existing/" \
+| grep -q "$STATUS_FORBIDDEN"

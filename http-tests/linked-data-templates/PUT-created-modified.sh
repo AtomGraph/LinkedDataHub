@@ -7,19 +7,13 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# create a random document slug
+# add agent to the writers group
 
-slug=$(uuidgen | tr '[:upper:]' '[:lower:]')
-
-./create-authorization.sh \
--b "$ADMIN_BASE_URL" \
--f "$OWNER_CERT_FILE" \
--p "$OWNER_CERT_PWD" \
---label "Write test doc" \
---agent "$AGENT_URI" \
---to "${END_USER_BASE_URL}${slug}/" \
---write \
-"${ADMIN_BASE_URL}acl/authorizations/"
+./add-agent-to-group.sh \
+  -f "$OWNER_CERT_FILE" \
+  -p "$OWNER_CERT_PWD" \
+  --agent "$AGENT_URI" \
+  "${ADMIN_BASE_URL}acl/groups/writers/"
 
 popd > /dev/null
 
@@ -27,59 +21,64 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 # create a document
 
-read -d '' -r doc_turtle << EOF || true
-    @prefix nsdd:    <ns/domain/default#> .
-    @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
-    @prefix dct:	<http://purl.org/dc/terms/> .
-    @prefix sioc:	<http://rdfs.org/sioc/ns#> .
-
-    <${slug}/> a nsdd:Item ;
-        sioc:has_container <> ;
-        dct:title "Test document" .
-EOF
-
-doc=$(echo "$doc_turtle" | turtle --base="$END_USER_BASE_URL" | ./update-document.sh \
+container=$(./create-container.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
--t "application/n-triples" \
-"${END_USER_BASE_URL}${slug}/")
+-b "$END_USER_BASE_URL" \
+--title "Test" \
+--slug "test" \
+--parent "$END_USER_BASE_URL" \
+"$END_USER_BASE_URL")
 
 # get the dct:created value
 
-doc_ntriples=$(./get-document.sh \
+container_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "$doc")
+  "$container")
 
-created=$(echo "$doc_ntriples" \
+created=$(echo "$container_ntriples" \
 | grep '<http://purl.org/dc/terms/created>' \
 | cut -d " " -f 3)
 
 [ -z "$created" ] && exit 1 # fail if dct:created value is missing
 
-# put the same triples back into the document to add dct:modified (to the meta-graph)
+# get the named graph URI
+
+graph_doc=$(echo "$container_ntriples" \
+| sed -rn "s/<${container//\//\\/}> <http:\/\/rdfs\.org\/ns\/void#inDataset> <(.*)#this> \./\1/p")
+
+# get the named graph triples
+
+graph_ntriples=$(./get-document.sh \
+  -f "$AGENT_CERT_FILE" \
+  -p "$AGENT_CERT_PWD" \
+  --accept 'application/n-triples' \
+  "$graph_doc")
+
+# put the same triples in the named graph to add dct:modified
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-echo "$doc_ntriples" \
+echo "$graph_ntriples" \
 | ./update-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --content-type 'application/n-triples' \
-  "$doc"
+  "$graph_doc"
 
-updated_doc_ntriples=$(./get-document.sh \
+updated_container_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "$doc")
+  "$container")
 
 popd > /dev/null
 
 # check that dct:created was added but dct:modified is not there
 
-updated_created=$(echo "$updated_doc_ntriples" \
+updated_created=$(echo "$updated_container_ntriples" \
 | grep '<http://purl.org/dc/terms/created>' \
 | grep -v '<http://purl.org/dc/terms/modified>' \
 | cut -d " " -f 3)
@@ -90,9 +89,9 @@ if [ "$created" != "$updated_created" ]; then
     exit 1
 fi
 
-# check that dct:modified was added
+# get dct:modified value
 
-modified=$(echo "$updated_doc_ntriples" \
+modified=$(echo "$updated_container_ntriples" \
 | grep '<http://purl.org/dc/terms/modified>' \
 | cut -d " " -f 3 \
 | cut -d "\"" -f 2) # cut quotes and datatype

@@ -7,7 +7,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group to be able to read/write documents (might already be done by another test)
+# add agent to the writers
 
 ./add-agent-to-group.sh \
   -f "$OWNER_CERT_FILE" \
@@ -49,7 +49,7 @@ echo -e "$rdf_post" \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}?upload=true"  \
-| grep -q "${STATUS_SEE_OTHER}"
+| grep -q "$STATUS_SEE_OTHER"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
