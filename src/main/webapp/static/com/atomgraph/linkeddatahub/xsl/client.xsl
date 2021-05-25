@@ -1614,8 +1614,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-                    <!-- window.LinkedDataHub[{$content-uri}]['data-table'] object is used by ac:draw-chart() -->
-                    <!-- TO-DO: pass data-table as a param to ac:draw-chart() instead? -->
+                    <!-- window.LinkedDataHub['{$content-uri}']['data-table'] object is used by ac:draw-chart() -->
                     <xsl:choose>
                         <xsl:when test="rdf:RDF">
                             <ixsl:set-property name="data-table" select="ac:rdf-data-table(., $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
@@ -2247,13 +2246,13 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
         
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
+            <!-- window.LinkedDataHub['{$content-uri}']['data-table'] object is used by ac:draw-chart() -->
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
-                    <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 </xsl:when>
                 <xsl:when test="$results/srx:sparql">
-                    <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 </xsl:when>
             </xsl:choose>
             
@@ -2291,13 +2290,13 @@ extension-element-prefixes="ixsl"
 </xsl:message>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
+            <!-- window.LinkedDataHub['{$content-uri}']['data-table'] object is used by ac:draw-chart() -->
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
-                    <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 </xsl:when>
                 <xsl:when test="$results/srx:sparql">
-                    <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 </xsl:when>
             </xsl:choose>
             
@@ -2333,13 +2332,13 @@ extension-element-prefixes="ixsl"
 </xsl:message>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <!-- window.LinkedDataHub.data-table object is used by ac:draw-chart() -->
+            <!-- window.LinkedDataHub['{$content-uri}']['data-table'] object is used by ac:draw-chart() -->
             <xsl:choose>
                 <xsl:when test="$results/rdf:RDF">
-                    <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 </xsl:when>
                 <xsl:when test="$results/srx:sparql">
-                    <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="data-table" select="ac:sparql-results-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 </xsl:when>
             </xsl:choose>
             
