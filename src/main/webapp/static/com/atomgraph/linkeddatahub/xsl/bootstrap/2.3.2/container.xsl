@@ -912,7 +912,7 @@ exclude-result-prefixes="#all"
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>
                             <br/>
-                            <select id="{$chart-type-id}" name="ou" class="input-medium">
+                            <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
                                 <option value="&ac;Table">
                                     <xsl:if test="$chart-type = '&ac;Table'">
                                         <xsl:attribute name="selected">selected</xsl:attribute>
@@ -959,7 +959,7 @@ exclude-result-prefixes="#all"
 
                             <label for="{$category-id}">Category</label>
                             <br/>
-                            <select id="{$category-id}" name="ol" class="input-large">
+                            <select id="{$category-id}" name="ol" class="input-large chart-category">
                                 <xsl:for-each select="srx:head/srx:variable">
                                     <!-- leave the original variable order so it can be controlled from query -->
 
@@ -984,7 +984,7 @@ exclude-result-prefixes="#all"
 
                             <label for="{$series-id}">Series</label>
                             <br/>
-                            <select id="{$series-id}" name="ol" multiple="multiple" class="input-large">
+                            <select id="{$series-id}" name="ol" multiple="multiple" class="input-large chart-series">
                                 <xsl:for-each select="srx:head/srx:variable">
                                     <!-- leave the original variable order so it can be controlled from query -->
 
