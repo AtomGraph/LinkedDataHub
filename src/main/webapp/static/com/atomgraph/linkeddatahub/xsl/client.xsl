@@ -624,6 +624,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="sp:text" as="xs:string"/>
+        <!-- set ?this variable value -->
+        <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="()" as="element()?"/> <!-- TO-DO: load from $service-uri -->
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
