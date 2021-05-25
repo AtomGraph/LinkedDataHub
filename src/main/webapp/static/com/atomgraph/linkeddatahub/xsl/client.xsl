@@ -2235,7 +2235,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI?"/>
         <xsl:param name="category" select="../../select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
-            <xsl:for-each select="../../select[tokenize(@class, ' ') = 'chart-series']">
+            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -2273,7 +2273,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="../../select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:param name="category" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
-            <xsl:for-each select="../../select[tokenize(@class, ' ') = 'chart-series']">
+            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -2317,7 +2317,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="../../select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:param name="category" select="../../select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
-            <xsl:for-each select="../../select[tokenize(@class, ' ') = 'chart-series']">
+            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
