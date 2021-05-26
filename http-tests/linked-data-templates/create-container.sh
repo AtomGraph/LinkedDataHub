@@ -23,22 +23,21 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 slug="test"
 
-container=$(./create-container.sh \
+./create-container.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
 --title "Test" \
 --slug "$slug" \
 --parent "$END_USER_BASE_URL"
-)
 
-# check that the container was created
+# check that the container was created at the expected URL
 
 ./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "$container" \
+  "${END_USER_BASE_URL}${slug}" \
 | grep "<${END_USER_BASE_URL}${slug}> <http://rdfs.org/sioc/ns#has_parent> <${END_USER_BASE_URL}>"
 
 popd > /dev/null
