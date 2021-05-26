@@ -133,11 +133,6 @@ fi
 
 container="${base}sitemap/templates/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
-fi
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     template="<${uri}>" # URI
@@ -149,10 +144,9 @@ args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Template") # class
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("${base}service") # target URL = graph store
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"

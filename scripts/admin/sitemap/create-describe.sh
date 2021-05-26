@@ -115,8 +115,6 @@ args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns#Describe") # class
 args+=("-t")
 args+=("text/turtle") # content type
 
