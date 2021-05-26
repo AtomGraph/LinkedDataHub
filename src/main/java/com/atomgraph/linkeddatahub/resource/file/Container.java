@@ -32,22 +32,18 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.jena.ontology.Ontology;
@@ -60,29 +56,21 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Container extends com.atomgraph.linkeddatahub.server.model.impl.ResourceBase
+public class Container extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
+    private final Ontology ontology;
     private final MessageDigest messageDigest;
     
     @Inject
-    public Container(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes, 
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+    public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application,
-                ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
-        
+        super(request, service, mediaTypes, uriInfo, providers, system);
+        this.ontology = ontology.get();
+
         try
         {
             this.messageDigest = MessageDigest.getInstance("SHA1");
@@ -90,7 +78,7 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         catch (NoSuchAlgorithmException ex)
         {
             if (log.isErrorEnabled()) log.error("SHA1 algorithm not found", ex);
-            throw new WebApplicationException(ex);
+            throw new InternalServerErrorException(ex);
         }
     }
 
@@ -136,6 +124,11 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         }
     }
 
+    public Ontology getOntology()
+    {
+        return ontology;
+    }
+    
     public MessageDigest getMessageDigest()
     {
         return messageDigest;

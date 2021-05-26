@@ -118,6 +118,12 @@ fi
 ns="${base}ns/domain/system#"
 container="${base}files/"
 
+if [ -z "$1" ]; then
+    target="${base}files/" # default target URL = uploads endpoint TO-DO: change to "${base}service/upload"
+else
+    target="$1"
+fi
+
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
 rdf_post+="-F \"rdf=\"\n"
@@ -161,4 +167,4 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server and print Location URL
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$1" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

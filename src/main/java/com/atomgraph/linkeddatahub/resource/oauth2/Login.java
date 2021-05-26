@@ -76,7 +76,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Login extends ResourceBase
+public class Login extends ResourceBase // TO-DO: extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Login.class);
