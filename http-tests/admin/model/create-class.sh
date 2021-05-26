@@ -30,7 +30,7 @@ popd > /dev/null
 # check that the class is present in the ontology
 
 curl -k -f -s -N \
-  -H "Accept: application/n-quads" \
+  -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}ns/domain" \
 | grep -q "$class"
 

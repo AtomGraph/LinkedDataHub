@@ -28,7 +28,7 @@ do
   echo -e "<http://s> <http://p> <http://o> <http://g> ." >> "$file" ;
 done
 
-file_content_type="application/n-quads" # content type doesn't matter -- only Content-Length
+file_content_type="application/n-triples" # content type doesn't matter -- only Content-Length
 
 # stream data - use chunked encoding
 

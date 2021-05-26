@@ -10,7 +10,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 curl -k -w "%{http_code}\n" -f -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Content-Type: application/n-triples" \
-  -H "Accept: application/n-quads" \
+  -H "Accept: application/n-triples" \
   -X POST \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
@@ -35,7 +35,7 @@ popd > /dev/null
 curl -k -w "%{http_code}\n" -f -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Content-Type: application/n-triples" \
-  -H "Accept: application/n-quads" \
+  -H "Accept: application/n-triples" \
   -H "Content-Length: 0" \
   -X POST \
   "${END_USER_BASE_URL}" \

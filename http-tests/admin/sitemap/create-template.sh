@@ -25,7 +25,7 @@ popd > /dev/null
 # check that the template is present in the ontology
 
 curl -k -f -s -N \
-  -H "Accept: application/n-quads" \
+  -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}ns/templates" \
 | grep -q "${END_USER_BASE_URL}ns/templates#NewTemplate"
 
@@ -44,6 +44,6 @@ popd > /dev/null
 
 curl -k -f -I -N \
   -E "$OWNER_CERT_FILE":"$OWNER_CERT_PWD" \
-  -H "Accept: application/n-quads" \
+  -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}" \
 | grep "Link: <${END_USER_BASE_URL}ns/templates#NewTemplate>; rel=https://www.w3.org/ns/ldt#template"
