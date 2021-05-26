@@ -137,7 +137,7 @@ WHERE
 
 # files
 
-:Uploads a ldt:Template ;
+:FileContainer a ldt:Template ;
     ldt:extends :GraphStore ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.file.Container> ;
     ldt:match "/uploads" ;
@@ -164,7 +164,7 @@ DESCRIBE ?this
 
 # imports
 
-:Imports a ldt:Template ;
+:ImportContainer a ldt:Template ;
     ldt:extends :GraphStore ;
     ldt:match "/imports" ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.imports.Container> ;
@@ -172,12 +172,12 @@ DESCRIBE ?this
     rdfs:comment "Provides CSV and RDF import capability to matching containers" ;
     rdfs:isDefinedBy : .
 
-#:ImportItem a ldt:Template ;
-#    ldt:extends :Document ;
-#    ldt:match "/imports/{slug}/" ;
-#    # ldt:query :DescribeWithResponse ;
-#    rdfs:label "Import item" ;
-#    rdfs:isDefinedBy : .
+:ImportItem a ldt:Template ;
+    ldt:extends :Document ;
+    ldt:match "/imports/{slug}/" ;
+    # ldt:query :DescribeWithResponse ;
+    rdfs:label "Import item" ;
+    rdfs:isDefinedBy : .
 
 # PARAMETERS
 
