@@ -38,6 +38,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -54,24 +55,24 @@ public class Container extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
-    private final UriInfo uriInfo;
+//    private final UriInfo uriInfo;
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final DataManager dataManager;
-    private com.atomgraph.linkeddatahub.Application system;
+//    private com.atomgraph.linkeddatahub.Application system;
 
     @Inject
-    public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+    public Container(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             DataManager dataManager,
-            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes);
-        this.uriInfo = uriInfo;
+        super(request, service, mediaTypes, uriInfo, providers, system);
+//        this.uriInfo = uriInfo;
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
         this.dataManager = dataManager;
-        this.system = system;
+//        this.system = system;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
@@ -116,10 +117,10 @@ public class Container extends GraphStoreImpl
         return constructor;
     }
     
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
-    }
+//    public UriInfo getUriInfo()
+//    {
+//        return uriInfo;
+//    }
     
     public URI getURI()
     {
@@ -130,11 +131,11 @@ public class Container extends GraphStoreImpl
     {
         return application;
     }
-    
-    public com.atomgraph.linkeddatahub.Application getSystem()
-    {
-        return system;
-    }
+//    
+//    public com.atomgraph.linkeddatahub.Application getSystem()
+//    {
+//        return system;
+//    }
     
     public DataManager getDataManager()
     {

@@ -201,15 +201,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
     @Override
     public Response get()
     {
-        // special case for constructors. We want to control cache based on the latest constructor, not the Linked Data resource it was invoked on
-//        if (getClientUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && getClientUriInfo().getQueryParameters().containsKey(AC.forClass.getLocalName()))
-//        {
-//            String forClassURI = getClientUriInfo().getQueryParameters().getFirst(AC.forClass.getLocalName());
-//            Resource instance = new Constructor().construct(getOntology().getOntModel().getOntClass(forClassURI), ModelFactory.createDefaultModel(), getApplication().getBase().getURI());
-//
-//            return getResponseBuilder(instance.getModel()).build();
-//        }
-        
         if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.debug.getLocalName(), SD.SPARQL11Query))
         {
             if (log.isDebugEnabled()) log.debug("Returning SPARQL query string as debug response");
@@ -282,59 +273,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return null;
     }
-    
-    /**
-     * Checks whether URI resource already exists in the application's service dataset.
-     * 
-     * @param resource URI resource
-     * @return true if resource already exists
-     */
-//    @Override
-//    public boolean exists(Resource resource)
-//    {
-//        if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
-//        
-//        QuerySolutionMap qsm = new QuerySolutionMap();
-//        qsm.add(FOAF.Document.getLocalName(), resource);
-//        Query query = new ParameterizedSparqlString(getSystem().getGraphDocumentQuery().toString(), qsm).asQuery();
-//        
-//        if (query.isSelectType()) return getService().getSPARQLClient().select(query).hasNext();
-//        if (query.isAskType()) return getService().getSPARQLClient().ask(query);
-//        
-//        throw new IllegalStateException("Configured graph document query is neither ASK nor SELECT");
-//    }
-    
-    /**
-     * Handles <code>POST</code> method, stores the submitted RDF dataset, and returns response.
-     * Supports dataset append operation as well as creation of an individual resource using <code>forClass</code> parameter.
-     * 
-     * @param model the RDF payload
-     * @return response
-     */
-//    @Override
-//    public Response post(Model model)
-//    {
-//        return post(model, getAgent(), Calendar.getInstance());
-//    }
-//    
-//    public Response post(Model model, Agent agent, Calendar created)
-//    {
-//        if (getTemplateCall().isPresent() && getTemplateCall().get().hasArgument(APLT.ban))
-//        {
-//            if (log.isDebugEnabled()) log.debug("BANing current resource from proxy cache: {}", getURI());
-//            Response response = ban(getOntResource());
-//            if (response != null) response.close();
-//        }
-//
-//        if (getService().getDatasetQuadAccessor() != null)
-//        {
-//            getService().getDatasetQuadAccessor().add(splitDefaultModel(model.getDefaultModel(), getUriInfo().getBaseUri(), agent, created));
-//
-//            return Response.ok().build();
-//        }
-//        
-//        return super.post(splitDefaultModel(model, getUriInfo().getBaseUri(), agent, created)); // append dataset to service
-//    }
     
     /**
      * Splits the input graph into multiple RDF graphs based on the hash of the subject URI or bnode ID.
@@ -416,78 +354,6 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return dataset;
     }
-
-    /**
-     * Handles <code>PUT</code> requests, stores the input RDF data in the application's dataset, and returns response.
-     * 
-     * @param model RDF input model
-     * @return response <code>201 Created</code> if resource did not exist, <code>200 OK</code> if it did
-     */
-//    @Override
-//    public Response put(Model model)
-//    {
-//        Response response;
-//        try
-//        {
-//            Calendar created = null;
-//            // workaround in order to retain the dct:created value in the meta-graph - without it delete() will wipe all statements about the current resource
-//            Model description = describe();
-//            Statement createdStmt = description.createResource(getURI().toString()).getProperty(DCTerms.created);
-//            if (createdStmt != null)
-//            {
-//                RDFNode object = createdStmt.getObject();
-//                if (object.isLiteral() && object.asLiteral().getValue() instanceof XSDDateTime)
-//                    created = (((XSDDateTime)object.asLiteral().getValue()).asCalendar());
-//            }
-//            
-//            delete();
-//            
-//            response = post(model, getAgent(), created); // add the original dct:created value to the meta-graph
-//            
-//            if (created != null)
-//            {
-//                ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-//                    getSystem().getPutUpdate(getUriInfo().getBaseUri().toString()).toString(),
-//                    getQuerySolutionMap());
-//                updateString.setLiteral(DCTerms.created.getLocalName(), created); // only match the dct:created value we had before this request, not the one we just added
-//
-//                if (log.isDebugEnabled()) log.debug("Update meta-graph: {}", updateString);
-//                getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
-//            }
-//        }
-//        catch (NotFoundException ex)
-//        {
-//            post(model);
-//            
-//            response = Response.created(getURI()).build();
-//        }
-//            
-//        return response;
-//    }
-    
-    /**
-     * Handles <code>DELETE</code> method, deletes the RDF representation of this resource as well as its meta-graph from the application's dataset, and
-     * returns response.
-     * 
-     * @return response <code>204 No Content</code>
-     */
-//    @Override
-//    public Response delete()
-//    {
-//        Response response = super.delete();
-//        
-//        ParameterizedSparqlString updateString = new ParameterizedSparqlString(
-//                getSystem().getDeleteUpdate(getUriInfo().getBaseUri().toString()).toString(),
-//                getQuerySolutionMap());
-//        
-//        if (getRequest().getMethod().equals(HttpMethod.DELETE)) // don't delete the meta-graph if it's a PUT request
-//        {
-//            if (log.isDebugEnabled()) log.debug("Delete meta-graph: {}", updateString);
-//            getService().getEndpointAccessor().update(updateString.asUpdate(), Collections.<URI>emptyList(), Collections.<URI>emptyList());
-//        }
-//        
-//        return response;
-//    }
     
     /**
      * Handles multipart <code>POST</code> requests, stores uploaded files, and returns response.

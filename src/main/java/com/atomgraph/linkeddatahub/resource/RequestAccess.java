@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -78,7 +79,7 @@ public class RequestAccess extends GraphStoreImpl
     private final Application application;
     private final TemplateCall templateCall;
     private final SecurityContext securityContext;
-    private final com.atomgraph.linkeddatahub.Application system;
+//    private final com.atomgraph.linkeddatahub.Application system;
     private final Address notificationAddress;
     private final String emailSubject;
     private final String emailText;
@@ -89,15 +90,15 @@ public class RequestAccess extends GraphStoreImpl
     public RequestAccess(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context SecurityContext securityContext,
-            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes);
+        super(request, service, mediaTypes, uriInfo, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
         this.templateCall = templateCall.get();
         this.securityContext = securityContext;
-        this.system = system;
+//        this.system = system;
         agentQuery = system.getAgentQuery();
         
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
@@ -238,11 +239,11 @@ public class RequestAccess extends GraphStoreImpl
     {
         return templateCall;
     }
-    
-    public com.atomgraph.linkeddatahub.Application getSystem()
-    {
-        return system;
-    }
+//    
+//    public com.atomgraph.linkeddatahub.Application getSystem()
+//    {
+//        return system;
+//    }
     
     public SecurityContext getSecurityContext()
     {

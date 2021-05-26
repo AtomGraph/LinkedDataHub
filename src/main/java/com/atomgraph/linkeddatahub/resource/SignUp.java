@@ -74,6 +74,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
@@ -110,12 +111,12 @@ public class SignUp extends GraphStoreImpl
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
-    private final UriInfo uriInfo;
+//    private final UriInfo uriInfo;
     private final URI uri;
     private final Application application;
     private final Ontology ontology;
     private final TemplateCall templateCall;
-    private final com.atomgraph.linkeddatahub.Application system;
+//    private final com.atomgraph.linkeddatahub.Application system;
     private final Model countryModel;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
@@ -128,20 +129,20 @@ public class SignUp extends GraphStoreImpl
     @Inject
     public SignUp(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes);
+        super(request, service, mediaTypes, uriInfo, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
-        this.uriInfo = uriInfo;
+//        this.uriInfo = uriInfo;
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
         this.ontology = ontology.get();
         this.templateCall = templateCall.get();
-        this.system = system;
+//        this.system = system;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -375,11 +376,11 @@ public class SignUp extends GraphStoreImpl
         else
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
-
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
-    }
+//
+//    public UriInfo getUriInfo()
+//    {
+//        return uriInfo;
+//    }
 
     public URI getURI()
     {
@@ -401,11 +402,11 @@ public class SignUp extends GraphStoreImpl
         return templateCall;
     }
     
-    public com.atomgraph.linkeddatahub.Application getSystem()
-    {
-        return system;
-    }
-    
+//    public com.atomgraph.linkeddatahub.Application getSystem()
+//    {
+//        return system;
+//    }
+//    
     public int getValidityDays()
     {
         return validityDays;

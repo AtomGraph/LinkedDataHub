@@ -4,7 +4,7 @@ print_usage()
 {
     printf "Uploads a file.\n"
     printf "\n"
-    printf "Usage:  %s options [TARGET_URI]\n" "$0"
+    printf "Usage:  %s options TARGET_URI\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -110,23 +110,13 @@ if [ -z "$file_content_type" ] ; then
     print_usage
     exit 1
 fi
-
-urlencode()
-{
-    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
-}
+if [ "$#" -ne 1 ]; then
+    print_usage
+    exit 1
+fi
 
 ns="${base}ns/domain/system#"
-class="${ns}File"
-forClass=$(urlencode "$class")
 container="${base}files/"
-
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    target="${container}?forClass=${forClass}"
-else
-    target="${1}?forClass=${forClass}"
-fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
@@ -171,4 +161,4 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server and print Location URL
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$1" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

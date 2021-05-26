@@ -70,6 +70,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class Item extends ResourceBase implements Patchable // TO-DO: extends GraphStoreImpl
 {
 
