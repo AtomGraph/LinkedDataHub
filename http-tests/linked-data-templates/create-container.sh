@@ -32,8 +32,6 @@ container=$(./create-container.sh \
 --parent "$END_USER_BASE_URL"
 )
 
-popd > /dev/null
-
 # check that the container was created
 
 ./get-document.sh \
@@ -42,3 +40,5 @@ popd > /dev/null
   --accept 'application/n-triples' \
   "$container" \
 | grep "<${END_USER_BASE_URL}${slug}> <http://rdfs.org/sioc/ns#has_parent> <${END_USER_BASE_URL}>"
+
+popd > /dev/null
