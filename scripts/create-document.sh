@@ -9,7 +9,6 @@ print_usage()
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
-    printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "\n"
     printf "  -t, --content-type MEDIA_TYPE        Media type of the RDF body (e.g. text/turtle)\n"
 }
@@ -32,11 +31,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        -b|--base)
-        base="$2"
-        shift # past argument
-        shift # past value
-        ;;
         -t|--content-type)
         content_type="$2"
         shift # past argument
@@ -55,10 +49,6 @@ if [ -z "$cert_pem_file" ] ; then
     exit 1
 fi
 if [ -z "$cert_password" ] ; then
-    print_usage
-    exit 1
-fi
-if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi

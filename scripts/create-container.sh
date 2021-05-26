@@ -27,6 +27,16 @@ do
     key="$1"
 
     case $key in
+        -f|--cert-pem-file)
+        cert_pem_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        -p|--cert-password)
+        cert_password="$2"
+        shift # past argument
+        shift # past value
+        ;;
         -b|--base)
         base="$2"
         shift # past argument
@@ -65,6 +75,14 @@ do
 done
 set -- "${args[@]}" # restore args parameters
 
+if [ -z "$cert_pem_file" ] ; then
+    print_usage
+    exit 1
+fi
+if [ -z "$cert_password" ] ; then
+    print_usage
+    exit 1
+fi
 if [ -z "$base" ] ; then
     print_usage
     exit 1
@@ -78,6 +96,10 @@ if [ -z "$parent" ] ; then
     exit 1
 fi
 
+args+=("-f")
+args+=("${cert_pem_file}")
+args+=("-p")
+args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 args+=("${base}service") # target URL = graph store
