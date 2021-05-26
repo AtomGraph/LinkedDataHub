@@ -37,7 +37,7 @@ slug="test"
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${END_USER_BASE_URL}${slug}" \
+  "${END_USER_BASE_URL}${slug}/" \
 | grep "<${END_USER_BASE_URL}${slug}/> <http://rdfs.org/sioc/ns#has_parent> <${END_USER_BASE_URL}>"
 
 popd > /dev/null
