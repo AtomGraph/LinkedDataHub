@@ -137,13 +137,13 @@ WHERE
 
 # files
 
-:FileContainer a ldt:Template ;
-    ldt:extends :Document ;
+:Uploads a ldt:Template ;
+    ldt:extends :GraphStore ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.file.Container> ;
-    ldt:match "/files/" ;
+    ldt:match "/uploads" ;
     :consumes [ :mediaType "multipart/form-data" ] ;
-    rdfs:label "Files" ;
-    rdfs:comment "Provides multipart file upload capability to matching containers" ;
+    rdfs:label "Uploads" ;
+    rdfs:comment "A graph store with multipart file upload capability" ;
     rdfs:isDefinedBy : .
 
 :File a ldt:Template ;
@@ -164,20 +164,20 @@ DESCRIBE ?this
 
 # imports
 
-:ImportContainer a ldt:Template ;
-    ldt:extends :Document ;
+:Imports a ldt:Template ;
+    ldt:extends :GraphStore ;
     ldt:match "/imports" ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.imports.Container> ;
     rdfs:label "Imports" ;
     rdfs:comment "Provides CSV and RDF import capability to matching containers" ;
     rdfs:isDefinedBy : .
 
-:ImportItem a ldt:Template ;
-    ldt:extends :Document ;
-    ldt:match "/imports/{slug}/" ;
-    ldt:query :DescribeWithResponse ;
-    rdfs:label "Import item" ;
-    rdfs:isDefinedBy : .
+#:ImportItem a ldt:Template ;
+#    ldt:extends :Document ;
+#    ldt:match "/imports/{slug}/" ;
+#    # ldt:query :DescribeWithResponse ;
+#    rdfs:label "Import item" ;
+#    rdfs:isDefinedBy : .
 
 # PARAMETERS
 

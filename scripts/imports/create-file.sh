@@ -4,7 +4,7 @@ print_usage()
 {
     printf "Uploads a file.\n"
     printf "\n"
-    printf "Usage:  %s options TARGET_URI\n" "$0"
+    printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
     printf "Options:\n"
     printf "  -f, --cert-pem-file CERT_FILE        .pem file with the WebID certificate of the agent\n"
@@ -110,16 +110,12 @@ if [ -z "$file_content_type" ] ; then
     print_usage
     exit 1
 fi
-if [ "$#" -ne 1 ]; then
-    print_usage
-    exit 1
-fi
 
 ns="${base}ns/domain/system#"
-container="${base}files/"
+container="${base}uploads"
 
 if [ -z "$1" ]; then
-    target="${base}files/" # default target URL = uploads endpoint TO-DO: change to "${base}service/upload"
+    target="${base}uploads" # default target URL = uploads endpoint
 else
     target="$1"
 fi
