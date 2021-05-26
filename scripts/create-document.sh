@@ -66,16 +66,10 @@ if [ -z "$content_type" ] ; then
     print_usage
     exit 1
 fi
-
-container="$1"
-forClass=$(urlencode "$class")
-target="${container}?forClass=${forClass}"
-
-if [ -z "$1" ] ; then
-    target="$1" # overridden URL
-else
-    target="${base}service" # graph store URL
+if [ "$#" -ne 1 ]; then
+    print_usage
+    exit 1
 fi
 
 # POST RDF document from stdin to the server and print Location URL
-cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'
+cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$1" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

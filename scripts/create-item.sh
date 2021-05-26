@@ -74,6 +74,7 @@ fi
 
 args+=("-t")
 args+=("text/turtle")
+args+=("${base}service") # target URL = graph store
 
 turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
