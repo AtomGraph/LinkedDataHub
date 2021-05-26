@@ -158,8 +158,7 @@ popd > /dev/null
 
 query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
 
-file_container="${request_base}files/"
-file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv" "$file_container")
+file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv" "${request_base}service")
 file_doc=$(echo "$file_doc" | sed -e "s|$base|$request_base|g")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"

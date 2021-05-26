@@ -33,7 +33,8 @@ file_doc=$(./create-file.sh \
 -b "$END_USER_BASE_URL" \
 --title "Test CSV" \
 --file "$filename" \
---file-content-type "${file_content_type}")
+--file-content-type "${file_content_type}" \
+"${END_USER_BASE_URL}service")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
