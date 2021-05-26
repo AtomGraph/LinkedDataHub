@@ -112,7 +112,7 @@ if [ -z "$file_content_type" ] ; then
 fi
 
 ns="${base}ns/domain/system#"
-container="${base}uploads"
+container="${base}files/"
 
 if [ -z "$1" ]; then
     target="${base}uploads" # default target URL = uploads endpoint
