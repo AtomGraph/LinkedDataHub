@@ -40,19 +40,19 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
         if (path == null) throw new IllegalArgumentException("Path cannot be null");
         if (typeClass == null) throw new IllegalArgumentException("OntClass cannot be null");
 
-        final UriBuilder builder;
         // treat paths starting with / as absolute, others as relative (to the current absolute path)
         // JAX-RS URI templates do not have this distinction (leading slash is irrelevant)
         if (path.startsWith("/"))
-            builder = getBaseUriBuilder().clone();
+            return getBaseUriBuilder().clone();
         else
         {
             Resource parent = getParent(resource);
-            if (parent != null) builder = UriBuilder.fromUri(parent.getURI());
-            else builder = getAbsolutePathBuilder().clone();
+            if (parent != null) return UriBuilder.fromUri(parent.getURI());
+            parent = getParent(typeClass);
+            if (parent != null) return UriBuilder.fromUri(parent.getURI());
+            return getAbsolutePathBuilder().clone();
         }
         
-        return builder;
     }
     
     public Resource getParent(Resource resource)
