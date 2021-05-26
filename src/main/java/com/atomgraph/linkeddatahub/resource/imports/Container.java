@@ -87,7 +87,7 @@ public class Container extends GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Response constructor = super.post(model, false, null); // construct Import
+        Response constructor = super.post(model, defaultGraph, graphUri); // construct Import
         
         if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
         {

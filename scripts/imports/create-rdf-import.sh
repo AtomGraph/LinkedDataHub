@@ -109,7 +109,7 @@ fi
 container="${base}imports/"
 
 if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
+    args+=("${base}import") # default target URL = import endpoint
 fi
 
 args+=("-f")

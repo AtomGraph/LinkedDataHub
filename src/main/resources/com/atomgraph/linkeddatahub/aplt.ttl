@@ -137,63 +137,63 @@ WHERE
 
 # files
 
-:FileContainer a ldt:Template ;
-    ldt:extends :Document ;
-    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.file.Container> ;
-    ldt:match "/files/" ;
-    :consumes [ :mediaType "multipart/form-data" ] ;
-    rdfs:label "Files" ;
-    rdfs:comment "Provides multipart file upload capability to matching containers" ;
-    rdfs:isDefinedBy : .
-
-:File a ldt:Template ;
-    ldt:extends :Document ;
-    ldt:match "/uploads/{sha1sum}/" ;
-    ldt:query [ a sp:Describe ; sp:text """
-DESCRIBE ?this
-{
-    GRAPH ?g
-    {
-        ?this a ?type
-    }
-}
-""" ] ;
-    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.upload.sha1.Item> ;
-    rdfs:label "File" ;
-    rdfs:isDefinedBy : .
+#:FileContainer a ldt:Template ;
+#    ldt:extends :Document ;
+#    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.file.Container> ;
+#    ldt:match "/files/" ;
+#    :consumes [ :mediaType "multipart/form-data" ] ;
+#    rdfs:label "Files" ;
+#    rdfs:comment "Provides multipart file upload capability to matching containers" ;
+#    rdfs:isDefinedBy : .
+#
+#:File a ldt:Template ;
+#    ldt:extends :Document ;
+#    ldt:match "/uploads/{sha1sum}/" ;
+#    ldt:query [ a sp:Describe ; sp:text """
+#DESCRIBE ?this
+#{
+#    GRAPH ?g
+#    {
+#        ?this a ?type
+#    }
+#}
+#""" ] ;
+#    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.upload.sha1.Item> ;
+#    rdfs:label "File" ;
+#    rdfs:isDefinedBy : .
 
 # imports
 
 :ImportContainer a ldt:Template ;
-    ldt:extends :Document ;
-    ldt:match "/imports/" ;
+    ldt:extends :GraphStore ;
+    ldt:match "/import" ;
     ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.imports.Container> ;
     rdfs:label "Imports" ;
     rdfs:comment "Provides CSV and RDF import capability to matching containers" ;
     rdfs:isDefinedBy : .
 
-:ImportItem a ldt:Template ;
-    ldt:extends :Document ;
-    ldt:match "/imports/{slug}/" ;
-    ldt:query :DescribeWithResponse ;
-    rdfs:label "Import item" ;
-    rdfs:isDefinedBy : .
+#:ImportItem a ldt:Template ;
+#    ldt:extends :Document ;
+#    ldt:match "/imports/{slug}/" ;
+#    ldt:query :DescribeWithResponse ;
+#    rdfs:label "Import item" ;
+#    rdfs:isDefinedBy : .
 
 # PARAMETERS
 
-:ForClass a ldt:Parameter ;
-    rdfs:label "Constructor class" ;
-    spl:predicate :forClass ;
-    spl:valueType rdfs:Class ;
-    spl:optional true ;
-    rdfs:isDefinedBy : .
+#:ForClass a ldt:Parameter ;
+#    rdfs:label "Constructor class" ;
+#    spl:predicate :forClass ;
+#    spl:valueType rdfs:Class ;
+#    spl:optional true ;
+#    rdfs:isDefinedBy : .
 
-:UploadRDF a ldt:Parameter ;
-    rdfs:label "RDF data upload" ;
-    spl:predicate :upload ;
-    spl:valueType xsd:boolean ;
-    spl:optional true ;
-    rdfs:isDefinedBy : .
+#:UploadRDF a ldt:Parameter ;
+#    rdfs:label "RDF data upload" ;
+#    spl:predicate :upload ;
+#    spl:valueType xsd:boolean ;
+#    spl:optional true ;
+#    rdfs:isDefinedBy : .
 
 :Ban a ldt:Parameter ;
     rdfs:label "BAN resource from cache" ;
@@ -245,28 +245,28 @@ WHERE
 
 # ====
 
-:DescribeWithResponse a sp:Describe, sp:Query ; # ldt:Query  ;
-    sp:text """PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  prov: <http://www.w3.org/ns/prov#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-
-DESCRIBE ?this ?primaryTopic ?seeAlso ?response
-WHERE
-  { GRAPH ?graph
-      { ?this  ?p  ?o
-        OPTIONAL
-          { ?this  foaf:primaryTopic  ?primaryTopic
-            OPTIONAL
-              { GRAPH ?provGraph
-                  { ?response  prov:wasGeneratedBy  ?primaryTopic }
-              }
-          }
-        OPTIONAL
-          { ?this  rdfs:seeAlso  ?seeAlso }
-      }
-  }""" ;
-    rdfs:label "Describe with topic" ;
-    rdfs:isDefinedBy : .
+#:DescribeWithResponse a sp:Describe, sp:Query ; # ldt:Query  ;
+#    sp:text """PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+#PREFIX  prov: <http://www.w3.org/ns/prov#>
+#PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+#
+#DESCRIBE ?this ?primaryTopic ?seeAlso ?response
+#WHERE
+#  { GRAPH ?graph
+#      { ?this  ?p  ?o
+#        OPTIONAL
+#          { ?this  foaf:primaryTopic  ?primaryTopic
+#            OPTIONAL
+#              { GRAPH ?provGraph
+#                  { ?response  prov:wasGeneratedBy  ?primaryTopic }
+#              }
+#          }
+#        OPTIONAL
+#          { ?this  rdfs:seeAlso  ?seeAlso }
+#      }
+#  }""" ;
+#    rdfs:label "Describe with topic" ;
+#    rdfs:isDefinedBy : .
 
 # UPDATES
 

@@ -20,6 +20,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -88,6 +89,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isDebugEnabled()) log.debug("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
+        
+//        URI forClass = URI.create(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         
         if (model.isEmpty()) return Response.noContent().build();
         
