@@ -93,17 +93,14 @@ fi
 container="${base}queries/"
 query=$(<"$query_file") # read query string from file
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#Construct") # class
 args+=("-t")
 args+=("text/turtle") # content type
 

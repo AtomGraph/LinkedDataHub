@@ -22,7 +22,7 @@ print_usage()
     printf "\n"
     printf "  --title TITLE                        Title of the container\n"
     printf "  --description DESCRIPTION            Description of the container (optional)\n"
-    printf "  --slug STRING                         String that will be used as URI path segment (optional)\n"
+    printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string (optional)\n"
@@ -147,8 +147,7 @@ if [ -z "$request_base" ] ; then
 fi
 
 if [ -n "$query_file" ] ; then
-    query_container="${request_base}queries/"
-    query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
+    query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "${request_base}service")
     query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
 
     pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -171,9 +170,8 @@ popd > /dev/null
 
 file=$(echo "$file_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
 
-import_container="${request_base}imports/"
 if [ -n "$query" ] ; then
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" "$import_container"
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" "${request_base}service"
 else
-    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --file "$file" "$import_container"
+    ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --file "$file" "${request_base}service"
 fi

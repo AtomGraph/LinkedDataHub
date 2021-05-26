@@ -146,8 +146,7 @@ if [ -z "$request_base" ] ; then
     request_base="$base"
 fi
 
-query_container="${request_base}queries/"
-query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "$query_container")
+query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "${request_base}service")
 query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -169,5 +168,5 @@ popd > /dev/null
 
 file=$(echo "$file_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
 
-import_container="${request_base}imports/"
-./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" --delimiter "," "$import_container"
+
+./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" --delimiter "," "${request_base}service"

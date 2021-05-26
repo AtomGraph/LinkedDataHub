@@ -90,13 +90,16 @@ if [ -z "$container" ] ; then
     exit 1
 fi
 
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
+fi
+
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
-args+=("${base}service") # target URL = graph store
 
 turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
