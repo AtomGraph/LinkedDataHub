@@ -40,6 +40,7 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.NotAcceptableException;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -90,7 +91,7 @@ public class Item extends ResourceBase
         if (variant == null)
         {
             if (log.isTraceEnabled()) log.trace("Requested Variant {} is not on the list of acceptable Response Variants: {}", variant, variants);
-            throw new WebApplicationException(Response.status(Response.Status.NOT_ACCEPTABLE).build());
+            throw new NotAcceptableException();
         }
         
         // respond with file content if Variant is compatible with the File's MediaType. otherwise, send RDF

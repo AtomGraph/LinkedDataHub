@@ -40,7 +40,9 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
@@ -58,6 +60,7 @@ public class Container extends GraphStoreImpl
 //    private final UriInfo uriInfo;
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final Ontology ontology;
     private final DataManager dataManager;
 //    private com.atomgraph.linkeddatahub.Application system;
 
@@ -71,6 +74,7 @@ public class Container extends GraphStoreImpl
 //        this.uriInfo = uriInfo;
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
+        this.ontology = ontology.get();
         this.dataManager = dataManager;
 //        this.system = system;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
@@ -93,7 +97,8 @@ public class Container extends GraphStoreImpl
         {
             URI importGraphUri = constructor.getLocation();
             Model importModel = (Model)super.get(false, importGraphUri).getEntity();
-            Resource doc = importModel.createResource(importGraphUri.toString());
+            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), importModel);
+            Resource doc = infModel.createResource(importGraphUri.toString());
             Resource topic = doc.getPropertyResourceValue(FOAF.primaryTopic);
             
             if (topic != null && topic.canAs(Import.class))
@@ -131,6 +136,12 @@ public class Container extends GraphStoreImpl
     {
         return application;
     }
+    
+    public Ontology getOntology()
+    {
+        return ontology;
+    }
+    
 //    
 //    public com.atomgraph.linkeddatahub.Application getSystem()
 //    {
