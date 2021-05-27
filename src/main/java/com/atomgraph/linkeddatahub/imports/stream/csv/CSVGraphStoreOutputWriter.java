@@ -16,15 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
-import com.atomgraph.core.MediaType;
+import com.atomgraph.core.client.GraphStoreClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
 import org.slf4j.Logger;
@@ -42,14 +40,14 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
 
     private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreOutputWriter.class);
 
-    private final WebTarget graphStore;
+    private final GraphStoreClient graphStoreClient;
     private final String baseURI;
     private final Query query;
     private final char delimiter;
     
-    public CSVGraphStoreOutputWriter(WebTarget graphStore, String baseURI, Query query, char delimiter)
+    public CSVGraphStoreOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, char delimiter)
     {
-        this.graphStore = graphStore;
+        this.graphStoreClient = graphStoreClient;
         this.baseURI = baseURI;
         this.query = query;
         this.delimiter = delimiter;
@@ -62,7 +60,7 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
         
         try (input; InputStream is = input.readEntity(InputStream.class))
         {
-            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStore(), new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter(), null);
+            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStoreClient(), new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter(), null);
             output.write();
             return output;
         }
@@ -73,14 +71,14 @@ public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphSto
         }
     }
     
-    public Invocation.Builder getInvocationBuilder()
-    {
-        return getGraphStore().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
-    }
+//    public Invocation.Builder getInvocationBuilder()
+//    {
+//        return getGraphStoreClient().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
+//    }
     
-    public WebTarget getGraphStore()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return graphStore;
+        return graphStoreClient;
     }
     
     public String getBaseURI()

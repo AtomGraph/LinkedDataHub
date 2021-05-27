@@ -16,10 +16,10 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
+import com.atomgraph.core.client.GraphStoreClient;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 import java.io.Reader;
-import javax.ws.rs.client.WebTarget;
 import org.apache.jena.query.Query;
 
 /**
@@ -32,7 +32,7 @@ import org.apache.jena.query.Query;
 public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStreamRDFOutput
 {
 
-    private final WebTarget graphStore;
+//    private final WebTarget graphStore;
     private final String base;
     private final Reader reader;
     private final Query query;
@@ -41,15 +41,15 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     private final CSVGraphStoreRowProcessor processor;
     private final CsvParser parser;
     
-    public CSVGraphStoreOutput(WebTarget graphStore, Reader reader, String base, Query query, char delimiter, Integer maxCharsPerColumn)
+    public CSVGraphStoreOutput(GraphStoreClient graphStoreClient, Reader reader, String base, Query query, char delimiter, Integer maxCharsPerColumn)
     {
-        this.graphStore = graphStore;
+//        this.graphStore = graphStore;
         this.base = base;
         this.reader = reader;
         this.query = query;
         this.delimiter = delimiter;
         this.maxCharsPerColumn = maxCharsPerColumn;
-        this.processor = new CSVGraphStoreRowProcessor(graphStore, base, query);
+        this.processor = new CSVGraphStoreRowProcessor(graphStoreClient, base, query);
         
         CsvParserSettings parserSettings = new CsvParserSettings();
         parserSettings.setLineSeparatorDetectionEnabled(true);

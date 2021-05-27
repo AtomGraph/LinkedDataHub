@@ -61,7 +61,7 @@ public class ImportListener implements ServletContextListener
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new CSVImport to thread pool: {}", csvImport.toString());
         
-        new Executor(THREAD_POOL).start(csvImport, provGraph, service, adminService, baseURI, dataManager);
+        new Executor(THREAD_POOL).start(csvImport, provGraph, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
     }
 
     public static void submit(RDFImport rdfImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)

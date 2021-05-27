@@ -16,14 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.etl.csv.ModelTransformer;
+import com.atomgraph.linkeddatahub.server.util.ModelSplitter;
 import com.univocity.parsers.common.ParsingContext;
 import com.univocity.parsers.common.processor.RowProcessor;
+import java.util.Iterator;
 import java.util.function.BiFunction;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
 import org.apache.jena.atlas.lib.IRILib;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -37,15 +38,16 @@ import org.apache.jena.rdf.model.Resource;
 public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.atomgraph.etl.csv.stream.CSVStreamRDFProcessor
 {
 
-    private final WebTarget webTarget;
+//    private final WebTarget webTarget;
+    private final GraphStoreClient graphStoreClient;
     private final String base;
     private final BiFunction<Query, Model, Model> function = new ModelTransformer();
     private final Query query;
     private int subjectCount, tripleCount;
 
-    public CSVGraphStoreRowProcessor(WebTarget webTarget, String base, Query query)
+    public CSVGraphStoreRowProcessor(GraphStoreClient graphStoreClient, String base, Query query)
     {
-        this.webTarget = webTarget;
+        this.graphStoreClient = graphStoreClient;
         this.base = base;
         this.query = query;
     }
@@ -60,9 +62,13 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     public void rowProcessed(String[] row, ParsingContext context)
     {
         Model rowModel = transformRow(row, context);
-        try (Response cr = getWebTarget().request().post(Entity.entity(rowModel, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES)))
+        Dataset rowDataset = ModelSplitter.split(rowModel);
+        
+        Iterator<String> names = rowDataset.listNames();
+        while (names.hasNext())
         {
-            
+            String graphUri = names.next();
+            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client!
         }
     }
     
@@ -93,9 +99,14 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     {
     }
     
-    public WebTarget getWebTarget()
+//    public WebTarget getWebTarget()
+//    {
+//        return webTarget;
+//    }
+    
+    public GraphStoreClient getGraphStoreClient()
     {
-        return webTarget;
+        return graphStoreClient;
     }
     
     public String getBase()

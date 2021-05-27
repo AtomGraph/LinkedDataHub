@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;
 import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutputWriter;
 import com.atomgraph.linkeddatahub.imports.stream.csv.ClientResponseSupplier;
@@ -86,7 +87,7 @@ public class Executor
         this.threadPool = threadPool;
     }
     
-    public void start(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void start(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -103,7 +104,7 @@ public class Executor
         Supplier<Response> fileSupplier = new ClientResponseSupplier(csvImport.getFile().getURI(), CSV_MEDIA_TYPES, dataManager);
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
-                dataManager, baseURI, query), getExecutorService()).
+                graphStoreClient, baseURI, query), getExecutorService()).
             thenAcceptAsync(success(csvImport, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
             exceptionally(failure(csvImport, provImport, provGraph, service));
     }
@@ -240,10 +241,10 @@ public class Executor
         accessor.add(provGraph.getURI(), provImport.getModel());
     }
 
-    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
 //        return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
-        return new CSVGraphStoreOutputWriter(dataManager.getClient().target(URI.create(baseURI).resolve("service")), baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
     }
 
     protected Function<Response, StreamRDFOutput> getStreamRDFOutputWriter(RDFImport imp, DataManager dataManager, String baseURI, Query query)
