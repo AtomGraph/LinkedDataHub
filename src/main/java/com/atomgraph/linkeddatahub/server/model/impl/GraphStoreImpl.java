@@ -164,7 +164,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         {
             URI graphUri = URI.create(instance.getURI());
             graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-            return super.post(model, false, graphUri);
+            super.post(model, false, graphUri);
+            return Response.created(graphUri).build();
         }
         catch (URISyntaxException ex)
         {
@@ -198,7 +199,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-            throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+            throw new BadRequestException(ex);
         }
     }
     
