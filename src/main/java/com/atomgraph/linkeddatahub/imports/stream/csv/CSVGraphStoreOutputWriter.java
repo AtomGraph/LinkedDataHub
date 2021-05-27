@@ -17,21 +17,16 @@
 package com.atomgraph.linkeddatahub.imports.stream.csv;
 
 import com.atomgraph.core.MediaType;
-import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,45 +37,34 @@ import org.slf4j.LoggerFactory;
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.listener.ImportListener
  */
-public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDFOutput>
+public class CSVGraphStoreOutputWriter implements Function<Response, CSVGraphStoreOutput>
 {
 
-    private static final Logger log = LoggerFactory.getLogger(CSVStreamRDFOutputWriter.class);
+    private static final Logger log = LoggerFactory.getLogger(CSVGraphStoreOutputWriter.class);
 
-    private final String uri;
-    private final DataManager dataManager;
+    private final WebTarget graphStore;
     private final String baseURI;
     private final Query query;
     private final char delimiter;
     
-    public CSVStreamRDFOutputWriter(String uri, DataManager dataManager, String baseURI, Query query, char delimiter)
+    public CSVGraphStoreOutputWriter(WebTarget graphStore, String baseURI, Query query, char delimiter)
     {
-        this.uri = uri;
-        this.dataManager = dataManager;
+        this.graphStore = graphStore;
         this.baseURI = baseURI;
         this.query = query;
         this.delimiter = delimiter;
     }
     
     @Override
-    public CSVStreamRDFOutput apply(Response input)
+    public CSVGraphStoreOutput apply(Response input)
     {
         if (input == null) throw new IllegalArgumentException("Response cannot be null");
         
         try (input; InputStream is = input.readEntity(InputStream.class))
         {
-            CSVStreamRDFOutput rdfOutput = new CSVStreamRDFOutput(new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter());
-            
-            try (Response cr = getInvocationBuilder().post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
-            {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
-                    throw new ImportException(cr.toString(), cr.readEntity(Model.class));
-                }
-                
-                return rdfOutput;
-            }
+            CSVGraphStoreOutput output = new CSVGraphStoreOutput(getGraphStore(), new InputStreamReader(is, StandardCharsets.UTF_8), getBaseURI(), getQuery(), getDelimiter(), null);
+            output.write();
+            return output;
         }
         catch (IOException ex)
         {
@@ -88,25 +72,15 @@ public class CSVStreamRDFOutputWriter implements Function<Response, CSVStreamRDF
             throw new WebApplicationException(ex);
         }
     }
-
-    public WebTarget getTarget()
-    {
-        return getDataManager().getEndpoint(URI.create(getURI()));
-    }
     
     public Invocation.Builder getInvocationBuilder()
     {
-        return getTarget().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
+        return getGraphStore().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
     }
     
-    public String getURI()
+    public WebTarget getGraphStore()
     {
-        return uri;
-    }
-
-    public DataManager getDataManager()
-    {
-        return dataManager;
+        return graphStore;
     }
     
     public String getBaseURI()

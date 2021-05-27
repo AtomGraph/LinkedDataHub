@@ -20,7 +20,6 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaType;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
 import com.atomgraph.linkeddatahub.imports.StreamRDFOutput;
-import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutputWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -44,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput>
 {
     
-    private static final Logger log = LoggerFactory.getLogger(CSVStreamRDFOutputWriter.class);
+    private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
     private final String uri;
     private final DataManager dataManager;

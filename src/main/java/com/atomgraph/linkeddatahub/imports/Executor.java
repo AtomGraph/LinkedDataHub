@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.imports;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutput;
-import com.atomgraph.linkeddatahub.imports.stream.csv.CSVStreamRDFOutputWriter;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutput;
+import com.atomgraph.linkeddatahub.imports.stream.csv.CSVGraphStoreOutputWriter;
 import com.atomgraph.linkeddatahub.imports.stream.csv.ClientResponseSupplier;
 import com.atomgraph.linkeddatahub.imports.stream.StreamRDFOutputWriter;
 import com.atomgraph.linkeddatahub.model.CSVImport;
@@ -136,14 +136,14 @@ public class Executor
             exceptionally(failure(rdfImport, provImport, provGraph, service));
     }
     
-    protected Consumer<CSVStreamRDFOutput> success(final CSVImport csvImport, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
     {
-        return (CSVStreamRDFOutput output) ->
+        return (CSVGraphStoreOutput output) ->
         {
             Resource dataset = provImport.getModel().createResource().
                 addProperty(RDF.type, VoID.Dataset).
-                addLiteral(VoID.distinctSubjects, output.getCSVStreamRDFProcessor().getSubjectCount()).
-                addLiteral(VoID.triples, output.getCSVStreamRDFProcessor().getTripleCount()).
+                addLiteral(VoID.distinctSubjects, output.getCSVGraphStoreRowProcessor().getSubjectCount()).
+                addLiteral(VoID.triples, output.getCSVGraphStoreRowProcessor().getTripleCount()).
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
@@ -240,10 +240,10 @@ public class Executor
         accessor.add(provGraph.getURI(), provImport.getModel());
     }
 
-    protected Function<Response, CSVStreamRDFOutput> getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
+    protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
     {
 //        return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
-        return new CSVStreamRDFOutputWriter(URI.create(baseURI).resolve("service").toString(), dataManager, baseURI, query, imp.getDelimiter());
+        return new CSVGraphStoreOutputWriter(dataManager.getClient().target(URI.create(baseURI).resolve("service")), baseURI, query, imp.getDelimiter());
     }
 
     protected Function<Response, StreamRDFOutput> getStreamRDFOutputWriter(RDFImport imp, DataManager dataManager, String baseURI, Query query)
