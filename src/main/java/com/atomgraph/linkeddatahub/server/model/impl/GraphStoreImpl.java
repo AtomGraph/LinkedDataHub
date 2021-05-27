@@ -36,7 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -117,14 +116,16 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                         forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
                     else
                         throw new BadRequestException("aplt:ForClass parameter not provided");
+                    
+                    return post(model, forClass);
                 }
                 catch (URISyntaxException ex)
                 {
                     throw new BadRequestException(ex);
                 }
                 
-                Resource instance = getForClassResource(model, ResourceFactory.createResource(forClass.toString()));
-                graphUri = URI.create(instance.getURI());
+//                Resource instance = getForClassResource(model, ResourceFactory.createResource(forClass.toString()));
+//                graphUri = URI.create(instance.getURI());
                 
 //                ResIterator it = model.listSubjects();
 //                try
@@ -150,6 +151,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (existingGraph) return Response.ok().build();
             else return Response.created(graphUri).build();
         }
+    }
+
+    public Response post(Model model, URI forClass)
+    {
+        Resource instance = getForClassResource(model, ResourceFactory.createResource(forClass.toString()));
+        if (instance == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+        
+        URI graphUri = URI.create(instance.getURI());
+        return post(model, false, graphUri);
     }
     
     /**

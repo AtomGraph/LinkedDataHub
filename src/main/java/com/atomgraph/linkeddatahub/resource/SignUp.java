@@ -231,7 +231,8 @@ public class SignUp extends GraphStoreImpl
                 createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
                 publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(publicKeyModel);
 
-                Response publicKeyResponse = super.post(publicKeyModel, false, null);
+                Resource publicKeyForClass = ResourceFactory.createResource(forClass.getNameSpace() + LACL.PublicKey.getLocalName());
+                Response publicKeyResponse = super.post(publicKeyModel, URI.create(publicKeyForClass.getURI()));
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
