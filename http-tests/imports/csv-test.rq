@@ -15,12 +15,11 @@ CONSTRUCT
 }
 WHERE
 {
-    BIND (BNODE() AS ?item)
-
     ?row <#id> ?id ;
         <#string> ?string ;
         <#integer> ?integer_string .
 
+    BIND(uri(concat(str(?this), encode_for_uri(?id), "/")) AS ?item)
     BIND(xsd:integer(?integer_string) AS ?integer)
 
     OPTIONAL 

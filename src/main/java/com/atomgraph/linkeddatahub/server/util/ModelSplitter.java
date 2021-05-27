@@ -49,15 +49,14 @@ public class ModelSplitter
             {
                 Statement stmt = it.next();
                 
-                String docURI = null;
-                if (stmt.getSubject().isURIResource())
+                if (stmt.getSubject().isURIResource()) // blank nodes are ignored!!!
                 {
-                    docURI = stmt.getSubject().getURI();
+                    String docURI = stmt.getSubject().getURI();
                     if (docURI.contains("#")) docURI = docURI.substring(0, docURI.indexOf("#")); // strip the fragment, leaving only document URIs
+                    
+                    Model namedModel = dataset.getNamedModel(docURI);
+                    namedModel.add(stmt);
                 }
-                
-                Model namedModel = dataset.getNamedModel(docURI);
-                namedModel.add(stmt);
             }
         }
         finally
