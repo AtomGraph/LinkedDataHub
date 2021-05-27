@@ -36,7 +36,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
@@ -52,7 +54,9 @@ import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
+import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -90,8 +94,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (log.isDebugEnabled()) log.debug("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
-//        URI forClass = URI.create(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-        
         if (model.isEmpty()) return Response.noContent().build();
         
         if (defaultGraph)
@@ -107,22 +109,38 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             else
             {
                 existingGraph = false;
-                
-                ResIterator it = model.listSubjects();
+  
+                final URI forClass;
                 try
                 {
-                    // TO-DO: this is really fragile, we should get rid of this and require an explicit graphUri
-                    graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
-                    graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+                    if (getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
+                        forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+                    else
+                        throw new BadRequestException("aplt:ForClass parameter not provided");
                 }
                 catch (URISyntaxException ex)
                 {
-                    // shouldn't happen
+                    throw new BadRequestException(ex);
                 }
-                finally
-                {
-                    it.close();
-                }
+                
+                Resource instance = getForClassResource(model, ResourceFactory.createResource(forClass.toString()));
+                graphUri = URI.create(instance.getURI());
+                
+//                ResIterator it = model.listSubjects();
+//                try
+//                {
+//                    // TO-DO: this is really fragile, we should get rid of this and require an explicit graphUri
+//                    graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
+//                    graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+//                }
+//                catch (URISyntaxException ex)
+//                {
+//                    // shouldn't happen
+//                }
+//                finally
+//                {
+//                    it.close();
+//                }
             }
 
             // is this implemented correctly? The specification is not very clear.
@@ -380,6 +398,41 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
  
+    /**
+     * Extracts the individual that is being created from the input RDF graph.
+     * 
+     * @param model RDF input graph
+     * @param forClass RDF class
+     * @return RDF resource
+     */
+    public Resource getForClassResource(Model model, Resource forClass)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, forClass);
+        try
+        {
+            if (it.hasNext())
+            {
+                Resource created = it.next();
+                
+                // handle creation of "things"- they are not documents themselves, so we return the attached document instead
+//                if (created.hasProperty(FOAF.isPrimaryTopicOf))
+//                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
+//                else
+//                    return created;
+
+                return created;
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        
+        return null;
+    }
+    
     public UriInfo getUriInfo()
     {
         return uriInfo;

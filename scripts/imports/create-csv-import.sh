@@ -132,6 +132,8 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("--for-class")
+args+=("${base}ns/domain/system#CSVImport")
 
 turtle+="@prefix nsds:	<ns/domain/system#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"

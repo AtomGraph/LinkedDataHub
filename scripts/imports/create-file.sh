@@ -111,13 +111,20 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
+urlencode()
+{
+    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
+}
+
 ns="${base}ns/domain/system#"
+class="${ns}File"
+forClass=$(urlencode "$class")
 container="${base}files/"
 
 if [ -z "$1" ]; then
-    target="${base}uploads" # default target URL = uploads endpoint
+    target="${base}uploads?forClass=${forClass}" # default target URL = uploads endpoint
 else
-    target="$1"
+    target="${1}?forClass=${forClass}"
 fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl

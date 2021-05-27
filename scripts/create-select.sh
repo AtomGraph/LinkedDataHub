@@ -108,10 +108,10 @@ args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#Select") # class
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("--for-class")
+args+=("${base}ns/domain/system#Select")
 
 turtle+="@prefix nsds:	<ns/domain/system#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

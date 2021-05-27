@@ -103,6 +103,8 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("--for-class")
+args+=("${base}ns/domain/system#Construct")
 
 turtle+="@prefix nsds:	<ns/domain/system#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

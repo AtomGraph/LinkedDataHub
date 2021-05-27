@@ -118,10 +118,10 @@ args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
-args+=("-c")
-args+=("${base}ns/domain/system#DydraService") # class
 args+=("-t")
 args+=("text/turtle") # content type
+args+=("--for-class")
+args+=("${base}ns/domain/system#DydraService")
 
 turtle+="@prefix nsds:	<ns/domain/system#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
