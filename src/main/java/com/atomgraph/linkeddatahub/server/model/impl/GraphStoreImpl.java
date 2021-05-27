@@ -55,6 +55,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.BodyPart;
@@ -156,7 +157,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 
     public Response post(Model model, URI forClass)
     {
-        Resource instance = getForClassResource(model, ResourceFactory.createResource(forClass.toString()));
+        Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
         if (instance == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
         
         try
@@ -425,7 +426,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
      * @param forClass RDF class
      * @return RDF resource
      */
-    public Resource getForClassResource(Model model, Resource forClass)
+    public Resource getCreatedDocument(Model model, Resource forClass)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         
@@ -436,13 +437,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             {
                 Resource created = it.next();
                 
-                // handle creation of "things"- they are not documents themselves, so we return the attached document instead
-//                if (created.hasProperty(FOAF.isPrimaryTopicOf))
-//                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
-//                else
-//                    return created;
-
-                return created;
+                // handle creation of "things" - they are not documents themselves, so we return the attached document instead
+                if (created.hasProperty(FOAF.isPrimaryTopicOf))
+                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
+                else
+                    return created;
             }
         }
         finally
