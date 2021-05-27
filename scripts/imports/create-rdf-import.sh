@@ -109,7 +109,7 @@ fi
 container="${base}imports/"
 
 if [ -z "$1" ]; then
-    args+=("${base}import") # default target URL = import endpoint
+    args+=("${base}imports") # default target URL = import endpoint
 fi
 
 args+=("-f")
