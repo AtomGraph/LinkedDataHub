@@ -32,6 +32,7 @@ import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
+import java.net.URI;
 import java.util.Calendar;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -241,12 +242,14 @@ public class Executor
 
     protected Function<Response, CSVStreamRDFOutput> getStreamRDFOutputWriter(CSVImport imp, DataManager dataManager, String baseURI, Query query)
     {
-        return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
+//        return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
+        return new CSVStreamRDFOutputWriter(URI.create(baseURI).resolve("service").toString(), dataManager, baseURI, query, imp.getDelimiter());
     }
 
     protected Function<Response, StreamRDFOutput> getStreamRDFOutputWriter(RDFImport imp, DataManager dataManager, String baseURI, Query query)
     {
-        return new StreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query);
+//        return new StreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query);
+        return new StreamRDFOutputWriter(URI.create(baseURI).resolve("service").toString(), dataManager, baseURI, query);
     }
 
     public Response ban(DataManager dataManager, Resource proxy, String url)
