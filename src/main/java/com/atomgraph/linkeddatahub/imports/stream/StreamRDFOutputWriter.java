@@ -16,21 +16,15 @@
  */
 package com.atomgraph.linkeddatahub.imports.stream;
 
-import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaType;
-import com.atomgraph.linkeddatahub.server.exception.ImportException;
-import com.atomgraph.linkeddatahub.imports.StreamRDFOutput;
+import com.atomgraph.core.client.GraphStoreClient;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.function.Function;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.slf4j.Logger;
@@ -40,26 +34,24 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput>
+public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOutput>
 {
     
     private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
-    private final String uri;
-    private final DataManager dataManager;
+    private final GraphStoreClient graphStoreClient;
     private final String baseURI;
     private final Query query;
 
-    public StreamRDFOutputWriter(String uri, DataManager dataManager, String baseURI, Query query)
+    public StreamRDFOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-        this.uri = uri;
-        this.dataManager = dataManager;
+        this.graphStoreClient = graphStoreClient;
         this.baseURI = baseURI;
         this.query = query;
     }
 
     @Override
-    public StreamRDFOutput apply(Response input)
+    public RDFGraphStoreOutput apply(Response input)
     {
         if (input == null) throw new IllegalArgumentException("Response cannot be null");
         
@@ -67,20 +59,11 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
         {
             MediaType mediaType = new MediaType(input.getMediaType().getType(), input.getMediaType().getSubtype()); // discard charset param
             Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
-            if (lang == null) throw new IllegalStateException("Content type '" + mediaType + "' is not an RDF media type");
-            
-            StreamRDFOutput rdfOutput = new StreamRDFOutput(is, getBaseURI(), getQuery(), lang);
-            
-            try (Response cr = getInvocationBuilder().post(Entity.entity(rdfOutput, MediaType.APPLICATION_NTRIPLES)))
-            {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    //if (log.isErrorEnabled()) log.error("Could not write Import into container. Response: {}", cr);
-                    throw new ImportException(cr.toString(), cr.readEntity(Model.class));
-                }
-                
-                return rdfOutput;
-            }
+            if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
+
+            RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), is, getBaseURI(), getQuery(), lang);
+            output.write();
+            return output;
         }
         catch (IOException ex)
         {
@@ -89,25 +72,30 @@ public class StreamRDFOutputWriter implements Function<Response, StreamRDFOutput
         }
     }
     
-    public WebTarget getTarget()
+    public GraphStoreClient getGraphStoreClient()
     {
-        return getDataManager().getEndpoint(URI.create(getURI()));
+        return graphStoreClient;
     }
     
-    public Invocation.Builder getInvocationBuilder()
-    {
-        return getTarget().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
-    }
+//    public WebTarget getTarget()
+//    {
+//        return getDataManager().getEndpoint(URI.create(getURI()));
+//    }
+//    
+//    public Invocation.Builder getInvocationBuilder()
+//    {
+//        return getTarget().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
+//    }
     
-    public String getURI()
-    {
-        return uri;
-    }
-    
-    public DataManager getDataManager()
-    {
-        return dataManager;
-    }
+//    public String getURI()
+//    {
+//        return uri;
+//    }
+//    
+//    public DataManager getDataManager()
+//    {
+//        return dataManager;
+//    }
     
     public String getBaseURI()
     {

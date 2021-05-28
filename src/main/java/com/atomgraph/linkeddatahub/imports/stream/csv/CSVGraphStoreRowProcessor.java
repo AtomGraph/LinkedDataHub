@@ -68,7 +68,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
         while (names.hasNext())
         {
             String graphUri = names.next();
-            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client!
+            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
         }
     }
     

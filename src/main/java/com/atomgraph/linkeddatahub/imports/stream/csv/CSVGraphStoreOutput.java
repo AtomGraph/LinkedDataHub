@@ -32,7 +32,6 @@ import org.apache.jena.query.Query;
 public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStreamRDFOutput
 {
 
-//    private final WebTarget graphStore;
     private final String base;
     private final Reader reader;
     private final Query query;
@@ -43,7 +42,6 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     
     public CSVGraphStoreOutput(GraphStoreClient graphStoreClient, Reader reader, String base, Query query, char delimiter, Integer maxCharsPerColumn)
     {
-//        this.graphStore = graphStore;
         this.base = base;
         this.reader = reader;
         this.query = query;
@@ -63,7 +61,7 @@ public class CSVGraphStoreOutput // extends com.atomgraph.etl.csv.stream.CSVStre
     
     public void write()
     {
-        parser.parse(getReader());
+        getCsvParser().parse(getReader());
     }
     
     public CsvParser getCsvParser()

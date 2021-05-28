@@ -69,7 +69,7 @@ public class ImportListener implements ServletContextListener
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new RDFImport to thread pool: {}", rdfImport.toString());
         
-        new Executor(THREAD_POOL).start(rdfImport, provGraph, service, adminService, baseURI, dataManager);
+        new Executor(THREAD_POOL).start(rdfImport, provGraph, service, adminService, baseURI, dataManager, service.getGraphStoreClient());
     }
     
 }

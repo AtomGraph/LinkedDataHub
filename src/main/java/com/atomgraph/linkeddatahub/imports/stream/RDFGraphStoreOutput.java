@@ -1,5 +1,5 @@
 /**
- *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,65 +14,65 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.imports;
+package com.atomgraph.linkeddatahub.imports.stream;
 
+import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.etl.csv.ModelTransformer;
-import java.io.IOException;
+import com.atomgraph.linkeddatahub.server.util.ModelSplitter;
 import java.io.InputStream;
-import java.io.OutputStream;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.StreamingOutput;
+import java.util.Iterator;
+import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.system.StreamRDF;
-import org.apache.jena.riot.system.StreamRDFLib;
-import org.apache.jena.riot.system.StreamRDFOps;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Deprecated
-public class StreamRDFOutput implements StreamingOutput
+public class RDFGraphStoreOutput
 {
-    
+
+    private final GraphStoreClient graphStoreClient;
     private final String base;
-    private final InputStream input;
+    private final InputStream is;
     private final Query query;
     private final Lang lang;
     
-    public StreamRDFOutput(InputStream input, String base, Query query, Lang lang)
+    public RDFGraphStoreOutput(GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang)
     {
+        this.graphStoreClient = graphStoreClient;
+        this.is = is;
         this.base = base;
-        this.input = input;
         this.query = query;
         this.lang = lang;
     }
-
-    @Override
-    public void write(OutputStream os) throws IOException, WebApplicationException
-    {
-        write(StreamRDFLib.writer(os));
-    }
     
-    public void write(StreamRDF stream)
+    public void write()
     {
-        if (getBase() != null) stream.base(getBase());
-        
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, getInputStream(), getBase(), getLang());
         if (getQuery() != null) model = new ModelTransformer().apply(getQuery(), model); // don't transform if query is null
-        StreamRDFOps.sendTriplesToStream(model.getGraph(), stream); // send the transformed RDF to the stream
+        Dataset rowDataset = ModelSplitter.split(model);
         
-        stream.finish(); // flush the statements into the stream
+        Iterator<String> names = rowDataset.listNames();
+        while (names.hasNext())
+        {
+            String graphUri = names.next();
+            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
+        }
+    }
+    
+    public GraphStoreClient getGraphStoreClient()
+    {
+        return graphStoreClient;
     }
     
     public InputStream getInputStream()
     {
-        return input;
+        return is;
     }
     
     public String getBase()
