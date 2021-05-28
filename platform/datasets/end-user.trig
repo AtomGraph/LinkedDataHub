@@ -13,7 +13,6 @@
 {
 
     <> a nsdd:Root ;
-        dh:select <queries/default/select-children/#this> ;
         dct:title "Root" ;
         dct:description "Root container" ;
         apl:content <#content1> .
@@ -216,7 +215,12 @@
     ORDER BY DESC(?created)
     """ .
 
-    # select labelled
+}
+
+# select labelled
+
+<queries/default/select-labelled/>
+{
 
     <queries/default/select-labelled/> a nsds:QueryItem ;
         sioc:has_container <queries/default/> ;

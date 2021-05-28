@@ -771,7 +771,7 @@ nsdd:ContainerChildren
 {
 
     nsdd:ContainerChildren a apl:Content ;
-        rdf:first <../queries/default/select-labelled/#this> ;
+        rdf:first <../queries/default/select-children/#this> ;
         rdf:rest rdf:nil ;
         rdfs:label "Container children" ;
         rdfs:isDefinedBy nsdd: .
