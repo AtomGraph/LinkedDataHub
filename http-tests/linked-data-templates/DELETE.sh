@@ -10,7 +10,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 # add read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
 
 ./create-authorization.sh \
--b $ADMIN_BASE_URL" \
+-b "$ADMIN_BASE_URL" \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
 --label "Write base" \
