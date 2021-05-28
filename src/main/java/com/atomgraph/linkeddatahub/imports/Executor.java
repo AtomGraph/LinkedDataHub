@@ -148,7 +148,7 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+//            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
             if (service.getProxy() != null) ban(dataManager, service.getProxy(), csvImport.getContainer().getURI());
@@ -167,7 +167,7 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+//            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
             if (service.getProxy() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
