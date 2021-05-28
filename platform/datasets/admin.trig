@@ -740,6 +740,7 @@
         rdfs:subClassOf sioc:Space, dh:Container ;
         spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle, nsdd:MissingSelect ; # roots do not have parents, therefore no nsdd:MissingParent
+        apl:template nsdd:ContainerChildren ;
         rdfs:label "Root" ;
         rdfs:isDefinedBy nsdd: .
 
