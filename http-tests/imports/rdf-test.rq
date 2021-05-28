@@ -21,7 +21,8 @@ WHERE
     {
         ?concept a skos:Concept .
         BIND (STRAFTER(STR(?concept), "http://vocabularies.unesco.org/thesaurus/") AS ?id)
-        BIND (BNODE() AS ?item)
+        BIND (uri(concat(str(?this), encode_for_uri(?id), "/")) AS ?item)
+
         ?concept ?p ?o
         OPTIONAL
         {
