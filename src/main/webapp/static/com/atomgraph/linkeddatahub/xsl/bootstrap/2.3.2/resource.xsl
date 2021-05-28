@@ -85,7 +85,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="class" select="$class"/>
         </xsl:next-match>
         
-        <xsl:apply-templates select="key('resources', apl:content/@rdf:resource)" mode="apl:ContentList"/>
+        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
     
