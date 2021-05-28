@@ -67,7 +67,6 @@ response=$(echo -e "$turtle" \
 | ./create-document.sh \
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
---class "${END_USER_BASE_URL}ns/domain#ConstrainedClass" \
 --content-type "text/turtle" \
 "${END_USER_BASE_URL}" \
 2>&1) # redirect output from stderr to stdout
