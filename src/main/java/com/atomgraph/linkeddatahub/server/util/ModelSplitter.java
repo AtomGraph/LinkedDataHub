@@ -57,6 +57,8 @@ public class ModelSplitter
                     Model namedModel = dataset.getNamedModel(docURI);
                     namedModel.add(stmt);
                 }
+                else
+                    throw new IllegalArgumentException("Blank nodes not supported");
             }
         }
         finally

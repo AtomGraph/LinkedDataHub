@@ -9,13 +9,11 @@ PREFIX dct:     <http://purl.org/dc/terms/>
 
 CONSTRUCT
 {
-    GRAPH ?graphGraphDoc {
-        ?graph a dh:Item ;
-            sioc:has_space <> ;
-            sioc:has_container <graphs/> ;
-            foaf:maker <${OWNER_URI}> ;
+    GRAPH ?graphGraph {
+        ?graph foaf:maker <${OWNER_URI}> ;
             acl:owner <${OWNER_URI}> ;
-            prov:generatedAtTime ?now .
+            dct:created ?now .
+        ?graphGraph prov:generatedAtTime ?now .
     }
     GRAPH ?graph {
         ?s ?p ?o
@@ -27,6 +25,6 @@ WHERE
         ?s ?p ?o
     }
     BIND(SHA1(STR(?graph)) AS ?graphSha1)
-    BIND (URI(CONCAT(STR(<graphs/>), ?graphSha1, "/")) AS ?graphGraphDoc)
+    BIND (UUID() AS ?graphGraph)
     BIND (NOW() AS ?now)
 }

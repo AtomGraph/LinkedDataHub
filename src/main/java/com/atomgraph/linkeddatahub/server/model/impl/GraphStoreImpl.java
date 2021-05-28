@@ -125,25 +125,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 {
                     throw new BadRequestException(ex);
                 }
-                
-//                Resource instance = getForClassResource(model, ResourceFactory.createResource(forClass.toString()));
-//                graphUri = URI.create(instance.getURI());
-                
-//                ResIterator it = model.listSubjects();
-//                try
-//                {
-//                    // TO-DO: this is really fragile, we should get rid of this and require an explicit graphUri
-//                    graphUri = URI.create(it.next().getURI()); // there has to be a subject resource since we checked (above) that the model is not empty
-//                    graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-//                }
-//                catch (URISyntaxException ex)
-//                {
-//                    // shouldn't happen
-//                }
-//                finally
-//                {
-//                    it.close();
-//                }
             }
 
             // is this implemented correctly? The specification is not very clear.
