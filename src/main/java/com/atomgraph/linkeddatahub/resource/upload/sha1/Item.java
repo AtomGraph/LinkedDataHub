@@ -33,7 +33,7 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
     }
     
     @Override
-    public EntityTag getEntityTag(Dataset dataset)
+    public EntityTag getEntityTag(Model model)
     {
         return new EntityTag(getSHA1Hash());
     }

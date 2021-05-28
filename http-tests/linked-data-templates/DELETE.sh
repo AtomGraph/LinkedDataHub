@@ -25,10 +25,10 @@ curl -k -w "%{http_code}\n" -f -s -G \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_NO_CONTENT"
 
-# check that the graph is gone
+# check that the graph is gone (we get Forbidden since the ACL query cannot find the resource)
 
 curl -k -w "%{http_code}\n" -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
-| grep -q "$STATUS_NOT_FOUND"
+| grep -q "$STATUS_FORBIDDEN"
