@@ -212,25 +212,25 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         return super.get();
     }
     
-    @Override
-    public EntityTag getEntityTag(Model model)
-    {
-        long eTagHash = ModelUtils.hashModel(model);
-
-        List<Variant> variants = getVariants(getWritableMediaTypes(Model.class));
-        Variant variant = getRequest().selectVariant(variants);
-        if (variant != null && variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
-        {
-            // authenticated agents get a different HTML representation
-            if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
-            {
-                Agent agent = (Agent)getSecurityContext().getUserPrincipal();
-                eTagHash += agent.hashCode();
-            }
-        }
-        
-        return new EntityTag(Long.toHexString(eTagHash));
-    }
+//    @Override
+//    public EntityTag getEntityTag(Model model)
+//    {
+//        long eTagHash = ModelUtils.hashModel(model);
+//
+//        List<Variant> variants = getVariants(getWritableMediaTypes(Model.class));
+//        Variant variant = getRequest().selectVariant(variants);
+//        if (variant != null && variant.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE))
+//        {
+//            // authenticated agents get a different HTML representation
+//            if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
+//            {
+//                Agent agent = (Agent)getSecurityContext().getUserPrincipal();
+//                eTagHash += agent.hashCode();
+//            }
+//        }
+//        
+//        return new EntityTag(Long.toHexString(eTagHash));
+//    }
     
     @Override
     public Date getLastModified(Model model)

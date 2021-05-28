@@ -34,6 +34,10 @@ import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
@@ -44,6 +48,8 @@ import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -91,6 +97,22 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
         super(xsltExec, ontModelSpec, dataManager); // this DataManager will be unused as we override getDataManager() with the injected (subclassed) one
+    }
+    
+    @Override
+    public void writeTo(Model model, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException
+    {
+        // authenticated agents get a different HTML representation
+        if (headerMap.containsKey(HttpHeaders.ETAG) && getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
+        {
+            EntityTag eTag = (EntityTag)headerMap.getFirst(HttpHeaders.ETAG);
+            BigInteger eTagHash = new BigInteger(eTag.getValue(), 16);
+            Agent agent = (Agent)getSecurityContext().getUserPrincipal();
+            eTagHash.add(BigInteger.valueOf(agent.hashCode()));
+            headerMap.addFirst(HttpHeaders.ETAG, new EntityTag(eTagHash.toString(16)));
+        }
+       
+        super.writeTo(model, type, type, annotations, mediaType, headerMap, entityStream);
     }
     
     @Override
