@@ -102,13 +102,13 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public void writeTo(Model model, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> headerMap, OutputStream entityStream) throws IOException
     {
-        // authenticated agents get a different HTML representation
-        if (headerMap.containsKey(HttpHeaders.ETAG) && getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
+        // authenticated agents get a different HTML representation and therefore a different entity tag
+        if (headerMap.containsKey(HttpHeaders.ETAG) && headerMap.getFirst(HttpHeaders.ETAG) instanceof EntityTag && getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
         {
             EntityTag eTag = (EntityTag)headerMap.getFirst(HttpHeaders.ETAG);
             BigInteger eTagHash = new BigInteger(eTag.getValue(), 16);
             Agent agent = (Agent)getSecurityContext().getUserPrincipal();
-            eTagHash.add(BigInteger.valueOf(agent.hashCode()));
+            eTagHash = eTagHash.add(BigInteger.valueOf(agent.hashCode()));
             headerMap.addFirst(HttpHeaders.ETAG, new EntityTag(eTagHash.toString(16)));
         }
        
