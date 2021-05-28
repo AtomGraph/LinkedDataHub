@@ -7,13 +7,17 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
-# add agent to the writers group
+# add read/write authorization for the owner because add-agent-to-group.sh won't work non-existing URI
 
-./add-agent-to-group.sh \
+./create-authorization.sh \
+-b $ADMIN_BASE_URL" \
   -f "$OWNER_CERT_FILE" \
   -p "$OWNER_CERT_PWD" \
-  --agent "$AGENT_URI" \
-  "${ADMIN_BASE_URL}acl/groups/writers/"
+--label "Write base" \
+--agent "$AGENT_URI" \
+--to "$END_USER_BASE_URL" \
+--read \
+--write
 
 popd > /dev/null
 
@@ -25,10 +29,10 @@ curl -k -w "%{http_code}\n" -f -s -G \
   "$END_USER_BASE_URL" \
 | grep -q "$STATUS_NO_CONTENT"
 
-# check that the graph is gone (we get Forbidden since the ACL query cannot find the resource)
+# check that the graph is gone
 
 curl -k -w "%{http_code}\n" -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \
-| grep -q "$STATUS_FORBIDDEN"
+| grep -q "$STATUS_NOT_FOUND"
