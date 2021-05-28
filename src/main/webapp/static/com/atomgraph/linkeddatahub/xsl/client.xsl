@@ -208,9 +208,9 @@ extension-element-prefixes="ixsl"
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
             <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-<!--            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ac:uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ac:uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onrdfBodyLoad"/>
-            </ixsl:schedule-action>-->
+            </ixsl:schedule-action>
         </xsl:if>
         <!-- initialize SPARQL query service dropdown -->
         <xsl:for-each select="id('query-service', ixsl:page())">
@@ -675,9 +675,9 @@ extension-element-prefixes="ixsl"
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $ac:uri)">
                 <!-- container SELECT query -->
-                <xsl:variable name="select-uri" select="xs:anyURI(dh:select/@rdf:resource)" as="xs:anyURI?"/>
+<!--                <xsl:variable name="select-uri" select="xs:anyURI(dh:select/@rdf:resource)" as="xs:anyURI?"/>
                 <xsl:choose>
-                    <!-- current resource is a Container (only containers have select-uri) - show results unless we're showing a constructed resource -->
+                     current resource is a Container (only containers have select-uri) - show results unless we're showing a constructed resource 
                     <xsl:when test="$select-uri and not($ac:forClass)">
                         <xsl:variable name="body" select="." as="document-node()"/>
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -686,7 +686,7 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                         </ixsl:schedule-action>
 
-                        <!-- container progress bar -->
+                         container progress bar 
                         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 40%;"></div>
@@ -694,12 +694,12 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:when>
                     <xsl:otherwise>
-                        <!-- container progress bar -->
+                         container progress bar 
                         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                            <!-- do not show progress bar for Items - only for Containers -->
+                             do not show progress bar for Items - only for Containers 
                         </xsl:result-document>
                     </xsl:otherwise>
-                </xsl:choose>
+                </xsl:choose>-->
 
                 <!-- breadcrumbs -->
                 <xsl:if test="id('breadcrumb-nav', ixsl:page())">
