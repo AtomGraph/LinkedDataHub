@@ -208,9 +208,9 @@ extension-element-prefixes="ixsl"
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
             <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ac:uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+<!--            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ac:uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onrdfBodyLoad"/>
-            </ixsl:schedule-action>
+            </ixsl:schedule-action>-->
         </xsl:if>
         <!-- initialize SPARQL query service dropdown -->
         <xsl:for-each select="id('query-service', ixsl:page())">
