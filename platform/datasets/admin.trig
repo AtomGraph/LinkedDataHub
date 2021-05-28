@@ -760,8 +760,19 @@
         rdfs:subClassOf dh:Container ;
         spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
         spin:constraint nsdd:MissingParent, nsdd:MissingTitle, nsdd:MissingSelect ;
+        apl:template nsdd:ContainerChildren ;
         rdfs:label "Container" ;
         rdfs:isDefinedBy nsdd: .
+
+}
+
+nsdd:ContainerChildren
+{
+
+    nsdd:ContainerChildren a apl:Content ;
+        rdf:first <../queries/default/select-labelled/#this> ;
+        rdf:rest rdf:nil ;
+        rdfs:isDefinedBy adm: .
 
 }
 
