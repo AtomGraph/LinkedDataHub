@@ -759,7 +759,7 @@
     nsdd:Container a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/container/> ;
         rdfs:subClassOf dh:Container ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingParent, nsdd:MissingTitle, nsdd:MissingSelect ;
         apl:template nsdd:ContainerChildren ;
         rdfs:label "Container" ;
@@ -791,7 +791,7 @@ nsdd:ContainerChildren
     nsdd:Item a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/item/> ;
         rdfs:subClassOf dh:Item ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingContainer ;
         rdfs:label "Item" ;
         rdfs:isDefinedBy nsdd: .
@@ -853,7 +853,7 @@ nsdd:ContainerChildren
     nsdd:File a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/file/> ;
         rdfs:subClassOf apl:File ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "File" ;
         rdfs:isDefinedBy nsdd: .
@@ -953,7 +953,7 @@ nsdd:ContainerChildren
     nsdd:RDFImport a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/rdf-import/> ;
         rdfs:subClassOf apl:RDFImport ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "RDF import" ;
         rdfs:isDefinedBy nsdd: .
@@ -973,7 +973,7 @@ nsdd:ContainerChildren
     nsdd:CSVImport a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/csv-import/> ;
         rdfs:subClassOf apl:CSVImport ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "CSV import" ;
         rdfs:isDefinedBy nsdd: .
@@ -993,7 +993,7 @@ nsdd:ContainerChildren
     nsdd:GraphChart a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/graph-chart/> ;
         rdfs:subClassOf apl:GraphChart ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "Graph chart" ;
         rdfs:isDefinedBy nsdd: .
@@ -1013,7 +1013,7 @@ nsdd:ContainerChildren
     nsdd:ResultSetChart a adm:Class ;
         foaf:isPrimaryTopicOf <model/classes/default/result-set-chart/> ;
         rdfs:subClassOf apl:ResultSetChart ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor, nsdd:AttachmentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "Result set chart" ;
         rdfs:isDefinedBy nsdd: .
@@ -1092,32 +1092,6 @@ nsdd:ContainerChildren
 
             CONSTRUCT {
               ?this apl:content [ a apl:Content ] .
-            }
-            WHERE {}""" ;
-        rdfs:isDefinedBy nsdd: .
-
-}
-
-# attachment constructor
-
-<model/queries/default/attachment-constructor/>
-{
-
-    <model/queries/default/attachment-constructor/> a adm:QueryItem ;
-        sioc:has_container <model/queries/default/> ;
-        dct:title "Attachment constructor" ;
-        foaf:primaryTopic nsdd:AttachmentConstructor .
-
-    nsdd:AttachmentConstructor a adm:Construct ;
-        foaf:isPrimaryTopicOf <model/queries/default/attachment-constructor/> ;
-        rdfs:label "Attachment constructor" ;
-        sp:text """
-            PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-            PREFIX sioc:    <http://rdfs.org/sioc/ns#>
-
-            CONSTRUCT {
-              ?this sioc:attachment [ a rdfs:Resource ] .
             }
             WHERE {}""" ;
         rdfs:isDefinedBy nsdd: .
