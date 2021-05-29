@@ -683,6 +683,7 @@ extension-element-prefixes="ixsl"
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onContainerQueryServiceLoad">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="service-uri" select="$service-uri"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
@@ -812,6 +813,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
         
         <xsl:choose>
