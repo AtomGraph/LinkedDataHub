@@ -624,14 +624,14 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="sp:text" as="xs:string"/>
+        <xsl:variable name="select-string" select="sp:text" as="xs:string"/>
         <!-- set ?this variable value -->
-        <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
 
         <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
         
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $query-string ])"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
