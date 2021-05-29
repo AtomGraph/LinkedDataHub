@@ -695,6 +695,7 @@ extension-element-prefixes="ixsl"
             <xsl:otherwise>
                 <xsl:call-template name="apl:RenderContainer">
                     <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -820,6 +821,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -834,6 +836,7 @@ extension-element-prefixes="ixsl"
                     
                     <xsl:call-template name="apl:RenderContainer">
                         <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
@@ -855,6 +858,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
@@ -873,7 +877,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="grouped-results" as="document-node()">
                         <xsl:apply-templates select="." mode="ac:GroupTriples"/>
                     </xsl:variable>
-                    <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
 <!--                    <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>-->
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
