@@ -977,7 +977,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- container results are already rendered -->
             <xsl:when test="id($container-id, ixsl:page())">
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                     <xsl:call-template name="container-mode">
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -1242,7 +1242,7 @@ extension-element-prefixes="ixsl"
                 </li>
             </ul>
         
-            <div id="container-results">
+            <div class="container-results">
                 <xsl:variable name="sorted-results" as="document-node()">
                     <xsl:document>
                         <xsl:for-each select="$results/rdf:RDF">
