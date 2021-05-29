@@ -1138,6 +1138,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="apl:RenderContainer">
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="service" as="element()?"/>
@@ -1183,11 +1184,12 @@ exclude-result-prefixes="#all"
     <!-- container mode tabs -->
     
     <xsl:template match="*[@id = 'container-pane']/div/ul[@class = 'nav nav-tabs']/li/a" mode="ixsl:onclick">
+        <xsl:variable name="content-uri" select="???" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>
+        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
 
         <ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
@@ -1261,7 +1263,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>
+        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
         <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
         

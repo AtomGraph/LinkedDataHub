@@ -684,15 +684,17 @@ extension-element-prefixes="ixsl"
                 <!-- load the service metadata first to get the endpoint URL -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onContainerQueryServiceLoad">
+                        <xsl:with-param name="container-id" as="xs:string"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="service-uri" select="$service-uri"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="apl:RenderContainer">
+                    <xsl:with-param name="container-id" as="xs:string"/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -817,6 +819,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -830,6 +833,7 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     
                     <xsl:call-template name="apl:RenderContainer">
+                        <xsl:with-param name="container-id" as="xs:string"/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
@@ -850,6 +854,7 @@ extension-element-prefixes="ixsl"
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
@@ -881,6 +886,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
 
                     <xsl:call-template name="render-container">
+                        <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -953,6 +959,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template name="render-container">
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
@@ -969,8 +976,8 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <!-- container results are already rendered -->
-            <xsl:when test="id('container-pane', ixsl:page())">
-                <xsl:result-document href="#container-pane" method="ixsl:replace-content">
+            <xsl:when test="id($container-id, ixsl:page())">
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                     <xsl:call-template name="container-mode">
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -1619,7 +1626,7 @@ extension-element-prefixes="ixsl"
                 <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                     <div class="alert alert-block">
                         <strong>Error during query execution:</strong>
                         <pre>
