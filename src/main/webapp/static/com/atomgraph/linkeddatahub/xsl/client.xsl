@@ -824,7 +824,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
         
