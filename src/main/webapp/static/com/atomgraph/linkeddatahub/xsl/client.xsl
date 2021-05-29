@@ -620,6 +620,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
 
+    <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
     <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
@@ -627,20 +628,71 @@ extension-element-prefixes="ixsl"
         <!-- set ?this variable value -->
         <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="()" as="element()?"/> <!-- TO-DO: load from $service-uri -->
-        <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
         
-        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-            <xsl:call-template name="onSPARQLResultsLoad">
-                <xsl:with-param name="container-id" select="$container-id"/>
-                <xsl:with-param name="content-uri" select="$content-uri"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <!-- set the initial SELECT query (without modifiers) -->
+        <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <!-- set the first var name of the initial SELECT query -->
+        <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
+        <xsl:variable name="new-state" as="map(xs:string, item()?)">
+            <xsl:map>
+                <xsl:map-entry key="'&rdf;type'" select="'&ac;Limit'"/>
+                <xsl:map-entry key="'&spl;predicate'" select="'&ac;limit'"/>
+                <xsl:map-entry key="'&rdf;value'" select="$ac:limit"/>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
+        <xsl:call-template name="apl:push-state">
+            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
+        </xsl:call-template>
+
+        <xsl:variable name="new-state" as="map(xs:string, item()?)">
+            <xsl:map>
+                <xsl:map-entry key="'&rdf;type'" select="'&ac;Offset'"/>
+                <xsl:map-entry key="'&spl;predicate'" select="'&ac;offset'"/>
+                <xsl:map-entry key="'&rdf;value'" select="$ac:offset"/>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
+        <xsl:call-template name="apl:push-state">
+            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
+        </xsl:call-template>
+
+        <!-- necessary? -->
+        <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
+        <!-- container progress bar -->
+        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+            <div class="progress progress-striped active">
+                <div class="bar" style="width: 60%;"></div>
+            </div>
+        </xsl:result-document>
+
+        <xsl:choose>
+            <xsl:when test="$service-uri">
+                <!-- load the service metadata first to get the endpoint URL -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContainerQueryServiceLoad">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="service-uri" select="$service-uri"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:call-template name="apl:RenderContainer">
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                </xsl:call-template>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template name="first-time-message">
@@ -757,103 +809,6 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
     
-    <!-- when container SELECT query loads, wrap it into DESCRIBE and fetch RDF/XML results -->
-    <xsl:template name="onContainerQueryLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="select-uri" as="xs:anyURI"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="select-resource" select="key('resources', $select-uri)" as="element()?"/>
-                    <xsl:variable name="select-string" select="$select-resource/sp:text" as="xs:string?"/>
-                    <xsl:choose>
-                        <xsl:when test="$select-string">
-                            <!-- set ?this variable value -->
-                            <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
-                            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                            <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
-                            <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                            <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
-                            
-                            <!-- set the initial SELECT query (without modifiers) -->
-                            <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <!-- set the first var name of the initial SELECT query -->
-                            <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-
-                            <xsl:variable name="new-state" as="map(xs:string, item()?)">
-                                <xsl:map>
-                                    <xsl:map-entry key="'&rdf;type'" select="'&ac;Limit'"/>
-                                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;limit'"/>
-                                    <xsl:map-entry key="'&rdf;value'" select="$ac:limit"/>
-                                </xsl:map>
-                            </xsl:variable>
-                            <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
-                            <xsl:call-template name="apl:push-state">
-                                <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
-                                <xsl:with-param name="select-xml" select="$select-xml"/>
-                            </xsl:call-template>
-                            
-                            <xsl:variable name="new-state" as="map(xs:string, item()?)">
-                                <xsl:map>
-                                    <xsl:map-entry key="'&rdf;type'" select="'&ac;Offset'"/>
-                                    <xsl:map-entry key="'&spl;predicate'" select="'&ac;offset'"/>
-                                    <xsl:map-entry key="'&rdf;value'" select="$ac:offset"/>
-                                </xsl:map>
-                            </xsl:variable>
-                            <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
-                            <xsl:call-template name="apl:push-state">
-                                <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
-                                <xsl:with-param name="select-xml" select="$select-xml"/>
-                            </xsl:call-template>
-
-                            <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <xsl:variable name="service-uri" select="$select-resource/apl:service/@rdf:resource" as="xs:anyURI?"/>
-
-                            <!-- container progress bar -->
-                            <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                                <div class="progress progress-striped active">
-                                    <div class="bar" style="width: 60%;"></div>
-                                </div>
-                            </xsl:result-document>
-
-                            <xsl:choose>
-                                <xsl:when test="$service-uri">
-                                    <!-- load the service metadata first to get the endpoint URL -->
-                                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                        <xsl:call-template name="onContainerQueryServiceLoad">
-                                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                                            <xsl:with-param name="service-uri" select="$service-uri"/>
-                                        </xsl:call-template>
-                                    </ixsl:schedule-action>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:call-template name="apl:RenderContainer">
-                                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                                    </xsl:call-template>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- error response - could not load query results -->
-                            <xsl:call-template name="render-container-error">
-                                <xsl:with-param name="message" select="'Container''s SELECT query string ''' || $select-uri || ''' could not be loaded'"/>
-                            </xsl:call-template>
-                            <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Container''s SELECT query string ''' || $select-uri || ''' could not be loaded' ])"/>-->
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- error response - could not load query results -->
-                <xsl:call-template name="render-container-error">
-                    <xsl:with-param name="message" select="?message"/>
-                </xsl:call-template>
-                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -863,7 +818,7 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     
                     <xsl:call-template name="apl:RenderContainer">
                         <xsl:with-param name="select-xml" select="$select-xml"/>

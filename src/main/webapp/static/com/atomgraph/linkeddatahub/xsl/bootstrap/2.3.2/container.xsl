@@ -1139,9 +1139,9 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="apl:RenderContainer">
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
+        <xsl:param name="service" as="element()?"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
         
         <!-- wrap SELECT into a DESCRIBE -->
         <xsl:variable name="query-xml" as="element()">
