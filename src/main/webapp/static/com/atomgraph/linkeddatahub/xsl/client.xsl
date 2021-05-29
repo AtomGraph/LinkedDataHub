@@ -684,7 +684,7 @@ extension-element-prefixes="ixsl"
                 <!-- load the service metadata first to get the endpoint URL -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onContainerQueryServiceLoad">
-                        <xsl:with-param name="container-id" as="xs:string"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -694,7 +694,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="apl:RenderContainer">
-                    <xsl:with-param name="container-id" as="xs:string"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -833,7 +833,7 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     
                     <xsl:call-template name="apl:RenderContainer">
-                        <xsl:with-param name="container-id" as="xs:string"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
