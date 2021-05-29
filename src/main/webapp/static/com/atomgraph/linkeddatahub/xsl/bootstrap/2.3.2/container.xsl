@@ -1233,7 +1233,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
         <xsl:call-template name="apl:RenderContainer">
             <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="container-uri" select="$container-uri"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
         </xsl:call-template>
@@ -1267,7 +1267,7 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
         <xsl:call-template name="apl:RenderContainer">
             <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="container-uri" select="$container-uri"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
         </xsl:call-template>
