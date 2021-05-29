@@ -1259,6 +1259,7 @@ exclude-result-prefixes="#all"
     <!-- order by onchange -->
     
     <xsl:template match="select[@id = 'container-order']" mode="ixsl:onchange">
+        <xsl:variable name="content-uri" select="()" as="xs:anyURI?"/> <!-- TO-DO: fix -->
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
