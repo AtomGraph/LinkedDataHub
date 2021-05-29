@@ -977,6 +977,10 @@ extension-element-prefixes="ixsl"
         <!-- remove container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
+        <xsl:message>
+            Rendering container for element ID: <xsl:value-of select="$container-id"/>
+        </xsl:message>
+        
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
             <xsl:when test="id($container-id, ixsl:page())/div[ul]">

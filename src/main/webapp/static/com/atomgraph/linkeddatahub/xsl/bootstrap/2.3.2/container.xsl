@@ -1195,13 +1195,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
 
-        <ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <!--<ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>-->
 
         <xsl:call-template name="render-container">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+            <xsl:with-param name="active-class" select="$active-class"/>
         </xsl:call-template>
     </xsl:template>
 
