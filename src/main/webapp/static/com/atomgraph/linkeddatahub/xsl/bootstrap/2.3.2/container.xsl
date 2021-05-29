@@ -1159,6 +1159,7 @@ exclude-result-prefixes="#all"
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
