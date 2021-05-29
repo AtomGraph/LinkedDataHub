@@ -668,7 +668,7 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
 
         <!-- necessary? -->
-        <ixsl:set-property name="select-uri" select="$select-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <ixsl:set-property name="select-uri" select="$content-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <!-- container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
