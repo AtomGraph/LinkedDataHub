@@ -1010,7 +1010,7 @@ extension-element-prefixes="ixsl"
                     </ixsl:schedule-action>
                 </xsl:for-each>
 
-                <xsl:result-document href="#main-content" method="ixsl:append-content">
+                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                     <div class="pull-right">
                         <form class="form-inline">
                             <label for="{$order-by-container-id}">
