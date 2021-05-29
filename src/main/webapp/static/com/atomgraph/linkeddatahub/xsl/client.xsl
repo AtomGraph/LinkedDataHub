@@ -978,9 +978,9 @@ extension-element-prefixes="ixsl"
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:choose>
-            <!-- container results are already rendered -->
-            <xsl:when test="id($container-id, ixsl:page())">
-                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+            <!-- container results are already rendered - replace the content of the div -->
+            <xsl:when test="id($container-id, ixsl:page())/div">
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                     <xsl:call-template name="container-mode">
                         <xsl:with-param name="results" select="$results"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -1036,15 +1036,13 @@ extension-element-prefixes="ixsl"
                         </form>
                     </div>
                     
-                    <div id="container-pane">
-                        <xsl:call-template name="container-mode">
-                            <xsl:with-param name="results" select="$results"/>
-                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                            <xsl:with-param name="desc" select="$desc"/>
-                            <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                            <xsl:with-param name="default-desc" select="$default-desc"/>
-                        </xsl:call-template>
-                    </div>
+                    <xsl:call-template name="container-mode">
+                        <xsl:with-param name="results" select="$results"/>
+                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+                        <xsl:with-param name="desc" select="$desc"/>
+                        <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
+                        <xsl:with-param name="default-desc" select="$default-desc"/>
+                    </xsl:call-template>
                 </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
