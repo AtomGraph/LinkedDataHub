@@ -979,16 +979,18 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
-            <xsl:when test="id($container-id, ixsl:page())/div">
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <xsl:call-template name="container-mode">
-                        <xsl:with-param name="results" select="$results"/>
-                        <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                        <xsl:with-param name="desc" select="$desc"/>
-                        <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                        <xsl:with-param name="default-desc" select="$default-desc"/>
-                    </xsl:call-template>
-                </xsl:result-document>
+            <xsl:when test="id($container-id, ixsl:page())/div[ul]">
+                <xsl:for-each select="id($container-id, ixsl:page())/div[ul]">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:call-template name="container-mode">
+                            <xsl:with-param name="results" select="$results"/>
+                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+                            <xsl:with-param name="desc" select="$desc"/>
+                            <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
+                            <xsl:with-param name="default-desc" select="$default-desc"/>
+                        </xsl:call-template>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:when>
             <!-- first time rendering the container results -->
             <xsl:otherwise>
