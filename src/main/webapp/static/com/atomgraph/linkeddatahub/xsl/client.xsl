@@ -978,7 +978,7 @@ extension-element-prefixes="ixsl"
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
         
         <xsl:message>
-            Rendering container for element ID: <xsl:value-of select="$container-id"/>
+            Rendering container for element ID: <xsl:value-of select="$container-id"/> $active-class: <xsl:value-of select="$active-class"/>
         </xsl:message>
         
         <xsl:choose>
