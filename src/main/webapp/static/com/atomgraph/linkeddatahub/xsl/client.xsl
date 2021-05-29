@@ -641,7 +641,7 @@ extension-element-prefixes="ixsl"
         <!-- set the initial SELECT query (without modifiers) -->
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         <!-- set the first var name of the initial SELECT query -->
-        <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <!--<ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>-->
 
         <xsl:variable name="new-state" as="map(xs:string, item()?)">
             <xsl:map>
@@ -693,6 +693,7 @@ extension-element-prefixes="ixsl"
             <xsl:otherwise>
                 <xsl:call-template name="apl:RenderContainer">
                     <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
@@ -816,6 +817,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
         
         <xsl:choose>
@@ -827,6 +829,7 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="apl:RenderContainer">
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
@@ -844,7 +847,8 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        
+        <xsl:param name="focus-var-name" as="xs:string"/>
+
         <!-- container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
             <div class="progress progress-striped active">
@@ -861,7 +865,7 @@ extension-element-prefixes="ixsl"
                     </xsl:variable>
                     <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                    <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>
+<!--                    <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>-->
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                     <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                     <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
