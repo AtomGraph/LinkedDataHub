@@ -684,6 +684,7 @@ extension-element-prefixes="ixsl"
                 <!-- load the service metadata first to get the endpoint URL -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onContainerQueryServiceLoad">
+                        <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="service-uri" select="$service-uri"/>
@@ -692,6 +693,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="apl:RenderContainer">
+                    <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 </xsl:call-template>
@@ -815,6 +817,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -827,6 +830,7 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     
                     <xsl:call-template name="apl:RenderContainer">
+                        <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -848,6 +852,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
+        <xsl:param name="select-string" as="xs:string"/>
 
         <!-- container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
@@ -889,7 +894,7 @@ extension-element-prefixes="ixsl"
                     <!-- only append facets if they are not already present -->
                     <xsl:if test="not(id('faceted-nav', ixsl:page())/*)">
                         <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
-                        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>
+<!--                        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>-->
                         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>

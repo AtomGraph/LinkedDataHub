@@ -1138,6 +1138,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template name="apl:RenderContainer">
+        <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="service" as="element()?"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -1157,6 +1158,7 @@ exclude-result-prefixes="#all"
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
+                <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
             </xsl:call-template>
