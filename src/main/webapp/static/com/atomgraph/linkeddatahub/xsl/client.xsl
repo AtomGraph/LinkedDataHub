@@ -636,6 +636,8 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml//json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
+        <!-- create new cache entry using content URI as key -->
+        <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- set the initial SELECT query (without modifiers) -->
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         <!-- set the first var name of the initial SELECT query -->
@@ -2241,12 +2243,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
-<xsl:message>
-    $category: <xsl:value-of select="$category"/>
-    $series: <xsl:value-of select="$series"/>
-    $content-uri: <xsl:value-of select="$content-uri"/>
-    $chart-canvas-id: <xsl:value-of select="$chart-canvas-id"/>
-</xsl:message>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub['{$content-uri}']['data-table'] object is used by ac:draw-chart() -->
@@ -2283,12 +2279,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
-<xsl:message>
-    $category: <xsl:value-of select="$category"/>
-    $series: <xsl:value-of select="$series"/>
-    $content-uri: <xsl:value-of select="$content-uri"/>
-    $chart-canvas-id: <xsl:value-of select="$chart-canvas-id"/>
-</xsl:message>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <!-- window.LinkedDataHub['{$content-uri}']['data-table'] object is used by ac:draw-chart() -->
