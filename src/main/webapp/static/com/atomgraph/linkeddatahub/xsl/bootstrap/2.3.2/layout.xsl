@@ -744,9 +744,9 @@ exclude-result-prefixes="#all">
 
     <!-- LEFT NAV MODE -->
     
-    <xsl:template match="rdf:RDF[$ldt:base][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Left" priority="1">
-        <xsl:param name="id" select="'left-nav'" as="xs:string?"/>
-        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][not(rdf:type/@rdf:resource = '&http;Response')]" mode="bs2:Left" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'left-nav span2'" as="xs:string?"/>
         
         <div>
             <xsl:if test="$id">
@@ -756,7 +756,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:if test="$ldt:base"> <!-- $lacl:Agent//@rdf:about -->
+            <!--<xsl:apply-templates mode="#current"/>-->
+
+<!--            <xsl:if test="$ldt:base">  $lacl:Agent//@rdf:about 
                 <div id="container-nav">
                     <div class="well well-small">
                         <ul class="nav nav-list">
@@ -766,7 +768,7 @@ exclude-result-prefixes="#all">
                                         <xsl:attribute name="class">active</xsl:attribute>
                                     </xsl:if>
 
-                                    <!-- TO-DO: resolve as Linked Data resources? -->
+                                     TO-DO: resolve as Linked Data resources? 
                                     <a href="{.}">
                                         <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document('translations.rdf'))">
                                             <xsl:apply-templates select="." mode="apl:logo"/>
@@ -781,23 +783,32 @@ exclude-result-prefixes="#all">
                         </ul>
                     </div>
                 </div>
-            </xsl:if>
+            </xsl:if>-->
         </div>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left"/>
-    
     <!-- RIGHT NAV MODE -->
     
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri]" mode="bs2:Right">
-        <xsl:apply-imports>
-            <xsl:with-param name="id" select="'right-nav'"/>
-            <xsl:with-param name="class" select="'span3'"/>
-        </xsl:apply-imports>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <!--<xsl:apply-templates mode="#current"/>-->
+        </div>
     </xsl:template>
 
+    <!--<xsl:template match="*[*][@rdf:about or @rdf:nodeID]/*" mode="bs2:Right"/>-->
+
     <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
-    <xsl:template match="*[@rdf:about = $ac:uri][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
+<!--    <xsl:template match="*[@rdf:about = $ac:uri][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
         <xsl:variable name="definitions" as="document-node()">
             <xsl:document>
                 <dl class="dl-horizontal">
@@ -814,7 +825,7 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
             </div>
         </xsl:if>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- MODE LIST -->
         

@@ -1022,8 +1022,12 @@ extension-element-prefixes="ixsl"
                     </div>
                     
                     <div>
-                        <xsl:apply-templates select="$content" mode="bs2:Header"/>
-            
+                        <h2>
+                            <xsl:apply-templates select="." mode="apl:logo"/>
+                            <xsl:text> </xsl:text>
+                            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                        </h2>
+                        
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="results" select="$results"/>
