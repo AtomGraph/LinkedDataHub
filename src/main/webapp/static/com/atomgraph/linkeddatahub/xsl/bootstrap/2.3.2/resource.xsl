@@ -270,8 +270,6 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Header"/>
-            
             <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
             <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
         </div>

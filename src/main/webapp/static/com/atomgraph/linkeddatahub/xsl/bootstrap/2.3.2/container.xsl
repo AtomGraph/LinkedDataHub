@@ -1148,6 +1148,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="apl:RenderContainer">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content" as="element()"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="service" as="element()?"/>
@@ -1170,6 +1171,7 @@ exclude-result-prefixes="#all"
             <xsl:call-template name="onContainerResultsLoad">
                 <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="content-uri" select="$content-uri"/>
+                <xsl:with-param name="content" select="$content"/>
                 <xsl:with-param name="select-string" select="$select-string"/>
                 <xsl:with-param name="select-xml" select="$select-xml"/>
                 <xsl:with-param name="focus-var-name" select="$focus-var-name"/>

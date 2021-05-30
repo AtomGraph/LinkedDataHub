@@ -576,7 +576,7 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <xsl:apply-templates select="." mode="#current"/>
+                <xsl:apply-templates mode="#current"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>

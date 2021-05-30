@@ -696,6 +696,7 @@ extension-element-prefixes="ixsl"
                 <xsl:call-template name="apl:RenderContainer">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
@@ -735,33 +736,6 @@ extension-element-prefixes="ixsl"
         <xsl:for-each select="?body">
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $ac:uri)">
-                <!-- container SELECT query -->
-<!--                <xsl:variable name="select-uri" select="xs:anyURI(dh:select/@rdf:resource)" as="xs:anyURI?"/>
-                <xsl:choose>
-                     current resource is a Container (only containers have select-uri) - show results unless we're showing a constructed resource 
-                    <xsl:when test="$select-uri and not($ac:forClass)">
-                        <xsl:variable name="body" select="." as="document-node()"/>
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="onContainerQueryLoad">
-                                <xsl:with-param name="select-uri" select="$select-uri"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-
-                         container progress bar 
-                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 40%;"></div>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:when>
-                    <xsl:otherwise>
-                         container progress bar 
-                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                             do not show progress bar for Items - only for Containers 
-                        </xsl:result-document>
-                    </xsl:otherwise>
-                </xsl:choose>-->
-
                 <!-- breadcrumbs -->
                 <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                     <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -822,6 +796,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content" as="element()"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -836,6 +811,7 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="apl:RenderContainer">
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service" select="$service"/>
@@ -858,6 +834,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content" as="element()"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
@@ -891,6 +868,7 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -965,6 +943,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="render-container">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content" as="element()"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
@@ -978,10 +957,6 @@ extension-element-prefixes="ixsl"
 
         <!-- remove container progress bar -->
         <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
-        
-        <xsl:message>
-            Rendering container for element ID: <xsl:value-of select="$container-id"/> $active-class: <xsl:value-of select="$active-class"/>
-        </xsl:message>
         
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
@@ -1047,6 +1022,8 @@ extension-element-prefixes="ixsl"
                     </div>
                     
                     <div>
+                        <xsl:apply-templates select="$content" mode="bs2:Header"/>
+            
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="results" select="$results"/>
