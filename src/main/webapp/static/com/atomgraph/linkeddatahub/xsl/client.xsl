@@ -1023,9 +1023,11 @@ extension-element-prefixes="ixsl"
                     
                     <div>
                         <h2>
-                            <xsl:apply-templates select="." mode="apl:logo"/>
-                            <xsl:text> </xsl:text>
-                            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                            <xsl:for-each select="$content">
+                                <xsl:apply-templates select="." mode="apl:logo"/>
+                                <xsl:text> </xsl:text>
+                                <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                            </xsl:for-each>
                         </h2>
                         
                         <xsl:call-template name="container-mode">

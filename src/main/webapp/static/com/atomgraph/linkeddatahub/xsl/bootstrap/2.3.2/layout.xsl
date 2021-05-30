@@ -583,6 +583,9 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
 
+    <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>
+
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
         <div class="row-fluid">
             <xsl:apply-templates select="." mode="bs2:Left"/>
@@ -1732,7 +1735,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide Content instances in bs2:Block mode as they will be rendered by apl:Content mode -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
+<!--    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>-->
 
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
