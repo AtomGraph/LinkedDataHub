@@ -890,6 +890,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
                         <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
@@ -963,6 +964,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="render-container">
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
@@ -1106,6 +1108,7 @@ extension-element-prefixes="ixsl"
             <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
             <xsl:call-template name="render-chart">
+                <xsl:with-param name="content-uri" select="$content-uri"/>
                 <xsl:with-param name="canvas-id" select="$canvas-id"/>
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>

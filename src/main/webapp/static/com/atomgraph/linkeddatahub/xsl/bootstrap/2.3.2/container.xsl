@@ -1199,6 +1199,7 @@ exclude-result-prefixes="#all"
 
         <xsl:call-template name="render-container">
             <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
