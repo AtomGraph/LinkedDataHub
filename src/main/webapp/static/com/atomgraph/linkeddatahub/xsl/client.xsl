@@ -989,6 +989,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="id($container-id, ixsl:page())/div[ul]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
+                            <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="results" select="$results"/>
                             <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                             <xsl:with-param name="desc" select="$desc"/>
@@ -1047,6 +1048,7 @@ extension-element-prefixes="ixsl"
                     
                     <div>
                         <xsl:call-template name="container-mode">
+                            <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="results" select="$results"/>
                             <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                             <xsl:with-param name="desc" select="$desc"/>
@@ -1182,6 +1184,7 @@ extension-element-prefixes="ixsl"
     <!-- container results layout -->
     
     <xsl:template name="container-mode">
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="desc" as="xs:boolean?"/>
@@ -1283,7 +1286,9 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Grid"/>
                 </xsl:when>
                 <xsl:when test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Chart"/>
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
+                        <xsl:with-param name="canvas-id" select="$container-id || '-chart-canvas'"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-class = 'map-mode' or (not($active-class) and $ac:container-mode = '&ac;MapMode')">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Map"/>
