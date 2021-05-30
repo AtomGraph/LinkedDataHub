@@ -239,19 +239,21 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:ContentList" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'content xhtml-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'content xhtml-content span7 offset2'" as="xs:string?"/>
         
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <!--  remove XHTML namespace -->
-            <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
-            <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
+        <div class="row-fluid">
+            <div>
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                </xsl:if>
+
+                <!--  remove XHTML namespace -->
+                <!-- <xsl:copy-of copy-namespaces="no" select="sioc:content/xhtml:div"/> -->
+                <xsl:apply-templates select="rdf:first[@rdf:parseType = 'Literal']/xhtml:div" mode="apl:XHTMLContent"/>
+            </div>
         </div>
 
         <!-- process the next apl:Content in the list -->
@@ -260,18 +262,24 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="apl:ContentList" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'content resource-content span7'" as="xs:string?"/>
         
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
+        <div class="row-fluid">
+            <div class="left-nav span2"></div>
             
-            <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
-            <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
+            <div>
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                </xsl:if>
+
+                <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
+                <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
+            </div>
+            
+            <div class="right-nav span3"></div>
         </div>
         
         <!-- process the next apl:Content in the list -->

@@ -638,9 +638,11 @@ extension-element-prefixes="ixsl"
 
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- set the initial SELECT query (without modifiers) -->
+        <!-- store this content element -->
+        <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <!-- store the initial SELECT query (without modifiers) -->
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        <!-- set the first var name of the initial SELECT query -->
+        <!-- store the first var name of the initial SELECT query -->
         <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <xsl:variable name="new-state" as="map(xs:string, item()?)">
