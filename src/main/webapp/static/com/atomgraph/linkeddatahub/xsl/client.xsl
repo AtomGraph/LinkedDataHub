@@ -970,7 +970,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="default-order-by-var-name" as="xs:string?"/>
         <xsl:param name="default-desc" as="xs:boolean?"/>
-        <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
+        <xsl:param name="active-class" select="'list-mode'" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="'container-order'" as="xs:string?"/>
 
@@ -992,6 +992,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="desc" select="$desc"/>
                             <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                             <xsl:with-param name="default-desc" select="$default-desc"/>
+                            <xsl:with-param name="active-class" select="$active-class"/>
                         </xsl:call-template>
                     </xsl:result-document>
                 </xsl:for-each>
@@ -1049,6 +1050,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="desc" select="$desc"/>
                             <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                             <xsl:with-param name="default-desc" select="$default-desc"/>
+                            <xsl:with-param name="active-class" select="$active-class"/>
                         </xsl:call-template>
                     </div>
                 </xsl:result-document>
@@ -1182,7 +1184,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="desc" as="xs:boolean?"/>
         <xsl:param name="default-order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="default-desc" as="xs:boolean?"/>
-        <xsl:param name="active-class" select="ixsl:get(ixsl:window(), 'LinkedDataHub.active-class')" as="xs:string?"/>
+        <xsl:param name="active-class" as="xs:string?"/>
         
         <ul class="nav nav-tabs">
             <li class="read-mode">
