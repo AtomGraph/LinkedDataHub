@@ -576,21 +576,25 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <div class="row-fluid">
-                    <xsl:apply-templates select="." mode="bs2:Left"/>
-
-                    <xsl:apply-templates select="." mode="bs2:Main"/>
-
-                    <xsl:apply-templates select="." mode="bs2:Right"/>
-                </div>
+                <xsl:apply-templates select="." mode="#current"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
     </xsl:template>
 
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
+        <div class="row-fluid">
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <xsl:apply-templates select="." mode="bs2:Main"/>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+    </xsl:template>
+    
     <!-- always show errors (except ConstraintViolations) in block mode -->
-    <xsl:template match="rdf:RDF[not(key('resources', $ac:uri))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:Main" priority="1">
+    <xsl:template match="rdf:RDF[not(key('resources', $ac:uri))][key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="xhtml:Body" priority="1">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span12'" as="xs:string?"/>
         
@@ -606,10 +610,9 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[$ldt:base]" mode="bs2:Main">
-        <xsl:param name="id" select="'main-content'" as="xs:string?"/>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Main">
+        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
-        <xsl:variable name="create-or-edit" select="$ac:mode = '&ac;EditMode' or $ac:forClass" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$id">
@@ -618,27 +621,9 @@ exclude-result-prefixes="#all">
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
-        
-            <xsl:if test="not($create-or-edit)">
-                <xsl:apply-templates select="." mode="apl:ChildrenCountMode"/>
-            </xsl:if>
 
-            <xsl:apply-templates select="." mode="ac:ModeChoice"/>
+            <xsl:apply-templates select="." mode="bs2:Block"/>
         </div>
-    </xsl:template>
-    
-    <xsl:template match="rdf:RDF" mode="ac:ModeChoice">
-        <xsl:choose>
-            <xsl:when test="$ac:mode = '&ac;EditMode' or ($ac:forClass and not(contains($ac:httpHeaders, 'Location')))">
-                <xsl:apply-templates select="." mode="bs2:Form"/>
-            </xsl:when>
-            <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                <xsl:apply-templates select="." mode="bs2:Graph"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates select="." mode="bs2:Block"/>
-            </xsl:otherwise>
-        </xsl:choose>
     </xsl:template>
 
     <!-- CREATE -->
@@ -1141,21 +1126,6 @@ exclude-result-prefixes="#all">
                 </xsl:if>
             </ul>
         </div>
-    </xsl:template>
-    
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:ChildrenCountMode"/>
-
-    <xsl:template match="*[*][@rdf:about][apl:count]" mode="apl:ChildrenCountMode" priority="1">
-        <!-- <xsl:variable name="count-uri" select="xs:anyURI(key('resources-by-counter-of', @rdf:about)/@rdf:about)" as="xs:anyURI"/> -->
-        <!-- <xsl:if test="doc-available($count-uri)"> -->
-            <p class="pull-right ChildrenCountMode">
-                <!-- <xsl:variable name="count-doc" select="document($count-uri)" as="document-node()?"/> -->
-                <span class="badge">
-                    <xsl:value-of select="format-number(apl:count, '0')"/>
-                </span>
-                <xsl:text> result(s)</xsl:text>
-            </p>
-        <!-- </xsl:if> -->
     </xsl:template>
     
     <!-- HEADER MODE -->
