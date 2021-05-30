@@ -415,7 +415,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:Map">
-        <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
 
         <div id="{$canvas-id}"></div>
     </xsl:template>
