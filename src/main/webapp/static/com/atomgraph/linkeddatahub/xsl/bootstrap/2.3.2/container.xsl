@@ -416,18 +416,23 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="class" select="'map-canvas'" as="xs:string?"/>
 
-        <div id="{$canvas-id}"></div>
+        <div id="{$canvas-id}">
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+        </div>
     </xsl:template>
 
     <xsl:function name="ac:create-map">
-        <xsl:param name="id" as="xs:string"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
         <xsl:param name="lat" as="xs:float"/>
         <xsl:param name="lng" as="xs:float"/>
         <xsl:param name="zoom" as="xs:integer"/>
 
         <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.maps.Map(document.getElementById('{$id}'), {{ center: new google.maps.LatLng({$lat}, {$lng}), zoom: {$zoom} }})"/>
+            <root statement="new google.maps.Map(document.getElementById('{$canvas-id}'), {{ center: new google.maps.LatLng({$lat}, {$lng}), zoom: {$zoom} }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
