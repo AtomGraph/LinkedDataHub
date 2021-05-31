@@ -586,6 +586,9 @@ exclude-result-prefixes="#all">
     <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>
 
+    <!-- container/document blocks are hidden -->
+    <xsl:template match="*[apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="xhtml:Body" priority="1"/>
+    
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
         <div class="row-fluid">
             <xsl:apply-templates select="." mode="bs2:Left"/>

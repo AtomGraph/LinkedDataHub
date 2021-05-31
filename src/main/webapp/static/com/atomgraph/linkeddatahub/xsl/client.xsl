@@ -197,14 +197,6 @@ extension-element-prefixes="ixsl"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="id('main-content', ixsl:page()) and not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
-            <!-- show progress bar -->
-            <xsl:result-document href="#main-content" method="ixsl:append-content">
-                <div id="progress-bar">
-                    <div class="progress progress-striped active">
-                        <div class="bar" style="width: 20%;"></div>
-                    </div>
-                </div>
-            </xsl:result-document>
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
             <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
@@ -251,6 +243,15 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
             <xsl:variable name="container-id" select="@id" as="xs:string"/>
             
+            <!-- show progress bar -->
+            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                <div class="progress-bar">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </xsl:result-document>
+                
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentLoad">
                     <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -674,12 +675,8 @@ extension-element-prefixes="ixsl"
         <!-- necessary? -->
         <ixsl:set-property name="select-uri" select="$content-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
-        <!-- container progress bar -->
-        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-            <div class="progress progress-striped active">
-                <div class="bar" style="width: 60%;"></div>
-            </div>
-        </xsl:result-document>
+        <!-- update progress bar -->
+        <ixsl:set-style name="width" select="'75%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
 
         <xsl:choose>
             <xsl:when test="$service-uri">
@@ -841,12 +838,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
 
-        <!-- container progress bar -->
-        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-            <div class="progress progress-striped active">
-                <div class="bar" style="width: 80%;"></div>
-            </div>
-        </xsl:result-document>
+        <!-- update progress bar -->
+        <ixsl:set-style name="width" select="'75%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -957,9 +950,11 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="'container-order'" as="xs:string?"/>
 
-        <!-- remove container progress bar -->
-        <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
-        
+        <!-- update progress bar -->
+        <ixsl:set-style name="width" select="'100%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+        <!-- hide progress bar -->
+        <ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+                
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
             <xsl:when test="id($container-id, ixsl:page())/div[ul]">
@@ -1708,6 +1703,9 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <!-- update progress bar -->
+                <ixsl:set-style name="width" select="'50%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+            
                 <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
                     <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:apply-templates>
