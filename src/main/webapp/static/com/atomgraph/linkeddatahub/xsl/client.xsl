@@ -196,7 +196,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
-        <xsl:if test="id('main-content', ixsl:page()) and not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
+        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
             <!-- load this RDF document and then use the dh:select query to load and render container results -->
             <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
             <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
@@ -728,7 +728,6 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>-->
         
-    <!-- when RDF/XML of current document loads, fetch its dh:select (container SELECT) query -->
     <xsl:template name="onrdfBodyLoad">
         <xsl:context-item as="map(*)" use="required"/>
 

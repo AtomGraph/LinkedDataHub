@@ -51,7 +51,7 @@ exclude-result-prefixes="#all"
     <!-- PARALLAX -->
     
     <xsl:template name="bs2:Parallax">
-        <xsl:param name="container-id" as="xs:string?"/>
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -1651,6 +1651,8 @@ exclude-result-prefixes="#all"
     <!-- parallax onclick -->
     
     <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
+        <xsl:variable name="container-id" select="ancestor::div[tokenize(@class, ' ') = 'right-nav']/preceding-sibling::div[tokenize(@class, ' ') = 'resource-content']/@id" as="xs:string"/>
+        <xsl:variable name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'right-nav']/preceding-sibling::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <!-- retrieve SELECT query history.state -->
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
@@ -1671,6 +1673,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <xsl:call-template name="apl:RenderContainer">
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
     </xsl:template>
