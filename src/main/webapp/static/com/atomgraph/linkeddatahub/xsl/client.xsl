@@ -876,9 +876,9 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
 
                     <!-- only append facets if they are not already present -->
-                    <xsl:if test="not(ancestor::div[tokenize(@class, ' ') = 'row-fluid']//div[tokenize(@class, ' ') = 'faceted-nav'])">
-                        <xsl:variable name="facet-container-id" select="$container-id || 'left-nav'" as="xs:string"/>
-                        <xsl:for-each select="ancestor::div[tokenize(@class, ' ') = 'row-fluid']//div[tokenize(@class, ' ') = 'left-nav']">
+                    <xsl:if test="not(id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']/*)">
+                        <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
+                        <xsl:for-each select="id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
                             </xsl:result-document>
