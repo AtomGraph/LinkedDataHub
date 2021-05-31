@@ -32,7 +32,7 @@
 {
 
     <> a adm:Container ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Root" ;
         dct:description "Root container" .
 
@@ -42,7 +42,7 @@
 {
 
     <search/> a adm:Container ;
-        dh:select <queries/default/select-labelled/#this> ;
+        # dh:select <queries/default/select-labelled/#this> ;
         dct:title "Search" ;
         dct:description "Search resources by label" .
 
@@ -52,7 +52,7 @@
 {
 
     <queries/> a adm:Container ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -63,7 +63,7 @@
 
     <queries/default/> a adm:Container ;
         sioc:has_parent <queries/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Default queries" .
 
@@ -196,7 +196,7 @@
 
     <acl/> a adm:Container ;
         sioc:has_parent <> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Access control" ;
         dct:description "Manage agents, user accounts and authorizations" .
 
@@ -207,7 +207,7 @@
 
     <acl/authorizations/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Authorizations" ;
         dct:description "Manage who has access to which resources" .
 
@@ -218,7 +218,7 @@
 
     <acl/authorization-requests/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Authorization requests" ;
         dct:description "Manage who has access to which resources" .
 
@@ -229,7 +229,7 @@
 
     <acl/agents/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Agents" ;
         dct:description "Manage people and software agents that have access" .
 
@@ -240,7 +240,7 @@
 
     <acl/public-keys/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Public keys" ;
         dct:description "Manage RSA public keys" .
 
@@ -251,7 +251,7 @@
 
     <acl/users/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Users" ;
         dct:description "Manage agent user accounts and credentials" .
 
@@ -262,7 +262,7 @@
 
     <acl/groups/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Groups" ;
         dct:description "Manage agent groups that have access" .
 
@@ -538,7 +538,7 @@
 
     <model/> a adm:Container ;
         sioc:has_parent <> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Model" ;
         dct:description "Manage application model: classes, properties, constraints etc." .
 
@@ -549,7 +549,7 @@
 
     <model/ontologies/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" .
 
@@ -560,7 +560,7 @@
 
     <model/queries/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Queries" ;
         dct:description "Manage SPARQL queries that are used by constructors and constraints" .
 
@@ -571,7 +571,7 @@
 
     <model/queries/default/> a adm:Container ;
         sioc:has_parent <model/queries/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Queries of the Default ontology" .
 
@@ -582,7 +582,7 @@
 
     <model/classes/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Classes" ;
         dct:description "Manage application classes to define the domain model" .
 
@@ -593,7 +593,7 @@
 
     <model/classes/default/> a adm:Container ;
         sioc:has_parent <model/classes/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Classes of the Default ontology" .
 
@@ -604,7 +604,7 @@
 
     <model/properties/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Properties" ;
         dct:description "Manage properties of the domain model" .
 
@@ -615,7 +615,7 @@
 
     <model/constraints/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Constraints" ;
         dct:description "Manage SPIN constraints to control the quality of incoming data" .
 
@@ -626,7 +626,7 @@
 
     <model/constraints/default/> a adm:Container ;
         sioc:has_parent <model/constraints/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Constraints of the Default ontology" .
 
@@ -637,7 +637,7 @@
 
     <model/restrictions/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Restrictions" ;
         dct:description "Manage OWL restrictions on properties" .
 
@@ -648,7 +648,7 @@
 
     <model/restrictions/namespace/> a adm:Container ;
         sioc:has_parent <model/restrictions/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Namespace" ;
         dct:description "Restrictions of the Namespace ontology" .
 
@@ -659,7 +659,7 @@
 
     <model/command-templates/> a adm:Container ;
         sioc:has_parent <model/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Command templates" ;
         dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
 
@@ -739,7 +739,7 @@
         foaf:isPrimaryTopicOf <model/classes/default/root/> ;
         rdfs:subClassOf sioc:Space, dh:Container ;
         spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
-        spin:constraint nsdd:MissingTitle, nsdd:MissingSelect ; # roots do not have parents, therefore no nsdd:MissingParent
+        spin:constraint nsdd:MissingTitle ; # roots do not have parents, therefore no nsdd:MissingParent
         apl:template nsdd:ContainerChildren ;
         rdfs:label "Root" ;
         rdfs:isDefinedBy nsdd: .
@@ -760,7 +760,7 @@
         foaf:isPrimaryTopicOf <model/classes/default/container/> ;
         rdfs:subClassOf dh:Container ;
         spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
-        spin:constraint nsdd:MissingParent, nsdd:MissingTitle, nsdd:MissingSelect ;
+        spin:constraint nsdd:MissingParent, nsdd:MissingTitle ;
         apl:template nsdd:ContainerChildren ;
         rdfs:label "Container" ;
         rdfs:isDefinedBy nsdd: .
@@ -1151,23 +1151,6 @@ nsdd:ContainerChildren
 
 }
 
-<model/constraints/default/missing-select/>
-{
-
-    <model/constraints/default/missing-select/> a adm:ConstraintItem ;
-        sioc:has_container <model/constraints/default/> ;
-        dct:title "Missing select" ;
-        foaf:primaryTopic nsdd:MissingSelect .
-
-    nsdd:MissingSelect a adm:MissingPropertyValue ;
-        foaf:isPrimaryTopicOf <model/constraints/default/missing-select/> ;
-        rdfs:label "Missing select" ;
-        rdfs:comment "Requires container to have an attached SPIN SELECT query" ;
-        sp:arg1 dh:select ;
-        rdfs:isDefinedBy nsdd: .
-
-}
-
 ### SITEMAP ###
 
 # CONTAINERS
@@ -1177,7 +1160,7 @@ nsdd:ContainerChildren
 
     <sitemap/> a adm:Container ;
         sioc:has_parent <> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Sitemap" ;
         dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
 
@@ -1188,7 +1171,7 @@ nsdd:ContainerChildren
 
     <sitemap/ontologies/> a adm:Container ;
         sioc:has_parent <sitemap/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application structure" .
 
@@ -1199,7 +1182,7 @@ nsdd:ContainerChildren
 
     <sitemap/queries/> a adm:Container ;
         sioc:has_parent <sitemap/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Queries" ;
         dct:description "Manage SPARQL queries that are used by templates and constraints" .
 
@@ -1210,7 +1193,7 @@ nsdd:ContainerChildren
 
     <sitemap/updates/> a adm:Container ;
         sioc:has_parent <sitemap/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Updates" ;
         dct:description "Manage application structure using templates, parameters, SPARQL commands etc." .
 
@@ -1221,7 +1204,7 @@ nsdd:ContainerChildren
 
     <sitemap/templates/> a adm:Container ;
         sioc:has_parent <sitemap/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Templates" ;
         dct:description "Manage LDT template that define the Linked Data API of the application by mapping URI templates to SPARQL" .
 
@@ -1232,7 +1215,7 @@ nsdd:ContainerChildren
 
     <sitemap/templates/templates/> a adm:Container ;
         sioc:has_parent <sitemap/templates/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Templates of the Templates ontology" .
 
@@ -1243,7 +1226,7 @@ nsdd:ContainerChildren
 
     <sitemap/parameters/> a adm:Container ;
         sioc:has_parent <sitemap/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Parameters" ;
         dct:description "Manage LDT template parameters that define what values can be passed to resources" .
 
@@ -1254,7 +1237,7 @@ nsdd:ContainerChildren
 
     <sitemap/command-templates/> a adm:Container ;
         sioc:has_parent <sitemap/> ;
-        dh:select <queries/default/select-children/#this> ;
+        # dh:select <queries/default/select-children/#this> ;
         dct:title "Command templates" ;
         dct:description "Manage SPIN command templates that can be used instead of SPARQL queries and updates" .
 

@@ -116,11 +116,11 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:container a nsdd:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
-if [ -n "$select" ] ; then
-    turtle+="_:container dh:select <${select}> .\n"
-else
-    turtle+="_:container dh:select <queries/default/select-children/#this> .\n" # default value
-fi
+#if [ -n "$select" ] ; then
+#    turtle+="_:container dh:select <${select}> .\n"
+#else
+#    turtle+="_:container dh:select <queries/default/select-children/#this> .\n" # default value
+#fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
 fi
