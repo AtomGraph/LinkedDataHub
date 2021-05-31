@@ -676,7 +676,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="select-uri" select="$content-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="width" select="'75%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
 
         <xsl:choose>
             <xsl:when test="$service-uri">
@@ -840,7 +840,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-string" as="xs:string"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="width" select="'75%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -952,9 +952,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="order-by-container-id" select="'container-order'" as="xs:string?"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="width" select="'100%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
         <!-- hide progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
                 
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
@@ -1108,7 +1108,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="message" as="xs:string"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
         
         <xsl:choose>
             <!-- container results are already rendered -->
@@ -1509,7 +1509,7 @@ extension-element-prefixes="ixsl"
                     <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
                     <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI?"/>
 
-                    <!--<ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>-->
+                    <!--<ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
 
                     <xsl:result-document href="#main-content" method="ixsl:append-content">
                         <div id="sparql-results"/>
@@ -1544,7 +1544,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!--<ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>-->
+                <!--<ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
         
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
@@ -1700,7 +1700,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <!-- update progress bar -->
-                <ixsl:set-style name="width" select="'50%'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
+                <ixsl:set-style name="width" select="'50%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
             
                 <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
                     <xsl:with-param name="container-id" select="$container-id"/>
