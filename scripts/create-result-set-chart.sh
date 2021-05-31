@@ -122,9 +122,8 @@ fi
 
 container="${base}charts/"
 
-# if target URL is not provided, it equals container
-if [ -z "$1" ] ; then
-    args+=("${container}")
+if [ -z "$1" ]; then
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
