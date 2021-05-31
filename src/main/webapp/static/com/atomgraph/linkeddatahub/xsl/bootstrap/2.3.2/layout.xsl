@@ -587,7 +587,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>
 
     <!-- container/document blocks are hidden -->
-    <xsl:template match="*[apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="xhtml:Body" priority="1"/>
+    <xsl:template match="*[apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="xhtml:Body" priority="1">
+        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+    </xsl:template>
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
         <div class="row-fluid">

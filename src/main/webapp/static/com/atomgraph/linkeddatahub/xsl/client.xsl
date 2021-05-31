@@ -821,6 +821,7 @@ extension-element-prefixes="ixsl"
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
                 <xsl:call-template name="render-container-error">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="message" select="?message"/>
                 </xsl:call-template>
                 <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
@@ -1103,10 +1104,11 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template name="render-container-error">
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="message" as="xs:string"/>
 
-        <!-- remove container progress bar -->
-        <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
+        <!-- update progress bar -->
+        <ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>
         
         <xsl:choose>
             <!-- container results are already rendered -->
@@ -1507,12 +1509,7 @@ extension-element-prefixes="ixsl"
                     <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
                     <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI?"/>
 
-                    <!-- query progress bar -->
-                    <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                        <div class="progress progress-striped active">
-                            <div class="bar" style="width: 60%;"></div>
-                        </div>
-                    </xsl:result-document>
+                    <!--<ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>-->
 
                     <xsl:result-document href="#main-content" method="ixsl:append-content">
                         <div id="sparql-results"/>
@@ -1547,8 +1544,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!-- remove query progress bar -->
-                <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
+                <!--<ixsl:set-style name="display" select="'none'" object="key('resources', $container-id, ixsl:page())//div[@class = 'bar']"/>-->
         
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
