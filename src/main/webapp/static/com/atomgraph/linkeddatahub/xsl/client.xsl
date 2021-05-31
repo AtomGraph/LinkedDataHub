@@ -180,20 +180,20 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:if>
         <!-- create a container for top-level document navigation, if it doesn't exist yet -->
-        <xsl:if test="id('left-nav', ixsl:page()) and not(id('root-children-nav', ixsl:page()))">
+<!--        <xsl:if test="id('left-nav', ixsl:page()) and not(id('root-children-nav', ixsl:page()))">
             <xsl:result-document href="#left-nav" method="ixsl:replace-content">
                 <div id="root-children-nav"/>
 
                 <xsl:copy-of select="id('left-nav', ixsl:page())/*"/>
             </xsl:result-document>
             
-            <!-- load the top-level documents (children of root) -->
+             load the top-level documents (children of root) 
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="apl:RootLoad">
                     <xsl:with-param name="id" select="'root-children-nav'"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
-        </xsl:if>
+        </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="id('main-content', ixsl:page()) and not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
@@ -876,7 +876,14 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
 
                     <!-- only append facets if they are not already present -->
-                    <xsl:if test="not(id('faceted-nav', ixsl:page())/*)">
+                    <xsl:if test="not(ancestor::div[tokenize(@class, ' ') = 'row-fluid']//div[tokenize(@class, ' ') = 'faceted-nav'])">
+                        <xsl:variable name="facet-container-id" select="$container-id || 'left-nav'" as="xs:string"/>
+                        <xsl:for-each select="ancestor::div[tokenize(@class, ' ') = 'row-fluid']//div[tokenize(@class, ' ') = 'left-nav']">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <div id="{$facet-container-id}" class="well well-small"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                        
                         <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
 <!--                        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>-->
                         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
@@ -887,6 +894,7 @@ extension-element-prefixes="ixsl"
                         <xsl:call-template name="render-facets">
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="container-id" select="$facet-container-id"/>
                         </xsl:call-template>
                     </xsl:if>
 
@@ -899,13 +907,11 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                     
                     <!-- create a container for facet controls in the left-nav, if it doesn't exist yet -->
-                    <xsl:if test="not(id('faceted-nav', ixsl:page()))">
-                        <xsl:result-document href="#left-nav" method="ixsl:replace-content">
-                            <div id="faceted-nav" class="well well-small"/>
-                            
-                            <xsl:copy-of select="id('left-nav', ixsl:page())/*"/>
+<!--                    <xsl:for-each select="not(ancestor::div[tokenize(@class, ' ') = 'row-fluid']//div[tokenize(@class, ' ') = 'faceted-nav'])">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <div class="faceted-nav well well-small"/>
                         </xsl:result-document>
-                    </xsl:if>
+                    </xsl:for-each>-->
                     <!-- only show parallax navigation if the RDF result contains object resources -->
                     <xsl:if test="$grouped-results/rdf:RDF/*/*[@rdf:resource]">
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
@@ -954,7 +960,7 @@ extension-element-prefixes="ixsl"
         <!-- update progress bar -->
         <ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
         <!-- hide progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'progress-bar']"/>
                 
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
@@ -1142,7 +1148,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="container-id" select="'faceted-nav'" as="xs:string"/>
+        <xsl:param name="container-id" as="xs:string"/>
 
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
