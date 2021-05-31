@@ -878,6 +878,7 @@ extension-element-prefixes="ixsl"
                     <!-- only append facets if they are not already present -->
                     <xsl:if test="not(id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']/*)">
                         <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
+                        
                         <xsl:for-each select="id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
@@ -905,27 +906,24 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
                     </xsl:if>
-                    
-                    <!-- create a container for facet controls in the left-nav, if it doesn't exist yet -->
-<!--                    <xsl:for-each select="not(ancestor::div[tokenize(@class, ' ') = 'row-fluid']//div[tokenize(@class, ' ') = 'faceted-nav'])">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <div class="faceted-nav well well-small"/>
-                        </xsl:result-document>
-                    </xsl:for-each>-->
+
                     <!-- only show parallax navigation if the RDF result contains object resources -->
                     <xsl:if test="$grouped-results/rdf:RDF/*/*[@rdf:resource]">
-                        <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-                        <xsl:if test="not(id('parallax-nav', ixsl:page()))">
-                            <xsl:result-document href="#right-nav" method="ixsl:replace-content">
-                                <div id="parallax-nav" class="well well-small sidebar-nav parallax-nav"/>
+                        <xsl:variable name="parallax-container-id" select="$container-id || '-right-nav'" as="xs:string"/>
 
-                                <xsl:copy-of select="id('right-nav', ixsl:page())/*"/>
-                            </xsl:result-document>
+                        <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
+                        <xsl:if test="not(id($container-id, ixsl:page())/following-sibling::div[tokenize(@class, ' ') = 'right-nav']/*)">
+                            <xsl:for-each select="id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'right-nav']">
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
                         </xsl:if>
 
                         <xsl:call-template name="bs2:Parallax">
                             <xsl:with-param name="results" select="$grouped-results"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="container-id" select="$parallax-container-id"/>
                         </xsl:call-template>
                     </xsl:if>
                 </xsl:for-each>
@@ -958,7 +956,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="order-by-container-id" select="'container-order'" as="xs:string?"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        <!--<ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'progress-bar']"/>
                 

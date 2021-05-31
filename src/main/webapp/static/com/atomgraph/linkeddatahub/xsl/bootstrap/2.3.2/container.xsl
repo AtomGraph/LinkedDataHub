@@ -51,15 +51,17 @@ exclude-result-prefixes="#all"
     <!-- PARALLAX -->
     
     <xsl:template name="bs2:Parallax">
-        <xsl:param name="id" select="'parallax-nav'" as="xs:string?"/>
+        <xsl:param name="container-id" as="xs:string?"/>
         <xsl:param name="class" select="'sidebar-nav parallax-nav'" as="xs:string?"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="select-xml" as="document-node()"/>
 
-        <xsl:result-document href="#{$id}" method="ixsl:replace-content">
+        <xsl:variable name="properties-container-id" select="$container-id || '-parallax-properties'" as="xs:string"/>
+        
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <h2 class="nav-header btn">Related results</h2>
 
-            <ul class="well well-small nav nav-list" id="parallax-properties">
+            <ul id="{$properties-container-id}" class="well well-small nav nav-list">
                 <!-- <li> with properties will go here -->
             </ul>
         </xsl:result-document>
@@ -77,7 +79,7 @@ exclude-result-prefixes="#all"
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
-                <xsl:with-param name="container-id" select="'parallax-properties'"/>
+                <xsl:with-param name="container-id" select="$properties-container-id"/>
                 <xsl:with-param name="var-name" select="$focus-var-name"/>
                 <xsl:with-param name="results" select="$results"/>
             </xsl:call-template>
