@@ -913,7 +913,7 @@ extension-element-prefixes="ixsl"
 
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
                         <xsl:if test="not(id($container-id, ixsl:page())/following-sibling::div[tokenize(@class, ' ') = 'right-nav']/*)">
-                            <xsl:for-each select="id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'right-nav']">
+                            <xsl:for-each select="id($container-id, ixsl:page())/following-sibling::div[tokenize(@class, ' ') = 'right-nav']">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
                                 </xsl:result-document>
@@ -1580,13 +1580,13 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
                     <!-- update progress bar, if it's present -->
-                    <xsl:if test="id('progress-bar', ixsl:page())">
+<!--                    <xsl:if test="id('progress-bar', ixsl:page())">
                         <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 80%;"></div>
                             </div>
                         </xsl:result-document>
-                    </xsl:if>
+                    </xsl:if>-->
 
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
@@ -1625,7 +1625,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <!-- remove query progress bar -->
-                <xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>
+                <!--<xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>-->
         
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
@@ -1647,10 +1647,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         
-        <xsl:if test="id('progress-bar', ixsl:page())">
-            <!-- remove query progress bar -->
+<!--        <xsl:if test="id('progress-bar', ixsl:page())">
+             remove query progress bar 
             <xsl:result-document href="#progress-bar" method="ixsl:replace-content"/>
-        </xsl:if>
+        </xsl:if>-->
         
         <xsl:call-template name="ac:draw-chart">
              <xsl:with-param name="content-uri" select="$content-uri"/>
