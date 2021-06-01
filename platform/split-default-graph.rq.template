@@ -16,7 +16,7 @@ CONSTRUCT
             foaf:maker <${OWNER_URI}> ;
             acl:owner <${OWNER_URI}> ;
             prov:wasAttributedTo <${OWNER_URI}> ;
-            prov:generatedAtTime ?now .
+            prov:generatedAtTime ?now
         ]
     }
     GRAPH ?graph {
