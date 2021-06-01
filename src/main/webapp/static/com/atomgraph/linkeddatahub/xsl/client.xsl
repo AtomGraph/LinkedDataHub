@@ -1997,8 +1997,6 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
         </xsl:choose>
-        
-        <ixsl:set-property name="action" select="ac:build-uri(xs:anyURI(@action), map{ 'graph': string($graph-uri) })"/>
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->
@@ -2555,7 +2553,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="$ac:service" as="xs:anyURI"/>
+        <xsl:param name="action" select="resolve-uri('uploads', $ldt:base) || '?import=true'" as="xs:anyURI"/>
         <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>

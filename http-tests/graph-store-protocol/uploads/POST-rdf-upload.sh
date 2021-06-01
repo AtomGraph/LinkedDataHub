@@ -27,8 +27,7 @@ urlencode()
 file="timbl.ttl"
 file_content_type="text/turtle"
 subject="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
-path_segment=$(urlencode "$subject")
-doc="${END_USER_BASE_URL}${path_segment}/"
+graph_uri=$(urlencode "$subject")
 
 echo "Importing file: $file"
 
@@ -40,15 +39,15 @@ rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=Whateverest\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=${END_USER_BASE_URL}ns/domain/system#File\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${END_USER_BASE_URL}\"\n"
+rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
+rdf_post+="-F \"ou=${graph_uri}\"\n"
 
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" \
 | curl -w "%{http_code}\n" -v -k -D - --config - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}?upload=true"  \
+  "${END_USER_BASE_URL}uploads?import=true"  \
 | grep -q "$STATUS_SEE_OTHER"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -57,12 +56,10 @@ doc_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "$doc")
+  "${END_USER_BASE_URL}service?graph=${graph_uri}")
 
 popd > /dev/null
 
-# check that the intermediary document has been created and is connected to the imported subject
+# check that the graph has been imported and contains the right triples
 
-echo "$doc_ntriples" | grep "<${doc}> <http://xmlns.com/foaf/0.1/primaryTopic> <${subject}>"
-
-# TO-DO: check that the imported subject is stored in a named graph with a sha1sum URI
+echo "$doc_ntriples" | grep "<http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf> <http://xmlns.com/foaf/0.1/maker> <http://www.w3.org/People/Berners-Lee/card#i>"
