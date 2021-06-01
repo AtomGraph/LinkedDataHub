@@ -2,7 +2,7 @@
 
 if [ "$#" -ne 4 ]; then
   echo "Usage:   $0" '$owner_pem_file $owner_cert_password $secretary_pem_file $secretary_cert_password' >&2
-  echo "Example: $0 $PWD/../ssl/owner/cert.pem OwnerPassword $PWD/../ssl/secretary/cert.pem SecretaryPassword" >&2
+  echo "Example: $0 $PWD/ssl/owner/cert.pem OwnerPassword $PWD/ssl/secretary/cert.pem SecretaryPassword" >&2
   echo "Note: special characters such as $ need to be escaped in passwords!" >&2
   exit 1
 fi

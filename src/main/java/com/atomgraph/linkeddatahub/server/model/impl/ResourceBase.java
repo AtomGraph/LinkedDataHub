@@ -16,24 +16,19 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
-import com.atomgraph.client.util.Constructor;
 import com.atomgraph.client.vocabulary.AC;
 import static com.atomgraph.core.MediaType.APPLICATION_SPARQL_QUERY_TYPE;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.riot.lang.RDFPostReader;
-import com.atomgraph.core.util.ModelUtils;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
-import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.processor.model.TemplateCall;
@@ -47,22 +42,11 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Providers;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.util.*;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -77,9 +61,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.update.UpdateRequest;
-import org.glassfish.jersey.media.multipart.BodyPart;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.uri.UriComponent;
 
 /**
@@ -354,300 +335,7 @@ public class ResourceBase extends com.atomgraph.server.model.impl.ResourceBase i
         
         return dataset;
     }
-    
-    /**
-     * Handles multipart <code>POST</code> requests, stores uploaded files, and returns response.
-     * Files are written to storage before the RDF data is passed to the default <code>POST</code> handler method.
-     * 
-     * @param multiPart multipart form data
-     * @return HTTP response
-     */
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Override
-    public Response postMultipart(FormDataMultiPart multiPart)
-    {
-        if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
-        try
-        {
-            Model model = parseModel(multiPart);
-            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof SkolemizingModelProvider) model = ((SkolemizingModelProvider)reader).process(model);
-            if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
-
-            return postMultipart(model, getFileNameBodyPartMap(multiPart));
-        }
-        catch (URISyntaxException ex)
-        {
-            if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
-            throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
-        }
-    }
-    
-    public Response postMultipart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
-        
-        Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("ns/domain/default#Item").toString()); // TO-DO: make class URI configurable?
-        if (itemClass == null) throw new IllegalStateException("nsdd:Item class not found in the application ontology");
-        Resource container = null; // for uploaded triples/quads
-        
-        int count = 0;
-        ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
-        try
-        {
-            while (resIt.hasNext())
-            {
-                Resource file = resIt.next();
-                String fileName = file.getProperty(NFO.fileName).getString();
-                FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
-                
-                if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
-                {
-                    container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-
-                    MediaType mediaType = null;
-                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
-                    if (mediaType != null) bodyPart.setMediaType(mediaType);
-
-                    Model partModel = bodyPart.getValueAs(Model.class);
-                    partModel = processExternalResources(partModel, container, itemClass);
-                    post(partModel); // append uploaded triples/quads
-                }
-                else // write file
-                {
-                    // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
-                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
-                    writeFile(file, bodyPart);
-                }
-                count++;
-            }
-        }
-        catch (IOException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Error reading multipart request");
-            throw new WebApplicationException(ex);
-        }
-        finally
-        {
-            resIt.close();
-        }
-        
-        if (container != null)
-        {
-            if (log.isDebugEnabled()) log.debug("Redirecting to container: {} ", container.getURI());
-            return Response.seeOther(URI.create(container.getURI())).build();
-        }
-        else
-        {
-            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", count);
-            return post(model);
-        }
-    }
-    
-    /**
-     * Parses multipart RDF/POST request.
-     * 
-     * @param multiPart multipart form data
-     * @return RDF graph
-     * @throws URISyntaxException thrown if there is a syntax error in RDF/POST data
-     * @see <a href="https://atomgraph.github.io/RDF-POST/">RDF/POST Encoding for RDF</a>
-     */
-    public Model parseModel(FormDataMultiPart multiPart) throws URISyntaxException
-    {
-        if (multiPart == null) throw new IllegalArgumentException("FormDataMultiPart cannot be null");
-        
-        List<String> keys = new ArrayList<>(), values = new ArrayList<>();
-        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
-
-        while (it.hasNext())
-        {
-            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
-            if (log.isDebugEnabled()) log.debug("Body part media type: {} headers: {}", bodyPart.getMediaType(), bodyPart.getHeaders());
-
-            // it's a file (if the filename is not empty)
-            if (bodyPart.getContentDisposition().getFileName() != null &&
-                    !bodyPart.getContentDisposition().getFileName().isEmpty())
-            {
-                keys.add(bodyPart.getName());
-                if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
-                values.add(bodyPart.getContentDisposition().getFileName());
-            }
-            else
-            {
-                if (bodyPart.isSimple() && !bodyPart.getValue().isEmpty())
-                {
-                    keys.add(bodyPart.getName());
-                    if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getValue());
-                    values.add(bodyPart.getValue());
-                }
-            }
-        }
-
-        return RDFPostReader.parse(keys, values);
-    }
-    
-    /**
-     * Gets a map of file parts from multipart form data.
-     * 
-     * @param multiPart multipart form data
-     * @return map of file parts
-     */
-    public Map<String, FormDataBodyPart> getFileNameBodyPartMap(FormDataMultiPart multiPart)
-    {
-        if (multiPart == null) throw new IllegalArgumentException("FormDataMultiPart cannot be null");
-
-        Map<String, FormDataBodyPart> fileNameBodyPartMap = new HashMap<>();
-        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
-        while (it.hasNext())
-        {
-            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
-            if (log.isDebugEnabled()) log.debug("Body part media type: {} headers: {}", bodyPart.getMediaType(), bodyPart.getHeaders());
-
-            if (bodyPart.getContentDisposition().getFileName() != null) // it's a file
-            {
-                if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
-                fileNameBodyPartMap.put(bodyPart.getContentDisposition().getFileName(), bodyPart);
-            }
-        }
-        return fileNameBodyPartMap;
-    }
-
-    /**
-     * Writes file data part.
-     * 
-     * @param resource file resource
-     * @param bodyPart file data part
-     * @return file
-     * @throws IOException error while writing
-     */
-    public File writeFile(Resource resource, FormDataBodyPart bodyPart) throws IOException
-    {
-        if (resource == null) throw new IllegalArgumentException("File Resource cannot be null");
-        if (!resource.isURIResource()) throw new IllegalArgumentException("File Resource must have a URI");
-        if (bodyPart == null) throw new IllegalArgumentException("FormDataBodyPart cannot be null");
-        
-        Resource mediaType = com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType());
-        if (log.isDebugEnabled()) log.debug("Setting media type {} for uploaded resource {}", mediaType, resource);
-        resource.addProperty(DCTerms.format, mediaType);
-
-        if (log.isDebugEnabled()) log.debug("Uploaded file: {}", bodyPart.getContentDisposition().getFileName());
-        try (InputStream is = bodyPart.getEntityAs(InputStream.class))
-        {
-            return writeFile(URI.create(resource.getURI()), getUriInfo().getBaseUri(), is);
-        }
-    }
-
-    /**
-     * Writes a data stream to the upload folder.
-     * 
-     * @param uri file URI
-     * @param base application's base URI
-     * @param is file input stream
-     * @return file
-     */
-    public File writeFile(URI uri, URI base, InputStream is)
-    {
-        return writeFile(uri, base, getSystem().getUploadRoot(), is);
-    }
-    
-    /**
-     * Writes a data stream to a folder.
-     * 
-     * @param uri file URI
-     * @param base application's base URI
-     * @param uploadRoot destination folder URI
-     * @param is file input stream
-     * @return file
-     */
-    public File writeFile(URI uri, URI base, URI uploadRoot, InputStream is)
-    {
-        if (uri == null) throw new IllegalArgumentException("File URI cannot be null");
-        if (!uri.isAbsolute()) throw new IllegalArgumentException("File URI must be absolute");
-        if (base == null) throw new IllegalArgumentException("Base URI cannot be null");
-        if (uploadRoot == null) throw new IllegalArgumentException("Upload root URI cannot be null");
-        
-        URI relative = base.relativize(uri);
-        if (log.isDebugEnabled()) log.debug("Upload folder root URI: {}", uploadRoot);
-        File file = new File(uploadRoot.resolve(relative));
-        
-        return writeFile(file, is);
-    }
-    
-    /**
-     * Writes data stream to a file destination.
-     * 
-     * @param file destination
-     * @param is input stream
-     * @return file
-     */
-    public File writeFile(File file, InputStream is)
-    {
-        if (file == null) throw new IllegalArgumentException("File cannot be null");
-        if (is == null) throw new IllegalArgumentException("File InputStream cannot be null");
-        
-        try
-        {
-            if (log.isDebugEnabled()) log.debug("Writing input stream: {} to file: {}", is, file);
-            FileChannel destination = new FileOutputStream(file).getChannel();
-            destination.transferFrom(Channels.newChannel(is), 0, 104857600);
-            return file;
-        }
-        catch (IOException ex)
-        {
-            if (log.isErrorEnabled()) log.error("Error writing file: {}", file);
-            throw new WebApplicationException(ex);
-        }
-    }
-
-    /**
-     * Attaches external resources to the document hierarchy.
-     * External resources: resources with URIs not relative to the app's base URI and without a fragment identifier
-     * 
-     * @param model with external URIs
-     * @param container target container
-     * @param itemClass RDF type of the internal documents that will be paired with external resources
-     * @return augmented dataset
-     */
-    public Model processExternalResources(Model model, Resource container, Resource itemClass)
-    {
-        URI containerURI = URI.create(container.getURI());
-        
-        ResIterator it = model.listSubjects();
-        try
-        {
-            while (it.hasNext())
-            {
-                Resource res = it.next();
-                // pair external resources with internal resources
-                if (res.isURIResource() && getUriInfo().getBaseUri().relativize(URI.create(res.getURI())).isAbsolute())
-                {
-                    // encode external URI as a path fragment
-                    URI docURI = UriBuilder.fromUri(containerURI).path("{uri}/").buildFromEncoded(UriComponent.encode(res.getURI(), UriComponent.Type.UNRESERVED));
-                    model.createResource(docURI.toString()).
-                        addProperty(RDF.type, itemClass).
-                        addProperty(SIOC.HAS_CONTAINER, container).
-                        addProperty(FOAF.primaryTopic, res);
-                }
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-        
-            
-//            Iterator<String> it = dataset.listNames();
-//            while (it.hasNext())
-//            {
-//                String graphURI = it.next();
-//            }
-            
-        return model;
-    }
-    
     @PATCH
     @Override
     public Response patch(UpdateRequest updateRequest)

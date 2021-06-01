@@ -102,7 +102,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="ac:forClass" select="if (ixsl:query-params()?forClass) then xs:anyURI(ixsl:query-params()?forClass) else ()" as="xs:anyURI?"/>
-    <xsl:param name="ac:service" select="if (ixsl:query-params()?service) then xs:anyURI(ixsl:query-params()?service) else ()" as="xs:anyURI?"/>
+    <xsl:param name="ac:service" select="if (ixsl:query-params()?service) then xs:anyURI(ixsl:query-params()?service) else resolve-uri('service', $ldt:base)" as="xs:anyURI?"/>
     <xsl:param name="ac:endpoint" select="if (ixsl:query-params()?endpoint) then xs:anyURI(ixsl:query-params()?endpoint) else resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="ac:limit" select="if (ixsl:query-params()?limit) then xs:integer(ixsl:query-params()?limit) else $page-size" as="xs:integer"/>
     <xsl:param name="ac:offset" select="if (ixsl:query-params()?offset) then xs:integer(ixsl:query-params()?offset) else 0" as="xs:integer"/>
@@ -1975,6 +1975,8 @@ extension-element-prefixes="ixsl"
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
+        <xsl:variable name="graph-uri" select="xs:anyURI(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value'))" as="xs:anyURI"/>
+
         <xsl:choose>
             <!-- filename value empty -->
             <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']]/descendant::input[@name = 'ol']/ixsl:get(., 'value'))">
@@ -1983,18 +1985,20 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
-            <!-- container value empty -->
-            <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]/descendant::input[@name = 'ou']/ixsl:get(., 'value'))">
+            <!-- graph URI value empty -->
+            <xsl:when test="not($graph-uri)">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <!-- don't show error on the filename input anymore, since it passed validation above -->
                 <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']][tokenize(@class, ' ') = 'error']">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
-                <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]">
+                <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
         </xsl:choose>
+        
+        <ixsl:set-property name="action" select="ac:build-uri(xs:anyURI(@action), map{ 'graph': string($graph-uri) })"/>
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->
@@ -2551,7 +2555,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="xs:anyURI(resolve-uri('files/', $ldt:base) || '?upload=true')" as="xs:anyURI"/>
+        <xsl:param name="action" select="$ac:service" as="xs:anyURI"/>
         <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
@@ -2634,32 +2638,11 @@ extension-element-prefixes="ixsl"
                                                 </div>
                                             </div>
                                             <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&sioc;has_container"/>
-                                                <label class="control-label" for="add-rdf-container">Container</label>
+                                                <input type="hidden" name="pu" value="&sd;name"/>
+                                                <label class="control-label" for="add-rdf-graph">Graph URI</label>
                                                 <div class="controls">
-                                                    <span>
-                                                        <input type="text" name="ou" id="add-rdf-container" class="resource-typeahead typeahead"/>
-                                                        <ul class="resource-typeahead typeahead dropdown-menu" id="ul-add-rdf-container" style="display: none;"></ul>
-                                                <!--         <div class="tooltip fade top in" style="top: 417px; left: 198px; display: none;">
-                                                            <div class="tooltip-arrow"></div>
-                                                            <div class="tooltip-inner">A Container or Forum that this Container or Forum is a child of.</div>
-                                                        </div>
-                                                         -->    
-                                                    </span>
-                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
-                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn dropdown-toggle create-action"></button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-add-rdf-constructor">
-                                                                    <input type="hidden" class="action" value="{ac:build-uri($ldt:base, map{ 'forClass': string(resolve-uri('ns/domain/default#Container', $ldt:base)), 'mode': '&ac;ModalMode' })}" autocomplete="off"/>
-                                                                    <xsl:text>Container</xsl:text>
-                                                                </button>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                    <span class="help-inline">Container</span>
+                                                    <input type="text" id="add-rdf-graph" name="ou" class="input-xxlarge"/>
+                                                    <span class="help-inline">Resource</span>
                                                 </div>
                                             </div>
                                         </fieldset>

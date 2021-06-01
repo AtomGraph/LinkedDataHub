@@ -3,6 +3,7 @@ PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
 PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
 PREFIX prov:    <http://www.w3.org/ns/prov#>
 PREFIX void:    <http://rdfs.org/ns/void#>
+PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 PREFIX sioc:    <http://rdfs.org/sioc/ns#>
 PREFIX dct:     <http://purl.org/dc/terms/>
@@ -10,10 +11,13 @@ PREFIX dct:     <http://purl.org/dc/terms/>
 CONSTRUCT
 {
     GRAPH ?graphGraph {
-        ?graph foaf:maker <${OWNER_URI}> ;
+        [ a sd:NamedGraph ;
+            sd:name ?graph ;
+            foaf:maker <${OWNER_URI}> ;
             acl:owner <${OWNER_URI}> ;
-            dct:created ?now .
-        ?graphGraph prov:generatedAtTime ?now .
+            prov:wasAttributedTo <${OWNER_URI}> ;
+            prov:generatedAtTime ?now .
+        ]
     }
     GRAPH ?graph {
         ?s ?p ?o
@@ -24,7 +28,6 @@ WHERE
     GRAPH ?graph {
         ?s ?p ?o
     }
-    BIND(SHA1(STR(?graph)) AS ?graphSha1)
     BIND (UUID() AS ?graphGraph)
     BIND (NOW() AS ?now)
 }

@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
@@ -189,10 +190,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
         
-//        Resource itemClass = getOntology().getOntModel().getOntClass(getUriInfo().getBaseUri().resolve("ns/domain/default#Item").toString()); // TO-DO: make class URI configurable?
-//        if (itemClass == null) throw new IllegalStateException("nsdd:Item class not found in the application ontology");
-//        Resource container = null; // for uploaded triples/quads
-        
         int count = 0;
         ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
         try
@@ -203,19 +200,19 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 String fileName = file.getProperty(NFO.fileName).getString();
                 FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
                 
-//                if (getTemplateCall().get().hasArgument(APLT.upload)) // upload RDF data
-//                {
-//                    container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-//
-//                    MediaType mediaType = null;
-//                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
-//                    if (mediaType != null) bodyPart.setMediaType(mediaType);
-//
-//                    Model partModel = bodyPart.getValueAs(Model.class);
-//                    partModel = processExternalResources(partModel, container, itemClass);
-//                    post(partModel); // append uploaded triples/quads
-//                }
-//                else // write file
+                if (getUriInfo().getQueryParameters().containsKey(APLT.upload.getLocalName())) // upload RDF data
+                {
+                    Resource graph = file.getPropertyResourceValue(SD.name);
+                    if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI not specified for uploaded File");
+
+                    MediaType mediaType = null;
+                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
+                    if (mediaType != null) bodyPart.setMediaType(mediaType);
+
+                    Model partModel = bodyPart.getValueAs(Model.class);
+                    post(partModel, false, URI.create(graph.getURI())); // append uploaded triples/quads
+                }
+                else // write file
                 {
                     // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
                     if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());

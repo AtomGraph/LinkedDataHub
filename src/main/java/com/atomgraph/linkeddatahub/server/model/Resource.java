@@ -18,11 +18,6 @@ package com.atomgraph.linkeddatahub.server.model;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Agent;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 /**
  * LinkedDataHub server resource interface.
@@ -36,9 +31,9 @@ public interface Resource extends com.atomgraph.core.model.Resource
     
 //    boolean exists(org.apache.jena.rdf.model.Resource resource);
 
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    Response postMultipart(FormDataMultiPart multiPart);
+//    @POST
+//    @Consumes(MediaType.MULTIPART_FORM_DATA)
+//    Response postMultipart(FormDataMultiPart multiPart);
     
     // UserAccount getUserAccount(); // TO-DO: refactor into SecurityContext
     
