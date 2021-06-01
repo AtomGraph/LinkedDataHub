@@ -124,7 +124,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             URI graphUri = URI.create(instance.getURI());
             graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
             super.post(model, false, graphUri);
-            return Response.created(graphUri).build();
+            return Response.created(graphUri).entity(model).build();
         }
         catch (URISyntaxException ex)
         {
