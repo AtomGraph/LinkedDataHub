@@ -672,7 +672,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
-        <ixsl:set-property name="select-xml" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <!-- necessary? -->
         <!--<ixsl:set-property name="select-uri" select="$content-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>-->

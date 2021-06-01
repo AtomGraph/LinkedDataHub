@@ -1251,7 +1251,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
-        <ixsl:set-property name="select-xml" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         
         <xsl:call-template name="apl:RenderContainer">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1292,7 +1292,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
-        <ixsl:set-property name="select-xml" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         
         <xsl:call-template name="apl:RenderContainer">
             <xsl:with-param name="container-id" select="$container-id"/>
