@@ -1751,7 +1751,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
                 
                 <xsl:variable name="graph-uri" select="ac:build-uri($uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
-                <ixsl:set-attribute name="action" select="$graph-uri" object="key('elements-by-class, 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
+                <ixsl:set-attribute name="action" select="$graph-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
