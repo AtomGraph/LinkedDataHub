@@ -671,9 +671,11 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
+        <!-- store the transformed query XML -->
+        <ixsl:set-property name="select-xml" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <!-- necessary? -->
-        <ixsl:set-property name="select-uri" select="$content-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <!--<ixsl:set-property name="select-uri" select="$content-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>-->
 
         <!-- update progress bar -->
         <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>

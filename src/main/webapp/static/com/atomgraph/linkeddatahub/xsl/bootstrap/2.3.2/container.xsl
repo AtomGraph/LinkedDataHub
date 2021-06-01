@@ -1203,9 +1203,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
-        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+<!--        <xsl:variable name="select-json" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-json')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>-->
+        <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="xs:string"/>
         <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
 
         <!--<ixsl:set-property name="active-class" select="$active-class" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>-->
@@ -1228,9 +1229,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container-id" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
-        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+<!--        <xsl:variable name="select-json" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-json')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>-->
+        <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="xs:string"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <!-- descrease OFFSET to get the previous page -->
         <xsl:variable name="offset" select="$offset - $page-size" as="xs:integer"/>
@@ -1248,6 +1250,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
+        <!-- store the transformed query XML -->
+        <ixsl:set-property name="select-xml" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        
         <xsl:call-template name="apl:RenderContainer">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -1265,9 +1270,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container-id" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/@id" as="xs:string"/>
         <xsl:variable name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
-        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+<!--        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>-->
+        <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="xs:string"/>
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <!-- increase OFFSET to get the next page -->
         <xsl:variable name="offset" select="$offset + $page-size" as="xs:integer"/>
@@ -1285,6 +1291,9 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
+        <!-- store the transformed query XML -->
+        <ixsl:set-property name="select-xml" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        
         <xsl:call-template name="apl:RenderContainer">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
