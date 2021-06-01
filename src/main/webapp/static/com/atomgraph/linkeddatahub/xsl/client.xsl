@@ -1722,15 +1722,16 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onRDFDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
-        
+        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
 
-                    <xsl:result-document href="#main-content" method="ixsl:replace-content">
-                        <xsl:apply-templates select="$results" mode="bs2:Block"/>
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                        <xsl:apply-templates select="$results" mode="xhtml:Body"/>
                     </xsl:result-document>
                     
                     <xsl:if test="$uri and id('breadcrumb-nav', ixsl:page())">
@@ -1747,12 +1748,10 @@ extension-element-prefixes="ixsl"
                         
                         <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
                     </xsl:if>
-                    
-                    <!-- update right nav -->
-                    <xsl:result-document href="#right-nav" method="ixsl:replace-content">
-                        <xsl:apply-templates select="$results" mode="bs2:Right"/>
-                    </xsl:result-document>
                 </xsl:for-each>
+                
+                <xsl:variable name="graph-uri" select="ac:build-uri($uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                <ixsl:set-attribute name="action" select="$graph-uri" object="key('elements-by-class, 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
@@ -1769,6 +1768,12 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
+    
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get(input, 'value') ])"/>
+    </xsl:template>
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>

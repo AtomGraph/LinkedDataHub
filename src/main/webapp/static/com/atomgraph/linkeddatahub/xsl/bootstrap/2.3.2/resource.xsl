@@ -73,6 +73,105 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="$class"/>
     </xsl:template>
     
+    <!-- BODY -->
+    
+    <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>
+
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
+        <div class="row-fluid">
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <xsl:apply-templates select="." mode="bs2:Main"/>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+        
+        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+    </xsl:template>
+    
+    <!-- MAIN -->
+    
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Main">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:Block"/>
+        </div>
+    </xsl:template>
+    
+    <!-- LEFT NAV -->
+    
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'left-nav span2'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <!--<xsl:apply-templates mode="#current"/>-->
+
+<!--            <xsl:if test="$ldt:base">  $lacl:Agent//@rdf:about 
+                <div id="container-nav">
+                    <div class="well well-small">
+                        <ul class="nav nav-list">
+                            <xsl:for-each select="$root-containers[not(. = $ldt:base)]">
+                                <li>
+                                    <xsl:if test="starts-with($ac:uri, .)">
+                                        <xsl:attribute name="class">active</xsl:attribute>
+                                    </xsl:if>
+
+                                     TO-DO: resolve as Linked Data resources? 
+                                    <a href="{.}">
+                                        <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document('translations.rdf'))">
+                                            <xsl:apply-templates select="." mode="apl:logo"/>
+                                            <xsl:text> </xsl:text>
+                                            <xsl:value-of>
+                                                <xsl:apply-templates select="." mode="ac:label"/>
+                                            </xsl:value-of>
+                                        </xsl:for-each>
+                                    </a>
+                                </li>
+                            </xsl:for-each>
+                        </ul>
+                    </div>
+                </div>
+            </xsl:if>-->
+        </div>
+    </xsl:template>
+    
+    <!-- RIGHT NAV -->
+    
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <!--<xsl:apply-templates mode="#current"/>-->
+        </div>
+    </xsl:template>
+    
     <!-- BLOCK -->
     
     <!-- match instances that have an apl:content property OR instances of types that have an an apl:template annotation property -->
