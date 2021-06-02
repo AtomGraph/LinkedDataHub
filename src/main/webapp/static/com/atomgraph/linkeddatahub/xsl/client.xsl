@@ -2860,7 +2860,7 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="results" select="." as="document-node()"/>
 
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results/rdf:RDF/*" mode="bs2:Form">
+                            <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form">
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:result-document>
