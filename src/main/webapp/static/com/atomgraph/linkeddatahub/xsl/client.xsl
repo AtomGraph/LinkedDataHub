@@ -1734,7 +1734,7 @@ extension-element-prefixes="ixsl"
                         <xsl:apply-templates select="$results" mode="xhtml:Body"/>
                     </xsl:result-document>
                     
-                    <xsl:if test="$uri and id('breadcrumb-nav', ixsl:page())">
+                    <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
                         
                         <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -1750,7 +1750,7 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </xsl:for-each>
 
-                <xsl:variable name="form-uri" select="if (not(starts-with($ac:uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($ac:uri), 'mode': ('&ac;EditMode', '&ac;ModalMode') }) else ac:build-uri($ac:uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                <xsl:variable name="form-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': ('&ac;EditMode', '&ac;ModalMode') }) else ac:build-uri($ac:uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
                 <ixsl:set-property name="value" select="$form-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
             </xsl:when>
             <xsl:otherwise>
