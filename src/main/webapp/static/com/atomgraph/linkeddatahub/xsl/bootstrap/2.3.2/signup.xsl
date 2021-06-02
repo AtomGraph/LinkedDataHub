@@ -99,7 +99,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TargetContainer" priority="1"/>
 
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="inline" select="false()" as="xs:boolean" tunnel="yes"/>
 
         <xsl:next-match>

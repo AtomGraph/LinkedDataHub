@@ -1359,7 +1359,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="template-doc" select="ac:construct-doc($ldt:ontology, $forClass, $ldt:base)" as="document-node()?"/>
+        <xsl:param name="template-doc" select="if ($ldt:ontology and $ldt:base) then ac:construct-doc($ldt:ontology, $forClass, $ldt:base) else ()" as="document-node()?"/>
         <xsl:param name="template" select="$template-doc/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
