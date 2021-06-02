@@ -80,7 +80,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="ontology" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
 
-        <xsl:if test="doc-available($ontology)">
+        <xsl:if test="doc-available(ac:document-uri($ontology))">
             <xsl:variable name="document" select="document($ontology)" as="document-node()"/>
             <xsl:for-each select="$document">
                 <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
@@ -109,7 +109,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="ontologies" select="$ontology, apl:ontologyImports($ontology)" as="xs:anyURI*"/>
         <xsl:variable name="ontology-docs" as="document-node()*">
             <xsl:for-each select="$ontologies">
-                <xsl:if test="doc-available(.)">
+                <xsl:if test="doc-available(ac:document-uri(.))">
                     <xsl:sequence select="document(.)"/>
                 </xsl:if>
             </xsl:for-each>
@@ -397,7 +397,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="required" as="xs:boolean">
             <xsl:variable name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
             <xsl:choose>
-                <xsl:when test="exists($types)">
+                <xsl:when test="$ldt:base and exists($types)">
                     <!-- constraint (sub)classes are in the admin ontology -->
                     <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $ldt:base)))" as="xs:anyURI*"/>
                     <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
