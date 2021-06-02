@@ -308,7 +308,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!--  hide properties -->
-    <xsl:template match="dh:slug[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:primaryTopic[$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:isPrimaryTopicOf[$ac:uri = resolve-uri('sign%20up', $ldt:base)] | cert:modulus[$ac:uri = resolve-uri('sign%20up', $ldt:base)] | cert:exponent[$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="3">
+    <xsl:template match="dh:slug[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:primaryTopic[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:isPrimaryTopicOf[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | cert:modulus[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | cert:exponent[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
