@@ -419,8 +419,21 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 :Content a rdfs:Class, owl:Class ;
     rdfs:subClassOf rdf:List ;
     rdfs:label "Content" ;
-    # spin:constructor :ContentConstructor ;
+    spin:constructor :ContentConstructor ;
     # spin:constraint :MissingFirst, :MissingNext ;
+    rdfs:isDefinedBy : .
+
+:ContentConstructor a sp:Construct ;
+  sp:text """
+      PREFIX apl:   <https://w3id.org/atomgraph/linkeddatahub/domain#>
+      PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+      CONSTRUCT {
+          ?this rdf:first [ a apl:Content ] ;
+            rdf:first rdf:nil .
+      }
+      WHERE {}""" ;
+    rdfs:label "Content constructor" ;
     rdfs:isDefinedBy : .
 
 # exception

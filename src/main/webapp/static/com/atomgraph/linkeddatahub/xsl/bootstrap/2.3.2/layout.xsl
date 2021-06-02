@@ -1135,7 +1135,7 @@ exclude-result-prefixes="#all">
 
         <xsl:choose>
             <xsl:when test="$modal">
-                <div class="modal modal-constructor fade in">
+                <!--<div class="modal modal-constructor fade in">-->
                     <form method="{$method}" action="{$action}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
@@ -1158,13 +1158,13 @@ exclude-result-prefixes="#all">
 
                         <input type="hidden" class="target-id"/>
 
-                        <div class="modal-header">
+<!--                        <div class="modal-header">
                             <button type="button" class="close">&#215;</button>
 
                             <xsl:apply-templates select="." mode="bs2:Legend"/>
-                        </div>
+                        </div>-->
 
-                        <div class="modal-body">
+                        <!--<div class="modal-body">-->
                             <xsl:apply-templates mode="bs2:Exception"/>
 
                             <xsl:choose>
@@ -1174,18 +1174,20 @@ exclude-result-prefixes="#all">
                                     </xsl:apply-templates>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:apply-templates mode="#current"/>
+                                    <xsl:apply-templates mode="#current">
+                                        <xsl:sort select="ac:label(.)"/>
+                                    </xsl:apply-templates>
                                 </xsl:otherwise>
                             </xsl:choose>
                             
                             <xsl:apply-templates select="." mode="bs2:Create"/>
-                        </div>
+                        <!--</div>-->
 
                         <xsl:apply-templates select="." mode="bs2:FormActions">
                             <xsl:with-param name="button-class" select="$button-class"/>
                         </xsl:apply-templates>
                     </form>
-                </div>
+                <!--</div>-->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:next-match>
