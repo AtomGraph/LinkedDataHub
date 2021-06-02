@@ -1114,7 +1114,7 @@ exclude-result-prefixes="#all">
     <!-- override form action in Client template -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="action" select="if (not(starts-with($ac:uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action" as="xs:anyURI"/>
@@ -1483,7 +1483,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
         <xsl:if test="$lacl:Agent//@rdf:about">
                 <div class="pull-right">
-                    <form action="{$ac:uri}?_method=DELETE" method="post">
+                    <form action="{ac-build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
                         <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
                             <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
