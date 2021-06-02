@@ -1483,7 +1483,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
         <xsl:if test="$lacl:Agent//@rdf:about">
                 <div class="pull-right">
-                    <form action="{ac-build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
+                    <form action="{ac:build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
                         <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
                             <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
