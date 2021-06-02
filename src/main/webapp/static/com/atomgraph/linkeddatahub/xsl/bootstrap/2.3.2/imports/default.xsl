@@ -173,15 +173,6 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$images"/>
     </xsl:function>
     
-    <xsl:function name="lapp:base" as="node()?">
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="document" as="document-node()"/>
-
-        <xsl:for-each select="$document">
-            <xsl:sequence select="//*[ldt:base/@rdf:resource = $ldt:base]/ldt:base/@rdf:resource[starts-with(., $uri)]"/>
-        </xsl:for-each>
-    </xsl:function>
-    
     <xsl:template match="*[@rdf:nodeID = 'add']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
