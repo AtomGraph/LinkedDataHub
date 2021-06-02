@@ -159,7 +159,7 @@ exclude-result-prefixes="#all">
         </label>
     </xsl:template>
 
-    <xsl:template match="lacl:requestAccessToClass/@rdf:*[$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAccessToClass/@rdf:*[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="classes" select="key('resources', (resolve-uri('../ns/domain/default#Root', $ldt:base), resolve-uri('../ns/domain/default#Container', $ldt:base), resolve-uri('../ns/domain/default#Item', $ldt:base), resolve-uri('../ns/domain/default#File', $ldt:base)), document(resolve-uri('../ns/domain/default', $ldt:base)))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
@@ -173,7 +173,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>

@@ -301,7 +301,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
