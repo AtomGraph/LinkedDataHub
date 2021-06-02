@@ -1749,9 +1749,9 @@ extension-element-prefixes="ixsl"
                         <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
                     </xsl:if>
                 </xsl:for-each>
-                
-                <xsl:variable name="graph-uri" select="ac:build-uri($uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
-                <ixsl:set-attribute name="action" select="$graph-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
+
+                <xsl:variable name="form-uri" select="if (not(starts-with($ac:uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($ac:uri), 'mode': ('&ac;EditMode', '&ac;ModalMode') }) else ac:build-uri($ac:uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                <ixsl:set-property name="value" select="$graph-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
