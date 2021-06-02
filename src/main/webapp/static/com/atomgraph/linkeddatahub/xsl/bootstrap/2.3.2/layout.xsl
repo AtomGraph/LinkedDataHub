@@ -1112,7 +1112,7 @@ exclude-result-prefixes="#all">
     <!-- override form action in Client template -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="action" select="if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri(lapp:base($ac:contextUri, $lapp:Application), map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else if (contains($ac:uri, '?')) then xs:anyURI(concat($ac:uri, '&amp;_method=PUT', string-join(for $mode in $ac:mode return concat('&amp;mode=', encode-for-uri($mode)), ''))) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="if (not(starts-with($ac:uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action" as="xs:anyURI"/>
