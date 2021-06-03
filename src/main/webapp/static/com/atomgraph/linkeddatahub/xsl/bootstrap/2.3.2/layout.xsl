@@ -438,7 +438,9 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Create"/>
+            <xsl:apply-templates select="." mode="bs2:Create">
+                <xsl:with-param name="class" select="'btn-group pull-left'"/>
+            </xsl:apply-templates>
             
             <xsl:apply-templates select="." mode="bs2:AddData"/>
         </div>
