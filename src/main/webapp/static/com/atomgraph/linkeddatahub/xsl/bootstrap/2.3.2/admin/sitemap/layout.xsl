@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY lsmt   "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -8,6 +7,7 @@
     <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
@@ -17,11 +17,11 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:rdf="&rdf;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
