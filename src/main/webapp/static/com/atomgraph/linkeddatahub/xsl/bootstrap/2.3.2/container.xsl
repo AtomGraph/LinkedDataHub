@@ -599,7 +599,7 @@ exclude-result-prefixes="#all"
 
                             <label for="{$chart-type-id}">
                                 <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
-                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document(ac:document-uri('&apl;')))" mode="ac:label"/>
                                 </xsl:value-of>
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>
@@ -917,7 +917,7 @@ exclude-result-prefixes="#all"
 
                             <label for="{$chart-type-id}">
                                 <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
-                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document('&apl;'))" mode="ac:label"/>
+                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document(ac:document-uri('&apl;')))" mode="ac:label"/>
                                 </xsl:value-of>
                                 <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>

@@ -796,7 +796,7 @@ exclude-result-prefixes="#all"
                                     </xsl:value-of>
                                 </xsl:when>
                                 <xsl:otherwise>
-                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                                         <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                                     </xsl:apply-templates>
                                 </xsl:otherwise>
@@ -848,7 +848,7 @@ exclude-result-prefixes="#all"
                                 </xsl:value-of>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                                     <xsl:with-param name="class" select="'btn add-constructor'"/>
                                 </xsl:apply-templates>
                             </xsl:otherwise>

@@ -37,7 +37,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
 
-        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document('&acl;'))" as="element()*"/>
+        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
@@ -100,7 +100,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="'&rdfs;label'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <xsl:variable name="label" select="string-join(lacl:requestMode/@rdf:resource/ac:label(key('resources', ., document('&acl;'))), ', ')" as="xs:string"/>
+            <xsl:variable name="label" select="string-join(lacl:requestMode/@rdf:resource/ac:label(key('resources', ., document(ac:document-uri('&acl;')))), ', ')" as="xs:string"/>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ol'"/>
                 <xsl:with-param name="value" select="'Allowed ' || $label || ' access'"/>
@@ -193,7 +193,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="value" select="'&dct;title'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <xsl:variable name="label" select="string-join(lacl:requestMode/@rdf:resource/ac:label(key('resources', ., document('&acl;'))), ', ')" as="xs:string"/>
+            <xsl:variable name="label" select="string-join(lacl:requestMode/@rdf:resource/ac:label(key('resources', ., document(ac:document-uri('&acl;')))), ', ')" as="xs:string"/>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ol'"/>
                 <xsl:with-param name="value" select="'Allowed ' || $label || ' access'"/>

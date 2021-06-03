@@ -197,7 +197,7 @@ exclude-result-prefixes="#all">
 
                 <label class="control-label" for="{$id}">
                     <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', '&foaf;name', document('&foaf;'))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', '&foaf;name', document(ac:document-uri('&foaf;')))" mode="ac:label"/>
                     </xsl:value-of>
                 </label>
                 <div class="controls">
@@ -281,7 +281,7 @@ exclude-result-prefixes="#all">
 
             <label class="control-label" for="{$for}">
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&lacl;password', document('&lacl;'))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', '&lacl;password', document(ac:document-uri('&lacl;')))" mode="ac:label"/>
                 </xsl:value-of>
             </label>
             <div class="controls">

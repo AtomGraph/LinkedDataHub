@@ -23,7 +23,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="apl:chartType/@rdf:resource | apl:chartType/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:variable name="value" select="." as="xs:string"/>
 
-        <xsl:variable name="chart-types" select="key('resources-by-subclass', '&ac;Chart', document('&apl;'))" as="element()*"/>
+        <xsl:variable name="chart-types" select="key('resources-by-subclass', '&ac;Chart', document(ac:document-uri('&apl;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}">
             <xsl:for-each select="$chart-types">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>

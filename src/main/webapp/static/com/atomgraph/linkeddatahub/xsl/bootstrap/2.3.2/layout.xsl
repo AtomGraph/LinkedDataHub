@@ -292,6 +292,7 @@ exclude-result-prefixes="#all">
                         const locationMapping = [ 
                             { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
                             { name: "https://w3id.org/atomgraph/client", altName: baseUri + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") }
+                            // acl, apl
                             ]]>
                             <!--
                             <xsl:variable name="ontology-imports" select="apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
@@ -502,7 +503,7 @@ exclude-result-prefixes="#all">
                 <li>
                     <div class="btn-group">
                         <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&acl;Agent', document('&acl;'))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', '&acl;Agent', document(ac:document-uri('&acl;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
@@ -583,11 +584,11 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary add-data">
-<!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+<!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>-->
 <!--                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </xsl:value-of>-->
                 <xsl:text>Add data</xsl:text>
             </button>
@@ -605,7 +606,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:uri]" mode="bs2:ModeList">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', $ac:mode, document('&ac;')) | key('resources', $ac:mode, document('&apl;'))" mode="apl:logo">
+                <xsl:apply-templates select="key('resources', $ac:mode, document(ac:document-uri('&ac;'))) | key('resources', $ac:mode, document(ac:document-uri('&apl;')))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
                 <xsl:text> </xsl:text>
@@ -613,7 +614,7 @@ exclude-result-prefixes="#all">
             </button>
 
             <ul class="dropdown-menu">
-                <xsl:for-each select="key('resources-by-type', '&ac;Mode', document('&ac;')) | key('resources', ('&ac;QueryEditorMode'), document('&ac;'))">
+                <xsl:for-each select="key('resources-by-type', '&ac;Mode', document(ac:document-uri('&ac;'))) | key('resources', ('&ac;QueryEditorMode'), document(ac:document-uri('&ac;')))">
                     <xsl:sort select="ac:label(.)"/>
                     <xsl:apply-templates select="." mode="bs2:ModeListItem">
                         <xsl:with-param name="active" select="$ac:mode"/>
@@ -861,7 +862,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:MediaTypeList" priority="1">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
-                <xsl:apply-templates select="key('resources', '&ac;Export', document('&ac;'))" mode="apl:logo">
+                <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
                 
@@ -982,7 +983,7 @@ exclude-result-prefixes="#all">
             <div class="control-group">
                 <label class="control-label" for="input-container">
                     <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', '&dh;Container', document('&dh;'))" mode="ac:label"/>
+                        <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
                     </xsl:value-of>
                 </label>
                 <div class="controls">
@@ -1009,7 +1010,7 @@ exclude-result-prefixes="#all">
                 <div class="pull-right">
                     <form action="{ac:build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
                         <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
-                            <xsl:apply-templates select="key('resources', '&ac;Delete', document('&ac;'))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
                             </xsl:apply-templates>
                         </button>
@@ -1020,7 +1021,7 @@ exclude-result-prefixes="#all">
                 <div class="pull-right">
                     <xsl:variable name="graph-uri" select="ac:build-uri($ac:uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
                     <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document('&ac;'))" mode="apl:logo">
+                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
 
@@ -1033,7 +1034,7 @@ exclude-result-prefixes="#all">
                 <form action="{$ac:uri}?ban=true" method="post">
                     <!--<input type="hidden" name="ban" value="true"/>-->
                     <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">
-                        <xsl:apply-templates select="key('resources', '&aplt;Ban', document('&aplt;'))" mode="apl:logo">
+                        <xsl:apply-templates select="key('resources', '&aplt;Ban', document(ac:document-uri('&aplt;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
                     </button>
@@ -1042,7 +1043,7 @@ exclude-result-prefixes="#all">
             
             <div class="btn-group pull-right">
                 <button type="button" title="{ac:label(key('resources', 'acl-list-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', '&acl;Access', document('&acl;'))" mode="apl:logo">
+                    <xsl:apply-templates select="key('resources', '&acl;Access', document(ac:document-uri('&acl;')))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                     </xsl:apply-templates>
                     <xsl:text> </xsl:text>
@@ -1050,7 +1051,7 @@ exclude-result-prefixes="#all">
                 </button>
 
                 <ul class="dropdown-menu">
-                    <xsl:for-each select="key('resources-by-subclass', '&acl;Access', document('&acl;'))">
+                    <xsl:for-each select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))">
                         <xsl:sort select="ac:label(.)"/>
                         <xsl:apply-templates select="." mode="bs2:AccessListItem">
                             <xsl:with-param name="enabled" select="$acl:mode"/>

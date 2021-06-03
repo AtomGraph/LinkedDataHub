@@ -107,7 +107,7 @@ exclude-result-prefixes="#all">
         
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="properties" select="../../*[concat(namespace-uri(), local-name()) = $this]" as="element()*"/>
-        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document('&acl;'))" as="element()*"/>
+        <xsl:variable name="modes" select="key('resources-by-subclass', '&acl;Access', document(ac:document-uri('&acl;')))" as="element()*"/>
         <xsl:variable name="default" select="xs:anyURI('&acl;Read')" as="xs:anyURI*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($modes)}">
             <xsl:for-each select="$modes">

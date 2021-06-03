@@ -208,7 +208,7 @@ extension-element-prefixes="ixsl"
             <xsl:when test="key('resources', $forClass)">
                 <xsl:for-each select="key('resources', $forClass)">
                     <legend title="{@rdf:about}">
-                        <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
+                        <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                         <xsl:text> </xsl:text>
                         <xsl:value-of>
                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -218,7 +218,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <legend title="{$forClass}">
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                     <xsl:text> </xsl:text>
                     <xsl:choose>
                         <xsl:when test="doc-available(ac:document-uri($forClass))">
@@ -269,12 +269,12 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="apl:logo">
+            <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document(ac:document-uri('&apl;')))" mode="apl:logo">
                 <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
             <xsl:text> </xsl:text>
             <xsl:value-of>
-                <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document('&apl;'))" mode="ac:label"/>
+                <xsl:apply-templates select="key('resources', '&apl;ResourceExistsException', document(ac:document-uri('&apl;')))" mode="ac:label"/>
             </xsl:value-of>
         </div>
     </xsl:template>
@@ -284,11 +284,11 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:Create" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
-                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
+                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>
                 <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="ac:label"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
                 </xsl:value-of>
                 <xsl:text> </xsl:text>
                 <span class="caret"></span>

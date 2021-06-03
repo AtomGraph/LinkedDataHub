@@ -92,7 +92,7 @@ WHERE
                 <li>
                     <div class="btn-group">
                         <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&acl;Agent', document('&acl;'))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', '&acl;Agent', document(ac:document-uri('&acl;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
