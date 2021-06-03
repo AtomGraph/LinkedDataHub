@@ -104,6 +104,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
+    <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
 
@@ -276,7 +277,7 @@ exclude-result-prefixes="#all">
                 var baseUri = "]]><xsl:value-of select="$ldt:base"/><![CDATA[";
                 var ontologyUri = "]]><xsl:value-of select="$ldt:ontology"/><![CDATA[";
                 var contextUri = "]]><xsl:value-of select="$ac:contextUri"/><![CDATA[";
-                var agentUri = ]]><xsl:value-of select="if ($acl:Agent) then '&quot;' || $acl:Agent//@rdf:about || '&quot;'  else 'null'"/><![CDATA[";
+                var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[";
                 var accessModeUri = ]]><xsl:value-of select="$acl:mode"/><![CDATA[";
             ]]>
         </script>

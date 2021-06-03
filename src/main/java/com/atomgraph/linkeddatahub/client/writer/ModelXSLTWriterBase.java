@@ -173,8 +173,10 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 if (agent.hasProperty(FOAF.isPrimaryTopicOf) && agent.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
                     source.setSystemId(agent.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lacl:Agent)
 
+                params.put(new QName("acl", ACL.agent.getNameSpace(), ACL.agent.getLocalName()),
+                    new XdmAtomicValue(URI.create(agent.getURI())));
                 params.put(new QName("acl", ACL.Agent.getNameSpace(), ACL.Agent.getLocalName()),
-                        getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
+                    getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
 
             // TO-DO: move to client-side?
