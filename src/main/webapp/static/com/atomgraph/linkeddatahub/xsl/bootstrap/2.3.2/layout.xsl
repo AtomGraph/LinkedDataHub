@@ -297,7 +297,7 @@ exclude-result-prefixes="#all">
                             <xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
-                                <xsl:for-each select="apl:ontologyImports($ldt:ontology)">
+                                <xsl:for-each select="$ontology-imports">
                                     <xsl:text>{ name: "</xsl:text>
                                     <xsl:value-of select="ac:document-uri(.)"/>
                                     <xsl:text>", altName: baseUri + "?uri=" + encodeURIComponent("</xsl:text>
