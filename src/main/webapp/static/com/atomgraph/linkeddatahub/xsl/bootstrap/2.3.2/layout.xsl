@@ -291,17 +291,8 @@ exclude-result-prefixes="#all">
                     window.onload = function() {
                         const locationMapping = [ 
                             { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
-                            { name: "https://w3id.org/atomgraph/client", altName: baseUri + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub/domain", altName: baseUri + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/domain") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "]]><xsl:value-of select="resolve-uri('ns', $ldt:base)"/><![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]><xsl:value-of select="resolve-uri('ns', $ldt:base)"/><![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "]]><xsl:value-of select="resolve-uri('ns/domain', $ldt:base)"/><![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]><xsl:value-of select="resolve-uri('ns/domain', $ldt:base)"/><![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "]]><xsl:value-of select="resolve-uri('ns/domain/default', $ldt:base)"/><![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]><xsl:value-of select="resolve-uri('ns/domain/default', $ldt:base)"/><![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "]]><xsl:value-of select="resolve-uri('ns/domain/system', $ldt:base)"/><![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]><xsl:value-of select="resolve-uri('ns/domain/system', $ldt:base)"/><![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "]]><xsl:value-of select="resolve-uri('admin/ns', $ldt:base)"/><![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]><xsl:value-of select="resolve-uri('admin/ns', $ldt:base)"/><![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") }
-                            
-                            // acl, apl
+                            { name: "]]>&ac;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&ac;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") };
                             ]]>
-                            <!--
                             <xsl:variable name="ontology-imports" select="apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
@@ -316,7 +307,6 @@ exclude-result-prefixes="#all">
                                     </xsl:if>
                                 </xsl:for-each>
                             </xsl:if>
-                            -->
                             <![CDATA[
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
