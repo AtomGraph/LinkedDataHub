@@ -93,7 +93,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="value" select="'Access request by ' || ac:label($lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)])"/>
+            <xsl:with-param name="value" select="'Access request by ' || ac:label($acl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($acl:Agent)])"/>
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:call-template>
     </xsl:template>
@@ -129,7 +129,7 @@ exclude-result-prefixes="#all">
 
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ou'"/>
-            <xsl:with-param name="value" select="$lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)]/@rdf:about"/>
+            <xsl:with-param name="value" select="$acl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($acl:Agent)]/@rdf:about"/>
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:call-template>
         
@@ -141,7 +141,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ol'"/>
-            <xsl:with-param name="value" select="'Access request by ' || ac:label($lacl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($lacl:Agent)])"/>
+            <xsl:with-param name="value" select="'Access request by ' || ac:label($acl:Agent//*[foaf:isPrimaryTopicOf/@rdf:resource = document-uri($acl:Agent)])"/>
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:call-template>
     </xsl:template>

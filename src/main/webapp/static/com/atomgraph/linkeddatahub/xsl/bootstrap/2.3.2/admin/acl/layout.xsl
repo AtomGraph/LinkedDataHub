@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
 ]>
@@ -12,11 +11,10 @@
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
-xmlns:lapp="&lapp;"
-xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dct="&dct;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
@@ -25,7 +23,7 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/acl.xsl"/>
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
-        <xsl:if test="$lacl:Agent//@rdf:about">
+        <xsl:if test="$acl:Agent//@rdf:about">
             <ul class="nav pull-right">
                 <li>
                     <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
@@ -93,14 +91,14 @@ WHERE
 
                 <li>
                     <div class="btn-group">
-                        <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo">
+                        <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
+                            <xsl:apply-templates select="key('resources', '&acl;Agent', document('&acl;'))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
                         <ul class="dropdown-menu pull-right">
                             <li>
-                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $lacl:Agent)">
+                                <xsl:for-each select="key('resources-by-type', '&acl;Agent', $acl:Agent)">
                                     <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>

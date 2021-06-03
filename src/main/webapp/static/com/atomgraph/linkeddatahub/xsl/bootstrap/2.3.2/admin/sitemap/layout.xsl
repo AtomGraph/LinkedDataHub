@@ -30,7 +30,7 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][$ldt:ontology][apl:listSuperClasses(rdf:type/@rdf:resource) = '&lsm;Ontology']" mode="bs2:Actions">
-        <xsl:if test="$lacl:Agent//@rdf:about">
+        <xsl:if test="$acl:Agent//@rdf:about">
             <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $ldt:base)]}" method="get">
                 <input type="hidden" name="clear"/>
                 <button class="btn btn-primary" type="submit">Clear</button>
@@ -44,7 +44,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[rdf:type/@rdf:resource = '&lsm;Class'][not(* except rdf:type)]" mode="bs2:Form" priority="1"/>
     
     <xsl:template match="*[@rdf:about = resolve-uri('sitemap/ontologies/', $ldt:base)] | *[@rdf:about = resolve-uri('model/ontologies/', $ldt:base)]" mode="bs2:Right">
-        <xsl:if test="$lacl:Agent//@rdf:about">
+        <xsl:if test="$acl:Agent//@rdf:about">
             <div class="well well-small">
                 <h2 class="nav-header">Ontology import</h2>
                 

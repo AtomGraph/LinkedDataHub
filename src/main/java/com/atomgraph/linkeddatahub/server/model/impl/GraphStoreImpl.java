@@ -25,14 +25,18 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -133,6 +137,28 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
  
+    /**
+     * Overrides <code>OPTIONS</code> HTTP header values.
+     * Specifies allowed methods.
+     * 
+     * @return HTTP response
+     */
+    @OPTIONS
+    public Response options()
+    {
+        Response.ResponseBuilder rb = Response.ok().
+            header(HttpHeaders.ALLOW, HttpMethod.GET).
+            header(HttpHeaders.ALLOW, HttpMethod.POST).
+            header(HttpHeaders.ALLOW, HttpMethod.PUT).
+            header(HttpHeaders.ALLOW, HttpMethod.DELETE);
+        
+        String acceptWritable = StringUtils.join(getWritableMediaTypes(Model.class), ",");
+        rb.header("Accept-Post", acceptWritable);
+        
+        return rb.build();
+        
+    }
+    
     /**
      * Extracts the individual that is being created from the input RDF graph.
      * 

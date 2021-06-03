@@ -95,7 +95,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="sd:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="a:graphStore" select="if ($ldt:base) then resolve-uri('service', $ldt:base) else ()" as="xs:anyURI?"/>
-    <xsl:param name="lacl:Agent" as="document-node()?"/>
+    <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ldt:template" as="xs:anyURI?"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
@@ -104,7 +104,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="lacl:mode" select="$lacl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
 
     <xsl:variable name="root-containers" select="($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))" as="xs:anyURI*"/>
@@ -243,7 +243,7 @@ exclude-result-prefixes="#all">
     <!-- STYLE -->
     
     <xsl:template match="rdf:RDF" mode="xhtml:Style">
-        <xsl:param name="load-wymeditor" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
         
         <xsl:apply-imports/>
 
@@ -258,7 +258,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
-        <xsl:param name="load-wymeditor" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
@@ -396,7 +396,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[$ldt:base][$lacl:mode = '&acl;Read']" mode="bs2:SearchBar" priority="1">
+    <xsl:template match="rdf:RDF[$ldt:base][$acl:mode = '&acl;Read']" mode="bs2:SearchBar" priority="1">
         <form action="{$ac:requestUri}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
@@ -485,7 +485,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:NavBarNavList">
-        <xsl:if test="$lacl:Agent//@rdf:about">
+        <xsl:if test="$acl:Agent//@rdf:about">
             <ul class="nav pull-right">
                 <li>
                     <xsl:if test="$ac:mode = '&ac;QueryEditorMode'">
@@ -496,14 +496,14 @@ exclude-result-prefixes="#all">
                 </li>
                 <li>
                     <div class="btn-group">
-                        <button type="button" title="{ac:label($lacl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&lacl;Agent', document('&lacl;'))" mode="apl:logo">
+                        <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
+                            <xsl:apply-templates select="key('resources', '&acl;Agent', document('&acl;'))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
                         <ul class="dropdown-menu pull-right">
                             <li>
-                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $lacl:Agent)">
+                                <xsl:for-each select="key('resources-by-type', '&acl;Agent', $acl:Agent)">
                                     <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>
@@ -516,7 +516,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not($lacl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), map{ 'forClass': string(resolve-uri('admin/ns#Person', $ldt:base)) })" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
@@ -575,7 +575,7 @@ exclude-result-prefixes="#all">
     
     <!-- ADD DATA -->
     
-    <xsl:template match="rdf:RDF[$lacl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
+    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary add-data">
 <!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document('&ac;'))" mode="apl:logo">
@@ -788,7 +788,7 @@ exclude-result-prefixes="#all">
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-notifications')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&lacl;Agent']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&acl;Agent']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-agent')"/>
@@ -906,7 +906,7 @@ exclude-result-prefixes="#all">
     <!-- HEADER  -->
 
     <!-- TO-DO: move http:Response templates to error.xsl -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$lacl:Agent]" mode="bs2:Header" priority="2">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource][$acl:Agent]" mode="bs2:Header" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'alert alert-info well'" as="xs:string?"/>
 
@@ -1000,7 +1000,7 @@ exclude-result-prefixes="#all">
     <!-- NAVBAR ACTIONS -->
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
-        <xsl:if test="$lacl:Agent//@rdf:about">
+        <xsl:if test="$acl:Agent//@rdf:about">
                 <div class="pull-right">
                     <form action="{ac:build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
                         <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
@@ -1048,7 +1048,7 @@ exclude-result-prefixes="#all">
                     <xsl:for-each select="key('resources-by-subclass', '&acl;Access', document('&acl;'))">
                         <xsl:sort select="ac:label(.)"/>
                         <xsl:apply-templates select="." mode="bs2:AccessListItem">
-                            <xsl:with-param name="enabled" select="$lacl:mode"/>
+                            <xsl:with-param name="enabled" select="$acl:mode"/>
                         </xsl:apply-templates>
                     </xsl:for-each>
                 </ul>
@@ -1081,7 +1081,7 @@ exclude-result-prefixes="#all">
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Settings" priority="1">
-        <xsl:if test="$lacl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+        <xsl:if test="$acl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
             <div class="btn-group pull-right">
                 <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo">

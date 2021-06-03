@@ -45,6 +45,8 @@ public class ACL
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
     
+    public static final OntClass Agent = m_model.createClass( NS + "Agent" );
+    
     public static final OntClass Authorization = m_model.createClass( NS + "Authorization" );
 
     public static final OntClass Read = m_model.createClass( NS + "Read" );

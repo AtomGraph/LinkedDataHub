@@ -8,6 +8,7 @@
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
@@ -27,6 +28,7 @@ xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
+xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:dct="&dct;"
@@ -42,7 +44,7 @@ exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
 >
     
-    <xsl:param name="lacl:Agent" as="document-node()?"/>
+    <xsl:param name="acl:Agent" as="document-node()?"/>
 
     <!-- CSS -->
     
@@ -135,7 +137,7 @@ extension-element-prefixes="ixsl"
 
             <!--<xsl:apply-templates mode="#current"/>-->
 
-<!--            <xsl:if test="$ldt:base">  $lacl:Agent//@rdf:about 
+<!--            <xsl:if test="$ldt:base">  $acl:Agent//@rdf:about 
                 <div id="container-nav">
                     <div class="well well-small">
                         <ul class="nav nav-list">
@@ -279,7 +281,7 @@ extension-element-prefixes="ixsl"
             </button>
         </div>
 
-        <xsl:variable name="logged-in" select="exists($lacl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+        <xsl:variable name="logged-in" select="exists($acl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
         <xsl:if test="$logged-in">
             <!-- show delete button only for document resources -->
