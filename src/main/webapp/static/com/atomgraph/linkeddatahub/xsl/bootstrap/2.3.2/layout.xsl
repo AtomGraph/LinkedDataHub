@@ -276,7 +276,7 @@ exclude-result-prefixes="#all">
                 var baseUri = "]]><xsl:value-of select="$ldt:base"/><![CDATA[";
                 var ontologyUri = "]]><xsl:value-of select="$ldt:ontology"/><![CDATA[";
                 var contextUri = "]]><xsl:value-of select="$ac:contextUri"/><![CDATA[";
-                var agentUri = ]]><xsl:value-of select="if ($acl:Agent) then '&quot;' || $aclAgent//@rdf:about || '&quot;'  else 'null'"/><![CDATA[";
+                var agentUri = ]]><xsl:value-of select="if ($acl:Agent) then '&quot;' || $acl:Agent//@rdf:about || '&quot;'  else 'null'"/><![CDATA[";
                 var accessModeUri = ]]><xsl:value-of select="$acl:mode"/><![CDATA[";
             ]]>
         </script>
