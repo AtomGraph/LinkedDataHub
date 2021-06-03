@@ -228,6 +228,30 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Legend"/>-->
     
+    <!-- FORM ACTIONS -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
+        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
+        
+        <div class="form-actions modal-footer">
+            <button type="submit" class="{$button-class}">
+                <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="$button-class"/>
+                </xsl:apply-templates>
+            </button>
+            <button type="button" class="btn">
+                <xsl:apply-templates select="key('resources', 'close', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+            </button>
+            <button type="reset" class="btn">
+                <xsl:apply-templates select="key('resources', 'reset', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+            </button>
+        </div>
+    </xsl:template>
+
     <!-- EXCEPTION -->
     
     <xsl:template match="*[http:sc/@rdf:resource = '&sc;Conflict']" mode="bs2:Exception" priority="1">

@@ -2861,9 +2861,13 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="results" select="." as="document-node()"/>
 
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                            <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form">
-                                <xsl:sort select="ac:label(.)"/>
-                            </xsl:apply-templates>
+                            <div class="row-fluid">
+                                <div class="left-nav span2"></div>
+
+                                <div class="span7">
+                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form"/>
+                                </div>
+                            </div>
                         </xsl:result-document>
 
                         <ixsl:set-style name="cursor" select="'default'"/>

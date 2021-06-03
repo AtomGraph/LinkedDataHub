@@ -1090,30 +1090,6 @@ exclude-result-prefixes="#all">
         </fieldset>
     </xsl:template>
 
-    <!-- FORM ACTIONS -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
-        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
-        
-        <div class="form-actions modal-footer">
-            <button type="submit" class="{$button-class}">
-                <xsl:apply-templates select="key('resources', 'save', document('translations.rdf'))" mode="apl:logo">
-                    <xsl:with-param name="class" select="$button-class"/>
-                </xsl:apply-templates>
-            </button>
-            <button type="button" class="btn">
-                <xsl:apply-templates select="key('resources', 'close', document('translations.rdf'))" mode="apl:logo">
-                    <xsl:with-param name="class" select="'btn'"/>
-                </xsl:apply-templates>
-            </button>
-            <button type="reset" class="btn">
-                <xsl:apply-templates select="key('resources', 'reset', document('translations.rdf'))" mode="apl:logo">
-                    <xsl:with-param name="class" select="'btn'"/>
-                </xsl:apply-templates>
-            </button>
-        </div>
-    </xsl:template>
-    
     <!-- TYPE CONTROL -->
     
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
