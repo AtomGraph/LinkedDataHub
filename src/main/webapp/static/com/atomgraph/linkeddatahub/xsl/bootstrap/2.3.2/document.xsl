@@ -136,7 +136,7 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates mode="#current">
+                    <xsl:apply-templates select="*" mode="#current">
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
