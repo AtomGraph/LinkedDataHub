@@ -133,13 +133,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.0.53-SNAPSHOT</version>
+            <version>3.0.54-SNAPSHOT</version>
             <classifier>classes</classifier>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.0.53-SNAPSHOT</version>
+            <version>3.0.54-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>
