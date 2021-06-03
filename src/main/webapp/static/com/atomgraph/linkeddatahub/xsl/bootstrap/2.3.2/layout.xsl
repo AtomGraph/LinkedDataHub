@@ -276,6 +276,8 @@ exclude-result-prefixes="#all">
                 var baseUri = "]]><xsl:value-of select="$ldt:base"/><![CDATA[";
                 var ontologyUri = "]]><xsl:value-of select="$ldt:ontology"/><![CDATA[";
                 var contextUri = "]]><xsl:value-of select="$ac:contextUri"/><![CDATA[";
+                var agentUri = ]]><xsl:value-of select="if ($acl:Agent) then '&quot;' || $aclAgent//@rdf:about || '&quot;'  else 'null'"/><![CDATA[";
+                var accessModeUri = ]]><xsl:value-of select="$acl:mode"/><![CDATA[";
             ]]>
         </script>
         <xsl:if test="$load-wymeditor">
@@ -324,7 +326,9 @@ exclude-result-prefixes="#all">
                                 stylesheetParams: {
                                     "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
                                     "Q{https://www.w3.org/ns/ldt#}base": baseUri,
-                                    "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri
+                                    "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
+                                    "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
+                                    "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
                                     }
                             }, "async");
                         })

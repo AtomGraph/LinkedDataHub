@@ -53,7 +53,10 @@ public class AuthHeaderFilter implements ContainerResponseFilter
 
             Resource authorization = getResourceByPropertyValue(agent.getModel(), ACL.mode, null);
             if (authorization != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(authorization.getURI()), ACL.mode.getURI(), null));
+            {
+                Resource mode = authorization.getPropertyResourceValue(ACL.mode); // get access mode from authorization
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(mode.getURI()), ACL.mode.getURI(), null));
+            }
             else
                 if (log.isWarnEnabled()) log.warn("Authorization is null, cannot write response header. Is {} registered?", AuthorizationFilter.class);
         }
