@@ -294,7 +294,7 @@ exclude-result-prefixes="#all">
                             { name: "]]>&ac;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&ac;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") },
                             { name: "]]>&rdf;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&rdf;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") }
                             ]]>
-                            <xsl:variable name="ontology-imports" select="apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
+                            <xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
                                 <xsl:for-each select="apl:ontologyImports($ldt:ontology)">
