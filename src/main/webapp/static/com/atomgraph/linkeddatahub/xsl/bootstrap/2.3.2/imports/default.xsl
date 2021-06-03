@@ -81,7 +81,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="direct" as="xs:boolean"/>
 
         <xsl:if test="doc-available(ac:document-uri($ontology))">
-            <xsl:variable name="document" select="document($ontology)" as="document-node()"/>
+            <xsl:variable name="document" select="document(ac:document-uri($ontology))" as="document-node()"/>
             <xsl:for-each select="$document">
                 <xsl:variable name="imports" select="key('resources', $ontology)/owl:imports/@rdf:resource[not(. = $ontology)]" as="attribute()*"/>
                 <xsl:sequence select="$imports"/>
@@ -110,7 +110,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="ontology-docs" as="document-node()*">
             <xsl:for-each select="$ontologies">
                 <xsl:if test="doc-available(ac:document-uri(.))">
-                    <xsl:sequence select="document(.)"/>
+                    <xsl:sequence select="document(ac:document-uri(.))"/>
                 </xsl:if>
             </xsl:for-each>
         </xsl:variable>
@@ -493,7 +493,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
-        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, $ac:contextUri)) then ac:document-uri(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- loop if node not visited already -->
@@ -519,9 +519,9 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:when test="starts-with(., $ldt:base) and doc-available($doc-uri)">
                 <xsl:choose>
-                    <xsl:when test="key('resources', ., document($doc-uri))">
+                    <xsl:when test="key('resources', ., document(ac:document-uri($doc-uri)))">
                         <span>
-                            <xsl:for-each select="key('resources', ., document($doc-uri))">
+                            <xsl:for-each select="key('resources', ., document(ac:document-uri($doc-uri)))">
                                 <xsl:apply-templates select="." mode="apl:Typeahead"/>
                             </xsl:for-each>
                         </span>
