@@ -278,7 +278,7 @@ exclude-result-prefixes="#all">
                 var ontologyUri = "]]><xsl:value-of select="$ldt:ontology"/><![CDATA[";
                 var contextUri = "]]><xsl:value-of select="$ac:contextUri"/><![CDATA[";
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
-                var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return ''' || $mode || ''', ',')"/><![CDATA[];
+                var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '' || $mode || '', ',')"/><![CDATA[];
             ]]>
         </script>
         <xsl:if test="$load-wymeditor">
