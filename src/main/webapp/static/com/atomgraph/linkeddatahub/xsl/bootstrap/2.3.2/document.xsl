@@ -240,7 +240,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:FormActions">
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
-        <div class="form-actions modal-footer">
+        <div class="form-actions">
             <button type="submit" class="{$button-class}">
                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="$button-class"/>

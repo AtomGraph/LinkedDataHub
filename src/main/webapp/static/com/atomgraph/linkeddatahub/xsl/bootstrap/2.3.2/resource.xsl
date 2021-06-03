@@ -2,12 +2,14 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
+    <!ENTITY aplt   "https://w3id.org/atomgraph/linkeddatahub/templates#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
+    <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
@@ -24,10 +26,12 @@ xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
+xmlns:aplt="&aplt;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:srx="&srx;"
+xmlns:http="&http;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
@@ -574,4 +578,202 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object"/>
 
+    <!-- LOGO  -->
+    
+    <xsl:template match="*[@rdf:about = '&ac;ConstructMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-action')"/>
+        <!-- <xsl:sequence select="ac:label(.)"/> -->
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&dh;Container'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Container']" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&dh;Item'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Item']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;Service'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Service']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;Construct'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Construct']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-construct')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;Describe'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Describe']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-describe')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;Select'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Select']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-select')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;Ask'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Ask']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-ask')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;File'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;File']" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-file')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&apl;Import'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Import']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-import')"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about = '&apl;Chart'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&apl;Chart']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'create-chart')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = ('&apl;URISyntaxViolation', '&spin;ConstraintViolation', '&apl;ResourceExistsException')]" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'violation')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = ('latest', 'files', 'imports', 'geo', 'queries', 'charts', 'services')]" mode="apl:logo" priority="1">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', @rdf:nodeID)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'toggle-content']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-toggle-content')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about = '&aplt;Ban']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-ban')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+        
+    <xsl:template match="*[@rdf:about = '&ac;Delete']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-delete')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;Export']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-export')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'settings']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-settings')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'save']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'close']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-close')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'reset']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-reset')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'search']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-search')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:nodeID = 'notifications']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-notifications')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&acl;Agent']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-agent')"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-read')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;MapMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-map')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;GraphMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-graph')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&ac;QueryEditorMode']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-query')"/>
+        <text>Query editor</text>
+<!--        <xsl:sequence select="ac:label(.)"/>-->
+    </xsl:template>
+
+    <xsl:template match="*[@rdf:about = '&acl;Access']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-acl')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][lacl:requestAccess/@rdf:resource]" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'access-required')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
 </xsl:stylesheet>
