@@ -291,7 +291,7 @@ exclude-result-prefixes="#all">
                     window.onload = function() {
                         const locationMapping = [ 
                             { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
-                            { name: "]]>&ac;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&ac;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") };
+                            { name: "]]>&ac;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&ac;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") }
                             ]]>
                             <xsl:variable name="ontology-imports" select="apl:ontologyImports($ldt:ontology)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
@@ -303,7 +303,7 @@ exclude-result-prefixes="#all">
                                     <xsl:value-of select="ac:document-uri(.)"/>
                                     <xsl:text>") + "&amp;accept=" + encodeURIComponent("application/rdf+xml") }</xsl:text>
                                     <xsl:if test="position() != last()">
-                                        <xsl:text>, </xsl:text>
+                                        <xsl:text>,&#xa;</xsl:text> <!-- newline -->
                                     </xsl:if>
                                 </xsl:for-each>
                             </xsl:if>
