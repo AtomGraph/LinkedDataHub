@@ -103,7 +103,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" as="xs:anyURI"/>
+    <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ac:forClass" select="if (ixsl:query-params()?forClass) then xs:anyURI(ixsl:query-params()?forClass) else ()" as="xs:anyURI?"/>
     <xsl:param name="ac:service" select="if (ixsl:query-params()?service) then xs:anyURI(ixsl:query-params()?service) else resolve-uri('service', $ldt:base)" as="xs:anyURI?"/>
     <xsl:param name="ac:endpoint" select="if (ixsl:query-params()?endpoint) then xs:anyURI(ixsl:query-params()?endpoint) else resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
