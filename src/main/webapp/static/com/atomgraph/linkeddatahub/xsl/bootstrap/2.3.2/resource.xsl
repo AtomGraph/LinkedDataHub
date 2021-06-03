@@ -147,7 +147,7 @@ extension-element-prefixes="ixsl"
 
                                      TO-DO: resolve as Linked Data resources? 
                                     <a href="{.}">
-                                        <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))">
+                                        <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))">
                                             <xsl:apply-templates select="." mode="apl:logo"/>
                                             <xsl:text> </xsl:text>
                                             <xsl:value-of>
