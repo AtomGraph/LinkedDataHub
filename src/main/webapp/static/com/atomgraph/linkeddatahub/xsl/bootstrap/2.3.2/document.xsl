@@ -4,6 +4,7 @@
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY http   "http://www.w3.org/2011/http#">
@@ -26,6 +27,7 @@ xmlns:lacl="&lacl;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
 xmlns:rdf="&rdf;"
+xmlns:rdfs="&rdfs;"
 xmlns:http="&http;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
