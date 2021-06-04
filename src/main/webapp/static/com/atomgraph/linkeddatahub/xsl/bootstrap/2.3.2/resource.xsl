@@ -631,12 +631,12 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <div class="btn-group pull-right">
-                <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource">&#x2715;</button>
-            </div>
-
             <xsl:if test="$legend">
                 <legend>
+                    <div class="btn-group pull-right">
+                        <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                    </div>
+
                     <xsl:value-of select="ac:label(.)"/>
                 </legend>
             </xsl:if>

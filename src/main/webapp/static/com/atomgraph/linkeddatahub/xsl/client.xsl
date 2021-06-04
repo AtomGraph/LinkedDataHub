@@ -2449,6 +2449,14 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
+<!-- remove <fieldset> -->
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
+        <xsl:message>
+            <xsl:value-of select="ixsl:call(../.., 'remove', [])"/>
+        </xsl:message>
+    </xsl:template>
+
+    <!-- remove <div class="control-group"> -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-property']" mode="ixsl:onclick" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
