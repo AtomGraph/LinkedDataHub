@@ -1889,7 +1889,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="$html">
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="violation-form" as="element()">
-                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="modal">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
@@ -1953,7 +1953,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="violation-form" as="element()">
-                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="modal">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
@@ -2769,13 +2769,13 @@ extension-element-prefixes="ixsl"
     
     <!-- MODAL IDENTITY TRANSFORM -->
     
-    <xsl:template match="@for | @id" mode="modal" priority="1">
+    <xsl:template match="@for | @id" mode="form" priority="1">
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
         
         <xsl:attribute name="{name()}" select="concat($doc-id, .)"/>
     </xsl:template>
     
-    <xsl:template match="input[@class = 'target-id']" mode="modal" priority="1">
+    <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
         <xsl:param name="target-id" as="xs:string?" tunnel="yes"/>
         
         <xsl:copy>
@@ -2787,14 +2787,14 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- regenerates slug literal UUID because form (X)HTML can be cached -->
-    <xsl:template match="input[@name = 'ol'][ancestor::div[@class = 'controls']/preceding-sibling::input[@name = 'pu']/@value = '&dh;slug']" mode="modal" priority="1">
+    <xsl:template match="input[@name = 'ol'][ancestor::div[@class = 'controls']/preceding-sibling::input[@name = 'pu']/@value = '&dh;slug']" mode="form" priority="1">
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
             <xsl:attribute name="value" select="ixsl:call(ixsl:window(), 'generateUUID', [])"/>
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="@* | node()" mode="modal">
+    <xsl:template match="@* | node()" mode="form">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
@@ -2841,7 +2841,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onaddModalFormCallback">
         <xsl:context-item as="map(*)" use="required"/>
-
+        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
@@ -2850,19 +2851,24 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="modal-div" as="element()">
-                        <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="modal">
+                        <xsl:apply-templates select="//form" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
                     <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>
 
-                    <xsl:for-each select="ixsl:page()//body">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <!-- append modal div to body -->
-                            <xsl:copy-of select="$modal-div"/>
-                        </xsl:result-document>
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                        <div class="row-fluid">
+                            <div class="left-nav span2"></div>
 
+                            <div class="span7">
+                                <xsl:copy-of select="$modal-div"/>
+                            </div>
+                        </div>
+                    </xsl:result-document>
+
+                    <xsl:for-each select="ixsl:page()//body">
                         <ixsl:set-style name="cursor" select="'default'"/>
                     </xsl:for-each>
 
