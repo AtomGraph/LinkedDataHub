@@ -2850,7 +2850,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                    <xsl:variable name="modal-div" as="element()">
+                    <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="//form" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
