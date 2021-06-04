@@ -2856,14 +2856,14 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>
+                    <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
 
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <div class="row-fluid">
                             <div class="left-nav span2"></div>
 
                             <div class="span7">
-                                <xsl:copy-of select="$modal-div"/>
+                                <xsl:copy-of select="$form"/>
                             </div>
                         </div>
                     </xsl:result-document>
