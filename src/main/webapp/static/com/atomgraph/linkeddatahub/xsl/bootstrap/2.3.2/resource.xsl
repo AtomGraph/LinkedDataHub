@@ -587,11 +587,11 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&dh;Container'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Container']" mode="apl:logo" priority="1">
+<!--    <xsl:template match="*[@rdf:about = '&dh;Container'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Container']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="*[@rdf:about = '&dh;Item'] | *[@rdf:about][$ldt:ontology][apl:listSuperClasses(@rdf:about) = '&dh;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>

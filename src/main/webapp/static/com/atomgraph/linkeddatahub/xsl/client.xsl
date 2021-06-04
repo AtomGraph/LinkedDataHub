@@ -75,7 +75,6 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/resource.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/container.xsl"/>
     <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/sparql.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
@@ -2552,7 +2551,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onFormCallback"/>
+            <xsl:call-template name="onaddModalFormCallback"/>
         </ixsl:schedule-action>
     </xsl:template>
 
@@ -2680,8 +2679,8 @@ extension-element-prefixes="ixsl"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-            <xsl:call-template name="onFormCallback"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onaddModalFormCallback"/>
         </ixsl:schedule-action>
     </xsl:template>
     
@@ -2840,14 +2839,13 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template name="onFormCallback">
+    <xsl:template name="onaddModalFormCallback">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        
+
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
-<!--                    <xsl:variable name="event" select="ixsl:event()"/>
+                    <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
@@ -2857,25 +2855,16 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>-->
+                    <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>
 
-<!--                    <xsl:for-each select="ixsl:page()//body">-->
-                        <xsl:variable name="results" select="." as="document-node()"/>
-                        <xsl:variable name="form-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                            <div class="row-fluid">
-                                <div class="left-nav span2"></div>
-
-                                <div class="span7">
-                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form">
-                                        <xsl:with-param name="id" select="$form-id"/>
-                                    </xsl:apply-templates>
-                                </div>
-                            </div>
+                    <xsl:for-each select="ixsl:page()//body">
+                        <xsl:result-document href="?." method="ixsl:append-content">
+                            <!-- append modal div to body -->
+                            <xsl:copy-of select="$modal-div"/>
                         </xsl:result-document>
 
                         <ixsl:set-style name="cursor" select="'default'"/>
-                    <!--</xsl:for-each>-->
+                    </xsl:for-each>
 
                     <!-- add event listeners to the descendants of modal form -->
                     <xsl:call-template name="add-form-listeners">
