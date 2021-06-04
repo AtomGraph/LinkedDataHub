@@ -1799,7 +1799,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="form[tokenize(../@class, ' ') = 'modal']" mode="ixsl:onsubmit">
+    <xsl:template match="div[@id = 'content-body']//form[tokenize(@class, ' ') = 'form-horizontal']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
@@ -1838,7 +1838,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
 
                 <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
-                    <xsl:call-template name="onModalFormLoad">
+                    <xsl:call-template name="onFormLoad">
                         <xsl:with-param name="form" select="$form"/>
                         <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
                     </xsl:call-template>
@@ -1847,8 +1847,9 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <!-- the same logic as onModalFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
+    <!-- the same logic as onFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
     <xsl:template match="." mode="ixsl:onmultipartFormLoad">
+        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
         <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>
@@ -1888,17 +1889,26 @@ extension-element-prefixes="ixsl"
                 
                 <xsl:for-each select="$html">
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                    <xsl:variable name="violation-form" as="element()">
+                    <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
-                        <xsl:copy-of select="$violation-form/*"/>
-                    </xsl:result-document>
+<!--                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
+                        <xsl:copy-of select="$form/*"/>
+                    </xsl:result-document>-->
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                        <div class="row-fluid">
+                            <div class="left-nav span2"></div>
 
+                            <div class="span7">
+                                <xsl:copy-of select="$form"/>
+                            </div>
+                        </div>
+                    </xsl:result-document>
+                    
                     <xsl:call-template name="add-form-listeners">
                         <xsl:with-param name="id" select="$form-id"/>
                     </xsl:call-template>
@@ -1912,8 +1922,10 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onModalFormLoad">
+    <!-- after form is submitted -->
+    <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="form" as="element()"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
@@ -1952,16 +1964,26 @@ extension-element-prefixes="ixsl"
                 
                 <xsl:for-each select="?body">
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                    <xsl:variable name="violation-form" as="element()">
-                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
+                    <xsl:variable name="form" as="element()">
+                        <xsl:apply-templates select="//form" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
 
-                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
-                        <xsl:copy-of select="$violation-form/*"/>
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                        <div class="row-fluid">
+                            <div class="left-nav span2"></div>
+
+                            <div class="span7">
+                                <xsl:copy-of select="$form"/>
+                            </div>
+                        </div>
                     </xsl:result-document>
+<!--                    
+                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
+                        <xsl:copy-of select="$form/*"/>
+                    </xsl:result-document>-->
 
                     <xsl:call-template name="add-form-listeners">
                         <xsl:with-param name="id" select="$form-id"/>
@@ -2452,7 +2474,7 @@ extension-element-prefixes="ixsl"
 <!-- remove <fieldset> -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
         <xsl:message>
-            <xsl:value-of select="ixsl:call(../.., 'remove', [])"/>
+            <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
         </xsl:message>
     </xsl:template>
 
@@ -2559,7 +2581,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onaddModalFormCallback"/>
+            <xsl:call-template name="onaddFormCallback"/>
         </ixsl:schedule-action>
     </xsl:template>
 
@@ -2688,12 +2710,11 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onaddModalFormCallback"/>
+            <xsl:call-template name="onaddFormCallback"/>
         </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template match="div[tokenize(@class, ' ') = 'modal']//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
-        <!-- remove modal constructor form -->
         <xsl:for-each select="ancestor::div[tokenize(@class, ' ') = 'modal']">
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
@@ -2775,7 +2796,7 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri ])"/>
     </xsl:template>
     
-    <!-- MODAL IDENTITY TRANSFORM -->
+    <!-- FORM IDENTITY TRANSFORM -->
     
     <xsl:template match="@for | @id" mode="form" priority="1">
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
@@ -2847,7 +2868,8 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template name="onaddModalFormCallback">
+    <!-- after "Create" or "Edit" buttons are clicked" -->
+    <xsl:template name="onaddFormCallback">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         
@@ -2880,7 +2902,7 @@ extension-element-prefixes="ixsl"
                         <ixsl:set-style name="cursor" select="'default'"/>
                     </xsl:for-each>
 
-                    <!-- add event listeners to the descendants of modal form -->
+                    <!-- add event listeners to the descendants of the form -->
                     <xsl:call-template name="add-form-listeners">
                         <xsl:with-param name="id" select="$form-id"/>
                     </xsl:call-template>

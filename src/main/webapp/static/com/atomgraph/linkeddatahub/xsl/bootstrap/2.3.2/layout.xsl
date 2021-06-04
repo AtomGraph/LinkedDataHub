@@ -292,9 +292,9 @@ exclude-result-prefixes="#all">
                         const locationMapping = [ 
                             { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
                             { name: "]]>&ac;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&ac;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "]]>&rdf;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&rdf;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") }
+                            { name: "]]>&rdf;<![CDATA[", altName: baseUri + "?uri=" + encodeURIComponent("]]>&rdf;<![CDATA[") + "&accept=" + encodeURIComponent("application/rdf+xml") };
                             ]]>
-                            <xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
+                            <!--<xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
                                 <xsl:for-each select="$ontology-imports">
@@ -304,10 +304,10 @@ exclude-result-prefixes="#all">
                                     <xsl:value-of select="ac:document-uri(.)"/>
                                     <xsl:text>") + "&amp;accept=" + encodeURIComponent("application/rdf+xml") }</xsl:text>
                                     <xsl:if test="position() != last()">
-                                        <xsl:text>,&#xa;</xsl:text> <!-- newline -->
+                                        <xsl:text>,&#xa;</xsl:text>
                                     </xsl:if>
                                 </xsl:for-each>
-                            </xsl:if>
+                            </xsl:if> -->
                             <![CDATA[
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
