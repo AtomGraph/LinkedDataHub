@@ -2861,13 +2861,15 @@ extension-element-prefixes="ixsl"
 
 <!--                    <xsl:for-each select="ixsl:page()//body">-->
                         <xsl:variable name="results" select="." as="document-node()"/>
-
+                        <xsl:variable name="form-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                             <div class="row-fluid">
                                 <div class="left-nav span2"></div>
 
                                 <div class="span7">
-                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form"/>
+                                    <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form">
+                                        <xsl:with-parameter name="id" select="$form-id"/>
+                                    </xsl:apply-templates>
                                 </div>
                             </div>
                         </xsl:result-document>
@@ -2876,9 +2878,9 @@ extension-element-prefixes="ixsl"
                     <!--</xsl:for-each>-->
 
                     <!-- add event listeners to the descendants of modal form -->
-<!--                    <xsl:call-template name="add-form-listeners">
+                    <xsl:call-template name="add-form-listeners">
                         <xsl:with-param name="id" select="$form-id"/>
-                    </xsl:call-template>-->
+                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
