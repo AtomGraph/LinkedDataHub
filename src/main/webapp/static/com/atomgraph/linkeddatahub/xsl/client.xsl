@@ -2868,7 +2868,7 @@ extension-element-prefixes="ixsl"
 
                                 <div class="span7">
                                     <xsl:apply-templates select="$results/rdf:RDF" mode="bs2:Form">
-                                        <xsl:with-parameter name="id" select="$form-id"/>
+                                        <xsl:with-param name="id" select="$form-id"/>
                                     </xsl:apply-templates>
                                 </div>
                             </div>
