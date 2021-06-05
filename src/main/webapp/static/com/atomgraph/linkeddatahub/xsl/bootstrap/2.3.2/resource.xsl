@@ -650,6 +650,12 @@ extension-element-prefixes="ixsl"
     
     <!-- FORM CONTROL -->
 
+    <!-- turn off blank node resources from constructor graph -->
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2"/>
+
+    <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
+    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
+
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="legend" select="false()"/>
@@ -741,7 +747,22 @@ extension-element-prefixes="ixsl"
     <!-- TYPE CONTROL -->
 
     <!-- hide type control -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:TypeControl" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:TypeControl" priority="1">
+        <xsl:next-match>
+            <xsl:with-param name="hidden" select="true()"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
+        <xsl:param name="forClass" select="if ($ldt:base) then resolve-uri('admin/ns#Class', $ldt:base) else ()" as="xs:anyURI?"/> <!-- allow subclasses of lsm:Class? -->
+        <xsl:param name="hidden" select="false()" as="xs:boolean"/>
+
+        <xsl:apply-templates mode="#current">
+            <xsl:sort select="ac:label(..)"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+            <xsl:with-param name="hidden" select="$hidden"/>
+        </xsl:apply-templates>
+    </xsl:template>
     
     <!-- PROPERTY CONTROL -->
     
@@ -757,20 +778,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     -->
 
-    <!-- turn off blank node resources from constructor graph -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][rdf:type/starts-with(@rdf:resource, '&xsd;')] | *[@rdf:nodeID][$ac:forClass][rdf:type/@rdf:resource = '&rdfs;Resource']" mode="bs2:FormControl" priority="2"/>
-
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
-        <xsl:param name="forClass" select="if ($ldt:base) then resolve-uri('admin/ns#Class', $ldt:base) else ()" as="xs:anyURI?"/> <!-- allow subclasses of lsm:Class? -->
-        <xsl:param name="hidden" select="false()" as="xs:boolean"/>
-
-        <xsl:apply-templates mode="#current">
-            <xsl:sort select="ac:label(..)"/>
-            <xsl:with-param name="forClass" select="$forClass"/>
-            <xsl:with-param name="hidden" select="$hidden"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
     <!-- TYPEAHEAD -->
     
     <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">

@@ -800,11 +800,6 @@ exclude-result-prefixes="#all">
             </div>
         </fieldset>
     </xsl:template>
-
-    <!-- TYPE CONTROL -->
-    
-    <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
-    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl"/>
     
     <!-- NAVBAR ACTIONS -->
 
