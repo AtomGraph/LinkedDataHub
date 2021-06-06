@@ -2886,14 +2886,16 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:variable>
                     <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
-<xsl:message>
-    onaddFormCallback ancestor::form: <xsl:if test="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">YES</xsl:if>
-</xsl:message>
 
                     <xsl:choose>
                         <!-- if "Create" button is within the <form>, append elements to <form> -->
                         <xsl:when test="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
                             <xsl:for-each select="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
+                                <!-- remove the old form-actions <div> because we'll be appending a new one below -->
+                                <xsl:message>
+                                    <xsl:value-of select="ixsl:call(div[tokenize(@class, ' ') = 'form-actions'], 'remove', [])"/>
+                                </xsl:message>
+
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <xsl:copy-of select="$form/*"/>
                                 </xsl:result-document>
