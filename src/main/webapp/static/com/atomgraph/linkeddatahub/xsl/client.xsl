@@ -2887,7 +2887,7 @@ extension-element-prefixes="ixsl"
                     </xsl:variable>
                     <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
 
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                         <div class="row-fluid">
                             <div class="left-nav span2"></div>
 
