@@ -127,26 +127,26 @@ exclude-result-prefixes="#all">
     </rdf:Description>
 
     <!-- show only form when ac:ModalMode combined with ac:Edit -->
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;ModalMode'][$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
         <body>
             <xsl:apply-templates select="." mode="bs2:Form">
-                <xsl:with-param name="modal" select="true()" tunnel="yes"/>
+                <xsl:with-param name="modal" select="$ac:mode = '&ac;ModalMode'" tunnel="yes"/>
             </xsl:apply-templates>
         </body>
     </xsl:template>
 
     <!-- show only form when ac:ModalMode combined with ac:forClass -->
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;ModalMode'][$ac:forClass]" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
         <body>
             <xsl:choose>
                 <xsl:when test="not(key('resources-by-type', '&spin;ConstraintViolation'))">
                     <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
-                        <xsl:with-param name="modal" select="true()" tunnel="yes"/>
+                        <xsl:with-param name="modal" select="$ac:mode = '&ac;ModalMode'" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Form">
-                        <xsl:with-param name="modal" select="true()" tunnel="yes"/>
+                        <xsl:with-param name="modal" select="$ac:mode = '&ac;ModalMode'" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
@@ -817,7 +817,7 @@ exclude-result-prefixes="#all">
 
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <div class="pull-right">
-                    <xsl:variable name="graph-uri" select="ac:build-uri($ac:uri, map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                    <xsl:variable name="graph-uri" select="ac:build-uri($ac:uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                     <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>

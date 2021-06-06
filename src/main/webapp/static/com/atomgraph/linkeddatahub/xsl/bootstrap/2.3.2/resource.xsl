@@ -503,7 +503,7 @@ extension-element-prefixes="ixsl"
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <xsl:for-each select="@rdf:about">
                     <div class="pull-right">
-                        <xsl:variable name="graph-uri" select="ac:build-uri(ac:document-uri(.), map{ 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+                        <xsl:variable name="graph-uri" select="ac:build-uri(ac:document-uri(.), map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                         <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
                             <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>

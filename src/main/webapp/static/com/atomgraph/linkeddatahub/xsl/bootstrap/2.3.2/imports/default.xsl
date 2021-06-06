@@ -774,6 +774,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="concat('constructor-', generate-id())" as="xs:string?"/>
         <xsl:param name="subclasses" as="attribute()*"/>
         <xsl:param name="with-label" select="false()" as="xs:boolean"/>
+        <xsl:param name="modal-form" select="false()" as="xs:boolean"/>
         <xsl:variable name="forClass" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:if test="doc-available(ac:document-uri($forClass))">
@@ -817,7 +818,7 @@ exclude-result-prefixes="#all"
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
-                                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, map{ 'forClass': string(current-grouping-key()), 'mode': '&ac;ModalMode' })}"/>
+                                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)}"/>
 
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -854,7 +855,7 @@ exclude-result-prefixes="#all"
                             </xsl:otherwise>
                         </xsl:choose>
 
-                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, map{ 'forClass': string(@rdf:about), 'mode': '&ac;ModalMode' })}"/>
+                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)}"/>
                     </button>
                 </xsl:otherwise>
             </xsl:choose>

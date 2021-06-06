@@ -113,49 +113,72 @@ extension-element-prefixes="ixsl"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
 
-        <form method="{$method}" action="{$action}">
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$accept-charset">
-                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$enctype">
-                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
-            </xsl:if>
+        <xsl:choose>
+            <xsl:when test="$modal">
+                <div class="modal modal-constructor fade in">
+                    <form method="{$method}" action="{$action}">
+                        <xsl:if test="$id">
+                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$class">
+                            <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$accept-charset">
+                            <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$enctype">
+                            <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                        </xsl:if>
 
-            <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'rdf'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
+                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'rdf'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
 
-            <input type="hidden" class="target-id"/>
+                        <input type="hidden" class="target-id"/>
 
-            <xsl:apply-templates mode="bs2:Exception"/>
+                        <div class="modal-header">
+                            <button type="button" class="close">&#215;</button>
 
-            <xsl:choose>
-                <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="#current">
-                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="*" mode="#current">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
+                            <!--<xsl:apply-templates select="." mode="bs2:Legend"/>-->
+                        </div>
 
-            <xsl:apply-templates select="." mode="bs2:Create"/>
+                        <div class="modal-body">
+                            <xsl:apply-templates mode="bs2:Exception"/>
 
-            <xsl:apply-templates select="." mode="bs2:FormActions">
-                <xsl:with-param name="button-class" select="$button-class"/>
-            </xsl:apply-templates>
-        </form>
+                            <xsl:choose>
+                                <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="#current">
+                                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                                    </xsl:apply-templates>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:apply-templates mode="#current">
+                                        <xsl:sort select="ac:label(.)"/>
+                                    </xsl:apply-templates>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                            
+                            <xsl:apply-templates select="." mode="bs2:Create"/>
+                        </div>
+
+                        <xsl:apply-templates select="." mode="bs2:FormActions">
+                            <xsl:with-param name="button-class" select="$button-class"/>
+                        </xsl:apply-templates>
+                    </form>
+                </div>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:next-match>
+                    <xsl:with-param name="action" select="$action"/>
+                    <xsl:with-param name="id" select="$id"/>
+                    <xsl:with-param name="class" select="$class"/>
+                    <xsl:with-param name="accept-charset" select="$accept-charset"/>
+                    <xsl:with-param name="enctype" select="$enctype"/>
+                </xsl:next-match>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- FORM ACTIONS -->
