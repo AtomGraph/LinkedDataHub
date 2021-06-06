@@ -2898,9 +2898,11 @@ extension-element-prefixes="ixsl"
                                     </xsl:message>
                                 </xsl:for-each>
                                 <!-- remove this "Create" button -->
-                                <xsl:message>
-                                    <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-                                </xsl:message>
+                                <xsl:for-each select="$target/ancestor::div[tokenize(@class, ' ') = 'btn-group'][button[tokenize(@class, ' ') = 'create-action']]">
+                                    <xsl:message>
+                                        <xsl:value-of select="ixsl:call(., 'remove', [])"/>
+                                    </xsl:message>
+                                </xsl:for-each>
 
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <xsl:copy-of select="$form/*"/>
