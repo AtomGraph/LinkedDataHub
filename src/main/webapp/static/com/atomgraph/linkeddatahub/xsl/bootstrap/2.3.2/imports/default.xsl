@@ -19,6 +19,7 @@
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:lapp="&lapp;"
 xmlns:apl="&apl;"
 xmlns:ac="&ac;"
