@@ -129,9 +129,14 @@ exclude-result-prefixes="#all">
     <!-- show only form when ac:ModalMode combined with ac:Edit -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
         <body>
-            <xsl:apply-templates select="." mode="bs2:Form">
-                <xsl:with-param name="modal" select="$ac:mode = '&ac;ModalMode'" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:choose>
+                <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                    <xsl:apply-templates select="." mode="bs2:ModalForm"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="bs2:Form"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </body>
     </xsl:template>
 
@@ -140,14 +145,24 @@ exclude-result-prefixes="#all">
         <body>
             <xsl:choose>
                 <xsl:when test="not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
-                        <xsl:with-param name="modal" select="$ac:mode = '&ac;ModalMode'" tunnel="yes"/>
-                    </xsl:apply-templates>
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:ModalForm"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Form">
-                        <xsl:with-param name="modal" select="$ac:mode = '&ac;ModalMode'" tunnel="yes"/>
-                    </xsl:apply-templates>
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                            <xsl:apply-templates select="." mode="bs2:ModalForm"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="." mode="bs2:Form"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:otherwise>
             </xsl:choose>
         </body>

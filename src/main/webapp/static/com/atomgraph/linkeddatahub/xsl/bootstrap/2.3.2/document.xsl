@@ -100,10 +100,9 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- FORM -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:Form" priority="1">
+
+    <xsl:template match="rdf:RDF" mode="bs2:ModalForm" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <!-- append client mode parameter (which does not reach the server and therefore is not part of the hypermedia state arguments -->
         <!-- TO-DO: make action a tunnel param? -->
         <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string($ac:uri), 'mode': if ($modal) then '&ac;ModalMode' else () }) else if ($modal) then if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri('&ac;ModalMode')) else ac:build-uri($ac:uri, map{ 'mode': '&ac;ModalMode' }) else $ac:uri)" as="xs:anyURI"/>
@@ -113,80 +112,93 @@ extension-element-prefixes="ixsl"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
 
-        <xsl:choose>
-            <xsl:when test="$modal">
-                <div class="modal modal-constructor fade in">
-                    <form method="{$method}" action="{$action}">
-                        <xsl:if test="$id">
-                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$class">
-                            <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$accept-charset">
-                            <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$enctype">
-                            <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
-                        </xsl:if>
+        <div class="modal modal-constructor fade in">
+            <div class="modal-header">
+                <button type="button" class="close">&#215;</button>
 
-                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'rdf'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                        </xsl:call-template>
+                <!--<xsl:apply-templates select="." mode="bs2:Legend"/>-->
+            </div>
 
-                        <input type="hidden" class="target-id"/>
-
-                        <div class="modal-header">
-                            <button type="button" class="close">&#215;</button>
-
-                            <!--<xsl:apply-templates select="." mode="bs2:Legend"/>-->
-                        </div>
-
-                        <div class="modal-body">
-                            <xsl:apply-templates mode="bs2:Exception"/>
-
-                            <xsl:choose>
-                                <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="#current">
-                                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                                    </xsl:apply-templates>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:apply-templates mode="#current">
-                                        <xsl:sort select="ac:label(.)"/>
-                                    </xsl:apply-templates>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                            
-                            <xsl:apply-templates select="." mode="bs2:Create"/>
-                        </div>
-
-                        <xsl:apply-templates select="." mode="bs2:FormActions">
-                            <xsl:with-param name="button-class" select="$button-class"/>
-                        </xsl:apply-templates>
-                    </form>
-                </div>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:next-match>
+            <div class="modal-body">
+                <xsl:apply-templates select="." mode="bs2:Form">
                     <xsl:with-param name="action" select="$action"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="accept-charset" select="$accept-charset"/>
                     <xsl:with-param name="enctype" select="$enctype"/>
-                </xsl:next-match>
-            </xsl:otherwise>
-        </xsl:choose>
+                </xsl:apply-templates>
+            </div>
+
+            <xsl:apply-templates select="." mode="bs2:FormActions">
+                <xsl:with-param name="button-class" select="$button-class"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="bs2:Form" priority="1">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
+        <xsl:param name="modal" select="false()" as="xs:boolean"/>
+        <!-- append client mode parameter (which does not reach the server and therefore is not part of the hypermedia state arguments -->
+        <!-- TO-DO: make action a tunnel param? -->
+        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string($ac:uri) }) else $ac:uri)" as="xs:anyURI"/>
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
+        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+
+        <form method="{$method}" action="{$action}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$accept-charset">
+                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$enctype">
+                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+            </xsl:if>
+
+            <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+            <xsl:call-template name="xhtml:Input">
+                <xsl:with-param name="name" select="'rdf'"/>
+                <xsl:with-param name="type" select="'hidden'"/>
+            </xsl:call-template>
+
+            <input type="hidden" class="target-id"/>
+
+            <xsl:apply-templates mode="bs2:Exception"/>
+
+            <xsl:choose>
+                <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="#current">
+                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="*" mode="#current">
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
+
+            <xsl:apply-templates select="." mode="bs2:Create"/>
+
+            <xsl:apply-templates select="." mode="bs2:FormActions">
+                <xsl:with-param name="button-class" select="$button-class"/>
+            </xsl:apply-templates>
+        </form>
     </xsl:template>
     
     <!-- FORM ACTIONS -->
     
     <xsl:template match="rdf:RDF" mode="bs2:FormActions">
+        <xsl:param name="modal" select="false()" as="xs:boolean"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
-        <div class="form-actions">
+        <div class="form-actions {if ($modal) then 'modal-footer' else ''}">
             <button type="submit" class="{$button-class}">
                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="$button-class"/>
