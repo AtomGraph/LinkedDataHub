@@ -2887,15 +2887,28 @@ extension-element-prefixes="ixsl"
                     </xsl:variable>
                     <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
 
-                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                        <div class="row-fluid">
-                            <div class="left-nav span2"></div>
+                    <xsl:choose>
+                        <!-- we're in EditMode since <form> is already present - append elements to form -->
+                        <xsl:when test="id($container-id, ixsl:page())//form">
+                            <xsl:for-each select="id($container-id, ixsl:page())//form">
+                                <xsl:result-document href="?." method="ixsl:append-content">
+                                    <xsl:copy-of select="$form/*"/>
+                                </xsl:result-document>
+                            </xsl:for-each>
+                        </xsl:when>
+                        <!-- there's no <form> so we're not in EditMode - replace the whole content -->
+                        <xsl:otherwise>
+                            <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                                <div class="row-fluid">
+                                    <div class="left-nav span2"></div>
 
-                            <div class="span7">
-                                <xsl:copy-of select="$form"/>
-                            </div>
-                        </div>
-                    </xsl:result-document>
+                                    <div class="span7">
+                                        <xsl:copy-of select="$form"/>
+                                    </div>
+                                </div>
+                            </xsl:result-document>
+                        </xsl:otherwise>
+                    </xsl:choose>
 
                     <xsl:for-each select="ixsl:page()//body">
                         <ixsl:set-style name="cursor" select="'default'"/>
