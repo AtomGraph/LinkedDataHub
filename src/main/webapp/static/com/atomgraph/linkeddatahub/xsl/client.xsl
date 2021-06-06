@@ -1801,7 +1801,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="div[@id = 'content-body']//form[tokenize(@class, ' ') = 'form-horizontal']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="form" select="." as="element()"/>
+        <!--<xsl:variable name="form" select="." as="element()"/>-->
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="method" select="ixsl:get(., 'method')" as="xs:string"/>
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
@@ -1839,7 +1839,7 @@ extension-element-prefixes="ixsl"
 
                 <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                     <xsl:call-template name="onFormLoad">
-                        <xsl:with-param name="form" select="$form"/>
+                        <!--<xsl:with-param name="form" select="$form"/>-->
                         <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
@@ -1926,7 +1926,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:param name="form" as="element()"/>
+        <!--<xsl:param name="form" as="element()"/>-->
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
@@ -1960,8 +1960,6 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
-                <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
-                
                 <xsl:for-each select="?body">
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
@@ -1970,6 +1968,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
+                    <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
 
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <div class="row-fluid">
