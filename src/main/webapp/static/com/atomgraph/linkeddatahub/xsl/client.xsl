@@ -2892,8 +2892,14 @@ extension-element-prefixes="ixsl"
                         <xsl:when test="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
                             <xsl:for-each select="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
                                 <!-- remove the old form-actions <div> because we'll be appending a new one below -->
+                                <xsl:for-each select="div[tokenize(@class, ' ') = 'form-actions']">
+                                    <xsl:message>
+                                        <xsl:value-of select="ixsl:call(., 'remove', [])"/>
+                                    </xsl:message>
+                                </xsl:for-each>
+                                <!-- remove this "Create" button -->
                                 <xsl:message>
-                                    <xsl:value-of select="ixsl:call(div[tokenize(@class, ' ') = 'form-actions'], 'remove', [])"/>
+                                    <xsl:value-of select="ixsl:call(., 'remove', [])"/>
                                 </xsl:message>
 
                                 <xsl:result-document href="?." method="ixsl:append-content">
