@@ -2886,6 +2886,9 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:variable>
                     <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
+<xsl:message>
+    onaddFormCallback TARGET: <xsl:copy-of select="$target"/>
+</xsl:message>
 
                     <xsl:choose>
                         <!-- if "Create" button is within the <form>, append elements to <form> -->
