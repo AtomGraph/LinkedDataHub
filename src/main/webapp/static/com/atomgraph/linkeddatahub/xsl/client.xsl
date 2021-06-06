@@ -2889,8 +2889,8 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <!-- we're in EditMode since <form> is already present - append elements to form -->
-                        <xsl:when test="id($container-id, ixsl:page())//form">
-                            <xsl:for-each select="id($container-id, ixsl:page())//form">
+                        <xsl:when test="id($container-id, ixsl:page())//form[tokenize(@class, ' ') = 'form-horizontal']">
+                            <xsl:for-each select="id($container-id, ixsl:page())//form[tokenize(@class, ' ') = 'form-horizontal']">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <xsl:copy-of select="$form/*"/>
                                 </xsl:result-document>
