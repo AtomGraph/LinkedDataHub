@@ -815,14 +815,15 @@ exclude-result-prefixes="#all"
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
 
                                 <!-- won't traverse blank nodes, only URI resources -->
-                                <xsl:variable name="action" select="current-group()/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
+                                <!--<xsl:variable name="action" select="current-group()/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>-->
                                 <li>
                                     <button type="button" class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
-                                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)}"/>
-
+                                        <!--<input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)}"/>-->
+                                        <input type="hidden" name="forClass" select="{@rdf:about}"/>
+                                        
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </xsl:value-of>

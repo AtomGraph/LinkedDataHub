@@ -2574,12 +2574,14 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
-        <xsl:variable name="action" select="input[@class = 'action']/@value" as="xs:anyURI"/>
-        <xsl:message>Action URI: <xsl:value-of select="$action"/></xsl:message>
+        <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
+        <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
+        <xsl:variable name="href" select="ac:build-uri($ldt:base, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)" as="xs:anyURI"/>
+        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddForm"/>
         </ixsl:schedule-action>
     </xsl:template>
