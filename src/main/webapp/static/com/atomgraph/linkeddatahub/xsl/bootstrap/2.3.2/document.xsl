@@ -327,20 +327,6 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </xsl:if>
     </xsl:template>
-                
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:ConstructorListItem">
-        <xsl:param name="with-label" select="true()" as="xs:boolean"/>
-
-        <!-- the class document has to be available -->
-        <xsl:if test="doc-available(ac:document-uri(@rdf:about))">
-            <li>
-                <xsl:apply-templates select="." mode="bs2:Constructor">
-                    <xsl:with-param name="id" select="()"/>
-                    <xsl:with-param name="with-label" select="$with-label"/>
-                </xsl:apply-templates>
-            </li>
-        </xsl:if>
-    </xsl:template>
     
     <!-- OBJECT -->
     

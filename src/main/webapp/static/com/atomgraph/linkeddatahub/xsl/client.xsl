@@ -2575,7 +2575,8 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
-        <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
+        <!--- show a modal form if this button is already in <form>; otherwise (e.g. for the "Create" button) show normal form -->
+        <xsl:variable name="modal-form" select="exists(ancestor::form[tokenize(@class, ' ') = 'form-horizontal'])" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($ldt:base, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
