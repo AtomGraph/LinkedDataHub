@@ -2877,7 +2877,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
-                    <xsl:variable name="modal" select="//div[tokenize(@class, ' ') = 'modal-constructor']" as="xs:boolean"/>
+                    <xsl:variable name="modal" select="exists(//div[tokenize(@class, ' ') = 'modal-constructor'])" as="xs:boolean"/>
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
