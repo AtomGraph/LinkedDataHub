@@ -1481,7 +1481,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
 
-                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge($params, map{ 'auth_token': $service/dydra-urn:accessToken }) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
                     
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
@@ -2576,7 +2576,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri($ldt:base, map{ 'forClass': string($forClass), 'mode': '&ac;ModalMode' })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri($ldt:base, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
