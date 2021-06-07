@@ -2576,7 +2576,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri($ldt:base, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri($ldt:base, map{ 'forClass': string($forClass), 'mode': '&ac;ModalMode' })" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
