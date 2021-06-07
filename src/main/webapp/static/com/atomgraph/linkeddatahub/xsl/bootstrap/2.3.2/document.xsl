@@ -126,6 +126,7 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="class" select="$class"/>
                     <xsl:with-param name="accept-charset" select="$accept-charset"/>
                     <xsl:with-param name="enctype" select="$enctype"/>
+                    <xsl:with-param name="form-actions" select="false()"/>
                 </xsl:apply-templates>
             </div>
 
@@ -139,14 +140,13 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="bs2:Form" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="modal" select="false()" as="xs:boolean"/>
-        <!-- append client mode parameter (which does not reach the server and therefore is not part of the hypermedia state arguments -->
-        <!-- TO-DO: make action a tunnel param? -->
         <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string($ac:uri) }) else $ac:uri)" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="form-actions" select="true()" as="xs:boolean"/>
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -187,9 +187,11 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:Create"/>
 
-            <xsl:apply-templates select="." mode="bs2:FormActions">
-                <xsl:with-param name="button-class" select="$button-class"/>
-            </xsl:apply-templates>
+            <xsl:if test="$form-actions">
+                <xsl:apply-templates select="." mode="bs2:FormActions">
+                    <xsl:with-param name="button-class" select="$button-class"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </form>
     </xsl:template>
     
