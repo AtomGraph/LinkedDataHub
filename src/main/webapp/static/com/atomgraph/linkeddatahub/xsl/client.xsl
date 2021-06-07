@@ -2891,7 +2891,7 @@ extension-element-prefixes="ixsl"
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                                 </xsl:apply-templates>
                             </xsl:variable>
-                            <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>
+                            <xsl:variable name="form-id" select="$modal-div//form/@id" as="xs:string"/>
 
                             <xsl:for-each select="ixsl:page()//body">
                                 <xsl:result-document href="?." method="ixsl:append-content">
