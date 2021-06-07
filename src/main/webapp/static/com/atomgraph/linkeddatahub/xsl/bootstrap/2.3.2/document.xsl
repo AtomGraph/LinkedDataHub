@@ -146,12 +146,12 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="#current">
+                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="bs2:Form">
                                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:apply-templates mode="#current">
+                            <xsl:apply-templates mode="bs2:Form">
                                 <xsl:sort select="ac:label(.)"/>
                             </xsl:apply-templates>
                         </xsl:otherwise>
