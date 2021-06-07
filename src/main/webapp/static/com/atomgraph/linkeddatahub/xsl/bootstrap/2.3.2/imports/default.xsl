@@ -860,7 +860,9 @@ exclude-result-prefixes="#all"
                             </xsl:otherwise>
                         </xsl:choose>
 
-                        <input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)}"/>
+                        <!--<input type="hidden" class="action" value="{ac:build-uri(if ($action) then $action else $ac:uri, let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge($params, map{ 'mode': '&ac;ModalMode' }) else $params)}"/>-->
+                        <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
+                        <input type="hidden" class="forClass" value="{@rdf:about}"/>
                     </button>
                 </xsl:otherwise>
             </xsl:choose>
