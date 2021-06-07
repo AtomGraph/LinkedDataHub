@@ -46,6 +46,7 @@ exclude-result-prefixes="#all">
                 </xsl:for-each>
                 <!-- bs2:Constructor sets forClass -->
                 <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="bs2:Constructor">
+                    <xsl:with-param name="modal-form" select="true()"/>
                     <xsl:with-param name="subclasses" select="$subclasses"/>
                 </xsl:apply-templates>
             </xsl:when>
