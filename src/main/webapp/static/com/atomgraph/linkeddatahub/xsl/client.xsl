@@ -2580,7 +2580,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onaddFormCallback"/>
+            <xsl:call-template name="onAddForm"/>
         </ixsl:schedule-action>
     </xsl:template>
 
@@ -2709,7 +2709,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onaddFormCallback"/>
+            <xsl:call-template name="onAddForm"/>
         </ixsl:schedule-action>
     </xsl:template>
     
@@ -2868,7 +2868,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- after "Create" or "Edit" buttons are clicked" -->
-    <xsl:template name="onaddFormCallback">
+    <xsl:template name="onAddForm">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         
@@ -2877,60 +2877,87 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
+                    <xsl:variable name="modal" select="//div[tokenize(@class, ' ') = 'modal-constructor']" as="xs:boolean"/>
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                    <xsl:variable name="form" as="element()">
-                        <xsl:apply-templates select="//form" mode="form">
-                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:variable>
-                    <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
-
+                    
                     <xsl:choose>
-                        <!-- if "Create" button is within the <form>, append elements to <form> -->
-                        <xsl:when test="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
-                            <xsl:for-each select="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
-                                <!-- remove the old form-actions <div> because we'll be appending a new one below -->
-                                <xsl:for-each select="div[tokenize(@class, ' ') = 'form-actions']">
-                                    <xsl:message>
-                                        <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-                                    </xsl:message>
-                                </xsl:for-each>
-                                <!-- remove this "Create" button -->
-                                <xsl:for-each select="$target/ancestor::div[tokenize(@class, ' ') = 'btn-group'][button[tokenize(@class, ' ') = 'create-action']]">
-                                    <xsl:message>
-                                        <xsl:value-of select="ixsl:call(., 'remove', [])"/>
-                                    </xsl:message>
-                                </xsl:for-each>
+                        <xsl:when test="$modal">
+                            <xsl:variable name="modal-div" as="element()">
+                                <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="modal">
+                                    <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                                    <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:variable>
+                            <xsl:variable name="form-id" select="$modal-div/form/@id" as="xs:string"/>
 
+                            <xsl:for-each select="ixsl:page()//body">
                                 <xsl:result-document href="?." method="ixsl:append-content">
-                                    <xsl:copy-of select="$form/*"/>
+                                    <!-- append modal div to body -->
+                                    <xsl:copy-of select="$modal-div"/>
                                 </xsl:result-document>
+
+                                <!-- add event listeners to the descendants of the form -->
+                                <xsl:call-template name="add-form-listeners">
+                                    <xsl:with-param name="id" select="$form-id"/>
+                                </xsl:call-template>
                             </xsl:for-each>
                         </xsl:when>
-                        <!-- there's no <form> so we're not in EditMode - replace the whole content -->
                         <xsl:otherwise>
-                            <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                                <div class="row-fluid">
-                                    <div class="left-nav span2"></div>
+                            <xsl:variable name="form" as="element()">
+                                <xsl:apply-templates select="//form" mode="form">
+                                    <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
+                                    <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                                </xsl:apply-templates>
+                            </xsl:variable>
+                            <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
+                            
+                            <xsl:choose>
+                                <!-- if "Create" button is within the <form>, append elements to <form> -->
+                                <xsl:when test="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
+                                    <xsl:for-each select="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
+                                        <!-- remove the old form-actions <div> because we'll be appending a new one below -->
+                                        <xsl:for-each select="div[tokenize(@class, ' ') = 'form-actions']">
+                                            <xsl:message>
+                                                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
+                                            </xsl:message>
+                                        </xsl:for-each>
+                                        <!-- remove this "Create" button -->
+                                        <xsl:for-each select="$target/ancestor::div[tokenize(@class, ' ') = 'btn-group'][button[tokenize(@class, ' ') = 'create-action']]">
+                                            <xsl:message>
+                                                <xsl:value-of select="ixsl:call(., 'remove', [])"/>
+                                            </xsl:message>
+                                        </xsl:for-each>
 
-                                    <div class="span7">
-                                        <xsl:copy-of select="$form"/>
-                                    </div>
-                                </div>
-                            </xsl:result-document>
+                                        <xsl:result-document href="?." method="ixsl:append-content">
+                                            <xsl:copy-of select="$form/*"/>
+                                        </xsl:result-document>
+                                    </xsl:for-each>
+                                </xsl:when>
+                                <!-- there's no <form> so we're not in EditMode - replace the whole content -->
+                                <xsl:otherwise>
+                                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                                        <div class="row-fluid">
+                                            <div class="left-nav span2"></div>
+
+                                            <div class="span7">
+                                                <xsl:copy-of select="$form"/>
+                                            </div>
+                                        </div>
+                                    </xsl:result-document>
+                                </xsl:otherwise>
+                                
+                                <!-- add event listeners to the descendants of the form -->
+                                <xsl:call-template name="add-form-listeners">
+                                    <xsl:with-param name="id" select="$form-id"/>
+                                </xsl:call-template>
+                            </xsl:choose>
                         </xsl:otherwise>
                     </xsl:choose>
 
                     <xsl:for-each select="ixsl:page()//body">
                         <ixsl:set-style name="cursor" select="'default'"/>
                     </xsl:for-each>
-
-                    <!-- add event listeners to the descendants of the form -->
-                    <xsl:call-template name="add-form-listeners">
-                        <xsl:with-param name="id" select="$form-id"/>
-                    </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
