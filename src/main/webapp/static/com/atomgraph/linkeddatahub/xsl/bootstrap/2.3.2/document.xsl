@@ -157,7 +157,7 @@ extension-element-prefixes="ixsl"
                         </xsl:otherwise>
                     </xsl:choose>
 
-                    <xsl:apply-templates select="." mode="bs2:Create"/>
+                    <!--<xsl:apply-templates select="." mode="bs2:Create"/>-->
                 </div>
 
                 <xsl:apply-templates select="." mode="bs2:FormActions">
