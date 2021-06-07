@@ -2896,12 +2896,12 @@ extension-element-prefixes="ixsl"
                                     <!-- append modal div to body -->
                                     <xsl:copy-of select="$modal-div"/>
                                 </xsl:result-document>
-
-                                <!-- add event listeners to the descendants of the form -->
-                                <xsl:call-template name="add-form-listeners">
-                                    <xsl:with-param name="id" select="$form-id"/>
-                                </xsl:call-template>
                             </xsl:for-each>
+                            
+                            <!-- add event listeners to the descendants of the form -->
+                            <xsl:call-template name="add-form-listeners">
+                                <xsl:with-param name="id" select="$form-id"/>
+                            </xsl:call-template>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:variable name="form" as="element()">
@@ -2946,12 +2946,12 @@ extension-element-prefixes="ixsl"
                                         </div>
                                     </xsl:result-document>
                                 </xsl:otherwise>
-                                
-                                <!-- add event listeners to the descendants of the form -->
-                                <xsl:call-template name="add-form-listeners">
-                                    <xsl:with-param name="id" select="$form-id"/>
-                                </xsl:call-template>
                             </xsl:choose>
+                            
+                            <!-- add event listeners to the descendants of the form -->
+                            <xsl:call-template name="add-form-listeners">
+                                <xsl:with-param name="id" select="$form-id"/>
+                            </xsl:call-template>
                         </xsl:otherwise>
                     </xsl:choose>
 
