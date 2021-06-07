@@ -2886,7 +2886,7 @@ extension-element-prefixes="ixsl"
                     <xsl:choose>
                         <xsl:when test="$modal">
                             <xsl:variable name="modal-div" as="element()">
-                                <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="modal">
+                                <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                                 </xsl:apply-templates>
