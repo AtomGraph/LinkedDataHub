@@ -144,7 +144,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
         <body>
             <xsl:choose>
-                <xsl:when test="not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                <xsl:when test="$a:method = 'GET'">
                     <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
                             <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:ModalForm"/>
@@ -154,7 +154,7 @@ exclude-result-prefixes="#all">
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
-                <xsl:otherwise>
+                <xsl:when test="$a:method = 'POST' and key('resources-by-type', '&spin;ConstraintViolation')">
                     <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
                             <xsl:apply-templates select="." mode="bs2:ModalForm"/>
@@ -163,6 +163,9 @@ exclude-result-prefixes="#all">
                             <xsl:apply-templates select="." mode="bs2:Form"/>
                         </xsl:otherwise>
                     </xsl:choose>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:next-match/>
                 </xsl:otherwise>
             </xsl:choose>
         </body>
