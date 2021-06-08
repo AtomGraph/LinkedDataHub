@@ -1799,7 +1799,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="div[@id = 'content-body']//form[tokenize(@class, ' ') = 'form-horizontal']" mode="ixsl:onsubmit">
+    <xsl:template match="form[tokenize(@class, ' ') = 'form-horizontal']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>

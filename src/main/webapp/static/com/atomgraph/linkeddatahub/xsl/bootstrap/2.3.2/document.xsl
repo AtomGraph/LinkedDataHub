@@ -161,6 +161,7 @@ extension-element-prefixes="ixsl"
                 </div>
 
                 <xsl:apply-templates select="." mode="bs2:FormActions">
+                    <xsl:with-param name="modal" select="true()"/>
                     <xsl:with-param name="button-class" select="$button-class"/>
                 </xsl:apply-templates>
             </form>
