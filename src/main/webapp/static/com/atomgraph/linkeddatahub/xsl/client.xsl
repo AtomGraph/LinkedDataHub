@@ -1942,7 +1942,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                         
                 <xsl:choose>
-                    <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
+                    <!-- if the form submit did not originate from a typeahead (target), redirect to the created resource -->
                     <xsl:when test="not($typeahead-span)">
                         <ixsl:set-property name="location.href" select="$created-uri"/>
                     </xsl:when>

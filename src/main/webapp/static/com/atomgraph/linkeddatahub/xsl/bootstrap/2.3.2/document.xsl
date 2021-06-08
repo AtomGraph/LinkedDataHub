@@ -105,7 +105,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <!-- append client mode parameter (which does not reach the server and therefore is not part of the hypermedia state arguments -->
         <!-- TO-DO: make action a tunnel param? -->
-        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string($ac:uri), 'mode': '&ac;ModalMode' }) else ac:build-uri($ac:uri, map{ 'mode': '&ac;ModalMode' }))" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
