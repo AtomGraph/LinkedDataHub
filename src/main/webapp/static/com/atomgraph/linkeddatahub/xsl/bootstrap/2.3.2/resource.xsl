@@ -773,11 +773,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="legend" select="false()"/>
         </xsl:next-match>
         
-        <div class="btn-group pull-right">
-            <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
-        </div>
-
-        <xsl:apply-templates select="." mode="bs2:ContentControl"/>
+        <!--<xsl:apply-templates select="." mode="bs2:ContentControl"/>-->
     </xsl:template>
     
     <!-- hide Content's rdf:first property -->
@@ -826,15 +822,23 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:if test="$legend">
-                <legend>
+            <xsl:choose>
+                <xsl:when test="$legend">
+                    <legend>
+                        <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
+                        <div class="btn-group pull-right">
+                            <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                        </div>
+
+                        <xsl:value-of select="ac:label(.)"/>
+                    </legend>
+                </xsl:when>
+                <xsl:otherwise>
                     <div class="btn-group pull-right">
                         <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
                     </div>
-
-                    <xsl:value-of select="ac:label(.)"/>
-                </legend>
-            </xsl:if>
+                </xsl:otherwise>
+            </xsl:choose>
 
             <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current">
                 <xsl:with-param name="type" select="if ($show-subject) then 'text' else 'hidden'"/>
