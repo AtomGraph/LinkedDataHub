@@ -1306,8 +1306,10 @@ exclude-result-prefixes="#all"
     
     <!-- order by onchange -->
     
-    <xsl:template match="select[@id = 'container-order']" mode="ixsl:onchange">
-        <xsl:variable name="content-uri" select="()" as="xs:anyURI?"/> <!-- TO-DO: fix -->
+    <xsl:template match="select[tokenize(@class, ' ') = 'container-order']" mode="ixsl:onchange">
+        <xsl:variable name="container-id" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/@id" as="xs:string"/>
+        <xsl:variable name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
@@ -1315,7 +1317,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][json:string[@key = 'predicate'] = $predicate][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
         <xsl:variable name="var-name" select="$bgp-triples-map/json:string[@key = 'object'][1]/substring-after(., '?')" as="xs:string?"/>
-        
+        <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
+
         <xsl:variable name="new-state" as="map(xs:string, item()?)">
             <xsl:map>
                 <xsl:map-entry key="'&rdf;type'" select="'&ac;OrderBy'"/>
@@ -1329,7 +1332,12 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <xsl:call-template name="apl:RenderContainer">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="content" select="$content"/>
+            <xsl:with-param name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
         </xsl:call-template>
     </xsl:template>
     

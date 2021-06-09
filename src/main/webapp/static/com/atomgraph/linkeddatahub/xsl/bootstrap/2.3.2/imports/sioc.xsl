@@ -30,13 +30,23 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
+        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
+        <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
+        <!-- won't traverse blank nodes, only URI resources -->
+        <xsl:variable name="container" select="$forClass/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
+
         <span>
-            <xsl:apply-templates select="key('resources', $ac:uri, document($ac:uri))" mode="apl:Typeahead"/>
+            <xsl:choose>
+                <xsl:when test="">
+                    <xsl:apply-templates select="key('resources', $container, document($container))" mode="apl:Typeahead"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="key('resources', $ac:uri, document($ac:uri))" mode="apl:Typeahead"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </span>
         <xsl:text> </xsl:text>
 
-        <xsl:variable name="forClass" select="key('resources', .)/rdf:type/@rdf:resource" as="xs:anyURI"/>
-        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
                 <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>

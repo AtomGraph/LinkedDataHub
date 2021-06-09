@@ -956,7 +956,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="default-desc" as="xs:boolean?"/>
         <xsl:param name="active-class" select="'list-mode'" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="order-by-container-id" select="'container-order'" as="xs:string?"/>
+        <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
 
         <!-- update progress bar -->
         <!--<ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
@@ -1007,7 +1007,7 @@ extension-element-prefixes="ixsl"
                                 <!-- currently no space for the label in the layout -->
                                 <!--<xsl:text>Order by </xsl:text>-->
                                 
-                                <select id="{$order-by-container-id}" name="order-by" class="input-medium">
+                                <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
                                     <!-- show the default option if the container query does not have an ORDER BY -->
                                     <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
                                         <option>[None]</option>
