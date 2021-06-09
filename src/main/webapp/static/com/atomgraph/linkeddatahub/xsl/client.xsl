@@ -905,12 +905,12 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
 
                     <!-- result counts -->
-                    <xsl:if test="id('result-counts', ixsl:page())">
+                    <!-- <xsl:if test="id('result-counts', ixsl:page())">
                         <xsl:call-template name="apl:ResultCounts">
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                         </xsl:call-template>
-                    </xsl:if>
+                    </xsl:if> -->
 
                     <!-- only show parallax navigation if the RDF result contains object resources -->
                     <xsl:if test="$grouped-results/rdf:RDF/*/*[@rdf:resource]">
@@ -2053,8 +2053,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
-        <xsl:param name="container-doc" select="document(ac:build-uri($container-uri, map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>
-        <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI"/>
+<!--        <xsl:param name="container-doc" select="document(ac:build-uri($container-uri, map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>-->
+        <xsl:param name="select-uri" select="resolve-uri('queries/default/select-labelled/#this', $ldt:base)" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
@@ -2369,8 +2369,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI?"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
-        <xsl:param name="container-doc" select="document(ac:build-uri($container-uri, map{ 'accept': 'application/rdf+xml' }))" as="document-node()?"/>
-        <xsl:param name="select-uri" select="key('resources', $container-uri, $container-doc)/dh:select/@rdf:resource" as="xs:anyURI?"/>
+<!--        <xsl:param name="container-doc" select="document(ac:build-uri($container-uri, map{ 'accept': 'application/rdf+xml' }))" as="document-node()?"/>-->
+        <xsl:param name="select-uri" select="resolve-uri('queries/default/select-labelled/#this', $ldt:base)" as="xs:anyURI"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()?"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string?"/>

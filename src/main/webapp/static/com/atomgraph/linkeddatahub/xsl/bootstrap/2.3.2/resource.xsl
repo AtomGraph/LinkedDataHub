@@ -772,6 +772,12 @@ extension-element-prefixes="ixsl"
         <xsl:next-match>
             <xsl:with-param name="legend" select="false()"/>
         </xsl:next-match>
+        
+        <div class="btn-group pull-right">
+            <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+        </div>
+
+        <xsl:apply-templates select="." mode="bs2:ContentControl"/>
     </xsl:template>
     
     <!-- hide Content's rdf:first property -->
@@ -890,6 +896,23 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     -->
 
+    <!-- TYPE CONTROL -->
+    
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ContentControl">
+        <div class="control-group">
+            <span class="control-label">
+                <select class="input-medium">
+                    <option>Resource content</option>
+                    <option>HTML content</option>
+                </select>
+            </span>
+
+            <div class="controls">
+                <button type="button">[+]</button>
+            </div>
+        </div>
+    </xsl:template>
+    
     <!-- TYPEAHEAD -->
     
     <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">

@@ -95,7 +95,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .pager > li.next > a { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_navigate_next_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; height: 24px; }
 #container-results { overflow-y: auto; }
 .map-canvas { height: 35em; width: 100%; }
- fieldset { border: 1px outset #999; padding-top: 3%; }
+fieldset { border: 1px outset #999; /* padding-top: 3%; */ }
 fieldset fieldset { margin-left: 3%; margin-bottom: 3%; }
 #uri { height: 24px; }
 #query-form fieldset { border: initial; margin: initial; }
