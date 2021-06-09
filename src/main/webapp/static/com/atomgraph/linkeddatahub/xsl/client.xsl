@@ -1961,16 +1961,17 @@ extension-element-prefixes="ixsl"
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
+                    <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
-                        <xsl:apply-templates select="//form" mode="form">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
                             <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
+                    <!--<xsl:variable name="form-id" select="$form/@id" as="xs:string"/>-->
 
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+<!--                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <div class="row-fluid">
                             <div class="left-nav span2"></div>
 
@@ -1978,11 +1979,11 @@ extension-element-prefixes="ixsl"
                                 <xsl:copy-of select="$form"/>
                             </div>
                         </div>
-                    </xsl:result-document>
-<!--                    
+                    </xsl:result-document>-->
+                    
                     <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
                         <xsl:copy-of select="$form/*"/>
-                    </xsl:result-document>-->
+                    </xsl:result-document>
 
                     <xsl:call-template name="add-form-listeners">
                         <xsl:with-param name="id" select="$form-id"/>
