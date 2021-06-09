@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
 
         <span>
             <xsl:choose>
-                <xsl:when test="">
+                <xsl:when test="$container">
                     <xsl:apply-templates select="key('resources', $container, document($container))" mode="apl:Typeahead"/>
                 </xsl:when>
                 <xsl:otherwise>
