@@ -958,6 +958,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
 
+<xsl:message>
+    $container-id: <xsl:value-of select="$container-id"/>
+</xsl:message>
+
         <!-- update progress bar -->
         <!--<ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
         <!-- hide progress bar -->
