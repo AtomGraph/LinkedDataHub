@@ -60,9 +60,9 @@ sub vcl_recv {
 }
 
 sub vcl_backend_response {
-    if ((beresp.status == 200 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE") {
+    if ((beresp.status == 200 || beresp.status == 201 || beresp.status == 204) && bereq.method ~ "POST|PUT|DELETE|PATCH") {
         set beresp.http.X-LinkedDataHub = "Banned";
-        ban("req.url == " + bereq.url + " && req.http.host == " + bereq.http.host);
+        ban("bereq.url == " + bereq.url + " && ..http.host == " + bereq.http.host);
     }
 
     return (deliver);

@@ -61,8 +61,6 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-            purge(getApplication().get().getService().getProxy(), req.getUriInfo().getRequestUri().toString()).close();
-            
             ban(getApplication().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
             ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
         }
@@ -76,15 +74,6 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
         return getClient().target(proxy.getURI()).request().
             header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
-    }
-
-    public Response purge(Resource proxy, String url)
-    {
-        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
-        
-        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
-        return getClient().target(proxy.getURI()).request().
-            method("PURGE", Response.class);
     }
 
     public AdminApplication getAdminApplication()
