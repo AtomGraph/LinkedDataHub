@@ -5,6 +5,7 @@
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
@@ -37,6 +38,7 @@ xmlns:sd="&sd;"
 xmlns:foaf="&foaf;"
 xmlns:sp="&sp;"
 xmlns:spl="&spl;"
+xmlns:owl="&owl;"
 xmlns:geo="&geo;"
 xmlns:void="&void;"
 xmlns:dydra="&dydra;"
