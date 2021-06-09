@@ -863,6 +863,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
+                    <xsl:variable name="active-class" select="id($container-id, ixsl:page())//ul[@class = 'nav nav-tabs']/li[tokenize(@class, ' ') = 'active']/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
 
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="container-id" select="$container-id"/>
@@ -876,6 +877,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
                         <xsl:with-param name="default-desc" select="$default-desc"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="active-class" select="$active-class"/>
                     </xsl:call-template>
 
                     <!-- only append facets if they are not already present -->
@@ -957,10 +959,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="active-class" select="'list-mode'" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
-
-<xsl:message>
-    $container-id: <xsl:value-of select="$container-id"/>
-</xsl:message>
 
         <!-- update progress bar -->
         <!--<ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
