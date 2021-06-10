@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.processor.model.TemplateCall;
+import com.atomgraph.server.resource.graph.Item;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -84,7 +85,7 @@ public class Dispatcher
     
     public Class getResourceClass()
     {
-        return ResourceBase.class;
+        return Item.class;
     }
     
     public Optional<com.atomgraph.processor.model.Application> getApplication()
