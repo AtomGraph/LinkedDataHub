@@ -61,8 +61,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-            ban(getApplication().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
-            ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
+//            ban(getApplication().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
+//            ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
         }
     }
     
