@@ -17,14 +17,18 @@
 package com.atomgraph.linkeddatahub.resource.graph;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
@@ -34,15 +38,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.update.UpdateRequest;
 
 /**
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl
+public class Item extends GraphStoreImpl implements Patchable
 {
 
     private final URI uri;
+    private final EndpointAccessor endpointAccessor;
     
     @Inject
     public Item(@Context Request request, Optional<Service> service, MediaTypes mediaTypes,
@@ -50,6 +56,7 @@ public class Item extends GraphStoreImpl
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
+        this.endpointAccessor = service.get().getEndpointAccessor();
     }
 
     @Override
@@ -80,9 +87,24 @@ public class Item extends GraphStoreImpl
         return super.delete(false, getURI());
     }
     
+    @PATCH
+    @Override
+    public Response patch(UpdateRequest updateRequest)
+    {
+        // TO-DO: do a check that the update only uses this named graph
+        getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        
+        return Response.ok().build();
+    }
+    
     public URI getURI()
     {
         return uri;
+    }
+    
+    public EndpointAccessor getEndpointAccessor()
+    {
+        return endpointAccessor;
     }
     
 }
