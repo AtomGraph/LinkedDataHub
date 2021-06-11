@@ -32,6 +32,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 
 /**
@@ -56,12 +57,13 @@ public class ProvenanceFilter implements ContainerResponseFilter
             String graphGraphUri = "urn:uuid:" + UUID.randomUUID().toString();
 
             Model model = ModelFactory.createDefaultModel();
-            model.createResource().
+            Resource graph = model.createResource().
                 addProperty(RDF.type, SD.NamedGraph).
                 addProperty(SD.name, model.createResource(graphUri)).
-                addProperty(PROV.wasAttributedTo, getAgent()).
                 addLiteral(PROV.generatedAtTime, GregorianCalendar.getInstance());
                 // TO-DO: ACL access mode?
+            
+            if (getAgent() != null) graph.addProperty(PROV.wasAttributedTo, getAgent());
             
             getService().get().getDatasetAccessor().putModel(graphGraphUri, model);
         }
