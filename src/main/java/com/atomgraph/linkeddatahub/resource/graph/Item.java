@@ -16,13 +16,16 @@
  */
 package com.atomgraph.linkeddatahub.resource.graph;
 
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -33,6 +36,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -95,6 +99,28 @@ public class Item extends GraphStoreImpl implements Patchable
         getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
         
         return Response.ok().build();
+    }
+    
+    /**
+     * Gets a list of media types that a writable for a message body class.
+     * 
+     * @param clazz message body class, normally <code>Dataset.class</code> or <code>Model.class</code>
+     * @return list of media types
+     */
+    @Override
+    public List<MediaType> getWritableMediaTypes(Class clazz)
+    {
+        // restrict writable MediaTypes to the requested one (usually by RDF export feature)
+        if (getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName())) // TO-DO: move to ResourceFilter?
+        {
+            String accept = getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName());
+            
+            MediaType mediaType = MediaType.valueOf(accept); // parse value
+            mediaType = new MediaType(mediaType.getType(), mediaType.getSubtype(), MediaTypes.UTF8_PARAM); // set charset=UTF-8
+            return Arrays.asList(mediaType);
+        }
+
+        return super.getWritableMediaTypes(clazz);
     }
     
     public URI getURI()
