@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.model;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.model.Agent;
 
 /**
  * LinkedDataHub server resource interface.
@@ -28,15 +27,5 @@ public interface Resource extends com.atomgraph.core.model.Resource
 {
     
     Application getApplication();
-    
-//    boolean exists(org.apache.jena.rdf.model.Resource resource);
-
-//    @POST
-//    @Consumes(MediaType.MULTIPART_FORM_DATA)
-//    Response postMultipart(FormDataMultiPart multiPart);
-    
-    // UserAccount getUserAccount(); // TO-DO: refactor into SecurityContext
-    
-    Agent getAgent();
     
 }

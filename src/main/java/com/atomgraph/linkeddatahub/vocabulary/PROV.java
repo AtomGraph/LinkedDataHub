@@ -52,6 +52,8 @@ public class PROV {
 
     public static final OntClass Agent = m_model.createClass( NS + "Agent" );
 
+    public static final ObjectProperty wasAttributedTo = m_model.createObjectProperty( NS + "wasAttributedTo" );
+
     public static final ObjectProperty wasDerivedFrom = m_model.createObjectProperty( NS + "wasDerivedFrom" );
 
     public static final ObjectProperty wasGeneratedBy = m_model.createObjectProperty( NS + "wasGeneratedBy" );

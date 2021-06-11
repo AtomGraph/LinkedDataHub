@@ -49,6 +49,7 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -118,6 +119,25 @@ public class Container extends com.atomgraph.linkeddatahub.server.model.impl.Res
         }
 
         return super.post(model);
+    }
+    
+    public Resource getArgument(Model model, Resource type)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
+
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
+
+        try
+        {
+            if (it.hasNext()) return it.next();
+        }
+        finally
+        {
+            it.close();
+        }
+        
+        return null;
     }
     
     public Query getOntologyImportQuery()
