@@ -25,11 +25,10 @@ import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -43,15 +42,17 @@ import org.apache.jena.vocabulary.RDF;
  */
 public class ProvenanceFilter implements ContainerResponseFilter
 {
-
-    @Context SecurityContext securityContext;
     
     @Inject javax.inject.Provider<Optional<Service>> service;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
     {
-        if (getService().isPresent())
+        if (getService().isPresent() &&
+            (request.getMethod().equals(HttpMethod.POST) ||
+            request.getMethod().equals(HttpMethod.PUT) ||
+            request.getMethod().equals(HttpMethod.PATCH) ||
+            request.getMethod().equals(HttpMethod.DELETE)))
         {
             String graphUri = request.getUriInfo().getAbsolutePath().toString();
             String graphGraphUri = "urn:uuid:" + UUID.randomUUID().toString();
@@ -63,30 +64,14 @@ public class ProvenanceFilter implements ContainerResponseFilter
                 addLiteral(PROV.generatedAtTime, GregorianCalendar.getInstance());
                 // TO-DO: ACL access mode?
             
-            if (getAgent() != null) graph.addProperty(PROV.wasAttributedTo, getAgent());
+        if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
+            {
+                Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
+                graph.addProperty(PROV.wasAttributedTo, agent);
+            }
             
             getService().get().getDatasetAccessor().putModel(graphGraphUri, model);
         }
-    }
-
-    /**
-     * Gets agent authenticated for the current request.
-     * 
-     * @return agent
-     */
-    public Agent getAgent()
-    {
-        if (getSecurityContext() != null &&
-                getSecurityContext().getUserPrincipal() != null &&
-                getSecurityContext().getUserPrincipal() instanceof Agent)
-            return (Agent)getSecurityContext().getUserPrincipal();
-        
-        return null;
-    }
-    
-    public SecurityContext getSecurityContext()
-    {
-        return securityContext;
     }
     
     public Optional<Service> getService()
