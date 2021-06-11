@@ -39,4 +39,4 @@ curl -k -w "%{http_code}\n" -f -s \
   -H "Content-Length: 0" \
   -X POST \
   "${END_USER_BASE_URL}" \
-| grep -q "${STATUS_POST_SUCCESS}"
+| grep -q "${STATUS_NO_CONTENT}"
