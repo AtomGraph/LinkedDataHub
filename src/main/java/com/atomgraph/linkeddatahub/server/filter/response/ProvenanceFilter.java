@@ -45,7 +45,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
 
     @Context SecurityContext securityContext;
     
-    @Inject Optional<Service> service;
+    @Inject javax.inject.Provider<Optional<Service>> service;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
@@ -89,7 +89,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
     
     public Optional<Service> getService()
     {
-        return service;
+        return service.get();
     }
     
 }
