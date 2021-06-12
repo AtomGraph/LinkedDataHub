@@ -2988,12 +2988,12 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
+                    <xsl:variable name="new-control-group" select="$form//div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu']/@value = $property]" as="element()"/>
                     
                     <xsl:for-each select="$control-group">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$form//div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu']/@value = $property]/*"/>
+                            <xsl:copy-of select="$new-control-group/*"/>
                         </xsl:result-document>
-                        
 
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
                         <xsl:for-each select="$control-group/..">
@@ -3004,7 +3004,7 @@ extension-element-prefixes="ixsl"
 
                         <!-- apply WYMEditor on textarea if object is XMLLiteral -->
                         <xsl:call-template name="add-value-listeners">
-                            <xsl:with-param name="id" select="$for"/>
+                            <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
                             <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
                         </xsl:call-template>
                     </xsl:for-each>
@@ -3041,26 +3041,12 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="text()" mode="apl:PostConstructMode"/>
 
-    <!-- remove property button -->
-<!--    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-property']" mode="apl:PostConstructMode" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'click', ixsl:get(ixsl:window(), 'onRemoveButtonClick') ])"/>
-        </xsl:message>
-    </xsl:template>-->
-
     <!-- subject type change -->
     <xsl:template match="select[tokenize(@class, ' ') = 'subject-type']" mode="apl:PostConstructMode" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])"/>
         </xsl:message>
     </xsl:template>
-        
-    <!-- constructor dropdown -->
-<!--    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="apl:PostConstructMode" priority="1">
-        <xsl:message>
-            <xsl:value-of select="ixsl:call(., 'addEventListener',  ['click', ixsl:get(ixsl:window(), 'onDropdownClick') ])"/>
-        </xsl:message>
-    </xsl:template>-->
     
     <xsl:template match="textarea[tokenize(@class, ' ') = 'wymeditor']" mode="apl:PostConstructMode" priority="1">
         <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
@@ -3070,6 +3056,7 @@ extension-element-prefixes="ixsl"
         </xsl:message>
     </xsl:template>
 
+    <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="apl:PostConstructMode" priority="1">
         <!-- subject value change -->
         <xsl:if test="tokenize(@class, ' ') = 'subject'">
