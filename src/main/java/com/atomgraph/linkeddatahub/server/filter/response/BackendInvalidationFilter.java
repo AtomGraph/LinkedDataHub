@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
@@ -61,8 +62,15 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
                 ban(getAdminApplication().getService().getProxy(), "acl:AuthenticatedAgent").close();
             }
             
-//            ban(getApplication().get().getService().getProxy(), req.getUriInfo().getAbsolutePath().toString()).close();
-//            ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(req.getUriInfo().getAbsolutePath()).toString()).close(); // URIs can be relative in queries
+            // Varnish VCL BANs req.url after 200/201/204 responses
+            
+            // ban parent resource URIs in order to avoid stale children data in containers
+            if (!req.getUriInfo().getAbsolutePath().equals(getApplication().get().getBaseURI()))
+            {
+                URI parentURI = req.getUriInfo().getAbsolutePath().relativize(URI.create(".."));
+                ban(getApplication().get().getService().getProxy(), parentURI.toString()).close();
+                ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+            }
         }
     }
     
