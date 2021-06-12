@@ -2552,14 +2552,14 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="button[tokenize(@class, ' ') = 'add-value']" mode="ixsl:onclick">
-        <xsl:message>Adding property for class: <xsl:value-of select="@value"/></xsl:message>
         <xsl:variable name="control-group" select="../.." as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="constructor-uri" select="ac:build-uri($ac:uri, map{ 'forClass': $forClass, 'mode': '&ac;ConstructMode' })" as="xs:anyURI"/>
-        <xsl:message>Constructor URI: <xsl:value-of select="$constructor-uri"/></xsl:message>
+        <!--<xsl:variable name="constructor-uri" select="ac:build-uri($ac:uri, map{ 'forClass': $forClass, 'mode': '&ac;ConstructMode' })" as="xs:anyURI"/>-->
+        <xsl:variable name="href" select="ac:build-uri($ac:uri, map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $constructor-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onaddValueCallback">
                 <xsl:with-param name="forClass" select="$forClass"/>
                 <xsl:with-param name="control-group" select="$control-group"/>
@@ -2979,41 +2979,26 @@ extension-element-prefixes="ixsl"
         <xsl:param name="property" as="xs:anyURI"/>
         
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="template-doc" select="." as="document-node()"/>
-                    <xsl:variable name="for" select="generate-id($template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property][1]/(@rdf:*[local-name() = ('resource', 'nodeID')], node())[1])" as="xs:string"/>
-
+                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
+                    <xsl:variable name="form" as="element()">
+                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
+<!--                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>-->
+                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:variable>
+                    
                     <xsl:for-each select="$control-group">
                         <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:for-each select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property][1]">
-                                <xsl:apply-templates select="." mode="xhtml:Input">
-                                    <xsl:with-param name="type" select="'hidden'"/>
-                                </xsl:apply-templates>
-
-                                <label class="control-label" for="{$for}" title="{$property}">
-                                    <xsl:value-of>
-                                        <xsl:apply-templates select="." mode="ac:property-label"/>
-                                    </xsl:value-of>
-                                </label>
-
-                                <div class="controls">
-                                    <div class="btn-group pull-right">
-                                        <button type="button" class="btn btn-small pull-right btn-remove-property" title="Remove this statement"></button>
-                                    </div>
-
-                                    <xsl:apply-templates select="(@rdf:*[local-name() = ('resource', 'nodeID')], node())" mode="bs2:FormControl"/>
-                                </div>
-                            </xsl:for-each>
-                            </xsl:result-document>
+                            <xsl:copy-of select="$form//div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu']/@value = $property]/*"/>
+                        </xsl:result-document>
+                        
 
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
                         <xsl:for-each select="$control-group/..">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:apply-templates select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)][1]" mode="bs2:PropertyControl">
-                                    <xsl:with-param name="template" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]"/>
-                                    <xsl:with-param name="forClass" select="$forClass"/>
-                                </xsl:apply-templates>
+                                <xsl:copy-of select="."/>
                             </xsl:result-document>
                         </xsl:for-each>
 

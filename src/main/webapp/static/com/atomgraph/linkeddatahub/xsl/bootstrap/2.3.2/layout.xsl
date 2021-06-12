@@ -1027,9 +1027,6 @@ exclude-result-prefixes="#all">
                             <li>
                                 <a href="https://linkeddatahub.com/demo/" target="_blank">Demo apps</a> <!-- built-in Context -->
                             </li>
-                            <li>
-                                <a href="https://atomgraph.github.io/Linked-Data-Templates/" target="_blank">LDT specification</a>
-                            </li>
                         </ul>
                     </div>
                     <div class="span3">
