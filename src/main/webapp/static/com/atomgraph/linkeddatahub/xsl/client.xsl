@@ -2552,7 +2552,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="button[tokenize(@class, ' ') = 'add-value']" mode="ixsl:onclick">
-        <xsl:variable name="control-group" select="../.." as="element()"/>
+        <xsl:variable name="control-group" select="../../copy-of()" as="element()"/>
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
         <!--<xsl:variable name="constructor-uri" select="ac:build-uri($ac:uri, map{ 'forClass': $forClass, 'mode': '&ac;ConstructMode' })" as="xs:anyURI"/>-->
