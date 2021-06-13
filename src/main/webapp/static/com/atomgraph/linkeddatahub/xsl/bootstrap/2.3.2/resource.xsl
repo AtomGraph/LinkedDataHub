@@ -776,32 +776,6 @@ extension-element-prefixes="ixsl"
         <!--<xsl:apply-templates select="." mode="bs2:ContentControl"/>-->
     </xsl:template>
     
-    <!-- hide Content's rdf:first property -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first" mode="bs2:FormControl" priority="1">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current"/>
-        
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
-    <!-- hide Content's rdf:rest property and object -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:rest" mode="bs2:FormControl" priority="1">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
