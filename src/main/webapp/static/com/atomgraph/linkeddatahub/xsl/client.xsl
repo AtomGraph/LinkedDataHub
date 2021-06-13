@@ -2998,15 +2998,14 @@ extension-element-prefixes="ixsl"
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
                         <xsl:for-each select="$control-group/..">
                             <xsl:result-document href="?." method="ixsl:append-content">
-                                <xsl:copy-of select="."/>
+                                <xsl:copy-of select="$control-group"/>
                             </xsl:result-document>
                         </xsl:for-each>
 
                         <!-- apply WYMEditor on textarea if object is XMLLiteral -->
-                        <xsl:call-template name="add-value-listeners">
+<!--                        <xsl:call-template name="add-value-listeners">
                             <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
-                            <!-- <xsl:with-param name="wymeditor" select="$template-doc//*[@rdf:nodeID][rdf:type/@rdf:resource = $forClass]/*[concat(namespace-uri(), local-name()) = $property]/@rdf:*[local-name() = 'parseType'] = 'Literal'"/> -->
-                        </xsl:call-template>
+                        </xsl:call-template>-->
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
