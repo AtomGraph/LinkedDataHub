@@ -2566,14 +2566,6 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="property" select="$property"/>
             </xsl:call-template>
         </ixsl:schedule-action>
-
-        <!-- replace button content with loading indicator -->
-<!--        <xsl:for-each select="..">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:text>Loading...</xsl:text>
-            </xsl:result-document>
-            <ixsl:set-attribute name="disabled" select="'disabled'"/>
-        </xsl:for-each>-->
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">

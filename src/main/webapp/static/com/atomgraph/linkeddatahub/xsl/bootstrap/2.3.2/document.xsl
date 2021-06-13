@@ -234,11 +234,13 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="class" select="$button-class"/>
                 </xsl:apply-templates>
             </button>
-            <button type="button" class="btn">
-                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                    <xsl:with-param name="class" select="'btn'"/>
-                </xsl:apply-templates>
-            </button>
+            <xsl:if test="$modal">
+                <button type="button" class="btn">
+                    <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
+                </button>
+            </xsl:if>
             <button type="reset" class="btn">
                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn'"/>
