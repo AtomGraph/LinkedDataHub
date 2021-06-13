@@ -2991,10 +2991,6 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="new-control-group" select="$form//div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu']/@value = $property]" as="element()"/>
                     
                     <xsl:for-each select="$control-group">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:copy-of select="$new-control-group/*"/>
-                        </xsl:result-document>
-
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
                         <xsl:for-each select="$control-group/..">
                             <xsl:result-document href="?." method="ixsl:append-content">
@@ -3002,6 +2998,10 @@ extension-element-prefixes="ixsl"
                             </xsl:result-document>
                         </xsl:for-each>
 
+                        <xsl:result-document href="?." method="ixsl:replace-content">
+                            <xsl:copy-of select="$new-control-group/*"/>
+                        </xsl:result-document>
+                        
                         <!-- apply WYMEditor on textarea if object is XMLLiteral -->
 <!--                        <xsl:call-template name="add-value-listeners">
                             <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
