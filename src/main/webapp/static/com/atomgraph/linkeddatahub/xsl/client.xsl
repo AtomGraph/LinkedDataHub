@@ -2473,10 +2473,17 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <!-- remove <fieldset> -->
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
+    <!-- remove <fieldset> (button is within <legend>) -->
+    <xsl:template match="legend/button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
+        </xsl:message>
+    </xsl:template>
+
+    <!-- remove <fieldset> (button is within <fieldset>) -->
+    <xsl:template match="legend/button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
+        <xsl:message>
+            <xsl:value-of select="ixsl:call(../.., 'remove', [])"/>
         </xsl:message>
     </xsl:template>
 
