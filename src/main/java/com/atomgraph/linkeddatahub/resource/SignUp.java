@@ -34,7 +34,6 @@ import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
@@ -111,12 +110,9 @@ public class SignUp extends GraphStoreImpl
     public static final String AGENT_PATH = "acl/agents/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
-//    private final UriInfo uriInfo;
     private final URI uri;
     private final Application application;
     private final Ontology ontology;
-    private final TemplateCall templateCall;
-//    private final com.atomgraph.linkeddatahub.Application system;
     private final Model countryModel;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
@@ -128,7 +124,7 @@ public class SignUp extends GraphStoreImpl
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
@@ -141,7 +137,7 @@ public class SignUp extends GraphStoreImpl
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
         this.ontology = ontology.get();
-        this.templateCall = templateCall.get();
+//        this.templateCall = templateCall.get();
 //        this.system = system;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
@@ -188,9 +184,9 @@ public class SignUp extends GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getTemplateCall().hasArgument(APLT.forClass)) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
+        if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
+        Resource forClass = model.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
         try
         {
@@ -398,10 +394,10 @@ public class SignUp extends GraphStoreImpl
         return ontology;
     }
     
-    public TemplateCall getTemplateCall()
-    {
-        return templateCall;
-    }
+//    public TemplateCall getTemplateCall()
+//    {
+//        return templateCall;
+//    }
     
 //    public com.atomgraph.linkeddatahub.Application getSystem()
 //    {

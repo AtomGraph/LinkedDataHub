@@ -28,7 +28,6 @@ import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.model.TemplateCall;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.GregorianCalendar;
@@ -77,9 +76,7 @@ public class RequestAccess extends GraphStoreImpl
     
     private final URI uri;
     private final Application application;
-    private final TemplateCall templateCall;
     private final SecurityContext securityContext;
-//    private final com.atomgraph.linkeddatahub.Application system;
     private final Address notificationAddress;
     private final String emailSubject;
     private final String emailText;
@@ -88,7 +85,7 @@ public class RequestAccess extends GraphStoreImpl
 
     @Inject
     public RequestAccess(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             @Context SecurityContext securityContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
@@ -96,9 +93,7 @@ public class RequestAccess extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
-        this.templateCall = templateCall.get();
         this.securityContext = securityContext;
-//        this.system = system;
         agentQuery = system.getAgentQuery();
         
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
@@ -135,9 +130,9 @@ public class RequestAccess extends GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getTemplateCall().hasArgument(APLT.forClass)) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
+        if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        Resource forClass = getTemplateCall().getArgumentProperty(APLT.forClass).getResource();
+        Resource forClass = model.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
         try
         {
@@ -234,16 +229,6 @@ public class RequestAccess extends GraphStoreImpl
     {
         return application;
     }
-    
-    public TemplateCall getTemplateCall()
-    {
-        return templateCall;
-    }
-//    
-//    public com.atomgraph.linkeddatahub.Application getSystem()
-//    {
-//        return system;
-//    }
     
     public SecurityContext getSecurityContext()
     {
