@@ -133,12 +133,9 @@ public class SignUp extends GraphStoreImpl
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
-//        this.uriInfo = uriInfo;
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
         this.ontology = ontology.get();
-//        this.templateCall = templateCall.get();
-//        this.system = system;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -373,11 +370,6 @@ public class SignUp extends GraphStoreImpl
         else
             return getApplication().as(AdminApplication.class).getEndUserApplication();
     }
-//
-//    public UriInfo getUriInfo()
-//    {
-//        return uriInfo;
-//    }
 
     public URI getURI()
     {
@@ -393,11 +385,6 @@ public class SignUp extends GraphStoreImpl
     {
         return ontology;
     }
-    
-//    public TemplateCall getTemplateCall()
-//    {
-//        return templateCall;
-//    }
     
 //    public com.atomgraph.linkeddatahub.Application getSystem()
 //    {

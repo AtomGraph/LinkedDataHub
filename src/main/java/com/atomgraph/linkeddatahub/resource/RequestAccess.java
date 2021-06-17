@@ -76,7 +76,7 @@ public class RequestAccess extends GraphStoreImpl
     
     private final URI uri;
     private final Application application;
-    private final SecurityContext securityContext;
+    private final Agent agent;
     private final Address notificationAddress;
     private final String emailSubject;
     private final String emailText;
@@ -91,11 +91,13 @@ public class RequestAccess extends GraphStoreImpl
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
-        this.securityContext = securityContext;
+        this.agent = (Agent)securityContext.getUserPrincipal();
+
         agentQuery = system.getAgentQuery();
-        
+
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
         
@@ -136,7 +138,6 @@ public class RequestAccess extends GraphStoreImpl
         ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
         try
         {
-            Agent agent = (Agent)getSecurityContext().getUserPrincipal();
             Resource accessRequest = it.next();
             Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
             if (!requestAgent.equals(agent)) throw new IllegalStateException("Agent requesting access must be authenticated");
@@ -230,9 +231,14 @@ public class RequestAccess extends GraphStoreImpl
         return application;
     }
     
-    public SecurityContext getSecurityContext()
+//    public SecurityContext getSecurityContext()
+//    {
+//        return securityContext;
+//    }
+    
+    public Agent getAgent()
     {
-        return securityContext;
+        return agent;
     }
     
     private Address getNotificationAddress()
