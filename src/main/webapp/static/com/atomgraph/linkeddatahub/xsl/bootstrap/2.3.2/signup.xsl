@@ -77,7 +77,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="ac:ModeChoice"/>
+            <xsl:apply-templates select="." mode="bs2:Form"/>
         </div>
     </xsl:template>
     
