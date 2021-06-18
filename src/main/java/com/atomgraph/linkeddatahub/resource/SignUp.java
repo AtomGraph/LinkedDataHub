@@ -385,12 +385,7 @@ public class SignUp extends GraphStoreImpl
     {
         return ontology;
     }
-    
-//    public com.atomgraph.linkeddatahub.Application getSystem()
-//    {
-//        return system;
-//    }
-//    
+
     public int getValidityDays()
     {
         return validityDays;

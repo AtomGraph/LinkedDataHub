@@ -1193,7 +1193,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
             <li class="list-mode">
@@ -1202,7 +1202,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ListMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
             <li class="table-mode">
@@ -1211,7 +1211,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;TableMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
             <li class="grid-mode">
@@ -1220,7 +1220,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;GridMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
             <li class="chart-mode">
@@ -1229,7 +1229,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
             <li class="map-mode">
@@ -1238,7 +1238,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
             <li class="graph-mode">
@@ -1247,7 +1247,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <a>
-                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo"/>
+                    <xsl:apply-templates select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
                 </a>
             </li>
         </ul>
