@@ -198,7 +198,7 @@ public class Login extends GraphStoreImpl
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(accountModel);
 
-                    Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.PublicKey.getLocalName());
+                    Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.UserAccount.getLocalName());
                     Response userAccountResponse = super.post(accountModel, URI.create(userAccountForClass.getURI()));
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
