@@ -36,7 +36,7 @@ import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.POST;
+import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
@@ -119,9 +119,9 @@ public class Login extends GraphStoreImpl
         clientSecret = (String)system.getProperty(Google.clientSecret.getURI());
     }
     
-    @POST
+    @GET
     @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);
         if (getClientSecret() == null) throw new ConfigurationException(Google.clientSecret);
@@ -198,10 +198,11 @@ public class Login extends GraphStoreImpl
                     if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
                     throw new WebApplicationException("Cannot create UserAccount");
                 }
+                if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
+
                 URI userAccountGraphUri = userAccountResponse.getLocation();
                 accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
                 userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
-                
                 
                 agent.addProperty(FOAF.account, userAccount);
                 agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
@@ -211,7 +212,7 @@ public class Login extends GraphStoreImpl
                 {
                     agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
 
-                    try (Response agentResponse = super.post(model, false, agentGraphUri))
+                    try (Response agentResponse = super.post(agentModel, false, agentGraphUri))
                     {
                         if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {
@@ -222,7 +223,7 @@ public class Login extends GraphStoreImpl
                         // remove secretary WebID from cache
                         getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
-                        if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
+                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
                         sendEmail(agent);
                     }
                 }
