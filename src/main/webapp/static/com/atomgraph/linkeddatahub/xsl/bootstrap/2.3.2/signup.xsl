@@ -65,7 +65,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="1"/>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Main" priority="2">
+    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:Main" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -76,24 +76,33 @@ exclude-result-prefixes="#all">
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
-
-            <xsl:choose>
-                <xsl:when test="$ac:method = 'GET'">
-                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
-                        <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Form">
-                        <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
+        
+            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
+                <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+            </xsl:apply-templates>
         </div>
     </xsl:template>
     
-    <!-- display stored Agent data after successful POST (without ConstraintViolations) -->
-    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="3">
+<!--    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&http;Response')]" mode="bs2:Main" priority="3">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+        
+            <xsl:apply-templates select="." mode="bs2:Form">
+                <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>-->
+    
+    <!-- show only created resources, hide constructor bnodes -->
+    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
         <div class="alert alert-success row-fluid">
             <div class="span1">
                 <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
