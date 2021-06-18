@@ -42,16 +42,30 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
+        <body>
+            <xsl:apply-templates select="." mode="bs2:NavBar"/>
+
+            <div id="content-body" class="container-fluid">
+                <xsl:apply-templates mode="#current">
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+            </div>
+
+            <xsl:apply-templates select="." mode="bs2:Footer"/>
+        </body>
+    </xsl:template>
+    
     <!-- display stored Agent data after successful POST (without ConstraintViolations) -->
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="ac:ModeChoice" priority="2">
         <xsl:apply-templates select="." mode="bs2:Block"/>
     </xsl:template>
    
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
+    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="1"/>
+    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="1"/>
 
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Main" priority="2">
+    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Main" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
