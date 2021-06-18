@@ -66,6 +66,7 @@ import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -175,6 +176,13 @@ public class SignUp extends GraphStoreImpl
         validityDays = Integer.parseInt(servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()));
         
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
+    }
+    
+    @GET
+    @Override
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        return super.get(false, getURI());
     }
     
     @POST
