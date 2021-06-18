@@ -140,7 +140,7 @@ public class RequestAccess extends GraphStoreImpl
         {
             Resource accessRequest = it.next();
             Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
-            if (!requestAgent.equals(agent)) throw new IllegalStateException("Agent requesting access must be authenticated");
+            if (!requestAgent.equals(getAgent())) throw new IllegalStateException("Agent requesting access must be authenticated");
             
             Resource owner = getApplication().getMaker();
             if (owner == null) throw new IllegalStateException("Application <" + getApplication().getURI() + "> does not have a maker (foaf:maker)");
@@ -155,7 +155,6 @@ public class RequestAccess extends GraphStoreImpl
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-//            URI authRequestContainerURI = getAuthRequestContainerUriBuilder().queryParam(APLT.forClass.getLocalName(), forClass.getURI()).build();
             try (Response cr = super.post(model, false, null))
             {
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -230,12 +229,7 @@ public class RequestAccess extends GraphStoreImpl
     {
         return application;
     }
-    
-//    public SecurityContext getSecurityContext()
-//    {
-//        return securityContext;
-//    }
-    
+
     public Agent getAgent()
     {
         return agent;

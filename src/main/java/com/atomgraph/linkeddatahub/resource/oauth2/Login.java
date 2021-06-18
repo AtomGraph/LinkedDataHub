@@ -22,6 +22,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.Optional;
@@ -52,9 +53,9 @@ import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
@@ -167,10 +168,10 @@ public class Login extends GraphStoreImpl
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
                 Model agentModel = ModelFactory.createDefaultModel();
-                InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), agentModel);
+//                InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), agentModel);
                 String email = jwt.getClaim("email").asString();
                 //String issuer = jwt.getIssuer();
-                Resource agent = createAgent(agentModel,
+                createAgent(agentModel,
                     getOntology().getURI(),
                     agentModel.createResource(getUriInfo().getBaseUri().resolve("acl/agents/").toString()),
                     jwt.getClaim("given_name").asString(),
@@ -179,37 +180,41 @@ public class Login extends GraphStoreImpl
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 // skolemize here because this Model will not go through SkolemizingModelProvider
                 agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/agents/")).build(agentModel);
-
-                Model accountModel = ModelFactory.createDefaultModel();
-                Resource userAccount = createUserAccount(accountModel,
-                    getOntology().getURI(),
-                    accountModel.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
-                    jwt.getSubject(),
-                    jwt.getIssuer(),
-                    jwt.getClaim("name").asString(),
-                    email);
-                userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(accountModel);
-
-                Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.PublicKey.getLocalName());
-                Response userAccountResponse = super.post(accountModel, URI.create(userAccountForClass.getURI()));
-                if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                {
-                    if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
-                    throw new WebApplicationException("Cannot create UserAccount");
-                }
-                if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
-
-                URI userAccountGraphUri = userAccountResponse.getLocation();
-                accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
-                userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
                 
-                agent.addProperty(FOAF.account, userAccount);
-                agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                URI agentGraphUri = URI.create(agent.getURI());
+                ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
                 {
+                    // we need to retrieve resources again because they've changed from bnodes to URIs
+                    Resource agent = it.next();
+                
+                    Model accountModel = ModelFactory.createDefaultModel();
+                    Resource userAccount = createUserAccount(accountModel,
+                        getOntology().getURI(),
+                        accountModel.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
+                        jwt.getSubject(),
+                        jwt.getIssuer(),
+                        jwt.getClaim("name").asString(),
+                        email);
+                    userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
+                    accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(accountModel);
+
+                    Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.PublicKey.getLocalName());
+                    Response userAccountResponse = super.post(accountModel, URI.create(userAccountForClass.getURI()));
+                    if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
+                        throw new WebApplicationException("Cannot create UserAccount");
+                    }
+                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
+
+                    URI userAccountGraphUri = userAccountResponse.getLocation();
+                    accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
+                    userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+
+                    agent.addProperty(FOAF.account, userAccount);
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                    URI agentGraphUri = URI.create(agent.getURI());
                     agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
 
                     try (Response agentResponse = super.post(agentModel, false, agentGraphUri))
@@ -227,9 +232,13 @@ public class Login extends GraphStoreImpl
                         sendEmail(agent);
                     }
                 }
-                catch (Exception ex)
+                catch (UnsupportedEncodingException | URISyntaxException | MessagingException | WebApplicationException ex)
                 {
                     throw new MappableException(ex);
+                }
+                finally
+                {
+                    it.close();
                 }
             }
             
