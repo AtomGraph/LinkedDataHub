@@ -42,6 +42,10 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
+        <xsl:apply-templates select="." mode="bs2:Form"/>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
