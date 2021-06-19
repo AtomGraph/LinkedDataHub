@@ -46,7 +46,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:Form"/>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
@@ -86,24 +86,6 @@ exclude-result-prefixes="#all">
             </xsl:apply-templates>
         </div>
     </xsl:template>
-    
-<!--    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&http;Response')]" mode="bs2:Main" priority="3">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-        
-            <xsl:apply-templates select="." mode="bs2:Form">
-                <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
-            </xsl:apply-templates>
-        </div>
-    </xsl:template>-->
     
     <!-- show only created resources, hide constructor bnodes -->
     <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
@@ -260,7 +242,8 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="cert:key[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <!-- make properties required -->
+    <xsl:template match="foaf:givenName[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:familyName[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:mbox[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | cert:key[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
