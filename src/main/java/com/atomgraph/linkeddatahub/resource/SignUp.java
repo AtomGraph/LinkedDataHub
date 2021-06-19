@@ -273,9 +273,11 @@ public class SignUp extends GraphStoreImpl
                         sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
                         // append Agent data to response
-                        Model description = getDatasetAccessor().getModel(getURI().toString());
-                        description.add(model);
-                        return getResponseBuilder(description).build();
+//                        Model description = getDatasetAccessor().getModel(getURI().toString());
+//                        description.add(model);
+//                        return getResponseBuilder(description).build();
+
+                        return agentResponse;
                     }
                 }
             }
