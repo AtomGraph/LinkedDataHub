@@ -275,9 +275,7 @@ public class SignUp extends GraphStoreImpl
                         // append Agent data to response
 //                        Model description = getDatasetAccessor().getModel(getURI().toString());
 //                        description.add(model);
-//                        return getResponseBuilder(description).build();
-
-                        return agentResponse;
+                        return Response.created(agentGraphUri).build();
                     }
                 }
             }
