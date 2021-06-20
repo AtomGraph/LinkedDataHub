@@ -43,7 +43,9 @@ xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
-        <xsl:apply-templates select="." mode="bs2:Form"/>
+        <xsl:apply-templates select="." mode="bs2:Form">
+            <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
@@ -61,7 +63,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- move the content above form -->
-    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body">
+    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
 
@@ -242,8 +244,11 @@ exclude-result-prefixes="#all">
     
     <!-- make properties required -->
     <xsl:template match="foaf:givenName[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:familyName[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | foaf:mbox[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)] | cert:key[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
+        <xsl:param name="violations" as="element()*"/>
+
         <xsl:next-match>
             <xsl:with-param name="required" select="true()"/>
+            <xsl:with-param name="violations" select="$violations"/>
         </xsl:next-match>
     </xsl:template>
     
