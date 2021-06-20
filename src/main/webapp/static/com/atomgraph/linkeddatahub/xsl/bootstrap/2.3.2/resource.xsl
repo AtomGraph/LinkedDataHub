@@ -787,6 +787,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
+        <xsl:param name="required" select="false()" as="xs:boolean"/>
 
         <fieldset>
             <xsl:if test="$id">
@@ -799,19 +800,21 @@ extension-element-prefixes="ixsl"
             <xsl:choose>
                 <xsl:when test="$legend">
                     <legend>
-                        <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
-                        <div class="btn-group pull-right">
-                            <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
-                        </div>
-
+                        <xsl:if test="$required">
+                            <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
+                            </div>
+                        </xsl:if>
+                        
                         <xsl:value-of select="ac:label(.)"/>
                     </legend>
                 </xsl:when>
-                <xsl:otherwise>
+                <xsl:when test="$required">
                     <div class="btn-group pull-right">
                         <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
                     </div>
-                </xsl:otherwise>
+                </xsl:when>
             </xsl:choose>
 
             <xsl:apply-templates select="@rdf:about | @rdf:nodeID" mode="#current">
