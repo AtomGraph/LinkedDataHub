@@ -63,21 +63,46 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
+    <!-- move the content above form -->
+    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="xhtml:Body" priority="2">
+        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+        <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+
+        <div class="row-fluid">
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <xsl:apply-templates select="." mode="bs2:Main"/>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>
     
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
+    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="1"/>
+    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="1"/>
 
-    <!-- handle ConstraintViolations -->
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Main" priority="2">
-        <xsl:next-match>
-            <xsl:with-param name="class" select="'offset2 span7'"/>
-        </xsl:next-match>
+    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Main" priority="2">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+        
+            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
+                <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+            </xsl:apply-templates>
+        </div>
     </xsl:template>
 
     <!-- [not(key('resources-by-type', '&http;Response'))] -->
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST']" mode="bs2:Block" priority="2">
+<!--    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST']" mode="bs2:Block" priority="2">
         <div class="alert alert-success row-fluid">
             <div class="span1">
                 <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
@@ -87,7 +112,7 @@ exclude-result-prefixes="#all">
                 <p>You will be notified when the administrator approves or rejects it.</p>
             </div>
         </div>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TargetContainer" priority="2"/>
     
