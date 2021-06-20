@@ -31,6 +31,7 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -70,6 +71,7 @@ public class Authorize // extends ResourceBase
         clientID = (String)system.getProperty(Google.clientID.getURI());
     }
     
+    @GET
     public Response get()
     {
         if (getClientID() == null) throw new ConfigurationException(Google.clientID);

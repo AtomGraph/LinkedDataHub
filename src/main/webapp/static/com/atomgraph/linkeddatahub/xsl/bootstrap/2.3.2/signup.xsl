@@ -273,6 +273,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="class" select="$class"/>
                 <xsl:with-param name="disabled" select="$disabled"/>
                 <xsl:with-param name="for" select="concat($id, '-pwd1')"/>
+                <xsl:with-param name="violations" select="$violations"/>
             </xsl:call-template>
             <!-- double the password input -->
             <xsl:call-template name="lacl:password">
@@ -280,6 +281,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="class" select="$class"/>
                 <xsl:with-param name="disabled" select="$disabled"/>
                 <xsl:with-param name="for" select="concat($id, '-pwd2')"/>
+                <xsl:with-param name="violations" select="$violations"/>
             </xsl:call-template>
         </fieldset>
 
@@ -293,14 +295,20 @@ exclude-result-prefixes="#all">
     <xsl:template match="acl:delegates[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1"/>
 
     <xsl:template name="lacl:password">
+        <xsl:param name="this" select="xs:anyURI('&lacl;password')" as="xs:anyURI"/>
         <xsl:param name="type" select="'password'" as="xs:string"/>
         <!-- <xsl:param name="id" as="xs:string?"/> -->
-        <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="for" select="generate-id()" as="xs:string"/>
-
-        <div class="control-group">
+        <xsl:param name="violations" as="element()*"/>
+        <xsl:param name="error" select="@rdf:resource = $violations/apl:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
+        <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
             <input type="hidden" name="pu" value="&lacl;password"/>
 
             <label class="control-label" for="{$for}">
