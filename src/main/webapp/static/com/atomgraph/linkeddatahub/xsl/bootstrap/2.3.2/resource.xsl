@@ -800,7 +800,7 @@ extension-element-prefixes="ixsl"
             <xsl:choose>
                 <xsl:when test="$legend">
                     <legend>
-                        <xsl:if test="$required">
+                        <xsl:if test="not($required)">
                             <!-- the button has to be inside <legend> for it to float to the top/right corner properly -->
                             <div class="btn-group pull-right">
                                 <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
@@ -810,7 +810,7 @@ extension-element-prefixes="ixsl"
                         <xsl:value-of select="ac:label(.)"/>
                     </legend>
                 </xsl:when>
-                <xsl:when test="$required">
+                <xsl:when test="not($required)">
                     <div class="btn-group pull-right">
                         <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
                     </div>
