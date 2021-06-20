@@ -14,6 +14,7 @@
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
+    <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -31,6 +32,7 @@ xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
+xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
