@@ -301,6 +301,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="for" select="generate-id()" as="xs:string"/>
+        <xsl:param name="required" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" as="element()*"/>
         <xsl:param name="error" select="@rdf:resource = $violations/apl:violationValue or $violations/spin:violationPath/@rdf:resource = $this" as="xs:boolean"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
