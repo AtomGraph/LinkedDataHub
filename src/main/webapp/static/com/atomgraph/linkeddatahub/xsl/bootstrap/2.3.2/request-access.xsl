@@ -37,8 +37,28 @@ exclude-result-prefixes="#all">
     <xsl:param name="apl:access-to" as="xs:anyURI?"/>
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
-    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="ac:ModeChoice" priority="2">
+<!--    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="ac:ModeChoice" priority="2">
         <xsl:apply-templates select="." mode="bs2:Block"/>
+    </xsl:template>-->
+    
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
+        <xsl:apply-templates select="." mode="bs2:Form">
+            <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
+        <body>
+            <xsl:apply-templates select="." mode="bs2:NavBar"/>
+
+            <div id="content-body" class="container-fluid">
+                <xsl:apply-templates mode="#current">
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+            </div>
+
+            <xsl:apply-templates select="." mode="bs2:Footer"/>
+        </body>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>

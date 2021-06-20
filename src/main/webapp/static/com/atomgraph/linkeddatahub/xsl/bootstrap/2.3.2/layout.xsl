@@ -126,7 +126,7 @@ exclude-result-prefixes="#all">
     <rdf:Description rdf:about="">
     </rdf:Description>
 
-    <!-- show only form when ac:ModalMode combined with ac:Edit -->
+    <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
         <body>
             <xsl:choose>
@@ -140,7 +140,7 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
 
-    <!-- show only form when ac:ModalMode combined with ac:forClass -->
+    <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
         <body>
             <xsl:choose>
