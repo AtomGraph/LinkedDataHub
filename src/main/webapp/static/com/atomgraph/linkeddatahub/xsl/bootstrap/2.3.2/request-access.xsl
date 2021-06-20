@@ -120,7 +120,7 @@ exclude-result-prefixes="#all">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
-            <xsl:with-param name="legend" select="true()"/>
+            <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
                 
