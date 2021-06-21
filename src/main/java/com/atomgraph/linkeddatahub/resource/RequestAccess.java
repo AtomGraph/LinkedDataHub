@@ -155,8 +155,9 @@ public class RequestAccess extends GraphStoreImpl
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            try (Response cr = super.post(model, false, null))
-            {
+            Response cr = super.post(model, false, null);
+//            try (Response cr = super.post(model, false, null))
+//            {
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                 {
                     if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr.getLocation(), cr.getStatusInfo().getReasonPhrase());
@@ -176,7 +177,7 @@ public class RequestAccess extends GraphStoreImpl
                 return cr; // super.get(false, getURI());
                 // send 303 redirect with a flag that allows us to show a message
 //                return Response.seeOther(UriBuilder.fromUri(getURI()).queryParam("created", "true").build()).build();
-            }
+//            }
         }
         finally
         {
