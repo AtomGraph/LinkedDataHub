@@ -1950,6 +1950,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
                     <xsl:when test="starts-with($action, resolve-uri('request access', $ldt:base))">
+                        <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                         <xsl:for-each select="id($form-id, ixsl:page())/..">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 CREATED!!!
