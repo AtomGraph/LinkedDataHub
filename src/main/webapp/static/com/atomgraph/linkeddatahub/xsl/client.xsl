@@ -1929,7 +1929,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:variable name="action" as="xs:anyURI"/>
+        <xsl:param name="action" as="xs:anyURI"/>
         <xsl:param name="form" as="element()"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
