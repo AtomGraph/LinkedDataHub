@@ -173,7 +173,7 @@ public class RequestAccess extends GraphStoreImpl
                     if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
                 }
 
-                return super.get(false, getURI());
+                return cr; // super.get(false, getURI());
                 // send 303 redirect with a flag that allows us to show a message
 //                return Response.seeOther(UriBuilder.fromUri(getURI()).queryParam("created", "true").build()).build();
             }
