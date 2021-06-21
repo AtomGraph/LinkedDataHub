@@ -1841,6 +1841,7 @@ extension-element-prefixes="ixsl"
 
                 <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                     <xsl:call-template name="onFormLoad">
+                        <xsl:with-param name="action" select="$action"/>
                         <xsl:with-param name="form" select="$form"/>
                         <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
                     </xsl:call-template>
@@ -1928,6 +1929,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:variable name="action" as="xs:anyURI"/>
         <xsl:param name="form" as="element()"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
@@ -1946,8 +1948,14 @@ extension-element-prefixes="ixsl"
             <!-- POST created new resource successfully -->
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
-                        
                 <xsl:choose>
+                    <xsl:when test="starts-with($action, resolve-uri('request access', $ldt:base))">
+                        <xsl:for-each select="id($form-id, ixsl:page())/..">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                CREATED!!!
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:when>
                     <!-- if the form submit did not originate from a typeahead (target), redirect to the created resource -->
                     <xsl:when test="not($typeahead-span)">
                         <ixsl:set-property name="location.href" select="$created-uri"/>
@@ -1964,10 +1972,11 @@ extension-element-prefixes="ixsl"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
-            <xsl:when test="?status = 303 and ?headers?location">
+            <!-- redirects are followed automatically so we can't handle 303 See Other here -->
+<!--            <xsl:when test="?status = 303 and ?headers?location">
                 <xsl:variable name="see-other" select="?headers?location" as="xs:anyURI"/>
                 <ixsl:set-property name="location.href" select="$see-other"/>
-            </xsl:when>
+            </xsl:when>-->
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">

@@ -103,7 +103,13 @@ exclude-result-prefixes="#all">
     
     <!-- [not(key('resources-by-type', '&http;Response'))] -->
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][contains($ac:requestUri, 'created=true')]" mode="bs2:Main" priority="2">
-        <div class="alert alert-success row-fluid">
+        <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
             <div class="span1">
                 <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
             </div>
