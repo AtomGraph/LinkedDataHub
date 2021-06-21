@@ -249,34 +249,30 @@ public class SignUp extends GraphStoreImpl
 
                 URI agentGraphUri = URI.create(agent.getURI());
                 agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-                try (Response agentResponse = super.post(model, false, agentGraphUri))
+                
+                Response agentResponse = super.post(model, false, agentGraphUri);
+                if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
-                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                    {
-                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                        throw new WebApplicationException("Cannot create Agent");
-                    }
+                    if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                    throw new WebApplicationException("Cannot create Agent");
+                }
 
-                    // remove secretary WebID from cache
-                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+                // remove secretary WebID from cache
+                getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
-                    if (download)
-                    {
-                        return Response.ok(keyStoreBytes).
-                            type(PKCS12_MEDIA_TYPE).
-                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                            build();
-                    }
-                    else
-                    {
-                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+                if (download)
+                {
+                    return Response.ok(keyStoreBytes).
+                        type(PKCS12_MEDIA_TYPE).
+                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                        build();
+                }
+                else
+                {
+                    LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                    sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
-                        // append Agent data to response
-//                        Model description = getDatasetAccessor().getModel(getURI().toString());
-//                        description.add(model);
-                        return Response.created(agentGraphUri).build();
-                    }
+                    return agentResponse;
                 }
             }
         }

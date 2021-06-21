@@ -98,7 +98,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <!-- show only created resources, hide constructor bnodes -->
+    <!-- moved to bs2:SignedUp in client.xsl -->
 <!--    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
         <div class="alert alert-success row-fluid">
             <div class="span1">

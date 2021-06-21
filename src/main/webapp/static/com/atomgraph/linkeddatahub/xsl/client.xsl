@@ -1949,6 +1949,18 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
+                    <!-- signup succesfully completed -->
+                    <xsl:when test="starts-with($action, resolve-uri('sign up', $ldt:base))">
+                        <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
+                        <xsl:for-each select="id($form-id, ixsl:page())/../..">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <xsl:call-template name="bs2:SignedUp">
+                                    <xsl:with-param name="created-uri" select="$created-uri"/>
+                                </xsl:call-template>
+                            </xsl:result-document>
+                        </xsl:for-each>
+                    </xsl:when>
+                    <!-- access successfully requested -->
                     <xsl:when test="starts-with($action, resolve-uri('request access', $ldt:base))">
                         <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                         <xsl:for-each select="id($form-id, ixsl:page())/../..">
@@ -1973,11 +1985,6 @@ extension-element-prefixes="ixsl"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
-            <!-- redirects are followed automatically so we can't handle 303 See Other here -->
-<!--            <xsl:when test="?status = 303 and ?headers?location">
-                <xsl:variable name="see-other" select="?headers?location" as="xs:anyURI"/>
-                <ixsl:set-property name="location.href" select="$see-other"/>
-            </xsl:when>-->
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
@@ -1989,17 +1996,6 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <!--<xsl:variable name="form-id" select="$form/@id" as="xs:string"/>-->
-
-<!--                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <div class="row-fluid">
-                            <div class="left-nav span2"></div>
-
-                            <div class="span7">
-                                <xsl:copy-of select="$form"/>
-                            </div>
-                        </div>
-                    </xsl:result-document>-->
                     
                     <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
                         <xsl:copy-of select="$form/*"/>
@@ -2017,6 +2013,27 @@ extension-element-prefixes="ixsl"
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="bs2:SignedUp">
+        <xsl:param name="created-uri" as="xs:anyURI"/>
+        <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <div class="span1">
+                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+            </div>
+            <div class="span11">
+                <p>Congratulations! Your <a href="{$created-uri}">WebID profile</a> has been created. You can see its data below.</p>
+                <p>
+                    <strong>Authentication details have been sent to your email address.</strong>
+                </p>
+            </div>
+        </div>
     </xsl:template>
     
     <xsl:template name="bs2:AccessRequested">
