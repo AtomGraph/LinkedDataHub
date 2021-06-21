@@ -1933,13 +1933,22 @@ extension-element-prefixes="ixsl"
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
 
+        <xsl:message>
+            Form loaded with ?status <xsl:value-of select="?status"/> $target-id: <xsl:value-of select="$target-id"/>
+        </xsl:message>
+        
         <xsl:choose>
-            <!-- POST created new resource successfully - response status 201 or 303 -->
-            <xsl:when test="?headers?location">
+            <!-- PUT updated graph successfully -->
+            <xsl:when test="?status = 200">
+                <!-- refresh page to see changes from Edit mode -->
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
+            </xsl:when>
+            <!-- POST created new resource successfully -->
+            <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                         
                 <xsl:choose>
-                    <!-- if the form submit did not originate from a typeahead (target), redirect to the Location URI -->
+                    <!-- if the form submit did not originate from a typeahead (target), redirect to the created resource -->
                     <xsl:when test="not($typeahead-span)">
                         <ixsl:set-property name="location.href" select="$created-uri"/>
                     </xsl:when>
@@ -1954,6 +1963,10 @@ extension-element-prefixes="ixsl"
                         </ixsl:schedule-action>
                     </xsl:otherwise>
                 </xsl:choose>
+            </xsl:when>
+            <xsl:when test="?status = 303 and ?headers?location">
+                <xsl:variable name="see-other" select="?headers?location" as="xs:anyURI"/>
+                <ixsl:set-property name="location.href" select="$see-other"/>
             </xsl:when>
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
             <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
@@ -1988,11 +2001,6 @@ extension-element-prefixes="ixsl"
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
-            </xsl:when>
-            <!-- PUT updated graph successfully -->
-            <xsl:when test="?status = 200">
-                <!-- refresh page to see changes from Edit mode -->
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
