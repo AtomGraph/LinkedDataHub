@@ -38,11 +38,6 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="apl:access-to" as="xs:anyURI?"/>
 
-    <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
-<!--    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="ac:ModeChoice" priority="2">
-        <xsl:apply-templates select="." mode="bs2:Block"/>
-    </xsl:template>-->
-    
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:Form">
             <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
@@ -101,8 +96,13 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
+    <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
+<!--    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
+        <xsl:apply-templates select="." mode="bs2:Block"/>
+    </xsl:template>-->
+    
     <!-- [not(key('resources-by-type', '&http;Response'))] -->
-<!--    <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST']" mode="bs2:Block" priority="2">
+    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][contains($ac:requestUri, 'created=true')]" mode="bs2:Main" priority="2">
         <div class="alert alert-success row-fluid">
             <div class="span1">
                 <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
@@ -112,7 +112,7 @@ exclude-result-prefixes="#all">
                 <p>You will be notified when the administrator approves or rejects it.</p>
             </div>
         </div>
-    </xsl:template>-->
+    </xsl:template>
 
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TargetContainer" priority="2"/>
     

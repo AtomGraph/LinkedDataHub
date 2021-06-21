@@ -1934,17 +1934,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
 
         <xsl:choose>
-            <!-- PUT updated graph successfully -->
-            <xsl:when test="?status = 200">
-                <!-- refresh page to see changes from Edit mode -->
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
-            </xsl:when>
-            <!-- POST created new resource successfully -->
-            <xsl:when test="?status = 201 and ?headers?location">
+            <!-- POST created new resource successfully - response status 201 or 303 -->
+            <xsl:when test="?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                         
                 <xsl:choose>
-                    <!-- if the form submit did not originate from a typeahead (target), redirect to the created resource -->
+                    <!-- if the form submit did not originate from a typeahead (target), redirect to the Location URI -->
                     <xsl:when test="not($typeahead-span)">
                         <ixsl:set-property name="location.href" select="$created-uri"/>
                     </xsl:when>
@@ -1993,6 +1988,11 @@ extension-element-prefixes="ixsl"
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
+            </xsl:when>
+            <!-- PUT updated graph successfully -->
+            <xsl:when test="?status = 200">
+                <!-- refresh page to see changes from Edit mode -->
+                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
