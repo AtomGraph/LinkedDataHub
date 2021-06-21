@@ -1951,9 +1951,9 @@ extension-element-prefixes="ixsl"
                 <xsl:choose>
                     <xsl:when test="starts-with($action, resolve-uri('request access', $ldt:base))">
                         <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
-                        <xsl:for-each select="id($form-id, ixsl:page())/..">
+                        <xsl:for-each select="id($form-id, ixsl:page())/../..">
                             <xsl:result-document href="?." method="ixsl:replace-content">
-                                CREATED!!!
+                                <xsl:call-template name="bs2:AccessRequested"/>
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:when>
@@ -2017,6 +2017,24 @@ extension-element-prefixes="ixsl"
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template name="bs2:AccessRequested">
+        <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <div class="span1">
+                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
+            </div>
+            <div class="span11">
+                <p>Your access request has been created.</p>
+                <p>You will be notified when the administrator approves or rejects it.</p>
+            </div>
+        </div>
     </xsl:template>
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->

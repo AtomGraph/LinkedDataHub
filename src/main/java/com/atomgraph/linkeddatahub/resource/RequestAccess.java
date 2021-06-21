@@ -39,7 +39,6 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -155,29 +154,18 @@ public class RequestAccess extends GraphStoreImpl
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            Response cr = super.post(model, false, null);
-//            try (Response cr = super.post(model, false, null))
-//            {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    if (log.isErrorEnabled()) log.error("POST request to AuthorizationRequest container: {} unsuccessful. Reason: {}", cr.getLocation(), cr.getStatusInfo().getReasonPhrase());
-                    // throw new ClientErrorException(cr1); // this gives "java.lang.IllegalStateException: Entity input stream has already been closed."
-                    throw new ClientErrorException("POST request to AuthorizationRequest container unsuccesful", cr.getStatusInfo().getStatusCode());
-                }
+            Response cr = super.post(model, false, null); // don't wrap into try-with-resources because that will close the Response
 
-                try
-                {
-                    sendEmail(owner, accessRequest);
-                }
-                catch (MessagingException | UnsupportedEncodingException ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
-                }
+            try
+            {
+                sendEmail(owner, accessRequest);
+            }
+            catch (MessagingException | UnsupportedEncodingException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
+            }
 
-                return cr; // super.get(false, getURI());
-                // send 303 redirect with a flag that allows us to show a message
-//                return Response.seeOther(UriBuilder.fromUri(getURI()).queryParam("created", "true").build()).build();
-//            }
+            return cr;
         }
         finally
         {

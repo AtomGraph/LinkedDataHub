@@ -101,8 +101,8 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:Block"/>
     </xsl:template>-->
     
-    <!-- [not(key('resources-by-type', '&http;Response'))] -->
-    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][contains($ac:requestUri, 'created=true')]" mode="bs2:Main" priority="2">
+    <!-- moved to bs2:AccessRequest in client.xsl -->
+<!--    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][contains($ac:requestUri, 'created=true')]" mode="bs2:Main" priority="2">
         <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
 
         <div>
@@ -118,7 +118,7 @@ exclude-result-prefixes="#all">
                 <p>You will be notified when the administrator approves or rejects it.</p>
             </div>
         </div>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TargetContainer" priority="2"/>
     
