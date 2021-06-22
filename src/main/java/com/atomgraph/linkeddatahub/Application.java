@@ -845,11 +845,11 @@ public class Application extends ResourceConfig
     {
         getWebIDModelCache().remove(event.getSecretaryWebID()); // clear secretary WebID from cache to get new acl:delegates statements after new signup
     }
-    
-    public Ontology getOntology(com.atomgraph.linkeddatahub.apps.model.Application app)
-    {
-        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery()).getOntology(app);
-    }
+//    
+//    public Ontology getOntology(com.atomgraph.linkeddatahub.apps.model.Application app)
+//    {
+//        return new SPARQLClientOntologyLoader(getOntModelSpec(), getSitemapQuery()).getOntology(app);
+//    }
 
     public Resource matchApp(URI absolutePath)
     {

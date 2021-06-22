@@ -114,12 +114,11 @@ public abstract class OntologyLoader
     {
         if (app == null) throw new IllegalArgumentException("Application cannot be null");
 
-        // if (app.getOntology() == null)
-        if (app.getPropertyResourceValue(LDT.ontology) == null)
-        {
-            if (log.isErrorEnabled()) log.error("Application '{}' does not have an ontology", app);
-            throw new IllegalStateException("Application '" + app + "' does not have an ontology");
-        }
+        if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
+//        {
+//            if (log.isErrorEnabled()) log.error("Application '{}' does not have an ontology", app);
+//            throw new IllegalStateException("Application '" + app + "' does not have an ontology");
+//        }
 
         //String ontologyURI = app.getOntology().getURI();
         String ontologyURI = app.getPropertyResourceValue(LDT.ontology).getURI();

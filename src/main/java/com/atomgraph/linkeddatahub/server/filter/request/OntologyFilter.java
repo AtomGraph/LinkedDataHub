@@ -55,7 +55,7 @@ public class OntologyFilter extends SPARQLClientOntologyLoader implements Contai
         Optional<Application> app = getApplication(crc);
         if (app.isEmpty()) return Optional.empty();
         
-        return Optional.of(getOntology(app.get()));
+        return Optional.ofNullable(getOntology(app.get()));
     }
     
     public Optional<Application> getApplication(ContainerRequestContext crc)
