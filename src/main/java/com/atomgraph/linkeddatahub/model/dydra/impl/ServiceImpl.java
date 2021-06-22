@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.vocabulary.Dydra;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
-import com.atomgraph.linkeddatahub.model.dydra.Service;
 import com.atomgraph.linkeddatahub.vocabulary.dydra.URN;
 import org.apache.jena.rdf.model.Statement;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
@@ -36,12 +35,13 @@ import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
 import org.apache.jena.query.DatasetAccessor;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import com.atomgraph.linkeddatahub.model.DydraService;
 
 /**
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.ServiceImpl implements Service
+public class ServiceImpl extends com.atomgraph.linkeddatahub.model.generic.ServiceImpl implements DydraService
 {
 
     public ServiceImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)

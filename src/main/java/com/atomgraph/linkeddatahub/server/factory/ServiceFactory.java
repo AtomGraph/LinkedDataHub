@@ -61,7 +61,7 @@ public class ServiceFactory implements Factory<Optional<Service>>
             Service service = app.get().getService();
 
             // cast to specific implementations
-            if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) service = service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
+            if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) service = service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
             
             return Optional.of(service);
         }

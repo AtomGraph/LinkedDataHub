@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.apps.model.end_user.impl;
 
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.enhanced.EnhGraph;
@@ -24,50 +25,21 @@ import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import org.apache.jena.enhanced.EnhNode;
-import org.apache.jena.enhanced.Implementation;
-import org.apache.jena.ontology.ConversionException;
-import org.apache.jena.vocabulary.RDF;
+import javax.ws.rs.client.Client;
 
 /**
  * End-user application implementation.
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class EndUserApplicationImpl extends ApplicationImpl implements EndUserApplication
+public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl implements EndUserApplication
 {
 
-    private static final Logger log = LoggerFactory.getLogger(EndUserApplicationImpl.class);
-        
-    public static Implementation factory = new Implementation()
+    private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
+
+    public ApplicationImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
     {
-
-        @Override
-        public EnhNode wrap(Node node, EnhGraph enhGraph)
-        {
-            if (canWrap(node, enhGraph))
-            {
-                return new EndUserApplicationImpl(node, enhGraph);
-            }
-            else
-            {
-                throw new ConversionException( "Cannot convert node " + node.toString() + " to EndUserApplication: it does not have rdf:type lapp:EndUserApplication or equivalent");
-            }
-        }
-
-        @Override
-        public boolean canWrap(Node node, EnhGraph eg)
-        {
-            if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
-
-            return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.EndUserApplication.asNode());
-        }
-
-    };
-
-    public EndUserApplicationImpl(Node n, EnhGraph g)
-    {
-        super(n, g);
+        super(n, g, client, mediaTypes, maxGetRequestSize);
     }
     
     @Override

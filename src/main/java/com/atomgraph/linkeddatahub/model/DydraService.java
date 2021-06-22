@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.model.dydra;
+package com.atomgraph.linkeddatahub.model;
 
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import org.apache.jena.rdf.model.Resource;
@@ -23,7 +23,7 @@ import org.apache.jena.rdf.model.Resource;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public interface Service extends com.atomgraph.linkeddatahub.model.Service
+public interface DydraService extends com.atomgraph.linkeddatahub.model.Service
 {
     
     static final String AUTH_TOKEN_PARAM_NAME = "auth_token";

@@ -29,6 +29,9 @@ import org.apache.jena.rdf.model.Resource;
 public interface Service extends com.atomgraph.core.model.RemoteService, Resource
 {
 
+    @Override
+    EndpointAccessor getEndpointAccessor();
+
     Resource getProxy();
     
     Client getClient();
@@ -36,8 +39,5 @@ public interface Service extends com.atomgraph.core.model.RemoteService, Resourc
     MediaTypes getMediaTypes();
 
     Integer getMaxGetRequestSize();
-
-    @Override
-    EndpointAccessor getEndpointAccessor();
     
 }

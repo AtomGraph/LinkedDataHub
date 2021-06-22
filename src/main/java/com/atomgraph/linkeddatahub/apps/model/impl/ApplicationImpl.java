@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.apps.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -30,12 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.UriBuilder;
-import org.apache.jena.enhanced.EnhNode;
-import org.apache.jena.enhanced.Implementation;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.vocabulary.RDF;
 
 /**
  * Application implementation.
@@ -47,35 +45,16 @@ public class ApplicationImpl extends ResourceImpl implements Application
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
 
-    public static Implementation factory = new Implementation() 
-    {
-        
-        @Override
-        public EnhNode wrap(Node node, EnhGraph enhGraph)
-        {
-            if (canWrap(node, enhGraph))
-            {
-                return new ApplicationImpl(node, enhGraph);
-            }
-            else
-            {
-                throw new ConversionException("Cannot convert node " + node.toString() + " to Application: it does not have rdf:type lapp:Application or equivalent");
-            }
-        }
-
-        @Override
-        public boolean canWrap(Node node, EnhGraph eg)
-        {
-            if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
-            
-            return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.Application.asNode());
-        }
-        
-    };
+    private final Client client;
+    private final MediaTypes mediaTypes;
+    private final Integer maxGetRequestSize;
     
-    public ApplicationImpl(Node n, EnhGraph g)
+    public ApplicationImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
     {
         super(n, g);
+        this.client = client;
+        this.mediaTypes = mediaTypes;
+        this.maxGetRequestSize = maxGetRequestSize;
     }
     
     @Override
@@ -110,7 +89,7 @@ public class ApplicationImpl extends ResourceImpl implements Application
         if (service != null)
         {
             // cast to specific implementations
-            if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) return service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
+            if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) return service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
 
             return service.as(Service.class);
         }
@@ -124,34 +103,52 @@ public class ApplicationImpl extends ResourceImpl implements Application
         return getPropertyResourceValue(AC.stylesheet);
     }
     
-    //@Override
-//    public Resource getProxy()
-//    {
-//        return getPropertyResourceValue(LAPP.proxy);
-//    }
-//    
-//    public LinkedDataClient getLinkedDataClient()
-//    {
-//        LinkedDataClient ldClient = null; // = LinkedDataClient.create(endpoint, mediaTypes);
-//        
-//        return ldClient;
-//    }
-//    
-//    protected URI getProxiedURI(final URI uri)
-//    {
-//        // if service proxyURI is set, change the URI host/port to proxyURI host/port
-//        if (getProxy() != null)
-//        {
-//            final URI proxyURI = URI.create(getProxy().getURI());
-//            
-//            return UriBuilder.fromUri(uri).
-//                    scheme(proxyURI.getScheme()).
-//                    host(proxyURI.getHost()).
-//                    port(proxyURI.getPort()).
-//                    build();
-//        }
-//        
-//        return uri;
-//    }
+    @Override
+    public Resource getProxy()
+    {
+        return getPropertyResourceValue(LAPP.proxy);
+    }
+    
+    @Override
+    public LinkedDataClient getLinkedDataClient(URI uri)
+    {
+        return LinkedDataClient.create(getClient().target(getProxiedURI(uri)), getMediaTypes());
+    }
+    
+    protected URI getProxiedURI(final URI uri)
+    {
+        // if service proxyURI is set, change the URI host/port to proxyURI host/port
+        if (getProxy() != null)
+        {
+            final URI proxyURI = URI.create(getProxy().getURI());
+            
+            return UriBuilder.fromUri(uri).
+                    scheme(proxyURI.getScheme()).
+                    host(proxyURI.getHost()).
+                    port(proxyURI.getPort()).
+                    build();
+        }
+        
+        return uri;
+    }
+    
+
+    @Override
+    public Client getClient()
+    {
+        return client;
+    }
+
+    @Override
+    public MediaTypes getMediaTypes()
+    {
+        return mediaTypes;
+    }
+
+    @Override
+    public Integer getMaxGetRequestSize()
+    {
+        return maxGetRequestSize;
+    }
     
 }

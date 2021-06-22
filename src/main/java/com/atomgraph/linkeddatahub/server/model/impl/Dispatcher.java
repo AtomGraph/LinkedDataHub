@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.processor.exception.OntologyException;
@@ -23,6 +24,9 @@ import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.ClsLoader;
 import org.slf4j.Logger;
@@ -38,14 +42,16 @@ public class Dispatcher
     
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final Optional<com.atomgraph.processor.model.Application> application;
+    private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application;
+    private final UriInfo uriInfo;
     private final ClientUriInfo clientUriInfo;
     private final Optional<TemplateCall> templateCall;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.processor.model.Application> application, ClientUriInfo clientUriInfo, Optional<TemplateCall> templateCall)
+    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, @Context UriInfo uriInfo, ClientUriInfo clientUriInfo, Optional<TemplateCall> templateCall)
     {
         this.application = application;
+        this.uriInfo = uriInfo;
         this.clientUriInfo = clientUriInfo;
         this.templateCall = templateCall;
     }
@@ -53,10 +59,17 @@ public class Dispatcher
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getApplication().isEmpty() || getApplication().get().getService() == null)
+        if (getApplication().isEmpty())
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ProxyResourceBase", getClientUriInfo().getRequestUri());
             return ProxyResourceBase.class;
+        }
+        
+        if (getApplication().get().getService() == null)
+        {
+            if (log.isDebugEnabled()) log.debug("Application has no Service, returning Linked Data");
+            LinkedDataClient ldClient = getApplication().get().getLinkedDataClient(getUriInfo().getRequestUri());
+            return ldClient.get(ldClient.getReadableMediaTypes(Model.class));
         }
 
         // resource class loading based on the ldt:loadClass value
@@ -88,9 +101,14 @@ public class Dispatcher
         return Item.class;
     }
     
-    public Optional<com.atomgraph.processor.model.Application> getApplication()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application;
+    }
+    
+    public UriInfo getUriInfo()
+    {
+        return uriInfo;
     }
     
     public ClientUriInfo getClientUriInfo()

@@ -14,18 +14,16 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.apps.model.impl;
+package com.atomgraph.linkeddatahub.apps.model.admin.impl;
 
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import javax.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.EnhNode;
-import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,40 +32,14 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class AdminApplicationImpl extends ApplicationImpl implements AdminApplication
+public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl.ApplicationImpl implements AdminApplication
 {
 
-    private static final Logger log = LoggerFactory.getLogger(AdminApplicationImpl.class);
-
-    public static Implementation factory = new Implementation() 
-    {
-        
-        @Override
-        public EnhNode wrap(Node node, EnhGraph enhGraph)
-        {
-            if (canWrap(node, enhGraph))
-            {
-                return new AdminApplicationImpl(node, enhGraph);
-            }
-            else
-            {
-                throw new ConversionException("Cannot convert node " + node.toString() + " to AdminApplication: it does not have rdf:type lapp:AdminApplication or equivalent");
-            }
-        }
-
-        @Override
-        public boolean canWrap(Node node, EnhGraph eg)
-        {
-            if (eg == null) throw new IllegalArgumentException("EnhGraph cannot be null");
-
-            return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.AdminApplication.asNode());
-        }
-        
-    };
+    private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
     
-    public AdminApplicationImpl(Node n, EnhGraph g)
+    public ApplicationImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
     {
-        super(n, g);
+        super(n, g, client, mediaTypes, maxGetRequestSize);
     }
 
     @Override
