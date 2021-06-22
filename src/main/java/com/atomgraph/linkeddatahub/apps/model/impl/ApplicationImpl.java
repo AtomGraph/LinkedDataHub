@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.apps.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.ontology.ConversionException;
@@ -105,10 +107,13 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         Resource service = getPropertyResourceValue(LDT.service);
         
-        // cast to specific implementations
-        if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) service = service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
-        
-        if (service != null) return service.as(Service.class);
+        if (service != null)
+        {
+            // cast to specific implementations
+            if (service.canAs(com.atomgraph.linkeddatahub.model.dydra.Service.class)) return service.as(com.atomgraph.linkeddatahub.model.dydra.Service.class);
+
+            return service.as(Service.class);
+        }
         
         return null;
     }
@@ -118,5 +123,35 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         return getPropertyResourceValue(AC.stylesheet);
     }
+    
+    //@Override
+//    public Resource getProxy()
+//    {
+//        return getPropertyResourceValue(LAPP.proxy);
+//    }
+//    
+//    public LinkedDataClient getLinkedDataClient()
+//    {
+//        LinkedDataClient ldClient = null; // = LinkedDataClient.create(endpoint, mediaTypes);
+//        
+//        return ldClient;
+//    }
+//    
+//    protected URI getProxiedURI(final URI uri)
+//    {
+//        // if service proxyURI is set, change the URI host/port to proxyURI host/port
+//        if (getProxy() != null)
+//        {
+//            final URI proxyURI = URI.create(getProxy().getURI());
+//            
+//            return UriBuilder.fromUri(uri).
+//                    scheme(proxyURI.getScheme()).
+//                    host(proxyURI.getHost()).
+//                    port(proxyURI.getPort()).
+//                    build();
+//        }
+//        
+//        return uri;
+//    }
     
 }

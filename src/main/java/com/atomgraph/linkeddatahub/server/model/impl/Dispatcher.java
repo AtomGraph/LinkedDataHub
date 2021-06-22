@@ -53,7 +53,7 @@ public class Dispatcher
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getApplication().isEmpty())
+        if (getApplication().isEmpty() || getApplication().get().getService() == null)
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ProxyResourceBase", getClientUriInfo().getRequestUri());
             return ProxyResourceBase.class;

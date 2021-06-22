@@ -41,7 +41,7 @@
     rdfs:isDefinedBy : .
 
 :proxy a owl:ObjectProperty ;
-    rdfs:domain :Application ;
+    # rdfs:domain :Application ;
     rdfs:range rdfs:Resource ;
     rdfs:label "Proxy" ;
     rdfs:comment "An intermediary server (such as cache) that proxies requests to service" ;
