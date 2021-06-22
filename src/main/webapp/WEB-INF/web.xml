@@ -216,8 +216,11 @@ DESCRIBE ?app ?service ?adminApp ?adminService ?endUserApp ?endUserService
 WHERE
   { SELECT  *
     WHERE
-      { ?app  ldt:base     ?base ;
-              ldt:service  ?service
+      { ?app  ldt:base     ?base .
+        OPTIONAL
+          {
+            ?app ldt:service  ?service
+          }
         OPTIONAL
           { ?app      lapp:adminApplication  ?adminApp .
             ?adminApp  ldt:service          ?adminService
