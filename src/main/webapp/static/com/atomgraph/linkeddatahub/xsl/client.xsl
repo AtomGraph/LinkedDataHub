@@ -1763,7 +1763,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
             <xsl:when test="(?status = 500 or ?status = 502) and not($fallback)">
-                <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
+                <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
                 <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
                 <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
