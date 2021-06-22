@@ -177,7 +177,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
         <xsl:if test="id('main-content', ixsl:page()) and not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
-            <xsl:result-document href="#main-content" method="ixsl:append-content">
+            <xsl:result-document href="#content-body" method="ixsl:append-content">
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
         </xsl:if>
@@ -1727,6 +1727,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:param name="fallback" select="false()" as="xs:boolean"/>
 
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -1759,6 +1760,21 @@ extension-element-prefixes="ixsl"
                 <!-- set the "Edit" button's target URL to the newly loaded document -->
                 <xsl:variable name="form-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($ac:uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                 <ixsl:set-property name="value" select="$form-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
+            </xsl:when>
+            <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
+            <xsl:when test="(?status = 500 or ?status = 502) and not($fallback)">
+                <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
+                <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
+                <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
+                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
+
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                    <xsl:call-template name="onRDFDocumentLoad">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="fallback" select="true()"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
