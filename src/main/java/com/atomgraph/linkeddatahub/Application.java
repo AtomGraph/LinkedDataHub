@@ -47,6 +47,7 @@ import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.core.io.QueryProvider;
 import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
+import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
 import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
@@ -785,6 +786,7 @@ public class Application extends ResourceConfig
         register(RiotParseExceptionMapper.class); // move to Processor?
         register(ClientErrorExceptionMapper.class);
         register(HttpHostConnectExceptionMapper.class);
+        register(BadGatewayExceptionMapper.class);
         register(OntClassNotFoundExceptionMapper.class);
         register(InvalidWebIDPublicKeyExceptionMapper.class);
         register(InvalidWebIDURIExceptionMapper.class);
