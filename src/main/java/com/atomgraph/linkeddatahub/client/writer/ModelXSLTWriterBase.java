@@ -62,6 +62,7 @@ import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.http.HttpHeaders;
 import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.StmtIterator;
@@ -89,6 +90,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
+    @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<Optional<TemplateCall>> templateCall;
     @Inject javax.inject.Provider<ClientUriInfo> clientUriInfo;
     @Inject javax.inject.Provider<DataManager> dataManager;
@@ -214,7 +216,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public URI getOntologyURI()
     {
-        if (getApplication().get().isPresent()) return URI.create(getApplication().get().get().getOntology().getURI());
+        if (getOntology().get().isPresent()) return URI.create(getOntology().get().get().getURI());
         
         return null;
     }
@@ -246,6 +248,11 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public javax.inject.Provider<Optional<Application>> getApplication()
     {
         return application;
+    }
+    
+    public javax.inject.Provider<Optional<Ontology>> getOntology()
+    {
+        return ontology;
     }
     
     public javax.inject.Provider<Optional<TemplateCall>> getTemplateCall()
