@@ -115,7 +115,8 @@ public class ApplicationImpl extends ResourceImpl implements Application
         return LinkedDataClient.create(getClient().target(getProxiedURI(uri)), getMediaTypes());
     }
     
-    protected URI getProxiedURI(final URI uri)
+    @Override
+    public URI getProxiedURI(final URI uri)
     {
         // if service proxyURI is set, change the URI host/port to proxyURI host/port
         if (getProxy() != null)

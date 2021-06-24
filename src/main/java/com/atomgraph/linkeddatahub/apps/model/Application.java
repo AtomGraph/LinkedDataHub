@@ -47,6 +47,8 @@ public interface Application extends Resource, com.atomgraph.processor.model.App
     
     Resource getProxy();
     
+    URI getProxiedURI(URI uri);
+    
     Client getClient();
 
     MediaTypes getMediaTypes();
