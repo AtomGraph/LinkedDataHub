@@ -127,15 +127,13 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
+            if (getOntology().get().isPresent())
+                params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
+
             Optional<Application> app = getApplication().get();
-            if (app.isPresent())
+            if (getApplication().get().isPresent())
             {
-                // base URI can be null when writing SPARQL results?
-//                if (getBaseUri() != null)
-                {
-                    params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
-                    params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.get().getOntology().getURI())));
-                }
+                params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
                 StmtIterator appStmts = app.get().listProperties();
