@@ -64,13 +64,13 @@ public class Dispatcher
         if (getApplication().isEmpty())
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ProxyResourceBase", getClientUriInfo().getRequestUri());
-            return ProxyResourceBase.class;
+            return ExternalProxyResourceBase.class;
         }
         
         if (getApplication().get().getService() == null)
         {
             if (log.isDebugEnabled()) log.debug("Application has no Service, returning Linked Data");
-            return this;
+            return ProxyResourceBase.class;
         }
 
         // resource class loading based on the ldt:loadClass value
@@ -97,12 +97,12 @@ public class Dispatcher
         return getResourceClass();
     }
 
-    @GET
-    public Response get()
-    {
-        LinkedDataClient ldClient = getApplication().get().getLinkedDataClient(getUriInfo().getRequestUri());
-        return ldClient.get(ldClient.getReadableMediaTypes(Model.class));
-    }
+//    @GET
+//    public Response get()
+//    {
+//        LinkedDataClient ldClient = getApplication().get().getLinkedDataClient(getUriInfo().getRequestUri());
+//        return ldClient.get(ldClient.getReadableMediaTypes(Model.class));
+//    }
     
     public Class getResourceClass()
     {
