@@ -772,6 +772,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- hide Content's rdf:rest property and object -->
+    <!--
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:rest" mode="bs2:FormControl" priority="1">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
@@ -783,6 +784,7 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
     </xsl:template>
+    -->
 
     <!-- WYSIWYG editor for XMLLiteral objects -->
 
