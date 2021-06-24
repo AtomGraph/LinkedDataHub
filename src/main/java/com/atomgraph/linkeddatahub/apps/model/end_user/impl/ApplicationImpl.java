@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.apps.model.end_user.impl;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import org.apache.jena.enhanced.EnhGraph;
@@ -25,7 +24,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import javax.ws.rs.client.Client;
 
 /**
  * End-user application implementation.
@@ -37,9 +35,9 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
 
-    public ApplicationImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ApplicationImpl(Node n, EnhGraph g)
     {
-        super(n, g, client, mediaTypes, maxGetRequestSize);
+        super(n, g);
     }
     
     @Override

@@ -16,11 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.apps.model.admin.impl;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import javax.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -37,9 +35,9 @@ public class ApplicationImpl extends com.atomgraph.linkeddatahub.apps.model.impl
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
     
-    public ApplicationImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ApplicationImpl(Node n, EnhGraph g)
     {
-        super(n, g, client, mediaTypes, maxGetRequestSize);
+        super(n, g);
     }
 
     @Override

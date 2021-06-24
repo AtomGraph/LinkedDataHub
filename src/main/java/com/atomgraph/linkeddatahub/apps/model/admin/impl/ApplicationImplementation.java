@@ -16,9 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.apps.model.admin.impl;
 
-import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import javax.ws.rs.client.Client;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -32,24 +30,13 @@ import org.apache.jena.vocabulary.RDF;
  */
 public class ApplicationImplementation extends Implementation
 {
-
-    private final Client client;
-    private final MediaTypes mediaTypes;
-    private final Integer maxGetRequestSize;
-
-    public ApplicationImplementation(Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
-    {
-        this.client = client;
-        this.mediaTypes = mediaTypes;
-        this.maxGetRequestSize = maxGetRequestSize;
-    }
     
     @Override
     public EnhNode wrap(Node node, EnhGraph enhGraph)
     {
         if (canWrap(node, enhGraph))
         {
-            return new ApplicationImpl(node, enhGraph, getClient(), getMediaTypes(), getMaxGetRequestSize());
+            return new ApplicationImpl(node, enhGraph);
         }
         else
         {
@@ -64,20 +51,5 @@ public class ApplicationImplementation extends Implementation
 
         return eg.asGraph().contains(node, RDF.type.asNode(), LAPP.AdminApplication.asNode());
     }
- 
-    public Client getClient()
-    {
-        return client;
-    }
-    
-    public MediaTypes getMediaTypes()
-    {
-        return mediaTypes;
-    }
-    
-    public Integer getMaxGetRequestSize()
-    {
-        return maxGetRequestSize;
-    }
-    
+
 }

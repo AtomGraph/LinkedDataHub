@@ -16,11 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.apps.model;
 
-import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.model.Service;
 import java.net.URI;
-import javax.ws.rs.client.Client;
 import org.apache.jena.rdf.model.Resource;
 
 /**
@@ -42,18 +39,9 @@ public interface Application extends Resource, com.atomgraph.processor.model.App
     Service getService();
 
     Resource getStylesheet();
-
-    LinkedDataClient getLinkedDataClient(URI uri);
     
     Resource getProxy();
     
     URI getProxiedURI(URI uri);
-    
-    Client getClient();
-
-    MediaTypes getMediaTypes();
-
-    Integer getMaxGetRequestSize();
-
     
 }

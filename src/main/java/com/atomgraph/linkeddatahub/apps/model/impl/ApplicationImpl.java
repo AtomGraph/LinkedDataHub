@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.apps.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -31,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
@@ -44,17 +41,10 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 public class ApplicationImpl extends ResourceImpl implements Application
 {
     private static final Logger log = LoggerFactory.getLogger(ApplicationImpl.class);
-
-    private final Client client;
-    private final MediaTypes mediaTypes;
-    private final Integer maxGetRequestSize;
     
-    public ApplicationImpl(Node n, EnhGraph g, Client client, MediaTypes mediaTypes, Integer maxGetRequestSize)
+    public ApplicationImpl(Node n, EnhGraph g)
     {
         super(n, g);
-        this.client = client;
-        this.mediaTypes = mediaTypes;
-        this.maxGetRequestSize = maxGetRequestSize;
     }
     
     @Override
@@ -110,12 +100,6 @@ public class ApplicationImpl extends ResourceImpl implements Application
     }
     
     @Override
-    public LinkedDataClient getLinkedDataClient(URI uri)
-    {
-        return LinkedDataClient.create(getClient().target(getProxiedURI(uri)), getMediaTypes());
-    }
-    
-    @Override
     public URI getProxiedURI(final URI uri)
     {
         // if service proxyURI is set, change the URI host/port to proxyURI host/port
@@ -131,25 +115,6 @@ public class ApplicationImpl extends ResourceImpl implements Application
         }
         
         return uri;
-    }
-    
-
-    @Override
-    public Client getClient()
-    {
-        return client;
-    }
-
-    @Override
-    public MediaTypes getMediaTypes()
-    {
-        return mediaTypes;
-    }
-
-    @Override
-    public Integer getMaxGetRequestSize()
-    {
-        return maxGetRequestSize;
     }
     
 }
