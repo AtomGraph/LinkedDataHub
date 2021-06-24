@@ -23,8 +23,10 @@ import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -68,8 +70,7 @@ public class Dispatcher
         if (getApplication().get().getService() == null)
         {
             if (log.isDebugEnabled()) log.debug("Application has no Service, returning Linked Data");
-            LinkedDataClient ldClient = getApplication().get().getLinkedDataClient(getUriInfo().getRequestUri());
-            return ldClient.get(ldClient.getReadableMediaTypes(Model.class));
+            return this;
         }
 
         // resource class loading based on the ldt:loadClass value
@@ -94,6 +95,13 @@ public class Dispatcher
         }
         
         return getResourceClass();
+    }
+
+    @GET
+    public Response get()
+    {
+        LinkedDataClient ldClient = getApplication().get().getLinkedDataClient(getUriInfo().getRequestUri());
+        return ldClient.get(ldClient.getReadableMediaTypes(Model.class));
     }
     
     public Class getResourceClass()
