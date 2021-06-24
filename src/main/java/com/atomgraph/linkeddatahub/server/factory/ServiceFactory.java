@@ -56,7 +56,7 @@ public class ServiceFactory implements Factory<Optional<Service>>
     {
         Optional<Application> app = (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
         
-        if (app.isPresent())
+        if (app.isPresent() && app.get().getService() != null)
         {
             Service service = app.get().getService();
 
