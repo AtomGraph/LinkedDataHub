@@ -48,11 +48,8 @@ public class ProxyResourceBase extends ExternalProxyResourceBase
             DataManager dataManager)
     {
         super(uriInfo, clientUriInfo, request, httpHeaders, mediaTypes, securityContext,
-                uriInfo.getAbsolutePath(),
-                null,
-                accept,
-                clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
-                mode, httpServletRequest, dataManager);
+                uriInfo.getAbsolutePath(), null, accept, mode,
+                system, httpServletRequest, dataManager);
     }
     
 }
