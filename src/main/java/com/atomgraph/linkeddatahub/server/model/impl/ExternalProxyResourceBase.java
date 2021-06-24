@@ -54,15 +54,25 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     
     @Inject
     public ExternalProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
+            DataManager dataManager)
+    {
+        this(uriInfo, clientUriInfo, request, httpHeaders, mediaTypes, securityContext,
+                clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
+                clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
+                clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
+                clientUriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
+                system, httpServletRequest, dataManager);
+    }
+    
+    protected ExternalProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
             DataManager dataManager)
     {
         super(clientUriInfo, request, httpHeaders, mediaTypes,
-                clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
-                mode, system.getClient(), httpServletRequest);
+                uri, endpoint, accept, mode,
+                system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.dataManager = dataManager;
         
