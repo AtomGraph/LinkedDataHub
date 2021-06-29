@@ -16,19 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.processor.exception.OntologyException;
 import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.util.ClsLoader;
 import org.slf4j.Logger;
@@ -45,15 +39,13 @@ public class Dispatcher
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
     private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application;
-    private final UriInfo uriInfo;
     private final ClientUriInfo clientUriInfo;
     private final Optional<TemplateCall> templateCall;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, @Context UriInfo uriInfo, ClientUriInfo clientUriInfo, Optional<TemplateCall> templateCall)
+    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, ClientUriInfo clientUriInfo, Optional<TemplateCall> templateCall)
     {
         this.application = application;
-        this.uriInfo = uriInfo;
         this.clientUriInfo = clientUriInfo;
         this.templateCall = templateCall;
     }
@@ -96,13 +88,6 @@ public class Dispatcher
         
         return getResourceClass();
     }
-
-//    @GET
-//    public Response get()
-//    {
-//        LinkedDataClient ldClient = getApplication().get().getLinkedDataClient(getUriInfo().getRequestUri());
-//        return ldClient.get(ldClient.getReadableMediaTypes(Model.class));
-//    }
     
     public Class getResourceClass()
     {
@@ -112,11 +97,6 @@ public class Dispatcher
     public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
         return application;
-    }
-    
-    public UriInfo getUriInfo()
-    {
-        return uriInfo;
     }
     
     public ClientUriInfo getClientUriInfo()

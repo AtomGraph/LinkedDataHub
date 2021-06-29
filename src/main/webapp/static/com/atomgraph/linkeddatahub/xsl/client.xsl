@@ -626,7 +626,8 @@ extension-element-prefixes="ixsl"
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
     <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+        <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
+        <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="sp:text" as="xs:string"/>
         <!-- set ?this variable value -->
         <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
