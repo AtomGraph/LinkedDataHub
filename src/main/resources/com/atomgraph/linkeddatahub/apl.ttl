@@ -425,12 +425,12 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :ContentConstructor a sp:Construct ;
   sp:text """
-      PREFIX apl:   <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this rdf:first [ a apl:Content ] ;
-            rdf:rest rdf:nil .
+          ?this rdf:first [ a rdfs:Resource ] ;
+            rdf:rest [ a rdfs:Resource ] .
       }
       WHERE {}""" ;
     rdfs:label "Content constructor" ;

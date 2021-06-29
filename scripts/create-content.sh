@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a container backed by a SPARQL SELECT query.\n"
+    printf "Creates a content instance.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -11,12 +11,10 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the application\n"
     printf "\n"
-    printf "  --title TITLE                        Title of the container\n"
-    printf "  --description DESCRIPTION            Description of the container (optional)\n"
+    printf "  --first RESOURCE_URI                 URI of the content element (query, chart etc.)\n"
+    printf "  --rest RESOURCE_URI                  URI of the following content (optional)\n"
+    printf "  --title TITLE                        Title of the content (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
-    printf "\n"
-    printf "  --parent PARENT_URI                  URI of the parent container\n"
-    printf "  --content CONTENT_URI                URI of the content list (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -47,23 +45,18 @@ do
         shift # past argument
         shift # past value
         ;;
-        --description)
-        description="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --parent)
-        parent="$2"
-        shift # past argument
-        shift # past value
-        ;;
-        --content)
-        content="$2"
-        shift # past argument
-        shift # past value
-        ;;
         --slug)
         slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --first)
+        first="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --rest)
+        rest="$2"
         shift # past argument
         shift # past value
         ;;
@@ -73,7 +66,7 @@ do
         ;;
     esac
 done
-set -- "${args[@]}" # restore args parameters
+set -- "${args[@]}" # restore args
 
 if [ -z "$cert_pem_file" ] ; then
     print_usage
@@ -87,17 +80,9 @@ if [ -z "$base" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$title" ] ; then
+if [ -z "$first" ] ; then
     print_usage
     exit 1
-fi
-if [ -z "$parent" ] ; then
-    print_usage
-    exit 1
-fi
-
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
@@ -105,26 +90,28 @@ args+=("${cert_pem_file}")
 args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
-args+=("text/turtle")
-args+=("--for-class")
-args+=("${base}ns/domain/default#Container")
+args+=("text/turtle") # content type
+#args+=("--for-class")
+#args+=("https://w3id.org/atomgraph/linkeddatahub/domain#Content")
 
-turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
-turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:container a nsdd:Container .\n"
-turtle+="_:container dct:title \"${title}\" .\n"
-turtle+="_:container sioc:has_parent <${parent}> .\n"
-if [ -n "$content" ] ; then
-    turtle+="_:container apl:content <${content}> .\n"
+turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+turtle+="_:content a apl:Content .\n"
+turtle+="_:content rdf:first <${first}> .\n"
+
+if [ -n "$rest" ] ; then
+    turtle+="_:content rdf:rest <${rest}> .\n"
+else
+    turtle+="_:content rdf:rest rdf:nil .\n"
 fi
-if [ -n "$description" ] ; then
-    turtle+="_:container dct:description \"${description}\" .\n"
+if [ -n "$title" ] ; then
+    turtle+="_:content dct:title \"${title}\" .\n"
 fi
 if [ -n "$slug" ] ; then
-    turtle+="_:container dh:slug \"${slug}\" .\n"
+    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
+# submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
