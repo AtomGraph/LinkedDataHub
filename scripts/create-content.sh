@@ -40,13 +40,13 @@ do
         shift # past argument
         shift # past value
         ;;
-        --title)
-        title="$2"
+        --uri)
+        uri="$2"
         shift # past argument
         shift # past value
         ;;
-        --slug)
-        slug="$2"
+        --title)
+        title="$2"
         shift # past argument
         shift # past value
         ;;
@@ -85,6 +85,13 @@ if [ -z "$first" ] ; then
     exit 1
 fi
 
+# allow explicit URIs
+if [ -n "$uri" ] ; then
+    content="<${uri}>" # URI
+else
+    content="_:content" # blank node
+fi
+
 args+=("-f")
 args+=("${cert_pem_file}")
 args+=("-p")
@@ -98,19 +105,16 @@ turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
-turtle+="_:content a apl:Content .\n"
-turtle+="_:content rdf:first <${first}> .\n"
+turtle+="${content} a apl:Content .\n"
+turtle+="${content} rdf:first <${first}> .\n"
 
 if [ -n "$rest" ] ; then
-    turtle+="_:content rdf:rest <${rest}> .\n"
+    turtle+="${content} rdf:rest <${rest}> .\n"
 else
-    turtle+="_:content rdf:rest rdf:nil .\n"
+    turtle+="${content} rdf:rest rdf:nil .\n"
 fi
 if [ -n "$title" ] ; then
-    turtle+="_:content dct:title \"${title}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
+    turtle+="${content} dct:title \"${title}\" .\n"
 fi
 
 # submit Turtle doc to the server
