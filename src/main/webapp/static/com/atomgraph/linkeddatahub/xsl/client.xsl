@@ -846,6 +846,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>
+        <xsl:param name="service" as="element()?"/>
 
         <!-- update progress bar -->
         <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
@@ -933,6 +934,7 @@ extension-element-prefixes="ixsl"
                         <xsl:call-template name="bs2:Parallax">
                             <xsl:with-param name="results" select="$grouped-results"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
+                            <xsl:with-param name="service" select="$service"/>
                             <xsl:with-param name="container-id" select="$parallax-container-id"/>
                         </xsl:call-template>
                     </xsl:if>
