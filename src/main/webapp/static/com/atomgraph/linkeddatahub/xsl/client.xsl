@@ -648,6 +648,8 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         <!-- store the first var name of the initial SELECT query -->
         <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <!-- store the URI of the service -->
+        <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <xsl:variable name="new-state" as="map(xs:string, item()?)">
             <xsl:map>
