@@ -690,6 +690,7 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="onContainerQueryServiceLoad">
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="content" select="."/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
                         <xsl:with-param name="service-uri" select="$service-uri"/>
