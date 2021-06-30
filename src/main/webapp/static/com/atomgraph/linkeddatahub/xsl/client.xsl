@@ -693,6 +693,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="content" select="."/>
                         <xsl:with-param name="select-string" select="$select-string"/>
                         <xsl:with-param name="select-xml" select="$select-xml"/>
+                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                         <xsl:with-param name="service-uri" select="$service-uri"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
