@@ -39,8 +39,21 @@ exclude-result-prefixes="#all">
 
         <span>
             <xsl:choose>
-                <xsl:when test="doc-available($container)">
-                    <xsl:apply-templates select="key('resources', $container, document(ac:document-uri($container)))" mode="apl:Typeahead"/>
+                <xsl:when test="$container">
+                    <xsl:choose>
+                        <xsl:when test="doc-available($container)">
+                            <xsl:apply-templates select="key('resources', $container, document(ac:document-uri($container)))" mode="apl:Typeahead"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:call-template name="xhtml:Input">
+                                <xsl:with-param name="name" select="'ou'"/>
+                                <xsl:with-param name="value" select="$container"/>
+                                <xsl:with-param name="type" select="'text'"/>
+<!--                                <xsl:with-param name="id" select="$id"/>
+                                <xsl:with-param name="class" select="$class"/>-->
+                            </xsl:call-template>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="key('resources', $ac:uri, document($ac:uri))" mode="apl:Typeahead"/>
