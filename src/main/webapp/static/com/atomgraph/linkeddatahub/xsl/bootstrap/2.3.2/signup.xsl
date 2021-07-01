@@ -128,11 +128,11 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- select the Agent blank node -->
-    <xsl:template match="*[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($ldt:base, 'ns#Person')]" mode="bs2:Form" priority="2">
+<!--    <xsl:template match="*[$ldt:base][$ac:uri = resolve-uri('sign%20up', $ldt:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($ldt:base, 'ns#Person')]" mode="bs2:Form" priority="2">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('sign%20up', $ldt:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][$ac:uri = resolve-uri('sign%20up', $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
         <xsl:apply-templates select="." mode="xhtml:Input">

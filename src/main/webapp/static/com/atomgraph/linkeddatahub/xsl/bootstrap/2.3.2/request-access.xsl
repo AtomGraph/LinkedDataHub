@@ -92,6 +92,7 @@ exclude-result-prefixes="#all">
         
             <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
                 <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+                <xsl:with-param name="create-resource" select="false()"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>

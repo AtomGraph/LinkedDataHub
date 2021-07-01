@@ -176,6 +176,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -214,7 +215,9 @@ extension-element-prefixes="ixsl"
                 </xsl:otherwise>
             </xsl:choose>
 
-            <xsl:apply-templates select="." mode="bs2:Create"/>
+            <xsl:if test="$create-resource">
+                <xsl:apply-templates select="." mode="bs2:Create"/>
+            </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:FormActions">
                 <xsl:with-param name="button-class" select="$button-class"/>
