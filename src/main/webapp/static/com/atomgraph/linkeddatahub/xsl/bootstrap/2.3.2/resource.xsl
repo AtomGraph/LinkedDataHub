@@ -285,8 +285,8 @@ extension-element-prefixes="ixsl"
 
     <!-- BODY -->
     
-    <!-- container/document blocks are hidden -->
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'"  match="*[sioc:has_parent] | *[sioc:has_container]" mode="xhtml:Body" priority="1">
+    <!-- the current document -->
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'"  match="*[@rdf:about = $ac:uri]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
