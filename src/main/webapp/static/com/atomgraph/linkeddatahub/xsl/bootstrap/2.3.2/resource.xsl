@@ -286,7 +286,7 @@ extension-element-prefixes="ixsl"
     <!-- BODY -->
     
     <!-- container/document blocks are hidden -->
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'"  match="*[rdf:type/@rdf:resource][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="xhtml:Body" priority="1">
+    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'"  match="*[sioc:has_parent] | *[sioc:has_container]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
@@ -867,15 +867,6 @@ extension-element-prefixes="ixsl"
     
     <!-- hide property dropdown -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:PropertyControl" priority="1"/>
-
-    <!-- container/document types are hidden -->
-    <!--
-    <xsl:template match="*[rdf:type/@rdf:resource][$ldt:ontology][apl:listSuperClasses(rdf:type/@rdf:resource) = ('&dh;Container', '&dh;Item')]" mode="bs2:TypeControl" priority="1">
-        <xsl:next-match>
-            <xsl:with-param name="hidden" select="true()"/>
-        </xsl:next-match>
-    </xsl:template>
-    -->
 
     <!-- TYPE CONTROL -->
     
