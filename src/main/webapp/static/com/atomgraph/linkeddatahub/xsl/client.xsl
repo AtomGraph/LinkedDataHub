@@ -660,6 +660,8 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
@@ -673,6 +675,8 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
@@ -897,7 +901,6 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                         
                         <!-- use the initial (not the current, transformed) SELECT query and focus var name for facet rendering -->
-<!--                        <xsl:variable name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-query')" as="xs:string"/>-->
                         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
