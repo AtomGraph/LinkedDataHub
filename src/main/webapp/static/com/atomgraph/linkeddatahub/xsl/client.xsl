@@ -846,7 +846,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()"/>
+        <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         <xsl:param name="select-string" as="xs:string"/>

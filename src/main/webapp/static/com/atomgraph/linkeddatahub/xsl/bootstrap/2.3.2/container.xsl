@@ -1151,7 +1151,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="apl:RenderContainer">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()"/>
+        <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="service" as="element()?"/>
