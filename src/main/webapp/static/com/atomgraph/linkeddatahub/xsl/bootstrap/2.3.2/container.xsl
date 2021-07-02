@@ -1198,9 +1198,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
-                <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                    <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1239,9 +1241,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
-                <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                    <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1279,9 +1283,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by">
-                <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1318,9 +1324,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:apply-templates select="$select-xml" mode="apl:toggle-desc">
-                <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:toggle-desc">
+                    <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1626,10 +1634,12 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:apply-templates select="$select-xml" mode="apl:filter-in">
-                <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
-                <xsl:with-param name="values" select="$values" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:filter-in">
+                    <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                    <xsl:with-param name="values" select="$values" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1664,9 +1674,11 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <xsl:variable name="select-xml" as="document-node()">
-            <xsl:apply-templates select="$select-xml" mode="apl:add-parallax-step">
-                <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
-            </xsl:apply-templates>
+            <xsl:document>
+                <xsl:apply-templates select="$select-xml" mode="apl:add-parallax-step">
+                    <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
+                </xsl:apply-templates>
+            </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
