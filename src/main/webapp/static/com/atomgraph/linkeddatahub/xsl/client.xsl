@@ -651,7 +651,7 @@ extension-element-prefixes="ixsl"
         <!-- store the URI of the service -->
         <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
+<!--        <xsl:variable name="new-state" as="map(xs:string, item()?)">
             <xsl:map>
                 <xsl:map-entry key="'&rdf;type'" select="'&ac;Limit'"/>
                 <xsl:map-entry key="'&spl;predicate'" select="'&ac;limit'"/>
@@ -679,7 +679,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
