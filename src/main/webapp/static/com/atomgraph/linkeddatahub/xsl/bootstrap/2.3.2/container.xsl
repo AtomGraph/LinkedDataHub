@@ -1191,7 +1191,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
         <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:string"/>
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI"/>
-        <xsl:variable name="content" select="()" as="element()"/> <!-- TO-DO: set value -->
+        <xsl:variable name="content" select="()" as="element()?"/> <!-- TO-DO: set value -->
         <xsl:variable name="select-json" select="map:get($state, '&spin;query')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
