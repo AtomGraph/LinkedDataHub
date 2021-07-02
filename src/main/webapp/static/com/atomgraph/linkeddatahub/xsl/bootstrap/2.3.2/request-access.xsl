@@ -74,11 +74,11 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>
     
-    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="1"/>
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="1"/>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Main" priority="2">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Main" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
