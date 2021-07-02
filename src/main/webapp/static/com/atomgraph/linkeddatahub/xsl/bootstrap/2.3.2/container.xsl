@@ -1082,59 +1082,8 @@ exclude-result-prefixes="#all"
             </form>
         </xsl:if>
     </xsl:template>
-
-    <!-- container state rendering -->
-    
-    <xsl:function name="ac:transform-query" as="document-node()">
-        <xsl:param name="state" as="map(xs:string, item()?)"/>
-        <xsl:param name="select-query" as="document-node()"/>
-
-        <xsl:message select="'State type: ' || map:get($state, '&rdf;type')"/>
-        
-        <xsl:document>
-            <xsl:choose>
-                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Limit'">
-                    <xsl:apply-templates select="$select-query" mode="apl:replace-limit">
-                        <xsl:with-param name="limit" select="xs:integer(map:get($state, '&rdf;value'))" as="xs:integer" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Offset'">
-                    <xsl:apply-templates select="$select-query" mode="apl:replace-offset">
-                        <xsl:with-param name="offset" select="xs:integer(map:get($state, '&rdf;value'))" as="xs:integer" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="map:get($state, '&rdf;type') = '&ac;OrderBy'">
-                    <xsl:apply-templates select="$select-query" mode="apl:replace-order-by">
-                        <xsl:with-param name="var-name" select="map:get($state, '&rdf;value')" as="xs:string" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Desc'">
-                    <xsl:apply-templates select="$select-query" mode="apl:toggle-desc">
-                        <xsl:with-param name="desc" select="xs:boolean(map:get($state, '&rdf;value'))" as="xs:boolean" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="map:get($state, '&rdf;type') = '&ac;FilterIn'">
-                    <xsl:apply-templates select="$select-query" mode="apl:filter-in">
-                        <xsl:with-param name="var-name" select="map:get($state, '&spl;predicate')" as="xs:string" tunnel="yes"/>
-                        <xsl:with-param name="values" select="map:get($state, '&rdf;value')" as="array(map(xs:string, xs:string))" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:when test="map:get($state, '&rdf;type') = '&ac;Parallax'">
-                    <xsl:apply-templates select="$select-query" mode="apl:add-parallax-step">
-                        <xsl:with-param name="predicate" select="xs:anyURI(map:get($state, '&rdf;value'))" as="xs:anyURI" tunnel="yes"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:message error-code="apl:UnknownStateType" terminate="yes">
-                        Unknown state type '<xsl:value-of select="map:get($state, '&rdf;type')"/>'
-                    </xsl:message>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:document>
-    </xsl:function>
     
     <xsl:template name="apl:push-state">
-        <xsl:param name="new-state" as="map(xs:string, item()?)"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -1142,8 +1091,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
         <!-- push the latest state into history -->
         <xsl:variable name="js-statement" as="element()">
-            <xsl:variable name="state-json-string" select="serialize($new-state, map { 'method': 'json' })" as="xs:string"/>
-            <root statement="history.pushState({{ 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&ldt;arg': JSON.parse('{$state-json-string}'), '&spin;query': JSON.parse('{$select-json-string}') }}, '')"/>
+            <root statement="history.pushState({{ 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '')"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
@@ -1249,18 +1197,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
-            <xsl:map>
-                <xsl:map-entry key="'&rdf;type'" select="'&ac;Offset'"/>
-                <xsl:map-entry key="'&spl;predicate'" select="'&ac;offset'"/>
-                <xsl:map-entry key="'&rdf;value'" select="$offset"/>
-            </xsl:map>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
@@ -1294,18 +1238,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
-            <xsl:map>
-                <xsl:map-entry key="'&rdf;type'" select="'&ac;Offset'"/>
-                <xsl:map-entry key="'&spl;predicate'" select="'&ac;offset'"/>
-                <xsl:map-entry key="'&rdf;value'" select="$offset"/>
-            </xsl:map>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                <xsl:with-param name="offset" select="$offset" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
@@ -1338,18 +1278,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
-            <xsl:map>
-                <xsl:map-entry key="'&rdf;type'" select="'&ac;OrderBy'"/>
-                <xsl:map-entry key="'&spl;predicate'" select="'&ac;orderBy'"/>
-                <xsl:map-entry key="'&rdf;value'" select="$var-name"/>
-            </xsl:map>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:apply-templates select="$select-xml" mode="apl:replace-order-by">
+                <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
@@ -1381,18 +1317,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
-            <xsl:map>
-                <xsl:map-entry key="'&rdf;type'" select="'&ac;Desc'"/>
-                <xsl:map-entry key="'&spl;predicate'" select="'&ac;desc'"/>
-                <xsl:map-entry key="'&rdf;value'" select="not($desc)"/>
-            </xsl:map>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:apply-templates select="$select-xml" mode="apl:toggle-desc">
+                <xsl:with-param name="desc" select="not($desc)" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
@@ -1693,18 +1625,15 @@ exclude-result-prefixes="#all"
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)"/>-->
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
-            <xsl:map>
-                <xsl:map-entry key="'&rdf;type'" select="'&ac;FilterIn'"/>
-                <xsl:map-entry key="'&spl;predicate'" select="$var-name"/>
-                <xsl:map-entry key="'&rdf;value'" select="$values"/>
-            </xsl:map>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:apply-templates select="$select-xml" mode="apl:filter-in">
+                <xsl:with-param name="var-name" select="$var-name" tunnel="yes"/>
+                <xsl:with-param name="values" select="$values" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
@@ -1734,18 +1663,14 @@ exclude-result-prefixes="#all"
         <xsl:variable name="service-uri" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
-        <xsl:variable name="new-state" as="map(xs:string, item()?)">
-            <xsl:map>
-                <xsl:map-entry key="'&rdf;type'" select="'&ac;Parallax'"/>
-                <xsl:map-entry key="'&spl;predicate'" select="'&ac;predicate'"/>
-                <xsl:map-entry key="'&rdf;value'" select="$predicate"/>
-            </xsl:map>
+        <xsl:variable name="select-xml" as="document-node()">
+            <xsl:apply-templates select="$select-xml" mode="apl:add-parallax-step">
+                <xsl:with-param name="predicate" select="$predicate" tunnel="yes"/>
+            </xsl:apply-templates>
         </xsl:variable>
-        <xsl:variable name="select-xml" select="ac:transform-query($new-state, $select-xml)" as="document-node()"/>
         <xsl:call-template name="apl:push-state">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="new-state" select="$new-state" as="map(xs:string, item()?)"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
         <!-- store the transformed query XML -->
