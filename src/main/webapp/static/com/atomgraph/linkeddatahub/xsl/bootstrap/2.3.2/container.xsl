@@ -268,9 +268,6 @@ exclude-result-prefixes="#all"
     <xsl:template name="bs2:PagerList">
         <xsl:param name="result-count" as="xs:integer?"/>
         <xsl:param name="select-xml" as="document-node()"/>
-<!--        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>-->
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
         <xsl:variable name="show" select="($offset - $limit) &gt;= 0 or $result-count &gt;= $limit" as="xs:boolean"/>
@@ -1370,9 +1367,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
-<!--        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>-->
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
         <xsl:variable name="service" select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.service')) then ixsl:get(ixsl:window(), 'LinkedDataHub.service') else ()" as="element()?"/>
         <!-- TO-DO: can we get multiple BGPs here with the same ?s/p/?o ? -->
@@ -1636,11 +1630,6 @@ exclude-result-prefixes="#all"
         <!-- collect the values/types/datatypes of all checked inputs within this facet and build an array of maps -->
         <xsl:variable name="labels" select="ancestor::ul//label[input[@type = 'checkbox'][ixsl:get(., 'checked')]]" as="element()*"/>
         <xsl:variable name="values" select="array { for $label in $labels return map { 'value' : string($label/input[@type = 'checkbox']/@value), 'type': string($label/input[@name = 'type']/@value), 'datatype': string($label/input[@name = 'datatype']/@value) } }" as="array(map(xs:string, xs:string))"/>
-        <!-- retrieve SELECT query history.state -->
-        <!--<xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>-->
-        <!-- history.pushState() state objects cannot contain elements, therefore we are converting the query to JSON before pushing -->
-<!--        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)"/>-->
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
 
         <xsl:variable name="select-xml" as="document-node()">
@@ -1672,11 +1661,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'right-nav']/preceding-sibling::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
-        <!-- retrieve SELECT query history.state -->
-        <!--<xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>-->
-        <!-- history.pushState() state objects cannot contain elements, therefore we are converting the query to JSON before pushing -->
-<!--        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)"/>-->
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
