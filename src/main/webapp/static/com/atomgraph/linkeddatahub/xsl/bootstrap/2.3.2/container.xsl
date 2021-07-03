@@ -267,9 +267,10 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="bs2:PagerList">
         <xsl:param name="result-count" as="xs:integer?"/>
-        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
+        <xsl:param name="select-xml" as="document-node()"/>
+<!--        <xsl:variable name="select-json" select="ixsl:eval('history.state[''&spin;query'']')"/>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
+        <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>-->
         <xsl:variable name="offset" select="if ($select-xml/json:map/json:number[@key = 'offset']) then xs:integer($select-xml/json:map/json:number[@key = 'offset']) else 0" as="xs:integer"/>
         <xsl:variable name="limit" select="if ($select-xml/json:map/json:number[@key = 'limit']) then xs:integer($select-xml/json:map/json:number[@key = 'limit']) else 0" as="xs:integer"/>
         <xsl:variable name="show" select="($offset - $limit) &gt;= 0 or $result-count &gt;= $limit" as="xs:boolean"/>
@@ -310,16 +311,19 @@ exclude-result-prefixes="#all"
     <!-- BLOCK LIST MODE -->
 
     <xsl:template match="rdf:RDF" mode="bs2:BlockList" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
         <xsl:next-match/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -364,32 +368,38 @@ exclude-result-prefixes="#all"
     <!-- GRID MODE -->
 
     <xsl:template match="rdf:RDF" mode="bs2:Grid" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
         <xsl:next-match/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
     </xsl:template>
 
     <!-- TABLE MODE -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Table" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:variable name="result-count" select="count(rdf:Description)" as="xs:integer"/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
 
         <xsl:next-match/>
 
         <xsl:call-template name="bs2:PagerList">
             <xsl:with-param name="result-count" select="$result-count"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
         </xsl:call-template>
     </xsl:template>
 

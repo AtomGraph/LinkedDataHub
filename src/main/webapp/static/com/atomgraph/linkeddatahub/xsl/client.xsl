@@ -984,6 +984,7 @@ extension-element-prefixes="ixsl"
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="results" select="$results"/>
                             <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                             <xsl:with-param name="desc" select="$desc"/>
@@ -1051,6 +1052,7 @@ extension-element-prefixes="ixsl"
                         
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="results" select="$results"/>
                             <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
                             <xsl:with-param name="desc" select="$desc"/>
@@ -1191,6 +1193,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="container-mode">
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="results" as="document-node()"/>
         <xsl:param name="order-by-predicate" as="xs:anyURI?"/>
         <xsl:param name="desc" as="xs:boolean?"/>
@@ -1283,13 +1286,19 @@ extension-element-prefixes="ixsl"
             </xsl:variable>
             <xsl:choose>
                 <xsl:when test="$active-class = 'list-mode' or (not($active-class) and $ac:container-mode = '&ac;ListMode')">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList"/>
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:BlockList">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-class = 'table-mode' or (not($active-class) and $ac:container-mode = '&ac;TableMode')">
-                    <xsl:apply-templates select="$sorted-results" mode="xhtml:Table"/>
+                    <xsl:apply-templates select="$sorted-results" mode="xhtml:Table">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-class = 'grid-mode' or (not($active-class) and $ac:container-mode = '&ac;GridMode')">
-                    <xsl:apply-templates select="$sorted-results" mode="bs2:Grid"/>
+                    <xsl:apply-templates select="$sorted-results" mode="bs2:Grid">
+                        <xsl:with-param name="select-xml" select="$select-xml"/>
+                    </xsl:apply-templates>
                 </xsl:when>
                 <xsl:when test="$active-class = 'chart-mode' or (not($active-class) and $ac:container-mode = '&ac;ChartMode')">
                     <xsl:apply-templates select="$sorted-results" mode="bs2:Chart">
