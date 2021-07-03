@@ -853,7 +853,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="service" as="element()?"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+            <ixsl:set-style name="width" select="'75%'" object="."/>
+        </xsl:for-each>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -970,10 +972,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
 
-        <!-- update progress bar -->
-        <!--<ixsl:set-style name="width" select="'100%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
         <!-- hide progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'progress-bar']"/>
+        <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'progress-bar']">
+            <ixsl:set-style name="display" select="'none'" object="."/>
+        </xsl:for-each>
                 
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
