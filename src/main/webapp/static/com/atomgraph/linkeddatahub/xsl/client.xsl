@@ -1804,9 +1804,17 @@ extension-element-prefixes="ixsl"
     
     <!-- EVENT LISTENERS -->
 
-    <xsl:template match="a[@href]" mode="ixsl:onclick">
+    <xsl:template match="a[starts-with(@href, 'http://') or starts-with(@href, 'https://')]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ string(@href) ])"/>
+        <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ string(@href) ])"/>-->
+        <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
+        <!-- indirect resource URI, dereferenced through a proxy -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+            <xsl:call-template name="onRDFDocumentLoad">
+                <xsl:with-param name="uri" select="$uri"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
