@@ -240,13 +240,8 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
-        <!-- load content -->
-        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
-            <xsl:call-template name="apl:load-content">
-                <xsl:with-param name="content-uri" select="input[@name = 'href']/@value"/>
-                <xsl:with-param name="container-id" select="@id"/>
-            </xsl:call-template>
-        </xsl:for-each>
+        <!-- load contents -->
+        <xsl:call-template name="apl:load-contents"/>
     </xsl:template>
 
     <!-- FUNCTIONS -->
@@ -1299,25 +1294,30 @@ extension-element-prefixes="ixsl"
     
     <!-- load content -->
     
-    <xsl:template name="apl:load-content">
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>
+    <xsl:template name="apl:load-contents">
+<!--        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>-->
 
-        <!-- show progress bar -->
-        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-            <div class="progress-bar">
-                <div class="progress progress-striped active">
-                    <div class="bar" style="width: 25%;"></div>
+        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
+            <xsl:variable name="content-uri" select="input[@name = 'href']/@value"/>
+            <xsl:variable name="container-id" select="@id"/>
+
+            <!-- show progress bar -->
+            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                <div class="progress-bar">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 25%;"></div>
+                    </div>
                 </div>
-            </div>
-        </xsl:result-document>
+            </xsl:result-document>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onContentLoad">
-                <xsl:with-param name="content-uri" select="$content-uri"/>
-                <xsl:with-param name="container-id" select="$container-id"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onContentLoad">
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- root children list -->
@@ -1760,13 +1760,8 @@ extension-element-prefixes="ixsl"
                         <xsl:copy-of select="id($container-id, $results)/*"/>
                     </xsl:result-document>
                     
-                    <!-- load content -->
-                    <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
-                        <xsl:call-template name="apl:load-content">
-                            <xsl:with-param name="content-uri" select="input[@name = 'href']/@value"/>
-                            <xsl:with-param name="container-id" select="@id"/>
-                        </xsl:call-template>
-                    </xsl:for-each>
+                    <!-- load contents -->
+                    <xsl:call-template name="apl:load-contents"/>
 
                     <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
