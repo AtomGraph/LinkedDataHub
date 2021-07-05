@@ -1303,7 +1303,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="container-id" select="@id"/>
 
             <!-- show progress bar -->
-            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:append-content">
                 <div class="progress-bar">
                     <div class="progress progress-striped active">
                         <div class="bar" style="width: 25%;"></div>
