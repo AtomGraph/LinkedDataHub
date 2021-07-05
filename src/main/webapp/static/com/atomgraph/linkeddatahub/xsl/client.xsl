@@ -1743,14 +1743,12 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml')">
+            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
 
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <xsl:apply-templates select="$results/rdf:RDF/*" mode="xhtml:Body">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <xsl:copy-of select="$results//body/*"/>
                     </xsl:result-document>
                     
                     <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
@@ -1781,7 +1779,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
 
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onRDFDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="fallback" select="true()"/>
@@ -1810,7 +1808,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onRDFDocumentLoad">
                 <xsl:with-param name="uri" select="$uri"/>
             </xsl:call-template>
