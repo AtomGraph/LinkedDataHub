@@ -242,24 +242,10 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- load content -->
         <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
-            <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
-            <xsl:variable name="container-id" select="@id" as="xs:string"/>
-            
-            <!-- show progress bar -->
-            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                <div class="progress-bar">
-                    <div class="progress progress-striped active">
-                        <div class="bar" style="width: 25%;"></div>
-                    </div>
-                </div>
-            </xsl:result-document>
-                
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContentLoad">
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+            <xsl:call-template name="apl:load-content">
+                <xsl:with-param name="content-uri" select="input[@name = 'href']/@value"/>
+                <xsl:with-param name="container-id" select="@id"/>
+            </xsl:call-template>
         </xsl:for-each>
     </xsl:template>
 
@@ -1311,6 +1297,29 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- load content -->
+    
+    <xsl:template name="apl:load-content">
+        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>
+
+        <!-- show progress bar -->
+        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+            <div class="progress-bar">
+                <div class="progress progress-striped active">
+                    <div class="bar" style="width: 25%;"></div>
+                </div>
+            </div>
+        </xsl:result-document>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onContentLoad">
+                <xsl:with-param name="content-uri" select="$content-uri"/>
+                <xsl:with-param name="container-id" select="$container-id"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
     <!-- root children list -->
     
     <xsl:template name="apl:RootLoad">
@@ -1735,7 +1744,7 @@ extension-element-prefixes="ixsl"
 
     <!-- Linked Data browser -->
     
-    <xsl:template name="onRDFDocumentLoad">
+    <xsl:template name="onDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
@@ -1751,6 +1760,14 @@ extension-element-prefixes="ixsl"
                         <xsl:copy-of select="id($container-id, $results)/*"/>
                     </xsl:result-document>
                     
+                    <!-- load content -->
+                    <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
+                        <xsl:call-template name="apl:load-content">
+                            <xsl:with-param name="content-uri" select="input[@name = 'href']/@value"/>
+                            <xsl:with-param name="container-id" select="@id"/>
+                        </xsl:call-template>
+                    </xsl:for-each>
+
                     <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
                         
@@ -1780,7 +1797,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
 
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onRDFDocumentLoad">
+                    <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="fallback" select="true()"/>
                     </xsl:call-template>
@@ -1809,7 +1826,7 @@ extension-element-prefixes="ixsl"
         <!-- indirect resource URI, dereferenced through a proxy -->
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onRDFDocumentLoad">
+            <xsl:call-template name="onDocumentLoad">
                 <xsl:with-param name="uri" select="$uri"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -1831,7 +1848,7 @@ extension-element-prefixes="ixsl"
                 <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
                 <xsl:otherwise>
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onRDFDocumentLoad">
+                        <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="uri" select="$uri"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
@@ -2185,7 +2202,7 @@ extension-element-prefixes="ixsl"
                         <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
                         <xsl:otherwise>
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                                <xsl:call-template name="onRDFDocumentLoad">
+                                <xsl:call-template name="onDocumentLoad">
                                     <xsl:with-param name="uri" select="$resource-uri"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
@@ -2236,7 +2253,7 @@ extension-element-prefixes="ixsl"
             <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
             <xsl:otherwise>
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                    <xsl:call-template name="onRDFDocumentLoad">
+                    <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$resource-uri"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
