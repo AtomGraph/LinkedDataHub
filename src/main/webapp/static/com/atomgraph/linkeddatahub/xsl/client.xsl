@@ -1803,6 +1803,10 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
+
+    <xsl:template match="a[@href]" mode="ixsl:onclick">
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ @href ])"/>
+    </xsl:template>
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
