@@ -1810,7 +1810,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
 
                 <!-- set the "Edit" button's target URL to the newly loaded document -->
-                <xsl:variable name="form-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($ac:uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+                <xsl:variable name="form-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                 <ixsl:set-property name="value" select="$form-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
