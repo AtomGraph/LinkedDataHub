@@ -242,8 +242,8 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-        <xsl:message>A CONTENT IDS: <xsl:value-of select="$content-ids"/></xsl:message>
         <xsl:call-template name="apl:load-contents">
+            <xsl:with-param name="uri" select="$ac:uri"/>
             <xsl:with-param name="content-ids" select="$content-ids"/>
         </xsl:call-template>
     </xsl:template>
@@ -610,12 +610,13 @@ extension-element-prefixes="ixsl"
 
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
     <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
+        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="sp:text" as="xs:string"/>
         <!-- set ?this variable value -->
-        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $ac:uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
 
         <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
@@ -1299,9 +1300,10 @@ extension-element-prefixes="ixsl"
     <!-- load content -->
     
     <xsl:template name="apl:load-contents">
+        <xsl:param name="uri" as="xs:anyURI"/>
 <!--        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>-->
-        <xsl:param name="content-ids" as="xs:string*"/>
+        <xsl:param name="content-ids" as="xs:string*"/> <!-- workaround for Saxon-JS bug: https://saxonica.plan.io/issues/5036 -->
 
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:for-each select="id($content-ids, ixsl:page())">
@@ -1319,6 +1321,7 @@ extension-element-prefixes="ixsl"
 
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onContentLoad">
+                    <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:call-template>
@@ -1730,6 +1733,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onContentLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="container-id" as="xs:string"/>
 
@@ -1739,6 +1743,7 @@ extension-element-prefixes="ixsl"
                 <ixsl:set-style name="width" select="'50%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
             
                 <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
+                    <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:apply-templates>
             </xsl:when>
@@ -1767,9 +1772,9 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
                     
                     <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
-                    <xsl:message>B CONTENT IDS: <xsl:value-of select="$content-ids"/></xsl:message>
                     <!-- load contents -->
                     <xsl:call-template name="apl:load-contents">
+                        <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-ids" select="$content-ids"/>
                     </xsl:call-template>
 
