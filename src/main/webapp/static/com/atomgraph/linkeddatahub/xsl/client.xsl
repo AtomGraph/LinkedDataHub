@@ -1356,6 +1356,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
+        <xsl:param name="source-uri" as="xs:anyURI?"/>
 
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1393,8 +1394,20 @@ extension-element-prefixes="ixsl"
                         <div class="modal-body">
                             <div class="tabbable">
                                 <ul class="nav nav-tabs">
-                                    <li class="active"><a>Upload file</a></li>
-                                    <li><a>From URI</a></li>
+                                    <li>
+                                        <xsl:if test="not($source-uri)">
+                                            <xsl:attribute name="class">active</xsl:attribute>
+                                        </xsl:if>
+                                        
+                                        <a>Upload file</a>
+                                    </li>
+                                    <li>
+                                        <xsl:if test="$source-uri">
+                                            <xsl:attribute name="class">active</xsl:attribute>
+                                        </xsl:if>
+
+                                        <a>From URI</a>
+                                    </li>
                                 </ul>
                                 <div class="tab-content">
                                     <div class="tab-pane active">
@@ -1454,9 +1467,16 @@ extension-element-prefixes="ixsl"
                                             
                                             <div class="control-group required">
                                                 <input type="hidden" name="pu" value="&dct;source"/>
-                                                <label class="control-label" for="remote-rdf-source">FileName</label>
+                                                <label class="control-label" for="remote-rdf-source">Source URI</label>
                                                 <div class="controls">
-                                                    <input id="remote-rdf-source" type="file" name="ol"/>
+                                                    <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
+                                                        <xsl:if test="$source-uri">
+                                                            <xsl:attribute name="value">
+                                                                <xsl:value-of select="$source-uri"/>
+                                                            </xsl:attribute>
+                                                        </xsl:if>
+                                                    </input>
+                                                    <span class="help-inline">Resource</span>
                                                 </div>
                                             </div>
                                             <div class="control-group required">
@@ -2964,7 +2984,11 @@ extension-element-prefixes="ixsl"
     <!-- open a form to save RDF document -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
-        <xsl:call-template name="apl:show-add-data-form"/>
+        <xsl:variable name="uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
+        
+        <xsl:call-template name="apl:show-add-data-form">
+            <xsl:with-param name="source-uri" select="$uri"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- FORM IDENTITY TRANSFORM -->

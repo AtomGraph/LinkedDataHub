@@ -489,6 +489,8 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
 
+                <input type="hidden" name="href" value="{@rdf:about}"/> <!-- used by client.xsl -->
+                
                 <xsl:value-of>
                     <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                     <xsl:text>...</xsl:text>
