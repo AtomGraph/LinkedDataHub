@@ -1873,7 +1873,7 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
                 <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
                 <xsl:otherwise>
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="uri" select="$uri"/>
                         </xsl:call-template>
