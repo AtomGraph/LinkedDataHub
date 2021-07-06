@@ -1844,8 +1844,8 @@ extension-element-prefixes="ixsl"
     
     <!-- EVENT LISTENERS -->
 
-    <!-- intercept all link HTTP(S) clicks except those in the navbar and the footer -->
-    <xsl:template match="a[starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
+    <!-- intercept all link HTTP(S) clicks except those in the navbar (except breadcrumb bar) and the footer -->
+    <xsl:template match="a[starts-with(@href, 'http://') or starts-with(@href, 'https://')][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ string(@href) ])"/>-->
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
