@@ -1304,27 +1304,29 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-ids" as="xs:string*"/> <!-- workaround for Saxon-JS bug: https://saxonica.plan.io/issues/5036 -->
 
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
-        <xsl:for-each select="id($content-ids, ixsl:page())">
-            <xsl:variable name="content-uri" select="input[@name = 'href']/@value"/>
-            <xsl:variable name="container-id" select="@id"/>
+        <xsl:if test="exists($content-ids)">
+            <xsl:for-each select="id($content-ids, ixsl:page())">
+                <xsl:variable name="content-uri" select="input[@name = 'href']/@value"/>
+                <xsl:variable name="container-id" select="@id"/>
 
-            <!-- show progress bar -->
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="progress-bar">
-                    <div class="progress progress-striped active">
-                        <div class="bar" style="width: 25%;"></div>
+                <!-- show progress bar -->
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div class="progress-bar">
+                        <div class="progress progress-striped active">
+                            <div class="bar" style="width: 25%;"></div>
+                        </div>
                     </div>
-                </div>
-            </xsl:result-document>
+                </xsl:result-document>
 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onContentLoad">
-                    <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:for-each>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onContentLoad">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
     
     <!-- load breadcrumbs -->
