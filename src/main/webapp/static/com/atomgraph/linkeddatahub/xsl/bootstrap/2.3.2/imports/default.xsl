@@ -198,7 +198,13 @@ exclude-result-prefixes="#all"
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-copy-uri')"/>
     </xsl:template>
-    
+
+    <xsl:template match="*[@rdf:nodeID = 'save-as']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save-as')"/>
+    </xsl:template>
+
     <xsl:template match="*" mode="apl:logo" priority="0">
         <xsl:param name="class" as="xs:string?"/>
         

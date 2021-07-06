@@ -602,7 +602,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
-            <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary add-data">
+            <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary btn-add-data">
 <!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
                 </xsl:apply-templates>-->

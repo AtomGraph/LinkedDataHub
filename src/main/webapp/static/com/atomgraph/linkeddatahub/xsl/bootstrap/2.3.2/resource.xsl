@@ -483,6 +483,17 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                 </xsl:value-of>
             </button>
+            
+            <button>
+                <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                    <xsl:text>...</xsl:text>
+                </xsl:value-of>
+            </button>
         </div>
 
         <xsl:variable name="logged-in" select="exists($acl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>

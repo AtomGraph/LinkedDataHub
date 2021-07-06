@@ -1346,6 +1346,126 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
     
+    <!-- show "Add data"/"Save as" form -->
+    
+    <xsl:template name="apl:show-add-data-form">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })" as="xs:anyURI"/>
+        <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
+
+        <xsl:for-each select="ixsl:page()//body">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <!-- append modal div to body -->
+                
+                <div class="modal modal-constructor fade in">
+                    <form method="{$method}" action="{$action}">
+                        <xsl:if test="$id">
+                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$class">
+                            <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$accept-charset">
+                            <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                        </xsl:if>
+                        <xsl:if test="$enctype">
+                            <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                        </xsl:if>
+
+                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                        <xsl:call-template name="xhtml:Input">
+                            <xsl:with-param name="name" select="'rdf'"/>
+                            <xsl:with-param name="type" select="'hidden'"/>
+                        </xsl:call-template>
+
+                        <input type="hidden" class="target-id"/>
+
+                        <div class="modal-header">
+                            <button type="button" class="close">&#215;</button>
+
+                            <legend title="Add RDF data">Add RDF data</legend>
+                        </div>
+
+                        <div class="modal-body">
+                            <div class="tabbable">
+                                <ul class="nav nav-tabs">
+                                    <li class="active"><a>Upload file</a></li>
+                                    <!--<li class=""><a>From URI</a></li>-->
+                                </ul>
+                                <div class="tab-content">
+                                    <div class="tab-pane active">
+                                        <fieldset>
+                                            <input type="hidden" name="sb" value="file"/>
+                                            <input type="hidden" name="pu" value="&rdf;type"/>
+                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+
+                                            <!-- file title is unused, just needed to pass the apl:File constraints -->
+                                            <input type="hidden" name="pu" value="&dct;title"/>
+                                            <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&dct;format"/>
+                                                <label class="control-label" for="add-rdf-format">Format</label>
+                                                <div class="controls">
+                                                    <select id="add-rdf-format" name="ol">
+                                                        <!--<option value="">[browser-defined]</option>-->
+                                                        <optgroup label="RDF triples">
+                                                            <option value="text/turtle">Turtle (.ttl)</option>
+                                                            <option value="application/n-triples">N-Triples (.nt)</option>
+                                                            <option value="application/rdf+xml">RDF/XML (.rdf)</option>
+                                                        </optgroup>
+                                                        <optgroup label="RDF quads">
+                                                            <option value="text/trig">TriG (.trig)</option>
+                                                            <option value="application/n-quads">N-Quads (.nq)</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&nfo;fileName"/>
+                                                <label class="control-label" for="add-rdf-filename">FileName</label>
+                                                <div class="controls">
+                                                    <input id="add-rdf-filename" type="file" name="ol"/>
+                                                </div>
+                                            </div>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&sd;name"/>
+                                                <label class="control-label" for="add-rdf-graph">Graph URI</label>
+                                                <div class="controls">
+                                                    <input type="text" id="add-rdf-graph" name="ou" class="input-xxlarge"/>
+                                                    <span class="help-inline">Resource</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+<!--                                    <div class="tab-pane">
+                                        <p>TO-DO</p>
+                                    </div>-->
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-actions modal-footer">
+                            <button type="submit" class="{$button-class}">Save</button>
+                            <button type="button" class="btn btn-close">Close</button>
+                            <button type="reset" class="btn btn-reset">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </xsl:result-document>
+
+            <ixsl:set-style name="cursor" select="'default'"/>
+        </xsl:for-each>
+    </xsl:template>
+    
     <!-- root children list -->
     
     <xsl:template name="apl:RootLoad">
@@ -2720,122 +2840,8 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'add-data']" mode="ixsl:onclick">
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })" as="xs:anyURI"/>
-        <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
-        <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
-        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
-
-        <xsl:for-each select="ixsl:page()//body">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <!-- append modal div to body -->
-                
-                <div class="modal modal-constructor fade in">
-                    <form method="{$method}" action="{$action}">
-                        <xsl:if test="$id">
-                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$class">
-                            <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$accept-charset">
-                            <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$enctype">
-                            <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
-                        </xsl:if>
-
-                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'rdf'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                        </xsl:call-template>
-
-                        <input type="hidden" class="target-id"/>
-
-                        <div class="modal-header">
-                            <button type="button" class="close">&#215;</button>
-
-                            <legend title="Add RDF data">Add RDF data</legend>
-                        </div>
-
-                        <div class="modal-body">
-                            <div class="tabbable">
-                                <ul class="nav nav-tabs">
-                                    <li class="active"><a>Upload file</a></li>
-                                    <!--<li class=""><a>From URI</a></li>-->
-                                </ul>
-                                <div class="tab-content">
-                                    <div class="tab-pane active">
-                                        <fieldset>
-                                            <input type="hidden" name="sb" value="file"/>
-                                            <input type="hidden" name="pu" value="&rdf;type"/>
-                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
-
-                                            <!-- file title is unused, just needed to pass the apl:File constraints -->
-                                            <input type="hidden" name="pu" value="&dct;title"/>
-                                            <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
-
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&dct;format"/>
-                                                <label class="control-label" for="add-rdf-format">Format</label>
-                                                <div class="controls">
-                                                    <select id="add-rdf-format" name="ol">
-                                                        <!--<option value="">[browser-defined]</option>-->
-                                                        <optgroup label="RDF triples">
-                                                            <option value="text/turtle">Turtle (.ttl)</option>
-                                                            <option value="application/n-triples">N-Triples (.nt)</option>
-                                                            <option value="application/rdf+xml">RDF/XML (.rdf)</option>
-                                                        </optgroup>
-                                                        <optgroup label="RDF quads">
-                                                            <option value="text/trig">TriG (.trig)</option>
-                                                            <option value="application/n-quads">N-Quads (.nq)</option>
-                                                        </optgroup>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&nfo;fileName"/>
-                                                <label class="control-label" for="add-rdf-filename">FileName</label>
-                                                <div class="controls">
-                                                    <input id="add-rdf-filename" type="file" name="ol"/>
-                                                </div>
-                                            </div>
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&sd;name"/>
-                                                <label class="control-label" for="add-rdf-graph">Graph URI</label>
-                                                <div class="controls">
-                                                    <input type="text" id="add-rdf-graph" name="ou" class="input-xxlarge"/>
-                                                    <span class="help-inline">Resource</span>
-                                                </div>
-                                            </div>
-                                        </fieldset>
-                                    </div>
-<!--                                    <div class="tab-pane">
-                                        <p>TO-DO</p>
-                                    </div>-->
-                                </div>
-                            </div>
-                            
-                            <div class="alert alert-info">
-                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
-                            </div>
-                        </div>
-
-                        <div class="form-actions modal-footer">
-                            <button type="submit" class="{$button-class}">Save</button>
-                            <button type="button" class="btn btn-close">Close</button>
-                            <button type="reset" class="btn btn-reset">Reset</button>
-                        </div>
-                    </form>
-                </div>
-            </xsl:result-document>
-
-            <ixsl:set-style name="cursor" select="'default'"/>
-        </xsl:for-each>
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-add-data']" mode="ixsl:onclick">
+        <xsl:call-template name="apl:show-add-data-form"/>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
@@ -2930,7 +2936,13 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="uri" select="../../h2/a/@title" as="xs:anyURI"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri ])"/>
     </xsl:template>
+
+    <!-- open a form to save RDF document -->
     
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
+        <xsl:call-template name="apl:show-add-data-form"/>
+    </xsl:template>
+
     <!-- FORM IDENTITY TRANSFORM -->
     
     <xsl:template match="@for | @id" mode="form" priority="1">
