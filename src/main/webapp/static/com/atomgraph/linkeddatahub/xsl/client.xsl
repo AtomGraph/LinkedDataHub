@@ -1394,7 +1394,7 @@ extension-element-prefixes="ixsl"
                             <div class="tabbable">
                                 <ul class="nav nav-tabs">
                                     <li class="active"><a>Upload file</a></li>
-                                    <!--<li class=""><a>From URI</a></li>-->
+                                    <li><a>From URI</a></li>
                                 </ul>
                                 <div class="tab-content">
                                     <div class="tab-pane active">
@@ -1405,13 +1405,13 @@ extension-element-prefixes="ixsl"
 
                                             <!-- file title is unused, just needed to pass the apl:File constraints -->
                                             <input type="hidden" name="pu" value="&dct;title"/>
-                                            <input id="add-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+                                            <input id="upload-rdf-title" type="hidden" name="ol" value="RDF upload"/>
 
                                             <div class="control-group required">
                                                 <input type="hidden" name="pu" value="&dct;format"/>
-                                                <label class="control-label" for="add-rdf-format">Format</label>
+                                                <label class="control-label" for="upload-rdf-format">Format</label>
                                                 <div class="controls">
-                                                    <select id="add-rdf-format" name="ol">
+                                                    <select id="upload-rdf-format" name="ol">
                                                         <!--<option value="">[browser-defined]</option>-->
                                                         <optgroup label="RDF triples">
                                                             <option value="text/turtle">Turtle (.ttl)</option>
@@ -1427,24 +1427,48 @@ extension-element-prefixes="ixsl"
                                             </div>
                                             <div class="control-group required">
                                                 <input type="hidden" name="pu" value="&nfo;fileName"/>
-                                                <label class="control-label" for="add-rdf-filename">FileName</label>
+                                                <label class="control-label" for="upload-rdf-filename">FileName</label>
                                                 <div class="controls">
-                                                    <input id="add-rdf-filename" type="file" name="ol"/>
+                                                    <input id="upload-rdf-filename" type="file" name="ol"/>
                                                 </div>
                                             </div>
                                             <div class="control-group required">
                                                 <input type="hidden" name="pu" value="&sd;name"/>
-                                                <label class="control-label" for="add-rdf-graph">Graph URI</label>
+                                                <label class="control-label" for="upload-rdf-graph">Graph URI</label>
                                                 <div class="controls">
-                                                    <input type="text" id="add-rdf-graph" name="ou" class="input-xxlarge"/>
+                                                    <input type="text" id="upload-rdf-graph" name="ou" class="input-xxlarge"/>
                                                     <span class="help-inline">Resource</span>
                                                 </div>
                                             </div>
                                         </fieldset>
                                     </div>
-<!--                                    <div class="tab-pane">
-                                        <p>TO-DO</p>
-                                    </div>-->
+                                    <div class="tab-pane">
+                                        <fieldset>
+                                            <input type="hidden" name="sb" value="file"/>
+                                            <input type="hidden" name="pu" value="&rdf;type"/>
+                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+
+                                            <!-- file title is unused, just needed to pass the apl:File constraints -->
+                                            <input type="hidden" name="pu" value="&dct;title"/>
+                                            <input id="remote-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+                                            
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&dct;source"/>
+                                                <label class="control-label" for="remote-rdf-source">FileName</label>
+                                                <div class="controls">
+                                                    <input id="remote-rdf-source" type="file" name="ol"/>
+                                                </div>
+                                            </div>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&sd;name"/>
+                                                <label class="control-label" for="remote-rdf-graph">Graph URI</label>
+                                                <div class="controls">
+                                                    <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge"/>
+                                                    <span class="help-inline">Resource</span>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
                                 </div>
                             </div>
                             
