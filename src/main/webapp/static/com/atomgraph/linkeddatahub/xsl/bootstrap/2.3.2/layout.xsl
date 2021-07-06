@@ -584,7 +584,7 @@ exclude-result-prefixes="#all">
         </li>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[$ldt:base]" mode="xhtml:Body">
+    <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 

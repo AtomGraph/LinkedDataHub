@@ -1869,20 +1869,11 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- indirect resource URI, dereferenced through a proxy -->
             <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
-            <xsl:choose>
-                <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
-                <xsl:when test="starts-with($uri, $ldt:base)">
-                    <ixsl:set-property name="location.href" select="$request-uri"/>
-                </xsl:when>
-                <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
-                <xsl:otherwise>
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="$uri"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:otherwise>
-            </xsl:choose>
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onDocumentLoad">
+                    <xsl:with-param name="uri" select="$uri"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:if>
     </xsl:template>
     
