@@ -199,12 +199,9 @@ extension-element-prefixes="ixsl"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
-            <!-- load this RDF document and then use the dh:select query to load and render container results -->
-            <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
-            <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ac:uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onrdfBodyLoad"/>
-            </ixsl:schedule-action>
+            <xsl:call-template name="apl:load-breadcrumbs">
+                <xsl:with-param name="uri" select="$ac:uri"/>
+            </xsl:call-template>
         </xsl:if>
         <!-- initialize SPARQL query service dropdown -->
         <xsl:for-each select="id('query-service', ixsl:page())">
@@ -720,10 +717,11 @@ extension-element-prefixes="ixsl"
         
     <xsl:template name="onrdfBodyLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
 
         <xsl:for-each select="?body">
             <!-- focus on current resource -->
-            <xsl:for-each select="key('resources', $ac:uri)">
+            <xsl:for-each select="key('resources', $uri)">
                 <!-- breadcrumbs -->
                 <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                     <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -1297,7 +1295,7 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- load content -->
+    <!-- load contents -->
     
     <xsl:template name="apl:load-contents">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -1327,6 +1325,20 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
+    </xsl:template>
+    
+    <!-- load breadcrumbs -->
+    
+    <xsl:template name="apl:load-breadcrumbs">
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
+        <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($uri, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onrdfBodyLoad">
+                <xsl:with-param name="uri" select="$uri"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- root children list -->
@@ -1772,13 +1784,16 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
                     
                     <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
-                    <!-- load contents -->
                     <xsl:call-template name="apl:load-contents">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-ids" select="$content-ids"/>
                     </xsl:call-template>
 
-                    <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
+                    <xsl:call-template name="apl:load-breadcrumbs">
+                        <xsl:with-param name="uri" select="$uri"/>
+                    </xsl:call-template>
+            
+<!--                    <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
                         
                         <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
@@ -1791,7 +1806,7 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                         
                         <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
-                    </xsl:if>
+                    </xsl:if>-->
                 </xsl:for-each>
 
                 <!-- set the "Edit" button's target URL to the newly loaded document -->
