@@ -288,7 +288,7 @@ extension-element-prefixes="ixsl"
     <!-- the current document -->
     <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'"  match="*[@rdf:about = $ac:uri]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
-        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+        <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
 
     <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
