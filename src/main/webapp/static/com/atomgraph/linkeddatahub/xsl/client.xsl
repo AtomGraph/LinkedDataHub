@@ -241,7 +241,11 @@ extension-element-prefixes="ixsl"
             </ixsl:schedule-action>
         </xsl:for-each>
         <!-- load contents -->
-        <xsl:call-template name="apl:load-contents"/>
+        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())" as="xs:string*"/>
+        <xsl:message>A CONTENT IDS: <xsl:value-of select="$content-ids"/></xsl:message>
+        <xsl:call-template name="apl:load-contents">
+            <xsl:with-param name="content-ids" select="$content-ids"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- FUNCTIONS -->
@@ -1297,8 +1301,10 @@ extension-element-prefixes="ixsl"
     <xsl:template name="apl:load-contents">
 <!--        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>-->
+        <xsl:param name="content-ids" as="xs:string*"/>
 
-        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">
+<!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
+        <xsl:for-each select="id($content-ids, ixsl:page())">
             <xsl:variable name="content-uri" select="input[@name = 'href']/@value"/>
             <xsl:variable name="container-id" select="@id"/>
 
@@ -1760,8 +1766,12 @@ extension-element-prefixes="ixsl"
                         <xsl:copy-of select="id($container-id, $results)/*"/>
                     </xsl:result-document>
                     
+                    <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)" as="xs:string*"/>
+                    <xsl:message>B CONTENT IDS: <xsl:value-of select="$content-ids"/></xsl:message>
                     <!-- load contents -->
-                    <xsl:call-template name="apl:load-contents"/>
+                    <xsl:call-template name="apl:load-contents">
+                        <xsl:with-param name="content-ids" select="$content-ids"/>
+                    </xsl:call-template>
 
                     <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
                         <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
