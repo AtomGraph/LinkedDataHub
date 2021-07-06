@@ -1410,7 +1410,9 @@ extension-element-prefixes="ixsl"
                                     </li>
                                 </ul>
                                 <div class="tab-content">
-                                    <div class="tab-pane active">
+                                    <div>
+                                        <xsl:attribute name="class">tab-pane <xsl:if test="not($source-uri)">active</xsl:if></xsl:attribute>
+                                        
                                         <fieldset>
                                             <input type="hidden" name="sb" value="file"/>
                                             <input type="hidden" name="pu" value="&rdf;type"/>
@@ -1455,7 +1457,9 @@ extension-element-prefixes="ixsl"
                                             </div>
                                         </fieldset>
                                     </div>
-                                    <div class="tab-pane">
+                                    <div>
+                                        <xsl:attribute name="class">tab-pane <xsl:if test="$source-uri">active</xsl:if></xsl:attribute>
+                                        
                                         <fieldset>
                                             <input type="hidden" name="sb" value="file"/>
                                             <input type="hidden" name="pu" value="&rdf;type"/>
