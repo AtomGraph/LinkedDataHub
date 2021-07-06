@@ -1830,7 +1830,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#main-content" method="ixsl:replace-content">
+                <xsl:result-document href="#content-body" method="ixsl:replace-content">
                     <div class="alert alert-block">
                         <strong>Error loading RDF document:</strong>
                         <pre>
@@ -1844,7 +1844,8 @@ extension-element-prefixes="ixsl"
     
     <!-- EVENT LISTENERS -->
 
-    <xsl:template match="a[starts-with(@href, 'http://') or starts-with(@href, 'https://')]" mode="ixsl:onclick">
+    <!-- intercept all link HTTP(S) clicks except those in the navbar and the footer -->
+    <xsl:template match="a[starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ string(@href) ])"/>-->
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
@@ -2360,7 +2361,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="container-id" select="'sparql-results'" as="xs:string"/>
         <!-- is SPARQL results element does not already exist, create one -->
         <xsl:if test="not(id($container-id, ixsl:page()))">
-            <xsl:result-document href="#main-content" method="ixsl:append-content">
+            <xsl:result-document href="#content-body" method="ixsl:append-content">
                 <div id="{$container-id}"/>
             </xsl:result-document>
         </xsl:if>
