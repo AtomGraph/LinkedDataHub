@@ -49,7 +49,7 @@ echo -e "$rdf_post" \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}uploads?import=true&forClass=${forClass}" \
-| grep -q "$STATUS_SEE_OTHER"
+| grep -q "$STATUS_CREATED"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
