@@ -26,8 +26,7 @@ urlencode()
 
 file="timbl.ttl"
 file_content_type="text/turtle"
-subject="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
-graph_uri=$(urlencode "$subject")
+graph_uri='http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf'
 
 echo "Importing file: $file"
 
