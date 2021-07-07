@@ -42,12 +42,14 @@ rdf_post+="-F \"ou=${END_USER_BASE_URL}ns/domain/system#File\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
 rdf_post+="-F \"ou=${graph_uri}\"\n"
 
+forClass=$(urlencode "${END_USER_BASE_URL}ns/domain/system#File")
+
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" \
 | curl -w "%{http_code}\n" -v -k -D - --config - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}uploads?import=true"  \
+  "${END_USER_BASE_URL}uploads?import=true&forClass=${forClass}" \
 | grep -q "$STATUS_SEE_OTHER"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"

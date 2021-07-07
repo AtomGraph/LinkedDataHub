@@ -1487,7 +1487,13 @@ extension-element-prefixes="ixsl"
                                                 <input type="hidden" name="pu" value="&sd;name"/>
                                                 <label class="control-label" for="remote-rdf-graph">Graph URI</label>
                                                 <div class="controls">
-                                                    <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge"/>
+                                                    <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
+                                                        <xsl:if test="$source-uri">
+                                                            <xsl:attribute name="value">
+                                                                <xsl:value-of select="$source-uri"/>
+                                                            </xsl:attribute>
+                                                        </xsl:if>
+                                                    </input>
                                                     <span class="help-inline">Resource</span>
                                                 </div>
                                             </div>
@@ -2018,7 +2024,7 @@ extension-element-prefixes="ixsl"
     <!-- EVENT LISTENERS -->
 
     <!-- intercept all link HTTP(S) clicks except those in the navbar (except breadcrumb bar) and the footer -->
-    <xsl:template match="a[starts-with(@href, 'http://') or starts-with(@href, 'https://')][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ string(@href) ])"/>-->
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
