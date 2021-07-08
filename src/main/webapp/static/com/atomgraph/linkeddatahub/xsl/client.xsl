@@ -1354,8 +1354,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="enctype" select="if ($source-uri) then () else 'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="source-uri" as="xs:anyURI?"/>
+        <xsl:param name="enctype" select="if ($source-uri) then () else 'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="action" select="if ($source-uri) then resolve-uri('clone', $ldt:base) else ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })" as="xs:anyURI"/>
 
         <xsl:for-each select="ixsl:page()//body">
