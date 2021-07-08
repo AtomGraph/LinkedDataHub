@@ -2337,7 +2337,7 @@ extension-element-prefixes="ixsl"
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]">
             <xsl:choose>
                 <!-- graph URI value empty -->
-                <xsl:when test="not(descendant::input[@name = 'ou']/ixsl:get(., 'value')))">
+                <xsl:when test="not(descendant::input[@name = 'ou']/ixsl:get(., 'value'))">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
