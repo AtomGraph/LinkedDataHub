@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,54 +14,51 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.imports;
+package com.atomgraph.linkeddatahub.resource.clone;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.model.CSVImport;
-import com.atomgraph.linkeddatahub.model.Import;
-import com.atomgraph.linkeddatahub.model.RDFImport;
+import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.model.TemplateCall;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.ServletConfig;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JAX-RS resource that handles CSV data imports.
- * 
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ *
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class Container extends GraphStoreImpl
 {
-    private static final Logger log = LoggerFactory.getLogger(Container.class);
     
+    private static final Logger log = LoggerFactory.getLogger(Container.class);
+
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
     private final DataManager dataManager;
-
+    
     @Inject
     public Container(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
@@ -87,30 +84,26 @@ public class Container extends GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Response constructor = super.post(model, defaultGraph, graphUri); // construct Import
-        
-        if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
+        ResIterator it = model.listSubjectsWithProperty(DCTerms.source);
+        try
         {
-            URI importGraphUri = constructor.getLocation();
-            Model importModel = (Model)super.get(false, importGraphUri).getEntity();
-            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), importModel);
-            Resource doc = infModel.createResource(importGraphUri.toString());
-            Resource topic = doc.getPropertyResourceValue(FOAF.primaryTopic);
+            if (!it.hasNext()) throw new BadRequestException("Argument resource not provided");
             
-            if (topic != null && topic.canAs(Import.class))
-            {
-                Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
-                // start the import asynchroniously
-                if (topic.canAs(CSVImport.class))
-                    getSystem().submitImport(topic.as(CSVImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
-                if (topic.canAs(RDFImport.class))
-                    getSystem().submitImport(topic.as(RDFImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
-            }
-            else
-                if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
+            Resource arg = it.next();
+            Resource source = arg.getPropertyResourceValue(DCTerms.source);
+            if (source == null)  throw new BadRequestException("RDF source URI (dct:source) not provided");
+            Resource graph = arg.getPropertyResourceValue(SD.name);
+            if (graph == null)  throw new BadRequestException("Graph name URI (sd:name) not provided");
+
+            LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
+            Model sourceModel = ldc.get();
+            
+            return super.post(sourceModel, false, URI.create(graph.getURI()));
         }
-        
-        return constructor;
+        finally
+        {
+            it.close();
+        }
     }
     
     public URI getURI()

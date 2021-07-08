@@ -179,6 +179,16 @@ DESCRIBE ?this
     rdfs:label "Import item" ;
     rdfs:isDefinedBy : .
 
+# clone
+
+:CloneEndpoint a ldt:Template ;
+    ldt:extends :GraphStore ;
+    ldt:match "/clone" ;
+    ldt:loadClass <java:com.atomgraph.linkeddatahub.resource.clone.Container> ;
+    rdfs:label "Clone" ;
+    rdfs:comment "Clones RDF documents to the service graph store" ;
+    rdfs:isDefinedBy : .
+
 # PARAMETERS
 
 :ForClass a ldt:Parameter ;

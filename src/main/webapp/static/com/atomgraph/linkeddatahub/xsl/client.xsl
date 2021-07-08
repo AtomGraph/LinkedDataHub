@@ -1350,13 +1350,13 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:show-add-data-form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })" as="xs:anyURI"/>
         <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="source-uri" as="xs:anyURI?"/>
+        <xsl:param name="action" select="if ($source-uri) then resolve-uri('clone', $ldt:base) else ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })" as="xs:anyURI"/>
 
         <xsl:for-each select="ixsl:page()//body">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1462,12 +1462,12 @@ extension-element-prefixes="ixsl"
                                         
                                         <fieldset>
                                             <input type="hidden" name="sb" value="file"/>
-                                            <input type="hidden" name="pu" value="&rdf;type"/>
-                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+<!--                                            <input type="hidden" name="pu" value="&rdf;type"/>
+                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>-->
 
                                             <!-- file title is unused, just needed to pass the apl:File constraints -->
-                                            <input type="hidden" name="pu" value="&dct;title"/>
-                                            <input id="remote-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+<!--                                            <input type="hidden" name="pu" value="&dct;title"/>
+                                            <input id="remote-rdf-title" type="hidden" name="ol" value="RDF upload"/>-->
                                             
                                             <div class="control-group required">
                                                 <input type="hidden" name="pu" value="&dct;source"/>
