@@ -1465,6 +1465,25 @@ nsdd:ContainerChildren
 
 }
 
+# clone endpoint
+
+<sitemap/templates/templates/clone-endpoint/>
+{
+
+    <sitemap/templates/templates/clone-endpoint/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Clone endpoint" ;
+        foaf:primaryTopic nst:CloneEndpoint .
+
+    nst:CloneEndpoint a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/clone-endpoint/> ;
+        ldt:extends aplt:CloneEndpoint ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Clone endpoint" ;
+        rdfs:isDefinedBy nst: .
+
+}
+
 ### NAMESPACE
 
 # CLASSES
