@@ -1486,6 +1486,30 @@ extension-element-prefixes="ixsl"
                                                     <span class="help-inline">Resource</span>
                                                 </div>
                                             </div>
+                                            <div class="control-group required">
+                                                <input type="hidden" name="pu" value="&sioc;has_container"/>
+                                                <label class="control-label" for="remote-rdf-container">Container</label>
+                                                <div class="controls">
+                                                    <span>
+                                                        <input type="text" name="ou" id="remote-rdf-container" class="resource-typeahead typeahead"/>
+                                                        <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
+                                                    </span>
+                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
+                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn dropdown-toggle create-action"></button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
+                                                                    <input type="hidden" class="action" value="{ac:build-uri($ldt:base, map{ 'forClass': string(resolve-uri('ns/domain/default#Container', $ldt:base)), 'mode': '&ac;ModalMode' })}" autocomplete="off"/>
+                                                                    <xsl:text>Container</xsl:text>
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <span class="help-inline">Container</span>
+                                                </div>
+                                            </div>
                                         </fieldset>
 
                                         <div class="form-actions modal-footer">

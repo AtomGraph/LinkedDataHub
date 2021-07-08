@@ -97,12 +97,15 @@ public class Container extends GraphStoreImpl
             if (source == null)  throw new BadRequestException("RDF source URI (dct:source) not provided");
             Resource graph = arg.getPropertyResourceValue(SD.name);
             if (graph == null)  throw new BadRequestException("Graph name URI (sd:name) not provided");
+            Resource container = arg.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+            if (container == null)  throw new BadRequestException("Container URI (sioc:has_container) not provided");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
             Model sourceModel = ldc.get();
             
-            sourceModel.createResource(graph.getURI()).addProperty(RDF.type, ResourceFactory.createResource("https://localhost:4443/ns/domain/default#Container")).
-                addProperty(SIOC.HAS_CONTAINER, ResourceFactory.createResource("https://localhost:4443/"));
+            sourceModel.createResource(graph.getURI()).
+                addProperty(RDF.type, ResourceFactory.createResource(getApplication().getBase() + "ns/domain/default#Item")).
+                addProperty(SIOC.HAS_CONTAINER, container);
             
             return super.post(sourceModel, false, URI.create(graph.getURI()));
         }
