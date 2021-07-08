@@ -1349,70 +1349,51 @@ extension-element-prefixes="ixsl"
     <!-- show "Add data"/"Save as" form -->
     
     <xsl:template name="apl:show-add-data-form">
-        <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+<!--        <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source-uri" as="xs:anyURI?"/>
-        <xsl:param name="enctype" select="if ($source-uri) then () else 'multipart/form-data'" as="xs:string?"/>
-        <xsl:param name="action" select="if ($source-uri) then resolve-uri('clone', $ldt:base) else ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })" as="xs:anyURI"/>
 
         <xsl:for-each select="ixsl:page()//body">
+            <!-- append modal div to body -->
             <xsl:result-document href="?." method="ixsl:append-content">
-                <!-- append modal div to body -->
-                
                 <div class="modal modal-constructor fade in">
-                    <form method="{$method}" action="{$action}">
-                        <xsl:if test="$id">
-                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$class">
-                            <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$accept-charset">
-                            <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
-                        </xsl:if>
-                        <xsl:if test="$enctype">
-                            <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
-                        </xsl:if>
+                    <div class="modal-header">
+                        <button type="button" class="close">&#215;</button>
 
-                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'rdf'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                        </xsl:call-template>
+                        <legend title="Add RDF data">Add RDF data</legend>
+                    </div>
 
-                        <input type="hidden" class="target-id"/>
+                    <div class="modal-body">
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                <li>
+                                    <xsl:if test="not($source-uri)">
+                                        <xsl:attribute name="class">active</xsl:attribute>
+                                    </xsl:if>
 
-                        <div class="modal-header">
-                            <button type="button" class="close">&#215;</button>
+                                    <a>Upload file</a>
+                                </li>
+                                <li>
+                                    <xsl:if test="$source-uri">
+                                        <xsl:attribute name="class">active</xsl:attribute>
+                                    </xsl:if>
 
-                            <legend title="Add RDF data">Add RDF data</legend>
-                        </div>
-
-                        <div class="modal-body">
-                            <div class="tabbable">
-                                <ul class="nav nav-tabs">
-                                    <li>
-                                        <xsl:if test="not($source-uri)">
-                                            <xsl:attribute name="class">active</xsl:attribute>
-                                        </xsl:if>
+                                    <a>From URI</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div>
+                                    <xsl:attribute name="class">tab-pane <xsl:if test="not($source-uri)">active</xsl:if></xsl:attribute>
                                         
-                                        <a>Upload file</a>
-                                    </li>
-                                    <li>
-                                        <xsl:if test="$source-uri">
-                                            <xsl:attribute name="class">active</xsl:attribute>
-                                        </xsl:if>
+                                    <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
+                                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                                        <xsl:call-template name="xhtml:Input">
+                                            <xsl:with-param name="name" select="'rdf'"/>
+                                            <xsl:with-param name="type" select="'hidden'"/>
+                                        </xsl:call-template>
 
-                                        <a>From URI</a>
-                                    </li>
-                                </ul>
-                                <div class="tab-content">
-                                    <div>
-                                        <xsl:attribute name="class">tab-pane <xsl:if test="not($source-uri)">active</xsl:if></xsl:attribute>
-                                        
                                         <fieldset>
                                             <input type="hidden" name="sb" value="file"/>
                                             <input type="hidden" name="pu" value="&rdf;type"/>
@@ -1456,19 +1437,27 @@ extension-element-prefixes="ixsl"
                                                 </div>
                                             </div>
                                         </fieldset>
-                                    </div>
-                                    <div>
-                                        <xsl:attribute name="class">tab-pane <xsl:if test="$source-uri">active</xsl:if></xsl:attribute>
-                                        
-                                        <fieldset>
-                                            <input type="hidden" name="sb" value="file"/>
-<!--                                            <input type="hidden" name="pu" value="&rdf;type"/>
-                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>-->
 
-                                            <!-- file title is unused, just needed to pass the apl:File constraints -->
-<!--                                            <input type="hidden" name="pu" value="&dct;title"/>
-                                            <input id="remote-rdf-title" type="hidden" name="ol" value="RDF upload"/>-->
-                                            
+                                        <div class="form-actions modal-footer">
+                                            <button type="submit" class="{$button-class}">Save</button>
+                                            <button type="button" class="btn btn-close">Close</button>
+                                            <button type="reset" class="btn btn-reset">Reset</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div>
+                                    <xsl:attribute name="class">tab-pane <xsl:if test="$source-uri">active</xsl:if></xsl:attribute>
+
+                                    <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
+                                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                                        <xsl:call-template name="xhtml:Input">
+                                            <xsl:with-param name="name" select="'rdf'"/>
+                                            <xsl:with-param name="type" select="'hidden'"/>
+                                        </xsl:call-template>
+
+                                        <fieldset>
+                                            <input type="hidden" name="sb" value="clone"/>
+
                                             <div class="control-group required">
                                                 <input type="hidden" name="pu" value="&dct;source"/>
                                                 <label class="control-label" for="remote-rdf-source">Source URI</label>
@@ -1498,21 +1487,21 @@ extension-element-prefixes="ixsl"
                                                 </div>
                                             </div>
                                         </fieldset>
-                                    </div>
+
+                                        <div class="form-actions modal-footer">
+                                            <button type="submit" class="{$button-class}">Save</button>
+                                            <button type="button" class="btn btn-close">Close</button>
+                                            <button type="reset" class="btn btn-reset">Reset</button>
+                                        </div>
+                                    </form>
                                 </div>
-                            </div>
-                            
-                            <div class="alert alert-info">
-                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
                             </div>
                         </div>
 
-                        <div class="form-actions modal-footer">
-                            <button type="submit" class="{$button-class}">Save</button>
-                            <button type="button" class="btn btn-close">Close</button>
-                            <button type="reset" class="btn btn-reset">Reset</button>
+                        <div class="alert alert-info">
+                            <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </xsl:result-document>
 
@@ -2330,6 +2319,10 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
         </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Clone' ])"/>
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->
