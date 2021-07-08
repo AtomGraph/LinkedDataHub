@@ -55,7 +55,7 @@ public class Dispatcher
     {
         if (getApplication().isEmpty())
         {
-            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ProxyResourceBase", getClientUriInfo().getRequestUri());
+            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getClientUriInfo().getRequestUri());
             return ExternalProxyResourceBase.class;
         }
         

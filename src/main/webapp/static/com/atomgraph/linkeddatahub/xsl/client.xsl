@@ -2322,7 +2322,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Clone' ])"/>
+        <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Clone' ])"/>-->
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->

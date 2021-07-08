@@ -23,6 +23,7 @@ import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.model.TemplateCall;
+import com.atomgraph.processor.vocabulary.SIOC;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -41,7 +42,9 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +100,9 @@ public class Container extends GraphStoreImpl
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
             Model sourceModel = ldc.get();
+            
+            sourceModel.createResource(graph.getURI()).addProperty(RDF.type, ResourceFactory.createResource("https://localhost:4443/ns/domain/default#Container")).
+                addProperty(SIOC.HAS_CONTAINER, ResourceFactory.createResource("https://localhost:4443/"));
             
             return super.post(sourceModel, false, URI.create(graph.getURI()));
         }
