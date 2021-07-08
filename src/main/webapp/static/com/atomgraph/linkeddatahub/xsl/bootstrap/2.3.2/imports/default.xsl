@@ -221,38 +221,6 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="href" select="."/>
         </xsl:next-match>
     </xsl:template>
-
-    <!-- ANCHOR -->
-    <!-- TO-DO: move to external.xsl -->
-
-    <!-- add ?uri= indirection on external HTTP(S) links -->
-    <xsl:template match="*[starts-with(@rdf:about, 'http://')][not(starts-with(@rdf:about, $ldt:base))] | *[starts-with(@rdf:about, 'https://')][not(starts-with(@rdf:about, $ldt:base))]" mode="xhtml:Anchor">
-        <xsl:param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(@rdf:about) })" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-    </xsl:template>
-
-    <xsl:template match="@rdf:resource[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | @rdf:resource[starts-with(., 'https://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'http://')][not(starts-with(., $ldt:base))] | srx:uri[starts-with(., 'https://')][not(starts-with(., $ldt:base))]">
-        <xsl:param name="href" select="xs:anyURI(ac:build-uri($ldt:base, map{ 'uri': if (contains(., '#')) then substring-before(., '#') else string(.) }) || (if (substring-after(., '#')) then '#' || substring-after(., '#') else ()))" as="xs:anyURI"/>
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="title" select="." as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:next-match>
-            <xsl:with-param name="href" select="$href"/>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="title" select="$title"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-    </xsl:template>
     
     <!-- LOOKUP -->
     

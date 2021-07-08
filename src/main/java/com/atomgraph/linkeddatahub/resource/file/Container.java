@@ -65,6 +65,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.jena.atlas.RuntimeIOException;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
@@ -106,10 +107,12 @@ public class Container extends GraphStoreImpl
     }
 
     /**
-     * Handles multipart <code>POST</code> requests, stores uploaded files, and returns response.
+     * Handles multipart <code>POST</code>
      * Files are written to storage before the RDF data is passed to the default <code>POST</code> handler method.
      * 
      * @param multiPart multipart form data
+     * @param defaultGraph true if default graph is requested
+     * @param graphUri named graph URI
      * @return HTTP response
      */
     @POST
@@ -130,6 +133,11 @@ public class Container extends GraphStoreImpl
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
+            throw new BadRequestException(ex);
+        }
+        catch (RuntimeIOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not read uploaded file as media type: {}", multiPart.getMediaType());
             throw new BadRequestException(ex);
         }
     }
