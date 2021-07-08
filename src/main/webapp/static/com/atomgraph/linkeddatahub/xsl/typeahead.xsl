@@ -42,7 +42,7 @@ version="3.0"
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:param name="name" as="xs:string"/>
-        <xsl:variable name="label" as="xs:string">
+        <xsl:variable name="label" as="xs:string*">
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:variable>
 
@@ -54,24 +54,27 @@ version="3.0"
             <input type="hidden" name="{$name}" value="{@rdf:about}"/>
 
             <a title="{@rdf:about}">
-                <xsl:choose>
-                    <xsl:when test="contains(lower-case($label), lower-case($query))">
-                        <xsl:variable name="query-start-pos" select="string-length(substring-before(upper-case($label), upper-case($query))) + 1"/>
-                        <xsl:variable name="query-end-pos" select="string-length($label) - string-length(substring-after(upper-case($label), upper-case($query))) + 1"/>
+                <xsl:for-each select="$label">
+                    <xsl:choose>
+                        <xsl:when test="contains(lower-case(.), lower-case($query))">
+                            <xsl:variable name="query-start-pos" select="string-length(substring-before(upper-case(.), upper-case($query))) + 1"/>
+                            <xsl:variable name="query-end-pos" select="string-length(.) - string-length(substring-after(upper-case(.), upper-case($query))) + 1"/>
 
-                        <xsl:if test="$query-start-pos &gt; 0">
-                            <xsl:value-of select="substring($label, 1, $query-start-pos - 1)"/>
-                        </xsl:if>
-                        <strong>
-                            <xsl:value-of select="substring($label, $query-start-pos, string-length($query))"/>
-                        </strong>
-                        <xsl:value-of select="substring($label, $query-end-pos)"/>
-                        <xsl:text> </xsl:text>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$label"/>
-                    </xsl:otherwise>
-                </xsl:choose>
+                            <xsl:if test="$query-start-pos &gt; 0">
+                                <xsl:value-of select="substring(., 1, $query-start-pos - 1)"/>
+                            </xsl:if>
+                            <strong>
+                                <xsl:value-of select="substring(., $query-start-pos, string-length($query))"/>
+                            </strong>
+                            <xsl:value-of select="substring(., $query-end-pos)"/>
+                            <xsl:text> </xsl:text>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="."/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+                
                 <span class="pull-right" style="font-size: smaller;">
                     <xsl:for-each select="rdf:type/@rdf:resource">
                         <xsl:apply-templates select="." mode="ac:ObjectLabelMode"/>
