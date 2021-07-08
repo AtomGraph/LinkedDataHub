@@ -2323,7 +2323,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&sd;name')]]">
             <xsl:choose>
-                <xsl:when test="not(descendant::input[@name = ('ol', 'ou)]/ixsl:get(., 'value'))">
+                <xsl:when test="not(descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
@@ -2338,7 +2338,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&dct;source', '&sd;name', '&sioc;has_container')]]">
             <xsl:choose>
-                <xsl:when test="not(descendant::input[@name = ('ol', 'ou)]/ixsl:get(., 'value'))">
+                <xsl:when test="not(descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
