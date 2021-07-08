@@ -2321,32 +2321,35 @@ extension-element-prefixes="ixsl"
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
-        <xsl:variable name="graph-uri" select="xs:anyURI(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]/descendant::input[@name = 'ou']/ixsl:get(., 'value'))" as="xs:anyURI"/>
-
-        <xsl:choose>
-            <!-- filename value empty -->
-            <xsl:when test="not(descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']]/descendant::input[@name = 'ol']/ixsl:get(., 'value'))">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:when>
-            <!-- graph URI value empty -->
-            <xsl:when test="not($graph-uri)">
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                <!-- don't show error on the filename input anymore, since it passed validation above -->
-                <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']][tokenize(@class, ' ') = 'error']">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-                <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]">
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error' ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:when>
-        </xsl:choose>
+        <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&nfo;fileName']]">
+            <xsl:choose>
+                <!-- filename value empty -->
+                <xsl:when test="not(descendant::input[@name = 'ol']/ixsl:get(., 'value'))">
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
+            
+        <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]">
+            <xsl:choose>
+                <!-- graph URI value empty -->
+                <xsl:when test="not(descendant::input[@name = 'ou']/ixsl:get(., 'value')))">
+                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
-        <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ 'Clone' ])"/>-->
+
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->
