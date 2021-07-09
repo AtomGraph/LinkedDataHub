@@ -484,7 +484,8 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
             
-            <xsl:if test="starts-with(@rdf:about, $ldt:base)">
+            <!-- "Save as" button only for external resourcese -->
+            <xsl:if test="not(starts-with(@rdf:about, $ldt:base))">
                 <button title="{key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}">
                     <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn'"/>
