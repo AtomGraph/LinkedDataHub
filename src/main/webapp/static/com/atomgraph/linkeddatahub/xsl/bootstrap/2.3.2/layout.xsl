@@ -522,13 +522,13 @@ exclude-result-prefixes="#all">
                 <li>
                     <div class="btn-group">
                         <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&acl;Agent', document(ac:document-uri('&acl;')))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
                         <ul class="dropdown-menu pull-right">
                             <li>
-                                <xsl:for-each select="key('resources-by-type', '&acl;Agent', $acl:Agent)">
+                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $acl:Agent)">
                                     <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>

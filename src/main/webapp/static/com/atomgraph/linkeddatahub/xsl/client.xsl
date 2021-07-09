@@ -199,7 +199,7 @@ extension-element-prefixes="ixsl"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
-            <xsl:call-template name="apl:load-breadcrumbs">
+            <xsl:call-template name="apl:LoadBreadcrumbs">
                 <xsl:with-param name="uri" select="$ac:uri"/>
             </xsl:call-template>
         </xsl:if>
@@ -239,7 +239,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-        <xsl:call-template name="apl:load-contents">
+        <xsl:call-template name="apl:LoadContents">
             <xsl:with-param name="uri" select="$ac:uri"/>
             <xsl:with-param name="content-ids" select="$content-ids"/>
         </xsl:call-template>
@@ -1297,7 +1297,7 @@ extension-element-prefixes="ixsl"
     
     <!-- load contents -->
     
-    <xsl:template name="apl:load-contents">
+    <xsl:template name="apl:LoadContents">
         <xsl:param name="uri" as="xs:anyURI"/>
 <!--        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>-->
@@ -1331,7 +1331,7 @@ extension-element-prefixes="ixsl"
     
     <!-- load breadcrumbs -->
     
-    <xsl:template name="apl:load-breadcrumbs">
+    <xsl:template name="apl:LoadBreadcrumbs">
         <xsl:param name="uri" as="xs:anyURI"/>
 
         <!-- indirect resource URI, dereferenced through a proxy -->
@@ -1348,7 +1348,7 @@ extension-element-prefixes="ixsl"
     
     <!-- show "Add data"/"Save as" form -->
     
-    <xsl:template name="apl:show-add-data-form">
+    <xsl:template name="apl:ShowAddDataForm">
 <!--        <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
@@ -1976,12 +1976,12 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
                     
                     <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
-                    <xsl:call-template name="apl:load-contents">
+                    <xsl:call-template name="apl:LoadContents">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-ids" select="$content-ids"/>
                     </xsl:call-template>
 
-                    <xsl:call-template name="apl:load-breadcrumbs">
+                    <xsl:call-template name="apl:LoadBreadcrumbs">
                         <xsl:with-param name="uri" select="$uri"/>
                     </xsl:call-template>
             
@@ -2912,7 +2912,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-add-data']" mode="ixsl:onclick">
-        <xsl:call-template name="apl:show-add-data-form"/>
+        <xsl:call-template name="apl:ShowAddDataForm"/>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
@@ -3013,7 +3013,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
         <xsl:variable name="uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
         
-        <xsl:call-template name="apl:show-add-data-form">
+        <xsl:call-template name="apl:ShowAddDataForm">
             <xsl:with-param name="source-uri" select="$uri"/>
         </xsl:call-template>
     </xsl:template>

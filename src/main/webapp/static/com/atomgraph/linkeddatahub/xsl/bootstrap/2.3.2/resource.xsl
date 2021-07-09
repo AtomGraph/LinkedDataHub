@@ -79,12 +79,11 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- do not show text instead for logo icon for "things" -->
-    <xsl:template match="*[foaf:isPrimaryTopicOf]" mode="apl:logo" priority="1">
+<!--    <xsl:template match="*[foaf:isPrimaryTopicOf]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="$class"/>
-    </xsl:template>
-    
+    </xsl:template>-->
     
     <xsl:template match="*[@rdf:about = '&ac;ConstructMode']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
@@ -233,7 +232,7 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-notifications')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&acl;Agent']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&foaf;Agent']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-agent')"/>
