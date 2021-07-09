@@ -1977,6 +1977,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:call-template name="apl:PushState">
                         <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
@@ -2025,6 +2026,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
 
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
@@ -2055,6 +2057,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })" as="xs:anyURI"/>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onDocumentLoad">
                 <xsl:with-param name="uri" select="$uri"/>
@@ -2070,6 +2075,9 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- indirect resource URI, dereferenced through a proxy -->
             <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
+            
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
                     <xsl:with-param name="uri" select="$uri"/>
@@ -2419,20 +2427,14 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- indirect resource URI, dereferenced through a proxy -->
                     <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
-                    <xsl:choose>
-                        <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
-                        <xsl:when test="starts-with($resource-uri, $ldt:base)">
-                            <ixsl:set-property name="location.href" select="$request-uri"/> <!-- TO-DO: replace with onDocumentLoad call -->
-                        </xsl:when>
-                        <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
-                        <xsl:otherwise>
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                                <xsl:call-template name="onDocumentLoad">
-                                    <xsl:with-param name="uri" select="$resource-uri"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    
+                    <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="uri" select="$resource-uri"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
                 </xsl:if>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -2470,20 +2472,14 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
-        <xsl:choose>
-            <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
-            <xsl:when test="starts-with($resource-uri, $ldt:base)">
-                <ixsl:set-property name="location.href" select="$request-uri"/> <!-- TO-DO: replace with onDocumentLoad calls -->
-            </xsl:when>
-            <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
-            <xsl:otherwise>
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$resource-uri"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:otherwise>
-        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+            <xsl:call-template name="onDocumentLoad">
+                <xsl:with-param name="uri" select="$resource-uri"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- prompt for query title (also reused for its document) -->

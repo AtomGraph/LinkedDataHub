@@ -89,7 +89,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
                 return relative;
             }
         
-        return super.resolvingUncached(filenameOrURI); // by default, do not resolve URIs
+        return super.resolvingUncached(filenameOrURI); // configured in web.xml
     }
     
     public ClientRequestFilter getClientAuthFilter()

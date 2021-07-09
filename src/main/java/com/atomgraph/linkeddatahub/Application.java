@@ -67,6 +67,7 @@ import com.atomgraph.linkeddatahub.model.File;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
+import com.atomgraph.linkeddatahub.client.factory.xslt.XsltResolver;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -574,7 +575,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("apl", APL.baseUri.getNameSpace(), APL.baseUri.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(dataManager); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), null, client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
