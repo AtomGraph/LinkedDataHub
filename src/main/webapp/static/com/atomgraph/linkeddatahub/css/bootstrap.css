@@ -53,6 +53,7 @@ ul.dropdown-menu ul { margin: 0; }
 .btn.dropdown-toggle.btn-acl { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/baseline-remove_red_eye-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-read { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_details_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.btn-copy-uri { font-size: 0; color: transparent; background-image: url('../icons/content_copy-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
+.btn.btn-save-as { font-size: 0; color: transparent; background-image: url('../icons/save_black_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-edit { font-size: 0; color: transparent; background-image: url('../icons/ic_create_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.dropdown-toggle.btn-map { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_map_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-graph { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }

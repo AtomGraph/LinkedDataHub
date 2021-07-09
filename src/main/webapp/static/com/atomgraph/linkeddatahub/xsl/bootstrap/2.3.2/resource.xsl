@@ -484,18 +484,20 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
             
-            <button>
-                <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                    <xsl:with-param name="class" select="'btn'"/>
-                </xsl:apply-templates>
+            <xsl:if test="starts-with(@rdf:about, $ldt:base)">
+                <button title="{key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}">
+                    <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
 
-                <input type="hidden" name="href" value="{@rdf:about}"/> <!-- used by client.xsl -->
-                
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
-                    <xsl:text>...</xsl:text>
-                </xsl:value-of>
-            </button>
+                    <input type="hidden" name="href" value="{@rdf:about}"/> <!-- used by client.xsl -->
+
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'save-as', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        <xsl:text>...</xsl:text>
+                    </xsl:value-of>
+                </button>
+            </xsl:if>
         </div>
 
         <xsl:variable name="logged-in" select="exists($acl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
