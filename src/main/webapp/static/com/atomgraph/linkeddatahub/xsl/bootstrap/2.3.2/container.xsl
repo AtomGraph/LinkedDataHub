@@ -1090,7 +1090,7 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="apl:push-state">
+    <xsl:template name="apl:PushState">
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -1099,6 +1099,15 @@ exclude-result-prefixes="#all"
         <!-- push the latest state into history -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="history.pushState({{ 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '')"/>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template name="apl:PushState">
+        <xsl:param name="href" as="xs:anyURI"/>
+        <!-- push the latest state into history -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="history.pushState({{ 'href': '{$href}' }}, '{$title}', '{$href}')"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
@@ -1211,7 +1220,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1254,7 +1263,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1296,7 +1305,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1337,7 +1346,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1640,7 +1649,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1674,7 +1683,7 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>

@@ -160,6 +160,7 @@ extension-element-prefixes="ixsl"
 
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ac:new-object()"/>
+        <ixsl:set-property name="href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- global properties that hold current container pagination state -->
         <ixsl:set-property name="limit" select="$ac:limit" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="offset" select="$ac:offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -648,7 +649,7 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:push-state">
+        <xsl:call-template name="apl:PushState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1976,6 +1977,10 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
+                    <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <xsl:call-template name="apl:PushState">
+                        <xsl:with-param name="href" select="$uri"/>
+                    </xsl:call-template>
                     <xsl:variable name="results" select="." as="document-node()"/>
 
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
@@ -2010,7 +2015,7 @@ extension-element-prefixes="ixsl"
 
                 <!-- set the "Edit" button's target URL to the newly loaded document -->
                 <xsl:variable name="form-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-                <ixsl:set-property name="value" select="$form-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>
+                <!--<ixsl:set-property name="value" select="$form-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>-->
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
             <xsl:when test="(?status = 500 or ?status = 502) and not($fallback)">
@@ -2145,7 +2150,7 @@ extension-element-prefixes="ixsl"
                 <xsl:choose>
                     <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
                     <xsl:when test="not($typeahead-span)">
-                        <ixsl:set-property name="location.href" select="$created-uri"/>
+                        <ixsl:set-property name="location.href" select="$created-uri"/>  <!-- TO-DO: replace with onDocumentLoad call -->
                     </xsl:when>
                     <!-- otherwise, render the created resource as a typeahead input -->
                     <xsl:otherwise>
@@ -2243,7 +2248,7 @@ extension-element-prefixes="ixsl"
                     </xsl:when>
                     <!-- if the form submit did not originate from a typeahead (target), redirect to the created resource -->
                     <xsl:when test="not($typeahead-span)">
-                        <ixsl:set-property name="location.href" select="$created-uri"/>
+                        <ixsl:set-property name="location.href" select="$created-uri"/>  <!-- TO-DO: replace with onDocumentLoad call -->
                     </xsl:when>
                     <!-- otherwise, render the created resource as a typeahead input -->
                     <xsl:otherwise>
@@ -2417,7 +2422,7 @@ extension-element-prefixes="ixsl"
                     <xsl:choose>
                         <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
                         <xsl:when test="starts-with($resource-uri, $ldt:base)">
-                            <ixsl:set-property name="location.href" select="$request-uri"/>
+                            <ixsl:set-property name="location.href" select="$request-uri"/> <!-- TO-DO: replace with onDocumentLoad call -->
                         </xsl:when>
                         <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
                         <xsl:otherwise>
@@ -2468,7 +2473,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- if resource is internal (URI relative to the application's base URI), redirect to it -->
             <xsl:when test="starts-with($resource-uri, $ldt:base)">
-                <ixsl:set-property name="location.href" select="$request-uri"/>
+                <ixsl:set-property name="location.href" select="$request-uri"/> <!-- TO-DO: replace with onDocumentLoad calls -->
             </xsl:when>
             <!-- if resource is external (URI not relative to the application's base URI), load it and render it -->
             <xsl:otherwise>
@@ -2923,7 +2928,8 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
-        <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>
+<!--        <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>-->
+        <xsl:variable name="graph-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -3018,7 +3024,8 @@ extension-element-prefixes="ixsl"
     <!-- open a form to save RDF document -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
+        <!--<xsl:variable name="uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>-->
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
         
         <xsl:call-template name="apl:ShowAddDataForm">
             <xsl:with-param name="source-uri" select="$uri"/>

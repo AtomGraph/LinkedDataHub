@@ -868,6 +868,11 @@ exclude-result-prefixes="#all">
                     </xsl:apply-templates>
 
                     <input type="hidden" name="href" value="{@rdf:about}"/> <!-- used by client.xsl -->
+
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ac:label"/>
+                        <xsl:text>...</xsl:text>
+                    </xsl:value-of>
                 </button>
             </div>
             
