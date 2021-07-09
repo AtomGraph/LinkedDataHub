@@ -501,10 +501,10 @@ extension-element-prefixes="ixsl"
             </xsl:if>
         </div>
 
+        <!--
         <xsl:variable name="logged-in" select="exists($acl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
         <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
         <xsl:if test="$logged-in">
-            <!-- show delete button only for document resources -->
             <xsl:if test="ac:document-uri(@rdf:about) = @rdf:about">
                 <div class="pull-right">
                     <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
@@ -512,7 +512,7 @@ extension-element-prefixes="ixsl"
                             <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
                                 <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label"/>
                             </xsl:value-of>
-                            <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text> <!-- TO-DO: cache ontologies in localStorage -->
+                            <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text>
                         </button>
                     </form>
                 </div>
@@ -533,6 +533,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:if>
         </xsl:if>
+        -->
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:Actions"/>
