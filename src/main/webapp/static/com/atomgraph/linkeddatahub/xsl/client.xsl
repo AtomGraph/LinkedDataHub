@@ -2931,10 +2931,11 @@ extension-element-prefixes="ixsl"
 <!--        <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>-->
         <xsl:variable name="graph-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
-        
+        <xsl:variable name="href" select="ac:build-uri($graph-uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $graph-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddForm"/>
         </ixsl:schedule-action>
     </xsl:template>
