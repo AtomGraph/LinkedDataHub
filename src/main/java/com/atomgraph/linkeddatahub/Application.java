@@ -575,7 +575,7 @@ public class Application extends ResourceConfig
             
             xsltComp = xsltProc.newXsltCompiler();
             xsltComp.setParameter(new QName("apl", APL.baseUri.getNameSpace(), APL.baseUri.getLocalName()), new XdmAtomicValue(baseURI));
-            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), null, client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
+            xsltComp.setURIResolver(new XsltResolver(LocationMapper.get(), new HashMap<>(), client, mediaTypes, false, false, true)); // default Xerces parser does not support HTTPS
             xsltExec = xsltComp.compile(stylesheet);
         }
         catch (FileNotFoundException ex)
