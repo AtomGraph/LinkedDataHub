@@ -1105,6 +1105,7 @@ exclude-result-prefixes="#all"
 
     <xsl:template name="apl:PushState">
         <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:param name="title" as="xs:string?"/>
         <!-- push the latest state into history -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="history.pushState({{ 'href': '{$href}' }}, '{$title}', '{$href}')"/>
