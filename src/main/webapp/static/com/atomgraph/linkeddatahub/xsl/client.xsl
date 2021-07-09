@@ -1979,7 +1979,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:call-template name="apl:PushState">
-                        <xsl:with-param name="href" select="$uri"/>
+                        <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
                     </xsl:call-template>
                     <xsl:variable name="results" select="." as="document-node()"/>
 
@@ -2054,7 +2054,7 @@ extension-element-prefixes="ixsl"
         <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ string(@href) ])"/>-->
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })" as="xs:anyURI"/>
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onDocumentLoad">
                 <xsl:with-param name="uri" select="$uri"/>
