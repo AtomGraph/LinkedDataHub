@@ -862,6 +862,16 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <div class="pull-right">
+                <button title="{key('resources', 'save-as', document('translations.rdf'))}">
+                    <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
+
+                    <input type="hidden" name="href" value="{@rdf:about}"/> <!-- used by client.xsl -->
+                </button>
+            </div>
+            
+            <div class="pull-right">
                 <form action="{$ac:uri}?ban=true" method="post">
                     <!--<input type="hidden" name="ban" value="true"/>-->
                     <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">

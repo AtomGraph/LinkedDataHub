@@ -1349,188 +1349,195 @@ extension-element-prefixes="ixsl"
     <!-- show "Add data"/"Save as" form -->
     
     <xsl:template name="apl:ShowAddDataForm">
-<!--        <xsl:param name="id" select="'form-add-data'" as="xs:string?"/>
-        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
+        <xsl:param name="id" select="'add-data'" as="xs:string?"/>
+        <!-- <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source-uri" as="xs:anyURI?"/>
 
-        <xsl:for-each select="ixsl:page()//body">
-            <!-- append modal div to body -->
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <div class="modal modal-constructor fade in">
-                    <div class="modal-header">
-                        <button type="button" class="close">&#215;</button>
+        <!-- don't append the div if it's already there -->
+        <xsl:if test="not(id($id, ixsl:page()))">
+            <xsl:for-each select="ixsl:page()//body">
+                <!-- append modal div to body -->
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div class="modal modal-constructor fade in">
+                        <xsl:if test="$id">
+                            <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                        </xsl:if>
 
-                        <legend title="Add RDF data">Add RDF data</legend>
-                    </div>
+                        <div class="modal-header">
+                            <button type="button" class="close">&#215;</button>
 
-                    <div class="modal-body">
-                        <div class="tabbable">
-                            <ul class="nav nav-tabs">
-                                <li>
-                                    <xsl:if test="not($source-uri)">
-                                        <xsl:attribute name="class">active</xsl:attribute>
-                                    </xsl:if>
+                            <legend title="Add RDF data">Add RDF data</legend>
+                        </div>
 
-                                    <a>Upload file</a>
-                                </li>
-                                <li>
-                                    <xsl:if test="$source-uri">
-                                        <xsl:attribute name="class">active</xsl:attribute>
-                                    </xsl:if>
+                        <div class="modal-body">
+                            <div class="tabbable">
+                                <ul class="nav nav-tabs">
+                                    <li>
+                                        <xsl:if test="not($source-uri)">
+                                            <xsl:attribute name="class">active</xsl:attribute>
+                                        </xsl:if>
 
-                                    <a>From URI</a>
-                                </li>
-                            </ul>
-                            <div class="tab-content">
-                                <div>
-                                    <xsl:attribute name="class">tab-pane <xsl:if test="not($source-uri)">active</xsl:if></xsl:attribute>
-                                        
-                                    <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
-                                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
-                                        <xsl:call-template name="xhtml:Input">
-                                            <xsl:with-param name="name" select="'rdf'"/>
-                                            <xsl:with-param name="type" select="'hidden'"/>
-                                        </xsl:call-template>
+                                        <a>Upload file</a>
+                                    </li>
+                                    <li>
+                                        <xsl:if test="$source-uri">
+                                            <xsl:attribute name="class">active</xsl:attribute>
+                                        </xsl:if>
 
-                                        <fieldset>
-                                            <input type="hidden" name="sb" value="file"/>
-                                            <input type="hidden" name="pu" value="&rdf;type"/>
-                                            <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+                                        <a>From URI</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div>
+                                        <xsl:attribute name="class">tab-pane <xsl:if test="not($source-uri)">active</xsl:if></xsl:attribute>
 
-                                            <!-- file title is unused, just needed to pass the apl:File constraints -->
-                                            <input type="hidden" name="pu" value="&dct;title"/>
-                                            <input id="upload-rdf-title" type="hidden" name="ol" value="RDF upload"/>
+                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
+                                            <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                                            <xsl:call-template name="xhtml:Input">
+                                                <xsl:with-param name="name" select="'rdf'"/>
+                                                <xsl:with-param name="type" select="'hidden'"/>
+                                            </xsl:call-template>
 
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&dct;format"/>
-                                                <label class="control-label" for="upload-rdf-format">Format</label>
-                                                <div class="controls">
-                                                    <select id="upload-rdf-format" name="ol">
-                                                        <!--<option value="">[browser-defined]</option>-->
-                                                        <optgroup label="RDF triples">
-                                                            <option value="text/turtle">Turtle (.ttl)</option>
-                                                            <option value="application/n-triples">N-Triples (.nt)</option>
-                                                            <option value="application/rdf+xml">RDF/XML (.rdf)</option>
-                                                        </optgroup>
-                                                        <optgroup label="RDF quads">
-                                                            <option value="text/trig">TriG (.trig)</option>
-                                                            <option value="application/n-quads">N-Quads (.nq)</option>
-                                                        </optgroup>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&nfo;fileName"/>
-                                                <label class="control-label" for="upload-rdf-filename">FileName</label>
-                                                <div class="controls">
-                                                    <input id="upload-rdf-filename" type="file" name="ol"/>
-                                                </div>
-                                            </div>
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&sd;name"/>
-                                                <label class="control-label" for="upload-rdf-graph">Graph URI</label>
-                                                <div class="controls">
-                                                    <input type="text" id="upload-rdf-graph" name="ou" class="input-xxlarge"/>
-                                                    <span class="help-inline">Resource</span>
-                                                </div>
-                                            </div>
-                                        </fieldset>
+                                            <fieldset>
+                                                <input type="hidden" name="sb" value="file"/>
+                                                <input type="hidden" name="pu" value="&rdf;type"/>
+                                                <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
 
-                                        <div class="form-actions modal-footer">
-                                            <button type="submit" class="{$button-class}">Save</button>
-                                            <button type="button" class="btn btn-close">Close</button>
-                                            <button type="reset" class="btn btn-reset">Reset</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div>
-                                    <xsl:attribute name="class">tab-pane <xsl:if test="$source-uri">active</xsl:if></xsl:attribute>
+                                                <!-- file title is unused, just needed to pass the apl:File constraints -->
+                                                <input type="hidden" name="pu" value="&dct;title"/>
+                                                <input id="upload-rdf-title" type="hidden" name="ol" value="RDF upload"/>
 
-                                    <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
-                                        <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
-                                        <xsl:call-template name="xhtml:Input">
-                                            <xsl:with-param name="name" select="'rdf'"/>
-                                            <xsl:with-param name="type" select="'hidden'"/>
-                                        </xsl:call-template>
-
-                                        <fieldset>
-                                            <input type="hidden" name="sb" value="clone"/>
-
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&dct;source"/>
-                                                <label class="control-label" for="remote-rdf-source">Source URI</label>
-                                                <div class="controls">
-                                                    <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
-                                                        <xsl:if test="$source-uri">
-                                                            <xsl:attribute name="value">
-                                                                <xsl:value-of select="$source-uri"/>
-                                                            </xsl:attribute>
-                                                        </xsl:if>
-                                                    </input>
-                                                    <span class="help-inline">Resource</span>
-                                                </div>
-                                            </div>
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&sd;name"/>
-                                                <label class="control-label" for="remote-rdf-graph">Graph URI</label>
-                                                <div class="controls">
-                                                    <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
-                                                        <xsl:if test="$source-uri">
-                                                            <xsl:attribute name="value">
-                                                                <xsl:value-of select="$source-uri"/>
-                                                            </xsl:attribute>
-                                                        </xsl:if>
-                                                    </input>
-                                                    <span class="help-inline">Resource</span>
-                                                </div>
-                                            </div>
-                                            <div class="control-group required">
-                                                <input type="hidden" name="pu" value="&sioc;has_container"/>
-                                                <label class="control-label" for="remote-rdf-container">Container</label>
-                                                <div class="controls">
-                                                    <span>
-                                                        <input type="text" name="ou" id="remote-rdf-container" class="resource-typeahead typeahead"/>
-                                                        <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
-                                                    </span>
-                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
-                                                    <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn dropdown-toggle create-action"></button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
-                                                                    <input type="hidden" class="action" value="{ac:build-uri($ldt:base, map{ 'forClass': string(resolve-uri('ns/domain/default#Container', $ldt:base)), 'mode': '&ac;ModalMode' })}" autocomplete="off"/>
-                                                                    <xsl:text>Container</xsl:text>
-                                                                </button>
-                                                            </li>
-                                                        </ul>
+                                                <div class="control-group required">
+                                                    <input type="hidden" name="pu" value="&dct;format"/>
+                                                    <label class="control-label" for="upload-rdf-format">Format</label>
+                                                    <div class="controls">
+                                                        <select id="upload-rdf-format" name="ol">
+                                                            <!--<option value="">[browser-defined]</option>-->
+                                                            <optgroup label="RDF triples">
+                                                                <option value="text/turtle">Turtle (.ttl)</option>
+                                                                <option value="application/n-triples">N-Triples (.nt)</option>
+                                                                <option value="application/rdf+xml">RDF/XML (.rdf)</option>
+                                                            </optgroup>
+                                                            <optgroup label="RDF quads">
+                                                                <option value="text/trig">TriG (.trig)</option>
+                                                                <option value="application/n-quads">N-Quads (.nq)</option>
+                                                            </optgroup>
+                                                        </select>
                                                     </div>
-                                                    <span class="help-inline">Container</span>
                                                 </div>
-                                            </div>
-                                        </fieldset>
+                                                <div class="control-group required">
+                                                    <input type="hidden" name="pu" value="&nfo;fileName"/>
+                                                    <label class="control-label" for="upload-rdf-filename">FileName</label>
+                                                    <div class="controls">
+                                                        <input id="upload-rdf-filename" type="file" name="ol"/>
+                                                    </div>
+                                                </div>
+                                                <div class="control-group required">
+                                                    <input type="hidden" name="pu" value="&sd;name"/>
+                                                    <label class="control-label" for="upload-rdf-graph">Graph URI</label>
+                                                    <div class="controls">
+                                                        <input type="text" id="upload-rdf-graph" name="ou" class="input-xxlarge"/>
+                                                        <span class="help-inline">Resource</span>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
 
-                                        <div class="form-actions modal-footer">
-                                            <button type="submit" class="{$button-class}">Save</button>
-                                            <button type="button" class="btn btn-close">Close</button>
-                                            <button type="reset" class="btn btn-reset">Reset</button>
-                                        </div>
-                                    </form>
+                                            <div class="form-actions modal-footer">
+                                                <button type="submit" class="{$button-class}">Save</button>
+                                                <button type="button" class="btn btn-close">Close</button>
+                                                <button type="reset" class="btn btn-reset">Reset</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div>
+                                        <xsl:attribute name="class">tab-pane <xsl:if test="$source-uri">active</xsl:if></xsl:attribute>
+
+                                        <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
+                                            <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
+                                            <xsl:call-template name="xhtml:Input">
+                                                <xsl:with-param name="name" select="'rdf'"/>
+                                                <xsl:with-param name="type" select="'hidden'"/>
+                                            </xsl:call-template>
+
+                                            <fieldset>
+                                                <input type="hidden" name="sb" value="clone"/>
+
+                                                <div class="control-group required">
+                                                    <input type="hidden" name="pu" value="&dct;source"/>
+                                                    <label class="control-label" for="remote-rdf-source">Source URI</label>
+                                                    <div class="controls">
+                                                        <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
+                                                            <xsl:if test="$source-uri">
+                                                                <xsl:attribute name="value">
+                                                                    <xsl:value-of select="$source-uri"/>
+                                                                </xsl:attribute>
+                                                            </xsl:if>
+                                                        </input>
+                                                        <span class="help-inline">Resource</span>
+                                                    </div>
+                                                </div>
+                                                <div class="control-group required">
+                                                    <input type="hidden" name="pu" value="&sd;name"/>
+                                                    <label class="control-label" for="remote-rdf-graph">Graph URI</label>
+                                                    <div class="controls">
+                                                        <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
+                                                            <xsl:if test="$source-uri">
+                                                                <xsl:attribute name="value">
+                                                                    <xsl:value-of select="$source-uri"/>
+                                                                </xsl:attribute>
+                                                            </xsl:if>
+                                                        </input>
+                                                        <span class="help-inline">Resource</span>
+                                                    </div>
+                                                </div>
+                                                <div class="control-group required">
+                                                    <input type="hidden" name="pu" value="&sioc;has_container"/>
+                                                    <label class="control-label" for="remote-rdf-container">Container</label>
+                                                    <div class="controls">
+                                                        <span>
+                                                            <input type="text" name="ou" id="remote-rdf-container" class="resource-typeahead typeahead"/>
+                                                            <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
+                                                        </span>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
+                                                        <div class="btn-group">
+                                                            <button type="button" class="btn dropdown-toggle create-action"></button>
+                                                            <ul class="dropdown-menu">
+                                                                <li>
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
+                                                                        <input type="hidden" class="action" value="{ac:build-uri($ldt:base, map{ 'forClass': string(resolve-uri('ns/domain/default#Container', $ldt:base)), 'mode': '&ac;ModalMode' })}" autocomplete="off"/>
+                                                                        <xsl:text>Container</xsl:text>
+                                                                    </button>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                        <span class="help-inline">Container</span>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+
+                                            <div class="form-actions modal-footer">
+                                                <button type="submit" class="{$button-class}">Save</button>
+                                                <button type="button" class="btn btn-close">Close</button>
+                                                <button type="reset" class="btn btn-reset">Reset</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="alert alert-info">
-                            <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                            <div class="alert alert-info">
+                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </xsl:result-document>
+                </xsl:result-document>
 
-            <ixsl:set-style name="cursor" select="'default'"/>
-        </xsl:for-each>
+                <ixsl:set-style name="cursor" select="'default'"/>
+            </xsl:for-each>
+        </xsl:if>
     </xsl:template>
     
     <!-- root children list -->
