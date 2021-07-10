@@ -161,6 +161,7 @@ extension-element-prefixes="ixsl"
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ac:new-object()"/>
         <ixsl:set-property name="href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="local-href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- global properties that hold current container pagination state -->
         <ixsl:set-property name="limit" select="$ac:limit" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="offset" select="$ac:offset" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -716,7 +717,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>-->
         
-    <xsl:template name="onrdfBodyLoad">
+    <xsl:template name="onRDFBodyLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
@@ -731,6 +732,9 @@ extension-element-prefixes="ixsl"
                                 <xsl:with-param name="leaf" select="true()"/>
                             </xsl:apply-templates>
                         </ul>
+                        <xsl:if test="not(starts-with($uri, $ldt:base))">
+                            <span class="label label-info pull-left">External</span>
+                        </xsl:if>
                     </xsl:result-document>
 
                     <xsl:variable name="parent-uri" select="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
@@ -1341,7 +1345,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri), 'param': 'dummy' })" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onrdfBodyLoad">
+            <xsl:call-template name="onRDFBodyLoad">
                 <xsl:with-param name="uri" select="$uri"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -1355,7 +1359,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source-uri" as="xs:anyURI?"/>
-
+        <xsl:param name="graph-uri" as="xs:anyURI?"/>
+        
         <!-- don't append the div if it's already there -->
         <xsl:if test="not(id($id, ixsl:page()))">
             <xsl:for-each select="ixsl:page()//body">
@@ -1484,7 +1489,7 @@ extension-element-prefixes="ixsl"
                                                     <label class="control-label" for="remote-rdf-graph">Graph URI</label>
                                                     <div class="controls">
                                                         <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
-                                                            <xsl:if test="$source-uri">
+                                                            <xsl:if test="$graph-uri">
                                                                 <xsl:attribute name="value">
                                                                     <xsl:value-of select="$source-uri"/>
                                                                 </xsl:attribute>
@@ -1980,6 +1985,9 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <xsl:if test="starts-with($uri, $ldt:base)">
+                        <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    </xsl:if>
                     
                     <xsl:call-template name="apl:PushState">
                         <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
@@ -3022,9 +3030,11 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
         <!--<xsl:variable name="uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>-->
         <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
         
         <xsl:call-template name="apl:ShowAddDataForm">
             <xsl:with-param name="source-uri" select="$uri"/>
+            <xsl:with-param name="graph-uri" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
         </xsl:call-template>
     </xsl:template>
 
