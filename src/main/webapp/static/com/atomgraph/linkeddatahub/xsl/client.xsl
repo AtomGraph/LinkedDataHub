@@ -1491,7 +1491,7 @@ extension-element-prefixes="ixsl"
                                                         <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
                                                             <xsl:if test="$graph-uri">
                                                                 <xsl:attribute name="value">
-                                                                    <xsl:value-of select="$source-uri"/>
+                                                                    <xsl:value-of select="$graph-uri"/>
                                                                 </xsl:attribute>
                                                             </xsl:if>
                                                         </input>
