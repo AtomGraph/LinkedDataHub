@@ -1978,7 +1978,9 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    
                     <xsl:call-template name="apl:PushState">
                         <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
                     </xsl:call-template>
@@ -2013,10 +2015,6 @@ extension-element-prefixes="ixsl"
                         <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
                     </xsl:if>-->
                 </xsl:for-each>
-
-                <!-- set the "Edit" button's target URL to the newly loaded document -->
-                <xsl:variable name="form-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-                <!--<ixsl:set-property name="value" select="$form-uri" object="key('elements-by-class', 'btn-edit', ixsl:page()//div[tokenize(@class, ' ') = 'action-bar'])/input"/>-->
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
             <xsl:when test="(?status = 500 or ?status = 502) and not($fallback)">
@@ -2035,6 +2033,8 @@ extension-element-prefixes="ixsl"
                 </ixsl:schedule-action>
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#content-body" method="ixsl:replace-content">
                     <div class="alert alert-block">
@@ -2924,14 +2924,13 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
-<!--        <xsl:variable name="graph-uri" select="input/@value" as="xs:anyURI"/>-->
-        <xsl:variable name="graph-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
-        <xsl:message>GRAPH URI: <xsl:value-of select="$graph-uri"/></xsl:message>
-        <xsl:variable name="href" select="ac:build-uri($graph-uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddForm"/>
         </ixsl:schedule-action>
     </xsl:template>
