@@ -635,7 +635,7 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContainerState">
+        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
