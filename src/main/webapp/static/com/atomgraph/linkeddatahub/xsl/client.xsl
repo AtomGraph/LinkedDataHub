@@ -183,21 +183,6 @@ extension-element-prefixes="ixsl"
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
         </xsl:if>
-        <!-- create a container for top-level document navigation, if it doesn't exist yet -->
-<!--        <xsl:if test="id('left-nav', ixsl:page()) and not(id('root-children-nav', ixsl:page()))">
-            <xsl:result-document href="#left-nav" method="ixsl:replace-content">
-                <div id="root-children-nav"/>
-
-                <xsl:copy-of select="id('left-nav', ixsl:page())/*"/>
-            </xsl:result-document>
-            
-             load the top-level documents (children of root) 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': concat($ldt:base, '?param=dummy'), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="apl:RootLoad">
-                    <xsl:with-param name="id" select="'root-children-nav'"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $ldt:base)">
@@ -1358,8 +1343,9 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
-        <xsl:param name="source-uri" as="xs:anyURI?"/>
-        <xsl:param name="graph-uri" as="xs:anyURI?"/>
+        <xsl:param name="source" as="xs:anyURI?"/>
+        <xsl:param name="graph" as="xs:anyURI?"/>
+        <xsl:param name="container" as="xs:anyURI?"/>
         
         <!-- don't append the div if it's already there -->
         <xsl:if test="not(id($id, ixsl:page()))">
@@ -1381,14 +1367,14 @@ extension-element-prefixes="ixsl"
                             <div class="tabbable">
                                 <ul class="nav nav-tabs">
                                     <li>
-                                        <xsl:if test="not($source-uri)">
+                                        <xsl:if test="not($source)">
                                             <xsl:attribute name="class">active</xsl:attribute>
                                         </xsl:if>
 
                                         <a>Upload file</a>
                                     </li>
                                     <li>
-                                        <xsl:if test="$source-uri">
+                                        <xsl:if test="$source">
                                             <xsl:attribute name="class">active</xsl:attribute>
                                         </xsl:if>
 
@@ -1397,7 +1383,7 @@ extension-element-prefixes="ixsl"
                                 </ul>
                                 <div class="tab-content">
                                     <div>
-                                        <xsl:attribute name="class">tab-pane <xsl:if test="not($source-uri)">active</xsl:if></xsl:attribute>
+                                        <xsl:attribute name="class">tab-pane <xsl:if test="not($source)">active</xsl:if></xsl:attribute>
 
                                         <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -1458,7 +1444,7 @@ extension-element-prefixes="ixsl"
                                         </form>
                                     </div>
                                     <div>
-                                        <xsl:attribute name="class">tab-pane <xsl:if test="$source-uri">active</xsl:if></xsl:attribute>
+                                        <xsl:attribute name="class">tab-pane <xsl:if test="$source">active</xsl:if></xsl:attribute>
 
                                         <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
@@ -1475,9 +1461,9 @@ extension-element-prefixes="ixsl"
                                                     <label class="control-label" for="remote-rdf-source">Source URI</label>
                                                     <div class="controls">
                                                         <input type="text" id="remote-rdf-source" name="ou" class="input-xxlarge">
-                                                            <xsl:if test="$source-uri">
+                                                            <xsl:if test="$source">
                                                                 <xsl:attribute name="value">
-                                                                    <xsl:value-of select="$source-uri"/>
+                                                                    <xsl:value-of select="$source"/>
                                                                 </xsl:attribute>
                                                             </xsl:if>
                                                         </input>
@@ -1489,9 +1475,9 @@ extension-element-prefixes="ixsl"
                                                     <label class="control-label" for="remote-rdf-graph">Graph URI</label>
                                                     <div class="controls">
                                                         <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
-                                                            <xsl:if test="$graph-uri">
+                                                            <xsl:if test="$graph">
                                                                 <xsl:attribute name="value">
-                                                                    <xsl:value-of select="$graph-uri"/>
+                                                                    <xsl:value-of select="$graph"/>
                                                                 </xsl:attribute>
                                                             </xsl:if>
                                                         </input>
@@ -1506,6 +1492,7 @@ extension-element-prefixes="ixsl"
                                                             <input type="text" name="ou" id="remote-rdf-container" class="resource-typeahead typeahead"/>
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
                                                         </span>
+
                                                         <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
                                                         <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
                                                         <div class="btn-group">
@@ -1540,6 +1527,16 @@ extension-element-prefixes="ixsl"
                         </div>
                     </div>
                 </xsl:result-document>
+                
+                <xsl:if test="$container">
+                    <!-- fill the container typeahead value, if it's provided -->
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onTypeaheadResourceLoad">
+                            <xsl:with-param name="resource-uri" select="$container"/>
+                            <xsl:with-param name="typeahead-span" select="id('remote-rdf-container', ixsl:page())/.."/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:if>
 
                 <ixsl:set-style name="cursor" select="'default'"/>
             </xsl:for-each>
@@ -2174,7 +2171,7 @@ extension-element-prefixes="ixsl"
                             <xsl:call-template name="onTypeaheadResourceLoad">
                                 <xsl:with-param name="resource-uri" select="$created-uri"/>
                                 <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
-                                <xsl:with-param name="form" select="$form"/>
+                                <xsl:with-param name="modal-form" select="$form"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:otherwise>
@@ -2272,7 +2269,7 @@ extension-element-prefixes="ixsl"
                             <xsl:call-template name="onTypeaheadResourceLoad">
                                 <xsl:with-param name="resource-uri" select="$created-uri"/>
                                 <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
-                                <xsl:with-param name="form" select="$form"/>
+                                <xsl:with-param name="modal-form" select="$form"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:otherwise>
@@ -3033,8 +3030,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
         
         <xsl:call-template name="apl:ShowAddDataForm">
-            <xsl:with-param name="source-uri" select="$uri"/>
-            <xsl:with-param name="graph-uri" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
+            <xsl:with-param name="source" select="$uri"/>
+            <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
+            <xsl:with-param name="container" select="resolve-uri('..', $local-uri)"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -3077,7 +3075,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="resource-uri" as="xs:anyURI"/>
         <xsl:param name="typeahead-span" as="element()"/>
-        <xsl:param name="form" as="element()"/>
+        <xsl:param name="modal-form" as="element()?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -3085,9 +3083,11 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="resource" select="key('resources', $resource-uri)" as="element()"/>
 
                     <!-- remove modal constructor form -->
-                    <xsl:message>
-                        <xsl:sequence select="ixsl:call($form/.., 'remove', [])"/>
-                    </xsl:message>
+                    <xsl:if test="$modal-form">
+                        <xsl:message>
+                            <xsl:sequence select="ixsl:call($form/.., 'remove', [])"/>
+                        </xsl:message>
+                    </xsl:if>
 
                     <xsl:for-each select="$typeahead-span">
                         <xsl:result-document href="?." method="ixsl:replace-content">
