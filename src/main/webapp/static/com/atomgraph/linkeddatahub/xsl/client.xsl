@@ -3085,7 +3085,7 @@ extension-element-prefixes="ixsl"
                     <!-- remove modal constructor form -->
                     <xsl:if test="$modal-form">
                         <xsl:message>
-                            <xsl:sequence select="ixsl:call($form/.., 'remove', [])"/>
+                            <xsl:sequence select="ixsl:call($modal-form/.., 'remove', [])"/>
                         </xsl:message>
                     </xsl:if>
 
