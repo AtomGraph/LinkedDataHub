@@ -283,8 +283,8 @@ extension-element-prefixes="ixsl"
 
     <!-- BODY -->
     
-    <!-- the current document -->
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'"  match="*[@rdf:about = $ac:uri]" mode="xhtml:Body" priority="1">
+    <!-- skip the properties of the the current Root, Container, or Item - show only contents -->
+    <xsl:template match="*[@rdf:about = $ldt:base] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>

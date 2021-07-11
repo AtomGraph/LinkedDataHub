@@ -63,7 +63,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- move the content above form -->
-    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
 

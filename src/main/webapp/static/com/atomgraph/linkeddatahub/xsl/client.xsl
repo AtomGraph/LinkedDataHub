@@ -3032,7 +3032,7 @@ extension-element-prefixes="ixsl"
         <xsl:call-template name="apl:ShowAddDataForm">
             <xsl:with-param name="source" select="$uri"/>
             <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
-            <xsl:with-param name="container" select="resolve-uri('..', $local-uri)"/>
+            <xsl:with-param name="container" select="$local-uri"/>
         </xsl:call-template>
     </xsl:template>
 
