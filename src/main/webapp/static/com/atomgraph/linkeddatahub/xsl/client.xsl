@@ -2015,8 +2015,10 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
                         <xsl:with-param name="title" select="title"/>
                     </xsl:call-template>
-                    <xsl:variable name="results" select="." as="document-node()"/>
+                    <!-- set document.title which history.pushState() does not do -->
+                    <ixsl:set-property name="title" select="'LinkedDataHub - ' || title" object="ixsl:page()"/>
 
+                    <xsl:variable name="results" select="." as="document-node()"/>
                     <!-- replace content body with the loaded XHTML -->
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <xsl:copy-of select="id($container-id, $results)/*"/>

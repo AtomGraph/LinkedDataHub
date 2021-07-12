@@ -138,7 +138,7 @@ exclude-result-prefixes="#all"
                     <input name="ou" type="hidden" value="{$predicate}"/>
                     
                     <xsl:choose>
-                        <xsl:when test="$results">
+                        <xsl:when test="key('resources', $predicate, $results)">
                             <xsl:value-of select="ac:label(key('resources', $predicate, $results))"/>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
