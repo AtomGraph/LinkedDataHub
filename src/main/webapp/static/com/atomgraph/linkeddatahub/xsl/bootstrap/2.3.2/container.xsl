@@ -1183,7 +1183,7 @@ exclude-result-prefixes="#all"
 
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="uri" select="$href"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
