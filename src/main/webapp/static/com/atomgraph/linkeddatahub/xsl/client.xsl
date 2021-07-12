@@ -214,16 +214,13 @@ extension-element-prefixes="ixsl"
                 <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
             </xsl:result-document>
         </xsl:for-each>
-        <!-- initialize search service dropdown -->
-        <xsl:for-each select="id('search-service', ixsl:page())">
-            <xsl:variable name="service-select" select="." as="element()"/>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onServiceLoad">
-                    <xsl:with-param name="service-select" select="$service-select"/>
-                    <xsl:with-param name="selected-service" select="$ac:service"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:for-each>
+        <!-- initialize services (and the search dropdown, if it's shown) -->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onServiceLoad">
+                <xsl:with-param name="service-select" select="id('search-service', ixsl:page())"/>
+                <xsl:with-param name="selected-service" select="$ac:service"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:call-template name="apl:LoadContents">
@@ -1939,7 +1936,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="service-select" as="element()"/>
+        <xsl:param name="service-select" as="element()?"/>
         <xsl:param name="selected-service" as="xs:anyURI?"/>
 
         <xsl:choose>
