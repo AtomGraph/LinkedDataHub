@@ -1948,7 +1948,7 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="services" select="$results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     
                     <xsl:for-each select="$service-select">
-                        <xsl:result-document href="?." method="ixsl:replace-content">
+                        <xsl:result-document href="?." method="ixsl:append-content">
                             <xsl:for-each select="$results//*[@rdf:about]">
                                 <xsl:sort select="ac:label(.)"/>
 
@@ -1998,6 +1998,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
+        <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
+        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -2053,10 +2055,8 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
-            <xsl:when test="(?status = 500 or ?status = 502) and not($fallback)">
-                <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
-                <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-                <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
+            <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
+                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
 
