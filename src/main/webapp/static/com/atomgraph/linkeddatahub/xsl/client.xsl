@@ -2016,7 +2016,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="title" select="title"/>
                     </xsl:call-template>
                     <!-- set document.title which history.pushState() does not do -->
-                    <ixsl:set-property name="title" select="substring-before(ixsl:page()/body/title, ' -') || ' - ' || body/title" object="ixsl:page()"/>
+                    <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/body/title, ' -') || ' - ' || html/body/title" object="ixsl:page()"/>
 
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <!-- replace content body with the loaded XHTML -->
