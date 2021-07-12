@@ -15,8 +15,8 @@ xmlns:void="&void;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="void:inDataset" mode="bs2:PropertyList"/>
+<!--    <xsl:template match="void:inDataset" mode="bs2:PropertyList"/>
 
-    <xsl:template match="void:inDataset" mode="ac:TablePredicateMode"/>
+    <xsl:template match="void:inDataset" mode="ac:TablePredicateMode"/>-->
 
 </xsl:stylesheet>

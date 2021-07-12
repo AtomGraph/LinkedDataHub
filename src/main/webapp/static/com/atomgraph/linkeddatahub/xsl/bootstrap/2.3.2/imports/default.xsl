@@ -251,6 +251,7 @@ exclude-result-prefixes="#all"
 
     <!-- PROPERTY LIST -->
 
+    <!-- suppress properties in a language other than $ldt:lang. TO-DO: move to Web-Client? -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(lang($ldt:lang))]" mode="bs2:PropertyList"/>
 
     <!-- FORM CONTROL -->

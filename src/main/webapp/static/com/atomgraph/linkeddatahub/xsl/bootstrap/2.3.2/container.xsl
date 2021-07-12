@@ -1090,29 +1090,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template name="apl:PushContentState">
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
-        <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
-        <!-- push the latest state into history -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="history.pushState({{ 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '')"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-
-    <xsl:template name="apl:PushState">
-        <xsl:param name="href" as="xs:anyURI"/>
-        <xsl:param name="title" as="xs:string?"/>
-        <!-- push the latest state into history -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="history.pushState({{ 'href': '{$href}' }}, '{$title}', '{$href}')"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
     <xsl:template name="apl:RenderContainer">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -1149,49 +1126,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
-    
-    <!-- popstate -->
-    
-    <xsl:template match="." mode="ixsl:onpopstate">
-        <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
-        <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
-        <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
-
-        <xsl:choose>
-            <!-- state from apl:PushContentState -->
-            <xsl:when test="$content-uri">
-                <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:string?"/>
-                <xsl:variable name="content" select="()" as="element()?"/> <!-- TO-DO: set value -->
-                <xsl:variable name="select-json" select="map:get($state, '&spin;query')"/>
-                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-                <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
-                <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
-
-                <xsl:call-template name="apl:RenderContainer">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="content" select="$content"/>
-                    <xsl:with-param name="select-string" select="$select-string"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name" as="xs:string"/> 
-                </xsl:call-template>
-            </xsl:when>
-            <!-- state from apl:PushState -->
-            <xsl:when test="$href">
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$href"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:message>Popped state not recognized (ixsl:onpopstate)</xsl:message>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
 
     <!-- container mode tabs -->
     
