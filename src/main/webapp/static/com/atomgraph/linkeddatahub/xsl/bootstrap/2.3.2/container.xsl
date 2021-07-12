@@ -136,10 +136,13 @@ exclude-result-prefixes="#all"
             <li>
                 <a>
                     <input name="ou" type="hidden" value="{$predicate}"/>
+                    <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
                     
                     <xsl:choose>
-                        <xsl:when test="key('resources', $predicate, $results)">
-                            <xsl:value-of select="ac:label(key('resources', $predicate, $results))"/>
+                        <xsl:when test="$resource">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="$resource" mode="ac:label"/>
+                            </xsl:value-of>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
                         <xsl:when test="contains($predicate, '#') and not(ends-with($predicate, '#'))">
@@ -193,10 +196,11 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <h2 class="nav-header btn">
+                    <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
                     <xsl:choose>
-                        <xsl:when test="$results">
+                        <xsl:when test="$resource">
                             <xsl:value-of>
-                                <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                                <xsl:apply-templates select="$resource" mode="ac:label"/>
                             </xsl:value-of>
                         </xsl:when>
                         <!-- attempt to use the fragment as label -->
@@ -241,10 +245,11 @@ exclude-result-prefixes="#all"
                     <xsl:attribute name="selected" select="'selected'"/>
                 </xsl:if>
                 
+                <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
                 <xsl:choose>
-                    <xsl:when test="$results">
+                    <xsl:when test="$resource">
                         <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', $predicate, $results)" mode="ac:label"/>
+                            <xsl:apply-templates select="$resource" mode="ac:label"/>
                         </xsl:value-of>
                     </xsl:when>
                     <!-- attempt to use the fragment as label -->
