@@ -249,6 +249,10 @@ exclude-result-prefixes="#all"
     <!-- object -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*/@*" mode="bs2:TypeControl"/>
 
+    <!-- PROPERTY LIST -->
+
+    <xsl:template match="*[@rdf:about or @rdf:nodeID]/*[@xml:lang and not(lang($ldt:lang))]" mode="bs2:PropertyList"/>
+
     <!-- FORM CONTROL -->
 
     <!-- resource -->
