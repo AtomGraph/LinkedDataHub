@@ -2013,7 +2013,7 @@ extension-element-prefixes="ixsl"
                     
                     <xsl:call-template name="apl:PushState">
                         <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
-                        <xsl:with-param name="title" select="ac:label(key('resources', $uri))[1]"/>
+                        <xsl:with-param name="title" select="title"/>
                     </xsl:call-template>
                     <xsl:variable name="results" select="." as="document-node()"/>
 
