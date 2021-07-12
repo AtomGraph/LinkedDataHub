@@ -482,40 +482,6 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </button>
         </div>
-
-        <!--
-        <xsl:variable name="logged-in" select="exists($acl:Agent//@rdf:about)" as="xs:boolean" use-when="system-property('xsl:product-name') = 'SAXON'"/>
-        <xsl:variable name="logged-in" select="not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'])" as="xs:boolean" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
-        <xsl:if test="$logged-in">
-            <xsl:if test="ac:document-uri(@rdf:about) = @rdf:about">
-                <div class="pull-right">
-                    <form action="{ac:document-uri(@rdf:about)}?_method=DELETE" method="post">
-                        <button class="btn btn-delete" type="submit">
-                            <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
-                                <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="ac:label"/>
-                            </xsl:value-of>
-                            <xsl:text use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Delete</xsl:text>
-                        </button>
-                    </form>
-                </div>
-            </xsl:if>
-
-            <xsl:if test="not($ac:mode = '&ac;EditMode')">
-                <xsl:for-each select="@rdf:about">
-                    <div class="pull-right">
-                        <xsl:variable name="graph-uri" select="ac:build-uri(ac:document-uri(.), map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-                        <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
-                            <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri(xs:anyURI('&ac;'))))" mode="apl:logo">
-                                <xsl:with-param name="class" select="'btn'"/>
-                            </xsl:apply-templates>
-
-                            <input type="hidden" value="{$graph-uri}"/>
-                        </button>
-                    </div>
-                </xsl:for-each>
-            </xsl:if>
-        </xsl:if>
-        -->
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:Actions"/>

@@ -682,7 +682,7 @@ exclude-result-prefixes="#all">
         
     <xsl:template match="rdf:RDF" mode="bs2:MediaTypeList" priority="1">
         <div class="btn-group pull-right">
-            <button type="button" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
+            <button type="button" id="export-rdf" title="{ac:label(key('resources', 'nav-bar-action-export-rdf-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;Export', document(ac:document-uri('&ac;')))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
@@ -691,41 +691,11 @@ exclude-result-prefixes="#all">
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" as="xs:anyURI">
-                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'application/rdf+xml' })" as="xs:anyURI"/>
-                        <xsl:choose>
-                            <xsl:when test="starts-with($ac:uri, $ldt:base)">
-                                <xsl:sequence select="$accept-href"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:sequence select="ac:build-uri($ac:uri, map{ 'uri': encode-for-uri($accept-href) })"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:variable>
-                    <a href="{$href}" title="application/rdf+xml">RDF/XML</a>
+                    <a title="application/rdf+xml">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" as="xs:anyURI">
-                        <xsl:variable name="accept-href" select="ac:build-uri($ac:uri, map{ 'accept': 'text/turtle' })" as="xs:anyURI"/>
-                        <xsl:choose>
-                            <xsl:when test="starts-with($ac:uri, $ldt:base)">
-                                <xsl:sequence select="$accept-href"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:sequence select="ac:build-uri($ac:uri, map{ 'uri': encode-for-uri($accept-href) })"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:variable>
-                    <a href="{$href}" title="text/turtle">Turtle</a>
+                    <a title="text/turtle">Turtle</a>
                 </li>
-                <xsl:if test="key('resources', $ac:uri)">
-                    <li class="divider"></li>
-                    
-                    <xsl:variable name="href" select="ac:build-uri($ac:uri, map{ 'debug': 'http://www.w3.org/ns/sparql-service-description#SPARQL11Query' })" as="xs:anyURI"/>
-                    <li>
-                        <a href="{$href}" title="application/sparql-query">SPARQL query</a>
-                    </li>
-                </xsl:if>
             </ul>
         </div>
     </xsl:template>
@@ -840,7 +810,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$acl:Agent//@rdf:about">
                 <div class="pull-right">
                     <form action="{ac:build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
-                        <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
+                        <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
                             <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
                             </xsl:apply-templates>
@@ -851,7 +821,7 @@ exclude-result-prefixes="#all">
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <div class="pull-right">
                     <xsl:variable name="graph-uri" select="ac:build-uri($ac:uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-                    <button title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                    <button type="button" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
@@ -862,12 +832,10 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <div class="pull-right">
-                <button title="{key('resources', 'save-as', document('translations.rdf'))}">
+                <button type="button" title="{key('resources', 'save-as', document('translations.rdf'))}">
                     <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn'"/>
                     </xsl:apply-templates>
-
-                    <input type="hidden" name="href" value="{@rdf:about}"/> <!-- used by client.xsl -->
 
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ac:label"/>

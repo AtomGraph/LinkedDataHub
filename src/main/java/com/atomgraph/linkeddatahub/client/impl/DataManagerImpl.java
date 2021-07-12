@@ -79,15 +79,12 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     @Override
     public boolean resolvingUncached(String filenameOrURI)
     {
-        // first check if the resolution of uncached documents is allowed in the configuration
-        // TO-DO: new config property resolveUncachedRelative?
-        if (super.resolvingUncached(filenameOrURI))
-            if (getBaseURI() != null && !isMapped(filenameOrURI))
-            {
-                // always resolve URIs relative to the root Context base URI
-                boolean relative = !getRootContextURI().relativize(URI.create(filenameOrURI)).isAbsolute();
-                return relative;
-            }
+        if (super.resolvingUncached(filenameOrURI) && !isMapped(filenameOrURI))
+        {
+            // always resolve URIs relative to the root Context base URI
+            boolean relative = !getRootContextURI().relativize(URI.create(filenameOrURI)).isAbsolute();
+            return relative;
+        }
         
         return false; // super.resolvingUncached(filenameOrURI); // configured in web.xml
     }
