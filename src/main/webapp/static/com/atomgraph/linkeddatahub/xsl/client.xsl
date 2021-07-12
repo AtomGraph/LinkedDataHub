@@ -1524,8 +1524,8 @@ extension-element-prefixes="ixsl"
                                                             <ul class="dropdown-menu">
                                                                 <li>
                                                                     <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
-                                                                        <input type="hidden" class="action" value="{ac:build-uri($ldt:base, map{ 'forClass': string(resolve-uri('ns/domain/default#Container', $ldt:base)), 'mode': '&ac;ModalMode' })}" autocomplete="off"/>
                                                                         <xsl:text>Container</xsl:text>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}"/>
                                                                     </button>
                                                                 </li>
                                                             </ul>
