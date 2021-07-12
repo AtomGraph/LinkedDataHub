@@ -1494,7 +1494,7 @@ extension-element-prefixes="ixsl"
                                                         <span class="help-inline">Resource</span>
                                                     </div>
                                                 </div>
-                                                <div class="control-group required">
+<!--                                                <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&sd;name"/>
                                                     <label class="control-label" for="remote-rdf-graph">Graph URI</label>
                                                     <div class="controls">
@@ -1507,7 +1507,7 @@ extension-element-prefixes="ixsl"
                                                         </input>
                                                         <span class="help-inline">Resource</span>
                                                     </div>
-                                                </div>
+                                                </div>-->
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&sioc;has_container"/>
                                                     <label class="control-label" for="remote-rdf-container">Container</label>

@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.resource.clone;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
-import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.model.TemplateCall;
@@ -42,9 +41,7 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,19 +92,14 @@ public class Container extends GraphStoreImpl
             Resource arg = it.next();
             Resource source = arg.getPropertyResourceValue(DCTerms.source);
             if (source == null)  throw new BadRequestException("RDF source URI (dct:source) not provided");
-            Resource graph = arg.getPropertyResourceValue(SD.name);
-            if (graph == null)  throw new BadRequestException("Graph name URI (sd:name) not provided");
+//            Resource graph = arg.getPropertyResourceValue(SD.name);
+//            if (graph == null)  throw new BadRequestException("Graph name URI (sd:name) not provided");
             Resource container = arg.getPropertyResourceValue(SIOC.HAS_CONTAINER);
             if (container == null)  throw new BadRequestException("Container URI (sioc:has_container) not provided");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
-            Model sourceModel = ldc.get();
             
-            sourceModel.createResource(graph.getURI()).
-                addProperty(RDF.type, ResourceFactory.createResource(getApplication().getBase() + "ns/domain/default#Item")).
-                addProperty(SIOC.HAS_CONTAINER, container);
-            
-            return super.post(sourceModel, false, URI.create(graph.getURI()));
+            return super.post(ldc.get(), false, URI.create(container.getURI()));
         }
         finally
         {
