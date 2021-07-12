@@ -905,6 +905,8 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="container-id" select="$parallax-container-id"/>
                         </xsl:call-template>
                     </xsl:if>
+                    
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -1946,7 +1948,7 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="services" select="$results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     
                     <xsl:for-each select="$service-select">
-                        <xsl:result-document href="?.">
+                        <xsl:result-document href="?." method="ixsl:replace-content">
                             <xsl:for-each select="$results//*[@rdf:about]">
                                 <xsl:sort select="ac:label(.)"/>
 
@@ -2101,6 +2103,8 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
                 <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
                 <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
+
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:call-template name="apl:RenderContainer">
                     <xsl:with-param name="container-id" select="$container-id"/>
