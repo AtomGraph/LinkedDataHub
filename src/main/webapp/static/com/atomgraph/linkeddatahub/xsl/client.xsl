@@ -1409,7 +1409,7 @@ extension-element-prefixes="ixsl"
                                     <div>
                                         <xsl:attribute name="class">tab-pane <xsl:if test="not($source)">active</xsl:if></xsl:attribute>
 
-                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('uploads', $ldt:base), map{ 'import': 'true', 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
+                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>
