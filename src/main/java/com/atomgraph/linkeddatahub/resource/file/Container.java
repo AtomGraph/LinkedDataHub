@@ -36,11 +36,9 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
-import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.model.TemplateCall;
@@ -157,24 +155,10 @@ public class Container extends GraphStoreImpl
                 String fileName = file.getProperty(NFO.fileName).getString();
                 FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
                 
-                if (getUriInfo().getQueryParameters().containsKey(APLT.import_.getLocalName())) // upload RDF data
-                {
-                    Resource graph = file.getPropertyResourceValue(SD.name);
-                    if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI not specified for uploaded File");
-
-                    MediaType mediaType = null;
-                    if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
-                    if (mediaType != null) bodyPart.setMediaType(mediaType);
-
-                    Model partModel = bodyPart.getValueAs(Model.class);
-                    post(partModel, false, URI.create(graph.getURI())); // append uploaded triples/quads
-                }
-                else // write file
-                {
-                    // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
-                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
-                    writeFile(file, bodyPart);
-                }
+                // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
+                if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
+                writeFile(file, bodyPart);
+                    
                 count++;
             }
         }

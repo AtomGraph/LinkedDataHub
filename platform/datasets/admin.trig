@@ -416,7 +416,7 @@
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass dh:Item, dh:Container ;
-        acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../clone> ;
+        acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentClass <acl/groups/owners/#this> .
 
@@ -437,7 +437,7 @@
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass dh:Item, dh:Container ;
-        acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../clone> ;
+        acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
@@ -458,7 +458,7 @@
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass c:Document, dh:Item, dh:Container, apl:File ;
-        acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../clone> ;
+        acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Read ;
         acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 
@@ -1461,6 +1461,25 @@ nsdd:ContainerChildren
         ldt:extends aplt:ImportItem ;
         ldt:cacheControl "public, max-age=3600" ;
         rdfs:label "Import item" ;
+        rdfs:isDefinedBy nst: .
+
+}
+
+# add endpoint
+
+<sitemap/templates/templates/add-endpoint/>
+{
+
+    <sitemap/templates/templates/add-endpoint/> a adm:TemplateItem ;
+        sioc:has_container <sitemap/templates/templates/> ;
+        dct:title "Add endpoint" ;
+        foaf:primaryTopic nst:AddEndpoint .
+
+    nst:AddEndpoint a adm:Template ;
+        foaf:isPrimaryTopicOf <sitemap/templates/templates/add-endpoint/> ;
+        ldt:extends aplt:AddEndpoint ;
+        ldt:cacheControl "public, max-age=3600" ;
+        rdfs:label "Add endpoint" ;
         rdfs:isDefinedBy nst: .
 
 }

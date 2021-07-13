@@ -2444,7 +2444,7 @@ extension-element-prefixes="ixsl"
 
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
-        <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&dct;source', '&sd;name', '&sioc;has_container')]]">
+        <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&dct;source', '&sioc;has_container')]]">
             <xsl:choose>
                 <xsl:when test="not(descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
