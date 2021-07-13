@@ -16,13 +16,23 @@
  */
 package com.atomgraph.linkeddatahub.resource.add;
 
+import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
+import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
+import com.atomgraph.processor.model.TemplateCall;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Providers;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -40,6 +50,16 @@ public class Container extends com.atomgraph.linkeddatahub.resource.file.Contain
 
     private static final Logger log = LoggerFactory.getLogger(Container.class);
 
+    @Inject
+    public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+    {
+        super(uriInfo, request, mediaTypes,
+            service, application, ontology, templateCall,
+            providers, system);
+    }
+    
     @Override
     public Response postMultipart(Model model, Boolean defaultGraph, URI graphUri, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
