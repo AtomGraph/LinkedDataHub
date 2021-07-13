@@ -1364,7 +1364,6 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:ShowAddDataForm">
         <xsl:param name="id" select="'add-data'" as="xs:string?"/>
-        <!-- <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>-->
         <xsl:param name="button-class" select="'btn btn-primary btn-save'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="source" as="xs:anyURI?"/>
@@ -2199,7 +2198,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="form[tokenize(@class, ' ') = 'form-horizontal']" mode="ixsl:onsubmit">
+    <xsl:template match="form[tokenize(@class, ' ') = 'form-horizontal'] | form[ancestor::div[tokenize(@class, ' ') = 'modal']]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
@@ -2269,9 +2268,13 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="created-uri" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Location' ])" as="xs:anyURI"/>
                         
                 <xsl:choose>
-                    <!-- if form submit did not originate from a typeahead (target), redirect to the created resource -->
+                    <!-- if form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:when test="not($typeahead-span)">
-                        <ixsl:set-property name="location.href" select="$created-uri"/>  <!-- TO-DO: replace with onDocumentLoad call -->
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <xsl:call-template name="onDocumentLoad">
+                                <xsl:with-param name="uri" select="$created-uri"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
                     </xsl:when>
                     <!-- otherwise, render the created resource as a typeahead input -->
                     <xsl:otherwise>
@@ -2367,9 +2370,13 @@ extension-element-prefixes="ixsl"
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:when>
-                    <!-- if the form submit did not originate from a typeahead (target), redirect to the created resource -->
+                    <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:when test="not($typeahead-span)">
-                        <ixsl:set-property name="location.href" select="$created-uri"/>  <!-- TO-DO: replace with onDocumentLoad call -->
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <xsl:call-template name="onDocumentLoad">
+                                <xsl:with-param name="uri" select="$created-uri"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
                     </xsl:when>
                     <!-- otherwise, render the created resource as a typeahead input -->
                     <xsl:otherwise>
@@ -2456,12 +2463,15 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&sd;name')]]">
             <xsl:choose>
+                <!-- values missing, throw an error -->
                 <xsl:when test="not(descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
+                <!-- all required values present, apply the default form onsubmit -->
                 <xsl:otherwise>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:next-match/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
@@ -2471,12 +2481,15 @@ extension-element-prefixes="ixsl"
     <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&dct;source', '&sioc;has_container')]]">
             <xsl:choose>
+                <!-- values missing, throw an error -->
                 <xsl:when test="not(descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:when>
+                <!-- all required values present, apply the default form onsubmit -->
                 <xsl:otherwise>
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:next-match/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:for-each>
