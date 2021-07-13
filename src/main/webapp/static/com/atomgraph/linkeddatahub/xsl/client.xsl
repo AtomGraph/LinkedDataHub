@@ -2460,8 +2460,8 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&sd;name')]]" as="element()*"/>
+    <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
+        <xsl:variable name="control-groups" select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
         <xsl:choose>
             <!-- values missing, throw an error -->
             <xsl:when test="not($control-groups/descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
@@ -2474,24 +2474,6 @@ extension-element-prefixes="ixsl"
                 <xsl:next-match/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-
-    <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&dct;source', '&sioc;has_container')]]">
-            <xsl:choose>
-                <!-- values missing, throw an error -->
-                <xsl:when test="not(descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
-                    <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:when>
-                <!-- all required values present, apply the default form onsubmit -->
-                <xsl:otherwise>
-                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:next-match/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:for-each>
     </xsl:template>
     
     <!-- open drop-down by toggling its CSS class -->
