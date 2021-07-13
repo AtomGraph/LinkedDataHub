@@ -36,17 +36,14 @@ urlencode()
 
 file="timbl.ttl"
 file_content_type="text/turtle"
+source="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
 
 echo "Importing file: $file"
 
 rdf_post+="-F \"rdf=\"\n"
-rdf_post+="-F \"sb=file\"\n"
-rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
-rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
-rdf_post+="-F \"ol=Whateverest\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${END_USER_BASE_URL}ns/domain/system#File\"\n"
+rdf_post+="-F \"sb=arg\"\n"
+rdf_post+="-F \"pu=http://purl.org/dc/terms/source\"\n"
+rdf_post+="-F \"ou=${source}\"\n"
 rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
 rdf_post+="-F \"ou=${container}\"\n"
 
@@ -57,7 +54,7 @@ echo -e "$rdf_post" \
 | curl -w "%{http_code}\n" -v -k -D - --config - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}add?forClass=${forClass}" \
+  "${END_USER_BASE_URL}clone" \
 | grep -q "$STATUS_CREATED"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
