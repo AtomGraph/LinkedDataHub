@@ -91,11 +91,10 @@ public class Container extends GraphStoreImpl
             
             Resource arg = it.next();
             Resource source = arg.getPropertyResourceValue(DCTerms.source);
-            if (source == null)  throw new BadRequestException("RDF source URI (dct:source) not provided");
-//            Resource graph = arg.getPropertyResourceValue(SD.name);
-//            if (graph == null)  throw new BadRequestException("Graph name URI (sd:name) not provided");
+            if (source == null) throw new BadRequestException("RDF source URI (dct:source) not provided");
+            
             Resource container = arg.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-            if (container == null)  throw new BadRequestException("Container URI (sioc:has_container) not provided");
+            if (container == null) throw new BadRequestException("Container URI (sioc:has_container) not provided");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
             

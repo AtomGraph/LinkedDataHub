@@ -70,34 +70,26 @@ public class Container extends com.atomgraph.linkeddatahub.resource.file.Contain
         ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
         try
         {
-            while (resIt.hasNext())
-            {
-                Resource file = resIt.next();
-                String fileName = file.getProperty(NFO.fileName).getString();
-                FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
-                
-//                Resource graph = file.getPropertyResourceValue(SD.name);
-//                if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI not specified for uploaded File");
+            if (!resIt.hasNext()) throw new BadRequestException("Argument resource not provided");
 
-                Resource container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-                if (container == null)  throw new BadRequestException("Container URI (sioc:has_container) not provided");
-            
-                MediaType mediaType = null;
-                if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
-                if (mediaType != null) bodyPart.setMediaType(mediaType);
+            Resource file = resIt.next();
+            String fileName = file.getProperty(NFO.fileName).getString();
+            FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
 
-                Model partModel = bodyPart.getValueAs(Model.class);
-                post(partModel, false, URI.create(container.getURI())); // append uploaded triples/quads
-                count++;
-            }
+            Resource container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+            if (container == null || !container.isURIResource()) throw new BadRequestException("Container URI (sioc:has_container) not provided");
+
+            MediaType mediaType = null;
+            if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
+            if (mediaType != null) bodyPart.setMediaType(mediaType);
+
+            Model partModel = bodyPart.getValueAs(Model.class);
+            return post(partModel, false, URI.create(container.getURI())); // append uploaded triples/quads
         }
         finally
         {
             resIt.close();
         }
-
-        if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", count);
-        return post(model, defaultGraph, graphUri);
     }
     
 }
