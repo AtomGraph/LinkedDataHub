@@ -2460,7 +2460,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit">
+    <xsl:template match="form[@id = 'form-add-data']" mode="ixsl:onsubmit" priority="1">
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&sd;name')]]">
             <xsl:choose>
                 <!-- values missing, throw an error -->
@@ -2478,7 +2478,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
-    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit">
+    <xsl:template match="form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
         <xsl:for-each select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&dct;source', '&sioc;has_container')]]">
             <xsl:choose>
                 <!-- values missing, throw an error -->
