@@ -2270,8 +2270,8 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="uri" select="$container"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
-                <!-- remove the form -->
-                <xsl:sequence select="ixsl:call($form, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- remove the modal div -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:when test="ixsl:get($response, 'status') = 200">
                 <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
@@ -2371,8 +2371,8 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="uri" select="$container"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
-                <!-- remove the form -->
-                <xsl:sequence select="ixsl:call($form, 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <!-- remove the modal div -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:when test="?status = 200">
                 <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
