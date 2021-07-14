@@ -19,7 +19,7 @@ popd > /dev/null
 
 slug="test"
 
-container=$(./create-container.sh \
+graph=$(./create-container.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
 -b "$END_USER_BASE_URL" \
@@ -44,8 +44,8 @@ rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=arg\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/source\"\n"
 rdf_post+="-F \"ou=${source}\"\n"
-rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
-rdf_post+="-F \"ou=${container}\"\n"
+rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
+rdf_post+="-F \"ou=${graph}\"\n"
 
 forClass=$(urlencode "${END_USER_BASE_URL}ns/domain/system#File")
 
@@ -63,7 +63,7 @@ doc_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
-  "${END_USER_BASE_URL}service?graph=${container}")
+  "${END_USER_BASE_URL}service?graph=${graph}")
 
 popd > /dev/null
 

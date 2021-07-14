@@ -86,6 +86,7 @@ h2.item-logo { background-image: url('../icons/file.svg'); background-position: 
 .nav-tabs .map-mode a { background-image: url('../icons/ic_map_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .graph-mode a { background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .modal { max-height: 80%; overflow-y: scroll; overflow-x: hidden; }
+.modal .dropdown-menu { z-index: 1100; }
 .modal-header { position: sticky; top: 0; background-color: white; z-index: 1060; }
 .modal-header legend { margin-bottom: 0; }
 .close { font-size: 35px; opacity: 0.4; }
