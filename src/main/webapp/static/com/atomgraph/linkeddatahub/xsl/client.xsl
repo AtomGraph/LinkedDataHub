@@ -2258,11 +2258,11 @@ extension-element-prefixes="ixsl"
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="container" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <!-- load container -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:variable name="document" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <!-- load document -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $document, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$container"/>
+                        <xsl:with-param name="uri" select="$document"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
                 <!-- remove the modal div -->
@@ -2359,11 +2359,11 @@ extension-element-prefixes="ixsl"
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="container" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <!-- load container -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:variable name="document" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <!-- load document -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $document, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$container"/>
+                        <xsl:with-param name="uri" select="$document"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
                 <!-- remove the modal div -->
@@ -2497,7 +2497,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="control-groups" select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
         <xsl:choose>
             <!-- values missing, throw an error -->
-            <xsl:when test="not($control-groups/descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value'))">
+            <xsl:when test="$control-groups/descendant::input[@name = ('ol', 'ou')]/ixsl:get(., 'value') = ()">
                 <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
                 <xsl:sequence select="$control-groups/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'error', true() ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
