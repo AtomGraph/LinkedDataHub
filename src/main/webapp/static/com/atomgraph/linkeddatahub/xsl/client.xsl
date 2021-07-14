@@ -1449,14 +1449,6 @@ extension-element-prefixes="ixsl"
                                                         <input id="upload-rdf-filename" type="file" name="ol"/>
                                                     </div>
                                                 </div>
-<!--                                                <div class="control-group required">
-                                                    <input type="hidden" name="pu" value="&sd;name"/>
-                                                    <label class="control-label" for="upload-rdf-graph">Graph URI</label>
-                                                    <div class="controls">
-                                                        <input type="text" id="upload-rdf-graph" name="ou" class="input-xxlarge"/>
-                                                        <span class="help-inline">Resource</span>
-                                                    </div>
-                                                </div>-->
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&sioc;has_container"/>
                                                     <label class="control-label" for="upload-rdf-container">Container</label>
@@ -1466,15 +1458,14 @@ extension-element-prefixes="ixsl"
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
                                                         </span>
 
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}" autocomplete="off"/>
                                                         <div class="btn-group">
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-upload-rdf-container">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Item', $ldt:base)}" id="{generate-id()}-upload-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}"/>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}"/>
                                                                     </button>
                                                                 </li>
                                                             </ul>
@@ -1518,20 +1509,6 @@ extension-element-prefixes="ixsl"
                                                         <span class="help-inline">Resource</span>
                                                     </div>
                                                 </div>
-<!--                                                <div class="control-group required">
-                                                    <input type="hidden" name="pu" value="&sd;name"/>
-                                                    <label class="control-label" for="remote-rdf-graph">Graph URI</label>
-                                                    <div class="controls">
-                                                        <input type="text" id="remote-rdf-graph" name="ou" class="input-xxlarge">
-                                                            <xsl:if test="$graph">
-                                                                <xsl:attribute name="value">
-                                                                    <xsl:value-of select="$graph"/>
-                                                                </xsl:attribute>
-                                                            </xsl:if>
-                                                        </input>
-                                                        <span class="help-inline">Resource</span>
-                                                    </div>
-                                                </div>-->
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&sioc;has_container"/>
                                                     <label class="control-label" for="remote-rdf-container">Container</label>
@@ -1541,15 +1518,14 @@ extension-element-prefixes="ixsl"
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
                                                         </span>
 
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Root', $ldt:base)}" autocomplete="off"/>
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}" autocomplete="off"/>
                                                         <div class="btn-group">
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Item', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
                                                                         <xsl:text>Container</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}"/>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}"/>
                                                                     </button>
                                                                 </li>
                                                             </ul>
