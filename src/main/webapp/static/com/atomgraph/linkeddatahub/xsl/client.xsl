@@ -2261,11 +2261,12 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="ixsl:get($response, 'status') = 200">
+                <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                 <!-- reload resource -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <!-- trim the query string if it's present -->
-                        <xsl:with-param name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action"/>
+                        <xsl:with-param name="uri" select="$uri"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2348,11 +2349,12 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <xsl:when test="?status = 200">
+                <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                 <!-- reload resource -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <!-- trim the query string if it's present -->
-                        <xsl:with-param name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action"/>
+                        <xsl:with-param name="uri" select="$uri"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
