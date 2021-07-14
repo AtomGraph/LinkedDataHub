@@ -19,10 +19,10 @@ package com.atomgraph.linkeddatahub.resource.clone;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.client.LinkedDataClient;
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.vocabulary.SIOC;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -93,12 +93,12 @@ public class Container extends GraphStoreImpl
             Resource source = arg.getPropertyResourceValue(DCTerms.source);
             if (source == null) throw new BadRequestException("RDF source URI (dct:source) not provided");
             
-            Resource container = arg.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-            if (container == null) throw new BadRequestException("Container URI (sioc:has_container) not provided");
+            Resource graph = arg.getPropertyResourceValue(SD.name);
+            if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
 
             LinkedDataClient ldc = LinkedDataClient.create(getSystem().getClient().target(source.getURI()), getMediaTypes());
             
-            return super.post(ldc.get(), false, URI.create(container.getURI()));
+            return super.post(ldc.get(), false, URI.create(graph.getURI()));
         }
         finally
         {

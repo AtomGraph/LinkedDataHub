@@ -17,10 +17,10 @@
 package com.atomgraph.linkeddatahub.resource.add;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.vocabulary.SIOC;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
@@ -76,15 +76,15 @@ public class Container extends com.atomgraph.linkeddatahub.resource.file.Contain
             String fileName = file.getProperty(NFO.fileName).getString();
             FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
 
-            Resource container = file.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-            if (container == null || !container.isURIResource()) throw new BadRequestException("Container URI (sioc:has_container) not provided");
+            Resource graph = file.getPropertyResourceValue(SD.name);
+            if (graph == null || !graph.isURIResource()) throw new BadRequestException("Graph URI (sd:name) not provided");
 
             MediaType mediaType = null;
             if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
             if (mediaType != null) bodyPart.setMediaType(mediaType);
 
             Model partModel = bodyPart.getValueAs(Model.class);
-            return post(partModel, false, URI.create(container.getURI())); // append uploaded triples/quads
+            return post(partModel, false, URI.create(graph.getURI())); // append uploaded triples/quads
         }
         finally
         {
