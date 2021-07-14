@@ -1472,7 +1472,7 @@ extension-element-prefixes="ixsl"
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-constructor">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-upload-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
                                                                         <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}"/>
                                                                     </button>
