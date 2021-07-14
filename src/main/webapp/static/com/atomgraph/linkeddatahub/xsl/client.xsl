@@ -2257,7 +2257,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
-                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()*"/>
+                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="container" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- load container -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
@@ -2358,7 +2358,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
-                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()*"/>
+                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="container" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- load container -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
