@@ -2260,6 +2260,17 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
 
         <xsl:choose>
+            <!-- special case for add/clone data forms: redirect to the container -->
+            <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
+                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()*"/>
+                <xsl:variable name="container" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <!-- load container -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="$container"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
             <xsl:when test="ixsl:get($response, 'status') = 200">
                 <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                 <!-- reload resource -->
@@ -2348,6 +2359,17 @@ extension-element-prefixes="ixsl"
         </xsl:message>
         
         <xsl:choose>
+            <!-- special case for add/clone data forms: redirect to the container -->
+            <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
+                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()*"/>
+                <xsl:variable name="container" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <!-- load container -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="$container"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
             <xsl:when test="?status = 200">
                 <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                 <!-- reload resource -->
