@@ -1459,10 +1459,10 @@ extension-element-prefixes="ixsl"
                                                 </div>-->
                                                 <div class="control-group required">
                                                     <input type="hidden" name="pu" value="&sioc;has_container"/>
-                                                    <label class="control-label" for="remote-rdf-container">Container</label>
+                                                    <label class="control-label" for="upload-rdf-container">Container</label>
                                                     <div class="controls">
                                                         <span>
-                                                            <input type="text" name="ou" id="remote-rdf-container" class="resource-typeahead typeahead"/>
+                                                            <input type="text" name="ou" id="upload-rdf-container" class="resource-typeahead typeahead"/>
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-remote-rdf-container" style="display: none;"></ul>
                                                         </span>
 
