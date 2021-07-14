@@ -2264,7 +2264,8 @@ extension-element-prefixes="ixsl"
                 <!-- reload resource -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$action"/>
+                        <!-- trim the query string if it's present -->
+                        <xsl:with-param name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2350,7 +2351,8 @@ extension-element-prefixes="ixsl"
                 <!-- reload resource -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$action"/>
+                        <!-- trim the query string if it's present -->
+                        <xsl:with-param name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
