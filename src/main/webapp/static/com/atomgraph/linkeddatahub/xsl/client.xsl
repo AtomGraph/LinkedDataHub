@@ -2251,7 +2251,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="." mode="ixsl:onmultipartFormLoad">
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
+        <xsl:variable name="action" select="ixsl:get(ixsl:get($event, 'detail'), 'action')" as="xs:anyURI"/>
+        <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
         <xsl:variable name="target-id" select="$form/input[@class = 'target-id']/@value" as="xs:string?"/>
         <!-- $target-id is of the "Create" button, need to replace the preceding typeahead input instead -->
         <xsl:variable name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>        
@@ -2260,8 +2261,12 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="ixsl:get($response, 'status') = 200">
-                <!-- refresh page to see changes from Edit mode -->
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
+                <!-- reload resource -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="$action"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
             </xsl:when>
             <!-- POST created new resource successfully -->
             <xsl:when test="ixsl:get($response, 'status') = 201 and ixsl:call(ixsl:get($response, 'headers'), 'has', [ 'Location' ])">
@@ -2341,10 +2346,13 @@ extension-element-prefixes="ixsl"
         </xsl:message>
         
         <xsl:choose>
-            <!-- PUT updated graph successfully -->
             <xsl:when test="?status = 200">
-                <!-- refresh page to see changes from Edit mode -->
-                <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'location'), 'reload', [])"/>
+                <!-- reload resource -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="$action"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
             </xsl:when>
             <!-- POST created new resource successfully -->
             <xsl:when test="?status = 201 and ?headers?location">
