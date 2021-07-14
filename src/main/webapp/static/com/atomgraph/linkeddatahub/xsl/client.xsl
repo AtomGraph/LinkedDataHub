@@ -2262,7 +2262,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="ixsl:get($response, 'status') = 200">
                 <!-- reload resource -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$action"/>
                     </xsl:call-template>
@@ -2348,7 +2348,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200">
                 <!-- reload resource -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $action, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$action"/>
                     </xsl:call-template>
