@@ -525,7 +525,6 @@ public class Application extends ResourceConfig
         
             // TO-DO: config property for cacheModelLoads
             dataManager = new DataManagerImpl(locationMapper, new HashMap<>(), client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
-            if (log.isDebugEnabled()) log.debug("FileManager.get(): {}", dataManager);
             
             if (mailUser != null && mailPassword !=  null) // enable SMTP authentication
             {
@@ -623,7 +622,6 @@ public class Application extends ResourceConfig
         this.ontModelSpec.setImportModelGetter(dataManager);
         OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
-        if (log.isDebugEnabled()) log.debug("OntDocumentManager.getInstance().getFileManager(): {} Cache ontologies: {}", OntDocumentManager.getInstance().getFileManager(), cacheSitemap);
         this.ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
     }
     
@@ -645,7 +643,6 @@ public class Application extends ResourceConfig
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
 
-        if (log.isDebugEnabled()) log.debug("Adding XSLT @Providers");
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
 //        register(new DatasetXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes XHTML responses
 
