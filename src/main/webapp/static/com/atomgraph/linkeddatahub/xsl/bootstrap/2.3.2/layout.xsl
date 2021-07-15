@@ -278,6 +278,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
+        <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
         <xsl:param name="load-saxon-js" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="$ldt:base and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
@@ -301,6 +302,15 @@ exclude-result-prefixes="#all">
         </script>
         <xsl:if test="$load-wymeditor">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/jquery.wymeditor.js', $ac:contextUri)}" defer="defer"></script>
+        </xsl:if>
+        <xsl:if test="$load-yasqe">
+            <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
+            <!-- global yasqe object. TO-DO: move under AtomGraph namespace -->
+<!--            <script type="text/javascript">
+                <![CDATA[
+                var yasqe = YASQE.fromTextArea(document.getElementById("query-string"), { persistent: null });
+                ]]>
+            </script>-->
         </xsl:if>
         <xsl:if test="$load-saxon-js">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>

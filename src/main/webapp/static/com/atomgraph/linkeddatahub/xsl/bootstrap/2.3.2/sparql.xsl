@@ -137,14 +137,6 @@ LIMIT 100</xsl:param>
                     <xsl:value-of select="$default-query"/>
                 </textarea>
 
-                <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
-                <!-- global yasqe object. TO-DO: move under AtomGraph namespace -->
-                <script type="text/javascript">
-                    <![CDATA[
-                    var yasqe = YASQE.fromTextArea(document.getElementById("query-string"), { persistent: null });
-                    ]]>
-                </script>
-
                 <div class="form-actions">
                     <!-- retain URL parameters -->
                     <xsl:if test="$ac:uri">

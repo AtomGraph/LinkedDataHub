@@ -2687,11 +2687,18 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:call-template name="bs2:QueryEditor"/>
         </xsl:result-document>
+        
+        <!-- initialize YASQE on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), { persistent: null })"/>
+        </xsl:variable>
+        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:template>
     
     <!-- run SPARQL query in editor -->
