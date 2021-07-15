@@ -263,12 +263,16 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF" mode="xhtml:Style">
         <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
-        
+        <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
+
         <xsl:apply-imports/>
 
         <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/css/bootstrap.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
         <xsl:if test="$load-wymeditor">
             <link href="{resolve-uri('static/com/atomgraph/linkeddatahub/js/wymeditor/skins/default/skin.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
+        </xsl:if>
+        <xsl:if test="$load-yasqe">
+            <link href="{resolve-uri('static/css/yasqe.css', $ac:contextUri)}" rel="stylesheet" type="text/css"/>
         </xsl:if>
     </xsl:template>
 
