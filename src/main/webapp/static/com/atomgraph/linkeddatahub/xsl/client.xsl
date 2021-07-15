@@ -2696,7 +2696,7 @@ extension-element-prefixes="ixsl"
         
         <!-- initialize YASQE on the textarea -->
         <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), { persistent: null })"/>
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:template>
