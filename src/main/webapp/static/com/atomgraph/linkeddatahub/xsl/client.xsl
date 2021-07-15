@@ -2688,6 +2688,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
 
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:call-template name="bs2:QueryEditor"/>
         </xsl:result-document>
