@@ -85,7 +85,7 @@ exclude-result-prefixes="#all">
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
   
-    <xsl:include href="sparql.xsl"/>
+<!--    <xsl:include href="sparql.xsl"/>--> <!-- SPARQL-editor is now fully client-side -->
     <xsl:include href="signup.xsl"/>
     <xsl:include href="request-access.xsl"/>
 
@@ -517,7 +517,7 @@ exclude-result-prefixes="#all">
                         <xsl:attribute name="class" select="'active'"/>
                     </xsl:if>
 
-                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}">SPARQL editor</a>
+                    <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">SPARQL editor</a>
                 </li>
                 <li>
                     <div class="btn-group">

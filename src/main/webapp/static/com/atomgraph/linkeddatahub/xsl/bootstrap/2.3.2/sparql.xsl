@@ -71,26 +71,30 @@ LIMIT 100</xsl:param>
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not(key('resources-by-type', '&http;Response'))][$ac:mode = '&ac;QueryEditorMode']" mode="bs2:Main" priority="2" use-when="system-property('xsl:product-name') = 'SAXON'">
-        <xsl:param name="id" select="'main-content'" as="xs:string?"/>
+    <xsl:template name="bs2:QueryEditor" >
+        <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
         
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
+        <div class="row-fluid">
+            <div class="left-nav span2"></div>
 
-            <legend>SPARQL editor</legend>
+            <div>
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                </xsl:if>
 
-            <xsl:call-template name="bs2:QueryForm">
-                <xsl:with-param name="uri" select="$ac:uri"/>
-                <xsl:with-param name="mode" select="$ac:mode"/>
-                <xsl:with-param name="query" select="$ac:query"/>
-                <xsl:with-param name="default-query" select="$default-query"/>
-            </xsl:call-template>
+                <legend>SPARQL editor</legend>
+
+                <xsl:call-template name="bs2:QueryForm">
+                    <xsl:with-param name="uri" select="$ac:uri"/>
+                    <xsl:with-param name="mode" select="$ac:mode"/>
+                    <xsl:with-param name="query" select="$ac:query"/>
+                    <xsl:with-param name="default-query" select="$default-query"/>
+                </xsl:call-template>
+            </div>
         </div>
     </xsl:template>
 

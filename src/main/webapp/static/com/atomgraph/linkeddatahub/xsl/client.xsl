@@ -2682,7 +2682,17 @@ extension-element-prefixes="ixsl"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-        
+    
+    <!-- open SPARQL editor -->
+    
+    <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
+        <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
+
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <xsl:call-template name="bs2:QueryEditor"/>
+        </xsl:result-document>
+    </xsl:template>
+    
     <!-- run SPARQL query in editor -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-run-query']" mode="ixsl:onclick">
