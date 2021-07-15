@@ -92,7 +92,7 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = 'resolve-uri('ns/domain/default#Container', $ldt:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/default#Container', $ldt:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
