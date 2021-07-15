@@ -104,7 +104,7 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/system#Service', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = (resolve-uri('ns/domain/system#DydraService', $ldt:base), resolve-uri('ns/domain/system#GenericService', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
