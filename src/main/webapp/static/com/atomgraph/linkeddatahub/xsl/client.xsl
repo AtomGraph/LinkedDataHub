@@ -424,17 +424,17 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:description">
         <xsl:choose>
+            <xsl:when test="rdfs:comment[lang($ac:lang)]">
+                <xsl:sequence select="rdfs:comment/text()"/>
+            </xsl:when>
+            <xsl:when test="dct:description[lang($ac:lang)]">
+                <xsl:sequence select="dct:description/text()"/>
+            </xsl:when>
             <xsl:when test="rdfs:comment">
-                <xsl:value-of select="rdfs:comment"/>
+                <xsl:sequence select="rdfs:comment/text()"/>
             </xsl:when>
             <xsl:when test="dct:description">
-                <xsl:value-of select="dct:description"/>
-            </xsl:when>
-            <xsl:when test="rdfs:comment">
-                <xsl:value-of select="rdfs:comment"/>
-            </xsl:when>
-            <xsl:when test="dct:description">
-                <xsl:value-of select="dct:description"/>
+                <xsl:sequence select="dct:description/text()"/>
             </xsl:when>
         </xsl:choose>
     </xsl:template>
