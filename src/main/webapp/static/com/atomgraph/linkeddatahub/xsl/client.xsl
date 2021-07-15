@@ -2609,7 +2609,7 @@ extension-element-prefixes="ixsl"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml;q=0.9' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onDocumentLoad">
                 <xsl:with-param name="uri" select="$resource-uri"/>
             </xsl:call-template>
