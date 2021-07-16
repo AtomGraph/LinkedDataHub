@@ -1078,17 +1078,8 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="category" as="xs:string?"/>
             <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
 
-            <xsl:variable name="data-table">
-                <xsl:choose>
-                    <xsl:when test="$results/rdf:RDF">
-                        <xsl:sequence select="ac:rdf-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                    <xsl:when test="$results/srx:sparql">
-                        <xsl:sequence select="ac:sparql-results-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:variable>
-            
+            <ixsl:set-property name="data-table" select="ac:rdf-data-table($results, $category, $series)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$canvas-id"/>
@@ -1860,7 +1851,6 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
-<!--        <xsl:param name="content-uri" as="xs:anyURI"/>-->
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -2758,7 +2748,8 @@ extension-element-prefixes="ixsl"
                     </xsl:when>
                 </xsl:choose>
             </xsl:variable>
-            
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2797,7 +2788,8 @@ extension-element-prefixes="ixsl"
                     </xsl:when>
                 </xsl:choose>
             </xsl:variable>
-            
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2819,7 +2811,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:param>
-        <!--<xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>-->
+        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
@@ -2834,7 +2826,8 @@ extension-element-prefixes="ixsl"
                     </xsl:when>
                 </xsl:choose>
             </xsl:variable>
-            
+            <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
             <xsl:call-template name="render-chart">
                 <xsl:with-param name="data-table" select="$data-table"/>
                 <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
