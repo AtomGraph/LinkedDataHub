@@ -1885,16 +1885,7 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:result-document>
 
-                    <xsl:variable name="data-table">
-                        <xsl:choose>
-                            <xsl:when test="$results/rdf:RDF">
-                                <xsl:sequence select="ac:rdf-data-table($results, $category, $series)"/>
-                            </xsl:when>
-                            <xsl:when test="$results/srx:sparql">
-                                <xsl:sequence select="ac:sparql-results-data-table($results, $category, $series)"/>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:variable>
+                    <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="data-table" select="$data-table"/>
@@ -2739,16 +2730,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
         
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <xsl:variable name="data-table">
-                <xsl:choose>
-                    <xsl:when test="$results/rdf:RDF">
-                        <xsl:sequence select="ac:rdf-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                    <xsl:when test="$results/srx:sparql">
-                        <xsl:sequence select="ac:sparql-results-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:variable>
+            <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
             <xsl:call-template name="render-chart">
@@ -2779,16 +2761,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <xsl:variable name="data-table">
-                <xsl:choose>
-                    <xsl:when test="$results/rdf:RDF">
-                        <xsl:sequence select="ac:rdf-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                    <xsl:when test="$results/srx:sparql">
-                        <xsl:sequence select="ac:sparql-results-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:variable>
+            <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
             <xsl:call-template name="render-chart">
@@ -2817,16 +2790,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
-            <xsl:variable name="data-table">
-                <xsl:choose>
-                    <xsl:when test="$results/rdf:RDF">
-                        <xsl:sequence select="ac:rdf-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                    <xsl:when test="$results/srx:sparql">
-                        <xsl:sequence select="ac:sparql-results-data-table($results, $category, $series)"/>
-                    </xsl:when>
-                </xsl:choose>
-            </xsl:variable>
+            <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
             <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
             <xsl:call-template name="render-chart">
