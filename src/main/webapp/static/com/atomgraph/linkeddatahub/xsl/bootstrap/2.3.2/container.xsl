@@ -134,7 +134,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="existing-items" select="id($container-id, ixsl:page())/li" as="element()*"/>
         <xsl:variable name="new-item" as="element()">
             <li>
-                <a>
+                <a title="{$predicate}">
                     <input name="ou" type="hidden" value="{$predicate}"/>
                     <xsl:variable name="resource" select="if ($results) then key('resources', $predicate, $results) else ()" as="element()?"/>
                     
