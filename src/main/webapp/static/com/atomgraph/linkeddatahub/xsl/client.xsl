@@ -2685,7 +2685,9 @@ extension-element-prefixes="ixsl"
     
     <!-- run SPARQL query in editor -->
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-run-query']" mode="ixsl:onclick">
+    <!-- TO-DO: change to 'query-form' @class? -->
+    <xsl:template match="form[@id = 'query-form']" mode="ixsl:onsubmit"> <!-- button[tokenize(@class, ' ') = 'btn-run-query'] -->
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="ancestor::form//textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
