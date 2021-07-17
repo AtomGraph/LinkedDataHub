@@ -53,26 +53,14 @@ extension-element-prefixes="ixsl"
     <xsl:param name="acl:Agent" as="document-node()?"/>
 
     <!-- LOGO -->
-    
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Container']" mode="apl:logo" priority="1">
+
+    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template use-when="system-property('xsl:product-name') = 'SAXON'" match="*[rdf:type/@rdf:resource][(rdf:type/@rdf:resource, rdf:type/@rdf:resource/apl:listSuperClasses(.)) = '&dh;Item']" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
-    </xsl:template>
-
-    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base))]" mode="apl:logo" priority="1">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
-    </xsl:template>
-
-    <xsl:template use-when="system-property('xsl:product-name') eq 'Saxon-JS'" match="*[rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Item', $ldt:base))]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Item', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
@@ -92,61 +80,61 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/default#Container', $ldt:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/default#Container', $ldt:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/default#Item', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/default#Item', $ldt:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = (resolve-uri('ns/domain/system#DydraService', $ldt:base), resolve-uri('ns/domain/system#GenericService', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = (resolve-uri('ns/domain/system#DydraService', $ldt:base), resolve-uri('ns/domain/system#GenericService', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/system#Construct', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/system#Construct', $ldt:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-construct')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/system#Describe', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/system#Describe', $ldt:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-describe')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/system#Select', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/system#Select', $ldt:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-select')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/system#Ask', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/system#Ask', $ldt:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-ask')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = resolve-uri('ns/domain/system#File', $ldt:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/system#File', $ldt:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-file')"/>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = (resolve-uri('ns/domain/system#CSVImport', $ldt:base), resolve-uri('ns/domain/system#RDFImport', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = (resolve-uri('ns/domain/system#CSVImport', $ldt:base), resolve-uri('ns/domain/system#RDFImport', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-import')"/>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about = (resolve-uri('ns/domain/system#ResultSetChart', $ldt:base), resolve-uri('ns/domain/system#GraphChart', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = (resolve-uri('ns/domain/system#ResultSetChart', $ldt:base), resolve-uri('ns/domain/system#GraphChart', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-chart')"/>
