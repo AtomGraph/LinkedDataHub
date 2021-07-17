@@ -341,11 +341,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="height" as="xs:string?"/>
 
         <xsl:variable name="chart-classes" as="map(xs:string, xs:string)">
-            <xsl:map-entry key="'&ac;Table'" select="'google.visualization.Table'"/>
-            <xsl:map-entry key="'&ac;LineChart'" select="'google.visualization.LineChart'"/>
-            <xsl:map-entry key="'&ac;BarChart'" select="'google.visualization.BarChart'"/>
-            <xsl:map-entry key="'&ac;ScatterChart'" select="'google.visualization.ScatterChart'"/>
-            <xsl:map-entry key="'&ac;Timeline'" select="'google.visualization.Timeline'"/>
+            <xsl:map>
+                <xsl:map-entry key="'&ac;Table'" select="'google.visualization.Table'"/>
+                <xsl:map-entry key="'&ac;LineChart'" select="'google.visualization.LineChart'"/>
+                <xsl:map-entry key="'&ac;BarChart'" select="'google.visualization.BarChart'"/>
+                <xsl:map-entry key="'&ac;ScatterChart'" select="'google.visualization.ScatterChart'"/>
+                <xsl:map-entry key="'&ac;Timeline'" select="'google.visualization.Timeline'"/>
+            </xsl:map>
         </xsl:variable>
         <xsl:variable name="chart-class" select="map:get($chart-classes, $chart-type)" as="xs:string?"/>
         <xsl:if test="not($chart-class)">
