@@ -370,7 +370,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:when test="$chart-type = '&ac;BarChart'">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="({{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }}"/>
+                    <root statement="{{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }}"/>
                 </xsl:variable>
                 <xsl:variable name="args" select="ixsl:eval(string($js-statement/@statement))"/>
                 <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $args ])[current-date() lt xs:date('2000-01-01')]"/>
