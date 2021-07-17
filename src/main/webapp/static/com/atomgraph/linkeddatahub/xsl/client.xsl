@@ -340,20 +340,19 @@ extension-element-prefixes="ixsl"
         <xsl:param name="width" as="xs:string?"/>
         <xsl:param name="height" as="xs:string?"/>
 
-        <xsl:variable name="chart-class" as="xs:string?">
-            <xsl:choose>
-                <xsl:when test="$chart-type = '&ac;Table'">google.visualization.Table</xsl:when>
-                <xsl:when test="$chart-type = '&ac;LineChart'">google.visualization.LineChart</xsl:when>
-                <xsl:when test="$chart-type = '&ac;BarChart'">google.visualization.BarChart</xsl:when>
-                <xsl:when test="$chart-type = '&ac;ScatterChart'">google.visualization.ScatterChart</xsl:when>
-                <xsl:when test="$chart-type = '&ac;Timeline'">google.visualization.Timeline</xsl:when>
-                <xsl:otherwise>
-                    <xsl:message terminate="yes">
-                        Chart type '<xsl:value-of select="$chart-type"/>' unknown
-                    </xsl:message>
-                </xsl:otherwise>
-            </xsl:choose>
+        <xsl:variable name="chart-classes" as="map(xs:string, xs:string)">
+            <xsl:map-entry key="'&ac;Table'" select="'google.visualization.Table'"/>
+            <xsl:map-entry key="'&ac;LineChart'" select="'google.visualization.LineChart'"/>
+            <xsl:map-entry key="'&ac;BarChart'" select="'google.visualization.BarChart'"/>
+            <xsl:map-entry key="'&ac;ScatterChart'" select="'google.visualization.ScatterChart'"/>
+            <xsl:map-entry key="'&ac;Timeline'" select="'google.visualization.Timeline'"/>
         </xsl:variable>
+        <xsl:variable name="chart-class" select="map:get($chart-classes, $chart-type)" as="xs:string?"/>
+        <xsl:if test="not($chart-class)">
+            <xsl:message terminate="yes">
+                Chart type '<xsl:value-of select="$chart-type"/>' unknown
+            </xsl:message>
+        </xsl:if>
         
         <xsl:variable name="js-statement" as="element()">
             <root statement="(new {$chart-class}(document.getElementById('{$canvas-id}')))"/>
