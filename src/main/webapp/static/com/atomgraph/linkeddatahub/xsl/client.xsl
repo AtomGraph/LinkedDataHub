@@ -2736,9 +2736,9 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:param>
         <xsl:param name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value | encode-for-uri(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), id('query-form', ixsl:page())/descendant::textarea[@name = 'query']/ixsl:get(., 'id')), 'getValue', []))[1], '.', '-'))" as="xs:anyURI"/>
-        <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
-        
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
+        <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
+
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
                 
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
