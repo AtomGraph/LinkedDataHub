@@ -195,13 +195,13 @@ extension-element-prefixes="ixsl"
             </ixsl:schedule-action>
         </xsl:for-each>
         <!--  append Save form to Query form -->
-        <xsl:for-each select="id('query-form', ixsl:page())/..">
+<!--        <xsl:for-each select="id('query-form', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
                 <xsl:call-template name="bs2:SaveQueryForm">
-                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/>  get query string from YASQE 
                 </xsl:call-template>
             </xsl:result-document>
-        </xsl:for-each>
+        </xsl:for-each>-->
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -1852,6 +1852,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -1887,7 +1888,8 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
 
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
-                    
+                    <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+            
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="data-table" select="$data-table"/>
                         <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2707,9 +2709,11 @@ extension-element-prefixes="ixsl"
         
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
-
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+        
+        <ixsl:schedule-action http-request="$request">
             <xsl:call-template name="onSPARQLResultsLoad">
+                <xsl:with-param name="content-uri" select="xs:anyURI(translate($request?href, '.', '-'))"/>
                 <xsl:with-param name="container-id" select="$container-id"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -2728,9 +2732,11 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
-        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value | encode-for-uri(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), id('query-form', ixsl:page())/descendant::textarea[@name = 'query']/ixsl:get(., 'id')), 'getValue', []))[0], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
+        
+        <xsl:message>$content-uri: <xsl:value-of select="$content-uri"/></xsl:message>
         
         <xsl:if test="$chart-type and ($category or $results/rdf:RDF) and exists($series)">
             <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
@@ -2759,7 +2765,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
-        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
@@ -2788,7 +2794,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:param>
-        <xsl:param name="content-uri" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
