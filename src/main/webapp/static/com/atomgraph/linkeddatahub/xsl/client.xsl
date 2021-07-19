@@ -838,7 +838,6 @@ extension-element-prefixes="ixsl"
                     </xsl:variable>
                     <ixsl:set-property name="results" select="$grouped-results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
-<!--                    <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:window(), 'LinkedDataHub.focus-var-name')" as="xs:string"/>-->
                     <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
                     <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
                     <xsl:variable name="order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[1]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
@@ -1868,15 +1867,6 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
                 <xsl:for-each select="?body">
-                    <!-- update progress bar, if it's present -->
-<!--                    <xsl:if test="id('progress-bar', ixsl:page())">
-                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 80%;"></div>
-                            </div>
-                        </xsl:result-document>
-                    </xsl:if>-->
-
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
@@ -2718,10 +2708,17 @@ extension-element-prefixes="ixsl"
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
-        
+        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:variable name="query-uri" select="resolve-uri('queries/' || $uuid || '/#this', $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
+
+        <xsl:result-document href="?." method="ixsl:append-content">
+            <input name="href" type="hidden" value="{$query-uri}"/>
+        </xsl:result-document>
+
         <ixsl:schedule-action http-request="$request">
             <xsl:call-template name="onSPARQLResultsLoad">
-                <xsl:with-param name="content-uri" select="xs:anyURI(translate($request?href, '.', '-'))"/>
+                <xsl:with-param name="content-uri" select="$content-uri"/>
                 <xsl:with-param name="container-id" select="$container-id"/>
             </xsl:call-template>
         </ixsl:schedule-action>
@@ -2740,12 +2737,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
-        <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-        <xsl:param name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
-        <xsl:param name="query-string" select="if (id('query-form', ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), id('query-form', ixsl:page())/descendant::textarea[@name = 'query']/ixsl:get(., 'id')), 'getValue', []) else ()" as="xs:string?"/>
-        <xsl:param name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, $results-uri)[1], '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
 
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -2777,12 +2769,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
-        <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-        <xsl:param name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
-        <xsl:param name="query-string" select="if (id('query-form', ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), id('query-form', ixsl:page())/descendant::textarea[@name = 'query']/ixsl:get(., 'id')), 'getValue', []) else ()" as="xs:string?"/>
-        <xsl:param name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, $results-uri)[1], '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
@@ -2811,12 +2798,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:param>
-        <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-        <xsl:param name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
-        <xsl:param name="query-string" select="if (id('query-form', ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), id('query-form', ixsl:page())/descendant::textarea[@name = 'query']/ixsl:get(., 'id')), 'getValue', []) else ()" as="xs:string?"/>
-        <xsl:param name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI?"/>
-        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, $results-uri)[1], '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
