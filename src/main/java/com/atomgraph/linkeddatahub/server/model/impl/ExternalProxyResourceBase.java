@@ -25,8 +25,8 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -84,29 +84,29 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     /**
      * Forwards GET request and returns response from remote resource.
      * 
+     * @param target target URI
      * @return response
      */
-    @GET
     @Override
-    public Response get()
+    public Response get(WebTarget target)
     {
         // check if we have the model in the cache first and if yes, return it from there instead making an HTTP request
-        if (((FileManager)getDataManager()).hasCachedModel(getURI().toString()) ||
-                (getDataManager().isResolvingMapped() && getDataManager().isMapped(getURI().toString()))) // read mapped URIs (such as system ontologies) from a file
+        if (((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()) ||
+                (getDataManager().isResolvingMapped() && getDataManager().isMapped(target.getUri().toString()))) // read mapped URIs (such as system ontologies) from a file
         {
-            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", getURI(), ((FileManager)getDataManager()).hasCachedModel(getURI().toString()));
-            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", getURI(), getDataManager().isMapped(getURI().toString()));
-            return getResponse(getDataManager().loadModel(getURI().toString()));
+            if (log.isDebugEnabled()) log.debug("hasCachedModel({}): {}", target.getUri(), ((FileManager)getDataManager()).hasCachedModel(target.getUri().toString()));
+            if (log.isDebugEnabled()) log.debug("isMapped({}): {}", target.getUri(), getDataManager().isMapped(target.getUri().toString()));
+            return getResponse(getDataManager().loadModel(target.getUri().toString()));
         }
         
         // do not return the whole document if only a single resource (fragment) is requested
         if (getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()) && 
                 getUriInfo().getQueryParameters().getFirst(AC.mode.getLocalName()).equals("fragment")) // used in client.xsl
         {
-            try (Response cr = getClientResponse())
+            try (Response cr = target.request(getReadableMediaTypes()).get())
             {
                 Model description = cr.readEntity(Model.class);
-                description = ModelFactory.createDefaultModel().add(description.getResource(getURI().toString()).listProperties());
+                description = ModelFactory.createDefaultModel().add(description.getResource(target.getUri().toString()).listProperties());
                 return getResponse(description);
             }
         }

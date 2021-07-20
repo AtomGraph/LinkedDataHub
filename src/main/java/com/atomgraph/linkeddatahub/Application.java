@@ -67,7 +67,7 @@ import com.atomgraph.linkeddatahub.model.File;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
-import com.atomgraph.linkeddatahub.client.factory.xslt.XsltResolver;
+import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;

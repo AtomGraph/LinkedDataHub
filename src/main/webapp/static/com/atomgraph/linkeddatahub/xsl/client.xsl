@@ -237,7 +237,7 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
-
+    
     <xsl:function name="ac:build-describe" as="xs:string">
         <xsl:param name="select-string" as="xs:string"/> <!-- already with ?this value set -->
         <xsl:param name="limit" as="xs:integer?"/>
@@ -1997,6 +1997,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
@@ -2026,8 +2027,10 @@ extension-element-prefixes="ixsl"
                         <xsl:copy-of select="id($container-id, $results)/*"/>
                     </xsl:result-document>
                     
-                    <!-- scroll to the top of the window -->
-                    <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [0, 0])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- scroll fragment-identified element into view -->
+                    <xsl:if test="id($fragment)">
+                        <xsl:sequence select="ixsl:call(id($fragment), 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:if>
 
                     <!-- update RDF download links to match the current URI -->
                     <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
@@ -2151,7 +2154,8 @@ extension-element-prefixes="ixsl"
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onDocumentLoad">
-                <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -2169,7 +2173,8 @@ extension-element-prefixes="ixsl"
 
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
-                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:if>
@@ -2240,23 +2245,25 @@ extension-element-prefixes="ixsl"
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="document" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- load document -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $document, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$document"/>
+                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:when test="ixsl:get($response, 'status') = 200">
+                <!-- trim the query string if it's present -->
                 <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                 <!-- reload resource -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <!-- trim the query string if it's present -->
-                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2269,7 +2276,8 @@ extension-element-prefixes="ixsl"
                     <xsl:when test="not($typeahead-span)">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="$created-uri"/>
+                                <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:when>
@@ -2341,23 +2349,25 @@ extension-element-prefixes="ixsl"
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="document" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 <!-- load document -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $document, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$document"/>
+                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:when test="?status = 200">
+                <!-- trim the query string if it's present -->
                 <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                 <!-- reload resource -->
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <!-- trim the query string if it's present -->
-                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2389,7 +2399,8 @@ extension-element-prefixes="ixsl"
                     <xsl:when test="not($typeahead-span)">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="$created-uri"/>
+                                <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:when>
@@ -2554,7 +2565,8 @@ extension-element-prefixes="ixsl"
 
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="$resource-uri"/>
+                            <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:if>
@@ -2599,7 +2611,8 @@ extension-element-prefixes="ixsl"
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onDocumentLoad">
-                <xsl:with-param name="uri" select="$resource-uri"/>
+                <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -2737,6 +2750,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
+        <!-- $content-uri value comes either from 'resource-content' input or from an input in the 'query-form' -->
         <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
 
@@ -2769,6 +2783,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:param>
+        <!-- $content-uri value comes either from 'resource-content' input or from an input in the 'query-form' -->
         <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -2798,6 +2813,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
             </xsl:for-each>
         </xsl:param>
+        <!-- $content-uri value comes either from 'resource-content' input or from an input in the 'query-form' -->
         <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
