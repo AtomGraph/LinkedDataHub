@@ -100,7 +100,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.AuthHeaderFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ProvenanceFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
@@ -760,7 +760,7 @@ public class Application extends ResourceConfig
 
     protected void registerContainerResponseFilters()
     {
-        register(new AuthHeaderFilter());
+        register(new ResponseHeaderFilter());
         if (isInvalidateCache()) register(new BackendInvalidationFilter());
         register(new ProvenanceFilter());
     }

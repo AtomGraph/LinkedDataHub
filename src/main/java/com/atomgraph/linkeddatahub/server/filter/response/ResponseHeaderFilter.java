@@ -16,12 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.response;
 
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.util.Link;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
+import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
@@ -38,10 +43,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class AuthHeaderFilter implements ContainerResponseFilter
+public class ResponseHeaderFilter implements ContainerResponseFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthHeaderFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(ResponseHeaderFilter.class);
+
+    @Inject javax.inject.Provider<Optional<Application>> app;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
@@ -61,6 +68,14 @@ public class AuthHeaderFilter implements ContainerResponseFilter
                 if (log.isWarnEnabled()) log.warn("Authorization is null, cannot write response header. Is {} registered?", AuthorizationFilter.class);
         }
         
+        if (getApplication().isPresent())
+        {
+            // add Link rel=ldt:base
+            response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
+            // add Link rel=ac:stylesheet, if the stylesheet URI is specified
+            if (getApplication().get().getStylesheet() != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+        }
     }
 
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
@@ -80,6 +95,11 @@ public class AuthHeaderFilter implements ContainerResponseFilter
         }
 
         return null;
+    }
+    
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    {
+        return app.get();
     }
     
 }
