@@ -213,6 +213,15 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:template>
     
+    <!-- ANCHOR -->
+    
+    <!-- subject resource -->
+    <xsl:template match="*[@rdf:about]" mode="xhtml:Anchor">
+        <xsl:next-match>
+            <xsl:with-param name="id" select="encode-for-uri(@rdf:about)"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- DEFAULT -->
 
     <!-- resources with URIs not relative to app base -->

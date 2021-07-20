@@ -111,7 +111,7 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
             }
         }
 
-        return super.get();
+        return super.get(target);
     }
     
     public UriInfo getUriInfo()
