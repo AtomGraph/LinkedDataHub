@@ -1745,7 +1745,9 @@ extension-element-prefixes="ixsl"
         <li>
             <xsl:apply-templates select="." mode="apl:logo"/>
 
-            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+            <xsl:apply-templates select="." mode="xhtml:Anchor">
+                <xsl:with-param name="id" select="()"/>
+            </xsl:apply-templates>
 
             <xsl:if test="not($leaf)">
                 <span class="divider">/</span>

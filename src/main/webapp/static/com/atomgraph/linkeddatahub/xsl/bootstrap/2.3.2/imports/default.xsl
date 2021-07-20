@@ -217,8 +217,16 @@ exclude-result-prefixes="#all"
     
     <!-- subject resource -->
     <xsl:template match="*[@rdf:about]" mode="xhtml:Anchor">
+        <xsl:param name="href" select="@rdf:about" as="xs:anyURI"/>
+        <xsl:param name="id" select="encode-for-uri(@rdf:about)" as="xs:string?"/>
+        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
+        <xsl:param name="class" as="xs:string?"/>
+        
         <xsl:next-match>
-            <xsl:with-param name="id" select="encode-for-uri(@rdf:about)"/>
+            <xsl:with-param name="href" select="$href"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="title" select="$title"/>
+            <xsl:with-param name="class" select="$class"/>
         </xsl:next-match>
     </xsl:template>
     
