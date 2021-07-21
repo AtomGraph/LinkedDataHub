@@ -24,8 +24,10 @@ import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import java.util.UUID;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
@@ -40,6 +42,7 @@ import org.apache.jena.vocabulary.RDF;
  * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
+@Priority(Priorities.USER + 100)
 public class ProvenanceFilter implements ContainerResponseFilter
 {
     

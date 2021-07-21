@@ -26,7 +26,9 @@ import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
+import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
@@ -43,6 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
+@Priority(Priorities.USER + 300)
 public class ResponseHeaderFilter implements ContainerResponseFilter
 {
 
@@ -68,10 +71,12 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
                 if (log.isWarnEnabled()) log.warn("Authorization is null, cannot write response header. Is {} registered?", AuthorizationFilter.class);
         }
         
-        if (getApplication().isPresent())
+        if (getApplication().isPresent()) // if it's not present, Link headers might be forwarded by ProxyResourceBase
         {
             // add Link rel=ldt:base
             response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
+            // add Link rel=ldt:ontology
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getOntology().getURI()), LDT.ontology.getURI(), null));
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (getApplication().get().getStylesheet() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getStylesheet().getURI()), AC.stylesheet.getURI(), null));

@@ -21,8 +21,10 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
@@ -37,6 +39,7 @@ import org.glassfish.jersey.uri.UriComponent;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Priority(Priorities.USER + 400)
 public class BackendInvalidationFilter implements ContainerResponseFilter
 {
 

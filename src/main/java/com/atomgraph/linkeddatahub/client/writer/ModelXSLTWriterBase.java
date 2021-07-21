@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.client.writer;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
 import static com.atomgraph.client.writer.ModelXSLTWriterBase.getSource;
-import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -41,7 +40,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -288,27 +286,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public Set<String> getSupportedNamespaces()
     {
         return NAMESPACES;
-    }
-    
-    public Link getLink(MultivaluedMap<String, Object> headerMap, String headerName, String rel) throws URISyntaxException
-    {
-        if (headerMap == null) throw new IllegalArgumentException("Header Map cannot be null");
-        if (headerName == null) throw new IllegalArgumentException("String header name cannot be null");
-        if (rel == null) throw new IllegalArgumentException("Property Map cannot be null");
-        
-        List<Object> links = headerMap.get(headerName);
-        if (links != null)
-        {
-            Iterator<Object> it = links.iterator();
-            while (it.hasNext())
-            {
-                String linkHeader = it.next().toString();
-                Link link = Link.valueOf(linkHeader);
-                if (link.getRel().equals(rel)) return link;
-            }
-        }
-        
-        return null;
     }
 
 }

@@ -103,6 +103,7 @@ import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ProvenanceFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
@@ -257,7 +258,7 @@ public class Application extends ResourceConfig
     private final URI secretaryWebIDURI;
     private final ExpiringMap<URI, Model> webIDmodelCache = ExpiringMap.builder().expiration(1, TimeUnit.DAYS).build(); // TO-DO: config for the expiration period?
     private final ExpiringMap<String, Model> oidcModelCache = ExpiringMap.builder().variableExpiration().build();
-    private final Map<String, XsltExecutable> xsltExecutableCache = new HashMap<>();
+    private final Map<URI, XsltExecutable> xsltExecutableCache = new HashMap<>();
     
     private Dataset contextDataset;
     
@@ -761,6 +762,7 @@ public class Application extends ResourceConfig
     protected void registerContainerResponseFilters()
     {
         register(new ResponseHeaderFilter());
+        register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new BackendInvalidationFilter());
         register(new ProvenanceFilter());
     }
@@ -1263,7 +1265,7 @@ public class Application extends ResourceConfig
         return oidcModelCache;
     }
     
-    public Map<String, XsltExecutable> getXsltExecutableCache()
+    public Map<URI, XsltExecutable> getXsltExecutableCache()
     {
         return xsltExecutableCache;
     }
