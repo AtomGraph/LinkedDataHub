@@ -97,7 +97,6 @@ exclude-result-prefixes="#all">
     <xsl:param name="a:graphStore" select="if ($ldt:base) then resolve-uri('service', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
-    <xsl:param name="ldt:template" as="xs:anyURI?"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:requestUri" as="xs:anyURI?"/>
