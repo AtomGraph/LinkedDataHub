@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 300)
+@Priority(Priorities.USER + 200)
 public class ResponseHeaderFilter implements ContainerResponseFilter
 {
 

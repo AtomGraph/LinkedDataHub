@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Priority(Priorities.USER + 200)
+@Priority(Priorities.USER + 300)
 public class XsltExecutableFilter implements ContainerResponseFilter
 {
 
