@@ -5,6 +5,8 @@ initialize_dataset "$ADMIN_BASE_URL" "$TMP_ADMIN_DATASET" "$ADMIN_ENDPOINT_URL"
 purge_backend_cache "$END_USER_VARNISH_SERVICE"
 purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
+pwd=$(realpath -s "$PWD")
+
 pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/acl"
 
 # add agent to the writers
@@ -38,7 +40,7 @@ urlencode()
     python2 -c "import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1], safe='')" "$1"
 }
 
-file="timbl.ttl"
+file="${pwd}/timbl.ttl"
 file_content_type="text/turtle"
 
 echo "Importing file: $file"
