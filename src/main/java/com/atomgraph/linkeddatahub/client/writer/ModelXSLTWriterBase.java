@@ -203,29 +203,29 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         }
     }
     
-    @Override
-    public URI getBaseUri()
-    {
-        if (getApplication().get().isPresent()) return getApplication().get().get().getBaseURI();
-        
-        return null;
-    }
-    
-    @Override
-    public URI getOntologyURI()
-    {
-        if (getOntology().get().isPresent()) return URI.create(getOntology().get().get().getURI());
-        
-        return null;
-    }
-    
-    @Override
-    public URI getTemplateURI()
-    {
-        if (getTemplateCall().get().isPresent()) return URI.create(getTemplateCall().get().get().getTemplate().getURI());
-        
-        return null;
-    }
+//    @Override
+//    public URI getBaseUri()
+//    {
+//        if (getApplication().get().isPresent()) return getApplication().get().get().getBaseURI();
+//        
+//        return null;
+//    }
+//    
+//    @Override
+//    public URI getOntologyURI()
+//    {
+//        if (getOntology().get().isPresent()) return URI.create(getOntology().get().get().getURI());
+//        
+//        return null;
+//    }
+//    
+//    @Override
+//    public URI getTemplateURI()
+//    {
+//        if (getTemplateCall().get().isPresent()) return URI.create(getTemplateCall().get().get().getTemplate().getURI());
+//        
+//        return null;
+//    }
     
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
