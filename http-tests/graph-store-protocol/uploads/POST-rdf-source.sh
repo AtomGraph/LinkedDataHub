@@ -31,18 +31,11 @@ graph=$(./create-container.sh \
 --slug "$slug" \
 --parent "$END_USER_BASE_URL")
 
-# upload RDF file
+# import RDF from source URI
 
-urlencode()
-{
-    python2 -c "import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1], safe='')" "$1"
-}
-
-file="timbl.ttl"
-file_content_type="text/turtle"
 source="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
 
-echo "Importing file: $file"
+echo "Importing RDF from source: $source"
 
 rdf_post+="-F \"rdf=\"\n"
 rdf_post+="-F \"sb=arg\"\n"
@@ -50,8 +43,6 @@ rdf_post+="-F \"pu=http://purl.org/dc/terms/source\"\n"
 rdf_post+="-F \"ou=${source}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
 rdf_post+="-F \"ou=${graph}\"\n"
-
-forClass=$(urlencode "${END_USER_BASE_URL}ns/domain/system#File")
 
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" \
