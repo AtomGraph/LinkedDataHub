@@ -73,7 +73,8 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
         // we only need the XSLT stylesheet if the response has (X)HTML media type
-        if (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE))
+        if (resp.getMediaType() != null &&
+            (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
             // Link rel=ac:stylesheet response header set by either ProxyResourceBase or ResponseHeaderFilter
             URI stylesheet = getLinkURI(resp.getHeaders(), AC.stylesheet);
