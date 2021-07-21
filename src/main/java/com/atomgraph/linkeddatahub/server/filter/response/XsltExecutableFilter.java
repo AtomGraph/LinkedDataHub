@@ -74,7 +74,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     {
         URI stylesheet = getLinkURI(resp.getHeaders(), AC.stylesheet);
         
-        if (stylesheet == null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
+        if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
         else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
     }
 
