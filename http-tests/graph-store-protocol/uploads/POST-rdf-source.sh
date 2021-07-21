@@ -37,18 +37,16 @@ source="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
 
 echo "Importing RDF from source: $source"
 
-rdf_post+="-F \"rdf=\"\n"
-rdf_post+="-F \"sb=arg\"\n"
-rdf_post+="-F \"pu=http://purl.org/dc/terms/source\"\n"
-rdf_post+="-F \"ou=${source}\"\n"
-rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
-rdf_post+="-F \"ou=${graph}\"\n"
-
-# POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" \
-| curl -w "%{http_code}\n" -v -k -D - --config - \
+curl -w "%{http_code}\n" -v -k \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "rdf=" \
+  --data-urlencode "sb=arg" \
+  --data-urlencode "pu=http://purl.org/dc/terms/source" \
+  --data-urlencode "ou=${source}" \
+  --data-urlencode "pu=http://www.w3.org/ns/sparql-service-description#name" \
+  --data-urlencode "ou=${graph}" \
   "${END_USER_BASE_URL}clone" \
 | grep -q "$STATUS_OK"
 
