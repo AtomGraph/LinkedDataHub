@@ -18,28 +18,24 @@ package com.atomgraph.linkeddatahub.sitemap.resource.ontology;
 
 import org.apache.jena.ontology.OntDocumentManager;
 import java.net.URI;
-import java.util.List;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
-import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
@@ -50,40 +46,44 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends ResourceBase
+public class Item extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    private final URI uri;
+    private final Service service;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
+    private final Ontology ontology;
+    private final Resource resource;
+    
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            DataManager dataManager,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application, ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(request, service, mediaTypes, uriInfo, providers, system);
+        this.uri = uriInfo.getAbsolutePath();
+        this.service = service.get();
+        this.application = application.get();
+        this.ontology = ontology.get();
+        this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
+        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     
     @PostConstruct
     public void init()
     {
-        getOntResource().getOntModel().add(describe());
+        getResource().getModel().add(getDatasetAccessor().getModel(getURI().toString()));
     }
     
     @Override
-    public Response get()
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
+        Resource ontology = getResource().getPropertyResourceValue(FOAF.primaryTopic);
         
-        if (getTemplateCall().get().hasArgument(LSMT.clear)) // this is just a flag, we don't need the argument value. TO-DO: change to post()!
+        if (getUriInfo().getQueryParameters().containsKey(LSMT.clear.getLocalName())) // this is just a flag, we don't need the argument value. TO-DO: change to post()!
         {
             if (ontology == null)
             {
@@ -105,13 +105,43 @@ public class Item extends ResourceBase
                         getSystem().getOntModelSpec(),
                         getOntology().getOntModel());
             }
-            
-            List<String> referers = getHttpHeaders().getRequestHeader("Referer");
-            if (referers != null && !referers.isEmpty())
-                return Response.seeOther(URI.create(referers.get(0))).build();
+//            
+//            List<String> referers = getHttpHeaders().getRequestHeader("Referer");
+//            if (referers != null && !referers.isEmpty())
+//                return Response.seeOther(URI.create(referers.get(0))).build();
         }
         
-        return super.get();
+        return super.get(defaultGraph, graphUri);
+    }
+    
+//    public Model describe()
+//    {
+//        return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
+//    }
+    
+    public URI getURI()
+    {
+        return uri;
+    }
+    
+    public Service getService()
+    {
+        return service;
+    }
+    
+    private com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
+    }
+    
+    public Ontology getOntology()
+    {
+        return ontology;
+    }
+    
+    public Resource getResource()
+    {
+        return resource;
     }
     
 }

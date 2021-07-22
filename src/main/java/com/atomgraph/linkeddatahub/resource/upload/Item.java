@@ -38,6 +38,7 @@ import javax.inject.Inject;
 import javax.ws.rs.NotAcceptableException;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -55,6 +56,7 @@ public class Item extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     private final URI uri;
+    private final Service service;
     private final Resource resource;
     
     @Inject
@@ -65,6 +67,7 @@ public class Item extends GraphStoreImpl
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
+        this.service = service.get();
         this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -72,7 +75,7 @@ public class Item extends GraphStoreImpl
     @PostConstruct
     public void init()
     {
-        getResource().getModel().add(getDatasetAccessor().getModel(getURI().toString()));
+        getResource().getModel().add(describe());
     }
     
     @Override
@@ -132,9 +135,19 @@ public class Item extends GraphStoreImpl
         return list;
     }
     
+    public Model describe()
+    {
+        return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
+    }
+    
     public URI getURI()
     {
         return uri;
+    }
+    
+    public Service getService()
+    {
+        return service;
     }
     
     public Resource getResource()
