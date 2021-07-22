@@ -16,6 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.resource.RequestAccess;
+import com.atomgraph.linkeddatahub.resource.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.util.Optional;
@@ -109,6 +111,18 @@ public class Dispatcher
         return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
     }
 
+    @Path("sign up")
+    public Object getSignUp()
+    {
+        return SignUp.class;
+    }
+    
+    @Path("request access")
+    public Object getRequestAccess()
+    {
+        return RequestAccess.class;
+    }
+    
     @Path("uploads")
     public Object getUploadEndpoint()
     {
