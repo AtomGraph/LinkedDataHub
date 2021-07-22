@@ -410,15 +410,7 @@ exclude-result-prefixes="#all">
                         </xsl:if>
                     </xsl:if>
                         
-                    <a class="brand" href="{$ldt:base}">
-                        <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
-                            <xsl:attribute name="class" select="'brand admin'"/>
-                        </xsl:if>
-                        
-                        <xsl:value-of>
-                            <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
+                    <xsl:apply-templates select="." mode="bs2:Brand"/>
 
                     <div id="collapsing-top-navbar" class="nav-collapse collapse" style="margin-left: 17%;">
                         <xsl:apply-templates select="." mode="bs2:SearchBar"/>
@@ -431,7 +423,19 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:ActionBar"/>
         </div>
     </xsl:template>
+    
+    <xsl:templates match="rdf:RDF" mode="bs2:Brand">
+        <a class="brand" href="{$ldt:base}">
+            <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+                <xsl:attribute name="class" select="'brand admin'"/>
+            </xsl:if>
 
+            <xsl:value-of>
+                <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
+            </xsl:value-of>
+        </a>
+    </xsl:templates>
+    
     <xsl:template match="rdf:RDF[$ldt:base][$acl:mode = '&acl;Read']" mode="bs2:SearchBar" priority="1">
         <form action="{$ac:requestUri}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
