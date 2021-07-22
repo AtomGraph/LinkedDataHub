@@ -21,14 +21,11 @@ import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPubli
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -42,9 +39,9 @@ public class InvalidWebIDPublicKeyExceptionMapper extends ExceptionMapperBase im
 {
 
     @Inject
-    public InvalidWebIDPublicKeyExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public InvalidWebIDPublicKeyExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
     
     // TO-DO: use a non-standard SSL-specific status code such as 495 SSL Certificate Error?

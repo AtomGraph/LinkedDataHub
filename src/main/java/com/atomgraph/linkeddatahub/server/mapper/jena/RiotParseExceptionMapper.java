@@ -17,15 +17,12 @@
 package com.atomgraph.linkeddatahub.server.mapper.jena;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.processor.model.TemplateCall;
 import org.apache.jena.rdf.model.ResourceFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import org.apache.jena.riot.RiotParseException;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
-import org.apache.jena.ontology.Ontology;
 
 /**
  * JAX-RS mapper for RDF parsing exceptions.
@@ -37,9 +34,9 @@ public class RiotParseExceptionMapper extends ExceptionMapperBase implements Exc
     // TO-DO: remove or move to Processor?
 
     @Inject
-    public RiotParseExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public RiotParseExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
 
     @Override

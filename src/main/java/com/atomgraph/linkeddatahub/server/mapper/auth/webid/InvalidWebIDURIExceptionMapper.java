@@ -18,13 +18,10 @@ package com.atomgraph.linkeddatahub.server.mapper.auth.webid;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDURIException;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
-import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 
@@ -37,9 +34,9 @@ public class InvalidWebIDURIExceptionMapper extends ExceptionMapperBase implemen
 {
 
     @Inject
-    public InvalidWebIDURIExceptionMapper(Optional<Ontology> ontology, Optional<TemplateCall> templateCall, MediaTypes mediaTypes)
+    public InvalidWebIDURIExceptionMapper(MediaTypes mediaTypes)
     {
-        super(ontology, templateCall, mediaTypes);
+        super(mediaTypes);
     }
     
     @Override
