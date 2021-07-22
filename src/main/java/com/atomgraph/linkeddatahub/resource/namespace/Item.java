@@ -17,24 +17,23 @@
 package com.atomgraph.linkeddatahub.resource.namespace;
 
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.processor.model.TemplateCall;
+import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ResourceContext;
+import javax.servlet.ServletConfig;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
@@ -48,33 +47,31 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends ResourceBase
+public class Item extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
+    private final URI uri;
+    private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final OntologyLoader ontLoader;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            DataManager dataManager,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application, ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(request, service, mediaTypes, uriInfo, providers, system);
+        this.uri = uriInfo.getAbsolutePath();
+        this.application = application.get();
+        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+
         ontLoader = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
     }
     
     @Override
-    public Response get()
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         //Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
         // hard-coding "#" is not great but it does not seem possible to construct the ontology URI in aplt:SubOntology query
@@ -87,6 +84,17 @@ public class Item extends ResourceBase
             model = getOntologyLoader().getModel(getApplication().getService(), ontology.getURI());
         
         return getResponse(model);
+    }
+    
+    
+    public URI getURI()
+    {
+        return uri;
+    }
+ 
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
+    {
+        return application;
     }
     
     public OntologyLoader getOntologyLoader()

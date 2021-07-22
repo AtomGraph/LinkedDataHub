@@ -22,29 +22,24 @@ import java.net.URI;
 import java.util.List;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Variant;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.linkeddatahub.server.model.impl.ResourceBase;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.processor.model.TemplateCall;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.NotAcceptableException;
-import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
@@ -55,38 +50,36 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends ResourceBase
+public class Item extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
+    private final URI uri;
+    private final Resource resource;
+    
     @Inject
-    public Item(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
-            Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
-            @Context HttpHeaders httpHeaders, @Context ResourceContext resourceContext,
-            @Context HttpServletRequest httpServletRequest, @Context SecurityContext securityContext,
-            DataManager dataManager, @Context Providers providers,
-            com.atomgraph.linkeddatahub.Application system)
+    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            DataManager dataManager,
+            @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, clientUriInfo, request, mediaTypes,
-                service, application, ontology, templateCall,
-                httpHeaders, resourceContext,
-                httpServletRequest, securityContext,
-                dataManager, providers,
-                system);
+        super(request, service, mediaTypes, uriInfo, providers, system);
+        this.uri = uriInfo.getAbsolutePath();
+        this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
+        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
     @PostConstruct
     public void init()
     {
-        // InfModel too expensive to create on each request
-        getOntResource().getOntModel().add(describe());
+        getResource().getModel().add(getDatasetAccessor().getModel(getURI().toString()));
     }
     
     @Override
     public ResponseBuilder getResponseBuilder(Model model)
     {
-        List<Variant> variants = getVariants(getWritableMediaTypes(Model.class));
+        List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariantListBuilder(getWritableMediaTypes(Model.class), getLanguages(), getEncodings()).
+            add().build();
         Variant variant = getRequest().selectVariant(variants);
         if (variant == null)
         {
@@ -120,10 +113,10 @@ public class Item extends ResourceBase
     
     public javax.ws.rs.core.MediaType getFormat()
     {
-        Resource format = getOntResource().getPropertyResourceValue(DCTerms.format);
+        Resource format = getResource().getPropertyResourceValue(DCTerms.format);
         if (format == null)
         {
-            if (log.isErrorEnabled()) log.error("File '{}' does not have a media type", getOntResource());
+            if (log.isErrorEnabled()) log.error("File '{}' does not have a media type", getResource());
             throw new IllegalStateException("File does not have a media type (dct:format)");
         }
         
@@ -137,6 +130,16 @@ public class Item extends ResourceBase
         list.add(getFormat());
 
         return list;
+    }
+    
+    public URI getURI()
+    {
+        return uri;
+    }
+    
+    public Resource getResource()
+    {
+        return resource;
     }
     
 }
