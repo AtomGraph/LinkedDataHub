@@ -66,7 +66,7 @@ public class Container extends com.atomgraph.linkeddatahub.resource.file.Contain
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
         
-        int count = 0;
+        //int count = 0;
         ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
         try
         {

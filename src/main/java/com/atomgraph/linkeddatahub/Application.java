@@ -510,8 +510,8 @@ public class Application extends ResourceConfig
             }
             
             SP.init(BuiltinPersonalities.model);
-            BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
-            BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
+//            BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
+//            BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
             BuiltinPersonalities.model.add(AdminApplication.class, new com.atomgraph.linkeddatahub.apps.model.admin.impl.ApplicationImplementation());
@@ -691,15 +691,15 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
-                in(RequestScoped.class);
-            }
-        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
+//                in(RequestScoped.class);
+//            }
+//        });
         register(new AbstractBinder()
         {
             @Override
@@ -751,7 +751,7 @@ public class Application extends ResourceConfig
         register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
-        register(TemplateCallFilter.class);
+//        register(TemplateCallFilter.class);
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);

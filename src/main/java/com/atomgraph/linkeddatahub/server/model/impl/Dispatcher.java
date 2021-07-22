@@ -18,13 +18,9 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
-import com.atomgraph.processor.exception.OntologyException;
-import com.atomgraph.processor.model.TemplateCall;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.sparql.util.ClsLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,14 +36,14 @@ public class Dispatcher
 
     private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application;
     private final ClientUriInfo clientUriInfo;
-    private final Optional<TemplateCall> templateCall;
+//    private final Optional<TemplateCall> templateCall;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, ClientUriInfo clientUriInfo, Optional<TemplateCall> templateCall)
+    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, ClientUriInfo clientUriInfo)
     {
         this.application = application;
         this.clientUriInfo = clientUriInfo;
-        this.templateCall = templateCall;
+//        this.templateCall = templateCall;
     }
     
     @Path("{path: .*}")
@@ -66,27 +62,75 @@ public class Dispatcher
         }
 
         // resource class loading based on the ldt:loadClass value
-        if (getTemplateCall().isPresent() && getTemplateCall().get().getTemplate().getLoadClass() != null)
-        {
-            Resource javaClass = getTemplateCall().get().getTemplate().getLoadClass();
-            if (!javaClass.isURIResource())
-            {
-                if (log.isErrorEnabled()) log.error("ldt:loadClass value of template '{}' is not a URI resource", getTemplateCall().get().getTemplate());
-                throw new OntologyException("ldt:loadClass value of template '" + getTemplateCall().get().getTemplate() + "' is not a URI resource");
-            }
-
-            Class clazz = ClsLoader.loadClass(javaClass.getURI());
-            if (clazz == null)
-            {
-                if (log.isErrorEnabled()) log.error("Java class with URI '{}' could not be loaded", javaClass.getURI());
-                throw new OntologyException("Java class with URI '" + javaClass.getURI() + "' not found");
-            }
-
-            if (log.isDebugEnabled()) log.debug("Loading Java class with URI: {}", javaClass.getURI());
-            return clazz;
-        }
+//        if (getTemplateCall().isPresent() && getTemplateCall().get().getTemplate().getLoadClass() != null)
+//        {
+//            Resource javaClass = getTemplateCall().get().getTemplate().getLoadClass();
+//            if (!javaClass.isURIResource())
+//            {
+//                if (log.isErrorEnabled()) log.error("ldt:loadClass value of template '{}' is not a URI resource", getTemplateCall().get().getTemplate());
+//                throw new OntologyException("ldt:loadClass value of template '" + getTemplateCall().get().getTemplate() + "' is not a URI resource");
+//            }
+//
+//            Class clazz = ClsLoader.loadClass(javaClass.getURI());
+//            if (clazz == null)
+//            {
+//                if (log.isErrorEnabled()) log.error("Java class with URI '{}' could not be loaded", javaClass.getURI());
+//                throw new OntologyException("Java class with URI '" + javaClass.getURI() + "' not found");
+//            }
+//
+//            if (log.isDebugEnabled()) log.debug("Loading Java class with URI: {}", javaClass.getURI());
+//            return clazz;
+//        }
         
         return getResourceClass();
+    }
+    
+    @Path("sparql")
+    public Object getSPARQLEndpoint()
+    {
+        return SPARQLEndpointImpl.class;
+    }
+
+    @Path("service")
+    public Object getGraphStore()
+    {
+        return GraphStoreImpl.class;
+    }
+
+    @Path("ns")
+    public Object getOntology()
+    {
+        return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+    }
+
+    @Path("ns/{slug}/")
+    public Object getSubOntology()
+    {
+        return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+    }
+
+    @Path("uploads")
+    public Object getUploadEndpoint()
+    {
+        return com.atomgraph.linkeddatahub.resource.file.Container.class;
+    }
+
+    @Path("imports")
+    public Object getImportEndpoint()
+    {
+        return com.atomgraph.linkeddatahub.resource.imports.Container.class;
+    }
+
+    @Path("add")
+    public Object getAddEndpoint()
+    {
+        return com.atomgraph.linkeddatahub.resource.add.Container.class;
+    }
+    
+    @Path("clone")
+    public Object getCloneEndpoint()
+    {
+        return com.atomgraph.linkeddatahub.resource.clone.Container.class;
     }
     
     public Class getResourceClass()
@@ -103,10 +147,10 @@ public class Dispatcher
     {
         return clientUriInfo;
     }
-    
-    public Optional<TemplateCall> getTemplateCall()
-    {
-        return templateCall;
-    }
+//    
+//    public Optional<TemplateCall> getTemplateCall()
+//    {
+//        return templateCall;
+//    }
     
 }
