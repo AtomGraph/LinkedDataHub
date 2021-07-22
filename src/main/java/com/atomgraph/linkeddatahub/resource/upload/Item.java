@@ -35,7 +35,10 @@ import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.NotAcceptableException;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.QueryFactory;
@@ -76,6 +79,13 @@ public class Item extends GraphStoreImpl
     public void init()
     {
         getResource().getModel().add(describe());
+    }
+    
+    @GET
+    @Override
+    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        return super.get(false, getURI());
     }
     
     @Override
