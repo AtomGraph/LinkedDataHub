@@ -129,6 +129,12 @@ public class Dispatcher
         return com.atomgraph.linkeddatahub.resource.file.Container.class;
     }
 
+    @Path("/uploads/{sha1sum}/")
+    public Object getFileItem()
+    {
+        return com.atomgraph.linkeddatahub.resource.upload.sha1.Item.class;
+    }
+    
     @Path("imports")
     public Object getImportEndpoint()
     {
