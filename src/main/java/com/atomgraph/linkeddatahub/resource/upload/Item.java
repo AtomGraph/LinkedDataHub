@@ -31,6 +31,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -85,7 +86,8 @@ public class Item extends GraphStoreImpl
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        return super.get(false, getURI());
+        // use indirection to load file (/uploads/{slug}) description from the file document graph (/files/{slug})
+        return super.get(false, URI.create(getResource().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()));
     }
     
     @Override

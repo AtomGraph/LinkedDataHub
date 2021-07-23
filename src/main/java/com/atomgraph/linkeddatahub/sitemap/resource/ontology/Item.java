@@ -81,17 +81,17 @@ public class Item extends GraphStoreImpl
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Resource ontology = getResource().getPropertyResourceValue(FOAF.primaryTopic);
+        Resource topic = getResource().getPropertyResourceValue(FOAF.primaryTopic); // ontology is the topic
         
         if (getUriInfo().getQueryParameters().containsKey(LSMT.clear.getLocalName())) // this is just a flag, we don't need the argument value. TO-DO: change to post()!
         {
-            if (ontology == null)
+            if (topic == null)
             {
                 if (log.isErrorEnabled()) log.error("Cannot clear ontology - no ontology is foaf:primaryTopic of this document: {}", getURI());
                 throw new IllegalStateException("Cannot clear ontology - no ontology is foaf:primaryTopic of this document: " + getURI());
             }
             
-            String ontologyURI = ontology.getURI();
+            String ontologyURI = topic.getURI();
             
             if (OntDocumentManager.getInstance().getFileManager().hasCachedModel(ontologyURI))
             {
