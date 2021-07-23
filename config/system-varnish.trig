@@ -22,7 +22,7 @@
     ldt:base <admin/> ;
     ldt:ontology <admin/ns#> ;
     ldt:service <urn:linkeddatahub:services/admin> ;
-    ac:stylesheet <file:///usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
+    ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
     lapp:endUserApplication <urn:linkeddatahub:apps/end-user> .
 
 # root end-user
