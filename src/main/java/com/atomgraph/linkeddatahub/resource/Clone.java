@@ -22,7 +22,6 @@ import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.processor.model.TemplateCall;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -61,7 +60,7 @@ public class Clone extends GraphStoreImpl
     
     @Inject
     public Clone(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {

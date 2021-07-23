@@ -30,8 +30,7 @@ import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
-import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.client.vocabulary.LDT;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
@@ -89,7 +88,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
-    @Inject javax.inject.Provider<Optional<TemplateCall>> templateCall;
     @Inject javax.inject.Provider<ClientUriInfo> clientUriInfo;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
@@ -225,11 +223,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public javax.inject.Provider<Optional<Ontology>> getOntology()
     {
         return ontology;
-    }
-    
-    public javax.inject.Provider<Optional<TemplateCall>> getTemplateCall()
-    {
-        return templateCall;
     }
     
     @Override

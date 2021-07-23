@@ -92,10 +92,8 @@ import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
-import com.atomgraph.linkeddatahub.server.factory.TemplateCallFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
-import com.atomgraph.linkeddatahub.server.filter.request.TemplateCallFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
@@ -110,11 +108,6 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
-import com.atomgraph.processor.model.Parameter;
-import com.atomgraph.processor.model.Template;
-import com.atomgraph.processor.model.TemplateCall;
-import com.atomgraph.processor.model.impl.ParameterImpl;
-import com.atomgraph.processor.model.impl.TemplateImpl;
 import com.atomgraph.processor.vocabulary.AP;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.ParameterExceptionMapper;
@@ -691,15 +684,6 @@ public class Application extends ResourceConfig
                 in(RequestScoped.class);
             }
         });
-//        register(new AbstractBinder()
-//        {
-//            @Override
-//            protected void configure()
-//            {
-//                bindFactory(TemplateCallFactory.class).to(new TypeLiteral<Optional<TemplateCall>>() {}).
-//                in(RequestScoped.class);
-//            }
-//        });
         register(new AbstractBinder()
         {
             @Override
@@ -751,7 +735,6 @@ public class Application extends ResourceConfig
         register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
-//        register(TemplateCallFilter.class);
         register(ProxiedWebIDFilter.class);
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);

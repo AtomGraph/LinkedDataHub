@@ -21,9 +21,8 @@ import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.resource.oauth2.Login;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
-import com.atomgraph.linkeddatahub.vocabulary.LACLT;
-import com.atomgraph.processor.model.Template;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.SecureRandom;
@@ -82,8 +81,7 @@ public class Authorize // extends ResourceBase
         else originUri = getEndUserApplication().getBase().getURI();
         
         URI redirectUri = getUriInfo().getBaseUriBuilder().
-            path(getOntology().getOntModel().getOntClass(LACLT.OAuth2Login.getURI()).
-                as(Template.class).getMatch().toString()). // has to be a URI template without parameters
+            path(Login.class).
             build();
 
         String state = new BigInteger(130, new SecureRandom()).toString(32);

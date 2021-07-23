@@ -20,7 +20,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
-import com.atomgraph.processor.model.TemplateCall;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
@@ -52,11 +51,11 @@ public class Add extends com.atomgraph.linkeddatahub.resource.file.Container
 
     @Inject
     public Add(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(uriInfo, request, mediaTypes,
-            service, application, ontology, templateCall,
+            service, application, ontology,
             providers, system);
     }
     

@@ -41,7 +41,6 @@ import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.util.Skolemizer;
-import com.atomgraph.processor.model.TemplateCall;
 import com.atomgraph.processor.vocabulary.DH;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -87,7 +86,7 @@ public class Container extends GraphStoreImpl
     
     @Inject
     public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
+            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
