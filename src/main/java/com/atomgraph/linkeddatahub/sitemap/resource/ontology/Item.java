@@ -111,7 +111,7 @@ public class Item extends GraphStoreImpl
 //                return Response.seeOther(URI.create(referers.get(0))).build();
         }
         
-        return super.get(defaultGraph, graphUri);
+        return super.get(defaultGraph, getURI());
     }
     
     public URI getURI()
