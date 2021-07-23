@@ -154,7 +154,7 @@ LIMIT 100</xsl:param>
                             <xsl:with-param name="class" select="'btn btn-primary'"/>
                         </xsl:apply-templates>
                     </button>
-                    <button class="btn btn-save-query" type="submit">
+                    <button class="btn btn-save-query" type="button">
                         <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
