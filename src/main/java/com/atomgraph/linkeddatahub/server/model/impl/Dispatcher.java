@@ -79,13 +79,13 @@ public class Dispatcher
     @Path("ns")
     public Object getOntology()
     {
-        return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+        return com.atomgraph.linkeddatahub.resource.Namespace.class;
     }
 
     @Path("ns/{slug}/")
     public Object getSubOntology()
     {
-        return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
+        return com.atomgraph.linkeddatahub.resource.Namespace.class;
     }
 
     @Path("{container}/ontologies/{uuid}/")
@@ -127,13 +127,13 @@ public class Dispatcher
     @Path("add")
     public Object getAddEndpoint()
     {
-        return com.atomgraph.linkeddatahub.resource.add.Container.class;
+        return com.atomgraph.linkeddatahub.resource.Add.class;
     }
     
     @Path("clone")
     public Object getCloneEndpoint()
     {
-        return com.atomgraph.linkeddatahub.resource.clone.Container.class;
+        return com.atomgraph.linkeddatahub.resource.Clone.class;
     }
     
     public Class getResourceClass()

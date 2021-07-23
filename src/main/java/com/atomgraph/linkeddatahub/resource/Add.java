@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.add;
+package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
@@ -45,13 +45,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Container extends com.atomgraph.linkeddatahub.resource.file.Container
+public class Add extends com.atomgraph.linkeddatahub.resource.file.Container
 {
 
-    private static final Logger log = LoggerFactory.getLogger(Container.class);
+    private static final Logger log = LoggerFactory.getLogger(Add.class);
 
     @Inject
-    public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
+    public Add(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {

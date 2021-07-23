@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.namespace;
+package com.atomgraph.linkeddatahub.resource;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
@@ -48,17 +48,17 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl
+public class Namespace extends GraphStoreImpl
 {
 
-    private static final Logger log = LoggerFactory.getLogger(Item.class);
+    private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final OntologyLoader ontLoader;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+    public Namespace(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)

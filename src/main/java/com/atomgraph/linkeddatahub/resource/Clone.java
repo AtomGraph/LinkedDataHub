@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.clone;
+package com.atomgraph.linkeddatahub.resource;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.core.MediaTypes;
@@ -49,10 +49,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Container extends GraphStoreImpl
+public class Clone extends GraphStoreImpl
 {
     
-    private static final Logger log = LoggerFactory.getLogger(Container.class);
+    private static final Logger log = LoggerFactory.getLogger(Clone.class);
 
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
@@ -60,7 +60,7 @@ public class Container extends GraphStoreImpl
     private final DataManager dataManager;
     
     @Inject
-    public Container(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+    public Clone(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<TemplateCall> templateCall,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
