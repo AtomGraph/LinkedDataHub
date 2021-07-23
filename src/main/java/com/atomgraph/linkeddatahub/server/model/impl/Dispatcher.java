@@ -88,6 +88,12 @@ public class Dispatcher
         return com.atomgraph.linkeddatahub.resource.namespace.Item.class;
     }
 
+    @Path("{container}/ontologies/{uuid}/")
+    public Object getOntologyItem()
+    {
+        return com.atomgraph.linkeddatahub.sitemap.resource.ontology.Item.class;
+    }
+    
     @Path("sign up")
     public Object getSignUp()
     {
