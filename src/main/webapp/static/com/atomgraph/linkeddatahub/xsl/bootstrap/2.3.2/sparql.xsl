@@ -67,7 +67,7 @@ LIMIT 100</xsl:param>
     <xsl:template match="*[@rdf:nodeID = 'save']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-save-query')"/>
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
@@ -154,16 +154,21 @@ LIMIT 100</xsl:param>
                             <xsl:with-param name="class" select="'btn btn-primary'"/>
                         </xsl:apply-templates>
                     </button>
+                    <button class="btn btn-save-query" type="submit">
+                        <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
+                    </button>
                 </div>
             </fieldset>
         </form>
     </xsl:template>
     
-    <xsl:template name="bs2:SaveQueryForm">
+<!--    <xsl:template name="bs2:SaveQueryForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:param name="service" as="xs:anyURI?"/>
-        <!-- brittle string-based query type heuristic -->
+         brittle string-based query type heuristic 
         <xsl:param name="type" as="xs:anyURI">
             <xsl:choose>
                 <xsl:when test="matches($query, 'CONSTRUCT', 'i')">
@@ -179,7 +184,7 @@ LIMIT 100</xsl:param>
                     <xsl:value-of select="resolve-uri('ns#Ask', $ldt:base)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="resolve-uri('ns/domain/default#Query', $ldt:base)"/> <!-- TO-DO: add to namespace ontology -->
+                    <xsl:value-of select="resolve-uri('ns/domain/default#Query', $ldt:base)"/>  TO-DO: add to namespace ontology 
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -207,7 +212,7 @@ LIMIT 100</xsl:param>
                 <xsl:with-param name="name" select="'rdf'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
-            <!-- query -->
+             query 
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
@@ -266,7 +271,7 @@ LIMIT 100</xsl:param>
                 <xsl:with-param name="type" select="'hidden'"/>
                 <xsl:with-param name="value" select="'this'"/>
             </xsl:call-template>
-            <!-- query document -->
+             query document 
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'sb'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
@@ -321,6 +326,6 @@ LIMIT 100</xsl:param>
                 </button>
             </div>
         </form>
-    </xsl:template>
+    </xsl:template>-->
     
 </xsl:stylesheet>

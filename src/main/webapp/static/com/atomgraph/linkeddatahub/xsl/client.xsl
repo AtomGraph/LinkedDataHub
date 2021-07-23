@@ -2622,42 +2622,21 @@ extension-element-prefixes="ixsl"
     <!-- prompt for query title (also reused for its document) -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-query']" mode="ixsl:onclick">
+        <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <!-- get query string from YASQE and set the hidden input value in the query save form -->
-        <xsl:variable name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/>
-        <xsl:for-each select="id('save-query-string')"> <!-- using a different ID from 'query-string' which is the visible YasQE textarea -->
-            <ixsl:set-attribute name="value" select="$query"/>
-        </xsl:for-each>
-        <!-- get SPARQL service URI if it has been selected, and set the hidden input in the query save form to its value -->
-        <xsl:choose>
-            <xsl:when test="$service-uri">
-                <xsl:for-each select="id('query-service')">
-                    <ixsl:set-attribute name="value" select="$service-uri"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- remove the name of the hidden service input so it doesn't get submitted -->
-                <xsl:for-each select="id('query-service')">
-                    <ixsl:remove-attribute name="name"/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:variable name="forClass" select="resolve-uri('ns#Select', $ldt:base)" as="xs:anyURI"/>
+        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
+        <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
+        <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <!-- prompt for title before form proceeds to submit -->
-        <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', [ 'Title' ])" as="xs:string"/>
-        <xsl:choose>
-            <xsl:when test="$title">
-                <xsl:for-each select="id('query-title')">
-                    <ixsl:set-attribute name="value" select="$title"/>
-                </xsl:for-each>
-                <xsl:for-each select="id('query-doc-title')">
-                    <ixsl:set-attribute name="value" select="$title"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- does not work :/ -->
-            </xsl:otherwise>
-        </xsl:choose>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onAddForm"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- prompt for chart title (also reused for its document) -->
