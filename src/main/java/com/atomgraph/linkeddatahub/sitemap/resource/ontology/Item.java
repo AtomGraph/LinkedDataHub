@@ -53,7 +53,6 @@ public class Item extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
     private final URI uri;
-    private final Service service;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
     private final Ontology ontology;
     private final Resource resource;
@@ -66,7 +65,6 @@ public class Item extends GraphStoreImpl
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.service = service.get();
         this.application = application.get();
         this.ontology = ontology.get();
         this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
@@ -116,19 +114,9 @@ public class Item extends GraphStoreImpl
         return super.get(defaultGraph, graphUri);
     }
     
-//    public Model describe()
-//    {
-//        return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
-//    }
-    
     public URI getURI()
     {
         return uri;
-    }
-    
-    public Service getService()
-    {
-        return service;
     }
     
     private com.atomgraph.linkeddatahub.apps.model.Application getApplication()

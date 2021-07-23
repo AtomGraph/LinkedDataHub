@@ -162,11 +162,6 @@ public class Container extends GraphStoreImpl
                 count++;
             }
         }
-//        catch (IOException ex)
-//        {
-//            if (log.isErrorEnabled()) log.error("Error reading multipart request");
-//            throw new WebApplicationException(ex);
-//        }
         finally
         {
             resIt.close();
@@ -243,31 +238,6 @@ public class Container extends GraphStoreImpl
         }
         return fileNameBodyPartMap;
     }
-
-    /**
-     * Writes file data part.
-     * 
-     * @param resource file resource
-     * @param bodyPart file data part
-     * @return file
-     * @throws IOException error while writing
-     */
-//    public File writeFile(Resource resource, FormDataBodyPart bodyPart) throws IOException
-//    {
-//        if (resource == null) throw new IllegalArgumentException("File Resource cannot be null");
-//        if (!resource.isURIResource()) throw new IllegalArgumentException("File Resource must have a URI");
-//        if (bodyPart == null) throw new IllegalArgumentException("FormDataBodyPart cannot be null");
-//        
-//        Resource mediaType = com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType());
-//        if (log.isDebugEnabled()) log.debug("Setting media type {} for uploaded resource {}", mediaType, resource);
-//        resource.addProperty(DCTerms.format, mediaType);
-//
-//        if (log.isDebugEnabled()) log.debug("Uploaded file: {}", bodyPart.getContentDisposition().getFileName());
-//        try (InputStream is = bodyPart.getEntityAs(InputStream.class))
-//        {
-//            return writeFile(URI.create(resource.getURI()), getUriInfo().getBaseUri(), is);
-//        }
-//    }
 
     /**
      * Writes a data stream to the upload folder.

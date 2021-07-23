@@ -60,7 +60,6 @@ public class Item extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
     private final URI uri;
-    private final Service service;
     private final Resource resource;
     
     @Inject
@@ -71,7 +70,6 @@ public class Item extends GraphStoreImpl
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.service = service.get();
         this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -155,11 +153,6 @@ public class Item extends GraphStoreImpl
     public URI getURI()
     {
         return uri;
-    }
-    
-    public Service getService()
-    {
-        return service;
     }
     
     public Resource getResource()

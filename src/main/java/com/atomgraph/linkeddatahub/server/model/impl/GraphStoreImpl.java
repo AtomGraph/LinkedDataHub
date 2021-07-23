@@ -21,6 +21,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
@@ -28,6 +29,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -42,6 +44,7 @@ import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.vocabulary.FOAF;
+import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +61,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
 
     private final UriInfo uriInfo;
+    private final Service service;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
 
@@ -67,6 +71,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         super(request, service.get(), mediaTypes);
         this.uriInfo = uriInfo;
+        this.service = service.get();
         this.providers = providers;
         this.system = system;
     }
@@ -137,6 +142,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
  
+    @PATCH
+    public Response patch(UpdateRequest updateRequest)
+    {
+        // TO-DO: do a check that the update only uses this named graph
+        getService().getEndpointAccessor().update(updateRequest, Collections.<URI>emptyList(), Collections.<URI>emptyList());
+        
+        return Response.ok().build();
+    }
+    
     /**
      * Overrides <code>OPTIONS</code> HTTP header values.
      * Specifies allowed methods.
@@ -195,6 +209,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public UriInfo getUriInfo()
     {
         return uriInfo;
+    }
+    
+    public Service getService()
+    {
+        return service;
     }
     
     public Providers getProviders()
