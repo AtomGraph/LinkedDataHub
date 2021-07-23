@@ -33,6 +33,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -70,6 +71,7 @@ public class Item extends GraphStoreImpl
         ontLoader = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
     }
     
+    @GET
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {

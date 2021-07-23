@@ -32,6 +32,7 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -78,6 +79,7 @@ public class Item extends GraphStoreImpl
         getResource().getModel().add(getDatasetAccessor().getModel(getURI().toString()));
     }
     
+    @GET
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
