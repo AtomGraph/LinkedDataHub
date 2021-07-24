@@ -2363,7 +2363,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- special case for save query forms: simpy hide the modal form -->
-            <xsl:when test="ixsl:get($form, 'id') = ('form-save-query')">
+            <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query')">
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
