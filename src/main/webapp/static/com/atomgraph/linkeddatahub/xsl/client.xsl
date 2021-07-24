@@ -3347,7 +3347,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="query-string" as="xs:string"/>
         
         <xsl:call-template name="onAddForm">
-            <xsl:with-params name="add-class" select="'form-save-query'"/>
+            <xsl:with-param name="add-class" select="'form-save-query'"/>
         </xsl:call-template>
         
         <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>
