@@ -2397,22 +2397,22 @@ extension-element-prefixes="ixsl"
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:when>
-                    <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
-                    <xsl:when test="not($typeahead-span)">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                            <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:when>
-                    <!-- otherwise, render the created resource as a typeahead input -->
-                    <xsl:otherwise>
+                    <!-- render the created resource as a typeahead input -->
+                    <xsl:when test="$typeahead-span">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onTypeaheadResourceLoad">
                                 <xsl:with-param name="resource-uri" select="$created-uri"/>
                                 <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
                                 <xsl:with-param name="modal-form" select="$form"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:when>
+                    <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
+                    <xsl:otherwise>
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <xsl:call-template name="onDocumentLoad">
+                                <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:otherwise>
@@ -3239,7 +3239,8 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onAddForm">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        
+        <xsl:param name="add-class" as="xs:string?"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
@@ -3258,6 +3259,10 @@ extension-element-prefixes="ixsl"
                                 </xsl:apply-templates>
                             </xsl:variable>
                             <xsl:variable name="form-id" select="$modal-div//form/@id" as="xs:string"/>
+                            
+                            <xsl:if test="$add-class">
+                                <xsl:sequence select="$modal-div//form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>
 
                             <xsl:for-each select="ixsl:page()//body">
                                 <xsl:result-document href="?." method="ixsl:append-content">
@@ -3279,6 +3284,10 @@ extension-element-prefixes="ixsl"
                                 </xsl:apply-templates>
                             </xsl:variable>
                             <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
+                            
+                            <xsl:if test="$add-class">
+                                <xsl:sequence select="$modal-div//form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                            </xsl:if>
                             
                             <xsl:choose>
                                 <!-- if "Create" button is within the <form>, append elements to <form> -->
@@ -3337,7 +3346,9 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onAddSaveQueryForm">
         <xsl:param name="query-string" as="xs:string"/>
         
-        <xsl:call-template name="onAddForm"/>
+        <xsl:call-template name="onAddForm">
+            <xsl:with-params name="add-class" select="'form-save-query'"/>
+        </xsl:call-template>
         
         <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>
         <!--<xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Form ID: ' || $form-id ])"/>-->
