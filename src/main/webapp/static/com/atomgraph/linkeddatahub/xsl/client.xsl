@@ -3286,7 +3286,7 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
                             
                             <xsl:if test="$add-class">
-                                <xsl:sequence select="$modal-div//form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                                <xsl:sequence select="$form/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ $add-class, true() ])[current-date() lt xs:date('2000-01-01')]"/>
                             </xsl:if>
                             
                             <xsl:choose>
