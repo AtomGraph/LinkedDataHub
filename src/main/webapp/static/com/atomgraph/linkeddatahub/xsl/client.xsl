@@ -2333,7 +2333,7 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <!-- after form is submitted -->
+    <!-- after form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
     <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
@@ -2359,6 +2359,11 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
+                <!-- remove the modal div -->
+                <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- special case for save query forms: simpy hide the modal form -->
+            <xsl:when test="ixsl:get($form, 'id') = ('form-save-query')">
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
