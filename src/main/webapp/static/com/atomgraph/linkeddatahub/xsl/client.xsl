@@ -2635,7 +2635,9 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddSaveQueryForm"/>
+            <xsl:call-template name="onAddSaveQueryForm">
+                <xsl:with-param name="query-string" select="$query-string"/>
+            </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
     
@@ -3333,10 +3335,14 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template name="onAddSaveQueryForm">
+        <xsl:param name="query-string" as="xs:string"/>
+        
         <xsl:call-template name="onAddForm"/>
         
-        <xsl:variable name="form-id" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form/@id" as="xs:string"/>
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Form ID: ' || $form-id ])"/>
+        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>
+        <!--<xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Form ID: ' || $form-id ])"/>-->
+        <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
+        <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
     </xsl:template>
     
     <xsl:template name="onaddValueCallback">
