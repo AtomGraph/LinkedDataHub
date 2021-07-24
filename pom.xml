@@ -125,6 +125,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- TO-DO: replace with AtomGraph Core -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>

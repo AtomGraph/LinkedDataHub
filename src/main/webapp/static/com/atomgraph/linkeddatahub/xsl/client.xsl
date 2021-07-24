@@ -1739,6 +1739,28 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template match="*[@rdf:about = $ldt:base]" mode="bs2:BreadCrumbListItem" priority="1">
+        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
+        
+        <li>
+            <div class="btn-group">
+                <xsl:apply-templates select="." mode="apl:logo"/>
+
+                <xsl:apply-templates select="." mode="xhtml:Anchor">
+                    <xsl:with-param name="id" select="()"/>
+                </xsl:apply-templates>
+
+                <ul class="dropdown-menu">
+                   <li><a href="">Queries</a></li>
+                </ul>
+            </div>
+
+            <xsl:if test="not($leaf)">
+                <span class="divider">/</span>
+            </xsl:if>
+        </li>
+    </xsl:template>
+    
     <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         
@@ -2366,6 +2388,7 @@ extension-element-prefixes="ixsl"
             <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query')">
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:when test="?status = 200">
                 <!-- trim the query string if it's present -->
