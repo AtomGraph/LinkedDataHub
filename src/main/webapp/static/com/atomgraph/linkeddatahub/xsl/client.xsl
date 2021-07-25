@@ -1750,6 +1750,10 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <div class="btn-group">
+                <button class="btn dropdown-toggle" type="button">
+                    <span class="caret"></span>
+                </button>
+
                 <ul class="dropdown-menu">
                     <li>
                         <a href="{$ldt:base}charts/" class="charts">Charts</a>
