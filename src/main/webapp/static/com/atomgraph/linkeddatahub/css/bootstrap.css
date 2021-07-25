@@ -17,6 +17,7 @@ body.embed { padding-top: 0; }
 .action-bar .breadcrumb { background-color: inherit; margin-top: 10px; margin-bottom: 0; }
 .action-bar .breadcrumb .container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
+.action-bar .breadcrumb .btn-group { margin-top: unset; }
 .action-bar #breadcrumb-nav .label { margin-top: 18px; }
 .action-bar #result-counts p { font-weight: bold; margin-top: 10px; padding-top: 8px; float: right; }
 .action-bar p.alert { margin-bottom: 0; }

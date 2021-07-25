@@ -1741,17 +1741,37 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[@rdf:about = $ldt:base]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
+
         <li>
+            <xsl:apply-templates select="." mode="apl:logo"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Anchor">
+                <xsl:with-param name="id" select="()"/>
+            </xsl:apply-templates>
+
             <div class="btn-group">
-                <xsl:apply-templates select="." mode="apl:logo"/>
-
-                <xsl:apply-templates select="." mode="xhtml:Anchor">
-                    <xsl:with-param name="id" select="()"/>
-                </xsl:apply-templates>
-
                 <ul class="dropdown-menu">
-                   <li><a href="">Queries</a></li>
+                    <li>
+                        <a href="{$ldt:base}charts/" class="charts">Charts</a>
+                    </li>
+                    <li>
+                        <a href="{$ldt:base}files/" class="files">Files</a>
+                    </li>
+                    <li>
+                        <a href="{$ldt:base}geo/" class="geo">Geo</a>
+                    </li>
+                    <li>
+                        <a href="{$ldt:base}imports/" class="imports">Imports</a>
+                    </li>
+                    <li>
+                        <a href="{$ldt:base}latest/" class="latest">Latest</a>
+                    </li>
+                    <li>
+                        <a href="{$ldt:base}services/" class="services">Services</a>
+                    </li>
+                    <li>
+                        <a href="{$ldt:base}queries/" class="queries">Queries</a>
+                    </li>
                 </ul>
             </div>
 
