@@ -1709,6 +1709,7 @@ adm:Container
         rdfs:subClassOf dh:Container ;
         spin:constructor adm:DocumentConstructor ;
         # spin:constraint adm:MissingTitle ;
+        apl:template nsdd:ContainerChildren ;
         rdfs:label "Container" ;
         rdfs:isDefinedBy adm: .
 
