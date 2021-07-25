@@ -1749,6 +1749,8 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="id" select="()"/>
             </xsl:apply-templates>
 
+            <xsl:text> </xsl:text>
+            
             <div class="btn-group">
                 <button class="btn btn-small dropdown-toggle" type="button">
                     <span class="caret"></span>

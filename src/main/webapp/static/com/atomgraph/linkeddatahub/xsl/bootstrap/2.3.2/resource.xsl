@@ -271,8 +271,8 @@ extension-element-prefixes="ixsl"
 
     <!-- BODY -->
     
-    <!-- skip the properties of the the current Root, Container, or Item - show only contents -->
-    <xsl:template match="*[@rdf:about = $ldt:base] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
+    <!-- skip the properties of the the current Root and other root containers, Container, or Item - show only contents -->
+    <xsl:template match="*[@rdf:about = ($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
@@ -324,35 +324,6 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
-
-            <!--<xsl:apply-templates mode="#current"/>-->
-
-<!--            <xsl:if test="$ldt:base">  $acl:Agent//@rdf:about 
-                <div id="container-nav">
-                    <div class="well well-small">
-                        <ul class="nav nav-list">
-                            <xsl:for-each select="$root-containers[not(. = $ldt:base)]">
-                                <li>
-                                    <xsl:if test="starts-with($ac:uri, .)">
-                                        <xsl:attribute name="class">active</xsl:attribute>
-                                    </xsl:if>
-
-                                     TO-DO: resolve as Linked Data resources? 
-                                    <a href="{.}">
-                                        <xsl:for-each select="key('resources', substring-before(substring-after(., $ldt:base), '/'), document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))">
-                                            <xsl:apply-templates select="." mode="apl:logo"/>
-                                            <xsl:text> </xsl:text>
-                                            <xsl:value-of>
-                                                <xsl:apply-templates select="." mode="ac:label"/>
-                                            </xsl:value-of>
-                                        </xsl:for-each>
-                                    </a>
-                                </li>
-                            </xsl:for-each>
-                        </ul>
-                    </div>
-                </div>
-            </xsl:if>-->
         </div>
     </xsl:template>
     
