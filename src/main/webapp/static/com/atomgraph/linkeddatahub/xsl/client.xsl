@@ -1750,7 +1750,7 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <div class="btn-group">
-                <button class="btn dropdown-toggle" type="button">
+                <button class="btn btn-small dropdown-toggle" type="button">
                     <span class="caret"></span>
                 </button>
 
