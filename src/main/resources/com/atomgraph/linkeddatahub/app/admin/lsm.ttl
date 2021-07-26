@@ -78,70 +78,6 @@ CONSTRUCT {
 WHERE {}""" ;
     rdfs:isDefinedBy : .
 
-:Template a rdfs:Class ;
-    rdfs:subClassOf ldt:Template ;
-    spin:constructor :TemplateConstructor ;
-    spin:constraint :MissingRDFSLabel, :MissingRDFSisDefinedBy, :ExtendsOrMatchAndQuery ;
-        # [ a apl:MissingPropertyValue ;
-        #     rdfs:label "Missing ldt:match" ;
-        #     sp:arg1 ldt:match
-        # ] ;
-        # query can be inherited!
-        #[ a apl:MissingPropertyValue ;
-        #    rdfs:label "Missing ldt:query" ;
-        #    sp:arg1 ldt:query
-        #] ;
-    rdfs:label "Template" ;
-    rdfs:isDefinedBy : .
-
-:TemplateConstructor a sp:Construct ;
-  sp:text """
-      PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX owl:     <http://www.w3.org/2002/07/owl#>
-      PREFIX ldt:     <https://www.w3.org/ns/ldt#>
-      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
-
-      CONSTRUCT {
-          ?this ldt:extends [ a lsm:Template ] ;
-              rdfs:label [ a xsd:string ] ;
-              ldt:match [ a xsd:string ] ;
-              ldt:priority [ a xsd:float ] ;
-              ldt:query [ a lsm:Query ] ;
-              ldt:update [ a lsm:Update ] ;
-              ldt:param [ a lsm:Parameter ] ;
-              # ldt:lang ( [ a xsd:string ] ) ;
-              ldt:cacheControl "no-cache" ;
-              ldt:loadClass [ a rdfs:Resource ] ;
-              rdfs:isDefinedBy [ a lsm:Ontology ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Template constructor" ;
-    rdfs:isDefinedBy : .
-
-:ExtendsOrMatchAndQuery a sp:Construct ;  # TO-DO: turn into spin:Template
-    rdfs:label "Extends or match and query" ;
-    sp:text """
-PREFIX  ldt:  <https://www.w3.org/ns/ldt#>
-PREFIX  spin: <http://spinrdf.org/spin#>
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-CONSTRUCT 
-  { 
-    _:c0 a spin:ConstraintViolation .
-    _:c0 spin:violationRoot ?this .
-    _:c0 spin:violationPath ldt:extends, ldt:match, ldt:query .
-    _:c0 rdfs:label "Template should either inherit properties (as a subclass) or have a match path and a query" .
-  }
-WHERE
-  { FILTER NOT EXISTS { ?this  ldt:extends  ?extends }
-    FILTER NOT EXISTS { ?this  ldt:match   ?match ;
-                               ldt:query  ?query
-                      }
-  }""" ;
-    rdfs:isDefinedBy : .
-
 :Query a rdfs:Class ;
     rdfs:subClassOf ldt:Query ;
     spin:constructor :QueryConstructor ;
@@ -189,61 +125,6 @@ WHERE
       }
       WHERE {}""" ;
     rdfs:label "Describe constructor" ;
-    rdfs:isDefinedBy : .
-
-:Update a rdfs:Class ;
-    rdfs:subClassOf ldt:Update ;
-    spin:constructor :UpdateConstructor ;
-    spin:constraint :MissingRDFSisDefinedBy, :MissingRDFSLabel, :MissingSPText ;
-    rdfs:label "Update" ;
-    rdfs:isDefinedBy : .
-
-:UpdateConstructor a sp:Construct ;
-  sp:text """
-      PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX ldt:     <https://www.w3.org/ns/ldt#>
-      PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
-
-      CONSTRUCT {
-          ?this # a sp:Modify ;
-              rdfs:label [ a xsd:string ] ;
-              rdfs:comment [ a xsd:string ] ;
-              sp:text "DELETE\\r\\n{\\r\\n  ?s ?p ?o\\r\\n}\\r\\nINSERT\\r\\n{\\r\\n  ?s ?p ?o\\r\\n}\\r\\nWHERE\\r\\n{\\r\\n  ?s ?p ?o\\r\\n}" ;
-              rdfs:isDefinedBy [ a lsm:Ontology ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Update constructor" ;
-    rdfs:isDefinedBy : .
-
-:Parameter a rdfs:Class ;
-    rdfs:subClassOf ldt:Parameter ;
-    rdfs:label "Parameter" ;
-    spin:constructor :ParameterConstructor ;
-    spin:constraint :MissingRDFSLabel, :MissingRDFSisDefinedBy ;
-    rdfs:isDefinedBy : .
-
-:ParameterConstructor a sp:Construct ;
-  sp:text """
-      PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX spl:     <http://spinrdf.org/spl#>
-      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
-
-      CONSTRUCT {
-          ?this rdfs:label [ a xsd:string ] ;
-              rdfs:comment [ a xsd:string ] ;
-              spl:predicate [ a lsm:Property ] ;
-              spl:valueType [ a rdfs:Resource ] ; # test with URIs and properties
-              spl:optional [ a xsd:boolean ] ;
-              rdfs:isDefinedBy [ a lsm:Ontology ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Update constructor" ;
     rdfs:isDefinedBy : .
 
 :MissingPropertyValue a rdfs:Class ;
@@ -304,13 +185,6 @@ WHERE
     spin:constructor :OntologyConstructor ;
     spin:constraint :MissingRDFSLabel ;
     rdfs:label "Ontology" ;
-    rdfs:isDefinedBy : .
-
-:LDTOntology a rdfs:Class ;
-    rdfs:subClassOf ldt:Ontology ;
-    spin:constructor :OntologyConstructor ;
-    spin:constraint :MissingRDFSLabel ;
-    rdfs:label "LDT ontology" ;
     rdfs:isDefinedBy : .
 
 :OntologyConstructor a sp:Construct ;
