@@ -75,7 +75,27 @@ public class OntologyFilter implements ContainerRequestFilter
         @Override
         public Model getModel(String uri)
         {
-            return OntologyFilter.this.getOntology(uri, getOntModelSpec(), null).getModel();
+            // read mapped ontology from file
+            String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
+            if (!(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
+                return getOntModelSpec().getDocumentManager().getFileManager().loadModel(uri);
+            else
+            {
+                // TO-DO: use LinkedDataClient
+                if (log.isDebugEnabled()) log.debug("Loading end-user Ontology '{}'", uri);
+                try (Response cr = getClient().target(uri).
+                        request(getAcceptableMediaTypes()).
+                        get())
+                {
+                    if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                    {
+                        if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
+                        throw new OntologyException("Could not load ontology from URI");
+                    }
+                    cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
+                    return cr.readEntity(Model.class);
+                }
+            }
         }
         
         @Override
@@ -129,43 +149,31 @@ public class OntologyFilter implements ContainerRequestFilter
         return getOntology(app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec(), schema);
     }
     
-    public Ontology getOntology(String ontologyURI, OntModelSpec ontModelSpec, OntModel schema)
+    public Ontology getOntology(String uri, OntModelSpec ontModelSpec, OntModel schema)
     {
-        if (ontologyURI == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
+        if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
         if (ontModelSpec == null) throw new IllegalArgumentException("OntModelSpec cannot be null");
 
-        final Model model;
-
-            // read mapped ontologies from file
-        String mappedURI = ontModelSpec.getDocumentManager().getFileManager().mapURI(ontologyURI);
-        if (!(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
-            model = ontModelSpec.getDocumentManager().getFileManager().loadModel(ontologyURI);
-        else
-        {
-            if (log.isDebugEnabled()) log.debug("Loading end-user Ontology '{}'", ontologyURI);
-            try (Response cr = getClient().target(ontologyURI).
-                    request(getAcceptableMediaTypes()).
-                    get())
-            {
-                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
-                {
-                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", ontologyURI);
-                    throw new OntologyException("Could not load ontology from URI");
-                }
-                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, ontologyURI); // provide a base URI hint to ModelProvider
-                model = cr.readEntity(Model.class);
-            }
-        }
+        Model model = new ModelGetter(ontModelSpec).getModel(uri);
 
         final InfModel infModel;
         if (schema != null) infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), schema, model);
         else infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
 
-        ontModelSpec.getDocumentManager().addModel(ontologyURI, infModel);
+        ontModelSpec.getDocumentManager().addModel(uri, infModel);
         ontModelSpec.setImportModelGetter(new ModelGetter(ontModelSpec));
 
-        // construct system provider to materialize inferenced model
-        return new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), ontologyURI, ontModelSpec, true).getOntology();
+        try
+        {
+            // construct system provider to materialize inferenced model
+            return new com.atomgraph.server.util.OntologyLoader(ontModelSpec.getDocumentManager(), uri, ontModelSpec, true).getOntology();
+        }
+        catch (IllegalArgumentException ex)
+        {
+            // ontology resource was not found
+        }
+        
+        return null;
     }
 
     public Optional<Application> getApplication(ContainerRequestContext crc)
