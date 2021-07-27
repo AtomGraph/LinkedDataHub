@@ -23,7 +23,7 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.exception.OntologyException;
-import com.atomgraph.processor.vocabulary.LDT;
+import com.atomgraph.client.vocabulary.LDT;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +90,7 @@ public class OntologyFilter implements ContainerRequestFilter
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
+                        // TO-DO: replace with Jena's OntologyException
                         throw new OntologyException("Could not load ontology from URI '" + uri + "'");
                     }
                     cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
@@ -101,8 +102,14 @@ public class OntologyFilter implements ContainerRequestFilter
         @Override
         public Model getModel(String uri, ModelReader loadIfAbsent) 
         {
-            return getModel(uri);
-            //return loadIfAbsent.readModel(ModelFactory.createDefaultModel(), uri);
+            try
+            {
+                return getModel(uri);
+            }
+            catch (OntologyException ex)
+            {
+                return loadIfAbsent.readModel(ModelFactory.createDefaultModel(), uri);
+            }
         }
 
         public OntModelSpec getOntModelSpec()
@@ -130,7 +137,14 @@ public class OntologyFilter implements ContainerRequestFilter
         Optional<Application> app = getApplication(crc);
         if (app.isEmpty()) return Optional.empty();
         
-        return Optional.ofNullable(getOntology(app.get()));
+        try
+        {
+            return Optional.ofNullable(getOntology(app.get()));
+        }
+        catch (OntologyException ex)
+        {
+            return Optional.empty();
+        }
     }
     
     public Ontology getOntology(Application app)
