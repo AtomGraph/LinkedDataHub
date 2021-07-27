@@ -90,7 +90,7 @@ public class OntologyFilter implements ContainerRequestFilter
                     if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
                     {
                         if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
-                        throw new OntologyException("Could not load ontology from URI");
+                        throw new OntologyException("Could not load ontology from URI '" + uri + "'");
                     }
                     cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
                     return cr.readEntity(Model.class);
