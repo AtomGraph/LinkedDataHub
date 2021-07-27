@@ -81,11 +81,6 @@ public class OntologyFilter implements ContainerRequestFilter
         @Override
         public Model getModel(String uri, ModelReader loadIfAbsent) 
         {
-            // read mapped ontologies from file
-            String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
-            if (!(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
-                return getOntModelSpec().getDocumentManager().getFileManager().loadModel(uri);
-
             return getModel(uri);
             //return loadIfAbsent.readModel(ModelFactory.createDefaultModel(), uri);
         }
@@ -139,26 +134,33 @@ public class OntologyFilter implements ContainerRequestFilter
         if (ontologyURI == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
         if (ontModelSpec == null) throw new IllegalArgumentException("OntModelSpec cannot be null");
 
-        Model model = ModelFactory.createDefaultModel();
+        final Model model;
 
-        if (log.isDebugEnabled()) log.debug("Loading end-user Ontology '{}'", ontologyURI);
-        try (Response cr = getClient().target(ontologyURI).
-                request(getAcceptableMediaTypes()).
-                get())
+            // read mapped ontologies from file
+        String mappedURI = ontModelSpec.getDocumentManager().getFileManager().mapURI(ontologyURI);
+        if (!(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
+            model = ontModelSpec.getDocumentManager().getFileManager().loadModel(ontologyURI);
+        else
         {
-            if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+            if (log.isDebugEnabled()) log.debug("Loading end-user Ontology '{}'", ontologyURI);
+            try (Response cr = getClient().target(ontologyURI).
+                    request(getAcceptableMediaTypes()).
+                    get())
             {
-                if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", ontologyURI);
-                throw new OntologyException("Could not load ontology from URI");
+                if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
+                {
+                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", ontologyURI);
+                    throw new OntologyException("Could not load ontology from URI");
+                }
+                cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, ontologyURI); // provide a base URI hint to ModelProvider
+                model = cr.readEntity(Model.class);
             }
-            cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, ontologyURI); // provide a base URI hint to ModelProvider
-            model.add(cr.readEntity(Model.class));
         }
-            
-        InfModel infModel;
+
+        final InfModel infModel;
         if (schema != null) infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), schema, model);
         else infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
-        
+
         ontModelSpec.getDocumentManager().addModel(ontologyURI, infModel);
         ontModelSpec.setImportModelGetter(new ModelGetter(ontModelSpec));
 
