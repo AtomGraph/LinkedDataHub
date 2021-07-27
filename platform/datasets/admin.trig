@@ -287,7 +287,7 @@
         rdfs:label "Public access" ;
         rdfs:comment "Allows unauthorized access" ;
         acl:accessTo <ns>, <ns/domain>, # admin ontologies are public
-            <../ns>, <../ns/domain/default>, <../ns/domain/system>, <../ns/domain> ; # end-user ontologies are public
+            <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/system/>, <model/ontologies/domain/> ; # end-user ontologies are public
         acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
@@ -694,7 +694,7 @@
 {
 
     nsd: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/domain/>, <../ns/domain> ;
+        foaf:isPrimaryTopicOf <model/ontologies/domain/> ;
         rdfs:label "Domain" ;
         rdfs:comment "Domain ontology of the application" ;
         owl:versionInfo "1.0-SNAPSHOT" .
@@ -897,7 +897,7 @@
         foaf:primaryTopic ns: .
 
     ns: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/namespace/>, <../ns> ;
+        foaf:isPrimaryTopicOf <model/ontologies/namespace/> ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
         owl:imports nsd:, nsds: ;
@@ -916,7 +916,7 @@
         foaf:primaryTopic nsds: .
 
     nsds: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/system/>, <../ns/domain/system> ;
+        foaf:isPrimaryTopicOf <model/ontologies/system/> ;
         rdfs:label "System domain" ;
         rdfs:comment "System ontology of the application" ;
         owl:imports nsdd: ;
@@ -1108,7 +1108,7 @@
 
 # not accessible to users but required for query-able rdfs:subClassOf relationships
 
-adm:
+<ns>
 {
 
     adm: a owl:Ontology ;
