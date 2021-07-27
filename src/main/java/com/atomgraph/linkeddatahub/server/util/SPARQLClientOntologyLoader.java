@@ -29,6 +29,7 @@ import org.apache.jena.vocabulary.RDFS;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class SPARQLClientOntologyLoader extends OntologyLoader
 {
 

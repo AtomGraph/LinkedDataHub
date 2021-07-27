@@ -215,7 +215,7 @@ public class WebIDFilter extends AuthenticationFilter
             // remove fragment identifier to get document URI
             URI webIDDoc = new URI(webID.getScheme(), webID.getSchemeSpecificPart(), null).normalize();
             
-            try (Response cr1 = getNoCertClient().target(webIDDoc).
+            try (Response cr1 = getClient().target(webIDDoc).
                     request(getAcceptableMediaTypes()).
                     get())
             {
@@ -235,7 +235,7 @@ public class WebIDFilter extends AuthenticationFilter
                     // remove fragment identifier to get document URI
                     URI certKeyDoc = new URI(certKey.getScheme(), certKey.getSchemeSpecificPart(), null).normalize();
 
-                    try (Response cr2 = getNoCertClient().target(certKeyDoc).
+                    try (Response cr2 = getClient().target(certKeyDoc).
                             request(getAcceptableMediaTypes()).
                             get())
                     {
@@ -270,7 +270,7 @@ public class WebIDFilter extends AuthenticationFilter
         return webIDQuery.copy();
     }
     
-    public Client getNoCertClient()
+    public Client getClient()
     {
         return getSystem().getNoCertClient();
     }

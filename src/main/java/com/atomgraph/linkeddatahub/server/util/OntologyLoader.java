@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public abstract class OntologyLoader
 {
     private static final Logger log = LoggerFactory.getLogger(OntologyLoader.class);
@@ -59,13 +60,13 @@ public abstract class OntologyLoader
         }
         
         @Override
-        public Model getModel(String uri) 
+        public Model getModel(String uri)
         {
             return OntologyLoader.this.getModel(getService(), uri);
         }
 
         @Override
-        public Model getModel(String uri, ModelReader loadIfAbsent) 
+        public Model getModel(String uri, ModelReader loadIfAbsent)
         {
             // read mapped ontologies from file
             String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
