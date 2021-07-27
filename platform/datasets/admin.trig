@@ -692,6 +692,11 @@
 <model/ontologies/domain/>
 {
 
+    <model/ontologies/domain/> a adm:OntologyItem ;
+        sioc:Domain <model/ontologies/> ;
+        dct:title "Default" ;
+        foaf:primaryTopic nsd: .
+
     nsd: a adm:Ontology ;
         foaf:isPrimaryTopicOf <model/ontologies/domain/> ;
         rdfs:label "Domain" ;
