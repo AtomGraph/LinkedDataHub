@@ -43,6 +43,7 @@ import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ModelReader;
+import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.OWL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,10 +79,11 @@ public class OntologyFilter implements ContainerRequestFilter
         @Override
         public Model getModel(String uri)
         {
-            // read mapped ontology from file
+            FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
+            // read cached ontology or mapped ontology from file
             String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
-            if (!(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
-                return getOntModelSpec().getDocumentManager().getFileManager().loadModel(uri, getApplication().getBase().getURI(), null);
+            if (fileManager.hasCachedModel(uri) || !(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
+                return fileManager.loadModel(uri, getApplication().getBase().getURI(), null);
             else
             {
                 // TO-DO: use LinkedDataClient
