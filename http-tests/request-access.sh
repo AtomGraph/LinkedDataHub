@@ -18,10 +18,10 @@ curl -w "%{http_code}\n" -k -s \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#requestAccessTo" \
   --data-urlencode "ou=${END_USER_BASE_URL}sparql" \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#requestAccessToClass" \
-  --data-urlencode "ou=${END_USER_BASE_URL}ns/domain/default#Root" \
-  --data-urlencode "ou=${END_USER_BASE_URL}ns/domain/default#Container" \
-  --data-urlencode "ou=${END_USER_BASE_URL}ns/domain/default#Item" \
-  --data-urlencode "ou=${END_USER_BASE_URL}ns/domain/default#File" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}model/ontologies/default/#Root" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}model/ontologies/default/#Container" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}model/ontologies/default/#Item" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}model/ontologies/default/#File" \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#requestMode" \
   --data-urlencode "ou=http://www.w3.org/ns/auth/acl#Read" \
   --data-urlencode "ou=http://www.w3.org/ns/auth/acl#Write" \

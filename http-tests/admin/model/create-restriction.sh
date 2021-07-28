@@ -13,7 +13,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 -b "$ADMIN_BASE_URL" \
---uri "${END_USER_BASE_URL}ns/domain#Restriction" \
+--uri "${ADMIN_BASE_URL}model/ontologies/domain/#Restriction" \
 --label "Topic of document" \
 --slug topic-of-document \
 --on-property "http://xmlns.com/foaf/0.1/isPrimaryTopicOf" \
@@ -25,5 +25,5 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${END_USER_BASE_URL}ns/domain" \
-| grep -q "${END_USER_BASE_URL}ns/domain#Restriction"
+  "${ADMIN_BASE_URL}model/ontologies/domain/" \
+| grep -q "${ADMIN_BASE_URL}model/ontologies/domain/#Restriction"

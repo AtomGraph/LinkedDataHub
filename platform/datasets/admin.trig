@@ -286,7 +286,8 @@
         foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows unauthorized access" ;
-        acl:accessTo <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/system/>, <model/ontologies/domain/> ; # end-user ontologies are public
+        acl:accessTo <ns>, # admin ontologies are public
+            <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/system/>, <model/ontologies/domain/> ; # end-user ontologies are public
         acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
@@ -1037,70 +1038,70 @@
         rdfs:isDefinedBy nsds: .
 
     nsds:TopicOfQueryItem a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-query-item/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//topic-of-query-item/> ;
         owl:onProperty foaf:isPrimaryTopicOf ;
         owl:allValuesFrom nsds:QueryItem ;
         rdfs:label "Topic of query item" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:TopicOfImportItem a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-import-item/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//topic-of-import-item/> ;
         owl:onProperty foaf:isPrimaryTopicOf ;
         owl:allValuesFrom nsds:ImportItem ;
         rdfs:label "Topic of import item" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:TopicOfFileItem a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-file-item/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//topic-of-file-item/> ;
         owl:onProperty foaf:isPrimaryTopicOf ;
         owl:allValuesFrom nsds:FileItem ;
         rdfs:label "Topic of file item" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:TopicOfChartItem a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/topic-of-chart-item/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//topic-of-chart-item/> ;
         owl:onProperty foaf:isPrimaryTopicOf ;
         owl:allValuesFrom nsds:ChartItem ;
         rdfs:label "Topic of chart item" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ItemOfServiceContainer a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/services-container/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//services-container/> ;
         owl:onProperty sioc:has_container ;
         owl:hasValue <../services/> ;
         rdfs:label "Has services container" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ItemOfFileContainer a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/uploads-container/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//uploads-container/> ;
         owl:onProperty sioc:has_container ;
         owl:hasValue <../uploads/> ;
         rdfs:label "Has uploads container" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ItemOfImportsContainer a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/imports-container/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//imports-container/> ;
         owl:onProperty sioc:has_container ;
         owl:hasValue <../imports/> ;
         rdfs:label "Has imports container" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ItemOfFilesContainer a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/files-container/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//files-container/> ;
         owl:onProperty sioc:has_container ;
         owl:hasValue <../files/> ;
         rdfs:label "Has files container" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ItemOfQueriesContainer a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/queries-container/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//queries-container/> ;
         owl:onProperty sioc:has_container ;
         owl:hasValue <../queries/> ;
         rdfs:label "Has queries container" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ItemOfChartsContainer a adm:Restriction ;
-        foaf:isPrimaryTopicOf <model/restrictions/domain/charts-container/> ;
+        foaf:isPrimaryTopicOf <model/restrictioadmin/model/ontologies/domain//charts-container/> ;
         owl:onProperty sioc:has_container ;
         owl:hasValue <../charts/> ;
         rdfs:label "Has charts container" ;
