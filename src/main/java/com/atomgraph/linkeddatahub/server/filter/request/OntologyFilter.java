@@ -172,12 +172,15 @@ public class OntologyFilter implements ContainerRequestFilter
         {
             schema = null;
             
-            ((PrefixMapper)getSystem().
-                getOntModelSpec().
-                getDocumentManager().
-                getFileManager().
-                getLocationMapper()).
-                addAltPrefixEntry(app.getBase() + "ns", "com/atomgraph/linkeddatahub/app/admin/adm.ttl");
+            String uriPrefix = app.getBase() + "ns";
+            
+            if (((PrefixMapper)getSystem().getOntModelSpec().getDocumentManager().getFileManager().getLocationMapper()).getPrefixAltEntry(uriPrefix) == null)
+                ((PrefixMapper)getSystem().
+                    getOntModelSpec().
+                    getDocumentManager().
+                    getFileManager().
+                    getLocationMapper()).
+                    addAltPrefixEntry(uriPrefix, "com/atomgraph/linkeddatahub/app/admin/adm.ttl");
         }
 
         return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec(), schema);
