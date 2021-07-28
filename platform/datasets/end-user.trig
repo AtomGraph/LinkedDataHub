@@ -1,5 +1,5 @@
-@prefix nsds:	<ns/domain/system#> .
-@prefix nsdd:	<ns/domain/default#> .
+@prefix nsds:	<admin/model/ontologies/system/#> .
+@prefix nsdd:	<admin/model/ontologies/default/#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
