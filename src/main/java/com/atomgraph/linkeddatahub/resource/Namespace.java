@@ -34,6 +34,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,10 +66,11 @@ public class Namespace extends GraphStoreImpl
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         //Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
-        // hard-coding "#" is not great but it does not seem possible to construct the ontology URI in aplt:SubOntology query
+        // To-DO: hard-coding "#" is not great
         String ontologyURI = getURI().toString() + "#";
 
-        Model model = getSystem().getOntModelSpec().getDocumentManager().getFileManager().loadModel(ontologyURI);
+        Model model = ModelFactory.createDefaultModel();
+        getSystem().getOntModelSpec().getDocumentManager().getFileManager().readModel(model, ontologyURI);
         
         return getResponse(model);
     }
