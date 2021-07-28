@@ -207,7 +207,9 @@ public class OntologyFilter implements ContainerRequestFilter
             // ontology resource was not found
         }
         
-        return null;
+        if (log.isErrorEnabled()) log.error("Ontology resource '{}' not found", uri);
+        // TO-DO: replace with Jena's OntologyException
+        throw new OntologyException("Ontology resource '" + uri + "' not found");
     }
 
     public Optional<Application> getApplication(ContainerRequestContext crc)
