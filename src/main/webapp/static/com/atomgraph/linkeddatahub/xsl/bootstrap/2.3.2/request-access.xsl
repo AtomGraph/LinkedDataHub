@@ -217,7 +217,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="lacl:requestAccessToClass/@rdf:*[$ldt:base][$ac:uri = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        <xsl:variable name="classes" select="key('resources', (resolve-uri('../ns/domain/default#Root', $ldt:base), resolve-uri('../ns/domain/default#Container', $ldt:base), resolve-uri('../ns/domain/default#Item', $ldt:base), resolve-uri('../ns/domain/default#File', $ldt:base)), document(resolve-uri('../ns/domain/default', $ldt:base)))" as="element()*"/>
+        <xsl:variable name="classes" select="key('resources', (resolve-uri('../admin/model/ontologies/default/#Root', $ldt:base), resolve-uri('../admin/model/ontologies/default/#Container', $ldt:base), resolve-uri('../admin/model/ontologies/default/#Item', $ldt:base), resolve-uri('../admin/model/ontologies/default/#File', $ldt:base)), document(resolve-uri('../admin/model/ontologies/default/', $ldt:base)))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
             <xsl:for-each select="$classes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>

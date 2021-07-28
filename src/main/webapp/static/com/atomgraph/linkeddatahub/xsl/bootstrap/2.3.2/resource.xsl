@@ -54,13 +54,13 @@ extension-element-prefixes="ixsl"
 
     <!-- LOGO -->
 
-    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $ldt:base), resolve-uri('admin/model/ontologies/default/#Container', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Item', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Item', $ldt:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
@@ -80,13 +80,13 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/default#Container', $ldt:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('ns/domain/default#Item', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>

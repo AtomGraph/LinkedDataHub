@@ -1464,19 +1464,19 @@ extension-element-prefixes="ixsl"
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                                         </span>
 
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)}" autocomplete="off"/>
                                                         <div class="btn-group">
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-upload-rdf-container">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)}" id="{generate-id()}-upload-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}"/>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)}"/>
                                                                     </button>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Item', $ldt:base)}" id="{generate-id()}-upload-rdf-item">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)}" id="{generate-id()}-upload-rdf-item">
                                                                         <xsl:text>Item</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}"/>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)}"/>
                                                                     </button>
                                                                 </li>
                                                             </ul>
@@ -1529,21 +1529,21 @@ extension-element-prefixes="ixsl"
                                                             <ul class="resource-typeahead typeahead dropdown-menu" id="ul-upload-rdf-doc" style="display: none;"></ul>
                                                         </span>
 
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}" autocomplete="off"/>
-                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)}" autocomplete="off"/>
+                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)}" autocomplete="off"/>
                                                         <div class="btn-group">
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-container">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)}" id="{generate-id()}-remote-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Container', $ldt:base)}"/>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)}"/>
                                                                     </button>
                                                                 </li>
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('ns/domain/default#Item', $ldt:base)}" id="{generate-id()}-remote-rdf-item">
+                                                                    <button type="button" class="btn add-constructor" title="{resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)}" id="{generate-id()}-remote-rdf-item">
                                                                         <xsl:text>Item</xsl:text>
-                                                                        <input type="hidden" class="forClass" value="{resolve-uri('ns/domain/default#Item', $ldt:base)}"/>
+                                                                        <input type="hidden" class="forClass" value="{resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)}"/>
                                                                     </button>
                                                                 </li>
                                                             </ul>
@@ -2872,7 +2872,7 @@ extension-element-prefixes="ixsl"
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
     <xsl:template match="input[tokenize(@class, ' ') = 'type-typeahead']" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="results-uri" select="resolve-uri('ns/domain', $ldt:base)"/>
+            <xsl:with-param name="results-uri" select="resolve-uri('admin/model/ontologies/domain/', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -3285,7 +3285,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
-            <xsl:with-param name="container-uri" select="resolve-uri('ns/domain', $ldt:base)"/>
+            <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/domain/', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     

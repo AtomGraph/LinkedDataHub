@@ -312,9 +312,9 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <!--if the current resource is a Container, show Container and Item constructors--> 
-                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('ns/domain/default#Container', $ldt:base), resolve-uri('ns/domain/default#Item', $ldt:base)), document(resolve-uri('ns/domain/default', $ldt:base)))" as="element()*"/>
+                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#Container', $ldt:base), resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)), document(resolve-uri('admin/model/ontologies/default/', $ldt:base)))" as="element()*"/>
                 <!-- current resource is a container -->
-                <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('ns/domain/default#Root', $ldt:base), resolve-uri('ns/domain/default#Container', $ldt:base))">
+                <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $ldt:base), resolve-uri('admin/model/ontologies/default/#Container', $ldt:base))">
                     <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>

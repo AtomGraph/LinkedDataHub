@@ -935,7 +935,7 @@ exclude-result-prefixes="#all">
                         </xsl:for-each>
                     </li>
                     <li>
-                        <a href="{resolve-uri('ns', $ldt:base)}" target="_blank">Namespace</a>
+                        <a href="{resolve-uri('admin/model/ontologies/namespace/', $ldt:base)}" target="_blank">Namespace</a>
                     </li>
                     <li>
                         <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
