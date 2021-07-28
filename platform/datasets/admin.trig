@@ -668,6 +668,24 @@
 
 # ONTOLOGIES
 
+# domain
+
+<model/ontologies/domain/>
+{
+
+    <model/ontologies/domain/> a adm:OntologyItem ;
+        sioc:Domain <model/ontologies/> ;
+        dct:title "Default" ;
+        foaf:primaryTopic nsd: .
+
+    nsd: a adm:Ontology ;
+        foaf:isPrimaryTopicOf <model/ontologies/domain/> ;
+        rdfs:label "Domain" ;
+        rdfs:comment "Domain ontology of the application" ;
+        owl:versionInfo "1.0-SNAPSHOT" .
+
+}
+
 # default
 
 <model/ontologies/default/>
@@ -683,24 +701,6 @@
         rdfs:label "Default" ;
         rdfs:comment "Default document model" ;
         owl:imports apl: ;
-        owl:versionInfo "1.0-SNAPSHOT" .
-
-}
-
-# domain
-
-<model/ontologies/domain/>
-{
-
-    <model/ontologies/domain/> a adm:OntologyItem ;
-        sioc:Domain <model/ontologies/> ;
-        dct:title "Default" ;
-        foaf:primaryTopic nsd: .
-
-    nsd: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/domain/> ;
-        rdfs:label "Domain" ;
-        rdfs:comment "Domain ontology of the application" ;
         owl:versionInfo "1.0-SNAPSHOT" .
 
     nsdd:Root a adm:Class ;
