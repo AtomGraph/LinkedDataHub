@@ -21,12 +21,9 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.server.util.OntologyLoader;
-import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -35,10 +32,9 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +49,6 @@ public class Namespace extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
     private final URI uri;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final OntologyLoader ontLoader;
     
     @Inject
     public Namespace(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
@@ -64,10 +58,7 @@ public class Namespace extends GraphStoreImpl
     {
         super(request, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application.get();
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
-
-        ontLoader = new SPARQLClientOntologyLoader(system.getOntModelSpec(), system.getSitemapQuery());
     }
     
     @GET
@@ -76,31 +67,17 @@ public class Namespace extends GraphStoreImpl
     {
         //Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
         // hard-coding "#" is not great but it does not seem possible to construct the ontology URI in aplt:SubOntology query
-        Resource ontology = ResourceFactory.createResource(getURI().toString() + "#");
+        String ontologyURI = getURI().toString() + "#";
 
-        final Model model;
-        if (getApplication().canAs(EndUserApplication.class))
-            model = getOntologyLoader().getModel(getApplication().as(EndUserApplication.class).getAdminApplication().getService(), ontology.getURI());
-        else
-            model = getOntologyLoader().getModel(getApplication().getService(), ontology.getURI());
+        OntModel ontModel = getSystem().getOntModelSpec().getDocumentManager().getOntology(ontologyURI, OntModelSpec.OWL_MEM);
         
-        return getResponse(model);
+        return getResponse(ontModel.getRawModel());
     }
     
     
     public URI getURI()
     {
         return uri;
-    }
- 
-    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
-    {
-        return application;
-    }
-    
-    public OntologyLoader getOntologyLoader()
-    {
-        return ontLoader;
     }
     
 }
