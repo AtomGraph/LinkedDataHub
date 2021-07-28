@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
+import com.atomgraph.client.locator.PrefixMapper;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
@@ -65,10 +66,12 @@ public class OntologyFilter implements ContainerRequestFilter
     protected class ModelGetter implements org.apache.jena.rdf.model.ModelGetter
     {
         
+        private final Application app;
         private final OntModelSpec ontModelSpec;
         
-        public ModelGetter(OntModelSpec ontModelSpec)
+        public ModelGetter(Application app, OntModelSpec ontModelSpec)
         {
+            this.app = app;
             this.ontModelSpec = ontModelSpec;
         }
 
@@ -78,7 +81,7 @@ public class OntologyFilter implements ContainerRequestFilter
             // read mapped ontology from file
             String mappedURI = getOntModelSpec().getDocumentManager().getFileManager().mapURI(uri);
             if (!(mappedURI.startsWith("http") || mappedURI.startsWith("https"))) // ontology URI mapped to a local file resource
-                return getOntModelSpec().getDocumentManager().getFileManager().loadModel(uri);
+                return getOntModelSpec().getDocumentManager().getFileManager().loadModel(uri, getApplication().getBase().getURI(), null);
             else
             {
                 // TO-DO: use LinkedDataClient
@@ -112,6 +115,11 @@ public class OntologyFilter implements ContainerRequestFilter
             }
         }
 
+        public Application getApplication()
+        {
+            return app;
+        }
+        
         public OntModelSpec getOntModelSpec()
         {
             return ontModelSpec;
@@ -150,32 +158,44 @@ public class OntologyFilter implements ContainerRequestFilter
     public Ontology getOntology(Application app)
     {
         if (app.getPropertyResourceValue(LDT.ontology) == null) return null;
-
-        OntModel schema;
+        
+        final OntModel schema;
+        
         if (app.canAs(EndUserApplication.class)) // load admin ontology since end-user ontology imports it
         {
             AdminApplication adminApp = app.as(EndUserApplication.class).getAdminApplication();
             schema = getOntology(adminApp).getOntModel();
         }
         else
+        {
             schema = null;
+            
+            ((PrefixMapper)getSystem().
+                getOntModelSpec().
+                getDocumentManager().
+                getFileManager().
+                getLocationMapper()).
+                addAltPrefixEntry(app.getBase() + "ns", "com/atomgraph/linkeddatahub/app/admin/adm.ttl");
+        }
 
-        return getOntology(app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec(), schema);
+        return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec(), schema);
     }
     
-    public Ontology getOntology(String uri, OntModelSpec ontModelSpec, OntModel schema)
+    public Ontology getOntology(Application app, String uri, OntModelSpec ontModelSpec, OntModel schema)
     {
+        if (app == null) throw new IllegalArgumentException("Application string cannot be null");
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
         if (ontModelSpec == null) throw new IllegalArgumentException("OntModelSpec cannot be null");
 
-        Model model = new ModelGetter(ontModelSpec).getModel(uri);
+        ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
+        Model model = modelGetter.getModel(uri);
 
         final InfModel infModel;
         if (schema != null) infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), schema, model);
         else infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
 
         ontModelSpec.getDocumentManager().addModel(uri, infModel);
-        ontModelSpec.setImportModelGetter(new ModelGetter(ontModelSpec));
+        ontModelSpec.setImportModelGetter(modelGetter);
 
         try
         {
