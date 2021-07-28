@@ -447,3 +447,25 @@ WHERE
     owl:hasValue <acl/groups/> ;
     rdfs:label "Has group container" ;
     rdfs:isDefinedBy : .
+
+# INSTANCES
+
+:SignUp a rdfs:Class ;
+    rdfs:subClassOf :Item ;
+    rdfs:label "Sign up" ;
+    rdfs:isDefinedBy : .
+
+:RequestAccess a rdfs:Class ;
+    rdfs:subClassOf :Item ;
+    rdfs:label "Request access" ;
+    rdfs:isDefinedBy : .
+
+:OAuth2Login a rdfs:Class ;
+    rdfs:subClassOf :Item ;
+    rdfs:label "OAuth 2.0 login endpoint" ;
+    rdfs:isDefinedBy : .
+
+:AuthorizeGoogle a rdfs:Class ;
+    rdfs:subClassOf :Item ;
+    rdfs:label "OAuth 2.0 authorization endpoint" ;
+    rdfs:isDefinedBy : .
