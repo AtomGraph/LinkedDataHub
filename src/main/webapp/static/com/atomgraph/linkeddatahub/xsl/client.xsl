@@ -1414,7 +1414,7 @@ extension-element-prefixes="ixsl"
                                     <div>
                                         <xsl:attribute name="class">tab-pane <xsl:if test="not($source)">active</xsl:if></xsl:attribute>
 
-                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': resolve-uri('ns/domain/system', $ldt:base) || '#File' })}" enctype="multipart/form-data">
+                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': resolve-uri('admin/model/ontologies/system/', $ldt:base) || '#File' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>
@@ -1424,7 +1424,7 @@ extension-element-prefixes="ixsl"
                                             <fieldset>
                                                 <input type="hidden" name="sb" value="file"/>
                                                 <input type="hidden" name="pu" value="&rdf;type"/>
-                                                <input type="hidden" name="ou" value="{resolve-uri('ns/domain/system#File', $ldt:base)}"/>
+                                                <input type="hidden" name="ou" value="{resolve-uri('admin/model/ontologies/system/#File', $ldt:base)}"/>
 
                                                 <!-- file title is unused, just needed to pass the apl:File constraints -->
                                                 <input type="hidden" name="pu" value="&dct;title"/>
@@ -2680,7 +2680,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="forClass" select="resolve-uri('ns/domain/system#Select', $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="resolve-uri('admin/model/ontologies/system/#Select', $ldt:base)" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>

@@ -760,7 +760,7 @@ exclude-result-prefixes="#all">
 
     <!-- FORM -->
 
-    <xsl:template match="rdf:RDF[$ac:forClass = resolve-uri('ns/domain/system#File', $ldt:base)]" mode="bs2:Form" priority="3">
+    <xsl:template match="rdf:RDF[$ac:forClass = resolve-uri('admin/model/ontologies/system/#File', $ldt:base)]" mode="bs2:Form" priority="3">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('uploads', $ldt:base), let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
