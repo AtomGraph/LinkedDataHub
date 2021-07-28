@@ -32,9 +32,8 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.Ontology;
+import org.apache.jena.rdf.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +68,9 @@ public class Namespace extends GraphStoreImpl
         // hard-coding "#" is not great but it does not seem possible to construct the ontology URI in aplt:SubOntology query
         String ontologyURI = getURI().toString() + "#";
 
-        OntModel ontModel = getSystem().getOntModelSpec().getDocumentManager().getOntology(ontologyURI, OntModelSpec.OWL_MEM);
+        Model model = getSystem().getOntModelSpec().getDocumentManager().getFileManager().loadModel(ontologyURI);
         
-        return getResponse(ontModel.getRawModel());
+        return getResponse(model);
     }
     
     
