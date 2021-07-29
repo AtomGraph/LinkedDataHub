@@ -107,9 +107,9 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 args+=("--for-class")
-args+=("${base}ns/domain/default#Container")
+args+=("${base}admin/model/ontologies/default/#Container")
 
-turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
+turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"

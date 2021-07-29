@@ -101,9 +101,9 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 args+=("--for-class")
-args+=("${base}ns/domain/default#Item")
+args+=("${base}admin/model/ontologies/default/#Item")
 
-turtle+="@prefix nsdd:	<ns/domain/default#> .\n"
+turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"

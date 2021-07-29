@@ -116,7 +116,7 @@ urlencode()
     python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
 }
 
-ns="${base}ns/domain/system#"
+ns="${base}admin/model/ontologies/system/#"
 class="${ns}File"
 forClass=$(urlencode "$class")
 container="${base}files/"

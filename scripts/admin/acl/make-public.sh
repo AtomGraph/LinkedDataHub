@@ -71,7 +71,7 @@ curl -X PATCH \
 BASE <${base}admin/>
 
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  nsdd: <../ns/domain/default#>
+PREFIX  nsdd: <model/ontologies/default/#>
 
 INSERT DATA
 {

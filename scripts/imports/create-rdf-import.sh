@@ -119,9 +119,9 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("--for-class")
-args+=("${base}ns/domain/system#RDFImport")
+args+=("${base}admin/model/ontologies/system/#RDFImport")
 
-turtle+="@prefix nsds:	<ns/domain/system#> .\n"
+turtle+="@prefix nsds:	<admin/model/ontologies/system/#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
