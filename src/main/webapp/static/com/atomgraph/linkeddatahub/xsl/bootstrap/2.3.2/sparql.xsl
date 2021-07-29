@@ -116,7 +116,7 @@ LIMIT 100</xsl:param>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
-        <xsl:param name="default-query" as="xs:string?"/>
+        <xsl:param name="default-query" as="xs:string"/>
         
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -146,7 +146,7 @@ LIMIT 100</xsl:param>
                 </select>
         
                 <textarea id="query-string" name="query" class="span12" rows="15">
-                    <xsl:value-of select="$default-query"/>
+                    <xsl:value-of select="if ($query) then $query else $default-query"/>
                 </textarea>
 
                 <div class="form-actions">
