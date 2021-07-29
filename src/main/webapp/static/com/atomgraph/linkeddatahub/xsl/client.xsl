@@ -2557,7 +2557,7 @@ extension-element-prefixes="ixsl"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
+
     <!-- open drop-down by toggling its CSS class -->
 
     <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="ixsl:onclick">
@@ -2724,6 +2724,29 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:call-template name="bs2:QueryEditor"/>
+        </xsl:result-document>
+        
+        <!-- initialize YASQE on the textarea -->
+        <xsl:variable name="js-statement" as="element()">
+            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+        </xsl:variable>
+        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+    </xsl:template>
+
+    <!-- open SPARQL editor and pass a query string -->
+    
+    <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
+        <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
+        <xsl:variable name="form" select="." as="element()"/>
+        <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
+        
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <!-- set textarea's value to the query string from the hidden input -->
+            <xsl:call-template name="bs2:QueryEditor">
+                <xsl:with-param name="query-string" select="$query-string"/>
+            </xsl:call-template>
         </xsl:result-document>
         
         <!-- initialize YASQE on the textarea -->

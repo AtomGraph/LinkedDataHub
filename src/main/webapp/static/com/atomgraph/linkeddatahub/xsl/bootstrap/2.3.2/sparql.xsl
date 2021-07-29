@@ -74,6 +74,10 @@ LIMIT 100</xsl:param>
     <xsl:template name="bs2:QueryEditor" >
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
+        <xsl:param name="mode" select="$ac:mode" as="xs:anyURI*"/>
+        <xsl:param name="service" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
+        <xsl:param name="query" select="$ac:query" as="xs:string?"/>
         
         <div class="row-fluid">
             <div class="left-nav span2"></div>
@@ -89,9 +93,11 @@ LIMIT 100</xsl:param>
                 <legend>SPARQL editor</legend>
 
                 <xsl:call-template name="bs2:QueryForm">
-                    <xsl:with-param name="uri" select="$ac:uri"/>
-                    <xsl:with-param name="mode" select="$ac:mode"/>
-                    <xsl:with-param name="query" select="$ac:query"/>
+                    <!--<xsl:with-param name="uri" select="$ac:uri"/>-->
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="service" select="$service"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="query" select="$query"/>
                     <xsl:with-param name="default-query" select="$default-query"/>
                 </xsl:call-template>
             </div>
@@ -105,7 +111,7 @@ LIMIT 100</xsl:param>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <xsl:param name="uri" as="xs:anyURI?"/>
+        <!--<xsl:param name="uri" as="xs:anyURI?"/>-->
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
@@ -145,9 +151,9 @@ LIMIT 100</xsl:param>
 
                 <div class="form-actions">
                     <!-- retain URL parameters -->
-                    <xsl:if test="$ac:uri">
+<!--                    <xsl:if test="$ac:uri">
                         <input type="hidden" name="uri" value="{$ac:uri}"/>
-                    </xsl:if>
+                    </xsl:if>-->
                     <xsl:if test="$service">
                         <input type="hidden" name="service" value="{$service}"/>
                     </xsl:if>
