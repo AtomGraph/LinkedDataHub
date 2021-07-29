@@ -2745,7 +2745,7 @@ extension-element-prefixes="ixsl"
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <!-- set textarea's value to the query string from the hidden input -->
             <xsl:call-template name="bs2:QueryEditor">
-                <xsl:with-param name="query-string" select="$query-string"/>
+                <xsl:with-param name="query" select="$query-string"/>
             </xsl:call-template>
         </xsl:result-document>
         
