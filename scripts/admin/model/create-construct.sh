@@ -107,8 +107,13 @@ else
 fi
 
 if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
+    print_usage
+    exit 1
 fi
+
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
@@ -116,8 +121,8 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--for-class")
-args+=("${base}ns#Construct")
+#args+=("--for-class")
+#args+=("${base}ns#Construct")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"

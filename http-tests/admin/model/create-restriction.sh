@@ -9,15 +9,19 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create restriction
 
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/domain/"
+restriction="${ontology_doc}#Restriction"
+
 ./create-restriction.sh \
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 -b "$ADMIN_BASE_URL" \
---uri "${ADMIN_BASE_URL}model/ontologies/domain/#Restriction" \
+--uri "${ontology_doc}#Restriction" \
 --label "Topic of document" \
 --slug topic-of-document \
 --on-property "http://xmlns.com/foaf/0.1/isPrimaryTopicOf" \
---all-values-from "http://xmlns.com/foaf/0.1/Document"
+--all-values-from "http://xmlns.com/foaf/0.1/Document" \
+"${ontology_doc}"
 
 popd > /dev/null
 
@@ -25,5 +29,5 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ADMIN_BASE_URL}model/ontologies/domain/" \
-| grep -q "${ADMIN_BASE_URL}model/ontologies/domain/#Restriction"
+  "${ontology_doc}" \
+| grep -q "${ontology_doc}#Restriction"

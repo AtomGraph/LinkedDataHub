@@ -9,7 +9,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create a constraint making the sioc:content property mandatory
 
-constraint="${ADMIN_BASE_URL}model/ontologies/domain/#NewConstraint"
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/domain/"
+constraint="${ontology_doc}#NewConstraint"
 
 ./create-property-constraint.sh \
 -f "$OWNER_CERT_FILE" \
@@ -18,7 +19,8 @@ constraint="${ADMIN_BASE_URL}model/ontologies/domain/#NewConstraint"
 --uri "$constraint" \
 --label "New constraint" \
 --slug new-constraint \
---property "http://rdfs.org/sioc/ns#content"
+--property "http://rdfs.org/sioc/ns#content" \
+"$ontology_doc"
 
 # create a class with the constraint
 
@@ -26,11 +28,12 @@ constraint="${ADMIN_BASE_URL}model/ontologies/domain/#NewConstraint"
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 -b "$ADMIN_BASE_URL" \
---uri "${ADMIN_BASE_URL}model/ontologies/domain/#ConstrainedClass" \
+--uri "${ontology_doc}#ConstrainedClass" \
 --label "Constrained class" \
 --slug constrained-class \
 --constraint "$constraint" \
---sub-class-of "${ADMIN_BASE_URL}model/ontologies/default/#Item"
+--sub-class-of "${ADMIN_BASE_URL}model/ontologies/default/#Item" \
+"$ontology_doc"
 
 popd > /dev/null
 
@@ -38,8 +41,8 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ADMIN_BASE_URL}model/ontologies/domain/" \
-| grep -q "${ADMIN_BASE_URL}model/ontologies/domain/#NewConstraint"
+  "${ontology_doc}" \
+| grep -q "${ontology_doc}#NewConstraint"
 
 # clear ontology from memory
 
@@ -48,7 +51,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 ./clear-ontology.sh \
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
-"${ADMIN_BASE_URL}model/ontologies/domain/"
+"${ontology_doc}"
 
 popd > /dev/null
 
@@ -58,7 +61,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:item a <${ADMIN_BASE_URL}model/ontologies/domain/#ConstrainedClass> .\n"
+turtle+="_:item a <${ontology_doc}#ConstrainedClass> .\n"
 turtle+="_:item dct:title \"Failure\" .\n"
 turtle+="_:item sioc:has_container <${END_USER_BASE_URL}> .\n"
 
