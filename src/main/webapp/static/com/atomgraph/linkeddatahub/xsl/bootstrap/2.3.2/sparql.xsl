@@ -133,11 +133,11 @@ LIMIT 100</xsl:param>
             </xsl:if>
 
             <fieldset>
-                <label for="query-uri">Query</label>
+<!--                <label for="query-uri">Query</label>
                 <xsl:text> </xsl:text>
                 <select id="query-uri" name="query-uri" class="input-xxlarge">
                     <option value="">[Query]</option>
-                </select>
+                </select>-->
                 
                 <label for="service">Service</label>
                 <xsl:text> </xsl:text>

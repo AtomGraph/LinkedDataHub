@@ -9,7 +9,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create class
 
-class="${ADMIN_BASE_URL}model/ontologies/domain/#NewClass"
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/domain/"
+class="${ontology_doc}#NewClass"
 
 ./create-class.sh \
 -f "$OWNER_CERT_FILE" \
@@ -18,7 +19,8 @@ class="${ADMIN_BASE_URL}model/ontologies/domain/#NewClass"
 --uri "$class" \
 --label "New class" \
 --slug new-class \
---sub-class-of "${ADMIN_BASE_URL}model/ontologies/default/#Item"
+--sub-class-of "${ADMIN_BASE_URL}model/ontologies/default/#Item" \
+"$ontology_doc"
 
 popd > /dev/null
 
@@ -26,5 +28,5 @@ popd > /dev/null
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ADMIN_BASE_URL}model/ontologies/domain/" \
+  "$ontology_doc" \
 | grep -q "$class"
