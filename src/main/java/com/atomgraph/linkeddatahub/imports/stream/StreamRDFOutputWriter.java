@@ -77,26 +77,6 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
         return graphStoreClient;
     }
     
-//    public WebTarget getTarget()
-//    {
-//        return getDataManager().getEndpoint(URI.create(getURI()));
-//    }
-//    
-//    public Invocation.Builder getInvocationBuilder()
-//    {
-//        return getTarget().request(MediaType.APPLICATION_NTRIPLES); // could be all RDF formats - we just want to avoid XHTML response
-//    }
-    
-//    public String getURI()
-//    {
-//        return uri;
-//    }
-//    
-//    public DataManager getDataManager()
-//    {
-//        return dataManager;
-//    }
-    
     public String getBaseURI()
     {
         return baseURI;

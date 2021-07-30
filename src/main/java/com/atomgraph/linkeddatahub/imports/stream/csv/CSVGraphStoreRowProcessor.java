@@ -38,7 +38,6 @@ import org.apache.jena.rdf.model.Resource;
 public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.atomgraph.etl.csv.stream.CSVStreamRDFProcessor
 {
 
-//    private final WebTarget webTarget;
     private final GraphStoreClient graphStoreClient;
     private final String base;
     private final BiFunction<Query, Model, Model> function = new ModelTransformer();
@@ -98,12 +97,7 @@ public class CSVGraphStoreRowProcessor implements RowProcessor // extends com.at
     public void processEnded(ParsingContext context)
     {
     }
-    
-//    public WebTarget getWebTarget()
-//    {
-//        return webTarget;
-//    }
-    
+
     public GraphStoreClient getGraphStoreClient()
     {
         return graphStoreClient;
