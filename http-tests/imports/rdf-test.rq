@@ -1,4 +1,4 @@
-PREFIX nsdd:  <admin/model/ontologies/default#>
+PREFIX nsdd:  <admin/model/ontologies/default/#>
 PREFIX dh:    <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
 PREFIX sioc:  <http://rdfs.org/sioc/ns#>
 PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
