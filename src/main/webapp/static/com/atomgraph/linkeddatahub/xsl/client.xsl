@@ -2155,6 +2155,10 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
 
+        <xsl:message>
+            onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/>
+        </xsl:message>
+        
         <xsl:choose>
             <!-- state from apl:PushContentState -->
             <xsl:when test="$content-uri">
