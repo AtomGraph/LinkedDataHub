@@ -2052,7 +2052,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-
+        <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+        
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
@@ -2060,14 +2061,24 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                    <xsl:if test="starts-with($uri, $ldt:base)">
-                        <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <xsl:choose>
+                        <xsl:when test="starts-with($uri, $ldt:base)">
+                            <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:for-each select="id('uri', ixsl:page())">
+                                <ixsl:set-property name="value" select="$uri" object="."/>
+                            </xsl:for-each>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                    
+                    <xsl:if test="$push-state">
+                        <xsl:call-template name="apl:PushState">
+                            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
+                            <xsl:with-param name="title" select="title"/>
+                        </xsl:call-template>
                     </xsl:if>
                     
-                    <xsl:call-template name="apl:PushState">
-                        <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
-                        <xsl:with-param name="title" select="title"/>
-                    </xsl:call-template>
                     <!-- set document.title which history.pushState() does not do -->
                     <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
 
@@ -2188,6 +2199,8 @@ extension-element-prefixes="ixsl"
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$href"/>
+                        <!-- we don't want to push the same state we popped back to -->
+                        <xsl:with-param name="push-state" select="false()"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
