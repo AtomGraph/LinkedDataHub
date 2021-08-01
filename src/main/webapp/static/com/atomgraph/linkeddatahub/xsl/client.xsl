@@ -2198,7 +2198,7 @@ extension-element-prefixes="ixsl"
             <!-- state from apl:PushState -->
             <xsl:when test="$href">
                 <!-- decode URI from the ?uri query param which is used in apl:PushState -->
-                <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after(?href, '?uri=') ]))" as="xs:anyURI"/>
+                <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
                 <xsl:message>
                     Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
                 </xsl:message>
