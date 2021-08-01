@@ -2093,7 +2093,7 @@ extension-element-prefixes="ixsl"
                     
                     <!-- scroll fragment-identified element into view if fragment is provided-->
                     <xsl:if test="$fragment">
-                        <xsl:for-each test="id($fragment, ixsl:page())">
+                        <xsl:for-each select="id($fragment, ixsl:page())">
                             <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
                         </xsl:for-each >
                     </xsl:if>
