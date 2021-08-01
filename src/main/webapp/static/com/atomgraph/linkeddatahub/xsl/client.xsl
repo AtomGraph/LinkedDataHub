@@ -2200,13 +2200,13 @@ extension-element-prefixes="ixsl"
                 <!-- decode URI from the ?uri query param which is used in apl:PushState -->
                 <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
                 <xsl:message>
-                    Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
+                Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
                 </xsl:message>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$href"/>
+                        <xsl:with-param name="uri" select="$uri"/>
                         <!-- we don't want to push the same state we popped back to -->
                         <xsl:with-param name="push-state" select="false()"/>
                     </xsl:call-template>
