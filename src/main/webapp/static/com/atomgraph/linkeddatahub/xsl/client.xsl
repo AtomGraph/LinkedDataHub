@@ -2091,9 +2091,11 @@ extension-element-prefixes="ixsl"
                         <xsl:copy-of select="id($container-id, $results)/*"/>
                     </xsl:result-document>
                     
-                    <!-- scroll fragment-identified element into view -->
-                    <xsl:if test="id($fragment, ixsl:page())">
-                        <xsl:sequence select="ixsl:call(id($fragment, ixsl:page()), 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!-- scroll fragment-identified element into view if fragment is provided-->
+                    <xsl:if test="$fragment">
+                        <xsl:for-each test="id($fragment, ixsl:page())">
+                            <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each >
                     </xsl:if>
 
                     <!-- update RDF download links to match the current URI -->
