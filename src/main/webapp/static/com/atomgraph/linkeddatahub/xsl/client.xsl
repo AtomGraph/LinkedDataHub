@@ -2058,6 +2058,8 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
+                    <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
+
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
