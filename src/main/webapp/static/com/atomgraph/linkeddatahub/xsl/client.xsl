@@ -1306,6 +1306,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template name="apl:PushState">
+         <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
         <!-- push the latest state into history -->
@@ -2076,7 +2077,7 @@ extension-element-prefixes="ixsl"
                     
                     <xsl:if test="$push-state">
                         <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="$uri"/>
+                            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
                             <xsl:with-param name="title" select="title"/>
                         </xsl:call-template>
                     </xsl:if>
@@ -2196,6 +2197,11 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- state from apl:PushState -->
             <xsl:when test="$href">
+                <!-- decode URI from the ?uri query param which is used in apl:PushState -->
+                <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after(?href, '?') ]))" as="xs:anyURI"/>
+                <xsl:message>
+                    Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
+                </xsl:message>
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
