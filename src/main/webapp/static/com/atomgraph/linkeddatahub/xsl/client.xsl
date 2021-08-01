@@ -2076,7 +2076,7 @@ extension-element-prefixes="ixsl"
                     
                     <xsl:if test="$push-state">
                         <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
+                            <xsl:with-param name="href" select="$uri"/>
                             <xsl:with-param name="title" select="title"/>
                         </xsl:call-template>
                     </xsl:if>
