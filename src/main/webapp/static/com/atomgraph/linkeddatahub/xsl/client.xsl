@@ -647,6 +647,7 @@ extension-element-prefixes="ixsl"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'LinkedDataHub.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1293,6 +1294,9 @@ extension-element-prefixes="ixsl"
     <!-- push states -->
     
     <xsl:template name="apl:PushContentState">
+         <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
+        <xsl:param name="href" as="xs:anyURI"/>
+        <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
