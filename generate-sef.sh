@@ -1,3 +1,7 @@
+# build WAR file
+
+mvn war:war
+
 # expand entities in XSLT stylesheets. Same logic as in pom.xml using net.sf.saxon.Query.
 
 find ./target/ROOT/static/com/atomgraph  -type f -name "*.xsl" -exec sh -c 'xmlstarlet c14n "$1" > "$1".c14n && mv "$1".c14n "$1"' x {} \;
