@@ -1304,7 +1304,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
         <!-- push the latest state into history -->
         <xsl:variable name="js-statement" as="element()">
-            <root statement="history.pushState({{ 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '')"/>
+            <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
