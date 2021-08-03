@@ -2214,53 +2214,14 @@ extension-element-prefixes="ixsl"
             onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> 
         </xsl:message>
         
-        <xsl:choose>
-            <!-- state from apl:PushContentState -->
-            <xsl:when test="$content-uri">
-<!--                <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:string?"/>
-                <xsl:variable name="content" select="()" as="element()?"/>  TO-DO: set value 
-                <xsl:variable name="select-json" select="map:get($state, '&spin;query')"/>
-                <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
-                <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-                <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
-                <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
-                <xsl:variable name="service-uri" select="map:get($state, '&apl;service')" as="xs:anyURI?"/>
-                <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-                <xsl:call-template name="apl:RenderContainer">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="content" select="$content"/>
-                    <xsl:with-param name="select-string" select="$select-string"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/> 
-                    <xsl:with-param name="service" select="$service"/> 
-                </xsl:call-template>-->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="state" select="$state"/>
-                        <!-- we don't want to push the same state we popped back to -->
-                        <xsl:with-param name="push-state" select="false()"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <!-- state from apl:PushState -->
-            <xsl:when test="$href">
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <!-- we don't want to push the same state we popped back to -->
-                        <xsl:with-param name="push-state" select="false()"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:message>Popped state not recognized (ixsl:onpopstate)</xsl:message>
-            </xsl:otherwise>
-        </xsl:choose>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onDocumentLoad">
+                <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="state" select="$state"/>
+                <!-- we don't want to push the same state we just popped back to -->
+                <xsl:with-param name="push-state" select="false()"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- intercept all link HTTP(S) clicks except those in the navbar (except breadcrumb bar) and the footer -->
@@ -3206,6 +3167,8 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
+        <!-- toggle .active class -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
