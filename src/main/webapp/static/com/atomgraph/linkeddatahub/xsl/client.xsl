@@ -619,7 +619,6 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="map:get($state, '&spin;query')"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
                     <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                     <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
                 </xsl:otherwise>
@@ -628,6 +627,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <xsl:variable name="service-uri" select="if (map:get($state, '&apl;content') = $content-uri) then xs:anyURI(map:get($state, '&apl;service')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
 
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
