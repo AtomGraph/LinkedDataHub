@@ -609,15 +609,24 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
-        <xsl:variable name="select-string" select="sp:text" as="xs:string"/>
-        <!-- set ?this variable value -->
-        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
-
-        <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
-        
-        <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
+        <xsl:param name="state" as="item()?"/>
+        <xsl:variable name="select-json">
+            <xsl:choose>
+                <!-- override $select-json with the query taken from $state -->
+                <xsl:when test="map:get($state, '&apl;content') = $content-uri">
+                    <xsl:sequence select="map:get($state, '&spin;query')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:variable name="select-string" select="sp:text" as="xs:string"/>
+                    <!-- set ?this variable value -->
+                    <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+                    <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
+                    <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+                    <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
@@ -629,8 +638,10 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         <!-- store the first var name of the initial SELECT query -->
         <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        <!-- store the URI of the service -->
-        <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        <xsl:if test="$service-uri">
+            <!-- store the URI of the service -->
+            <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+        </xsl:if>
 
         <xsl:variable name="select-xml" as="document-node()">
             <xsl:document>
@@ -651,6 +662,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="service-uri" select="$service-uri"/>
         </xsl:call-template>
         
         <!-- store the transformed query XML -->
@@ -1300,13 +1312,24 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="service-uri" as="xs:anyURI?"/>
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
         <!-- push the latest state into history -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <xsl:when test="$service-uri">
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
+                </xsl:variable>
+                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
+                </xsl:variable>
+                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
     <xsl:template name="apl:PushState">
@@ -1324,9 +1347,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:LoadContents">
         <xsl:param name="uri" as="xs:anyURI"/>
-<!--        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="content-ids" as="xs:string*"/> <!-- workaround for Saxon-JS bug: https://saxonica.plan.io/issues/5036 -->
+        <xsl:param name="state" as="item()?"/>
 
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:if test="exists($content-ids)">
@@ -1348,6 +1370,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="state" select="$state"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:for-each>
@@ -2030,6 +2053,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="state" as="item()?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -2039,6 +2063,7 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="state" select="$state"/>
                 </xsl:apply-templates>
             </xsl:when>
             <xsl:otherwise>
@@ -2057,6 +2082,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+        <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
@@ -2114,6 +2140,7 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="apl:LoadContents">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-ids" select="$content-ids"/>
+                        <xsl:with-param name="state" select="$state"/>
                     </xsl:call-template>
 
                     <xsl:call-template name="apl:LoadBreadcrumbs">
@@ -2182,13 +2209,15 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <!-- state from apl:PushContentState -->
             <xsl:when test="$content-uri">
-                <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:string?"/>
-                <xsl:variable name="content" select="()" as="element()?"/> <!-- TO-DO: set value -->
+<!--                <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:string?"/>
+                <xsl:variable name="content" select="()" as="element()?"/>  TO-DO: set value 
                 <xsl:variable name="select-json" select="map:get($state, '&spin;query')"/>
                 <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
                 <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
                 <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
                 <xsl:variable name="focus-var-name" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'focus-var-name')" as="xs:string"/>
+                <xsl:variable name="service-uri" select="map:get($state, '&apl;service')" as="xs:anyURI?"/>
+                <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -2198,8 +2227,17 @@ extension-element-prefixes="ixsl"
                     <xsl:with-param name="content" select="$content"/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name" as="xs:string"/> 
-                </xsl:call-template>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/> 
+                    <xsl:with-param name="service" select="$service"/> 
+                </xsl:call-template>-->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="state" select="$state"/>
+                        <!-- we don't want to push the same state we popped back to -->
+                        <xsl:with-param name="push-state" select="false()"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
             </xsl:when>
             <!-- state from apl:PushState -->
             <xsl:when test="$href">
