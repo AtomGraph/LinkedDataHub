@@ -890,9 +890,6 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ ixsl:call($select-builder, 'build', []) ])" as="xs:string"/>
                         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
-<xsl:message>
-    $select-string: <xsl:value-of select="$select-string"/> $select-xml: <xsl:copy-of select="$select-xml"/>
-</xsl:message>
                         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
 
                         <xsl:call-template name="render-facets">
@@ -2096,13 +2093,22 @@ extension-element-prefixes="ixsl"
                     <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    <!-- make .btn-edit inactive -->
+                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
                     
                     <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <xsl:choose>
                         <xsl:when test="starts-with($uri, $ldt:base)">
                             <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <!-- unset #uri value -->
+                            <xsl:for-each select="id('uri', ixsl:page())">
+                                <ixsl:set-property name="value" select="()" object="."/>
+                            </xsl:for-each>
                         </xsl:when>
                         <xsl:otherwise>
+                            <!-- set #uri value -->
                             <xsl:for-each select="id('uri', ixsl:page())">
                                 <ixsl:set-property name="value" select="$uri" object="."/>
                             </xsl:for-each>
