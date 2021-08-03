@@ -1323,13 +1323,13 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="$service-uri">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{$select-string}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{$select-string}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
