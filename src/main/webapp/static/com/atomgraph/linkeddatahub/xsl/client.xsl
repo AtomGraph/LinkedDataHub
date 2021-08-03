@@ -610,6 +610,8 @@ extension-element-prefixes="ixsl"
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="state" as="item()?"/>
+        <!-- set ?this variable value unless getting the query string from state -->
+        <xsl:variable name="select-string" select="if (map:get($state, '&apl;content') = $content-uri) then string(map:get($state, '&sp;text')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json">
             <xsl:choose>
                 <!-- override $select-json with the query taken from $state -->
@@ -617,9 +619,6 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="map:get($state, '&spin;query')"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="select-string" select="sp:text" as="xs:string"/>
-                    <!-- set ?this variable value -->
-                    <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
                     <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
                     <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
                     <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
@@ -661,6 +660,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'LinkedDataHub.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="service-uri" select="$service-uri"/>
         </xsl:call-template>
@@ -1309,6 +1309,7 @@ extension-element-prefixes="ixsl"
          <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
+        <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -1319,7 +1320,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="$service-uri">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{$select-string}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
