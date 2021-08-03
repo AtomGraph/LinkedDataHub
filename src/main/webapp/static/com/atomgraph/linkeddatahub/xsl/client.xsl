@@ -1319,7 +1319,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
-        <!-- push the latest state into history -->
+        <!-- push the latest state into history. TO-DO: generalize both cases -->
         <xsl:choose>
             <xsl:when test="$service-uri">
                 <xsl:variable name="js-statement" as="element()">
@@ -1329,7 +1329,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{$select-string}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
