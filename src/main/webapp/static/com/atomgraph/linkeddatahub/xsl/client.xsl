@@ -2203,10 +2203,17 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
 
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <xsl:message>
             onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/>
         </xsl:message>
-        
+        <!-- decode URI from the ?uri query param which is used in apl:PushState -->
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
+        <xsl:message>
+        Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
+        </xsl:message>
+
         <xsl:choose>
             <!-- state from apl:PushContentState -->
             <xsl:when test="$content-uri">
@@ -2242,13 +2249,6 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- state from apl:PushState -->
             <xsl:when test="$href">
-                <!-- decode URI from the ?uri query param which is used in apl:PushState -->
-                <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
-                <xsl:message>
-                Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
-                </xsl:message>
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
