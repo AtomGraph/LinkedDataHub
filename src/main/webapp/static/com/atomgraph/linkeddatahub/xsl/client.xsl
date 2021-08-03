@@ -612,7 +612,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="state" as="item()?"/>
         <!-- set ?this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="if ($state and map:get($state, '&apl;content') = $content-uri) then string(map:get($state, '&sp;text')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="select-json">
+        <xsl:variable name="select-json" as="item()">
             <xsl:choose>
                 <!-- override $select-json with the query taken from $state -->
                 <xsl:when test="$state and map:get($state, '&apl;content') = $content-uri">
