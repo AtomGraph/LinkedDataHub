@@ -2205,15 +2205,12 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <xsl:message>
-            onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/>
-        </xsl:message>
         <!-- decode URI from the ?uri query param which is used in apl:PushState -->
-        <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if ($content-uri) then $href else xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
         <xsl:message>
-        Decoded '<xsl:value-of select="$uri"/>' URI from '<xsl:value-of select="$href"/>'
+            onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> 
         </xsl:message>
-
+        
         <xsl:choose>
             <!-- state from apl:PushContentState -->
             <xsl:when test="$content-uri">
