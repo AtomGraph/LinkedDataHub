@@ -101,8 +101,7 @@ DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
   {   { ?auth  acl:mode              acl:Control ;
-               foaf:isPrimaryTopicOf  ?doc .
-        # ?doc   sioc:has_space        ?base
+               foaf:isPrimaryTopicOf  ?doc
           { ?auth  acl:agent  ?agent }
         UNION
           { ?auth   acl:agentClass  ?Group .
@@ -112,9 +111,12 @@ WHERE
     UNION
       { ?auth  acl:agentClass  ?AuthenticatedAgentClass ; # must be set to acl:AuthenticatedAgent/rdfs:Resource
                acl:mode        ?Mode
-          { ?auth  acl:accessTo  ?this }
+          { ?auth  acl:accessTo  ?this
+            OPTIONAL
+              { ?this  a  ?Type }
+          }
         UNION
-          { ?this  a                     ?Type
+          { ?this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
@@ -125,29 +127,32 @@ WHERE
     UNION
       { ?auth  acl:agentClass  foaf:Agent ;
                acl:mode        acl:Read
-          { ?auth  acl:accessTo  ?this }
+          { ?auth  acl:accessTo  ?this
+            OPTIONAL
+              { ?this  a  ?Type }
+          }
         UNION
-          { ?this  a                     ?Type
+          { ?this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
-        # only signup, OAuth2 login and WebID profiles can be public in admin app, nothing else
-        FILTER (?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "OntologyItem")), uri(concat(str(?Ontology), "AgentItem")), uri(concat(str(?Ontology), "PublicKeyItem"))) )
+        # hardcoded list of types that can be public in admin app (regardless of what Authorizations allow)
+        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "OntologyItem")), uri(concat(str(?Ontology), "AgentItem")), uri(concat(str(?Ontology), "PublicKeyItem"))) )
       }
     UNION
       { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization .
-        ?auth  a                     ?CreatorAuthorizationSubClass ;
-               acl:agentClass        ?AuthenticatedAgentClass
+        ?auth  a               ?CreatorAuthorizationSubClass ;
+               acl:agentClass  ?AuthenticatedAgentClass
           { ?auth  acl:accessToClass  ?Type }
         UNION
           { ?auth  acl:accessToClass  ?Class .
             ?Type (rdfs:subClassOf)* ?Class
           }
-        { ?this  a                     ?Type ;
-                 foaf:maker            ?agent
+        { ?this  a           ?Type ;
+                 foaf:maker  ?agent
         }
       }
   }
