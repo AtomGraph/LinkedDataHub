@@ -73,13 +73,14 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         
         if (getApplication().isPresent()) // if it's not present, Link headers might be forwarded by ProxyResourceBase
         {
+            // TO-DO: we are overriding any proxied header values here. Is this a good idea?
             // add Link rel=ldt:base
-            response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
+            response.getHeaders().putSingle(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
             // add Link rel=ldt:ontology
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getOntology().getURI()), LDT.ontology.getURI(), null));
+            response.getHeaders().putSingle(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getOntology().getURI()), LDT.ontology.getURI(), null));
             // add Link rel=ac:stylesheet, if the stylesheet URI is specified
             if (getApplication().get().getStylesheet() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+                response.getHeaders().putSingle(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
         }
     }
 
