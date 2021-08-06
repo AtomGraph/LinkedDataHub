@@ -2127,7 +2127,7 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="apl:Document">
+    <xsl:template match="html" mode="apl:Document">
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
