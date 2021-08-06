@@ -272,7 +272,7 @@ extension-element-prefixes="ixsl"
     <!-- BODY -->
     
     <!-- skip the properties of the the current Root and other root containers, Container, or Item - show only contents -->
-    <xsl:template match="*[@rdf:about = ($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
+    <xsl:template match="*[$ldt:base][@rdf:about = ($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>

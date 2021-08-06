@@ -2089,95 +2089,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
-
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    <!-- make .btn-edit inactive -->
-                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
-                    
-                    <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                    <xsl:choose>
-                        <xsl:when test="starts-with($uri, $ldt:base)">
-                            <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <!-- unset #uri value -->
-                            <xsl:for-each select="id('uri', ixsl:page())">
-                                <ixsl:set-property name="value" select="()" object="."/>
-                            </xsl:for-each>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- set #uri value -->
-                            <xsl:for-each select="id('uri', ixsl:page())">
-                                <ixsl:set-property name="value" select="$uri" object="."/>
-                            </xsl:for-each>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                    
-                    <xsl:if test="$push-state">
-                        <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
-                            <xsl:with-param name="title" select="title"/>
-                        </xsl:call-template>
-                    </xsl:if>
-                    
-                    <!-- set document.title which history.pushState() does not do -->
-                    <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
-
-                    <xsl:variable name="results" select="." as="document-node()"/>
-                    <!-- replace content body with the loaded XHTML -->
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <xsl:copy-of select="id($container-id, $results)/*"/>
-                    </xsl:result-document>
-                    
-                    <xsl:choose>
-                        <!-- scroll fragment-identified element into view if fragment is provided-->
-                        <xsl:when test="id($fragment, ixsl:page())">
-                            <xsl:for-each select="id($fragment, ixsl:page())">
-                                <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-                            </xsl:for-each >
-                        </xsl:when>
-                        <!-- otherwise, scroll to the top of the window -->
-                        <xsl:otherwise>
-                            <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-
-                    <!-- update RDF download links to match the current URI -->
-                    <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-                        <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
-                        <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                        <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
-                        <ixsl:set-property name="href" select="$href" object="."/>
-                    </xsl:for-each>
-
-                    <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
-                    <xsl:call-template name="apl:LoadContents">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="content-ids" select="$content-ids"/>
-                        <xsl:with-param name="state" select="$state"/>
-                    </xsl:call-template>
-
-                    <xsl:call-template name="apl:LoadBreadcrumbs">
-                        <xsl:with-param name="uri" select="$uri"/>
-                    </xsl:call-template>
-            
-<!--                    <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
-                        <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
-                        
-                        <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                            <ul class="breadcrumb pull-left">
-                                <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
-                                    <xsl:with-param name="leaf" select="true()"/>
-                                </xsl:apply-templates>
-                            </ul>
-                            <span class="label label-info pull-left">External</span>
-                        </xsl:result-document>
-                        
-                        <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
-                    </xsl:if>-->
-                </xsl:for-each>
+                <xsl:apply-templates select="?body" mode="apl:Document"/>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
             <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
@@ -2207,6 +2119,96 @@ extension-element-prefixes="ixsl"
                 </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="apl:Document">
+        <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
+
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+        <!-- make .btn-edit inactive -->
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
+        <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:choose>
+            <xsl:when test="starts-with($uri, $ldt:base)">
+                <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <!-- unset #uri value -->
+                <xsl:for-each select="id('uri', ixsl:page())">
+                    <ixsl:set-property name="value" select="()" object="."/>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- set #uri value -->
+                <xsl:for-each select="id('uri', ixsl:page())">
+                    <ixsl:set-property name="value" select="$uri" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <xsl:if test="$push-state">
+            <xsl:call-template name="apl:PushState">
+                <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
+                <xsl:with-param name="title" select="title"/>
+            </xsl:call-template>
+        </xsl:if>
+
+        <!-- set document.title which history.pushState() does not do -->
+        <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
+
+        <xsl:variable name="results" select="." as="document-node()"/>
+        <!-- replace content body with the loaded XHTML -->
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <xsl:copy-of select="id($container-id, $results)/*"/>
+        </xsl:result-document>
+
+        <xsl:choose>
+            <!-- scroll fragment-identified element into view if fragment is provided-->
+            <xsl:when test="id($fragment, ixsl:page())">
+                <xsl:for-each select="id($fragment, ixsl:page())">
+                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each >
+            </xsl:when>
+            <!-- otherwise, scroll to the top of the window -->
+            <xsl:otherwise>
+                <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+
+        <!-- update RDF download links to match the current URI -->
+        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
+            <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
+            <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
+            <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
+            <ixsl:set-property name="href" select="$href" object="."/>
+        </xsl:for-each>
+
+        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
+        <xsl:call-template name="apl:LoadContents">
+            <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="content-ids" select="$content-ids"/>
+            <xsl:with-param name="state" select="$state"/>
+        </xsl:call-template>
+
+        <xsl:call-template name="apl:LoadBreadcrumbs">
+            <xsl:with-param name="uri" select="$uri"/>
+        </xsl:call-template>
+
+<!--                    <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
+            <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
+
+            <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                <ul class="breadcrumb pull-left">
+                    <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
+                        <xsl:with-param name="leaf" select="true()"/>
+                    </xsl:apply-templates>
+                </ul>
+                <span class="label label-info pull-left">External</span>
+            </xsl:result-document>
+
+            <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
+        </xsl:if>-->
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
