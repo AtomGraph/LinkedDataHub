@@ -2089,7 +2089,13 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
-                <xsl:apply-templates select="?body" mode="apl:Document"/>
+                <xsl:apply-templates select="?body" mode="apl:Document">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="state" select="$state"/>
+                    <xsl:with-param name="push-state" select="$push-state"/>
+                </xsl:apply-templates>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
             <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
@@ -2122,6 +2128,12 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="apl:Document">
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="fragment" as="xs:string?"/>
+        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:param name="state" as="item()?"/>
+        <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
