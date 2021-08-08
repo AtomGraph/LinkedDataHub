@@ -1338,12 +1338,23 @@ extension-element-prefixes="ixsl"
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         
         <!-- push the latest state into history -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <xsl:when test="$sparql">
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="history.pushState({{ 'sparql': true, 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
+                </xsl:variable>
+                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="js-statement" as="element()">
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
+                </xsl:variable>
+                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- load contents -->
@@ -1943,6 +1954,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
+        <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -1977,10 +1989,13 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
 
-                    <xsl:call-template name="apl:PushState">
-                        <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($content-uri) })"/>
-                        <xsl:with-param name="container-id" select="$container-id"/>
-                    </xsl:call-template>
+                    <xsl:if test="$push-state">
+                        <xsl:call-template name="apl:PushState">
+                            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($content-uri) })"/>
+                            <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="sparql" select="true()"/>
+                        </xsl:call-template>
+                    </xsl:if>
 
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
                         <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
@@ -2253,6 +2268,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
+        <xsl:variable name="sparql" select="map:contains($state, 'sparql')" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -2269,6 +2285,8 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="onSPARQLResultsLoad">
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="container-id" select="$container-id"/>
+                        <!-- we don't want to push a state that was just popped -->
+                        <xsl:with-param name="push-state" select="false()"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
