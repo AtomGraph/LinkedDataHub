@@ -1975,13 +1975,10 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
                     
-                    <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results) -->
-                    <xsl:if test="not(rdf:RDF)">
-                        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
-                            <!-- enable .btn-save-as -->
-                            <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-                        </xsl:for-each>
-                    </xsl:if>
+                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
+                        <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
+                        <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not(rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
