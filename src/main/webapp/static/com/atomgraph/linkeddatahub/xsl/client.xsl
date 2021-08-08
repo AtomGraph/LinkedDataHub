@@ -1976,9 +1976,9 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
                     
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
-                        <xsl:message>not(rdf:RDF): <xsl:value-of select="not(rdf:RDF)"/></xsl:message>
+                        <xsl:message>not($results/rdf:RDF): <xsl:value-of select="not($results/rdf:RDF)"/></xsl:message>
                         <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
-                        <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not(rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
