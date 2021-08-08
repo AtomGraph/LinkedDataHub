@@ -2275,15 +2275,16 @@ extension-element-prefixes="ixsl"
         <!-- decode URI from the ?uri query param which is used in apl:PushState -->
         <xsl:variable name="uri" select="if ($content-uri) then $href else xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
         <xsl:message>
-            onpopstate $content-uri: <xsl:value-of select="$content-uri"/>
+            onpopstate
+            $content-uri: <xsl:value-of select="$content-uri"/>
             $href: <xsl:value-of select="$href"/>
             $uri: <xsl:value-of select="$uri"/>
             $sparql: <xsl:value-of select="$sparql"/>
         </xsl:message>
         
         <xsl:choose>
-            <xsl:when test="contains($content-uri, '?query=')"> <!-- TO-DO: use a field in the $state that marks this as a SPARQL query -->
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $content-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+            <xsl:when test="$sparql"> <!-- TO-DO: use a field in the $state that marks this as a SPARQL query -->
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
                 <ixsl:schedule-action http-request="$request">
                     <xsl:call-template name="onSPARQLResultsLoad">
                         <xsl:with-param name="content-uri" select="$content-uri"/>
