@@ -1974,6 +1974,14 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
+                    
+                    <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results) -->
+                    <xsl:if test="not(rdf:RDF)">
+                        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
+                            <!-- enable .btn-save-as -->
+                            <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        </xsl:for-each>
+                    </xsl:if>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -2137,9 +2145,11 @@ extension-element-prefixes="ixsl"
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <!-- make .btn-edit inactive -->
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
+            <!-- deactivate .btn-edit -->
+            <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-edit'], 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <!-- enable .btn-save-as -->
+            <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -3287,14 +3297,17 @@ extension-element-prefixes="ixsl"
     <!-- open a form to save RDF document -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
-        <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
-        
-        <xsl:call-template name="apl:ShowAddDataForm">
-            <xsl:with-param name="source" select="$uri"/>
-            <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
-            <xsl:with-param name="container" select="$local-uri"/>
-        </xsl:call-template>
+        <!-- do nothing is the button is disabled (e.g. SELECT results cannot be saved) -->
+        <xsl:if test="not(tokenize(@class, ' ') = 'disabled')">
+            <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+            <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
+
+            <xsl:call-template name="apl:ShowAddDataForm">
+                <xsl:with-param name="source" select="$uri"/>
+                <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
+                <xsl:with-param name="container" select="$local-uri"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
 
     <!-- FORM IDENTITY TRANSFORM -->
