@@ -1337,9 +1337,11 @@ extension-element-prefixes="ixsl"
          <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
+        <xsl:param name="container-id" as="xs:string"/>
+        
         <!-- push the latest state into history -->
         <xsl:variable name="js-statement" as="element()">
-            <root statement="history.pushState({{ 'href': '{$href}' }}, '{$title}', '{$href}')"/>
+            <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
@@ -1935,7 +1937,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to results-uri? -->
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -1977,6 +1979,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:call-template name="apl:PushState">
                         <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($content-uri) })"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
                     </xsl:call-template>
 
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
@@ -2116,7 +2119,13 @@ extension-element-prefixes="ixsl"
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
                         <xsl:with-param name="fallback" select="true()"/>
+                        <xsl:with-param name="service-uri" select="$service-uri"/>
+                        <xsl:with-param name="service" select="$service"/>
+                        <xsl:with-param name="state" select="$state"/>
+                        <xsl:with-param name="push-state" select="$push-state"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2174,6 +2183,7 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="apl:PushState">
                 <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })"/>
                 <xsl:with-param name="title" select="title"/>
+                <xsl:with-param name="container-id" select="$container-id"/>
             </xsl:call-template>
         </xsl:if>
 
@@ -2242,6 +2252,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
+        <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -2251,14 +2262,29 @@ extension-element-prefixes="ixsl"
             onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> 
         </xsl:message>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onDocumentLoad">
-                <xsl:with-param name="uri" select="$uri"/>
-                <xsl:with-param name="state" select="$state"/>
-                <!-- we don't want to push the same state we just popped back to -->
-                <xsl:with-param name="push-state" select="false()"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:choose>
+            <xsl:when test="contains($content-uri, '?query=')"> <!-- TO-DO: use a field in the $state that marks this as a SPARQL query -->
+                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $content-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+                <ixsl:schedule-action http-request="$request">
+                    <xsl:call-template name="onSPARQLResultsLoad">
+                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="state" select="$state"/>
+                        <!-- we don't want to push the same state we just popped back to -->
+                        <xsl:with-param name="push-state" select="false()"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- intercept all link HTTP(S) clicks except those in the navbar (except breadcrumb bar) and the footer -->
