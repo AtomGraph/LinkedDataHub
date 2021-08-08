@@ -1948,7 +1948,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to results-uri? -->
+        <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -2287,7 +2287,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
                 <ixsl:schedule-action http-request="$request">
                     <xsl:call-template name="onSPARQLResultsLoad">
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
+                        <xsl:with-param name="content-uri" select="$uri"/>
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <!-- we don't want to push a state that was just popped -->
                         <xsl:with-param name="push-state" select="false()"/>
