@@ -2268,14 +2268,17 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
-        <xsl:variable name="sparql" select="map:contains($state, 'sparql')" as="xs:anyURI?"/>
+        <xsl:variable name="sparql" select="map:contains($state, 'sparql')" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <!-- decode URI from the ?uri query param which is used in apl:PushState -->
         <xsl:variable name="uri" select="if ($content-uri) then $href else xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
         <xsl:message>
-            onpopstate $content-uri: <xsl:value-of select="$content-uri"/> $href: <xsl:value-of select="$href"/> $uri: <xsl:value-of select="$uri"/> 
+            onpopstate $content-uri: <xsl:value-of select="$content-uri"/>
+            $href: <xsl:value-of select="$href"/>
+            $uri: <xsl:value-of select="$uri"/>
+            $sparql: <xsl:value-of select="$sparql"/>
         </xsl:message>
         
         <xsl:choose>
