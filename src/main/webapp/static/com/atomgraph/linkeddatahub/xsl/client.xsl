@@ -1952,7 +1952,7 @@ extension-element-prefixes="ixsl"
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
-                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
