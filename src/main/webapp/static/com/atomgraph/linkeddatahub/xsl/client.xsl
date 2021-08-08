@@ -1976,7 +1976,7 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
 
                     <xsl:call-template name="apl:PushState">
-                        <xsl:with-param name="href" select="$content-uri"/>
+                        <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($content-uri) })"/>
                     </xsl:call-template>
 
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
