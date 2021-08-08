@@ -1976,6 +1976,7 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
                     
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
+                        <xsl:message>not(rdf:RDF): <xsl:value-of select="not(rdf:RDF)"/></xsl:message>
                         <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
                         <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not(rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
@@ -1986,7 +1987,7 @@ extension-element-prefixes="ixsl"
                 <!--<xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>-->
         
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                     <div class="alert alert-block">
                         <strong>Error during query execution:</strong>
                         <pre>
