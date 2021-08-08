@@ -1974,9 +1974,12 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="category" select="$category"/>
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
-                    
+
+                    <xsl:call-template name="apl:PushState">
+                        <xsl:with-param name="href" select="$content-uri"/>
+                    </xsl:call-template>
+
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
-                        <xsl:message>not($results/rdf:RDF): <xsl:value-of select="not($results/rdf:RDF)"/></xsl:message>
                         <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
                         <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
@@ -2846,13 +2849,13 @@ extension-element-prefixes="ixsl"
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
-        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
-        <xsl:variable name="query-uri" select="resolve-uri('queries/' || $uuid || '/#this', $ldt:base)" as="xs:anyURI"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
+<!--        <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:variable name="query-uri" select="resolve-uri('queries/' || $uuid || '/#this', $ldt:base)" as="xs:anyURI"/>-->
+        <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
-        <xsl:result-document href="?." method="ixsl:append-content">
+<!--        <xsl:result-document href="?." method="ixsl:append-content">
             <input name="href" type="hidden" value="{$query-uri}"/>
-        </xsl:result-document>
+        </xsl:result-document>-->
 
         <ixsl:schedule-action http-request="$request">
             <xsl:call-template name="onSPARQLResultsLoad">
