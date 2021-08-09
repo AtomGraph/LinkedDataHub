@@ -1994,7 +1994,7 @@ extension-element-prefixes="ixsl"
 
                     <!-- used as $content-uri in chart form's onchange events -->
                     <xsl:for-each select="id('query-form', ixsl:page())//input[@name = 'href']">
-                        <ixsl:set-property name="value" select="{$content-uri}" object="."/>
+                        <ixsl:set-property name="value" select="$content-uri" object="."/>
                     </xsl:for-each>
                     
                     <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
