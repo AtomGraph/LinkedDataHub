@@ -1949,6 +1949,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
+        <xsl:param name="parent-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -1966,6 +1967,13 @@ extension-element-prefixes="ixsl"
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
+                    <!-- is SPARQL results element does not already exist, create one -->
+                    <xsl:if test="not(id($container-id, ixsl:page()))">
+                        <xsl:result-document href="#{$parent-id}" method="ixsl:append-content">
+                            <div id="{$container-id}"/>
+                        </xsl:result-document>
+                    </xsl:if>
+                    
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2885,14 +2893,6 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="container-id" select="'sparql-results'" as="xs:string"/>
-        <!-- is SPARQL results element does not already exist, create one -->
-        <xsl:if test="not(id($container-id, ixsl:page()))">
-            <xsl:result-document href="#content-body" method="ixsl:append-content">
-                <div id="{$container-id}"/>
-            </xsl:result-document>
-        </xsl:if>
         
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
