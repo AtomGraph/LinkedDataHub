@@ -1952,7 +1952,6 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:param name="results-container-id" select="$container-id || '-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -1970,6 +1969,11 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    
+                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
+                        <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
+                        <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
 
                     <!-- insert SPARQL query form if it's not already shown -->
                     <xsl:if test="not(id('query-form', ixsl:page()))">
@@ -1978,8 +1982,19 @@ extension-element-prefixes="ixsl"
                                 <xsl:with-param name="query" select="$query"/>
                             </xsl:call-template>
                         </xsl:result-document>
-                        
-                        <div id="{$results-container-id}"/>
+
+                        <!-- initialize YASQE on the textarea -->
+                        <xsl:variable name="js-statement" as="element()">
+                            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+                        </xsl:variable>
+                        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
+
+                        <!-- used as $content-uri in chart form's onchange events -->
+                        <xsl:for-each select="id('query-form', ixsl:page())">
+                            <xsl:result-document href="?." method="ixsl:append-content">
+                                <input name="href" type="hidden" value="{$content-uri}"/>
+                            </xsl:result-document>
+                        </xsl:for-each>
                     </xsl:if>
 
                     <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
@@ -1991,23 +2006,12 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:result-document>
 
-                    <!-- initialize YASQE on the textarea -->
-                    <xsl:variable name="js-statement" as="element()">
-                        <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-                    </xsl:variable>
-                    <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-            
-                    <!-- used as $content-uri in chart form's onchange events -->
-                    <xsl:result-document href="?." method="ixsl:append-content">
-                        <input name="href" type="hidden" value="{$content-uri}"/>
-                    </xsl:result-document>
-        
+                    
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="data-table" select="$data-table"/>
                         <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2024,11 +2028,6 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="sparql" select="true()"/>
                         </xsl:call-template>
                     </xsl:if>
-
-                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
-                        <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
-                        <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
