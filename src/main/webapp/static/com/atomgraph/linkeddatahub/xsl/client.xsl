@@ -1952,7 +1952,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:param name="results-container-id" select="$container-id || 'sparql-results'" as="xs:string"/>
+        <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -1990,15 +1990,13 @@ extension-element-prefixes="ixsl"
                             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
                         </xsl:variable>
                         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-
-                        <!-- used as $content-uri in chart form's onchange events -->
-                        <xsl:for-each select="id('query-form', ixsl:page())">
-                            <xsl:result-document href="?." method="ixsl:append-content">
-                                <input name="href" type="hidden" value="{$content-uri}"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
                     </xsl:if>
 
+                    <!-- used as $content-uri in chart form's onchange events -->
+                    <xsl:for-each select="id('query-form', ixsl:page())//input[@name = 'href']">
+                        <ixsl:set-property name="value" select="{$content-uri}" object="."/>
+                    </xsl:for-each>
+                    
                     <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2867,7 +2865,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:variable name="results-container-id" select="$container-id || 'sparql-results'" as="xs:string"/>
+        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -2888,7 +2886,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:variable name="results-container-id" select="$container-id || 'sparql-results'" as="xs:string"/>
+        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
