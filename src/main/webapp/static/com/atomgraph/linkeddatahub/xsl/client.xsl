@@ -611,7 +611,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="state" as="item()?"/>
         <!-- set ?this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="if ($state?('&apl;content') = $content-uri) then string(map:get($state, '&sp;text')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="if ($state?('&apl;content') = $content-uri) then string(map:get($state, 'query')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:choose>
                 <!-- override $select-json with the query taken from $state -->
@@ -1316,17 +1316,18 @@ extension-element-prefixes="ixsl"
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
+        
         <!-- push the latest state into history. TO-DO: generalize both cases -->
         <xsl:choose>
             <xsl:when test="$service-uri">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', 'query': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', '&sp;text': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
+                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', 'query': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
@@ -1338,13 +1339,14 @@ extension-element-prefixes="ixsl"
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         
         <!-- push the latest state into history -->
         <xsl:choose>
             <xsl:when test="$sparql">
                 <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'sparql': true, 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
+                    <root statement="history.pushState({{ 'sparql': true, 'query': '{ac:escape-json($query)}', 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
@@ -1950,14 +1952,14 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
-        <!--<xsl:param name="sparql-results-id" select="$container-id || '-sparql-results'" as="xs:string"/>-->
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
-        
+        <xsl:param name="query" as="xs:string?"/>
+
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
@@ -1969,7 +1971,9 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <xsl:call-template name="bs2:QueryEditor"/>
+                        <xsl:call-template name="bs2:QueryEditor">
+                            <xsl:with-param name="query" select="$query"/>
+                        </xsl:call-template>
                         
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2003,6 +2007,7 @@ extension-element-prefixes="ixsl"
                         <xsl:call-template name="apl:PushState">
                             <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($content-uri) })"/>
                             <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="query" select="$query"/>
                             <xsl:with-param name="sparql" select="true()"/>
                         </xsl:call-template>
                     </xsl:if>
@@ -2278,6 +2283,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="content-uri" select="map:get($state, '&apl;content')" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
+        <xsl:variable name="query" select="map:get($state, 'query')" as="xs:string?"/>
         <xsl:variable name="sparql" select="map:contains($state, 'sparql')" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -2289,11 +2295,12 @@ extension-element-prefixes="ixsl"
             $content-uri: <xsl:value-of select="$content-uri"/>
             $href: <xsl:value-of select="$href"/>
             $uri: <xsl:value-of select="$uri"/>
+            $query: <xsl:value-of select="$query"/>
             $sparql: <xsl:value-of select="$sparql"/>
         </xsl:message>
         
         <xsl:choose>
-            <xsl:when test="$sparql"> <!-- TO-DO: use a field in the $state that marks this as a SPARQL query -->
+            <xsl:when test="$sparql">
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
                 <ixsl:schedule-action http-request="$request">
                     <xsl:call-template name="onSPARQLResultsLoad">
@@ -2301,6 +2308,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <!-- we don't want to push a state that was just popped -->
                         <xsl:with-param name="push-state" select="false()"/>
+                        <xsl:with-param name="query" select="$query"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
@@ -2889,7 +2897,7 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
@@ -2898,7 +2906,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query-string })" as="xs:anyURI"/>
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
@@ -2906,6 +2914,7 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="onSPARQLResultsLoad">
                 <xsl:with-param name="content-uri" select="$content-uri"/>
                 <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="query" select="$query"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
