@@ -1952,6 +1952,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:param name="results-container-id" select="$container-id || 'sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -1980,6 +1981,7 @@ extension-element-prefixes="ixsl"
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                             <xsl:call-template name="bs2:QueryEditor">
                                 <xsl:with-param name="query" select="$query"/>
+                                <xsl:with-param name="results-container-id" select="$results-container-id"/>
                             </xsl:call-template>
                         </xsl:result-document>
 
@@ -2865,11 +2867,14 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:variable name="results-container-id" select="$container-id || 'sparql-results'" as="xs:string"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-            <xsl:call-template name="bs2:QueryEditor"/>
+            <xsl:call-template name="bs2:QueryEditor">
+                <xsl:with-param name="results-container-id" select="$results-container-id"/>
+            </xsl:call-template>
         </xsl:result-document>
         
         <!-- initialize YASQE on the textarea -->
@@ -2883,6 +2888,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:variable name="results-container-id" select="$container-id || 'sparql-results'" as="xs:string"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
@@ -2892,6 +2898,7 @@ extension-element-prefixes="ixsl"
             <!-- set textarea's value to the query string from the hidden input -->
             <xsl:call-template name="bs2:QueryEditor">
                 <xsl:with-param name="query" select="$query-string"/>
+                <xsl:with-param name="results-container-id" select="$results-container-id"/>
             </xsl:call-template>
         </xsl:result-document>
         
