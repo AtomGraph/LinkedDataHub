@@ -1956,6 +1956,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+        <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -1966,15 +1967,10 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-
-                    <!-- is SPARQL results element does not already exist, create one -->
-<!--                    <xsl:if test="not(id($sparql-results-id, ixsl:page()))">
-                        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                            <div id="{$sparql-results-id}"/>
-                        </xsl:result-document>
-                    </xsl:if>-->
                     
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                        <xsl:call-template name="bs2:QueryEditor"/>
+                        
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -1982,6 +1978,12 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="series" select="$series"/>
                         </xsl:apply-templates>
                     </xsl:result-document>
+
+                    <!-- initialize YASQE on the textarea -->
+                    <xsl:variable name="js-statement" as="element()">
+                        <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
+                    </xsl:variable>
+                    <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
 
                     <!-- create new cache entry using content URI as key -->
                     <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
