@@ -1971,9 +1971,12 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     
                     <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <xsl:call-template name="bs2:QueryEditor">
-                            <xsl:with-param name="query" select="$query"/>
-                        </xsl:call-template>
+                        <!-- insert SPARQL query form if it's not already shown -->
+                        <xsl:if test="not(id($container-id, ixsl:page())//form[@id = 'query-form'])">
+                            <xsl:call-template name="bs2:QueryEditor">
+                                <xsl:with-param name="query" select="$query"/>
+                            </xsl:call-template>
+                        </xsl:if>
                         
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -1995,6 +1998,11 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
             
+                    <!-- used as $content-uri in chart form's onchange events -->
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <input name="href" type="hidden" value="{$content-uri}"/>
+                    </xsl:result-document>
+        
                     <xsl:call-template name="render-chart">
                         <xsl:with-param name="data-table" select="$data-table"/>
                         <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
@@ -2910,11 +2918,6 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
-        <!-- used as $content-uri in chart form's onchange events -->
-        <xsl:result-document href="?." method="ixsl:append-content">
-            <input name="href" type="hidden" value="{$content-uri}"/>
-        </xsl:result-document>
-        
         <ixsl:schedule-action http-request="$request">
             <xsl:call-template name="onSPARQLResultsLoad">
                 <xsl:with-param name="content-uri" select="$content-uri"/>
