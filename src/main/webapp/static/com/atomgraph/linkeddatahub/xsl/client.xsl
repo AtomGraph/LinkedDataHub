@@ -1952,6 +1952,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:param name="results-container-id" select="$container-id || '-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -1969,15 +1970,19 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <!-- insert SPARQL query form if it's not already shown -->
-                        <xsl:if test="not(id($container-id, ixsl:page())//form[@id = 'query-form'])">
+
+                    <!-- insert SPARQL query form if it's not already shown -->
+                    <xsl:if test="not(id('query-form'), ixsl:page())">
+                        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                             <xsl:call-template name="bs2:QueryEditor">
                                 <xsl:with-param name="query" select="$query"/>
                             </xsl:call-template>
-                        </xsl:if>
+                        </xsl:result-document>
                         
+                        <div id="{$results-container-id}"/>
+                    </xsl:if>
+
+                    <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
                             <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
