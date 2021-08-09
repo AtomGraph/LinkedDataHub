@@ -2910,6 +2910,11 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
+        <!-- used as $content-uri in chart form's onchange events -->
+        <xsl:result-document href="?." method="ixsl:append-content">
+            <input name="href" type="hidden" value="{$content-uri}"/>
+        </xsl:result-document>
+        
         <ixsl:schedule-action http-request="$request">
             <xsl:call-template name="onSPARQLResultsLoad">
                 <xsl:with-param name="content-uri" select="$content-uri"/>
