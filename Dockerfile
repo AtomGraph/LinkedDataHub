@@ -101,7 +101,7 @@ ENV GOOGLE_CLIENT_SECRET=
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN rm -rf webapps/* && \
-    apt-get update && \
+    apt-get update --allow-releaseinfo-change && \
     apt-get install -y xmlstarlet && \
     apt-get install -y gettext-base && \
     apt-get install -y uuid-runtime && \
