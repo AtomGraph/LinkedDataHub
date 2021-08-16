@@ -104,7 +104,8 @@ RUN rm -rf webapps/* && \
     apt-get update && \
     apt-get install -y xmlstarlet && \
     apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime
+    apt-get install -y uuid-runtime && \
+    rm -rf /var/lib/apt/lists/*
 
 # copy entrypoint
 
