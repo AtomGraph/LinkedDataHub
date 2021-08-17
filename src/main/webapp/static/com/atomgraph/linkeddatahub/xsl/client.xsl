@@ -1316,7 +1316,11 @@ extension-element-prefixes="ixsl"
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
-        
+
+        <xsl:message>
+            apl:PushContentState $href: <xsl:value-of select="$href"/> $sparql: <xsl:value-of select="$sparql"/>
+        </xsl:message>
+
         <!-- push the latest state into history. TO-DO: generalize both cases -->
         <xsl:choose>
             <xsl:when test="$service-uri">
@@ -1341,6 +1345,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
+        
+        <xsl:message>
+            apl:PushState $href: <xsl:value-of select="$href"/> $sparql: <xsl:value-of select="$sparql"/>
+        </xsl:message>
         
         <!-- push the latest state into history -->
         <xsl:choose>
