@@ -1318,7 +1318,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
 
         <xsl:message>
-            apl:PushContentState $href: <xsl:value-of select="$href"/> $sparql: <xsl:value-of select="$sparql"/>
+            apl:PushContentState $href: <xsl:value-of select="$href"/> $content-uri: <xsl:value-of select="$content-uri"/>
         </xsl:message>
 
         <!-- push the latest state into history. TO-DO: generalize both cases -->
