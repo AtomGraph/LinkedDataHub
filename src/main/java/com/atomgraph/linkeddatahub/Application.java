@@ -86,7 +86,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
 import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
-import com.atomgraph.linkeddatahub.server.io.SkolemizingDatasetProvider;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
@@ -631,7 +630,6 @@ public class Application extends ResourceConfig
         
         eventBus.register(this); // this system application will be receiving events about context changes
         
-        register(new SkolemizingDatasetProvider());
         register(new SkolemizingModelProvider());
         register(new ResultSetProvider());
         register(new QueryParamProvider());

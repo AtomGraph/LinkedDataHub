@@ -2197,11 +2197,13 @@ extension-element-prefixes="ixsl"
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
-            <!-- deactivate .btn-edit -->
-            <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-edit'], 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <!-- enable .btn-save-as -->
-            <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- deactivate .btn-edit if it's presetn -->
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- enable .btn-save-as if it's present -->
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-save-as']">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>

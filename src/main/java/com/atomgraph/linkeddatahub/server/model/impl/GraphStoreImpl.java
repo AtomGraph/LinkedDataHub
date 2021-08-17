@@ -80,7 +80,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (log.isDebugEnabled()) log.debug("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
+        if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
         if (model.isEmpty()) return Response.noContent().build();
         
@@ -126,7 +126,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response post(Model model, URI forClass)
     {
         Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-        if (instance == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+        if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
         
         try
         {
