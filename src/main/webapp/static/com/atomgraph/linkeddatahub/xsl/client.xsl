@@ -1319,9 +1319,11 @@ extension-element-prefixes="ixsl"
 
         <xsl:message>
             $select-xml: <xsl:copy-of select="$select-xml"/>
-            
+        </xsl:message>
+        <xsl:message>
             xml-to-json($select-xml): <xsl:value-of select="xml-to-json($select-xml)"/>
-            
+        </xsl:message>
+        <xsl:message>
             apl:PushContentState $href: <xsl:value-of select="$href"/> $content-uri: <xsl:value-of select="$content-uri"/>
         </xsl:message>
 
