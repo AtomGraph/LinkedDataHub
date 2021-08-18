@@ -1333,11 +1333,12 @@ extension-element-prefixes="ixsl"
                 <xsl:map-entry key="'container-id'" select="$container-id"/>
                 <xsl:map-entry key="'&apl;content'" select="$content-uri"/>
                 <xsl:map-entry key="'query'" select="ac:escape-json($select-string)"/>
-                <xsl:map-entry key="'&spin;query'" select="xml-to-json($select-xml)"/>
+                <!--<xsl:map-entry key="'&spin;query'" select="xml-to-json($select-xml)"/>-->
                 <!--<xsl:map-entry key="'&apl;service'" select="$service-uri"/>-->
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+        <ixsl:set-property name="&spin;query" select="ixsl:call(ixsl:window(), 'JSON.parse', [ xml-to-json($select-xml) ])" object="$state"/>
         <!--<xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>-->
         <ixsl:set-property name="tmp" select="$state-obj" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         
