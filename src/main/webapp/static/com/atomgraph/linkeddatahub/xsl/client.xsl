@@ -1333,9 +1333,7 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
         <!--<xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>-->
-        <xsl:message>
-            $state-obj: <xsl:sequence select="$state-obj"/>
-        </xsl:message>
+        <ixsl:set-property name="tmp" select="$state-obj" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         
         <!-- push the latest state into history. TO-DO: generalize both cases -->
         <xsl:choose>
