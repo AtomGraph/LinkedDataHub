@@ -1318,6 +1318,10 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
 
         <xsl:message>
+            $select-xml: <xsl:copy-of select="$select-xml"/>
+            
+            xml-to-json($select-xml): <xsl:value-of select="xml-to-json($select-xml)"/>
+            
             apl:PushContentState $href: <xsl:value-of select="$href"/> $content-uri: <xsl:value-of select="$content-uri"/>
         </xsl:message>
 
