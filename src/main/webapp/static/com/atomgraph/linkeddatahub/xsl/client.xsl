@@ -1321,6 +1321,22 @@ extension-element-prefixes="ixsl"
             apl:PushContentState $href: <xsl:value-of select="$href"/> $content-uri: <xsl:value-of select="$content-uri"/>
         </xsl:message>
 
+        <xsl:variable name="state" as="map(xs:string, item())">
+            <xsl:map>
+                <xsl:map-entry key="'href'" select="$href"/>
+                <xsl:map-entry key="'container-id'" select="$container-id"/>
+                <xsl:map-entry key="'&apl;content'" select="$content-uri"/>
+                <xsl:map-entry key="'query'" select="ac:escape-json($select-string)"/>
+                <xsl:map-entry key="'&spin;query'" select="$select-json-string"/>
+                <!--<xsl:map-entry key="'&apl;service'" select="JSON.parse('{$select-json-string}')"/>-->
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+        <!--<xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>-->
+        <xsl:message>
+            $state-obj: <xsl:sequence select="$state-obj"/>
+        </xsl:message>
+        
         <!-- push the latest state into history. TO-DO: generalize both cases -->
         <xsl:choose>
             <xsl:when test="$service-uri">
