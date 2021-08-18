@@ -1327,8 +1327,8 @@ extension-element-prefixes="ixsl"
                 <xsl:map-entry key="'container-id'" select="$container-id"/>
                 <xsl:map-entry key="'&apl;content'" select="$content-uri"/>
                 <xsl:map-entry key="'query'" select="ac:escape-json($select-string)"/>
-                <xsl:map-entry key="'&spin;query'" select="$select-json-string"/>
-                <!--<xsl:map-entry key="'&apl;service'" select="JSON.parse('{$select-json-string}')"/>-->
+                <xsl:map-entry key="'&spin;query'" select="xml-to-json($select-xml)"/>
+                <!--<xsl:map-entry key="'&apl;service'" select="$service-uri"/>-->
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
