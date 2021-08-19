@@ -1342,10 +1342,12 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
         <ixsl:set-property name="query" select="ixsl:call(ixsl:window(), 'JSON.parse', [ xml-to-json($select-xml) ])" object="$state-obj"/>
         <!--<xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>-->
-        <ixsl:set-property name="tmp" select="$state-obj" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!--<ixsl:set-property name="tmp" select="$state-obj" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         
         <!-- push the latest state into history. TO-DO: generalize both cases -->
-        <xsl:choose>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title ])[current-date() lt xs:date('2000-01-01')]"/>
+
+<!--        <xsl:choose>
             <xsl:when test="$service-uri">
                 <xsl:variable name="js-statement" as="element()">
                     <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', 'query': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
@@ -1358,7 +1360,7 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
-        </xsl:choose>
+        </xsl:choose>-->
     </xsl:template>
 
     <xsl:template name="apl:PushState">
