@@ -1331,10 +1331,12 @@ extension-element-prefixes="ixsl"
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
                 <xsl:map-entry key="'container-id'" select="$container-id"/>
-                <xsl:map-entry key="'&apl;content'" select="$content-uri"/>
-                <xsl:map-entry key="'query-string'" select="ac:escape-json($select-string)"/>
+                <xsl:map-entry key="'content-uri'" select="$content-uri"/>
+                <xsl:map-entry key="'query-string'" select="$select-string"/>
                 <!--<xsl:map-entry key="'&spin;query'" select="xml-to-json($select-xml)"/>-->
-                <!--<xsl:map-entry key="'&apl;service'" select="$service-uri"/>-->
+                <xsl:if test="$service-uri">
+                    <xsl:map-entry key="'service'" select="$service-uri"/>
+                </xsl:if>
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
