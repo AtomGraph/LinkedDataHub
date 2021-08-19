@@ -1315,7 +1315,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
-        <xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>
+        <!--<xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>-->
 
         <xsl:message>
             $select-xml: <xsl:copy-of select="$select-xml"/>
@@ -1333,7 +1333,6 @@ extension-element-prefixes="ixsl"
                 <xsl:map-entry key="'container-id'" select="$container-id"/>
                 <xsl:map-entry key="'content-uri'" select="$content-uri"/>
                 <xsl:map-entry key="'query-string'" select="$select-string"/>
-                <!--<xsl:map-entry key="'&spin;query'" select="xml-to-json($select-xml)"/>-->
                 <xsl:if test="$service-uri">
                     <xsl:map-entry key="'service'" select="$service-uri"/>
                 </xsl:if>
@@ -1341,26 +1340,9 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
         <ixsl:set-property name="query" select="ixsl:call(ixsl:window(), 'JSON.parse', [ xml-to-json($select-xml) ])" object="$state-obj"/>
-        <!--<xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>-->
-        <!--<ixsl:set-property name="tmp" select="$state-obj" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         
-        <!-- push the latest state into history. TO-DO: generalize both cases -->
+        <!-- push the latest state into history-->
         <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title ])[current-date() lt xs:date('2000-01-01')]"/>
-
-<!--        <xsl:choose>
-            <xsl:when test="$service-uri">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', 'query': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}'), '&apl;service': '{$service-uri}' }}, '{$title}')"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{$container-id}', '&apl;content': '{$content-uri}', 'query': '{ac:escape-json($select-string)}', '&spin;query': JSON.parse('{$select-json-string}') }}, '{$title}')"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>-->
     </xsl:template>
 
     <xsl:template name="apl:PushState">
@@ -1375,8 +1357,24 @@ extension-element-prefixes="ixsl"
             apl:PushState $href: <xsl:value-of select="$href"/> $sparql: <xsl:value-of select="$sparql"/>
         </xsl:message>
         
+        <xsl:variable name="state" as="map(xs:string, item())">
+            <xsl:map>
+                <xsl:map-entry key="'href'" select="$href"/>
+                <xsl:map-entry key="'container-id'" select="$container-id"/>
+                <xsl:map-entry key="'content-uri'" select="$content-uri"/>
+                <xsl:map-entry key="'query-string'" select="$query"/>
+                <xsl:map-entry key="'sparql'" select="$sparql"/>
+<!--                <xsl:if test="$service-uri">
+                    <xsl:map-entry key="'service'" select="$service-uri"/>
+                </xsl:if>-->
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+
         <!-- push the latest state into history -->
-        <xsl:choose>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title ])[current-date() lt xs:date('2000-01-01')]"/>
+
+<!--        <xsl:choose>
             <xsl:when test="$sparql">
                 <xsl:variable name="js-statement" as="element()">
                     <root statement="history.pushState({{ 'sparql': true, 'query': '{ac:escape-json($query)}', 'href': '{$href}', 'container-id': '{$container-id}' }}, '{$title}', '{$href}')"/>
@@ -1389,7 +1387,7 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
                 <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
-        </xsl:choose>
+        </xsl:choose>-->
     </xsl:template>
     
     <!-- load contents -->
