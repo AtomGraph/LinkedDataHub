@@ -656,14 +656,14 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'LinkedDataHub.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="service-uri" select="$service-uri"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
@@ -1314,6 +1314,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
+        <!--<xsl:param name="contents" as="map(xs:anyURI, map(xs:string, item()))"/>-->
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
         <!--<xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>-->
 
