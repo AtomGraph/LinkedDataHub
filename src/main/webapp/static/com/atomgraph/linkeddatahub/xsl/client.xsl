@@ -1376,7 +1376,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
 
         <!-- push the latest state into history -->
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
 
 <!--        <xsl:choose>
             <xsl:when test="$sparql">
@@ -2345,7 +2345,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <!-- decode URI from the ?uri query param which is used in apl:PushState -->
-        <xsl:variable name="uri" select="if ($content-uri) then $href else xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
         <xsl:message>
             onpopstate
             $content-uri: <xsl:value-of select="$content-uri"/>
