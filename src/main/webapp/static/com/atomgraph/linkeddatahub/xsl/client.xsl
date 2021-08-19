@@ -1361,7 +1361,7 @@ extension-element-prefixes="ixsl"
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
                 <xsl:map-entry key="'container-id'" select="$container-id"/>
-                <xsl:map-entry key="'content-uri'" select="$content-uri"/>
+                <!--<xsl:map-entry key="'content-uri'" select="$content-uri"/>-->
                 <xsl:map-entry key="'query-string'" select="$query"/>
                 <xsl:map-entry key="'sparql'" select="$sparql"/>
 <!--                <xsl:if test="$service-uri">
