@@ -2173,6 +2173,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
+        <xsl:message>
+            onDocumentLoad
+            $uri: <xsl:value-of select="$uri"/>
+            $container-id: <xsl:value-of select="$container-id"/>
+            $push-state: <xsl:value-of select="$push-state"/>
+        </xsl:message>
+        
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
