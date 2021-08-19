@@ -1313,6 +1313,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="select-xml" as="document-node()"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         <!--<xsl:param name="contents" as="map(xs:anyURI, map(xs:string, item()))"/>-->
         <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
@@ -1334,6 +1335,7 @@ extension-element-prefixes="ixsl"
                 <xsl:map-entry key="'container-id'" select="$container-id"/>
                 <xsl:map-entry key="'content-uri'" select="$content-uri"/>
                 <xsl:map-entry key="'query-string'" select="$select-string"/>
+                <xsl:map-entry key="'sparql'" select="$sparql"/>
                 <xsl:if test="$service-uri">
                     <xsl:map-entry key="'service-uri'" select="$service-uri"/>
                 </xsl:if>
@@ -2338,7 +2340,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
         <xsl:variable name="query" select="map:get($state, 'query-string')" as="xs:string?"/>
-        <xsl:variable name="sparql" select="map:contains($state, 'sparql')" as="xs:boolean"/>
+        <xsl:variable name="sparql" select="map:get($state, 'sparql')" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
