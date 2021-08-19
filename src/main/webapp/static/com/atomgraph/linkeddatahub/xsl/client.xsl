@@ -2336,10 +2336,10 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="." mode="ixsl:onpopstate">
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
-        <xsl:variable name="content-uri" select="map:get($state, 'content-uri')" as="xs:anyURI?"/>
+        <xsl:variable name="content-uri" select="if (map:contains($state, 'content-uri')) then map:get($state, 'content-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
-        <xsl:variable name="query" select="map:get($state, 'query-string')" as="xs:string?"/>
+        <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
         <xsl:variable name="sparql" select="map:get($state, 'sparql')" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -2351,7 +2351,7 @@ extension-element-prefixes="ixsl"
             $content-uri: <xsl:value-of select="$content-uri"/>
             $href: <xsl:value-of select="$href"/>
             $uri: <xsl:value-of select="$uri"/>
-            $query: <xsl:value-of select="$query"/>
+            $query-string: <xsl:value-of select="$query-string"/>
             $sparql: <xsl:value-of select="$sparql"/>
         </xsl:message>
         
@@ -2364,7 +2364,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="container-id" select="$container-id"/>
                         <!-- we don't want to push a state that was just popped -->
                         <xsl:with-param name="push-state" select="false()"/>
-                        <xsl:with-param name="query" select="$query"/>
+                        <xsl:with-param name="query" select="$query-string"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
