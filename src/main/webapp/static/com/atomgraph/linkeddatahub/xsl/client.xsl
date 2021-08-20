@@ -2279,7 +2279,11 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results" select="." as="document-node()"/>
         <xsl:message>
             $results: <xsl:copy-of select="$results"/>
+        </xsl:message>
+        <xsl:message>
             id($container-id, $results): <xsl:value-of select="id($container-id, $results)"/>
+        </xsl:message>
+        <xsl:message>
             id($container-id, ixsl:page()): <xsl:value-of select="id($container-id, ixsl:page())"/>
         </xsl:message>
         <!-- replace content body with the loaded XHTML -->
