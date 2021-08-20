@@ -2357,7 +2357,7 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                        <xsl:with-param name="container-id" select="$container-id"/>
+                        <!--<xsl:with-param name="container-id" select="$container-id"/>-->
                         <xsl:with-param name="state" select="$state"/>
                         <!-- we don't want to push the same state we just popped back to -->
                         <xsl:with-param name="push-state" select="false()"/>
