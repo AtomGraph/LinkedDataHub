@@ -1181,7 +1181,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'history.state.href')) })"/>
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'history.state.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1228,7 +1228,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'history.state.href')) })"/>
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'history.state.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1274,7 +1274,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'history.state.href')) })"/>
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'history.state.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1319,7 +1319,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'history.state.href')) })"/>
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'history.state.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1627,7 +1627,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'history.state.href')) })"/>
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'history.state.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1665,7 +1665,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'history.state.href')) })"/>
+            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'history.state.href')"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
