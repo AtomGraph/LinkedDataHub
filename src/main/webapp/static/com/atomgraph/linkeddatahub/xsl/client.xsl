@@ -1311,13 +1311,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
-        <!--<xsl:param name="contents" as="map(xs:anyURI, map(xs:string, item()))"/>-->
-        <!-- we need to escape the backslashes with replace() before passing the JSON string to JSON.parse() -->
-        <!--<xsl:variable name="select-json-string" select="replace(xml-to-json($select-xml), '\\', '\\\\')" as="xs:string"/>-->
 
         <xsl:message>
             $select-xml: <xsl:copy-of select="$select-xml"/>
@@ -2249,6 +2246,7 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
+        <!-- TO-DO: is LinkedDataHub.href used? -->
         <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:choose>
             <xsl:when test="starts-with($uri, $ldt:base)">
