@@ -1329,7 +1329,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
                 <xsl:map-entry key="'href'" select="$href"/>
-                <xsl:map-entry key="'container-id'" select="$container-id"/>
+                <!--<xsl:map-entry key="'container-id'" select="$container-id"/>-->
                 <xsl:map-entry key="'content-uri'" select="$content-uri"/>
                 <xsl:map-entry key="'query-string'" select="$select-string"/>
                 <xsl:map-entry key="'sparql'" select="$sparql"/>
@@ -2322,7 +2322,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
         <xsl:variable name="content-uri" select="if (map:contains($state, 'content-uri')) then map:get($state, 'content-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
-        <xsl:variable name="container-id" select="map:get($state, 'container-id')" as="xs:anyURI?"/>
+        <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
         <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
         <xsl:variable name="sparql" select="map:get($state, 'sparql')" as="xs:boolean"/>
 
