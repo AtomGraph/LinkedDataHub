@@ -2180,6 +2180,7 @@ extension-element-prefixes="ixsl"
             $uri: <xsl:value-of select="$uri"/>
             $container-id: <xsl:value-of select="$container-id"/>
             $push-state: <xsl:value-of select="$push-state"/>
+            ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>
         </xsl:message>
         
         <xsl:variable name="response" select="." as="map(*)"/>
@@ -2277,15 +2278,6 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
 
         <xsl:variable name="results" select="." as="document-node()"/>
-        <xsl:message>
-            $results: <xsl:copy-of select="$results"/>
-        </xsl:message>
-        <xsl:message>
-            id($container-id, $results): <xsl:value-of select="id($container-id, $results)"/>
-        </xsl:message>
-        <xsl:message>
-            id($container-id, ixsl:page()): <xsl:value-of select="id($container-id, ixsl:page())"/>
-        </xsl:message>
         <!-- replace content body with the loaded XHTML -->
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:copy-of select="id($container-id, $results)/*"/>
