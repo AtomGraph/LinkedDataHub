@@ -2277,6 +2277,11 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
 
         <xsl:variable name="results" select="." as="document-node()"/>
+        <xsl:message>
+            $results: <xsl:copy-of select="$results"/>
+            id($container-id, $results): <xsl:value-of select="id($container-id, $results)"/>
+            id($container-id, ixsl:page()): <xsl:value-of select="id($container-id, ixsl:page())"/>
+        </xsl:message>
         <!-- replace content body with the loaded XHTML -->
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:copy-of select="id($container-id, $results)/*"/>
@@ -2313,21 +2318,6 @@ extension-element-prefixes="ixsl"
         <xsl:call-template name="apl:LoadBreadcrumbs">
             <xsl:with-param name="uri" select="$uri"/>
         </xsl:call-template>
-
-<!--                    <xsl:if test="key('resources', $uri) and id('breadcrumb-nav', ixsl:page())">
-            <xsl:variable name="resource" select="key('resources', $uri)" as="element()"/>
-
-            <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                <ul class="breadcrumb pull-left">
-                    <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
-                        <xsl:with-param name="leaf" select="true()"/>
-                    </xsl:apply-templates>
-                </ul>
-                <span class="label label-info pull-left">External</span>
-            </xsl:result-document>
-
-            <xsl:result-document href="#result-counts" method="ixsl:replace-content"/>
-        </xsl:if>-->
     </xsl:template>
     
     <!-- EVENT LISTENERS -->
