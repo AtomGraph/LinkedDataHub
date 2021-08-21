@@ -184,8 +184,14 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="uri" select="$ac:uri"/>
             </xsl:call-template>
         </xsl:if>
-        <!-- initialize SPARQL query service dropdown -->
-        <xsl:for-each select="id('query-service', ixsl:page())">
+        <!-- append typeahead list after the search/URI input -->
+        <xsl:for-each select="id('uri', ixsl:page())/..">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
+            </xsl:result-document>
+        </xsl:for-each>
+        <!-- initialize services (and the search dropdown, if it's shown) -->
+        <xsl:for-each select="id('search-service', ixsl:page())">
             <xsl:variable name="service-select" select="." as="element()"/>
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad">
@@ -194,27 +200,6 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
-        <!--  append Save form to Query form -->
-<!--        <xsl:for-each select="id('query-form', ixsl:page())/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:call-template name="bs2:SaveQueryForm">
-                    <xsl:with-param name="query" select="ixsl:call(ixsl:get(ixsl:window(), 'yasqe'), 'getValue', [])" as="xs:string"/>  get query string from YASQE 
-                </xsl:call-template>
-            </xsl:result-document>
-        </xsl:for-each>-->
-        <!-- append typeahead list after the search/URI input -->
-        <xsl:for-each select="id('uri', ixsl:page())/..">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
-            </xsl:result-document>
-        </xsl:for-each>
-        <!-- initialize services (and the search dropdown, if it's shown) -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onServiceLoad">
-                <xsl:with-param name="service-select" select="id('search-service', ixsl:page())"/>
-                <xsl:with-param name="selected-service" select="$ac:service"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:call-template name="apl:LoadContents">

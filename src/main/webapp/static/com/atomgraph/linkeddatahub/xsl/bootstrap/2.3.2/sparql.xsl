@@ -23,8 +23,9 @@
     <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="3.0"
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+xmlns:ixsl="http://saxonica.com/ns/interactiveXSLT"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:lapp="&lapp;"
 xmlns:a="&a;"
@@ -93,8 +94,17 @@ LIMIT 100</xsl:param>
 
                 <!--<legend>SPARQL editor</legend>-->
 
+                <xsl:for-each select="id('query-service', ixsl:page())">
+                    <xsl:variable name="service-select" select="." as="element()"/>
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onServiceLoad">
+                            <xsl:with-param name="service-select" select="$service-select"/>
+                            <xsl:with-param name="selected-service" select="$service"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:for-each>
+
                 <xsl:call-template name="bs2:QueryForm">
-                    <!--<xsl:with-param name="uri" select="$ac:uri"/>-->
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="service" select="$service"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
