@@ -2897,7 +2897,18 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="results-container-id" select="$results-container-id"/>
             </xsl:call-template>
         </xsl:result-document>
-        
+
+        <!-- initialize SPARQL query service dropdown -->
+        <xsl:for-each select="id('query-service', ixsl:page())">
+            <xsl:variable name="service-select" select="." as="element()"/>
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onServiceLoad">
+                    <xsl:with-param name="service-select" select="$service-select"/>
+                    <xsl:with-param name="selected-service" select="$service"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:for-each>
+
         <!-- initialize YASQE on the textarea -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
