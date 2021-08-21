@@ -2899,11 +2899,11 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         
         <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- enable .btn-save-as if it's present -->
         <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-save-as']">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
