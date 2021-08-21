@@ -94,6 +94,14 @@ LIMIT 100</xsl:param>
 
                 <!--<legend>SPARQL editor</legend>-->
 
+                <xsl:call-template name="bs2:QueryForm">
+                    <xsl:with-param name="mode" select="$mode"/>
+                    <xsl:with-param name="service" select="$service"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
+                    <xsl:with-param name="query" select="$query"/>
+                    <xsl:with-param name="default-query" select="$default-query"/>
+                </xsl:call-template>
+                
                 <xsl:for-each select="id('query-service', ixsl:page())">
                     <xsl:variable name="service-select" select="." as="element()"/>
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -103,14 +111,6 @@ LIMIT 100</xsl:param>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
-
-                <xsl:call-template name="bs2:QueryForm">
-                    <xsl:with-param name="mode" select="$mode"/>
-                    <xsl:with-param name="service" select="$service"/>
-                    <xsl:with-param name="endpoint" select="$endpoint"/>
-                    <xsl:with-param name="query" select="$query"/>
-                    <xsl:with-param name="default-query" select="$default-query"/>
-                </xsl:call-template>
             </div>
         </div>
         
