@@ -94,6 +94,10 @@ LIMIT 100</xsl:param>
 
                 <!--<legend>SPARQL editor</legend>-->
 
+                <xsl:message>
+                    bs2:QueryForm
+                </xsl:message>
+                
                 <xsl:call-template name="bs2:QueryForm">
                     <xsl:with-param name="mode" select="$mode"/>
                     <xsl:with-param name="service" select="$service"/>
@@ -101,6 +105,10 @@ LIMIT 100</xsl:param>
                     <xsl:with-param name="query" select="$query"/>
                     <xsl:with-param name="default-query" select="$default-query"/>
                 </xsl:call-template>
+                
+                <xsl:message>
+                    exists(id('query-service', ixsl:page())): <xsl:for-each select="exists(id('query-service', ixsl:page()))"/>
+                </xsl:message>
                 
                 <xsl:for-each select="id('query-service', ixsl:page())">
                     <xsl:variable name="service-select" select="." as="element()"/>
