@@ -107,7 +107,7 @@ LIMIT 100</xsl:param>
                 </xsl:call-template>
                 
                 <xsl:message>
-                    exists(id('query-service', ixsl:page())): <xsl:for-each select="exists(id('query-service', ixsl:page()))"/>
+                    exists(id('query-service', ixsl:page())): <xsl:value-of select="exists(id('query-service', ixsl:page()))"/>
                 </xsl:message>
                 
                 <xsl:for-each select="id('query-service', ixsl:page())">
