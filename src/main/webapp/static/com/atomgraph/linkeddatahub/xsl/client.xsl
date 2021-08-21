@@ -2855,7 +2855,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="forClass" select="resolve-uri('admin/model/ontologies/system/#Select', $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="resolve-uri('admin/model/ontologies/system/#Select', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: infer query type from query string -->
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
@@ -3408,7 +3408,11 @@ extension-element-prefixes="ixsl"
     <!-- open a form to save RDF document (do nothing is the button is disabled) -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
+        <xsl:variable name="query" select="if (id($textarea-id, ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id), 'getValue', []) else ()" as="xs:string?"/>
+        <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($ac:endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/> <!-- TO-DO: get service endpoint from dropdown -->
+        <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
+        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
         <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
 
         <xsl:call-template name="apl:ShowAddDataForm">
