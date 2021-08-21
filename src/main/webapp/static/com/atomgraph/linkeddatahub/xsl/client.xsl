@@ -3308,21 +3308,19 @@ extension-element-prefixes="ixsl"
         <xsl:call-template name="apl:ShowAddDataForm"/>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit']" mode="ixsl:onclick">
-        <!-- do nothing is the button is disabled (e.g. SELECT results cannot be saved) -->
-        <xsl:if test="not(tokenize(@class, ' ') = 'disabled')">
-            <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
-            <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-            <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
+    <!-- open editing form (do nothing if the button is disabled) -->
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
-            <!-- toggle .active class -->
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!-- toggle .active class -->
+        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm"/>
-            </ixsl:schedule-action>
-        </xsl:if>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onAddForm"/>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <xsl:template match="div[tokenize(@class, ' ') = 'modal']//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
@@ -3407,20 +3405,17 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri ])"/>
     </xsl:template>
 
-    <!-- open a form to save RDF document -->
+    <!-- open a form to save RDF document (do nothing is the button is disabled) -->
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as']" mode="ixsl:onclick">
-        <!-- do nothing is the button is disabled (e.g. SELECT results cannot be saved) -->
-        <xsl:if test="not(tokenize(@class, ' ') = 'disabled')">
-            <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
-            <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
 
-            <xsl:call-template name="apl:ShowAddDataForm">
-                <xsl:with-param name="source" select="$uri"/>
-                <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
-                <xsl:with-param name="container" select="$local-uri"/>
-            </xsl:call-template>
-        </xsl:if>
+        <xsl:call-template name="apl:ShowAddDataForm">
+            <xsl:with-param name="source" select="$uri"/>
+            <xsl:with-param name="graph" select="resolve-uri(encode-for-uri($uri) || '/', $local-uri)"/>
+            <xsl:with-param name="container" select="$local-uri"/>
+        </xsl:call-template>
     </xsl:template>
 
     <!-- FORM IDENTITY TRANSFORM -->
