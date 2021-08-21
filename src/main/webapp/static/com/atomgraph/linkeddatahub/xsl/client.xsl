@@ -2002,10 +2002,10 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                    
-                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']">
-                        <!-- disable 'btn-save-as' if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
-                        <xsl:sequence select="ixsl:call(ixsl:get(.//button[tokenize(@class, ' ') = 'btn-save-as'], 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <!-- disable buttons if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
+                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-save-as']">
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
                     <!-- insert SPARQL query form if it's not already shown -->
@@ -2237,7 +2237,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-        <!-- deactivate .btn-edit if it's presetn -->
+        <!-- deactivate .btn-edit if it's present -->
         <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
@@ -2897,6 +2897,15 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+        <!-- enable .btn-save-as if it's present -->
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-save-as']">
+            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
+
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:call-template name="bs2:QueryEditor">
                 <xsl:with-param name="results-container-id" select="$results-container-id"/>
