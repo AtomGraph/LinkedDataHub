@@ -2904,7 +2904,7 @@ extension-element-prefixes="ixsl"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad">
                     <xsl:with-param name="service-select" select="$service-select"/>
-                    <xsl:with-param name="selected-service" select="$service"/>
+                    <!--<xsl:with-param name="selected-service" select="$service"/>-->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
