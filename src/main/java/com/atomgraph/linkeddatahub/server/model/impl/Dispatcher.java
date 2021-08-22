@@ -135,6 +135,18 @@ public class Dispatcher
     {
         return com.atomgraph.linkeddatahub.resource.Clone.class;
     }
+
+    @Path("oauth2/authorize/google")
+    public Object getAuthorizeGoogle()
+    {
+        return com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.class;
+    }
+
+    @Path("oauth2/login")
+    public Object getOAuth2Login()
+    {
+        return com.atomgraph.linkeddatahub.resource.oauth2.Login.class;
+    }
     
     public Class getResourceClass()
     {
