@@ -243,52 +243,6 @@ WHERE
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#sitemapQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX  owl:  <http://www.w3.org/2002/07/owl#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-
-### ?isDefinedBy value is set from code, so the variable name cannot be changed! ###
-DESCRIBE ?isDefinedBy ?doc ?term
-WHERE
-  { GRAPH ?ontGraph
-      { ?isDefinedBy  a                 ?type
-        OPTIONAL
-          { ?isDefinedBy  foaf:isPrimaryTopicOf  ?doc }
-      }
-    OPTIONAL
-      { GRAPH ?termGraph
-          { ?term  rdfs:isDefinedBy  ?isDefinedBy }
-      }
-  }
-]]></param-value>
-    </context-param>
-    <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#graphDocumentQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  void: <http://rdfs.org/ns/void#>
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-SELECT DISTINCT *
-WHERE
-  { GRAPH ?provGraph
-      { ?this     foaf:primaryTopic  ?Dataset .
-        ?Document  void:inDataset    ?Dataset
-        GRAPH ?this
-          { ?Document  ?p  ?o
-            OPTIONAL
-              {   { ?Document  sioc:has_parent  ?Container }
-                UNION
-                  { ?Document  sioc:has_container  ?Container }
-              }
-          }
-      }
-  }
-]]></param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#restrictionsQuery</param-name>
         <param-value><![CDATA[
 PREFIX ldt:	<https://www.w3.org/ns/ldt#>

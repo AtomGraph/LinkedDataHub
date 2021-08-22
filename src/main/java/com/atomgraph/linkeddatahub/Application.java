@@ -227,7 +227,7 @@ public class Application extends ResourceConfig
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, sitemapQuery, appQuery, graphDocumentQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, appQuery; // no relative URIs
     private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
@@ -278,8 +278,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.sitemapQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.graphDocumentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
@@ -317,8 +315,8 @@ public class Application extends ResourceConfig
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final boolean remoteVariableBindings,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
-            final String appQueryString, final String sitemapQueryString,
-            final String graphDocumentQueryString, final String putUpdateString, final String deleteUpdateString,
+            final String appQueryString,
+            final String putUpdateString, final String deleteUpdateString,
             final String baseURIString,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
@@ -393,20 +391,6 @@ public class Application extends ResourceConfig
         }
         appQuery = QueryFactory.create(appQueryString, baseURIString);
         appQuery.setBaseURI(baseURIString); // for some reason the above is not enough
-        
-        if (sitemapQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.sitemapQuery.getURI());
-            throw new ConfigurationException(APLC.sitemapQuery);
-        }
-        sitemapQuery = QueryFactory.create(sitemapQueryString);
-        
-        if (graphDocumentQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.graphDocumentQuery);
-            throw new ConfigurationException(APLC.graphDocumentQuery);
-        }
-        this.graphDocumentQuery =  QueryFactory.create(graphDocumentQueryString);
                 
         if (uploadRootString == null)
         {
@@ -1110,19 +1094,9 @@ public class Application extends ResourceConfig
         return userAccountQuery;
     }
     
-    public Query getSitemapQuery()
-    {
-        return sitemapQuery;
-    }
-    
     public Query getAppQuery()
     {
         return appQuery;
-    }
-
-    public Query getGraphDocumentQuery()
-    {
-        return graphDocumentQuery;
     }
 
     public UpdateRequest getPutUpdate(String baseURI)
