@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Path("oauth2/authorize/google")
 public class Authorize // extends ResourceBase
 {
     private static final Logger log = LoggerFactory.getLogger(Authorize.class);

@@ -38,6 +38,7 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Entity;
@@ -68,6 +69,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Path("oauth2/login")
 public class Login extends GraphStoreImpl
 {
 
