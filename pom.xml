@@ -140,7 +140,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
-            <version>3.0.64-SNAPSHOT</version>
+            <version>3.0.64</version>
             <type>war</type>
         </dependency>
         <dependency>
