@@ -2152,7 +2152,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
-        <xsl:param name="service-uri" select="xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value'))" as="xs:anyURI?"/>
+        <xsl:param name="service-uri" select="if (id('search-service', ixsl:page()) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
