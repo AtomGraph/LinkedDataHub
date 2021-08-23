@@ -163,6 +163,12 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="local-href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- push initial state -->
+        <xsl:call-template name="apl:PushState">
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string($ac:uri) })"/>
+            <xsl:with-param name="title" select="ixsl:get(ixsl:window(), 'document.title')"/>
+            <xsl:with-param name="container-id" select="'content-body'"/>
+        </xsl:call-template>
         <!-- load application's ontology RDF document -->
 <!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onOntologyLoad"/>
