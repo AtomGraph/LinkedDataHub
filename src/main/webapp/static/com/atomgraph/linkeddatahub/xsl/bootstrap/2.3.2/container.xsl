@@ -1446,11 +1446,11 @@ exclude-result-prefixes="#all"
                         <xsl:choose>
                             <!-- special case for rdf:type - we expect its values to be in the ontology (classes), not in the instance data -->
                             <xsl:when test="$predicate = '&rdf;type'">
+                                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                                    <ul class="well well-small nav nav-list"></ul>
+                                </xsl:result-document>
+
                                 <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
-                                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                                        <ul class="well well-small nav nav-list"></ul>
-                                    </xsl:result-document>
-                                
                                     <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                     <xsl:variable name="value-result" select="." as="element()"/>
                                     <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
