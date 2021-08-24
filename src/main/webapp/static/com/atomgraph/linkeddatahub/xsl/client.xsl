@@ -3656,6 +3656,8 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="new-form-id" select="$form-id"/>
         </xsl:call-template>
 
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddSaveQueryForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
