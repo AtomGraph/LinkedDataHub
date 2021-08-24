@@ -527,7 +527,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
-        <xsl:param name="show-save" select="ixsl:contains(ixsl:window(), 'LinkedDataHub.select-uri')" as="xs:boolean"/>
+        <!--<xsl:param name="show-save" select="ixsl:contains(ixsl:window(), 'LinkedDataHub.select-uri')" as="xs:boolean"/>-->
 
         <xsl:if test="$show-controls">
             <form method="{$method}" action="{$action}">
@@ -545,58 +545,7 @@ exclude-result-prefixes="#all"
                 </xsl:if>
 
                 <fieldset>
-                    <xsl:if test="$show-save">
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'rdf'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'sb'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'chart'"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'pu'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&rdf;type'"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'ou'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="$type"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'pu'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&spin;query'"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'ou'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-uri')"/> <!-- SELECT URI -->
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'pu'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'ob'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'this'"/>
-                        </xsl:call-template>
-
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'pu'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="'&apl;service'"/>
-                        </xsl:call-template>
-                        <xsl:call-template name="xhtml:Input">
-                            <xsl:with-param name="name" select="'ou'"/>
-                            <xsl:with-param name="type" select="'hidden'"/>
-                            <xsl:with-param name="value" select="resolve-uri('sparql', $ldt:base)"/>
-                        </xsl:call-template>
-                    </xsl:if>
+                    <button class="btn btn-primary pull-right" type="button">Save</button>
 
                     <div class="row-fluid">
                         <div class="span4">

@@ -1981,6 +1981,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:param name="query" as="xs:string?"/>
 
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
@@ -1988,8 +1990,6 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="results" select="." as="document-node()"/>
                     <xsl:variable name="category" select="if ($category) then $category else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name()))[1] else srx:sparql/srx:head/srx:variable[1]/@name)" as="xs:string?"/>
                     <xsl:variable name="series" select="if ($series) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
-
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
                     <!-- disable buttons if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
                     <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-save-as']">
@@ -2051,11 +2051,8 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!-- remove query progress bar -->
-                <!--<xsl:result-document href="#progress-bar" method="ixsl:replace-content"></xsl:result-document>-->
-        
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
                     <div class="alert alert-block">
                         <strong>Error during query execution:</strong>
                         <pre>
@@ -2842,8 +2839,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="textarea-id" select="ancestor::form/descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="normalized-query-string" select="upper-case(normalize-space($query-string))" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="forClass" select="resolve-uri('admin/model/ontologies/system/#Select', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: infer query type from query string -->
+        <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT')) then resolve-uri('admin/model/ontologies/system/#Select', $ldt:base) else if (starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#Ask', $ldt:base) else if (starts-with($normalized-query-string, 'CONSTRUCT')) then resolve-uri('admin/model/ontologies/system/#Construct', $ldt:base) else if (starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#Describe', $ldt:base)" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
