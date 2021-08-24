@@ -3663,11 +3663,15 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
+        <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
+        <xsl:variable name="target-id" select="$control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
+        
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddSaveQueryForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
                 <xsl:with-param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
-                <xsl:with-param name="target-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
+                <xsl:with-param name="target-id" select="$target-id"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
