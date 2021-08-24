@@ -3696,7 +3696,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template name="add-form-listeners">
         <xsl:param name="form" as="element()"/>
-        <xsl:message>FORM ID: <xsl:value-of select="$id"/></xsl:message>
+        <xsl:message>FORM ID: <xsl:value-of select="$form/@id"/></xsl:message>
 
         <xsl:apply-templates select="$form" mode="apl:PostConstructMode"/>
     </xsl:template>
