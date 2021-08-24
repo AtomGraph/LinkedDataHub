@@ -3503,6 +3503,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="add-class" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
+        <xsl:param name="new-target-id" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
@@ -3600,8 +3601,14 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                     
                             <xsl:if test="$new-form-id">
-                                <!-- overwrite form @id with the provided value -->
+                                <!-- overwrite form's @id with the provided value -->
                                 <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
+                            </xsl:if>
+                            <xsl:if test="$new-target-id">
+                                <!-- overwrite target-id input's value with the provided value -->
+                                <xsl:for-each select="id($form-id, ixsl:page())//input[@name = 'target-id']">
+                                    <ixsl:set-property name="value" select="$new-target-id" object="."/>
+                                </xsl:for-each>
                             </xsl:if>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -3619,12 +3626,14 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onAddSaveQueryForm">
         <xsl:param name="query-string" as="xs:string"/>
-        
+        <xsl:param name="form-id" as="xs:string?"/>
+        <xsl:param name="target-id" as="xs:string?"/>
+
         <!-- override the form @id coming from the server with a value we can use for form lookup afterwards -->
-        <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         <xsl:call-template name="onAddForm">
             <xsl:with-param name="add-class" select="'form-save-query'"/>
             <xsl:with-param name="new-form-id" select="$form-id"/>
+            <xsl:with-param name="new-target-id" select="$target-id"/>
         </xsl:call-template>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
@@ -3646,14 +3655,12 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="add-class" select="'form-save-chart'"/>
             <xsl:with-param name="new-form-id" select="$form-id"/>
         </xsl:call-template>
-        
-        <!--<xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>-->
-<!--        <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
-        <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>-->
-        
+
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddSaveQueryForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
+                <xsl:with-param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
+                <xsl:with-param name="target-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
