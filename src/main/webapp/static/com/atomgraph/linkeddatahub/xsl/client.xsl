@@ -2864,7 +2864,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="normalized-query-string" select="upper-case(normalize-space($query-string))" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT')) then resolve-uri('admin/model/ontologies/system/#Select', $ldt:base) else if (starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#Ask', $ldt:base) else if (starts-with($normalized-query-string, 'CONSTRUCT')) then resolve-uri('admin/model/ontologies/system/#Construct', $ldt:base) else if (starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#Describe', $ldt:base) else ()" as="xs:anyURI"/>
+        <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT') or starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#ResultSetChart', $ldt:base) else if (starts-with($normalized-query-string, 'CONSTRUCT') or starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#GraphChart', $ldt:base) else ()" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
@@ -2873,8 +2873,8 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddSaveQueryForm">
-                <xsl:with-param name="query-string" select="$query-string"/>
+            <xsl:call-template name="onAddSaveChartForm">
+                <!--<xsl:with-param name="query-string" select="$query-string"/>-->
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -3281,7 +3281,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onaddValueCallback">
+            <xsl:call-template name="onAddValueCallback">
                 <xsl:with-param name="forClass" select="$forClass"/>
                 <xsl:with-param name="control-group" select="$control-group"/>
                 <xsl:with-param name="property" select="$property"/>
@@ -3501,6 +3501,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="add-class" as="xs:string?"/>
+        <xsl:param name="target-id" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
@@ -3612,12 +3613,23 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
         
         <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>
-        <!--<xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'Form ID: ' || $form-id ])"/>-->
         <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
         <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
     </xsl:template>
     
-    <xsl:template name="onaddValueCallback">
+    <xsl:template name="onAddSaveChartForm">
+        <xsl:param name="query-string" as="xs:string"/>
+        
+        <xsl:call-template name="onAddForm">
+            <xsl:with-param name="add-class" select="'form-save-chart'"/>
+        </xsl:call-template>
+        
+        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>
+<!--        <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
+        <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>-->
+    </xsl:template>
+    
+    <xsl:template name="onAddValueCallback">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="control-group" as="element()"/>
@@ -3629,7 +3641,6 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
-<!--                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>-->
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
