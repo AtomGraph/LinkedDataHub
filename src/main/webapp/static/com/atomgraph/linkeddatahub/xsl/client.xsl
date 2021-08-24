@@ -3505,6 +3505,8 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
+                <xsl:sequence select="?body"/> <!-- return the document to the calling template -->
+
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
@@ -3608,12 +3610,14 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onAddSaveQueryForm">
         <xsl:param name="query-string" as="xs:string"/>
         
-        <xsl:call-template name="onAddForm">
-            <xsl:with-param name="add-class" select="'form-save-query'"/>
-        </xsl:call-template>
+        <xsl:variable name="html" as="document-node()">
+            <xsl:call-template name="onAddForm">
+                <xsl:with-param name="add-class" select="'form-save-query'"/>
+            </xsl:call-template>
+        </xsl:variable>
         
-        <!-- TO-DO: this is a crude workaround assuming the query form is the first (bottom) one. We should be a doing an exact lookup by form @id -->
-        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor'][1]//form" as="element()"/>
+        <xsl:variable name="form-id" select="$html//div[tokenize(@class, ' ') = 'modal-constructor']//form/@id" as="xs:string"/>
+        <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
         <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
     </xsl:template>
