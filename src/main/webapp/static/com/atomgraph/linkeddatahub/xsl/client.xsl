@@ -3612,8 +3612,8 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="add-class" select="'form-save-query'"/>
         </xsl:call-template>
         
-        <!-- TO-DO: this is a poor workaround assuming the query form is the first (bottom) one. We should be a doing an exact lookup by form @id -->
-        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form[1]" as="element()"/>
+        <!-- TO-DO: this is a crude workaround assuming the query form is the first (bottom) one. We should be a doing an exact lookup by form @id -->
+        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor'][1]//form" as="element()"/>
         <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
         <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
     </xsl:template>
