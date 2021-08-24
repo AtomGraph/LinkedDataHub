@@ -2859,21 +2859,24 @@ extension-element-prefixes="ixsl"
     <!-- prompt for chart title (also reused for its document) -->
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-chart']" mode="ixsl:onclick">
-        <!-- prompt for title before form proceeds to submit -->
-        <xsl:variable name="title" select="ixsl:call(ixsl:window(), 'prompt', [ 'Title' ])" as="xs:string"/>
-        <xsl:choose>
-            <xsl:when test="$title">
-                <xsl:for-each select="id('chart-title')">
-                    <ixsl:set-attribute name="value" select="$title"/>
-                </xsl:for-each>
-                <xsl:for-each select="id('chart-doc-title')">
-                    <ixsl:set-attribute name="value" select="$title"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:variable name="textarea-id" select="ancestor::form/descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
+        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
+        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
+        <xsl:variable name="normalized-query-string" select="upper-case(normalize-space($query-string))" as="xs:string"/>
+        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
+        <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT')) then resolve-uri('admin/model/ontologies/system/#Select', $ldt:base) else if (starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#Ask', $ldt:base) else if (starts-with($normalized-query-string, 'CONSTRUCT')) then resolve-uri('admin/model/ontologies/system/#Construct', $ldt:base) else if (starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#Describe', $ldt:base) else ()" as="xs:anyURI"/>
+        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
+        <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
+        <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onAddSaveQueryForm">
+                <xsl:with-param name="query-string" select="$query-string"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- open SPARQL editor -->
