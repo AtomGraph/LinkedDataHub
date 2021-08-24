@@ -3597,7 +3597,7 @@ extension-element-prefixes="ixsl"
                     
                     <xsl:if test="$new-form-id">
                         <!-- overwrite form @id with the provided value -->
-                        <ixsl:set-property name="id" select="" object="id($form-id, ixsl:page())"/>
+                        <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
                     </xsl:if>
 
                     <xsl:for-each select="ixsl:page()//body">
