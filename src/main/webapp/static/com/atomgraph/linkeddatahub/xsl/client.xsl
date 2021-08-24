@@ -3538,6 +3538,12 @@ extension-element-prefixes="ixsl"
                             <xsl:call-template name="add-form-listeners">
                                 <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                             </xsl:call-template>
+                            
+                    
+                            <xsl:if test="$new-form-id">
+                                <!-- overwrite form @id with the provided value -->
+                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
+                            </xsl:if>
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:variable name="form" as="element()">
@@ -3592,13 +3598,13 @@ extension-element-prefixes="ixsl"
                             <xsl:call-template name="add-form-listeners">
                                 <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                             </xsl:call-template>
+                    
+                            <xsl:if test="$new-form-id">
+                                <!-- overwrite form @id with the provided value -->
+                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
+                            </xsl:if>
                         </xsl:otherwise>
                     </xsl:choose>
-                    
-                    <xsl:if test="$new-form-id">
-                        <!-- overwrite form @id with the provided value -->
-                        <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-                    </xsl:if>
 
                     <xsl:for-each select="ixsl:page()//body">
                         <ixsl:set-style name="cursor" select="'default'"/>
