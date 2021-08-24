@@ -3606,7 +3606,7 @@ extension-element-prefixes="ixsl"
                             </xsl:if>
                             <xsl:if test="$new-target-id">
                                 <!-- overwrite target-id input's value with the provided value -->
-                                <xsl:for-each select="id($form-id, ixsl:page())//input[@name = 'target-id']">
+                                <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
                                     <ixsl:set-property name="value" select="$new-target-id" object="."/>
                                 </xsl:for-each>
                             </xsl:if>
