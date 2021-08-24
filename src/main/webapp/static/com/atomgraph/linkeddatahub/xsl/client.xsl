@@ -3540,7 +3540,12 @@ extension-element-prefixes="ixsl"
                                 <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                             </xsl:call-template>
                             
-                    
+                            <xsl:if test="$new-target-id">
+                                <!-- overwrite target-id input's value with the provided value -->
+                                <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
+                                    <ixsl:set-property name="value" select="$new-target-id" object="."/>
+                                </xsl:for-each>
+                            </xsl:if>
                             <xsl:if test="$new-form-id">
                                 <!-- overwrite form @id with the provided value -->
                                 <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
@@ -3600,15 +3605,15 @@ extension-element-prefixes="ixsl"
                                 <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                             </xsl:call-template>
                     
-                            <xsl:if test="$new-form-id">
-                                <!-- overwrite form's @id with the provided value -->
-                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
-                            </xsl:if>
                             <xsl:if test="$new-target-id">
                                 <!-- overwrite target-id input's value with the provided value -->
                                 <xsl:for-each select="id($form-id, ixsl:page())//input[@class = 'target-id']"> <!-- why @class and not @name?? -->
                                     <ixsl:set-property name="value" select="$new-target-id" object="."/>
                                 </xsl:for-each>
+                            </xsl:if>
+                            <xsl:if test="$new-form-id">
+                                <!-- overwrite form's @id with the provided value -->
+                                <ixsl:set-property name="id" select="$new-form-id" object="id($form-id, ixsl:page())"/>
                             </xsl:if>
                         </xsl:otherwise>
                     </xsl:choose>
