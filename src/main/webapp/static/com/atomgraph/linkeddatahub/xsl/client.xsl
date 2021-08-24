@@ -3502,11 +3502,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:param name="add-class" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
+        <xsl:param name="new-form-id" as="xs:string?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
-                <xsl:sequence select="?body"/> <!-- return the document to the calling template -->
-
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
@@ -3595,6 +3594,11 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                         </xsl:otherwise>
                     </xsl:choose>
+                    
+                    <xsl:if test="$new-form-id">
+                        <!-- overwrite form @id with the provided value -->
+                        <ixsl:set-property name="id" select="" object="id($form-id, ixsl:page())"/>
+                    </xsl:if>
 
                     <xsl:for-each select="ixsl:page()//body">
                         <ixsl:set-style name="cursor" select="'default'"/>
@@ -3610,13 +3614,13 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onAddSaveQueryForm">
         <xsl:param name="query-string" as="xs:string"/>
         
-        <xsl:variable name="html" as="document-node()">
-            <xsl:call-template name="onAddForm">
-                <xsl:with-param name="add-class" select="'form-save-query'"/>
-            </xsl:call-template>
-        </xsl:variable>
+        <!-- override the form @id coming from the server with a value we can use for form lookup afterwards -->
+        <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
+        <xsl:call-template name="onAddForm">
+            <xsl:with-param name="add-class" select="'form-save-query'"/>
+            <xsl:with-param name="new-form-id" select="$form-id"/>
+        </xsl:call-template>
         
-        <xsl:variable name="form-id" select="$html//div[tokenize(@class, ' ') = 'modal-constructor']//form/@id" as="xs:string"/>
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
         <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
@@ -3631,8 +3635,10 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
+        <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
         <xsl:call-template name="onAddForm">
             <xsl:with-param name="add-class" select="'form-save-chart'"/>
+            <xsl:with-param name="new-form-id" select="$form-id"/>
         </xsl:call-template>
         
         <!--<xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>-->
@@ -3655,7 +3661,7 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
+                    <xsl:variable name="doc-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
                         <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
