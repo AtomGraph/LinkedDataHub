@@ -2529,7 +2529,7 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
                     
                     <xsl:call-template name="add-form-listeners">
-                        <xsl:with-param name="id" select="$form-id"/>
+                        <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                     </xsl:call-template>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -2649,7 +2649,7 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
 
                     <xsl:call-template name="add-form-listeners">
-                        <xsl:with-param name="id" select="$form-id"/>
+                        <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                     </xsl:call-template>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -3535,7 +3535,7 @@ extension-element-prefixes="ixsl"
                             
                             <!-- add event listeners to the descendants of the form -->
                             <xsl:call-template name="add-form-listeners">
-                                <xsl:with-param name="id" select="$form-id"/>
+                                <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                             </xsl:call-template>
                         </xsl:when>
                         <xsl:otherwise>
@@ -3589,7 +3589,7 @@ extension-element-prefixes="ixsl"
                             
                             <!-- add event listeners to the descendants of the form -->
                             <xsl:call-template name="add-form-listeners">
-                                <xsl:with-param name="id" select="$form-id"/>
+                                <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
                             </xsl:call-template>
                         </xsl:otherwise>
                     </xsl:choose>
@@ -3612,7 +3612,8 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="add-class" select="'form-save-query'"/>
         </xsl:call-template>
         
-        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form" as="element()"/>
+        <!-- TO-DO: this is a poor workaround assuming the query form is the first (bottom) one. We should be a doing an exact lookup by form @id -->
+        <xsl:variable name="form" select="ixsl:page()//div[tokenize(@class, ' ') = 'modal-constructor']//form[1]" as="element()"/>
         <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
         <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
     </xsl:template>
@@ -3694,10 +3695,10 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template name="add-form-listeners">
-        <xsl:param name="id" as="xs:string"/>
+        <xsl:param name="form" as="element()"/>
         <xsl:message>FORM ID: <xsl:value-of select="$id"/></xsl:message>
 
-        <xsl:apply-templates select="id($id, ixsl:page())" mode="apl:PostConstructMode"/>
+        <xsl:apply-templates select="$form" mode="apl:PostConstructMode"/>
     </xsl:template>
 
     <xsl:template match="*" mode="apl:PostConstructMode">
