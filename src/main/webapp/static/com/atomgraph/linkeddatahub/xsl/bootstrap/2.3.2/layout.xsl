@@ -424,7 +424,7 @@ exclude-result-prefixes="#all">
         <div>
             <h2>Local description</h2>
             <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
-            <xsl:copy-of select="document(ac:build-uri($sd:endpoint, map{ 'query': $query-string }))"/>
+            <xsl:copy-of select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
         </div>
     </xsl:template>
     
