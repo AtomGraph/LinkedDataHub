@@ -2552,7 +2552,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
 
         <xsl:message>
-            Form loaded with ?status <xsl:value-of select="?status"/> $target-id: <xsl:value-of select="$target-id"/>
+            Form loaded with ?status <xsl:value-of select="?status"/> $target-id: <xsl:value-of select="$target-id"/> exists($typeahead-span): <xsl:value-of select="exists($typeahead-span)"/>
         </xsl:message>
         
         <xsl:choose>
