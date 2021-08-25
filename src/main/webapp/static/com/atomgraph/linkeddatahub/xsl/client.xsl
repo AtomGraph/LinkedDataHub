@@ -2570,8 +2570,8 @@ extension-element-prefixes="ixsl"
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- special case for save query forms: simpy hide the modal form -->
-            <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query')">
+            <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
+            <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query', 'form-save-chart')">
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -3632,11 +3632,12 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onAddSaveQueryForm">
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="form-id" as="xs:string?"/>
+        <xsl:param name="add-class" select="'form-save-query'" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
 
         <!-- override the form @id coming from the server with a value we can use for form lookup afterwards -->
         <xsl:call-template name="onAddForm">
-            <xsl:with-param name="add-class" select="'form-save-query'"/>
+            <xsl:with-param name="add-class" select="$add-class"/>
             <xsl:with-param name="new-form-id" select="$form-id"/>
             <xsl:with-param name="new-target-id" select="$target-id"/>
         </xsl:call-template>
@@ -3670,6 +3671,7 @@ extension-element-prefixes="ixsl"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddSaveQueryForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
+                <xsl:with-param name="add-class" select="()"/>
                 <xsl:with-param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
                 <xsl:with-param name="target-id" select="$target-id"/>
             </xsl:call-template>
