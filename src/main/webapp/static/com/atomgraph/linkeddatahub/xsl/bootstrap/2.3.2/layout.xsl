@@ -420,6 +420,12 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="." mode="bs2:ActionBar"/>
         </div>
+        
+        <div>
+            <h2>Local description</h2>
+            <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
+            <xsl:copy-of select="document(ac:build-uri($sd:endpoint, map{ 'query': $query-string }))"/>
+        </div>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
@@ -943,19 +949,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- BLOCK -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:Block">
-        <xsl:apply-templates mode="#current">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-        
-        
-        <div>
-            <h2>Local description</h2>
-            <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
-            <xsl:copy-of select="ac:build-uri($sd:endpoint, map{ 'query': $query-string })"/>
-        </div>
-    </xsl:template>
 
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
