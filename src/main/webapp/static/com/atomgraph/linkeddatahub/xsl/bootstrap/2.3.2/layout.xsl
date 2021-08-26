@@ -635,7 +635,11 @@ exclude-result-prefixes="#all">
         <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
-                <h2>Original</h2>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'from-origin', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
@@ -655,8 +659,12 @@ exclude-result-prefixes="#all">
         <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
-                <h2>Local</h2>
-
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'local', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
+                
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
                         <dl class="dl-horizontal">
@@ -675,7 +683,11 @@ exclude-result-prefixes="#all">
         <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
-                <h2>Common</h2>
+                <h2 class="nav-header btn">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="key('resources', 'common', document('translations.rdf'))" mode="ac:label"/>
+                    </xsl:value-of>
+                </h2>
 
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>

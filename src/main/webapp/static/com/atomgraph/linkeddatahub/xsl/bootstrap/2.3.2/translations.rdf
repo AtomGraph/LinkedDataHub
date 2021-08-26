@@ -136,4 +136,13 @@
     <rdf:Description rdf:nodeID="save-as">
         <rdfs:label xml:lang="en-US">Save as</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="from-origin">
+        <rdfs:label xml:lang="en-US">From origin</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="local">
+        <rdfs:label xml:lang="en-US">Local</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="common">
+        <rdfs:label xml:lang="en-US">Common</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
