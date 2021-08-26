@@ -424,10 +424,33 @@ exclude-result-prefixes="#all">
         <div>
             <h2>Local description</h2>
             <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
-            <xsl:copy-of select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
+            <xsl:variable name="local-doc" select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
+
+            <xsl:variable name="triples-original" as="map(xs:string, element())">
+                <xsl:map>
+                    <xsl:for-each select="/rdf:RDF/rdf:Description/*">
+                        <xsl:map-entry key="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, text())" select="."/>
+                    </xsl:for-each>
+                </xsl:map>
+            </xsl:variable>
+            <xsl:variable name="triples-local" as="map(xs:string, element())">
+                <xsl:map>
+                    <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
+                        <xsl:map-entry key="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, text())" select="."/>
+                    </xsl:for-each>
+                </xsl:map>
+            </xsl:variable>
+            
+            XXX<xsl:value-of select="eg:value-intersect(map:keys($triples-original), map:keys($triples-local))"/>/XXX
         </div>
     </xsl:template>
     
+    <xsl:function name="eg:value-intersect" as="xs:anyAtomicType*">
+        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
+        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
+        <xsl:sequence select="fn:distinct-values($arg1[.=$arg2])"/>
+    </xsl:function>
+
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
             <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
