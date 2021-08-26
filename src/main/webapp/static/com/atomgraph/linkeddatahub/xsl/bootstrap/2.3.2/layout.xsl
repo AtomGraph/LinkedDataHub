@@ -626,8 +626,84 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about = $ac:uri]" mode="bs2:Block">
-        BELENKAS!!!
+    <xsl:template match="*[*][@rdf:about = $ac:uri]" mode="bs2:PropertyList">
+        <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
+        <xsl:variable name="local-doc" select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
+
+        <xsl:variable name="triples-original" as="map(xs:string, element())">
+            <xsl:map>
+                <xsl:for-each select="*">
+                    <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                </xsl:for-each>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="triples-local" as="map(xs:string, element())">
+            <xsl:map>
+                <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
+                    <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                </xsl:for-each>
+            </xsl:map>
+        </xsl:variable>
+
+        <xsl:variable name="properties-original" select="for $triple-key in eg:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-original)">
+            <div>
+                <h2>Original</h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-original" mode="#current">
+                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+
+        <xsl:variable name="properties-local" select="for $triple-key in eg:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-local)">
+            <div>
+                <h2>Local</h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="$properties-local" mode="#current">
+                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
+        
+        <xsl:variable name="properties-common" select="for $triple-key in eg:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:if test="exists($properties-common)">
+            <div>
+                <h2>Common</h2>
+
+                <xsl:variable name="definitions" as="document-node()">
+                    <xsl:document>
+                        <dl class="dl-horizontal">
+                            <xsl:apply-templates select="*" mode="#current">
+                                <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
+                                <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
+                            </xsl:apply-templates>
+                        </dl>
+                    </xsl:document>
+                </xsl:variable>
+
+                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
+            </div>
+        </xsl:if>
     </xsl:template>
     
     <!-- ADD DATA -->
