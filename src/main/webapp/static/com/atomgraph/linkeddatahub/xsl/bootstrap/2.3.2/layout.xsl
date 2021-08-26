@@ -620,14 +620,14 @@ exclude-result-prefixes="#all">
         <xsl:variable name="triples-original" as="map(xs:string, element())">
             <xsl:map>
                 <xsl:for-each select="*">
-                    <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:integer) then xs:integer(text()) else if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                    <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
                 </xsl:for-each>
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="triples-local" as="map(xs:string, element())">
             <xsl:map>
                 <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
-                    <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:integer) then xs:integer(text()) else if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
+                    <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, if (text() castable as xs:float) then xs:float(text()) else text(), '|', @rdf:datatype, @xml:lang)" select="."/>
                 </xsl:for-each>
             </xsl:map>
         </xsl:variable>
