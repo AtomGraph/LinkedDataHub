@@ -136,32 +136,20 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:function>
     
-    <xsl:function name="apl:listSuperTemplates" as="attribute()*" cache="yes">
-        <xsl:param name="template" as="xs:anyURI"/>
+    <xsl:function name="ac:value-intersect" as="xs:anyAtomicType*">
+        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
+        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
         
-        <xsl:sequence select="apl:listSuperTemplates($template, false())"/>
+        <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
     </xsl:function>
-    
-    <xsl:function name="apl:listSuperTemplates" as="attribute()*" cache="yes">
-        <xsl:param name="template" as="xs:anyURI"/>
-        <xsl:param name="direct" as="xs:boolean"/>
-        
-        <xsl:if test="doc-available(ac:document-uri($template))">
-            <xsl:variable name="document" select="document(ac:document-uri($template))" as="document-node()"/>
 
-            <xsl:for-each select="$document">
-                <xsl:variable name="supertemplates" select="key('resources', $template)/ldt:extends/@rdf:resource" as="attribute()*"/>
-                <xsl:sequence select="$supertemplates"/>
+    <xsl:function name="ac:value-except" as="xs:anyAtomicType*">
+        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
+        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
 
-                <xsl:if test="not($direct)">
-                    <xsl:for-each select="$supertemplates">
-                        <xsl:sequence select="apl:listSuperTemplates(., $direct)"/>
-                    </xsl:for-each>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:if>
+        <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
-    
+
     <!-- SHARED FUNCTIONS -->
 
     <!-- TO-DO: move down to Web-Client -->

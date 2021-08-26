@@ -37,7 +37,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
-xmlns:eg="http://example.org"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lapp="&lapp;"
@@ -422,18 +421,6 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:ActionBar"/>
         </div>
     </xsl:template>
-    
-    <xsl:function name="eg:value-intersect" as="xs:anyAtomicType*">
-        <xsl:param name="arg1" as="xs:anyAtomicType*"/>
-        <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-        <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
-    </xsl:function>
-
-    <xsl:function name="eg:value-except" as="xs:anyAtomicType*">
-      <xsl:param name="arg1" as="xs:anyAtomicType*"/>
-      <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-      <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
-    </xsl:function>
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
@@ -645,7 +632,7 @@ exclude-result-prefixes="#all">
             </xsl:map>
         </xsl:variable>
 
-        <xsl:variable name="properties-original" select="for $triple-key in eg:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-original" select="for $triple-key in ac:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-original)">
             <div>
                 <h2>Original</h2>
@@ -665,7 +652,7 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
 
-        <xsl:variable name="properties-local" select="for $triple-key in eg:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-local" select="for $triple-key in ac:value-except(map:keys($triples-local), map:keys($triples-original)) return map:get($triples-local, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-local)">
             <div>
                 <h2>Local</h2>
@@ -685,7 +672,7 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
         
-        <xsl:variable name="properties-common" select="for $triple-key in eg:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
+        <xsl:variable name="properties-common" select="for $triple-key in ac:value-intersect(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)" as="element()*"/>
         <xsl:if test="exists($properties-common)">
             <div>
                 <h2>Common</h2>
@@ -693,7 +680,7 @@ exclude-result-prefixes="#all">
                 <xsl:variable name="definitions" as="document-node()">
                     <xsl:document>
                         <dl class="dl-horizontal">
-                            <xsl:apply-templates select="*" mode="#current">
+                            <xsl:apply-templates select="$properties-common" mode="#current">
                                 <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
                             </xsl:apply-templates>
