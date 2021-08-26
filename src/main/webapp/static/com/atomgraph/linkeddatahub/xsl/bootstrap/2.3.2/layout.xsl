@@ -442,7 +442,7 @@ exclude-result-prefixes="#all">
                 </xsl:map>
             </xsl:variable>
             
-            XXX<xsl:value-of select="eg:value-intersect(map:keys($triples-original), map:keys($triples-local))"/>/XXX
+            XXX<xsl:value-of select="eg:value-except(map:keys($triples-original), map:keys($triples-local))"/>/XXX
 
         </div>
     </xsl:template>
@@ -451,6 +451,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="arg1" as="xs:anyAtomicType*"/>
         <xsl:param name="arg2" as="xs:anyAtomicType*"/>
         <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
+    </xsl:function>
+
+    <xsl:function name="eg:value-except" as="xs:anyAtomicType*">
+      <xsl:param name="arg1" as="xs:anyAtomicType*"/>
+      <xsl:param name="arg2" as="xs:anyAtomicType*"/>
+      <xsl:sequence select="fn:distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
