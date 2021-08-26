@@ -294,9 +294,9 @@ exclude-result-prefixes="#all">
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}" defer="defer"></script>
         <script type="text/javascript">
             <![CDATA[
-                var baseUri = "]]><xsl:value-of select="if ($ldt:base) then '&quot;' || $ldt:base || '&quot;'  else 'null'"/><![CDATA[";
-                var ontologyUri = "]]><xsl:value-of select="if ($ldt:ontology) then '&quot;' || $ldt:ontology || '&quot;'  else 'null'"/><![CDATA[";
-                var contextUri = "]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[";
+                var baseUri = ]]><xsl:value-of select="if ($ldt:base) then '&quot;' || $ldt:base || '&quot;'  else 'null'"/><![CDATA[;
+                var ontologyUri = ]]><xsl:value-of select="if ($ldt:ontology) then '&quot;' || $ldt:ontology || '&quot;'  else 'null'"/><![CDATA[;
+                var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
             ]]>
