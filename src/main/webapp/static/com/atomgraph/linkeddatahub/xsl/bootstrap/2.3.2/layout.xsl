@@ -427,7 +427,7 @@ exclude-result-prefixes="#all">
             <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
             <xsl:variable name="local-doc" select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
 
-<!--            <xsl:variable name="triples-original" as="map(xs:string, element())">
+            <xsl:variable name="triples-original" as="map(xs:string, element())">
                 <xsl:map>
                     <xsl:for-each select="/rdf:RDF/rdf:Description/*">
                         <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, text(), '|', @rdf:datatype, @xml:lang)" select="."/>
@@ -442,14 +442,7 @@ exclude-result-prefixes="#all">
                 </xsl:map>
             </xsl:variable>
             
-            XXX<xsl:value-of select="eg:value-intersect(map:keys($triples-original), map:keys($triples-local))"/>/XXX-->
-            
-        <xsl:for-each-group select="/rdf:RDF/rdf:Description/*" group-by="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, text(), '|', @rdf:datatype, @xml:lang)">
-            <xsl:if test="count(current-group()) &gt; 1">
-                XXX<xsl:value-of select="current-grouping-key()"/>/XXX
-                YYY<xsl:copy-of select="current-group()"/>/YYY
-            </xsl:if>
-        </xsl:for-each-group>
+            XXX<xsl:value-of select="eg:value-intersect(map:keys($triples-original), map:keys($triples-local))"/>/XXX
 
         </div>
     </xsl:template>
