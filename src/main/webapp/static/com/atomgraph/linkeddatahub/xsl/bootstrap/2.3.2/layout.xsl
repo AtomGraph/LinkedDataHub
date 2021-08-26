@@ -456,7 +456,7 @@ exclude-result-prefixes="#all">
     <xsl:function name="eg:value-except" as="xs:anyAtomicType*">
       <xsl:param name="arg1" as="xs:anyAtomicType*"/>
       <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-      <xsl:sequence select="fn:distinct-values($arg1[not(.=$arg2)])"/>
+      <xsl:sequence select="distinct-values($arg1[not(.=$arg2)])"/>
     </xsl:function>
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
