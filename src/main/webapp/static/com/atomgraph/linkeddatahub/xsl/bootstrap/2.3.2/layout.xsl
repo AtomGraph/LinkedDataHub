@@ -421,29 +421,6 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="." mode="bs2:ActionBar"/>
         </div>
-        
-        <div>
-            <h2>Local description</h2>
-            <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
-            <xsl:variable name="local-doc" select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
-
-            <xsl:variable name="triples-original" as="map(xs:string, element())">
-                <xsl:map>
-                    <xsl:for-each select="/rdf:RDF/rdf:Description/*">
-                        <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, text(), '|', @rdf:datatype, @xml:lang)" select="."/>
-                    </xsl:for-each>
-                </xsl:map>
-            </xsl:variable>
-            <xsl:variable name="triples-local" as="map(xs:string, element())">
-                <xsl:map>
-                    <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
-                        <xsl:map-entry key="concat(../@rdf:about, '|', namespace-uri(), local-name(), '|', @rdf:resource, @rdf:nodeID, text(), '|', @rdf:datatype, @xml:lang)" select="."/>
-                    </xsl:for-each>
-                </xsl:map>
-            </xsl:variable>
-            
-            XXX<xsl:copy-of select="for $triple-key in eg:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)"/>/XXX
-        </div>
     </xsl:template>
     
     <xsl:function name="eg:value-intersect" as="xs:anyAtomicType*">
@@ -980,6 +957,14 @@ exclude-result-prefixes="#all">
 
     <!-- BLOCK -->
 
+    <xsl:template match="rdf:RDF" mode="bs2:Block">
+        XXXXXXXXXXXXXX
+        
+        <xsl:apply-templates mode="#current">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
