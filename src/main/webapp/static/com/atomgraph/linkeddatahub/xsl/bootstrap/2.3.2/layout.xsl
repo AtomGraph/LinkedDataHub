@@ -37,6 +37,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:xs="http://www.w3.org/2001/XMLSchema"
 xmlns:map="http://www.w3.org/2005/xpath-functions/map"
+xmlns:eg="http://example.org"
 xmlns:ac="&ac;"
 xmlns:a="&a;"
 xmlns:lapp="&lapp;"
@@ -448,7 +449,7 @@ exclude-result-prefixes="#all">
     <xsl:function name="eg:value-intersect" as="xs:anyAtomicType*">
         <xsl:param name="arg1" as="xs:anyAtomicType*"/>
         <xsl:param name="arg2" as="xs:anyAtomicType*"/>
-        <xsl:sequence select="fn:distinct-values($arg1[.=$arg2])"/>
+        <xsl:sequence select="distinct-values($arg1[.=$arg2])"/>
     </xsl:function>
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
