@@ -430,14 +430,14 @@ exclude-result-prefixes="#all">
             <xsl:variable name="triples-original" as="map(xs:string, element())">
                 <xsl:map>
                     <xsl:for-each select="/rdf:RDF/rdf:Description/*">
-                        <xsl:map-entry key="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, text())" select="."/>
+                        <xsl:map-entry key="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, @rdf:nodeID, text())" select="."/>
                     </xsl:for-each>
                 </xsl:map>
             </xsl:variable>
             <xsl:variable name="triples-local" as="map(xs:string, element())">
                 <xsl:map>
                     <xsl:for-each select="$local-doc/rdf:RDF/rdf:Description/*">
-                        <xsl:map-entry key="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, text())" select="."/>
+                        <xsl:map-entry key="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, @rdf:nodeID, text())" select="."/>
                     </xsl:for-each>
                 </xsl:map>
             </xsl:variable>
