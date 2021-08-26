@@ -442,7 +442,7 @@ exclude-result-prefixes="#all">
                 </xsl:map>
             </xsl:variable>
             
-            XXX<xsl:value-of select="for $triple-key in eg:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)"/>/XXX
+            XXX<xsl:copy-of select="for $triple-key in eg:value-except(map:keys($triples-original), map:keys($triples-local)) return map:get($triples-original, $triple-key)"/>/XXX
         </div>
     </xsl:template>
     
