@@ -626,6 +626,10 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
+    <xsl:template match="*[*][@rdf:about = $ac:uri]" mode="bs2:Block">
+        BELENKAS!!!
+    </xsl:template>
+    
     <!-- ADD DATA -->
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
@@ -957,14 +961,6 @@ exclude-result-prefixes="#all">
 
     <!-- BLOCK -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Block">
-        XXXXXXXXXXXXXX
-        
-        <xsl:apply-templates mode="#current">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
