@@ -444,7 +444,7 @@ exclude-result-prefixes="#all">
             
             XXX<xsl:value-of select="eg:value-intersect(map:keys($triples-original), map:keys($triples-local))"/>/XXX-->
             
-        <xsl:for-each-group select="/rdf:RDF/rdf:Description/*" group-by="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, @rdf:nodeID, text())" select=".">
+        <xsl:for-each-group select="/rdf:RDF/rdf:Description/*" group-by="concat(../@rdf:about, '&quot;', namespace-uri(), local-name(), '&quot;', @rdf:resource, @rdf:nodeID, text())">
             <xsl:if test="count(current-group() &gt; 1)">
                 XXX<xsl:value-of select="current-grouping-key()"/>/XXX
                 YYY<xsl:copy-of select="current-group()"/>/YYY
