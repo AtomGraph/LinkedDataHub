@@ -30,6 +30,7 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
+import com.atomgraph.linkeddatahub.apps.model.ClientApplication;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
@@ -43,7 +44,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
@@ -86,6 +86,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 //    @Context ContainerRequestContext requestContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject javax.inject.Provider<Optional<ClientApplication>> clientApplication;
     @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
@@ -126,41 +127,19 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getOntology().get().isPresent())
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
 
-            Application client = (Application)getContainerRequestContext().getProperty(APL.client.getURI());
-            
+            Optional<ClientApplication> clientApp = getClientApplication().get();
+            if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp);
+            params.put(new QName("apl", APL.client.getNameSpace(), APL.client.getLocalName()),
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get()))));
+
             Optional<Application> app = getApplication().get();
             if (getApplication().get().isPresent())
             {
                 params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
 
-                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: {}", app);
-                StmtIterator appStmts = app.get().listProperties();
-                Model appModel = ModelFactory.createDefaultModel().add(appStmts);
-                appStmts.close();
-
-                // for AdminApplication, add EndUserApplication statements
-                if (app.get().canAs(AdminApplication.class))
-                {
-                    AdminApplication adminApp = app.get().as(AdminApplication.class);
-                    StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
-                    appModel.add(endUserAppStmts);
-                    endUserAppStmts.close();
-                }
-                // for EndUserApplication, add AdminApplication statements
-                if (app.get().canAs(EndUserApplication.class))
-                {
-                    EndUserApplication endUserApp = app.get().as(EndUserApplication.class);
-                    StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
-                    appModel.add(adminApp);
-                    adminApp.close();
-                }
-
-                Source source = getSource(appModel); // TO-DO: change hash code?
-                if (app.get().hasProperty(FOAF.isPrimaryTopicOf) && app.get().getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
-                    source.setSystemId(app.get().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lapp:Application)
-
+                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
                 params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
-                    getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
+                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app.get())))); // TO-DO: change hash code?
             }
                 
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
@@ -199,6 +178,32 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (log.isErrorEnabled()) log.error("Error reading Source stream");
             throw new TransformerException(ex);
         }
+    }
+    
+    public Model getAppModel(Application app)
+    {
+        StmtIterator appStmts = app.listProperties();
+        Model model = ModelFactory.createDefaultModel().add(appStmts);
+        appStmts.close();
+
+        // for AdminApplication, add EndUserApplication statements
+        if (app.canAs(AdminApplication.class))
+        {
+            AdminApplication adminApp = app.as(AdminApplication.class);
+            StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
+            model.add(endUserAppStmts);
+            endUserAppStmts.close();
+        }
+        // for EndUserApplication, add AdminApplication statements
+        if (app.canAs(EndUserApplication.class))
+        {
+            EndUserApplication endUserApp = app.as(EndUserApplication.class);
+            StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
+            model.add(adminApp);
+            adminApp.close();
+        }
+        
+        return model;
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()
@@ -278,9 +283,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
 
-    public ContainerRequestContext getContainerRequestContext()
+    public javax.inject.Provider<Optional<ClientApplication>> getClientApplication()
     {
-        return null; //return requestContext;
+        return clientApplication;
     }
 
 }

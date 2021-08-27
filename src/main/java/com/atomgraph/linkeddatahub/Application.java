@@ -82,6 +82,7 @@ import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
+import com.atomgraph.linkeddatahub.server.factory.ClientApplicationFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
@@ -642,6 +643,15 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(ServiceFactory.class).to(new TypeLiteral<Optional<Service>>() {}).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ClientApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.ClientApplication>>() {}).
                 in(RequestScoped.class);
             }
         });
