@@ -83,11 +83,8 @@ import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
-import com.atomgraph.linkeddatahub.server.filter.request.ClientUriInfoFilter;
-import com.atomgraph.linkeddatahub.server.factory.ClientUriInfoFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
@@ -688,15 +685,6 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ClientUriInfoFactory.class).to(ClientUriInfo.class).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
                 bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
                 in(RequestScoped.class);
             }
@@ -714,7 +702,6 @@ public class Application extends ResourceConfig
     protected void registerContainerRequestFilters()
     {
         register(new HttpMethodOverrideFilter());
-        register(ClientUriInfoFilter.class);
         register(ApplicationFilter.class);
         register(OntologyFilter.class);
         register(ProxiedWebIDFilter.class);

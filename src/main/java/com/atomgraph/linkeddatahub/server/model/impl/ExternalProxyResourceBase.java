@@ -21,7 +21,6 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.net.URI;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -53,24 +52,24 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     private final DataManager dataManager;
     
     @Inject
-    public ExternalProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
             DataManager dataManager)
     {
-        this(uriInfo, clientUriInfo, request, httpHeaders, mediaTypes, securityContext,
-                clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(clientUriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
-                clientUriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(clientUriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
+        this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
+                uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
                 system, httpServletRequest, dataManager);
     }
     
-    protected ExternalProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    protected ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
             DataManager dataManager)
     {
-        super(clientUriInfo, request, httpHeaders, mediaTypes,
+        super(uriInfo, request, httpHeaders, mediaTypes,
                 uri, endpoint, accept, mode,
                 system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;

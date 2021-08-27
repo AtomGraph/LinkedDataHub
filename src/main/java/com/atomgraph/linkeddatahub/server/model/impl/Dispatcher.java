@@ -19,10 +19,11 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.linkeddatahub.resource.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.SignUp;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +38,13 @@ public class Dispatcher
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
     private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application;
-    private final ClientUriInfo clientUriInfo;
+    private final UriInfo uriInfo;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, ClientUriInfo clientUriInfo)
+    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, @Context UriInfo uriInfo)
     {
         this.application = application;
-        this.clientUriInfo = clientUriInfo;
+        this.uriInfo = uriInfo;
     }
     
     @Path("{path: .*}")
@@ -51,7 +52,7 @@ public class Dispatcher
     {
         if (getApplication().isEmpty())
         {
-            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getClientUriInfo().getRequestUri());
+            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getUriInfo().getRequestUri());
             return ExternalProxyResourceBase.class;
         }
         
@@ -158,9 +159,9 @@ public class Dispatcher
         return application;
     }
     
-    public ClientUriInfo getClientUriInfo()
+    public UriInfo getUriInfo()
     {
-        return clientUriInfo;
+        return uriInfo;
     }
 
 }

@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -42,13 +41,13 @@ public class ProxyResourceBase extends ExternalProxyResourceBase
 {
 
     @Inject
-    public ProxyResourceBase(@Context UriInfo uriInfo, ClientUriInfo clientUriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
             DataManager dataManager)
     {
-        super(uriInfo, clientUriInfo, request, httpHeaders, mediaTypes, securityContext,
+        super(uriInfo, request, httpHeaders, mediaTypes, securityContext,
                 application.get().getProxiedURI(uriInfo.getAbsolutePath()), null, accept, mode,
                 system, httpServletRequest, dataManager);
     }

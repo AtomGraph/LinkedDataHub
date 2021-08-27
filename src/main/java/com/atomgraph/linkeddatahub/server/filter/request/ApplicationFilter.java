@@ -83,6 +83,7 @@ public class ApplicationFilter implements ContainerRequestFilter
         {
             if (log.isDebugEnabled()) log.debug("Request URI {} has not matched any Application", matchURI);
             request.setProperty(LAPP.Application.getURI(), Optional.empty());
+            //TO-DO: set request.setRequestUri(app.getBaseURI(), requestURI); as well?
         }
     }
 

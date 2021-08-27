@@ -23,7 +23,6 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.model.ClientUriInfo;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
@@ -49,7 +48,6 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import net.sf.saxon.s9api.QName;
@@ -84,11 +82,10 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Context SecurityContext securityContext;
-    
+
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
-    @Inject javax.inject.Provider<ClientUriInfo> clientUriInfo;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
 
@@ -261,12 +258,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public XsltExecutable getXsltExecutable()
     {
         return xsltExecSupplier.get().get();
-    }
-    
-    @Override
-    public UriInfo getUriInfo()
-    {
-        return clientUriInfo.get();
     }
     
     @Override
