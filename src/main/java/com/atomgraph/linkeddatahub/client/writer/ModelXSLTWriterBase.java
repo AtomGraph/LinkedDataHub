@@ -83,7 +83,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Context SecurityContext securityContext;
-    @Context ContainerRequestContext requestContext;
+//    @Context ContainerRequestContext requestContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
@@ -280,7 +280,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
     public ContainerRequestContext getContainerRequestContext()
     {
-        return requestContext;
+        return null; //return requestContext;
     }
 
 }
