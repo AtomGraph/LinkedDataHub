@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
@@ -82,6 +83,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Context SecurityContext securityContext;
+    @Context ContainerRequestContext requestContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Optional<Application>> application;
@@ -124,6 +126,8 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getOntology().get().isPresent())
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
 
+            Application client = (Application)getContainerRequestContext().getProperty(APL.client.getURI());
+            
             Optional<Application> app = getApplication().get();
             if (getApplication().get().isPresent())
             {
@@ -271,6 +275,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public Set<String> getSupportedNamespaces()
     {
         return NAMESPACES;
+    }
+    
+
+    public ContainerRequestContext getContainerRequestContext()
+    {
+        return requestContext;
     }
 
 }

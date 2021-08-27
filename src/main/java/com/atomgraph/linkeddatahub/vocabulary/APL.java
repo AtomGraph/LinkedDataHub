@@ -92,4 +92,8 @@ public class APL
     
     public static final ObjectProperty access_to = m_model.createObjectProperty(NS + "access-to"); // TO-DO: move to client-side?
 
+    public static final ObjectProperty server = m_model.createObjectProperty(NS + "server");
+    
+    public static final ObjectProperty client = m_model.createObjectProperty(NS + "client");
+
 }
