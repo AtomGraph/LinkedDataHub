@@ -69,8 +69,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().isPresent() && (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class))) return; // skip "primitive" apps
-        if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
+        if (getApplication().isEmpty()) return; // skip filter if no application has matched
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
         

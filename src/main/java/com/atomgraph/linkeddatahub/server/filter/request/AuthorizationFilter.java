@@ -97,7 +97,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().isPresent() && (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class))) return; // skip "primitive" apps
+        if (getApplication().isEmpty()) return; // skip filter if no application has matched
+        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
 
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
