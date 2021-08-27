@@ -94,6 +94,11 @@ public class ApplicationFilter implements ContainerRequestFilter
                 request.setProperty(LAPP.Application.getURI(), Optional.empty());
             }
         }
+        else
+        {
+            if (log.isDebugEnabled()) log.debug("Request URI {} has not matched any Application");
+            request.setProperty(LAPP.Application.getURI(), Optional.empty());
+        }
     }
 
     public com.atomgraph.linkeddatahub.Application getSystem()
