@@ -69,9 +69,7 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
             DataManager dataManager)
     {
-        super(uriInfo, request, httpHeaders, mediaTypes,
-                uri, endpoint, accept, mode,
-                system.getClient(), httpServletRequest);
+        super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.dataManager = dataManager;
         
