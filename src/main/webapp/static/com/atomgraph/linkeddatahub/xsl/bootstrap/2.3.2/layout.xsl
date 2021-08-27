@@ -92,6 +92,7 @@ exclude-result-prefixes="#all">
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
     <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
+    <xsl:param name="apl:client" as="document-node()"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="sd:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="a:graphStore" select="if ($ldt:base) then resolve-uri('service', $ldt:base) else ()" as="xs:anyURI?"/>
@@ -99,7 +100,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
-    <xsl:param name="ac:requestUri" as="xs:anyURI?"/>
+    <!--<xsl:param name="ac:requestUri" as="xs:anyURI?"/>-->
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
@@ -306,12 +307,6 @@ exclude-result-prefixes="#all">
         </xsl:if>
         <xsl:if test="$load-yasqe">
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
-            <!-- global yasqe object. TO-DO: move under AtomGraph namespace -->
-<!--            <script type="text/javascript">
-                <![CDATA[
-                var yasqe = YASQE.fromTextArea(document.getElementById("query-string"), { persistent: null });
-                ]]>
-            </script>-->
         </xsl:if>
         <xsl:if test="$load-saxon-js">
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>
@@ -435,7 +430,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ldt:base][$acl:mode = '&acl;Read']" mode="bs2:SearchBar" priority="1">
-        <form action="{$ac:requestUri}" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
+        <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
                     <option value="">[SPARQL service]</option>
@@ -456,6 +451,8 @@ exclude-result-prefixes="#all">
                 </button>
             </div>
         </form>
+        
+        XX<xsl:copy-of select="$apl:client"/>/XXX
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:SearchBar"/>

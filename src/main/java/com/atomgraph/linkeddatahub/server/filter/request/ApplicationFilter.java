@@ -64,7 +64,6 @@ public class ApplicationFilter implements ContainerRequestFilter
         clientAppResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
         com.atomgraph.linkeddatahub.apps.model.Application clientApp = clientAppResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
         request.setProperty(APL.client.getURI(), Optional.of(clientApp));
-//        request.setRequestUri(clientApp.getBaseURI(), request.getUriInfo().getAbsolutePath());
 
         // there might also be a server app (which might be equal to the client app)
         if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
@@ -99,7 +98,6 @@ public class ApplicationFilter implements ContainerRequestFilter
         {
             if (log.isDebugEnabled()) log.debug("Request URI {} has matched the local (client) Application + <{}>", request.getUriInfo().getAbsolutePath(), clientApp.getURI());
             request.setProperty(LAPP.Application.getURI(), Optional.of(clientApp));
-//            request.setRequestUri(clientApp.getBaseURI(), request.getUriInfo().getAbsolutePath());
         }
     }
 
