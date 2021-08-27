@@ -117,6 +117,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
         try
         {
+            // TO-DO: unify by setting UriInfo::requestUri in a response filter?
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
