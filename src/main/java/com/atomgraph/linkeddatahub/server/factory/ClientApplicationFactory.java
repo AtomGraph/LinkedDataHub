@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.factory;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
-import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
@@ -33,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */
 @Provider
-public class ClientApplicationFactory implements Factory<Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>>
+public class ClientApplicationFactory implements Factory<com.atomgraph.linkeddatahub.apps.model.Client<Application>>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ClientApplicationFactory.class);
@@ -41,25 +40,24 @@ public class ClientApplicationFactory implements Factory<Optional<com.atomgraph.
     @Context private ServiceLocator serviceLocator;
     
     @Override
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> provide()
+    public com.atomgraph.linkeddatahub.apps.model.Client<Application> provide()
     {
         return getApplication(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> t)
+    public void dispose(com.atomgraph.linkeddatahub.apps.model.Client<Application> t)
     {
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> getApplication(ContainerRequestContext crc)
+    public com.atomgraph.linkeddatahub.apps.model.Client<Application> getApplication(ContainerRequestContext crc)
     {
-        return (Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>)crc.getProperty(APL.client.getURI());
+        return (com.atomgraph.linkeddatahub.apps.model.Client<Application>)crc.getProperty(APL.client.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);
     }
-    
 
 }

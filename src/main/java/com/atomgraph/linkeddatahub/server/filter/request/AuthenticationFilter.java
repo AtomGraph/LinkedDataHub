@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.filter.request;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.apps.model.Client;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Agent;
@@ -26,7 +27,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.io.IOException;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -53,7 +53,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject javax.inject.Provider<Client<com.atomgraph.linkeddatahub.apps.model.Application>> clientApp;
 
     public abstract String getScheme();
     
@@ -69,8 +69,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (getApplication().isEmpty()) return; // skip filter if no application has matched
-        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
@@ -84,9 +83,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     protected Service getAgentService()
     {
-        return getApplication().get().canAs(EndUserApplication.class) ?
-            getApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getApplication().get().getService();
+        return getClientApplication().get().canAs(EndUserApplication.class) ?
+            getClientApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
+            getClientApplication().get().getService();
     }
     
     /**
@@ -161,9 +160,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         return false;
     }
     
-    public Optional<Application> getApplication()
+    public Client<Application> getClientApplication()
     {
-        return app.get();
+        return clientApp.get();
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()

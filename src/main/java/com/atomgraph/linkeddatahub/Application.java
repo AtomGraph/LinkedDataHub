@@ -618,7 +618,6 @@ public class Application extends ResourceConfig
         register(new UpdateRequestProvider());
 
         register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
-//        register(new DatasetXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes XHTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
@@ -651,7 +650,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ClientApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Client<com.atomgraph.linkeddatahub.apps.model.Application>>>() {}).
+                bindFactory(ClientApplicationFactory.class).to(new TypeLiteral<com.atomgraph.linkeddatahub.apps.model.Client<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
                 in(RequestScoped.class);
             }
         });
