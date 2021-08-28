@@ -398,7 +398,7 @@ exclude-result-prefixes="#all">
                     </button>
 
                     <xsl:if test="$ldt:base">
-                        <xsl:if test="not($ldt:base = $ac:contextUri)">
+                        <xsl:if test="not($apl:client//ldt:base/@rdf:resource = $ac:contextUri)">
                             <a class="brand context" href="{resolve-uri('..', $ldt:base)}"/>
                         </xsl:if>
                     </xsl:if>
@@ -418,13 +418,13 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
-        <a class="brand" href="{$ldt:base}">
-            <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+        <a class="brand" href="{$apl:client//ldt:base/@rdf:resource}">
+            <xsl:if test="$apl:client//rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                 <xsl:attribute name="class" select="'brand admin'"/>
             </xsl:if>
 
             <xsl:value-of>
-                <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
+                <xsl:apply-templates select="$apl:client//rdf:Description" mode="ac:label"/>
             </xsl:value-of>
         </a>
     </xsl:template>

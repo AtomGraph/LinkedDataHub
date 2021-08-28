@@ -128,7 +128,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             com.atomgraph.linkeddatahub.apps.model.Client<Application> clientApp = getClientApplication().get();
             if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp.get());
             params.put(new QName("apl", APL.client.getNameSpace(), APL.client.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get()))));
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get(), false))));
 
             Optional<Application> app = getApplication().get();
             if (getApplication().get().isPresent())
@@ -137,7 +137,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app.get());
                 params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
-                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app.get())))); // TO-DO: change hash code?
+                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app.get(), true)))); // TO-DO: change hash code?
             }
                 
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
@@ -178,27 +178,30 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
         }
     }
     
-    public Model getAppModel(Application app)
+    public Model getAppModel(Application app, boolean includeEndUserAdmin)
     {
         StmtIterator appStmts = app.listProperties();
         Model model = ModelFactory.createDefaultModel().add(appStmts);
         appStmts.close();
 
-        // for AdminApplication, add EndUserApplication statements
-        if (app.canAs(AdminApplication.class))
+        if (includeEndUserAdmin)
         {
-            AdminApplication adminApp = app.as(AdminApplication.class);
-            StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
-            model.add(endUserAppStmts);
-            endUserAppStmts.close();
-        }
-        // for EndUserApplication, add AdminApplication statements
-        if (app.canAs(EndUserApplication.class))
-        {
-            EndUserApplication endUserApp = app.as(EndUserApplication.class);
-            StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
-            model.add(adminApp);
-            adminApp.close();
+            // for AdminApplication, add EndUserApplication statements, and the way around
+            if (app.canAs(AdminApplication.class))
+            {
+                AdminApplication adminApp = app.as(AdminApplication.class);
+                StmtIterator endUserAppStmts = adminApp.getEndUserApplication().listProperties();
+                model.add(endUserAppStmts);
+                endUserAppStmts.close();
+            }
+            // for EndUserApplication, add AdminApplication statements
+            if (app.canAs(EndUserApplication.class))
+            {
+                EndUserApplication endUserApp = app.as(EndUserApplication.class);
+                StmtIterator adminApp = endUserApp.getAdminApplication().listProperties();
+                model.add(adminApp);
+                adminApp.close();
+            }
         }
         
         return model;
