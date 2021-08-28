@@ -429,7 +429,7 @@ exclude-result-prefixes="#all">
         </a>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ldt:base][$acl:mode = '&acl;Read']" mode="bs2:SearchBar" priority="1">
+    <xsl:template match="rdf:RDF[doc-available(resolve-uri('search/', $apl:client//ldt:base/@rdf:resource))]" mode="bs2:SearchBar" priority="1">
         <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
