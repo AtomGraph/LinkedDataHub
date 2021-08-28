@@ -451,8 +451,6 @@ exclude-result-prefixes="#all">
                 </button>
             </div>
         </form>
-        
-        XX<xsl:copy-of select="$apl:client"/>/XXX
     </xsl:template>
     
     <xsl:template match="*" mode="bs2:SearchBar"/>

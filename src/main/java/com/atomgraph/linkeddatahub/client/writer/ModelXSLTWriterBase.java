@@ -128,7 +128,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
 
             Optional<ClientApplication> clientApp = getClientApplication().get();
-            if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp);
+            if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp.get());
             params.put(new QName("apl", APL.client.getNameSpace(), APL.client.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get()))));
 
@@ -137,7 +137,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             {
                 params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
 
-                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
+                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app.get());
                 params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app.get())))); // TO-DO: change hash code?
             }
