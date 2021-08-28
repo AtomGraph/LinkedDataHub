@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.apps.model.Client;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
@@ -63,7 +64,7 @@ public class ApplicationFilter implements ContainerRequestFilter
 
         clientAppResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
         com.atomgraph.linkeddatahub.apps.model.Application clientApp = clientAppResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-        request.setProperty(APL.client.getURI(), Optional.of(clientApp));
+        request.setProperty(APL.client.getURI(), Optional.of(new Client(clientApp))); // wrap into a helper class so it doesn't interfere with injection of Application
 
         // there might also be a server app (which might be equal to the client app)
         if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
@@ -84,19 +85,19 @@ public class ApplicationFilter implements ContainerRequestFilter
                 appResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
 
                 com.atomgraph.linkeddatahub.apps.model.Application serverApp = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-                if (log.isDebugEnabled()) log.debug("Request URI {} has matched a remote (server) Application + <{}>", requestURI, serverApp.getURI());
+                if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a remote (server) Application + <{}>", requestURI, serverApp.getURI());
                 request.setProperty(LAPP.Application.getURI(), Optional.of(serverApp));
                 request.setRequestUri(serverApp.getBaseURI(), requestURI);
             }
             else
             {
-                if (log.isDebugEnabled()) log.debug("Request URI {} has not matched any Application", requestURI);
+                if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any Application", requestURI);
                 request.setProperty(LAPP.Application.getURI(), Optional.empty());
             }
         }
         else
         {
-            if (log.isDebugEnabled()) log.debug("Request URI {} has matched the local (client) Application + <{}>", request.getUriInfo().getRequestUri(), clientApp.getURI());
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched the local (client) Application + <{}>", request.getUriInfo().getRequestUri(), clientApp.getURI());
             request.setProperty(LAPP.Application.getURI(), Optional.of(clientApp));
             request.setRequestUri(clientApp.getBaseURI(), request.getUriInfo().getRequestUri());
         }

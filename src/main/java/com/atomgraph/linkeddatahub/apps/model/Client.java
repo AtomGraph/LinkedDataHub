@@ -17,10 +17,23 @@
 package com.atomgraph.linkeddatahub.apps.model;
 
 /**
- *
+ * Helper class we can wrap instance in to avoid interfering with injection.
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public interface ClientApplication extends Application
+public class Client<T>
 {
 
+    private final T t;
+    
+    public Client(T t)
+    {
+        this.t = t;
+    }
+    
+    public T get()
+    {
+        return t;
+    }
+    
 }

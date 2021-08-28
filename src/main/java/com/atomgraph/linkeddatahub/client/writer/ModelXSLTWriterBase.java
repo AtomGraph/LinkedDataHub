@@ -30,7 +30,6 @@ import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
-import com.atomgraph.linkeddatahub.apps.model.ClientApplication;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
@@ -86,7 +85,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 //    @Context ContainerRequestContext requestContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<ClientApplication>> clientApplication;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>> clientApplication;
     @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
@@ -127,10 +126,10 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getOntology().get().isPresent())
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
 
-            Optional<ClientApplication> clientApp = getClientApplication().get();
+            Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApp = getClientApplication().get();
             if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp.get());
             params.put(new QName("apl", APL.client.getNameSpace(), APL.client.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get()))));
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get().get()))));
 
             Optional<Application> app = getApplication().get();
             if (getApplication().get().isPresent())
@@ -283,7 +282,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
 
-    public javax.inject.Provider<Optional<ClientApplication>> getClientApplication()
+    public javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>> getClientApplication()
     {
         return clientApplication;
     }

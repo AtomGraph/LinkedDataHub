@@ -16,9 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.ClientApplication;
+import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import java.util.Optional;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */
 @Provider
-public class ClientApplicationFactory implements Factory<Optional<ClientApplication>>
+public class ClientApplicationFactory implements Factory<Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>>
 {
 
     private static final Logger log = LoggerFactory.getLogger(ClientApplicationFactory.class);
@@ -42,19 +41,19 @@ public class ClientApplicationFactory implements Factory<Optional<ClientApplicat
     @Context private ServiceLocator serviceLocator;
     
     @Override
-    public Optional<ClientApplication> provide()
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> provide()
     {
         return getApplication(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(Optional<ClientApplication> t)
+    public void dispose(Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> t)
     {
     }
     
-    public Optional<ClientApplication> getApplication(ContainerRequestContext crc)
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> getApplication(ContainerRequestContext crc)
     {
-        return (Optional<ClientApplication>)crc.getProperty(APL.client.getURI());
+        return (Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>)crc.getProperty(APL.client.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()
