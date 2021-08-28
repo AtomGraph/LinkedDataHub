@@ -82,10 +82,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
     @Context SecurityContext securityContext;
-//    @Context ContainerRequestContext requestContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>> clientApplication;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApplication;
     @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
@@ -126,10 +125,10 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getOntology().get().isPresent())
                 params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
 
-            Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApp = getClientApplication().get();
+            com.atomgraph.linkeddatahub.apps.model.Client<Application> clientApp = getClientApplication().get();
             if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp.get());
             params.put(new QName("apl", APL.client.getNameSpace(), APL.client.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get().get()))));
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get()))));
 
             Optional<Application> app = getApplication().get();
             if (getApplication().get().isPresent())
@@ -282,7 +281,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
 
-    public javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Client<Application>>> getClientApplication()
+    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> getClientApplication()
     {
         return clientApplication;
     }
