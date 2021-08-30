@@ -604,7 +604,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
-
+XXX<xsl:copy-of select="$acl:Agent"/>/XXX
+YYY<xsl:value-of select="$apl:absolutePath"/>/YYY
+ZZZ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource"/>/ZZZ
+QQQ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.)"/>/QQQ
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates mode="#current">
                     <xsl:sort select="ac:label(.)"/>
