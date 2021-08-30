@@ -187,7 +187,7 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <!-- initialize breadcrumbs -->
         <xsl:call-template name="apl:LoadBreadcrumbs">
-            <xsl:with-param name="uri" select="$apl:absolutePath"/>
+            <xsl:with-param name="uri" select="apl:absolute-path()"/>
         </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
@@ -217,6 +217,10 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- FUNCTIONS -->
+    
+    <xsl:function name="apl:absolute-path" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))"/>
+    </xsl:function>
     
     <xsl:function name="ac:new-object">
         <xsl:variable name="js-statement" as="element()">
@@ -724,9 +728,9 @@ extension-element-prefixes="ixsl"
                                 <xsl:with-param name="leaf" select="true()"/>
                             </xsl:apply-templates>
                         </ul>
-                        <xsl:if test="not(starts-with($uri, $apl:base))">
+<!--                        <xsl:if test="not(starts-with($uri, $apl:base))">
                             <span class="label label-info pull-left">External</span>
-                        </xsl:if>
+                        </xsl:if>-->
                     </xsl:result-document>
 
                     <xsl:variable name="parent-uri" select="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
@@ -2156,13 +2160,13 @@ extension-element-prefixes="ixsl"
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
-        <xsl:message>
+<!--        <xsl:message>
             onDocumentLoad
             $uri: <xsl:value-of select="$uri"/>
             $container-id: <xsl:value-of select="$container-id"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>
-        </xsl:message>
+        </xsl:message>-->
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
@@ -2281,7 +2285,7 @@ extension-element-prefixes="ixsl"
 
         <!-- update RDF download links to match the current URI -->
         <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-            <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
+            <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
             <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
             <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $apl:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
             <ixsl:set-property name="href" select="$href" object="."/>
@@ -2295,7 +2299,7 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
 
         <xsl:call-template name="apl:LoadBreadcrumbs">
-            <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="uri" select="apl:absolute-path()"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -3289,7 +3293,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="apl:absolute-path()" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
@@ -3412,7 +3416,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($ac:endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/> <!-- TO-DO: get service endpoint from dropdown -->
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
         <xsl:variable name="uri" select="if ($results-uri) then $results-uri else xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
-        <xsl:variable name="local-uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))" as="xs:anyURI"/>
+        <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
 
         <xsl:call-template name="apl:ShowAddDataForm">
             <xsl:with-param name="source" select="$uri"/>
