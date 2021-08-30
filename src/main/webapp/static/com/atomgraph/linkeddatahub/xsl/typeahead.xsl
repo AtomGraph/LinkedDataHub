@@ -129,7 +129,7 @@ version="3.0"
                     <xsl:call-template name="typeahead:process">
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
-                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]][not(c:stateOf)][not(c:viewOf)][not(ldt:paramName)]"/>
+                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]]"/>
                         <xsl:with-param name="resource-types" select="$resource-types"/>
                         <xsl:with-param name="element" select="$element"/>
                         <xsl:with-param name="name" select="'ou'"/>

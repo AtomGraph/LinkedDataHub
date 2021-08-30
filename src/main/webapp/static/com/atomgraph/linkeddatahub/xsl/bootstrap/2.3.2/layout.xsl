@@ -106,7 +106,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
@@ -604,11 +604,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
-BLIOC<xsl:copy-of select="$main-doc"/>/BLIOC
-XXX<xsl:copy-of select="$acl:Agent"/>/XXX
-YYY<xsl:value-of select="$apl:absolutePath"/>/YYY
-ZZZ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource"/>/ZZZ
-QQQ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.)"/>/QQQ
+
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates mode="#current">
                     <xsl:sort select="ac:label(.)"/>
@@ -757,7 +753,7 @@ QQQ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type
     </xsl:template>
 
     <!-- always show ac:DocumentModes and ac:QueryEditorMode; only show ac:ContainerModes for dh:Container (subclass) instances -->
-    <xsl:template match="*[@rdf:about][ac:uri()][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource = $apl:base) or rdf:type/@rdf:resource = '&ac;DocumentMode' or @rdf:about = '&ac;QueryEditorMode']" mode="bs2:ModeListItem" priority="1">
+<!--    <xsl:template match="*[@rdf:about][ac:uri()][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource = $apl:base) or rdf:type/@rdf:resource = '&ac;DocumentMode' or @rdf:about = '&ac;QueryEditorMode']" mode="bs2:ModeListItem" priority="1">
         <xsl:param name="active" as="xs:anyURI*"/>
         <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
 
@@ -770,7 +766,7 @@ QQQ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type
                 <xsl:apply-templates select="." mode="apl:logo"/>
             </a>
         </li>
-    </xsl:template>
+    </xsl:template>-->
        
     <xsl:template match="*" mode="bs2:ModeListItem"/>
 
