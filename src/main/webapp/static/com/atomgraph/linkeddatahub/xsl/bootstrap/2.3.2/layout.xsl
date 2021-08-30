@@ -94,6 +94,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
     <xsl:param name="apl:client" as="document-node()"/>
     <xsl:param name="apl:base" select="$apl:client//ldt:base/@rdf:resource" as="xs:anyURI?"/>
+    <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
 <!--    <xsl:param name="sd:endpoint" select="if ($apl:base) then resolve-uri('sparql', $apl:base) else ()" as="xs:anyURI?"/>-->
     <xsl:param name="a:graphStore" select="if ($apl:base) then resolve-uri('service', $apl:base) else ()" as="xs:anyURI?"/>
@@ -297,6 +298,7 @@ exclude-result-prefixes="#all">
         <script type="text/javascript">
             <![CDATA[
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $apl:base || '&quot;'"/><![CDATA[;
+                var absolutePath = ]]><xsl:value-of select="'&quot;' || $apl:absolutePath || '&quot;'"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="if ($ldt:ontology) then '&quot;' || $ldt:ontology || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
@@ -351,7 +353,8 @@ exclude-result-prefixes="#all">
                                 logLevel: ]]><xsl:value-of select="$saxon-js-log-level"/><![CDATA[,
                                 stylesheetParams: {
                                     "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $apl:base
+                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $ldt:base
+                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
                                     "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
                                     "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
                                     }
