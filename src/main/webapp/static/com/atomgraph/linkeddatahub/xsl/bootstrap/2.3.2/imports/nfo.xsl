@@ -21,7 +21,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept" as="xs:string?"/>
-        <xsl:param name="container" select="resolve-uri('uploads/', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: get container URI from the ns:ItemOfFileContainer restriction -->
+        <xsl:param name="container" select="resolve-uri('uploads/', $apl:base)" as="xs:anyURI"/> <!-- TO-DO: get container URI from the ns:ItemOfFileContainer restriction -->
 
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ol'"/>

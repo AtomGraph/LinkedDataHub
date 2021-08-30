@@ -54,13 +54,13 @@ extension-element-prefixes="ixsl"
 
     <!-- LOGO -->
 
-    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $ldt:base), resolve-uri('admin/model/ontologies/default/#Container', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $apl:base), resolve-uri('admin/model/ontologies/default/#Container', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'container-logo')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Item', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Item', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'item-logo')"/>
@@ -80,61 +80,61 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Container', $ldt:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Container', $apl:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Item', $apl:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#DydraService', $ldt:base), resolve-uri('admin/model/ontologies/system/#GenericService', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/system/#GenericService', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-service')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Construct', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Construct', $apl:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-construct')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Describe', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Describe', $apl:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-describe')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Select', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Select', $apl:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-select')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Ask', $ldt:base)]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Ask', $apl:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-ask')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#File', $ldt:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#File', $apl:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-file')"/>
     </xsl:template>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#CSVImport', $ldt:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-import')"/>
     </xsl:template>
     
-    <xsl:template match="*[$ldt:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#ResultSetChart', $ldt:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $ldt:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'create-chart')"/>
@@ -272,7 +272,7 @@ extension-element-prefixes="ixsl"
     <!-- BODY -->
     
     <!-- skip the properties of the the current Root and other root containers, Container, or Item - show only contents -->
-    <xsl:template match="*[$ldt:base][@rdf:about = ($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
+    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = $ac:uri][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="xhtml:Body" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
@@ -714,7 +714,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="template-doc" select="if ($ldt:ontology and $ldt:base) then ac:construct-doc($ldt:ontology, $forClass, $ldt:base) else ()" as="document-node()?"/>
+        <xsl:param name="template-doc" select="if ($ldt:ontology and $apl:base) then ac:construct-doc($ldt:ontology, $forClass, $apl:base) else ()" as="document-node()?"/>
         <xsl:param name="template" select="$template-doc/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
@@ -785,7 +785,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
-        <xsl:param name="forClass" select="if ($ldt:base) then resolve-uri('admin/ns#Class', $ldt:base) else ()" as="xs:anyURI?"/> <!-- allow subclasses of lsm:Class? -->
+        <xsl:param name="forClass" select="if ($apl:base) then resolve-uri('admin/ns#Class', $apl:base) else ()" as="xs:anyURI?"/> <!-- allow subclasses of lsm:Class? -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
 
         <xsl:apply-templates mode="#current">

@@ -30,7 +30,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <span>
-            <xsl:variable name="query-uri" select="resolve-uri('queries/default/select-children/#this', $ldt:base)" as="xs:anyURI"/>
+            <xsl:variable name="query-uri" select="resolve-uri('queries/default/select-children/#this', $apl:base)" as="xs:anyURI"/>
             <!-- doc-available(ac:document-uri($query-uri)))? -->
             <xsl:apply-templates select="key('resources', $query-uri, document(ac:document-uri($query-uri)))" mode="apl:Typeahead"/>
         </span>

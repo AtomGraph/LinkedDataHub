@@ -146,7 +146,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="bs2:Form">
+                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
                                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -170,7 +170,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:Form" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string($ac:uri) }) else $ac:uri)" as="xs:anyURI"/>
+        <xsl:param name="action" select="xs:anyURI(if (not(starts-with($ac:uri, $ac:contextUri))) then ac:build-uri($apl:base, map { 'uri': string($ac:uri) }) else $ac:uri)" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -204,7 +204,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:choose>
                 <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*" mode="#current">
+                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="#current">
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
@@ -297,7 +297,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="default-classes" select="key('resources', (resolve-uri('admin/model/ontologies/system/#GenericService', $ldt:base), resolve-uri('admin/model/ontologies/system/#DydraService', $ldt:base), resolve-uri('admin/model/ontologies/system/#Construct', $ldt:base), resolve-uri('admin/model/ontologies/system/#Describe', $ldt:base), resolve-uri('admin/model/ontologies/system/#Select', $ldt:base), resolve-uri('admin/model/ontologies/system/#Ask', $ldt:base), resolve-uri('admin/model/ontologies/system/#File', $ldt:base), resolve-uri('admin/model/ontologies/system/#CSVImport', $ldt:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $ldt:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $ldt:base), resolve-uri('admin/model/ontologies/system/#ResultSetChart', $ldt:base)), document(resolve-uri('admin/model/ontologies/system/', $ldt:base)))" as="element()*"/>
+                <xsl:variable name="default-classes" select="key('resources', (resolve-uri('admin/model/ontologies/system/#GenericService', $apl:base), resolve-uri('admin/model/ontologies/system/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/system/#Construct', $apl:base), resolve-uri('admin/model/ontologies/system/#Describe', $apl:base), resolve-uri('admin/model/ontologies/system/#Select', $apl:base), resolve-uri('admin/model/ontologies/system/#Ask', $apl:base), resolve-uri('admin/model/ontologies/system/#File', $apl:base), resolve-uri('admin/model/ontologies/system/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $apl:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base), resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base)), document(resolve-uri('admin/model/ontologies/system/', $apl:base)))" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$ldt:ontology"/>
@@ -312,9 +312,9 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <!--if the current resource is a Container, show Container and Item constructors--> 
-                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#Container', $ldt:base), resolve-uri('admin/model/ontologies/default/#Item', $ldt:base)), document(resolve-uri('admin/model/ontologies/default/', $ldt:base)))" as="element()*"/>
+                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#Container', $apl:base), resolve-uri('admin/model/ontologies/default/#Item', $apl:base)), document(resolve-uri('admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
                 <!-- current resource is a container -->
-                <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $ldt:base), resolve-uri('admin/model/ontologies/default/#Container', $ldt:base))">
+                <xsl:if test="exists($document-classes) and key('resources', $ac:uri)/rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $apl:base), resolve-uri('admin/model/ontologies/default/#Container', $apl:base))">
                     <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                         <xsl:sort select="ac:label(.)"/>
                     </xsl:apply-templates>

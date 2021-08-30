@@ -64,10 +64,10 @@ WHERE
                     ]]>
                 </xsl:variable>
                 <xsl:variable name="notification-query" select="replace($notification-query, '\$type', '&lt;' || $ldt:ontology || 'AuthorizationRequest' || '&gt;')" as="xs:string"/>
-                <xsl:variable name="notification-query" select="replace($notification-query, '\$container', '&lt;' || resolve-uri('acl/authorization-requests/', $ldt:base) || '&gt;')" as="xs:string"/>
+                <xsl:variable name="notification-query" select="replace($notification-query, '\$container', '&lt;' || resolve-uri('acl/authorization-requests/', $apl:base) || '&gt;')" as="xs:string"/>
 
-                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))">
-                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $ldt:base), map{ 'query': $notification-query }))" as="document-node()"/>
+                <xsl:if test="doc-available(ac:build-uri(resolve-uri('sparql', $apl:base), map{ 'query': $notification-query }))">
+                    <xsl:variable name="notifications" select="document(ac:build-uri(resolve-uri('sparql', $apl:base), map{ 'query': $notification-query }))" as="document-node()"/>
 
                     <xsl:if test="$notifications/rdf:RDF/*[@rdf:about]">
                         <li>
