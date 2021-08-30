@@ -56,7 +56,7 @@ exclude-result-prefixes="#all">
                     </xsl:choose>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="key('resources', $ac:uri, document($ac:uri))" mode="apl:Typeahead"/>
+                    <xsl:apply-templates select="key('resources', ac:uri(), document(ac:uri()))" mode="apl:Typeahead"/>
                 </xsl:otherwise>
             </xsl:choose>
         </span>

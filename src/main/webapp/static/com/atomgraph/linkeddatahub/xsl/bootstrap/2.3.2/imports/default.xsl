@@ -305,7 +305,7 @@ exclude-result-prefixes="#all"
                                                 <xsl:attribute name="value" select="."/>
                                             </xsl:when>
                                             <xsl:otherwise>
-                                                <xsl:value-of select="resolve-uri(concat('/', ac:uuid()), $ac:uri)"/>
+                                                <xsl:value-of select="resolve-uri(concat('/', ac:uuid()), ac:uri())"/>
                                             </xsl:otherwise>
                                         </xsl:choose>
                                     </xsl:attribute>

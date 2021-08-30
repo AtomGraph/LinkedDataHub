@@ -418,7 +418,7 @@ exclude-result-prefixes="#all"
     <!-- MAP MODE -->
 
     <!-- TO-DO: improve match pattern -->
-    <xsl:template match="rdf:RDF[resolve-uri('geo/', $apl:base) = $ac:uri]" mode="bs2:Map" priority="1">
+    <xsl:template match="rdf:RDF[resolve-uri('geo/', $apl:base) = ac:uri()]" mode="bs2:Map" priority="1">
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="()"/>
         </xsl:next-match>

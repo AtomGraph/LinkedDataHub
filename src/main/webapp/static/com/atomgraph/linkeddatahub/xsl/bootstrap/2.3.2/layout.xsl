@@ -107,7 +107,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource, key('resources', $ac:uri, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
@@ -126,6 +126,10 @@ exclude-result-prefixes="#all">
     <rdf:Description rdf:about="">
     </rdf:Description>
 
+    <xsl:function name="ac:uri" as="xs:anyURI">
+        <xsl:sequence select="$ac:uri"/>
+    </xsl:function>
+    
     <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
         <body>
@@ -171,7 +175,7 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[key('resources', $ac:uri)][$ac:mode = '&aplt;InfoWindowMode']" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;InfoWindowMode']" mode="xhtml:Body" priority="1">
         <body>
             <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
                 <xsl:apply-templates select="." mode="bs2:Block">
@@ -181,7 +185,7 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[key('resources', $ac:uri)][$ac:mode = '&aplt;ObjectMode']" mode="xhtml:Body" priority="2">
+    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;ObjectMode']" mode="xhtml:Body" priority="2">
         <body class="embed">
             <div>
                 <xsl:apply-templates select="." mode="bs2:Object">
@@ -206,13 +210,13 @@ exclude-result-prefixes="#all">
         </title>
     </xsl:template>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][not(key('resources', $ac:uri))]" mode="xhtml:Title" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&http;Response'][not(key('resources', ac:uri()))]" mode="xhtml:Title" priority="1">
         <xsl:value-of>
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:value-of>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about = $ac:uri]" mode="xhtml:Title" priority="1">
+    <xsl:template match="*[@rdf:about = ac:uri()]" mode="xhtml:Title" priority="1">
         <xsl:value-of>
             <xsl:apply-templates select="." mode="ac:label"/>
         </xsl:value-of>
@@ -225,10 +229,10 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Meta">
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-        <meta name="og:url" content="{$ac:uri}"/>
-        <meta name="twitter:url" content="{$ac:uri}"/>
+        <meta name="og:url" content="{ac:uri()}"/>
+        <meta name="twitter:url" content="{ac:uri()}"/>
 
-        <xsl:for-each select="key('resources', $ac:uri)">
+        <xsl:for-each select="key('resources', ac:uri())">
             <meta name="og:title" content="{ac:label(.)}"/>
             <meta name="twitter:title" content="{ac:label(.)}"/>
 
@@ -283,10 +287,10 @@ exclude-result-prefixes="#all">
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
-        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or $ac:uri = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not(ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
         <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->
@@ -440,9 +444,9 @@ exclude-result-prefixes="#all">
                 </select>
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="not(starts-with($ac:uri, $apl:base))">
+                    <xsl:if test="not(starts-with(ac:uri(), $apl:base))">
                         <xsl:attribute name="value">
-                            <xsl:value-of select="$ac:uri"/>
+                            <xsl:value-of select="ac:uri()"/>
                         </xsl:attribute>
                     </xsl:if>
                 </input>
@@ -562,7 +566,7 @@ exclude-result-prefixes="#all">
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">
                 <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $apl:baseUri), map{ 'referer': string($ac:uri) })}">
+                    <a class="btn btn-primary" href="{ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $apl:baseUri), map{ 'referer': string(ac:uri()) })}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -611,8 +615,8 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-    <xsl:template match="*[*][@rdf:about = $ac:uri]" mode="bs2:PropertyList">
-        <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $ac:uri || '&gt;'" as="xs:string"/>
+    <xsl:template match="*[*][@rdf:about = ac:uri()]" mode="bs2:PropertyList">
+        <xsl:variable name="query-string" select="'DESCRIBE &lt;' || ac:uri() || '&gt;'" as="xs:string"/>
         <xsl:variable name="local-doc" select="document(ac:build-uri(xs:anyURI('https://localhost:4443/sparql'), map{ 'query': $query-string }))"/>
 
         <xsl:variable name="triples-original" as="map(xs:string, element())">
@@ -725,9 +729,9 @@ exclude-result-prefixes="#all">
         
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:ModeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF[key('resources', key('resources', $ac:uri)/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&apl;Dataset']" mode="bs2:ModeList"/>
+    <xsl:template match="rdf:RDF[key('resources', key('resources', ac:uri())/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&apl;Dataset']" mode="bs2:ModeList"/>
 
-    <xsl:template match="rdf:RDF[$ac:uri]" mode="bs2:ModeList">
+    <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', $ac:mode, document(ac:document-uri('&ac;'))) | key('resources', $ac:mode, document(ac:document-uri('&apl;')))" mode="apl:logo">
@@ -749,16 +753,16 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- always show ac:DocumentModes and ac:QueryEditorMode; only show ac:ContainerModes for dh:Container (subclass) instances -->
-    <xsl:template match="*[@rdf:about][$ac:uri][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', $ac:uri, $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', $ac:uri, $main-doc)/core:stateOf/@rdf:resource = $apl:base) or rdf:type/@rdf:resource = '&ac;DocumentMode' or @rdf:about = '&ac;QueryEditorMode']" mode="bs2:ModeListItem" priority="1">
+    <xsl:template match="*[@rdf:about][ac:uri()][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource = $apl:base) or rdf:type/@rdf:resource = '&ac;DocumentMode' or @rdf:about = '&ac;QueryEditorMode']" mode="bs2:ModeListItem" priority="1">
         <xsl:param name="active" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="$ac:uri" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
 
         <li>
             <xsl:if test="@rdf:about = $active">
                 <xsl:attribute name="class">active</xsl:attribute>
             </xsl:if>
 
-            <a href="{if (not(starts-with($href, $ac:contextUri))) then ac:build-uri((), map{ 'uri': string($href), 'mode': string(@rdf:about) }) else if (contains($ac:uri, '?')) then concat($ac:uri, '&amp;mode=', encode-for-uri(@rdf:about)) else ac:build-uri($ac:uri, map{ 'mode': string(@rdf:about) })}" title="{@rdf:about}">
+            <a href="{if (not(starts-with($href, $ac:contextUri))) then ac:build-uri((), map{ 'uri': string($href), 'mode': string(@rdf:about) }) else if (contains(ac:uri(), '?')) then concat(ac:uri(), '&amp;mode=', encode-for-uri(@rdf:about)) else ac:build-uri(ac:uri(), map{ 'mode': string(@rdf:about) })}" title="{@rdf:about}">
                 <xsl:apply-templates select="." mode="apl:logo"/>
             </a>
         </li>
@@ -768,7 +772,7 @@ exclude-result-prefixes="#all">
 
     <!-- CONTENT TOGGLE  -->
     
-    <xsl:template match="rdf:RDF[key('resources', $ac:uri)/sioc:content]" mode="bs2:ContentToggle" priority="1">
+    <xsl:template match="rdf:RDF[key('resources', ac:uri())/sioc:content]" mode="bs2:ContentToggle" priority="1">
         <div class="pull-right">
             <button class="btn" title="Collapse/expand document content">
                 <xsl:apply-templates select="key('resources', 'toggle-content', document('translations.rdf'))" mode="apl:logo">
@@ -820,7 +824,7 @@ exclude-result-prefixes="#all">
             <h2>
                 <xsl:apply-templates select="." mode="apl:logo"/>
                 
-                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string($ac:uri) }) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri($ac:uri))}" class="btn btn-primary pull-right">Request access</a>
+                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string(ac:uri()) }) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri(ac:uri()))}" class="btn btn-primary pull-right">Request access</a>
             </h2>
         </div>
     </xsl:template>
@@ -852,7 +856,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="action" select="ac:build-uri(resolve-uri('uploads', $apl:base), let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
 
-        <xsl:next-match> <!-- TO-DO: account for external $ac:uri -->
+        <xsl:next-match> <!-- TO-DO: account for external ac:uri() -->
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
         </xsl:next-match>
@@ -864,7 +868,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
 
-        <xsl:next-match> <!-- TO-DO: account for external $ac:uri -->
+        <xsl:next-match> <!-- TO-DO: account for external ac:uri() -->
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
@@ -874,7 +878,7 @@ exclude-result-prefixes="#all">
     <!-- override form action in Client template -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string($ac:uri), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri($ac:uri, map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action" as="xs:anyURI"/>
@@ -896,7 +900,7 @@ exclude-result-prefixes="#all">
                 </label>
                 <div class="controls">
                     <span>
-                        <xsl:apply-templates select="key('resources', $ac:uri, $main-doc)" mode="apl:Typeahead">
+                        <xsl:apply-templates select="key('resources', ac:uri(), $main-doc)" mode="apl:Typeahead">
                             <xsl:with-param name="disabled" select="true()"/>
                         </xsl:apply-templates>
                     </span>
@@ -911,7 +915,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
         <xsl:if test="$acl:Agent//@rdf:about">
                 <div class="pull-right">
-                    <form action="{ac:build-uri($ac:uri, map{ '_method': 'DELETE' })}" method="post">
+                    <form action="{ac:build-uri(ac:uri(), map{ '_method': 'DELETE' })}" method="post">
                         <button type="button" title="{ac:label(key('resources', 'nav-bar-action-delete-title', document('translations.rdf')))}">
                             <xsl:apply-templates select="key('resources', '&ac;Delete', document(ac:document-uri('&ac;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn'"/>
@@ -922,7 +926,7 @@ exclude-result-prefixes="#all">
 
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <div class="pull-right">
-                    <xsl:variable name="graph-uri" select="ac:build-uri($ac:uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+                    <xsl:variable name="graph-uri" select="ac:build-uri(ac:uri(), map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                     <button type="button" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
@@ -947,7 +951,7 @@ exclude-result-prefixes="#all">
             </div>
             
 <!--            <div class="pull-right">
-                <form action="{$ac:uri}?ban=true" method="post">
+                <form action="{ac:uri()}?ban=true" method="post">
                     <input type="hidden" name="ban" value="true"/>
                     <button type="submit" title="{ac:label(key('resources', 'nav-bar-action-refresh-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&aplt;Ban', document(ac:document-uri('&aplt;')))" mode="apl:logo">
@@ -980,7 +984,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="*[@rdf:about]" mode="bs2:AccessListItem" priority="1">
         <xsl:param name="enabled" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="$ac:uri" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
 
         <li>
             <a title="{@rdf:about}">

@@ -154,8 +154,8 @@ LIMIT 100</xsl:param>
 
                 <div class="form-actions">
                     <!-- retain URL parameters -->
-<!--                    <xsl:if test="$ac:uri">
-                        <input type="hidden" name="uri" value="{$ac:uri}"/>
+<!--                    <xsl:if test="ac:uri()">
+                        <input type="hidden" name="uri" value="{ac:uri()}"/>
                     </xsl:if>-->
                     <xsl:if test="$service">
                         <input type="hidden" name="service" value="{$service}"/>

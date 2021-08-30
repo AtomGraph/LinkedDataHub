@@ -38,13 +38,13 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="apl:access-to" as="xs:anyURI?"/>
 
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('request%20access', $apl:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
+    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('request%20access', $apl:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:Form">
-            <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('request%20access', $apl:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
+    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('request%20access', $apl:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
@@ -72,7 +72,7 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:NavBarActions" priority="2"/>
+    <xsl:template match="rdf:RDF[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:NavBarActions" priority="2"/>
     
     <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('request%20access', $apl:base)]" mode="bs2:Left" priority="2"/>
 
@@ -91,14 +91,14 @@ exclude-result-prefixes="#all">
             </xsl:if>
         
             <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)" mode="bs2:Form">
-                <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+                <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
                 <xsl:with-param name="create-resource" select="false()"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
-<!--    <xsl:template match="rdf:RDF[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
+<!--    <xsl:template match="rdf:RDF[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
         <xsl:apply-templates select="." mode="bs2:Block"/>
     </xsl:template>-->
     
@@ -121,9 +121,9 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>-->
 
-    <xsl:template match="rdf:RDF[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:TargetContainer" priority="2"/>
+    <xsl:template match="rdf:RDF[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:TargetContainer" priority="2"/>
     
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
@@ -131,7 +131,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
                 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$apl:base][$ac:forClass][$ac:uri = resolve-uri('request%20access', $apl:base)]/sioc:has_container" mode="bs2:FormControl" priority="4">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$apl:base][$ac:forClass][ac:uri() = resolve-uri('request%20access', $apl:base)]/sioc:has_container" mode="bs2:FormControl" priority="4">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -154,7 +154,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="lacl:requestMode/@rdf:*[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="lacl:requestMode/@rdf:*[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -178,7 +178,7 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAgent[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="lacl:requestAgent[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -202,7 +202,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAccessTo/@rdf:*[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)][$apl:access-to]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAccessTo/@rdf:*[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)][$apl:access-to]" mode="bs2:FormControl" priority="2">
         <label>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
@@ -215,7 +215,7 @@ exclude-result-prefixes="#all">
         </label>
     </xsl:template>
 
-    <xsl:template match="lacl:requestAccessToClass/@rdf:*[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="2">
+    <xsl:template match="lacl:requestAccessToClass/@rdf:*[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
         <xsl:variable name="classes" select="key('resources', (resolve-uri('../admin/model/ontologies/default/#Root', $apl:base), resolve-uri('../admin/model/ontologies/default/#Container', $apl:base), resolve-uri('../admin/model/ontologies/default/#Item', $apl:base), resolve-uri('../admin/model/ontologies/default/#File', $apl:base)), document(resolve-uri('../admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
@@ -229,14 +229,14 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- hide properties (including all of document resource properties) -->
-    <xsl:template match="foaf:isPrimaryTopicOf[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)] | *[foaf:primaryTopic][$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]/*" mode="bs2:FormControl" priority="3">
+    <xsl:template match="foaf:isPrimaryTopicOf[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)] | *[foaf:primaryTopic][$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]/*" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -248,9 +248,9 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="sioc:content[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="sioc:content[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:FormControl" priority="1"/>
     
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
-    <xsl:template match="*[$apl:base][$ac:uri = resolve-uri('request%20access', $apl:base)]" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[$apl:base][ac:uri() = resolve-uri('request%20access', $apl:base)]" mode="bs2:PropertyControl" priority="1"/>
 
 </xsl:stylesheet>

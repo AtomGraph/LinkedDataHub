@@ -42,13 +42,13 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $apl:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
+    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $apl:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:Form">
-            <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:forClass][$ac:uri = resolve-uri('sign%20up', $apl:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
+    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $apl:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
@@ -93,7 +93,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
         
             <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)" mode="bs2:Form">
-                <xsl:with-param name="action" select="ac:build-uri($ac:uri, map{ 'forClass': string($ac:forClass) })"/>
+                <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>
@@ -117,9 +117,9 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources-by-type', concat($apl:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>
     </xsl:template>-->
     
-    <xsl:template match="rdf:RDF[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:TargetContainer" priority="1"/>
+    <xsl:template match="rdf:RDF[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:TargetContainer" priority="1"/>
 
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
@@ -128,13 +128,13 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- select the Agent blank node -->
-<!--    <xsl:template match="*[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($apl:base, 'ns#Person')]" mode="bs2:Form" priority="2">
+<!--    <xsl:template match="*[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($apl:base, 'ns#Person')]" mode="bs2:Form" priority="2">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>-->
 
-    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:uri = resolve-uri('sign%20up', $apl:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][$ac:uri = resolve-uri('sign%20up', $apl:base)]/sioc:has_container" mode="bs2:FormControl">
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $apl:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][ac:uri() = resolve-uri('sign%20up', $apl:base)]/sioc:has_container" mode="bs2:FormControl">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -146,7 +146,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="foaf:based_near/@rdf:*[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:based_near/@rdf:*[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -198,7 +198,7 @@ exclude-result-prefixes="#all">
         </xsl:if>
     </xsl:template>
     
-    <xsl:template match="foaf:member/@rdf:*[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:member/@rdf:*[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -242,7 +242,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- make properties required -->
-    <xsl:template match="foaf:givenName[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | foaf:familyName[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | foaf:mbox[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | cert:key[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="foaf:givenName[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | foaf:familyName[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | foaf:mbox[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | cert:key[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="violations" as="element()*"/>
 
         <xsl:next-match>
@@ -251,7 +251,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="cert:key/@rdf:*[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="cert:key/@rdf:*[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1">
         <xsl:param name="type" select="'password'" as="xs:string"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
@@ -291,7 +291,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- do not show secretary URI input -->
-    <xsl:template match="acl:delegates[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="acl:delegates[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="1"/>
 
     <xsl:template name="lacl:password">
         <xsl:param name="this" select="xs:anyURI('&lacl;password')" as="xs:anyURI"/>
@@ -333,14 +333,14 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- hide type control -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:TypeControl" priority="2">
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:TypeControl" priority="2">
         <xsl:next-match>
             <xsl:with-param name="hidden" select="true()"/>
         </xsl:next-match>
     </xsl:template>
 
     <!--  hide properties -->
-    <xsl:template match="dh:slug[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | foaf:primaryTopic[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | foaf:isPrimaryTopicOf[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | cert:modulus[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)] | cert:exponent[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="3">
+    <xsl:template match="dh:slug[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | foaf:primaryTopic[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | foaf:isPrimaryTopicOf[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | cert:modulus[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)] | cert:exponent[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:FormControl" priority="3">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
@@ -352,9 +352,9 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&foaf;mbox'][$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="ac:label" priority="1">E-mail</xsl:template>
+    <xsl:template match="*[@rdf:about = '&foaf;mbox'][$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="ac:label" priority="1">E-mail</xsl:template>
 
     <!-- turn off additional properties -->
-    <xsl:template match="*[$apl:base][$ac:uri = resolve-uri('sign%20up', $apl:base)]" mode="bs2:PropertyControl" priority="1"/>
+    <xsl:template match="*[$apl:base][ac:uri() = resolve-uri('sign%20up', $apl:base)]" mode="bs2:PropertyControl" priority="1"/>
 
 </xsl:stylesheet>
