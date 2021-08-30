@@ -1732,7 +1732,7 @@ extension-element-prefixes="ixsl"
                             <xsl:for-each select="key('resources-by-container', $apl:base, $results)">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:apply-templates select="." mode="bs2:List">
-                                    <xsl:with-param name="active" select="starts-with($ac:uri, @rdf:about)"/>
+                                    <xsl:with-param name="active" select="starts-with(apl:absolute-path(), @rdf:about)"/>
                                 </xsl:apply-templates>
                             </xsl:for-each>
                         </xsl:variable>
