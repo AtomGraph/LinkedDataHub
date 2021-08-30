@@ -604,6 +604,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
+BLIOC<xsl:copy-of select="$main-doc"/>/BLIOC
 XXX<xsl:copy-of select="$acl:Agent"/>/XXX
 YYY<xsl:value-of select="$apl:absolutePath"/>/YYY
 ZZZ<xsl:value-of select="key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource"/>/ZZZ
