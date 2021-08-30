@@ -83,20 +83,8 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
-    <xsl:param name="ldt:ontology" as="xs:anyURI"/>
+    <xsl:param name="apl:ontology" as="xs:anyURI"/>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <!-- this is the document URI as absolute path - hash and query string are removed -->
-<!--    <xsl:param name="ac:uri" as="xs:anyURI">
-        <xsl:choose>
-             override with ?uri= query param value, if any 
-            <xsl:when test="ixsl:query-params()?uri">
-                <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="$apl:absolutePath"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:param>-->
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $apl:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
@@ -144,7 +132,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>
         <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
-        <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
+        <xsl:message>$apl:ontology: <xsl:value-of select="$apl:ontology"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
@@ -168,7 +156,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="container-id" select="'content-body'"/>
         </xsl:call-template>
         <!-- load application's ontology RDF document -->
-<!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+<!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $apl:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <!-- disable SPARQL editor's server-side submission -->
