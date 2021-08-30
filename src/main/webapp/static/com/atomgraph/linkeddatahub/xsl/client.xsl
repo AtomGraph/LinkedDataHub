@@ -143,6 +143,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$ac:desc: <xsl:value-of select="$ac:desc"/></xsl:message>
         <xsl:message>$ac:mode: <xsl:value-of select="$ac:mode"/></xsl:message>
         <xsl:message>$ac:container-mode: <xsl:value-of select="$ac:container-mode"/></xsl:message>
+        <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ac:new-object()"/>
