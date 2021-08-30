@@ -36,4 +36,11 @@ public class Client<T>
         return t;
     }
     
+    
+    @Override
+    public String toString()
+    {
+        return get().toString();
+    }
+    
 }
