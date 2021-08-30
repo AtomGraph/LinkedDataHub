@@ -3624,7 +3624,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onAddSaveQueryForm">
         <xsl:param name="query-string" as="xs:string"/>
-        <xsl:param name="form-id" as="xs:string?"/>
+        <xsl:param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string?"/>
         <xsl:param name="add-class" select="'form-save-query'" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
 
