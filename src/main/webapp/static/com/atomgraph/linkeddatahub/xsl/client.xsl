@@ -2852,6 +2852,7 @@ extension-element-prefixes="ixsl"
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddSaveQueryForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
+                <xsl:with-param name="service-uri" select="$service-uri"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -3636,6 +3637,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string?"/>
         <xsl:param name="add-class" select="'form-save-query'" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
+        <xsl:param name="service-uri" as="xs:anyURI?"/>
 
         <!-- override the form @id coming from the server with a value we can use for form lookup afterwards -->
         <xsl:call-template name="onAddForm">
@@ -3645,8 +3647,11 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
-        <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
-        <ixsl:set-property name="value" select="$query-string" object="$control-group/descendant::textarea[@name = 'ol']"/>
+        <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
+        <ixsl:set-property name="value" select="$query-string" object="$query-string-control-group/descendant::textarea[@name = 'ol']"/>
+        <!-- TO-DO: apply typeahead template on the "Service" input -->
+        <xsl:variable name="service-uri-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()*"/>
+        <ixsl:set-property name="value" select="$service-uri" object="$service-uri-control-group/descendant::textarea[@name = 'ou']"/>
     </xsl:template>
     
     <xsl:template name="onAddSaveChartForm">
