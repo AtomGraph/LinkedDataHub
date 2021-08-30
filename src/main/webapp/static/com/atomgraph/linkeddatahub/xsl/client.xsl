@@ -82,6 +82,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
+    <xsl:param name="apl:absolutePath" select="xs:anyURI(substring-before(ixsl:get(ixsl:window(), 'location.href'), '?'))" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <!-- this is the document URI as absolute path - hash and query string are removed -->
@@ -92,10 +93,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
             </xsl:when>
             <xsl:otherwise>
-                <!-- remove #hash part, if any -->
-                <xsl:variable name="before-hash" select="if (contains(ixsl:get(ixsl:window(), 'location.href'), '#')) then substring-before(ixsl:get(ixsl:window(), 'location.href'), '#') else ixsl:get(ixsl:window(), 'location.href')" as="xs:string"/>
-                <!-- remove ?query part, if any -->
-                <xsl:sequence select="xs:anyURI(if (contains($before-hash, '?')) then substring-before($before-hash, '?') else $before-hash)"/>
+                <xsl:sequence select="$apl:absolutePath"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:param>
@@ -186,9 +184,9 @@ extension-element-prefixes="ixsl"
         </xsl:if>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
-        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode') and starts-with($ac:uri, $apl:base)">
+        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode')">
             <xsl:call-template name="apl:LoadBreadcrumbs">
-                <xsl:with-param name="uri" select="$ac:uri"/>
+                <xsl:with-param name="uri" select="$apl:absolutePath"/>
             </xsl:call-template>
         </xsl:if>
         <!-- append typeahead list after the search/URI input -->
