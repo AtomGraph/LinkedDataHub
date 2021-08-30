@@ -82,13 +82,13 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
-    <xsl:param name="apl:absolutePath" select="xs:anyURI(substring-before(ixsl:get(ixsl:window(), 'location.href'), '?'))" as="xs:anyURI"/>
-    <xsl:param name="ldt:ontology" as="xs:anyURI"/>
+    <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
+    <!--<xsl:param name="ldt:ontology" as="xs:anyURI"/>-->
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <!-- this is the document URI as absolute path - hash and query string are removed -->
-    <xsl:param name="ac:uri" as="xs:anyURI">
+<!--    <xsl:param name="ac:uri" as="xs:anyURI">
         <xsl:choose>
-            <!-- override with ?uri= query param value, if any -->
+             override with ?uri= query param value, if any 
             <xsl:when test="ixsl:query-params()?uri">
                 <xsl:sequence select="xs:anyURI(ixsl:query-params()?uri)"/>
             </xsl:when>
@@ -96,7 +96,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="$apl:absolutePath"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:param>
+    </xsl:param>-->
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $apl:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
@@ -147,7 +147,7 @@ extension-element-prefixes="ixsl"
         <!--<xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>-->
         <!--<xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>-->
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
-        <xsl:message>$ac:uri: <xsl:value-of select="$ac:uri"/></xsl:message>
+        <!--<xsl:message>$ac:uri: <xsl:value-of select="$ac:uri"/></xsl:message>-->
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
         <xsl:message>Search container URI: <xsl:value-of select="$search-container-uri"/></xsl:message>
@@ -160,12 +160,12 @@ extension-element-prefixes="ixsl"
 
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ac:new-object()"/>
-        <ixsl:set-property name="href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($ac:uri) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="title" select="ixsl:get(ixsl:window(), 'document.title')"/>
             <xsl:with-param name="container-id" select="'content-body'"/>
         </xsl:call-template>
@@ -205,13 +205,13 @@ extension-element-prefixes="ixsl"
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:call-template name="apl:LoadContents">
-            <xsl:with-param name="uri" select="$ac:uri"/>
+            <xsl:with-param name="uri" select="ac:uri()"/>
             <xsl:with-param name="content-ids" select="$content-ids"/>
         </xsl:call-template>
         <!-- update RDF download links to match the current URI -->
         <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
             <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-            <xsl:variable name="href" select="ac:build-uri($ac:uri, map{ 'accept': string(@title) })" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'accept': string(@title) })" as="xs:anyURI"/>
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
     </xsl:template>
@@ -221,7 +221,11 @@ extension-element-prefixes="ixsl"
     <xsl:function name="apl:absolute-path" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))"/>
     </xsl:function>
-    
+
+    <xsl:function name="ac:uri" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))"/>
+    </xsl:function>
+
     <xsl:function name="ac:new-object">
         <xsl:variable name="js-statement" as="element()">
             <root statement="{{ }}"/>
@@ -573,7 +577,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
-    <xsl:template match="*[@rdf:about = $ac:uri][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
+    <xsl:template match="*[@rdf:about = ac:uri()][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
         <xsl:variable name="definitions" as="document-node()">
             <xsl:document>
                 <dl class="dl-horizontal">
@@ -648,7 +652,7 @@ extension-element-prefixes="ixsl"
             </xsl:document>
         </xsl:variable>
 <!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ixsl:get(ixsl:window(), 'LinkedDataHub.href')"/>
+            <xsl:with-param name="href" select="ac:uri()"/>
             <xsl:with-param name="container-id" select="$container-id"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1075,7 +1079,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')] | $select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][json:string[@key = 'object'] = '?' || $focus-var-name]" as="element()*"/>
             <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
 
-            <ixsl:set-property name="geo" select="ac:create-geo-object($content-uri, $ac:uri, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+            <ixsl:set-property name="geo" select="ac:create-geo-object($content-uri, ac:uri(), $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
             <xsl:call-template name="ac:add-geo-listener">
                 <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -2235,7 +2239,6 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
-        <!-- TO-DO: is LinkedDataHub.href used? -->
         <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:choose>
             <xsl:when test="starts-with($uri, $apl:base)">
@@ -2847,7 +2850,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT')) then resolve-uri('admin/model/ontologies/system/#Select', $apl:base) else if (starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#Ask', $apl:base) else if (starts-with($normalized-query-string, 'CONSTRUCT')) then resolve-uri('admin/model/ontologies/system/#Construct', $apl:base) else if (starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#Describe', $apl:base) else ()" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -2870,7 +2873,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT') or starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base) else if (starts-with($normalized-query-string, 'CONSTRUCT') or starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base) else ()" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -3280,7 +3283,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri($ac:uri, map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
@@ -3313,7 +3316,7 @@ extension-element-prefixes="ixsl"
 
     <!-- open editing form (do nothing if the button is disabled) -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="if (not(starts-with($uri, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
@@ -3415,7 +3418,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="query" select="if (id($textarea-id, ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id), 'getValue', []) else ()" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($ac:endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/> <!-- TO-DO: get service endpoint from dropdown -->
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
-        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
 
         <xsl:call-template name="apl:ShowAddDataForm">
@@ -3656,7 +3659,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="forClass" select="if (starts-with($normalized-query-string, 'SELECT')) then resolve-uri('admin/model/ontologies/system/#Select', $apl:base) else if (starts-with($normalized-query-string, 'ASK')) then resolve-uri('admin/model/ontologies/system/#Ask', $apl:base) else if (starts-with($normalized-query-string, 'CONSTRUCT')) then resolve-uri('admin/model/ontologies/system/#Construct', $apl:base) else if (starts-with($normalized-query-string, 'DESCRIBE')) then resolve-uri('admin/model/ontologies/system/#Describe', $apl:base) else ()" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri($ac:uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <xsl:variable name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
