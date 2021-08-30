@@ -161,7 +161,7 @@ extension-element-prefixes="ixsl"
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="ac:new-object()"/>
         <ixsl:set-property name="href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="local-href" select="$ac:uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
