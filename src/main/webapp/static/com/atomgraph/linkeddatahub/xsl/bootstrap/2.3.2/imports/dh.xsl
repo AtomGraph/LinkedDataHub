@@ -40,7 +40,7 @@ exclude-result-prefixes="#all">
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
-                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass)" as="attribute()*"/>
+                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>
