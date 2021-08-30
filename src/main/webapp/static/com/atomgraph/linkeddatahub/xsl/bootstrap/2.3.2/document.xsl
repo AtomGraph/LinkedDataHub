@@ -146,7 +146,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
                                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -202,7 +202,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:choose>
                 <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                    <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="#current">
+                    <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="#current">
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
@@ -274,7 +274,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CREATE -->
     
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
 
         <div>
@@ -298,7 +298,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="default-classes" select="key('resources', (resolve-uri('admin/model/ontologies/system/#GenericService', $apl:base), resolve-uri('admin/model/ontologies/system/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/system/#Construct', $apl:base), resolve-uri('admin/model/ontologies/system/#Describe', $apl:base), resolve-uri('admin/model/ontologies/system/#Select', $apl:base), resolve-uri('admin/model/ontologies/system/#Ask', $apl:base), resolve-uri('admin/model/ontologies/system/#File', $apl:base), resolve-uri('admin/model/ontologies/system/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $apl:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base), resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base)), document(resolve-uri('admin/model/ontologies/system/', $apl:base)))" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
-                        <xsl:with-param name="ontology" select="$ldt:ontology"/>
+                        <xsl:with-param name="ontology" select="$apl:ontology"/>
                         <xsl:with-param name="visited-classes" select="$default-classes"/>
                     </xsl:call-template>
                 </xsl:variable>

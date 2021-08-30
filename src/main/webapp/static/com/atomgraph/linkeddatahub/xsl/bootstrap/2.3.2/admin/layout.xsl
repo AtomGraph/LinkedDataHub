@@ -30,7 +30,7 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
-    <xsl:template match="rdf:RDF[$acl:Agent][$ldt:ontology]" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF[$acl:Agent]" mode="bs2:Create" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
@@ -46,7 +46,7 @@ exclude-result-prefixes="#all">
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
                 <xsl:call-template name="bs2:ConstructorList">
-                    <xsl:with-param name="ontology" select="$ldt:ontology"/>
+                    <xsl:with-param name="ontology" select="xs:anyURI($apl:client//ldt:ontology/@rdf:resource)"/>
                 </xsl:call-template>
             </ul>
         </div>

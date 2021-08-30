@@ -93,7 +93,8 @@ exclude-result-prefixes="#all">
 
     <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
     <xsl:param name="apl:client" as="document-node()"/>
-    <xsl:param name="apl:base" select="$apl:client//ldt:base/@rdf:resource" as="xs:anyURI?"/>
+    <xsl:param name="apl:base" select="$apl:client//ldt:base/@rdf:resource" as="xs:anyURI"/>
+    <xsl:param name="apl:ontology" select="$apl:client//ldt:ontology/@rdf:resource" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
 <!--    <xsl:param name="sd:endpoint" select="if ($apl:base) then resolve-uri('sparql', $apl:base) else ()" as="xs:anyURI?"/>-->
@@ -107,7 +108,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
-    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource, key('resources', ac:uri(), $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="acl:mode" select="$acl:Agent//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, $main-doc)/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
@@ -151,10 +152,10 @@ exclude-result-prefixes="#all">
                 <xsl:when test="$ac:method = 'GET'">
                     <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm"/>
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm"/>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:apply-templates select="ac:construct-doc($ldt:ontology, $ac:forClass, $apl:base)" mode="bs2:Form"/>
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
@@ -303,7 +304,7 @@ exclude-result-prefixes="#all">
             <![CDATA[
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $apl:base || '&quot;'"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || $apl:absolutePath || '&quot;'"/><![CDATA[;
-                var ontologyUri = ]]><xsl:value-of select="if ($ldt:ontology) then '&quot;' || $ldt:ontology || '&quot;'  else 'null'"/><![CDATA[;
+                var ontologyUri = ]]><xsl:value-of select="if ($apl:ontology) then '&quot;' || $apl:ontology || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
@@ -326,7 +327,7 @@ exclude-result-prefixes="#all">
                             { name: "https://w3id.org/atomgraph/client", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") },
                             { name: "http://www.w3.org/1999/02/22-rdf-syntax-ns", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://www.w3.org/1999/02/22-rdf-syntax-ns") + "&accept=" + encodeURIComponent("application/rdf+xml") }
                             ]]>
-                            <!--<xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($ldt:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
+                            <!--<xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($apl:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
                                 <xsl:text>,</xsl:text>
                                 <xsl:for-each select="$ontology-imports">
@@ -558,7 +559,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$lapp:Application//*[ldt:base/@rdf:resource = $apl:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+    <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$apl:client//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
         <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base), map{ 'forClass': string(resolve-uri('admin/ns#Person', $apl:base)) })" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
@@ -709,7 +710,7 @@ exclude-result-prefixes="#all">
     
     <!-- ADD DATA -->
     
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:AddData" priority="1">
+    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$apl:ontology]" mode="bs2:AddData" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'add-data-title', document('translations.rdf')))}" class="btn btn-primary btn-add-data">
 <!--                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">

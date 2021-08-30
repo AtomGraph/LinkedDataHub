@@ -714,7 +714,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="template-doc" select="if ($ldt:ontology and $apl:base) then ac:construct-doc($ldt:ontology, $forClass, $apl:base) else ()" as="document-node()?"/>
+        <xsl:param name="template-doc" select="ac:construct-doc($apl:ontology, $forClass, $apl:base)" as="document-node()?"/>
         <xsl:param name="template" select="$template-doc/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
@@ -760,7 +760,7 @@ extension-element-prefixes="ixsl"
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $ldt:ontology) then (key('resources', key('resources', (../rdf:type/@rdf:resource, ../rdf:type/@rdf:resource/apl:listSuperClasses(.)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
+                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $apl:ontology) then (key('resources', key('resources', (../rdf:type/@rdf:resource, ../rdf:type/@rdf:resource/apl:listSuperClasses(.)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="template-doc" select="$template-doc"/>
