@@ -94,7 +94,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
     <xsl:param name="apl:client" as="document-node()"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
-    <xsl:param name="sd:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>
+<!--    <xsl:param name="sd:endpoint" select="if ($ldt:base) then resolve-uri('sparql', $ldt:base) else ()" as="xs:anyURI?"/>-->
     <xsl:param name="a:graphStore" select="if ($ldt:base) then resolve-uri('service', $ldt:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
@@ -295,7 +295,7 @@ exclude-result-prefixes="#all">
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}" defer="defer"></script>
         <script type="text/javascript">
             <![CDATA[
-                var baseUri = ]]><xsl:value-of select="if ($ldt:base) then '&quot;' || $ldt:base || '&quot;'  else 'null'"/><![CDATA[;
+                var baseUri = ]]><xsl:value-of select="if ($ldt:base) then '&quot;' || $ldt:base || '&quot;'  else '&quot;' || $apl:client//ldt:base/@rdf:resource || '&quot;'"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="if ($ldt:ontology) then '&quot;' || $ldt:ontology || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
@@ -350,8 +350,7 @@ exclude-result-prefixes="#all">
                                 logLevel: ]]><xsl:value-of select="$saxon-js-log-level"/><![CDATA[,
                                 stylesheetParams: {
                                     "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                                    "Q{https://www.w3.org/ns/ldt#}base": baseUri,
-                                    "Q{https://www.w3.org/ns/ldt#}ontology": ontologyUri,
+                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $ldt:base
                                     "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
                                     "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
                                     }

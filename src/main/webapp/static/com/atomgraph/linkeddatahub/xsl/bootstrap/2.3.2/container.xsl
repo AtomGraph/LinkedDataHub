@@ -99,7 +99,7 @@ exclude-result-prefixes="#all"
 
                     <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
                         <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+                        <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onParallaxPropertyLoad">
@@ -415,13 +415,10 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
     </xsl:template>
 
-    <!-- do not show system named graph resources with provenance metadata as SVG nodes, also hide links to them -->
-    <xsl:template match="*[starts-with(@rdf:about, resolve-uri('graphs/', xs:string($ldt:base)))] | void:inDataset[starts-with(@rdf:resource, resolve-uri('graphs/', xs:string($ldt:base)))] | @rdf:resource[starts-with(., resolve-uri('graphs/', xs:string($ldt:base)))]" mode="ac:SVG" priority="1"/>
-
     <!-- MAP MODE -->
 
     <!-- TO-DO: improve match pattern -->
-    <xsl:template match="rdf:RDF[resolve-uri('geo/', $ldt:base) = $ac:uri]" mode="bs2:Map" priority="1">
+    <xsl:template match="rdf:RDF[resolve-uri('geo/', $apl:base) = $ac:uri]" mode="bs2:Map" priority="1">
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="()"/>
         </xsl:next-match>
@@ -505,9 +502,9 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="type" select="resolve-uri('admin/model/ontologies/default/#GraphChart', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="type" select="resolve-uri('admin/model/ontologies/default/#GraphChart', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -677,9 +674,9 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="type" select="resolve-uri('admin/model/ontologies/default/#ResultSetChart', $ldt:base)" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="type" select="resolve-uri('admin/model/ontologies/default/#ResultSetChart', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -906,7 +903,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
             <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -953,7 +950,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
             <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -999,7 +996,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
             <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1044,7 +1041,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
             <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1178,7 +1175,7 @@ exclude-result-prefixes="#all"
                                 <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
                                     <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                     <xsl:variable name="value-result" select="." as="element()"/>
-                                    <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+                                    <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
                                     <!-- load the label of the object type -->
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -1356,7 +1353,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
             <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
@@ -1400,7 +1397,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ixsl:get(ixsl:window(), 'LinkedDataHub.href')) })"/>
             <!--<xsl:with-param name="container-id" select="$container-id"/>-->
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
