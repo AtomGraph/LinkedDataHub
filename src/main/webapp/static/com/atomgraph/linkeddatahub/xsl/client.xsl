@@ -143,6 +143,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>
+        <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
         <!--<xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>-->
         <!--<xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>-->
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
@@ -184,11 +185,10 @@ extension-element-prefixes="ixsl"
         </xsl:if>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
-        <xsl:if test="not($ac:mode = '&ac;QueryEditorMode')">
-            <xsl:call-template name="apl:LoadBreadcrumbs">
-                <xsl:with-param name="uri" select="$apl:absolutePath"/>
-            </xsl:call-template>
-        </xsl:if>
+        <!-- initialize breadcrumbs -->
+        <xsl:call-template name="apl:LoadBreadcrumbs">
+            <xsl:with-param name="uri" select="$apl:absolutePath"/>
+        </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
