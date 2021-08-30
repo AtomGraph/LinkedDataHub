@@ -82,7 +82,6 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
-    <!--<xsl:param name="ldt:base" as="xs:anyURI?"/>-->
     <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <!-- this is the document URI as absolute path - hash and query string are removed -->

@@ -156,8 +156,6 @@ extension-element-prefixes="ixsl"
                             </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
-
-                    <!--<xsl:apply-templates select="." mode="bs2:Create"/>-->
                 </div>
 
                 <xsl:apply-templates select="." mode="bs2:FormActions">
@@ -276,7 +274,7 @@ extension-element-prefixes="ixsl"
     
     <!-- CREATE -->
     
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append'][$ldt:ontology]" mode="bs2:Create" priority="1">
+    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
 
         <div>
