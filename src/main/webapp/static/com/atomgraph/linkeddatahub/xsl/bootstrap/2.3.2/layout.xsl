@@ -302,7 +302,7 @@ exclude-result-prefixes="#all">
             <![CDATA[
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $apl:base || '&quot;'"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || $apl:absolutePath || '&quot;'"/><![CDATA[;
-                var ontologyUri = ]]><xsl:value-of select="'&quot;' || $apl:ontology || '&quot;'  else 'null'"/><![CDATA[;
+                var ontologyUri = ]]><xsl:value-of select="'&quot;' || $apl:ontology || '&quot;'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
