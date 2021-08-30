@@ -97,13 +97,11 @@ exclude-result-prefixes="#all">
     <xsl:param name="apl:ontology" select="$apl:client//ldt:ontology/@rdf:resource" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="lapp:Application" as="document-node()?"/>
-<!--    <xsl:param name="sd:endpoint" select="if ($apl:base) then resolve-uri('sparql', $apl:base) else ()" as="xs:anyURI?"/>-->
     <xsl:param name="a:graphStore" select="if ($apl:base) then resolve-uri('service', $apl:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
-    <!--<xsl:param name="ac:requestUri" as="xs:anyURI?"/>-->
     <xsl:param name="ac:uri" as="xs:anyURI"/>
     <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
@@ -304,7 +302,7 @@ exclude-result-prefixes="#all">
             <![CDATA[
                 var baseUri = ]]><xsl:value-of select="'&quot;' || $apl:base || '&quot;'"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || $apl:absolutePath || '&quot;'"/><![CDATA[;
-                var ontologyUri = ]]><xsl:value-of select="if ($apl:ontology) then '&quot;' || $apl:ontology || '&quot;'  else 'null'"/><![CDATA[;
+                var ontologyUri = ]]><xsl:value-of select="'&quot;' || $apl:ontology || '&quot;'  else 'null'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
                 var agentUri = ]]><xsl:value-of select="if ($acl:agent) then '&quot;' || $acl:agent || '&quot;'  else 'null'"/><![CDATA[;
                 var accessModeUri = []]><xsl:value-of select="string-join(for $mode in $acl:mode return '&quot;' || $mode || '&quot;', ', ')"/><![CDATA[];
@@ -360,6 +358,7 @@ exclude-result-prefixes="#all">
                                     "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
                                     "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $ldt:base
                                     "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
+                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ontology": ontologyUri,
                                     "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
                                     "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
                                     }
