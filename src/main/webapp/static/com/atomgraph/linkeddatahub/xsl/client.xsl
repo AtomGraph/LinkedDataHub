@@ -2018,7 +2018,7 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
 
                     <!-- insert SPARQL query form if it's not already shown -->
-                    <xsl:if test="$shot-editor and not(id('query-form', ixsl:page()))">
+                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                             <xsl:call-template name="bs2:QueryEditor">
                                 <xsl:with-param name="query" select="$query"/>
