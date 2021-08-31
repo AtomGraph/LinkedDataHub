@@ -1811,18 +1811,11 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="*[@rdf:about = $apl:base]" mode="bs2:BreadCrumbListItem" priority="1">
+    <!-- render dropdown for root containers -->
+    <xsl:template match="*[@rdf:about = ($apl:base, resolve-uri('charts/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('latest/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('queries/', $apl:base))]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
 
         <li>
-            <xsl:apply-templates select="." mode="apl:logo"/>
-
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-            </xsl:apply-templates>
-
-            <xsl:text> </xsl:text>
-            
             <div class="btn-group">
                 <button class="btn btn-small dropdown-toggle" type="button">
                     <span class="caret"></span>
@@ -1830,28 +1823,39 @@ extension-element-prefixes="ixsl"
 
                 <ul class="dropdown-menu">
                     <li>
-                        <a href="{$apl:base}charts/" class="charts">Charts</a>
+                        <a href="{$apl:base}" class="btn container">Root</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}files/" class="files">Files</a>
+                        <a href="{$apl:base}charts/" class="btn chart">Charts</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}geo/" class="geo">Geo</a>
+                        <a href="{$apl:base}files/" class="btn file">Files</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}imports/" class="imports">Imports</a>
+                        <a href="{$apl:base}geo/" class="btn geo">Geo</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}latest/" class="latest">Latest</a>
+                        <a href="{$apl:base}imports/" class="btn import">Imports</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}services/" class="services">Services</a>
+                        <a href="{$apl:base}latest/" class="btn latest">Latest</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}queries/" class="queries">Queries</a>
+                        <a href="{$apl:base}services/" class="btn service">Services</a>
+                    </li>
+                    <li>
+                        <a href="{$apl:base}queries/" class="btn query">Queries</a>
                     </li>
                 </ul>
             </div>
+
+            <xsl:apply-templates select="." mode="apl:logo"/>
+
+            <xsl:apply-templates select="." mode="xhtml:Anchor">
+                <xsl:with-param name="id" select="()"/>
+            </xsl:apply-templates>
+
+            <xsl:text> </xsl:text>
 
             <xsl:if test="not($leaf)">
                 <span class="divider">/</span>
@@ -2028,9 +2032,11 @@ extension-element-prefixes="ixsl"
                         </xsl:result-document>
                     </xsl:if>
                     
-                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                        <div id="{$results-container-id}"/>
-                    </xsl:result-document>
+                    <xsl:if test="not(id($results-container-id, ixsl:page()))">
+                        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                            <div id="{$results-container-id}"/>
+                        </xsl:result-document>
+                    </xsl:if>
 
                     <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <!-- initialize YASQE on the textarea -->
