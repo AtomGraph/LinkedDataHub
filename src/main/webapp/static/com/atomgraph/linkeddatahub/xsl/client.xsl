@@ -713,7 +713,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onRDFDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container-id" as="xs:string?"/>
 
         <xsl:for-each select="?body">
             <!-- focus on current resource -->
