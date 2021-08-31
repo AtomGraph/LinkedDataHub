@@ -752,10 +752,12 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
                             <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
                             <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
-
-                            <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            
+                            <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
+                            
+<!--                            <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                             <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
                             <!-- query progress bar --> 
                             <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
@@ -1878,6 +1880,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onChartServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
@@ -1891,9 +1894,11 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
 
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                    
+                    <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
+
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
+                            <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
@@ -1936,6 +1941,7 @@ extension-element-prefixes="ixsl"
                         <xsl:when test="$service-uri">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onChartServiceLoad">
+                                    <xsl:with-param name="query-uri" select="$query-uri"/>
                                     <xsl:with-param name="container-id" select="$container-id"/>
                                     <xsl:with-param name="service-uri" select="$service-uri"/>
                                     <xsl:with-param name="query-string" select="$query-string"/>
@@ -1948,9 +1954,11 @@ extension-element-prefixes="ixsl"
                         <xsl:otherwise>
                             <xsl:variable name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
                             <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                            
+                            <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
+
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                                 <xsl:call-template name="onSPARQLResultsLoad">
+                                    <xsl:with-param name="content-uri" select="$content-uri"/>
                                     <xsl:with-param name="container-id" select="$container-id"/>
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
                                     <xsl:with-param name="category" select="$category"/>
