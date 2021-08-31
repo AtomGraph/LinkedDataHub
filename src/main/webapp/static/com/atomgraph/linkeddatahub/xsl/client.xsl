@@ -2889,6 +2889,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
+        <xsl:variable name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
             <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
@@ -2898,7 +2899,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
-        <xsl:message>$category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
+        <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -2906,6 +2907,7 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="onAddSaveChartForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
                 <xsl:with-param name="service-uri" select="$service-uri"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
@@ -3009,7 +3011,7 @@ extension-element-prefixes="ixsl"
     <!-- chart-type onchange -->
     
     <xsl:template match="select[tokenize(@class, ' ') = 'chart-type']" mode="ixsl:onchange">
-        <xsl:param name="chart-type" select="xs:anyURI(ixsl:get(., 'value'))" as="xs:anyURI?"/>
+        <xsl:param name="chart-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:param name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
             <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
@@ -3042,7 +3044,7 @@ extension-element-prefixes="ixsl"
     <!-- category onchange -->
 
     <xsl:template match="select[tokenize(@class, ' ') = 'chart-category']" mode="ixsl:onchange">
-        <xsl:param name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:param name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:param name="category" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
             <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
@@ -3074,7 +3076,7 @@ extension-element-prefixes="ixsl"
     <!-- series onchange -->
 
     <xsl:template match="select[tokenize(@class, ' ') = 'chart-series']" mode="ixsl:onchange">
-        <xsl:param name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:param name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:param name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*">
             <xsl:variable name="select" select="." as="element()"/>
@@ -3690,6 +3692,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onAddSaveChartForm">
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
+        <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
         <xsl:variable name="query-type" select="ac:query-type($query-string)" as="xs:string"/>
@@ -3709,6 +3712,8 @@ extension-element-prefixes="ixsl"
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         <!-- handle both ResultSetChart and GraphChart here -->
+        <xsl:variable name="chart-type-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()*"/>
+        <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::input[@name = 'ou']"/>
         <xsl:variable name="category-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()*"/>
         <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <!-- TO-DO: support more than one series variable -->
