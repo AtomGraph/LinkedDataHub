@@ -2026,7 +2026,9 @@ extension-element-prefixes="ixsl"
                                 <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
                             </xsl:call-template>
                         </xsl:if>
-                        
+                    </xsl:result-document>
+                    
+                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                         <div id="{$results-container-id}"/>
                     </xsl:result-document>
 
