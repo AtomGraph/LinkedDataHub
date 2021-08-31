@@ -1817,38 +1817,40 @@ extension-element-prefixes="ixsl"
 
         <li>
             <div class="btn-group">
-                <button class="btn btn-small dropdown-toggle" type="button">
-                    <xsl:apply-templates select="." mode="apl:logo"/>
+                <button class="btn dropdown-toggle" type="button">
+                    <xsl:apply-templates select="." mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                    </xsl:apply-templates>
 
-                    <xsl:apply-templates select="." mode="apl:label"/>
+                    <xsl:apply-templates select="." mode="ac:label"/>
                     
                     <span class="caret"></span>
                 </button>
 
                 <ul class="dropdown-menu">
                     <li>
-                        <a href="{$apl:base}" class="btn container">Root</a>
+                        <a href="{$apl:base}" class="container">Root</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}charts/" class="btn chart">Charts</a>
+                        <a href="{$apl:base}charts/" class="chart">Charts</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}files/" class="btn file">Files</a>
+                        <a href="{$apl:base}files/" class="file">Files</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}geo/" class="btn geo">Geo</a>
+                        <a href="{$apl:base}geo/" class="geo">Geo</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}imports/" class="btn import">Imports</a>
+                        <a href="{$apl:base}imports/" class="import">Imports</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}latest/" class="btn latest">Latest</a>
+                        <a href="{$apl:base}latest/" class="latest">Latest</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}services/" class="btn service">Services</a>
+                        <a href="{$apl:base}services/" class="service">Services</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}queries/" class="btn query">Queries</a>
+                        <a href="{$apl:base}queries/" class="query">Queries</a>
                     </li>
                 </ul>
             </div>

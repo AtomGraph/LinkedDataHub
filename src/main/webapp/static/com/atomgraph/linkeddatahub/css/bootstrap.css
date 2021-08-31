@@ -28,15 +28,15 @@ ul.dropdown-menu ul { margin: 0; }
 .btn.create-action, a.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 .btn.dropdown-toggle.create-action { height: 30px; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
-.btn.container { background-image: url('../icons/file.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.item { background-image: url('../icons/folder.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.service { background-image: url('../icons/baseline-cloud-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.file { background-image: url('../icons/ic_file_upload_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.import { background-image: url('../icons/ic_transform_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.geo { background-image: url('../icons/ic_location_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.container { background-image: url('../icons/file.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.item { background-image: url('../icons/folder.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.service { background-image: url('../icons/baseline-cloud-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.file { background-image: url('../icons/ic_file_upload_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.import { background-image: url('../icons/ic_transform_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.geo { background-image: url('../icons/ic_location_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .btn.btn-toggle-content { font-size: 0; color: transparent; background-image: url('../icons/baseline-expand_less-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-ban { font-size: 0; color: transparent; background-image: url('../icons/ic_refresh_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-delete { font-size: 0; color: transparent; background-image: url('../icons/ic_delete_forever_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
