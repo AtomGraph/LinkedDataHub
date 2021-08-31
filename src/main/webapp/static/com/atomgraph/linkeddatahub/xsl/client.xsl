@@ -2867,11 +2867,20 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="query-type" select="ac:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="if (upper-case($query-type) = ('SELECT', 'ASK')) then resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base) else resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base)" as="xs:anyURI"/>
         <xsl:message>Query type: <xsl:value-of select="$query-type"/> Chart $forClass: <xsl:value-of select="$forClass"/></xsl:message>
-
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
+        <xsl:variable name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="series" as="xs:string*">
+            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
+                <xsl:variable name="select" select="." as="element()"/>
+                <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
+                    <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
+                </xsl:for-each>
+            </xsl:for-each>
+        </xsl:variable>
+        <xsl:message>$category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -2879,6 +2888,8 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="onAddSaveChartForm">
                 <xsl:with-param name="query-string" select="$query-string"/>
                 <xsl:with-param name="service-uri" select="$service-uri"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -3653,14 +3664,16 @@ extension-element-prefixes="ixsl"
         
         <xsl:if test="$service-uri">
             <!-- TO-DO: apply typeahead template on the "Service" input -->
-            <xsl:variable name="service-uri-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()*"/>
-            <ixsl:set-property name="value" select="$service-uri" object="$service-uri-control-group/descendant::input[@name = 'ou']"/>
+            <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()*"/>
+            <ixsl:set-property name="value" select="$service-uri" object="$service-control-group/descendant::input[@name = 'ou']"/>
         </xsl:if>
     </xsl:template>
     
     <xsl:template name="onAddSaveChartForm">
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
         <xsl:variable name="query-type" select="ac:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="resolve-uri('admin/model/ontologies/system/#' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)), $apl:base)" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
@@ -3675,10 +3688,15 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
+        
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
-        <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
-        <xsl:variable name="target-id" select="$control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
+        <!-- handle both ResultSetChart and GraphChart here -->
+        <xsl:variable name="category-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()*"/>
+        <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
+        <xsl:variable name="series-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()*"/>
+        <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
+        <xsl:variable name="query-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
+        <xsl:variable name="target-id" select="$query-control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
         
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddSaveQueryForm">
