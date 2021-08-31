@@ -173,7 +173,7 @@ extension-element-prefixes="ixsl"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <!-- initialize breadcrumbs -->
-        <xsl:call-template name="apl:LoadBreadcrumbs">
+        <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
         </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
@@ -710,9 +710,10 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>-->
         
-    <xsl:template name="onRDFBodyLoad">
+    <xsl:template name="onRDFDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>
 
         <xsl:for-each select="?body">
             <!-- focus on current resource -->
@@ -742,36 +743,39 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </xsl:if>
 
-                <!-- chart query -->
-<!--                <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
-                    <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI?"/>
+                <xsl:if test="$container-id">
+                    <!-- chart -->
+                    <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
+                        <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI?"/>
 
-                    <xsl:if test="$query-uri">
-                        <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
-                        <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
-                        <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
+                        <xsl:if test="$query-uri">
+                            <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
+                            <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
+                            <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
 
-                        <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                        <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                        <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                            <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
 
-                         query progress bar 
-                        <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                            <div class="progress progress-striped active">
-                                <div class="bar" style="width: 40%;"></div>
-                            </div>
-                        </xsl:result-document>
+                            <!-- query progress bar --> 
+                            <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
+                                <div class="progress progress-striped active">
+                                    <div class="bar" style="width: 40%;"></div>
+                                </div>
+                            </xsl:result-document>
 
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $query-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="onChartQueryLoad">
-                                <xsl:with-param name="query-uri" select="$query-uri"/>
-                                <xsl:with-param name="chart-type" select="$chart-type"/>
-                                <xsl:with-param name="category" select="$category"/>
-                                <xsl:with-param name="series" select="$series"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:if>
-                </xsl:for-each>-->
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $query-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="onChartQueryLoad">
+                                    <xsl:with-param name="query-uri" select="$query-uri"/>
+                                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                                    <xsl:with-param name="category" select="$category"/>
+                                    <xsl:with-param name="series" select="$series"/>
+                                    <xsl:with-param name="container-id" select="$container-id"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:if>
+                    </xsl:for-each>
+                </xsl:if>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
@@ -1415,8 +1419,9 @@ extension-element-prefixes="ixsl"
     
     <!-- load breadcrumbs -->
     
-    <xsl:template name="apl:LoadBreadcrumbs">
+    <xsl:template name="apl:LoadRDFDocument">
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>
 
         <!-- indirect resource URI, dereferenced through a proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
@@ -1424,8 +1429,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($uri), 'param': 'dummy' })" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onRDFBodyLoad">
+            <xsl:call-template name="onRDFDocumentLoad">
                 <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="container-id" select="$container-id"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -1871,6 +1877,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onChartServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI"/>
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
@@ -1887,7 +1894,7 @@ extension-element-prefixes="ixsl"
                     
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
-                            <xsl:with-param name="container-id" select="'content-body'"/>
+                            <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
@@ -1903,6 +1910,7 @@ extension-element-prefixes="ixsl"
 
     <xsl:template name="onChartQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -1920,7 +1928,7 @@ extension-element-prefixes="ixsl"
 
                     <!--<ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
 
-                    <xsl:result-document href="#main-content" method="ixsl:append-content">
+                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                         <div id="sparql-results"/>
                     </xsl:result-document>
 
@@ -1928,6 +1936,7 @@ extension-element-prefixes="ixsl"
                         <xsl:when test="$service-uri">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onChartServiceLoad">
+                                    <xsl:with-param name="container-id" select="$container-id"/>
                                     <xsl:with-param name="service-uri" select="$service-uri"/>
                                     <xsl:with-param name="query-string" select="$query-string"/>
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -1942,7 +1951,7 @@ extension-element-prefixes="ixsl"
                             
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                                 <xsl:call-template name="onSPARQLResultsLoad">
-                                    <xsl:with-param name="container-id" select="'content-body'"/>
+                                    <xsl:with-param name="container-id" select="$container-id"/>
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
                                     <xsl:with-param name="category" select="$category"/>
                                     <xsl:with-param name="series" select="$series"/>
@@ -2294,8 +2303,9 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="state" select="$state"/>
         </xsl:call-template>
 
-        <xsl:call-template name="apl:LoadBreadcrumbs">
+        <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
+            <xsl:with-param name="container-id" select="$container-id"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -3693,6 +3703,7 @@ extension-element-prefixes="ixsl"
         <!-- handle both ResultSetChart and GraphChart here -->
         <xsl:variable name="category-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()*"/>
         <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
+        <!-- TO-DO: support more than one series variable -->
         <xsl:variable name="series-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()*"/>
         <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <xsl:variable name="query-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
