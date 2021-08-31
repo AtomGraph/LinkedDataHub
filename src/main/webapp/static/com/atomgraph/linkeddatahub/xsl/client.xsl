@@ -1818,6 +1818,10 @@ extension-element-prefixes="ixsl"
         <li>
             <div class="btn-group">
                 <button class="btn btn-small dropdown-toggle" type="button">
+                    <xsl:apply-templates select="." mode="apl:logo"/>
+
+                    <xsl:apply-templates select="." mode="apl:label"/>
+                    
                     <span class="caret"></span>
                 </button>
 
@@ -1848,14 +1852,6 @@ extension-element-prefixes="ixsl"
                     </li>
                 </ul>
             </div>
-
-            <xsl:apply-templates select="." mode="apl:logo"/>
-
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-            </xsl:apply-templates>
-
-            <xsl:text> </xsl:text>
 
             <xsl:if test="not($leaf)">
                 <span class="divider">/</span>

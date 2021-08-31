@@ -98,25 +98,7 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'service')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Construct', $apl:base)]" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'query')"/>
-    </xsl:template>
-
-    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Describe', $apl:base)]" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'query')"/>
-    </xsl:template>
-
-    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Select', $apl:base)]" mode="apl:logo">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="concat($class, ' ', 'query')"/>
-    </xsl:template>
-
-    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#Ask', $apl:base)]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#Describe', $apl:base), resolve-uri('admin/model/ontologies/system/#Construct', $apl:base), resolve-uri('admin/model/ontologies/system/#Select', $apl:base), resolve-uri('admin/model/ontologies/system/#Ask', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'query')"/>
