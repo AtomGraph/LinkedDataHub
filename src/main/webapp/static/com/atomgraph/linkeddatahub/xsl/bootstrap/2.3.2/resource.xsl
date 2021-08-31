@@ -83,43 +83,43 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Container', $apl:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'container')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-container')"/>
     </xsl:template>
 
     <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#Item', $apl:base)]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'item')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-item')"/>
     </xsl:template>
 
     <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/system/#GenericService', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'service')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-service')"/>
     </xsl:template>
 
     <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#Describe', $apl:base), resolve-uri('admin/model/ontologies/system/#Construct', $apl:base), resolve-uri('admin/model/ontologies/system/#Select', $apl:base), resolve-uri('admin/model/ontologies/system/#Ask', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'query')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-query')"/>
     </xsl:template>
 
     <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#File', $apl:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'file')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-file')"/>
     </xsl:template>
 
     <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'import')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-import')"/>
     </xsl:template>
     
     <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'chart')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-chart')"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:about = ('&apl;URISyntaxViolation', '&spin;ConstraintViolation', '&apl;ResourceExistsException')]" mode="apl:logo">

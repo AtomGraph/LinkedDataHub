@@ -1829,32 +1829,33 @@ extension-element-prefixes="ixsl"
 
                 <ul class="dropdown-menu">
                     <li>
-                        <a href="{$apl:base}" class="container">Root</a>
+                        <a href="{$apl:base}" class="btn-container">Root</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}charts/" class="chart">Charts</a>
+                        <a href="{$apl:base}charts/" class="btn-chart">Charts</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}files/" class="file">Files</a>
+                        <a href="{$apl:base}files/" class="btn-file">Files</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}geo/" class="geo">Geo</a>
+                        <a href="{$apl:base}geo/" class="btn-geo">Geo</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}imports/" class="import">Imports</a>
+                        <a href="{$apl:base}imports/" class="btn-import">Imports</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}latest/" class="latest">Latest</a>
+                        <a href="{$apl:base}latest/" class="btn-latest">Latest</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}services/" class="service">Services</a>
+                        <a href="{$apl:base}services/" class="btn-service">Services</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}queries/" class="query">Queries</a>
+                        <a href="{$apl:base}queries/" class="btn-query">Queries</a>
                     </li>
                 </ul>
             </div>
 
+            <xsl:text> </xsl:text>
             <xsl:if test="not($leaf)">
                 <span class="divider">/</span>
             </xsl:if>
