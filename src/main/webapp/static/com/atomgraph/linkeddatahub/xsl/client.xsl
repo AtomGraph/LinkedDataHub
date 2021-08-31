@@ -1421,7 +1421,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="apl:LoadRDFDocument">
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container-id" as="xs:string?"/>
 
         <!-- indirect resource URI, dereferenced through a proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
