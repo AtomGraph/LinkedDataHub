@@ -1904,6 +1904,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
                             <xsl:with-param name="show-editor" select="false()"/>
+                            <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
@@ -1965,6 +1966,7 @@ extension-element-prefixes="ixsl"
                                     <xsl:with-param name="category" select="$category"/>
                                     <xsl:with-param name="series" select="$series"/>
                                     <xsl:with-param name="show-editor" select="false()"/>
+                                    <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:otherwise>
@@ -1999,7 +2001,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:param name="query" as="xs:string?"/>
-        <!--<xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>-->
+        <xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>
         <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -2017,15 +2019,18 @@ extension-element-prefixes="ixsl"
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
-                    <!-- insert SPARQL query form if it's not already shown -->
-                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
-                        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <xsl:result-document href="#{$container-id}" method="{$content-method}">
+                        <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                             <xsl:call-template name="bs2:QueryEditor">
                                 <xsl:with-param name="query" select="$query"/>
-                                <xsl:with-param name="results-container-id" select="$results-container-id"/>
+                                <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
                             </xsl:call-template>
-                        </xsl:result-document>
+                        </xsl:if>
+                        
+                        <div id="{$results-container-id}"/>
+                    </xsl:result-document>
 
+                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <!-- initialize YASQE on the textarea -->
                         <xsl:variable name="js-statement" as="element()">
                             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
@@ -2922,7 +2927,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
+        <!--<xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>-->
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -2937,7 +2942,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:call-template name="bs2:QueryEditor">
-                <xsl:with-param name="results-container-id" select="$results-container-id"/>
+                <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
             </xsl:call-template>
         </xsl:result-document>
 
@@ -2962,7 +2967,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
+        <!--<xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>-->
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
@@ -2972,7 +2977,7 @@ extension-element-prefixes="ixsl"
             <!-- set textarea's value to the query string from the hidden input -->
             <xsl:call-template name="bs2:QueryEditor">
                 <xsl:with-param name="query" select="$query-string"/>
-                <xsl:with-param name="results-container-id" select="$results-container-id"/>
+                <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
             </xsl:call-template>
         </xsl:result-document>
         

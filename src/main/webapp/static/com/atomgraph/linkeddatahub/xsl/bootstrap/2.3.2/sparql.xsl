@@ -79,7 +79,7 @@ LIMIT 100</xsl:param>
         <xsl:param name="service" as="xs:anyURI?"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="query" select="$ac:query" as="xs:string?"/>
-        <xsl:param name="results-container-id" as="xs:string"/>
+        <!--<xsl:param name="results-container-id" as="xs:string"/>-->
         
         <div class="row-fluid">
             <div class="left-nav span2"></div>
@@ -104,7 +104,7 @@ LIMIT 100</xsl:param>
             </div>
         </div>
         
-        <div id="{$results-container-id}"/>
+<!--        <div id="{$results-container-id}"/>-->
     </xsl:template>
 
     <xsl:template name="bs2:QueryForm">
