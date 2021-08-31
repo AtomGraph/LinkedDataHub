@@ -3679,12 +3679,12 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
-        <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()*"/>
+        <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()"/>
         <ixsl:set-property name="value" select="$query-string" object="$query-string-control-group/descendant::textarea[@name = 'ol']"/>
         
         <xsl:if test="$service-uri">
             <!-- TO-DO: apply typeahead template on the "Service" input -->
-            <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()*"/>
+            <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
             <ixsl:set-property name="value" select="$service-uri" object="$service-control-group/descendant::input[@name = 'ou']"/>
         </xsl:if>
     </xsl:template>
@@ -3712,12 +3712,12 @@ extension-element-prefixes="ixsl"
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         <!-- handle both ResultSetChart and GraphChart here -->
-        <xsl:variable name="chart-type-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()*"/>
-        <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::input[@name = 'ou']"/>
-        <xsl:variable name="category-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()*"/>
+        <xsl:variable name="chart-type-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()"/>
+        <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::select[@name = 'ou']"/>
+        <xsl:variable name="category-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <!-- TO-DO: support more than one series variable -->
-        <xsl:variable name="series-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()*"/>
+        <xsl:variable name="series-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <xsl:variable name="query-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
         <xsl:variable name="target-id" select="$query-control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
