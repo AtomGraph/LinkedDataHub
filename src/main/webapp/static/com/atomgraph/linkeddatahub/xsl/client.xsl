@@ -1903,6 +1903,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
+                            <xsl:with-param name="show-editor" select="false()"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
@@ -1963,6 +1964,7 @@ extension-element-prefixes="ixsl"
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
                                     <xsl:with-param name="category" select="$category"/>
                                     <xsl:with-param name="series" select="$series"/>
+                                    <xsl:with-param name="show-editor" select="false()"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:otherwise>
@@ -1997,6 +1999,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:param name="query" as="xs:string?"/>
+        <!--<xsl:param name="content-method" select="xs:QName('ixsl:replace-content')" as="xs:QName"/>-->
+        <xsl:param name="show-editor" select="true()" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
@@ -2014,7 +2018,7 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
 
                     <!-- insert SPARQL query form if it's not already shown -->
-                    <xsl:if test="not(id('query-form', ixsl:page()))">
+                    <xsl:if test="$shot-editor and not(id('query-form', ixsl:page()))">
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                             <xsl:call-template name="bs2:QueryEditor">
                                 <xsl:with-param name="query" select="$query"/>
