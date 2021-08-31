@@ -1821,6 +1821,8 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="." mode="apl:logo">
                         <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                     </xsl:apply-templates>
+                    
+                    <span class="caret"></span>
                 </button>
 
                 <ul class="dropdown-menu">
@@ -1851,10 +1853,10 @@ extension-element-prefixes="ixsl"
                 </ul>
             </div>
 
-            <xsl:apply-templates select="." mode="ac:label"/>
             <xsl:text> </xsl:text>
-            <span class="caret"></span>
-
+            <xsl:apply-templates select="." mode="xhtml:Anchor">
+                <xsl:with-param name="id" select="()"/>
+            </xsl:apply-templates>
 
             <xsl:if test="not($leaf)">
                 <span class="divider">/</span>
