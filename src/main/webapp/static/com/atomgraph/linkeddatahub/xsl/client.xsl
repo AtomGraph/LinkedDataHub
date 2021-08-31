@@ -2019,14 +2019,14 @@ extension-element-prefixes="ixsl"
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
-                    <xsl:result-document href="#{$container-id}" method="{$content-method}">
-                        <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
-                            <xsl:call-template name="bs2:QueryEditor">
-                                <xsl:with-param name="query" select="$query"/>
-                                <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
-                            </xsl:call-template>
-                        </xsl:if>
-                    </xsl:result-document>
+                    <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
+                        <xsl:result-document href="#{$container-id}" method="{$content-method}">
+                                <xsl:call-template name="bs2:QueryEditor">
+                                    <xsl:with-param name="query" select="$query"/>
+                                    <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
+                                </xsl:call-template>
+                        </xsl:result-document>
+                    </xsl:if>
                     
                     <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
                         <div id="{$results-container-id}"/>
