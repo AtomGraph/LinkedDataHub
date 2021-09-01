@@ -371,7 +371,7 @@ extension-element-prefixes="ixsl"
                 </xsl:choose>
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+        <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $options => serialize(map { 'method': 'json' }) ])"/>
         <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
 
 <!--        <xsl:choose>
