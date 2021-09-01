@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -81,6 +82,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Client<com.atomgraph.linkeddatahub.apps.model.Application>> clientApp;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
     
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
@@ -98,7 +100,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
         if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
-
+        if (!getClientApplication().get().equals(getApplication().get())) return; // skip authorization if target app is not the client app
+        
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
         if (accessMode == null)
@@ -233,6 +236,11 @@ public class AuthorizationFilter implements ContainerRequestFilter
     public Client<com.atomgraph.linkeddatahub.apps.model.Application> getClientApplication()
     {
         return clientApp.get();
+    }
+
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    {
+        return app.get();
     }
 
     public com.atomgraph.linkeddatahub.Application getSystem()

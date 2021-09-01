@@ -27,6 +27,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.io.IOException;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -54,6 +55,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<Client<com.atomgraph.linkeddatahub.apps.model.Application>> clientApp;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
 
     public abstract String getScheme();
     
@@ -70,6 +72,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
         if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        if (!getClientApplication().get().equals(getApplication().get())) return; // skip authentication if target app is not the client app
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
@@ -163,6 +166,11 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     public Client<Application> getClientApplication()
     {
         return clientApp.get();
+    }
+    
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    {
+        return app.get();
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()
