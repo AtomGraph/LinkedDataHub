@@ -118,7 +118,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>
         <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
         <xsl:message>$apl:ontology: <xsl:value-of select="$apl:ontology"/></xsl:message>
-        <xsl:message>count($apl:services): <xsl:value-of select="count($apl:services)"/></xsl:message>
+        <xsl:message>count($apl:services//*[@rdf:about]): <xsl:value-of select="count($apl:services//*[@rdf:about])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
@@ -158,9 +158,10 @@ extension-element-prefixes="ixsl"
         </xsl:if>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
-        <!-- initialize breadcrumbs -->
+        <!-- initialize breadcrumbs, chart etc. -->
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
+            <xsl:with-param name="container-id" select="'content-body'"/>
         </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
