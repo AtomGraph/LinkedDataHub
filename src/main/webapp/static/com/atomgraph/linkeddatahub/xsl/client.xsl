@@ -752,20 +752,17 @@ extension-element-prefixes="ixsl"
                             <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
                             <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
                             <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
-                            
                             <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
-                            
-<!--                            <ixsl:set-property name="chart-type" select="$chart-type" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <ixsl:set-property name="category" select="$category" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                            <ixsl:set-property name="series" select="$series" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
 
-                            <!-- query progress bar --> 
-                            <xsl:result-document href="#progress-bar" method="ixsl:replace-content">
-                                <div class="progress progress-striped active">
-                                    <div class="bar" style="width: 40%;"></div>
+                            <!-- append progress bar -->
+                            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                                <div class="progress-bar">
+                                    <div class="progress progress-striped active">
+                                        <div class="bar" style="width: 33%;"></div>
+                                    </div>
                                 </div>
                             </xsl:result-document>
-
+                            
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $query-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onChartQueryLoad">
                                     <xsl:with-param name="query-uri" select="$query-uri"/>
@@ -1882,7 +1879,7 @@ extension-element-prefixes="ixsl"
 
     <!-- chart -->
     
-    <xsl:template name="onChartServiceLoad">
+<!--    <xsl:template name="onChartServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="query-uri" as="xs:anyURI"/>
@@ -1899,7 +1896,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
 
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                    <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
+                    <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/>  replace dots 
 
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
@@ -1918,7 +1915,7 @@ extension-element-prefixes="ixsl"
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template name="onChartQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
@@ -1937,49 +1934,31 @@ extension-element-prefixes="ixsl"
                     <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
                     <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
                     <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI?"/>
+                    <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+                    <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else $ac:endpoint))[1])" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
-                    <!--<ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
+                    <!-- update progress bar -->
+                    <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+                        <ixsl:set-style name="width" select="'66%'" object="."/>
+                    </xsl:for-each>
 
-                    <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                        <div id="sparql-results"/>
-                    </xsl:result-document>
-
-                    <xsl:choose>
-                        <xsl:when test="$service-uri">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="onChartServiceLoad">
-                                    <xsl:with-param name="query-uri" select="$query-uri"/>
-                                    <xsl:with-param name="container-id" select="$container-id"/>
-                                    <xsl:with-param name="service-uri" select="$service-uri"/>
-                                    <xsl:with-param name="query-string" select="$query-string"/>
-                                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                                    <xsl:with-param name="category" select="$category"/>
-                                    <xsl:with-param name="series" select="$series"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:variable name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
-                            <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-                            <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
-
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                                <xsl:call-template name="onSPARQLResultsLoad">
-                                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                                    <xsl:with-param name="container-id" select="$container-id"/>
-                                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                                    <xsl:with-param name="category" select="$category"/>
-                                    <xsl:with-param name="series" select="$series"/>
-                                    <xsl:with-param name="show-editor" select="false()"/>
-                                    <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+                        <xsl:call-template name="onSPARQLResultsLoad">
+                            <xsl:with-param name="content-uri" select="$content-uri"/>
+                            <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="chart-type" select="$chart-type"/>
+                            <xsl:with-param name="category" select="$category"/>
+                            <xsl:with-param name="series" select="$series"/>
+                            <xsl:with-param name="show-editor" select="false()"/>
+                            <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!--<ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>-->
+                <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
         
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
@@ -1996,8 +1975,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/> <!-- TO-DO: rename to uri? -->
-        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -2028,7 +2007,6 @@ extension-element-prefixes="ixsl"
                         <xsl:result-document href="#{$container-id}" method="{$content-method}">
                                 <xsl:call-template name="bs2:QueryEditor">
                                     <xsl:with-param name="query" select="$query"/>
-                                    <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
                                 </xsl:call-template>
                         </xsl:result-document>
                     </xsl:if>
@@ -2083,9 +2061,13 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="sparql" select="true()"/>
                         </xsl:call-template>
                     </xsl:if>
+                    
+                    <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+                    
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
                     <div class="alert alert-block">
@@ -2351,14 +2333,14 @@ extension-element-prefixes="ixsl"
 
         <!-- decode URI from the ?uri query param which is used in apl:PushState -->
         <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
-        <xsl:message>
+<!--        <xsl:message>
             onpopstate
             $content-uri: <xsl:value-of select="$content-uri"/>
             $href: <xsl:value-of select="$href"/>
             $uri: <xsl:value-of select="$uri"/>
             $query-string: <xsl:value-of select="$query-string"/>
             $sparql: <xsl:value-of select="$sparql"/>
-        </xsl:message>
+        </xsl:message>-->
         
         <xsl:choose>
             <xsl:when test="$sparql">
@@ -2936,7 +2918,6 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <!--<xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>-->
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -2950,9 +2931,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
 
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-            <xsl:call-template name="bs2:QueryEditor">
-                <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
-            </xsl:call-template>
+            <xsl:call-template name="bs2:QueryEditor"/>
         </xsl:result-document>
 
         <!-- initialize SPARQL query service dropdown -->
@@ -2976,7 +2955,6 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <!--<xsl:variable name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>-->
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
@@ -2986,7 +2964,6 @@ extension-element-prefixes="ixsl"
             <!-- set textarea's value to the query string from the hidden input -->
             <xsl:call-template name="bs2:QueryEditor">
                 <xsl:with-param name="query" select="$query-string"/>
-                <!--<xsl:with-param name="results-container-id" select="$results-container-id"/>-->
             </xsl:call-template>
         </xsl:result-document>
         
