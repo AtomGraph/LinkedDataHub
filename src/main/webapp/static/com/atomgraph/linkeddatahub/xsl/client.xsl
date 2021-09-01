@@ -354,7 +354,27 @@ extension-element-prefixes="ixsl"
         </xsl:variable>
         <xsl:variable name="chart" select="ixsl:eval(string($js-statement/@statement))"/>
                 
-        <xsl:choose>
+        <xsl:variable name="options" as="map(xs:string, item())">
+            <xsl:map>
+                <xsl:if test="$chart-type = '&ac;Table'">
+                    <xsl:map-entry key="'allowHtml'" select="true()"/>
+                </xsl:if>
+                <xsl:choose>
+                    <xsl:when test="$chart-type = '&ac;BarChart'">
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series }"/>
+                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $category }"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $category }"/>
+                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $series }"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+        <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
+
+<!--        <xsl:choose>
             <xsl:when test="$chart-type = '&ac;Table'">
                 <xsl:variable name="js-statement" as="element()">
                     <root statement="{{ allowHtml: true }}"/>
@@ -376,7 +396,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="args" select="ixsl:eval(string($js-statement/@statement))"/>
                 <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $args ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
-        </xsl:choose>
+        </xsl:choose>-->
     </xsl:template>
     
     <!-- TEMPLATES -->
@@ -1307,7 +1327,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
 
-        <xsl:message>
+<!--        <xsl:message>
             $select-xml: <xsl:copy-of select="$select-xml"/>
         </xsl:message>
         <xsl:message>
@@ -1315,7 +1335,7 @@ extension-element-prefixes="ixsl"
         </xsl:message>
         <xsl:message>
             apl:PushContentState $href: <xsl:value-of select="$href"/> $content-uri: <xsl:value-of select="$content-uri"/>
-        </xsl:message>
+        </xsl:message>-->
 
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
@@ -1878,44 +1898,6 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- chart -->
-    
-<!--    <xsl:template name="onChartServiceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="query-uri" as="xs:anyURI"/>
-        <xsl:param name="service-uri" as="xs:anyURI"/>
-        <xsl:param name="query-string" as="xs:string"/>
-        <xsl:param name="chart-type" as="xs:anyURI"/>
-        <xsl:param name="category" as="xs:string?"/>
-        <xsl:param name="series" as="xs:string*"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
-                    <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
-
-                    <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                    <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/>  replace dots 
-
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onSPARQLResultsLoad">
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="container-id" select="$container-id"/>
-                            <xsl:with-param name="chart-type" select="$chart-type"/>
-                            <xsl:with-param name="category" select="$category"/>
-                            <xsl:with-param name="series" select="$series"/>
-                            <xsl:with-param name="show-editor" select="false()"/>
-                            <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
 
     <xsl:template name="onChartQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
@@ -2101,6 +2083,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="chart-type" select="$chart-type"/>
             <xsl:with-param name="category" select="$category"/>
             <xsl:with-param name="series" select="$series"/>
+            <xsl:with-param name="width" select="'100%'"/>
         </xsl:call-template>
     </xsl:template>
     
