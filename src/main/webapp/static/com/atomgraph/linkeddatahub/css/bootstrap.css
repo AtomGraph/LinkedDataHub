@@ -38,8 +38,8 @@ ul.dropdown-menu ul { margin: 0; }
 .btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); }
 .btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); }
 .btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); }
-.btn-logo { background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.dropdown-menu .btn-logo { background-position: unset; background-repeat: no-repeat; padding-left: 32px; }
+.btn-logo { background-repeat: no-repeat; padding-left: 32px; }
+.dropdown-menu .btn-logo { background-position: 12px center; padding-left: 40px; }
 
 .btn.btn-toggle-content { font-size: 0; color: transparent; background-image: url('../icons/baseline-expand_less-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-ban { font-size: 0; color: transparent; background-image: url('../icons/ic_refresh_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }

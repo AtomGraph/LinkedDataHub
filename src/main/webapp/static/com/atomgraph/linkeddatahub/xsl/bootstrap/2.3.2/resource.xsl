@@ -57,13 +57,13 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[$apl:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $apl:base), resolve-uri('admin/model/ontologies/default/#Container', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-container')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-container')"/>
     </xsl:template>
 
     <xsl:template match="*[$apl:base][rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Item', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
-        <xsl:attribute name="class" select="concat($class, ' ', 'btn-item')"/>
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
     </xsl:template>
 
     <!-- do not show text instead for logo icon for "things" -->
