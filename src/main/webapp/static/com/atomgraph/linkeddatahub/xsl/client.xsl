@@ -361,42 +361,18 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 <xsl:choose>
                     <xsl:when test="$chart-type = '&ac;BarChart'">
-                        <xsl:map-entry key="'hAxis'" select="map{ 'title': '{$series}' }"/>
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series[1] }"/>
                         <xsl:map-entry key="'vAxis'" select="map{ 'title': $category }"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:map-entry key="'hAxis'" select="map{ 'title': $category }"/>
-                        <xsl:map-entry key="'vAxis'" select="map{ 'title': '{$series}' }"/>
+                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $series[1] }"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $options => serialize(map{ 'method': 'json' }) ])"/>
         <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
-
-<!--        <xsl:choose>
-            <xsl:when test="$chart-type = '&ac;Table'">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="{{ allowHtml: true }}"/>
-                </xsl:variable>
-                <xsl:variable name="args" select="ixsl:eval(string($js-statement/@statement))"/>
-                <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $args ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:when test="$chart-type = '&ac;BarChart'">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="{{ allowHtml: true, hAxis: {{ title: '{$series}' }}, vAxis: {{ title: '{$category}' }} }}"/>
-                </xsl:variable>
-                <xsl:variable name="args" select="ixsl:eval(string($js-statement/@statement))"/>
-                <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $args ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="{{ allowHtml: true, hAxis: {{ title: '{$category}' }}, vAxis: {{ title: '{$series}' }} }}"/>
-                </xsl:variable>
-                <xsl:variable name="args" select="ixsl:eval(string($js-statement/@statement))"/>
-                <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $args ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>-->
     </xsl:template>
     
     <!-- TEMPLATES -->
