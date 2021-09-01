@@ -1105,7 +1105,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="message" as="xs:string"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'progress-bar']"/>
         
         <xsl:choose>
             <!-- container results are already rendered -->
@@ -2005,17 +2005,26 @@ extension-element-prefixes="ixsl"
 
                     <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <xsl:result-document href="#{$container-id}" method="{$content-method}">
-                                <xsl:call-template name="bs2:QueryEditor">
-                                    <xsl:with-param name="query" select="$query"/>
-                                </xsl:call-template>
+                            <xsl:call-template name="bs2:QueryEditor">
+                                <xsl:with-param name="query" select="$query"/>
+                            </xsl:call-template>
                         </xsl:result-document>
                     </xsl:if>
                     
-                    <xsl:if test="not(id($results-container-id, ixsl:page()))">
-                        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                            <div id="{$results-container-id}"/>
-                        </xsl:result-document>
-                    </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="not(id($results-container-id, ixsl:page()))">
+                            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                                <div id="{$results-container-id}" class="sparql-results">
+                                    <input name="href" type="hidden" value="{$content-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
+                                </div>
+                            </xsl:result-document>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:for-each select="id($results-container-id, ixsl:page())//input[@name = 'href']">
+                                <ixsl:set-property name="value" select="$content-uri" object="."/>
+                            </xsl:for-each>
+                        </xsl:otherwise>
+                    </xsl:choose>
 
                     <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <!-- initialize YASQE on the textarea -->
@@ -2024,11 +2033,6 @@ extension-element-prefixes="ixsl"
                         </xsl:variable>
                         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
                     </xsl:if>
-
-                    <!-- used as $content-uri in chart form's onchange events -->
-                    <xsl:for-each select="id('query-form', ixsl:page())//input[@name = 'href']">
-                        <ixsl:set-property name="value" select="$content-uri" object="."/>
-                    </xsl:for-each>
                     
                     <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
                         <xsl:apply-templates select="$results" mode="bs2:Chart">
@@ -2062,11 +2066,15 @@ extension-element-prefixes="ixsl"
                         </xsl:call-template>
                     </xsl:if>
                     
-                    <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+                    <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'progress-bar']">
+                        <ixsl:set-style name="display" select="'none'" object="."/>
+                    </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+                <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'progress-bar']">
+                    <ixsl:set-style name="display" select="'none'" object="."/>
+                </xsl:for-each>
                     
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#{$results-container-id}" method="ixsl:replace-content">
@@ -2087,11 +2095,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
-        
-<!--        <xsl:if test="id('progress-bar', ixsl:page())">
-             remove query progress bar 
-            <xsl:result-document href="#progress-bar" method="ixsl:replace-content"/>
-        </xsl:if>-->
         
         <xsl:call-template name="ac:draw-chart">
             <xsl:with-param name="data-table" select="$data-table"/>
@@ -3017,7 +3020,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:param>
         <!-- $content-uri value comes either from 'resource-content' input or from an input in the 'query-form' -->
-        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, ancestor::div[contains-token(@class, 'sparql-results')]//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
 
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -3050,7 +3053,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:param>
         <!-- $content-uri value comes either from 'resource-content' input or from an input in the 'query-form' -->
-        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, ancestor::div[contains-token(@class, 'sparql-results')]//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 
@@ -3080,7 +3083,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:param>
         <!-- $content-uri value comes either from 'resource-content' input or from an input in the 'query-form' -->
-        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, id('query-form', ixsl:page())//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
+        <xsl:param name="content-uri" select="xs:anyURI(translate((ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, ancestor::div[contains-token(@class, 'sparql-results')]//input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
 

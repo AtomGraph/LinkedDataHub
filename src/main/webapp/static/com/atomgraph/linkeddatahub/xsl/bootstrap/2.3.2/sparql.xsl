@@ -173,8 +173,6 @@ LIMIT 100</xsl:param>
                     </button>
                 </div>
             </fieldset>
-            
-            <input name="href" type="hidden"/> <!-- used to store $content-uri value -->
         </form>
     </xsl:template>
     
