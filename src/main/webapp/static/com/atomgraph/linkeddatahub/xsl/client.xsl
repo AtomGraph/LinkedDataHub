@@ -612,6 +612,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="service-uri" select="if ($state?content-uri = $content-uri) then xs:anyURI(map:get($state, 'service-uri')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
         <!-- create new cache entry using content URI as key -->
         <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -622,8 +623,9 @@ extension-element-prefixes="ixsl"
         <!-- store the first var name of the initial SELECT query -->
         <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         <xsl:if test="$service-uri">
-            <!-- store the URI of the service -->
+            <!-- store (the URI of) the service -->
             <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+            <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         </xsl:if>
 
         <xsl:variable name="select-xml" as="document-node()">
@@ -654,32 +656,15 @@ extension-element-prefixes="ixsl"
         <!-- update progress bar -->
         <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
 
-        <xsl:choose>
-            <xsl:when test="$service-uri">
-                <!-- load the service metadata first to get the endpoint URL -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($service-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onContainerQueryServiceLoad">
-                        <xsl:with-param name="container-id" select="$container-id"/>
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="content" select="."/>
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                        <xsl:with-param name="service-uri" select="$service-uri"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:call-template name="apl:RenderContainer">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="content" select="."/>
-                    <xsl:with-param name="select-string" select="$select-string"/>
-                    <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:call-template name="apl:RenderContainer">
+            <xsl:with-param name="container-id" select="$container-id"/>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+            <xsl:with-param name="content" select="."/>
+            <xsl:with-param name="select-string" select="$select-string"/>
+            <xsl:with-param name="select-xml" select="$select-xml"/>
+            <xsl:with-param name="service" select="$service"/>
+            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+        </xsl:call-template>
     </xsl:template>
     
     <xsl:template name="first-time-message">
@@ -775,7 +760,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="onContainerQueryServiceLoad">
+<!--    <xsl:template name="onContainerQueryServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
@@ -803,15 +788,14 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <!-- error response - could not load query results -->
+                 error response - could not load query results 
                 <xsl:call-template name="render-container-error">
                     <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="message" select="?message"/>
                 </xsl:call-template>
-                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
@@ -1919,7 +1903,7 @@ extension-element-prefixes="ixsl"
                 <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
         
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#sparql-results" method="ixsl:replace-content">
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
                     <div class="alert alert-block">
                         <strong>Error during query execution:</strong>
                         <pre>
