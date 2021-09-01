@@ -361,30 +361,34 @@ exclude-result-prefixes="#all">
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
                         const servicesRequestUri = "]]><xsl:value-of select="$services-request-uri"/><![CDATA[";
-                        
-                        Promise.all(docPromises)
-                        .then(resources => {
-                            const cache = {};
-                            for (var i = 0; i < resources.length; i++) {
-                                cache[locationMapping[i].name] = resources[i]
+                        const stylesheetParams = {
+                            "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
+                            "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $ldt:base
+                            "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
+                            "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ontology": ontologyUri,
+                            "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
+                            "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
                             };
-                            return SaxonJS.transform({
-                                documentPool: cache,
-                                stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
-                                initialTemplate: "main",
-                                logLevel: ]]><xsl:value-of select="$saxon-js-log-level"/><![CDATA[,
-                                stylesheetParams: {
-                                    "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $ldt:base
-                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
-                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ontology": ontologyUri,
-                                    "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}services": SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }),
-                                    "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
-                                    "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
-                                    }
-                            }, "async");
-                        })
-                        .catch(err => console.log("Transformation failed: " + err));
+                        
+                        SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).
+                            then(resource => {
+                                stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub/domain#}services"] = resource;
+                                return Promise.all(docPromises);
+                            }).
+                            then(resources => {
+                                const cache = {};
+                                for (var i = 0; i < resources.length; i++) {
+                                    cache[locationMapping[i].name] = resources[i]
+                                };
+                                return SaxonJS.transform({
+                                    documentPool: cache,
+                                    stylesheetLocation: "]]><xsl:value-of select="$client-stylesheet"/><![CDATA[",
+                                    initialTemplate: "main",
+                                    logLevel: ]]><xsl:value-of select="$saxon-js-log-level"/><![CDATA[,
+                                    stylesheetParams: stylesheetParams
+                                }, "async");
+                            }).
+                            catch(err => console.log("Transformation failed: " + err));
                     }
                 ]]>
             </script>
