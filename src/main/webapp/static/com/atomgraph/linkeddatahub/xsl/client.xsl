@@ -84,6 +84,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="apl:ontology" as="xs:anyURI"/>
+    <xsl:param name="apl:services" as="document-node()"/>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $apl:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
@@ -100,22 +101,6 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="service-query" as="xs:string">
-        CONSTRUCT 
-          { 
-            ?service &lt;&dct;title&gt; ?title .
-            ?service &lt;&sd;endpoint&gt; ?endpoint .
-            ?service &lt;&dydra;repository&gt; ?repository .
-          }
-        WHERE
-          { GRAPH ?g
-              { ?service  &lt;&dct;title&gt;  ?title
-                  { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
-                UNION
-                  { ?service  &lt;&dydra;repository&gt;  ?repository }
-              }
-          }
-    </xsl:param>
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -133,6 +118,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>
         <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
         <xsl:message>$apl:ontology: <xsl:value-of select="$apl:ontology"/></xsl:message>
+        <xsl:message>count($apl:services): <xsl:value-of select="count($apl:services)"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
@@ -183,12 +169,19 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:for-each>
         <!-- initialize LinkedDataHub.services (and the search dropdown, if it's shown) -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $apl:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onServiceLoad">
-                <xsl:with-param name="service-select" select="id('search-service', ixsl:page())"/>
-                <xsl:with-param name="selected-service" select="$a:graphStore"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <ixsl:set-property name="services" select="$apl:services" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <xsl:for-each select="id('search-service', ixsl:page())">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:for-each select="$apl:services//*[@rdf:about]">
+                    <xsl:sort select="ac:label(.)"/>
+
+                    <xsl:apply-templates select="." mode="xhtml:Option">
+                        <xsl:with-param name="value" select="@rdf:about"/>
+                        <!--<xsl:with-param name="selected" select="@rdf:about = $selected-service"/>-->
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:result-document>
+        </xsl:for-each>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:call-template name="apl:LoadContents">
@@ -2051,7 +2044,7 @@ extension-element-prefixes="ixsl"
     
     <!-- render dropdown from SPARQL service results -->
     
-    <xsl:template name="onServiceLoad">
+<!--    <xsl:template name="onServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="service-select" as="element()?"/>
         <xsl:param name="selected-service" as="xs:anyURI?"/>
@@ -2080,7 +2073,7 @@ extension-element-prefixes="ixsl"
                 <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- embed content -->
     
@@ -2884,11 +2877,16 @@ extension-element-prefixes="ixsl"
         <!-- initialize SPARQL query service dropdown -->
         <xsl:for-each select="id('query-service', ixsl:page())">
             <xsl:variable name="service-select" select="." as="element()"/>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $apl:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onServiceLoad">
-                    <!--<xsl:with-param name="service-select" select="$service-select"/>-->
-                </xsl:call-template>
-            </ixsl:schedule-action>
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:for-each select="$apl:services//*[@rdf:about]">
+                    <xsl:sort select="ac:label(.)"/>
+
+                    <xsl:apply-templates select="." mode="xhtml:Option">
+                        <xsl:with-param name="value" select="@rdf:about"/>
+                        <!--<xsl:with-param name="selected" select="@rdf:about = $selected-service"/>-->
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:result-document>
         </xsl:for-each>
 
         <!-- initialize YASQE on the textarea -->
