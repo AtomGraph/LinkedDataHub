@@ -31,6 +31,7 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
