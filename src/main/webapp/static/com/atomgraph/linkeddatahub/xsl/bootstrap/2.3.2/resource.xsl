@@ -364,7 +364,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Actions"/>
 
             <h2>
-                <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                <xsl:apply-templates select="." mode="xhtml:Anchor">
                     <xsl:with-param name="class" as="xs:string?">
                         <xsl:apply-templates select="." mode="apl:logo"/>
                     </xsl:with-param>

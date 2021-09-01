@@ -1797,6 +1797,7 @@ extension-element-prefixes="ixsl"
                 </button>
 
                 <ul class="dropdown-menu">
+                    <!-- TO-DO: replace with an RDF/XML document and apl:logo/xhtml:Anchor calls -->
                     <li>
                         <a href="{$apl:base}" class="btn-logo btn-container">Root</a>
                     </li>
