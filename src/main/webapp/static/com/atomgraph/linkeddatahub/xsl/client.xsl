@@ -361,17 +361,17 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 <xsl:choose>
                     <xsl:when test="$chart-type = '&ac;BarChart'">
-                        <xsl:map-entry key="'hAxis'" select="map{ 'title': $series }"/>
+                        <xsl:map-entry key="'hAxis'" select="map{ 'title': '{$series}' }"/>
                         <xsl:map-entry key="'vAxis'" select="map{ 'title': $category }"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:map-entry key="'hAxis'" select="map{ 'title': $category }"/>
-                        <xsl:map-entry key="'vAxis'" select="map{ 'title': $series }"/>
+                        <xsl:map-entry key="'vAxis'" select="map{ 'title': '{$series}' }"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $options => serialize(map { 'method': 'json' }) ])"/>
+        <xsl:variable name="options-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $options => serialize(map{ 'method': 'json' }) ])"/>
         <xsl:sequence select="ixsl:call($chart, 'draw', [ $data-table, $options-obj ])[current-date() lt xs:date('2000-01-01')]"/>
 
 <!--        <xsl:choose>
@@ -1349,7 +1349,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
         <ixsl:set-property name="query" select="ixsl:call(ixsl:window(), 'JSON.parse', [ xml-to-json($select-xml) ])" object="$state-obj"/>
         
         <!-- push the latest state into history-->
@@ -1381,7 +1381,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>-->
             </xsl:map>
         </xsl:variable>
-        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map { 'method': 'json' }) ])"/>
+        <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
 
         <!-- push the latest state into history -->
         <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
