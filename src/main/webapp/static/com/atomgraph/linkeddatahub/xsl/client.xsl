@@ -1798,28 +1798,28 @@ extension-element-prefixes="ixsl"
 
                 <ul class="dropdown-menu">
                     <li>
-                        <a href="{$apl:base}" class="btn-container">Root</a>
+                        <a href="{$apl:base}" class="btn-logo btn-container">Root</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}charts/" class="btn-chart">Charts</a>
+                        <a href="{$apl:base}charts/" class="btn-logo btn-chart">Charts</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}files/" class="btn-file">Files</a>
+                        <a href="{$apl:base}files/" class="btn-logo btn-file">Files</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}geo/" class="btn-geo">Geo</a>
+                        <a href="{$apl:base}geo/" class="btn-logo btn-geo">Geo</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}imports/" class="btn-import">Imports</a>
+                        <a href="{$apl:base}imports/" class="btn-logo btn-import">Imports</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}latest/" class="btn-latest">Latest</a>
+                        <a href="{$apl:base}latest/" class="btn-logo btn-latest">Latest</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}services/" class="btn-service">Services</a>
+                        <a href="{$apl:base}services/" class="btn-logo btn-service">Services</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}queries/" class="btn-query">Queries</a>
+                        <a href="{$apl:base}queries/" class="btn-logo btn-query">Queries</a>
                     </li>
                 </ul>
             </div>

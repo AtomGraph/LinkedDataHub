@@ -28,15 +28,19 @@ ul.dropdown-menu ul { margin: 0; }
 .btn.create-action, a.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 .btn.dropdown-toggle.create-action { height: 30px; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
-.btn.btn-container, a.btn-container, .dropdown-menu > li > a.btn-container { background-image: url('../icons/folder.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-item, a.btn-item, .dropdown-menu > li > a.btn-item { background-image: url('../icons/file.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-service, a.btn-service, .dropdown-menu > li > a.btn-service { background-image: url('../icons/baseline-cloud-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-query, a.btn-query, .dropdown-menu > li > a.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-file, a.btn-file, .dropdown-menu > li > a.btn-file { background-image: url('../icons/ic_file_upload_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-import, a.btn-import, .dropdown-menu > li > a.btn-import { background-image: url('../icons/ic_transform_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-chart, a.btn-chart, .dropdown-menu > li > a.btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-latest, a.btn-latest, .dropdown-menu > li > a.btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
-.btn.btn-geo, a.btn-geo, .dropdown-menu > li > a.btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+
+.btn-container { background-image: url('../icons/folder.svg'); }
+.btn-item { background-image: url('../icons/file.svg'); }
+.btn-service { background-image: url('../icons/baseline-cloud-24px.svg'); }
+.btn-query { background-image: url('../icons/ic_code_black_24px.svg'); }
+.btn-file { background-image: url('../icons/ic_file_upload_black_24px.svg'); }
+.btn-import { background-image: url('../icons/ic_transform_black_24px.svg'); }
+.btn-chart { background-image: url('../icons/ic_show_chart_black_24px.svg'); }
+.btn-latest { background-image: url('../icons/ic_new_releases_black_24px.svg'); }
+.btn-geo { background-image: url('../icons/ic_location_on_black_24px.svg'); }
+.btn-logo { background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
+.dropdown-menu .btn-logo { background-position: unset; background-repeat: no-repeat; padding-left: 32px; }
+
 .btn.btn-toggle-content { font-size: 0; color: transparent; background-image: url('../icons/baseline-expand_less-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-ban { font-size: 0; color: transparent; background-image: url('../icons/ic_refresh_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-delete { font-size: 0; color: transparent; background-image: url('../icons/ic_delete_forever_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
