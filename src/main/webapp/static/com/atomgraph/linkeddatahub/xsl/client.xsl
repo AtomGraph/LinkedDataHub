@@ -1845,10 +1845,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
         
         <li>
-            <xsl:apply-templates select="." mode="apl:logo"/>
-
+            <xsl:variable name="class" as="xs:string?">
+                <xsl:apply-templates select="." mode="apl:logo"/>
+            </xsl:variable>
             <xsl:apply-templates select="." mode="xhtml:Anchor">
                 <xsl:with-param name="id" select="()"/>
+                <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
 
             <xsl:if test="not($leaf)">
@@ -2884,7 +2886,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="service-select" select="." as="element()"/>
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:build-uri(resolve-uri('sparql', $apl:base), map{ 'query': $service-query }), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onServiceLoad">
-                    <xsl:with-param name="service-select" select="$service-select"/>
+                    <!--<xsl:with-param name="service-select" select="$service-select"/>-->
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:for-each>
