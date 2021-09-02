@@ -19,7 +19,7 @@ popd > /dev/null
 
 # check that ?accept URL param overrides Accept header and returns Turtle (use Chrome's default Accept value)
 
-content_type=$(curl --head -k -w "%{content_type}\n" -f -s -o /dev/null \
+content_type=$(curl -G --head -k -w "%{content_type}\n" -f -s -o /dev/null \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
   --data-urlencode "accept=text/turtle" \
@@ -29,7 +29,7 @@ content_type=$(curl --head -k -w "%{content_type}\n" -f -s -o /dev/null \
 
 # check that ?accept URL param overrides Accept header and returns RDF/XML (use Chrome's default Accept value)
 
-content_type=$(curl --head -k -w "%{content_type}\n" -f -s -o /dev/null \
+content_type=$(curl -G --head -k -w "%{content_type}\n" -f -s -o /dev/null \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
   --data-urlencode "accept=application/rdf+xml" \
