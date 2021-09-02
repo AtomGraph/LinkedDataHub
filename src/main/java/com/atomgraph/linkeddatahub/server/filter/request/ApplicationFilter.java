@@ -67,6 +67,11 @@ public class ApplicationFilter implements ContainerRequestFilter
         com.atomgraph.linkeddatahub.apps.model.Application clientApp = clientAppResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
         request.setProperty(APL.client.getURI(), new Client(clientApp)); // wrap into a helper class so it doesn't interfere with injection of Application
 
+        // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
+        // has to go before ?uri logic because that will change the UriInfo
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
+            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
+
         // there might also be a server app (which might be equal to the client app)
         if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
@@ -102,10 +107,6 @@ public class ApplicationFilter implements ContainerRequestFilter
             request.setProperty(LAPP.Application.getURI(), Optional.of(clientApp));
             request.setRequestUri(clientApp.getBaseURI(), request.getUriInfo().getRequestUri());
         }
-        
-        // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
-            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
     }
 
     public com.atomgraph.linkeddatahub.Application getSystem()
