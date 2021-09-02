@@ -192,7 +192,7 @@ extension-element-prefixes="ixsl"
         <!-- update RDF download links to match the current URI -->
         <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
             <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-            <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'accept': string(@title) })" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()), 'accept': string(@title) })" as="xs:anyURI"/>
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
     </xsl:template>
@@ -1319,9 +1319,9 @@ extension-element-prefixes="ixsl"
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
         
-        <xsl:message>
+<!--        <xsl:message>
             apl:PushState $href: <xsl:value-of select="$href"/> $sparql: <xsl:value-of select="$sparql"/>
-        </xsl:message>
+        </xsl:message>-->
         
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
@@ -1661,8 +1661,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" as="xs:string"/>
         <xsl:param name="this-uri" as="xs:anyURI"/>
         <xsl:param name="select-uri" as="xs:anyURI"/>
-        <xsl:param name="endpoint" as="xs:anyURI"/>
-        <xsl:variable name="endpoint" select="resolve-uri('sparql', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
@@ -3056,7 +3055,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="endpoint" select="resolve-uri('sparql', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
         <xsl:param name="results-uri" as="xs:anyURI?"/>
         <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI?"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>

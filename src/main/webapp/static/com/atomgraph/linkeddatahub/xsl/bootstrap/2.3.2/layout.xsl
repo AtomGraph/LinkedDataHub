@@ -97,8 +97,9 @@ exclude-result-prefixes="#all">
     <xsl:param name="apl:base" select="$apl:client//ldt:base/@rdf:resource" as="xs:anyURI"/>
     <xsl:param name="apl:ontology" select="$apl:client//ldt:ontology/@rdf:resource" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
+    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $apl:base)" as="xs:anyURI"/>
+    <xsl:param name="a:graphStore" select="resolve-uri('service', $apl:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
     <xsl:param name="lapp:Application" as="document-node()?"/>
-    <xsl:param name="a:graphStore" select="if ($apl:base) then resolve-uri('service', $apl:base) else ()" as="xs:anyURI?"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
@@ -332,7 +333,7 @@ exclude-result-prefixes="#all">
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <xsl:variable name="services-request-uri" select="ac:build-uri(resolve-uri('sparql', $apl:base), map{ 'query': $service-query })" as="xs:anyURI"/>
+            <xsl:variable name="services-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $service-query })" as="xs:anyURI"/>
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
                 <![CDATA[
