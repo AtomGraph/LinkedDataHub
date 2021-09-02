@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
@@ -101,6 +102,10 @@ public class ApplicationFilter implements ContainerRequestFilter
             request.setProperty(LAPP.Application.getURI(), Optional.of(clientApp));
             request.setRequestUri(clientApp.getBaseURI(), request.getUriInfo().getRequestUri());
         }
+        
+        // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
+            request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
     }
 
     public com.atomgraph.linkeddatahub.Application getSystem()
