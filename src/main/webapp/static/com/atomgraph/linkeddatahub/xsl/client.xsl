@@ -2311,6 +2311,9 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <!-- do not intercept RDF download links -->
+    <xsl:template match="button[@id = 'export-rdf']/following-sibling::ul//a" mode="ixsl:onclick" priority="1"/>
+    
     <!-- intercept all link HTTP(S) clicks except those in the navbar (except breadcrumb bar) and the footer -->
     <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
