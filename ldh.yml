@@ -1,0 +1,1123 @@
+Parameters:
+  VPCID:
+    Type: AWS::EC2::VPC::Id
+  AVAILABILITYZONES:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+  PUBLICSUBNETID:
+    Type: AWS::EC2::Subnet::Id
+  OWNERMBOX:
+    Type: String
+    AllowedPattern: ^[\w-\+]+(\.[\w]+)*@[\w-]+(\.[\w]+)*(\.[a-z]{2,})$
+  OWNERGIVENNAME:
+    Type: String
+  OWNERFAMILYNAME:
+    Type: String
+  OWNERORGUNIT:
+    Type: String
+  OWNERORGANIZATION:
+    Type: String
+  OWNERLOCALITY:
+    Type: String
+  OWNERSTATEORPROVINCE:
+    Type: String
+  OWNERCOUNTRYNAME:
+    Type: String
+  OWNERCERTPASSWORD:
+    Type: String
+    NoEcho: true
+  GOOGLECLIENTID:
+    Type: String
+    Default: ""
+  GOOGLECLIENTSECRET:
+    Type: String
+    Default: ""
+  SsmParameterValueawsserviceecsoptimizedamiamazonlinux2recommendedimageidC96584B6F00A464EAD1953AFF4B05118Parameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
+Resources:
+  LDHNetworkPublicSubnetAcl93A69BAB:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId:
+        Ref: VPCID
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPublicSubnetAcl/Resource
+  LDHNetworkPublicSubnetAclDefaultAssociationLinkedDataHubStackLDHVPCPublicSubnet14991CFD8FDF19A37:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+        Ref: LDHNetworkPublicSubnetAcl93A69BAB
+      SubnetId:
+        Ref: PUBLICSUBNETID
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPublicSubnetAcl/DefaultAssociationLinkedDataHubStackLDHVPCPublicSubnet14991CFD8/Resource
+  LDHNetworkPublicSubnetAclLDHNetworkPublicSubnetIngress8E75F2C3:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: LDHNetworkPublicSubnetAcl93A69BAB
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPublicSubnetAcl/LDHNetworkPublicSubnetIngress/Resource
+  LDHNetworkPublicSubnetAclLDHNetworkPublicSubnetEgress92032B79:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: LDHNetworkPublicSubnetAcl93A69BAB
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 200
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPublicSubnetAcl/LDHNetworkPublicSubnetEgress/Resource
+  LDHNetworkPrivateSubnetAcl70DF75A5:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId:
+        Ref: VPCID
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPrivateSubnetAcl/Resource
+  LDHNetworkPrivateSubnetAclLDHNetworkPrivateSubnetIngress428D9800:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: LDHNetworkPrivateSubnetAcl70DF75A5
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 100
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPrivateSubnetAcl/LDHNetworkPrivateSubnetIngress/Resource
+  LDHNetworkPrivateSubnetAclLDHNetworkPrivateSubnetEgressFDB19E09:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: LDHNetworkPrivateSubnetAcl70DF75A5
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 200
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHNetworkPrivateSubnetAcl/LDHNetworkPrivateSubnetEgress/Resource
+  LDHLoadBalancerAE0C323C:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerAttributes:
+        - Key: deletion_protection.enabled
+          Value: "false"
+      Name: ldh-load-balancer
+      Scheme: internet-facing
+      Subnets:
+        - Ref: PUBLICSUBNETID
+      Type: network
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHLoadBalancer/Resource
+  LDHLoadBalancerPublicListenerA8BAC59E:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: LDHLoadBalancerPublicListenerECSGroup2215C89B
+          Type: forward
+      LoadBalancerArn:
+        Ref: LDHLoadBalancerAE0C323C
+      Port: 80
+      Protocol: TCP
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHLoadBalancer/PublicListener/Resource
+  LDHLoadBalancerPublicListenerECSGroup2215C89B:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: TCP
+      TargetType: instance
+      VpcId:
+        Ref: VPCID
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHLoadBalancer/PublicListener/ECSGroup/Resource
+  LDHLoadBalancerNginxHTTPSListener4A043FBE:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn:
+            Ref: LDHLoadBalancerNginxHTTPSListenerLDHNginxHTTPSTargetGroup10D37CD9
+          Type: forward
+      LoadBalancerArn:
+        Ref: LDHLoadBalancerAE0C323C
+      Port: 443
+      Protocol: TCP
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHLoadBalancer/NginxHTTPSListener/Resource
+  LDHLoadBalancerNginxHTTPSListenerLDHNginxHTTPSTargetGroup10D37CD9:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 443
+      Protocol: TCP
+      TargetType: instance
+      VpcId:
+        Ref: VPCID
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHLoadBalancer/NginxHTTPSListener/LDHNginxHTTPSTargetGroup/Resource
+  LinkedDataHubLogGroup9D1FA54B:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /ecs/linkeddatahub-
+            - Fn::Select:
+                - 1
+                - Fn::Split:
+                    - :stack/LinkedDataHubStack/
+                    - Ref: AWS::StackId
+      RetentionInDays: 30
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LinkedDataHubLogGroup/Resource
+  OwnerCertBucket1E08D396:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/OwnerCertBucket/Resource
+  LDHTaskDefinitionTaskRoleB04B1AAD:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHTaskDefinition/TaskRole/Resource
+  LDHTaskDefinitionDF5ADF89:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        - Command:
+            - --config
+            - /var/fuseki/config.ttl
+          Essential: true
+          Hostname: fuseki-admin
+          Image: atomgraph/fuseki
+          Links:
+            - fuseki-end-user
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LinkedDataHubLogGroup9D1FA54B
+              awslogs-stream-prefix: fuseki-admin
+              awslogs-region: us-east-1
+          Memory: 1024
+          MountPoints:
+            - ContainerPath: /var/fuseki/config.ttl
+              ReadOnly: true
+              SourceVolume: FusekiAdminConfigVolume
+            - ContainerPath: /var/fuseki/data
+              ReadOnly: false
+              SourceVolume: FusekiAdminDataVolume
+          Name: fuseki-admin
+          PortMappings:
+            - ContainerPort: 3030
+              HostPort: 0
+              Protocol: tcp
+        - Command:
+            - --config
+            - /var/fuseki/config.ttl
+          Essential: true
+          Hostname: fuseki-end-user
+          Image: atomgraph/fuseki
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LinkedDataHubLogGroup9D1FA54B
+              awslogs-stream-prefix: fuseki-end-user
+              awslogs-region: us-east-1
+          Memory: 1024
+          MountPoints:
+            - ContainerPath: /var/fuseki/config.ttl
+              ReadOnly: true
+              SourceVolume: FusekiAdminConfigVolume
+            - ContainerPath: /var/fuseki/data
+              ReadOnly: false
+              SourceVolume: FusekiEndUserDataVolume
+          Name: fuseki-end-user
+          PortMappings:
+            - ContainerPort: 3030
+              HostPort: 0
+              Protocol: tcp
+        - Environment:
+            - Name: GOOGLE_CLIENT_SECRET
+              Value:
+                Ref: GOOGLECLIENTSECRET
+            - Name: CONTEXT_DATASET_URL
+              Value: https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/config/system.trig
+            - Name: HTTPS_PORT
+              Value: "8443"
+            - Name: ATOMGRAPH_UPLOAD_ROOT
+              Value: /var/www/linkeddatahub/uploads/
+            - Name: HTTP_PORT
+              Value: "8080"
+            - Name: HOST
+              Value:
+                Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+            - Name: OWNER_MBOX
+              Value:
+                Ref: OWNERMBOX
+            - Name: OWNER_COUNTRY_NAME
+              Value:
+                Ref: OWNERCOUNTRYNAME
+            - Name: OWNER_FAMILY_NAME
+              Value:
+                Ref: OWNERFAMILYNAME
+            - Name: SELF_SIGNED_CERT
+              Value: "true"
+            - Name: OWNER_GIVEN_NAME
+              Value:
+                Ref: OWNERGIVENNAME
+            - Name: OWNER_LOCALITY
+              Value:
+                Ref: OWNERLOCALITY
+            - Name: HTTPS
+              Value: "false"
+            - Name: HTTP_SCHEME
+              Value: https
+            - Name: IMPORT_KEEPALIVE
+              Value: "300000"
+            - Name: MAIL_SMTP_PORT
+              Value: "25"
+            - Name: OWNER_ORG_UNIT
+              Value:
+                Ref: OWNERORGUNIT
+            - Name: GOOGLE_CLIENT_ID
+              Value:
+                Ref: GOOGLECLIENTID
+            - Name: PROTOCOL
+              Value: https
+            - Name: SIGN_UP_CERT_VALIDITY
+              Value: "3650"
+            - Name: MAIL_USER
+              Value: linkeddatahub@localhost
+            - Name: HTTP_PROXY_NAME
+              Value:
+                Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+            - Name: CLIENT_KEYSTORE_PASSWORD
+              Value: LinkedDataHub
+            - Name: HTTP_REDIRECT_PORT
+              Value: "443"
+            - Name: CLIENT_TRUSTSTORE_PASSWORD
+              Value: LinkedDataHub
+            - Name: OWNER_STATE_OR_PROVINCE
+              Value:
+                Ref: OWNERSTATEORPROVINCE
+            - Name: HTTP_PROXY_PORT
+              Value: "443"
+            - Name: HTTPS_PROXY_PORT
+              Value: "443"
+            - Name: ADMIN_DATASET_URL
+              Value: https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/platform/datasets/admin.trig
+            - Name: MAX_CONTENT_LENGTH
+              Value: "2097152"
+            - Name: MAIL_SMTP_HOST
+              Value: email-server
+            - Name: ABS_PATH
+              Value: /
+            - Name: OWNER_ORGANIZATION
+              Value:
+                Ref: OWNERORGANIZATION
+            - Name: END_USER_DATASET_URL
+              Value: https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/platform/datasets/end-user.trig
+          EnvironmentFiles: []
+          Essential: true
+          Hostname: linkeddatahub
+          Image: atomgraph/linkeddatahub:9bef966ec6f7d67221190273707b0cb8fd60da9b
+          Links:
+            - fuseki-admin
+            - fuseki-end-user
+            - email-server
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LinkedDataHubLogGroup9D1FA54B
+              awslogs-stream-prefix: linkeddatahub
+              awslogs-region: us-east-1
+          Memory: 1024
+          MountPoints:
+            - ContainerPath: /var/linkeddatahub/ssl/server/server.crt
+              ReadOnly: true
+              SourceVolume: LDHServerCertVolume
+            - ContainerPath: /var/linkeddatahub/ssl/owner
+              ReadOnly: true
+              SourceVolume: LDHOwnerCertVolume
+            - ContainerPath: /var/linkeddatahub/ssl/secretary
+              ReadOnly: true
+              SourceVolume: LDHSecretaryCertVolume
+          Name: linkeddatahub
+          PortMappings:
+            - ContainerPort: 8080
+              HostPort: 0
+              Protocol: tcp
+        - Command:
+            - /bin/bash
+            - -c
+            - mkdir -p /etc/nginx && curl https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/platform/nginx.conf.template > /etc/nginx/nginx.conf.template && envsubst '$UPSTREAM_SERVER $UPSTREAM_HTTPS_PORT $UPSTREAM_HTTP_PORT $SERVER_NAME $SERVER_HTTPS_PORT $SERVER_HTTP_PORT $SERVER_CERT_FILE $SERVER_KEY_FILE $MAX_BODY_SIZE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'
+          Environment:
+            - Name: UPSTREAM_HTTP_PORT
+              Value: "8080"
+            - Name: SERVER_HTTPS_PORT
+              Value: "443"
+            - Name: SERVER_CERT_FILE
+              Value:
+                Fn::Join:
+                  - ""
+                  - - /etc/letsencrypt/live/
+                    - Fn::GetAtt:
+                        - LDHLoadBalancerAE0C323C
+                        - DNSName
+                    - /fullchain.pem
+            - Name: UPSTREAM_HTTPS_PORT
+              Value: "8443"
+            - Name: HOST
+              Value:
+                Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+            - Name: SERVER_KEY_FILE
+              Value:
+                Fn::Join:
+                  - ""
+                  - - /etc/letsencrypt/live/
+                    - Fn::GetAtt:
+                        - LDHLoadBalancerAE0C323C
+                        - DNSName
+                    - /privkey.pem
+            - Name: SERVER_NAME
+              Value:
+                Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+            - Name: TIMEOUT
+              Value: "60"
+            - Name: UPSTREAM_SERVER
+              Value: linkeddatahub
+            - Name: SERVER_HTTP_PORT
+              Value: "80"
+            - Name: MAX_BODY_SIZE
+              Value: "2097152"
+          Essential: true
+          Hostname: nginx
+          Image: atomgraph/nginx:51dba16f0618657bc7ffa3df8836d88236282cbf
+          Links:
+            - linkeddatahub
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LinkedDataHubLogGroup9D1FA54B
+              awslogs-stream-prefix: nginx
+              awslogs-region: us-east-1
+          Memory: 128
+          MountPoints:
+            - ContainerPath:
+                Fn::Join:
+                  - ""
+                  - - /etc/letsencrypt/live/
+                    - Fn::GetAtt:
+                        - LDHLoadBalancerAE0C323C
+                        - DNSName
+                    - /fullchain.pem
+              ReadOnly: true
+              SourceVolume: LDHServerCertVolume
+            - ContainerPath:
+                Fn::Join:
+                  - ""
+                  - - /etc/letsencrypt/live/
+                    - Fn::GetAtt:
+                        - LDHLoadBalancerAE0C323C
+                        - DNSName
+                    - /privkey.pem
+              ReadOnly: true
+              SourceVolume: LDHServerKeyVolume
+          Name: nginx
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 0
+              Protocol: tcp
+            - ContainerPort: 443
+              HostPort: 0
+              Protocol: tcp
+        - Environment:
+            - Name: DISABLE_IPV6
+              Value: "true"
+          Essential: true
+          Hostname: email-server
+          Image: namshi/smtp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: LinkedDataHubLogGroup9D1FA54B
+              awslogs-stream-prefix: email-server
+              awslogs-region: us-east-1
+          Memory: 256
+          Name: email-server
+      ExecutionRoleArn:
+        Fn::GetAtt:
+          - LDHTaskDefinitionExecutionRoleF1847A5A
+          - Arn
+      Family: LinkedDataHubStackLDHTaskDefinitionF106B511
+      NetworkMode: bridge
+      RequiresCompatibilities:
+        - EC2
+      TaskRoleArn:
+        Fn::GetAtt:
+          - LDHTaskDefinitionTaskRoleB04B1AAD
+          - Arn
+      Volumes:
+        - Host:
+            SourcePath: /var/linkeddatahub/ssl/server/server.crt
+          Name: LDHServerCertVolume
+        - Host:
+            SourcePath: /var/linkeddatahub/ssl/server/server.key
+          Name: LDHServerKeyVolume
+        - Host:
+            SourcePath: /var/fuseki/admin.ttl
+          Name: FusekiAdminConfigVolume
+        - Host:
+            SourcePath: /var/fuseki/data/admin
+          Name: FusekiAdminDataVolume
+        - Host:
+            SourcePath: /var/fuseki/end-user.ttl
+          Name: FusekiEndUserConfigVolume
+        - Host:
+            SourcePath: /var/fuseki/data/end-user
+          Name: FusekiEndUserDataVolume
+        - Host:
+            SourcePath: /var/linkeddatahub/ssl/owner
+          Name: LDHOwnerCertVolume
+        - Host:
+            SourcePath: /var/linkeddatahub/ssl/secretary
+          Name: LDHSecretaryCertVolume
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHTaskDefinition/Resource
+  LDHTaskDefinitionExecutionRoleF1847A5A:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHTaskDefinition/ExecutionRole/Resource
+  LDHTaskDefinitionExecutionRoleDefaultPolicy7FBFA0E7:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*Object
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Effect: Allow
+            Resource: arn:aws:s3:::cdktoolkit-stagingbucket-*
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - LinkedDataHubLogGroup9D1FA54B
+                - Arn
+          - Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - LinkedDataHubLogGroup9D1FA54B
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: LDHTaskDefinitionExecutionRoleDefaultPolicy7FBFA0E7
+      Roles:
+        - Ref: LDHTaskDefinitionExecutionRoleF1847A5A
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/LDHTaskDefinition/ExecutionRole/DefaultPolicy/Resource
+  EC2ClusterA0B52722:
+    Type: AWS::ECS::Cluster
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/Resource
+  EC2ClusterDefaultAutoScalingGroupInstanceSecurityGroup556C701A:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/InstanceSecurityGroup
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: from 0.0.0.0/0:80
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          Description: from 0.0.0.0/0:443
+          FromPort: 443
+          IpProtocol: tcp
+          ToPort: 443
+        - CidrIp: 0.0.0.0/0
+          Description: from 0.0.0.0/0:8080
+          FromPort: 8080
+          IpProtocol: tcp
+          ToPort: 8080
+        - CidrIp: 0.0.0.0/0
+          Description: from 0.0.0.0/0:32768-65535
+          FromPort: 32768
+          IpProtocol: tcp
+          ToPort: 65535
+      Tags:
+        - Key: Name
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+      VpcId:
+        Ref: VPCID
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/InstanceSecurityGroup/Resource
+  EC2ClusterDefaultAutoScalingGroupInstanceRole924B2787:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/InstanceRole/Resource
+  EC2ClusterDefaultAutoScalingGroupInstanceRoleDefaultPolicy48FD0809:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ecs:DeregisterContainerInstance
+              - ecs:RegisterContainerInstance
+              - ecs:Submit*
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - EC2ClusterA0B52722
+                - Arn
+          - Action:
+              - ecs:Poll
+              - ecs:StartTelemetrySession
+            Condition:
+              ArnEquals:
+                ecs:cluster:
+                  Fn::GetAtt:
+                    - EC2ClusterA0B52722
+                    - Arn
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - ecs:DiscoverPollEndpoint
+              - ecr:GetAuthorizationToken
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - s3:PutObject
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - OwnerCertBucket1E08D396
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+      PolicyName: EC2ClusterDefaultAutoScalingGroupInstanceRoleDefaultPolicy48FD0809
+      Roles:
+        - Ref: EC2ClusterDefaultAutoScalingGroupInstanceRole924B2787
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/InstanceRole/DefaultPolicy/Resource
+  EC2ClusterDefaultAutoScalingGroupInstanceProfileBB554358:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: EC2ClusterDefaultAutoScalingGroupInstanceRole924B2787
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/InstanceProfile
+  EC2ClusterDefaultAutoScalingGroupLaunchConfig7DEC12CE:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId:
+        Ref: SsmParameterValueawsserviceecsoptimizedamiamazonlinux2recommendedimageidC96584B6F00A464EAD1953AFF4B05118Parameter
+      InstanceType: t3.medium
+      IamInstanceProfile:
+        Ref: EC2ClusterDefaultAutoScalingGroupInstanceProfileBB554358
+      SecurityGroups:
+        - Fn::GetAtt:
+            - EC2ClusterDefaultAutoScalingGroupInstanceSecurityGroup556C701A
+            - GroupId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - |-
+                #!/bin/bash
+                echo ECS_CLUSTER=
+              - Ref: EC2ClusterA0B52722
+              - |-2
+                 >> /etc/ecs/ecs.config
+                sudo iptables --insert FORWARD 1 --in-interface docker+ --destination 169.254.169.254/32 --jump DROP
+                sudo service iptables save
+                echo ECS_AWSVPC_BLOCK_IMDS=true >> /etc/ecs/ecs.config
+                amazon-linux-extras install java-openjdk11
+                yum install -y unzip
+                export AWS_DEFAULT_REGION="us-east-1" && pushd . && cd $(mktemp -d) && curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install && popd
+                mkdir -p /var/linkeddatahub/ssl/server /var/linkeddatahub/ssl/owner /var/linkeddatahub/ssl/secretary
+                mkdir -p /var/fuseki/data/admin /var/fuseki/data/end-user
+                curl -v https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/config/fuseki/admin.ttl > /var/fuseki/admin.ttl
+                curl -v https://raw.githubusercontent.com/AtomGraph/LinkedDataHub/master/config/fuseki/end-user.ttl > /var/fuseki/end-user.ttl
+                keytool -genkeypair -alias 'linkeddatahub' -keyalg RSA -storetype PKCS12 -keystore '/var/linkeddatahub/ssl/server/keystore.p12' -storepass 'LinkedDataHub' -keypass 'LinkedDataHub' -dname 'CN=
+              - Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+              - ", OU=LinkedDataHub, O=AtomGraph, L=Copenhagen/C=DK' -ext 'SAN=DNS:"
+              - Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+              - |-
+                ' -validity 3650
+                openssl pkcs12 -in '/var/linkeddatahub/ssl/server/keystore.p12' -passin pass:'LinkedDataHub' -nokeys -out '/var/linkeddatahub/ssl/server/server.crt'
+                openssl pkcs12 -in '/var/linkeddatahub/ssl/server/keystore.p12' -passin pass:'LinkedDataHub' -nocerts -nodes -out '/var/linkeddatahub/ssl/server/server.key'
+                keytool -genkeypair -alias 'owner' -keyalg RSA -storetype PKCS12 -keystore '/var/linkeddatahub/ssl/owner/keystore.p12' -storepass '
+              - Ref: OWNERCERTPASSWORD
+              - "' -keypass '"
+              - Ref: OWNERCERTPASSWORD
+              - "' -dname 'CN="
+              - Ref: OWNERGIVENNAME
+              - " "
+              - Ref: OWNERFAMILYNAME
+              - ", OU="
+              - Ref: OWNERORGUNIT
+              - ", O="
+              - Ref: OWNERORGANIZATION
+              - ", L="
+              - Ref: OWNERLOCALITY
+              - ", ST="
+              - Ref: OWNERSTATEORPROVINCE
+              - ", C="
+              - Ref: OWNERCOUNTRYNAME
+              - "' -ext 'SAN=uri:https://"
+              - Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+              - |-
+                /admin/acl/agents/33fda9da-232d-4417-83d6-8028c72854c7/#this' -validity 3650
+                openssl pkcs12 -in '/var/linkeddatahub/ssl/owner/keystore.p12' -passin pass:'
+              - Ref: OWNERCERTPASSWORD
+              - "' -out '/var/linkeddatahub/ssl/owner/public.pem' -passout pass:'"
+              - Ref: OWNERCERTPASSWORD
+              - |-
+                '
+                keytool -genkeypair -alias 'secretary' -keyalg RSA -storetype PKCS12 -keystore '/var/linkeddatahub/ssl/secretary/keystore.p12' -storepass 'LinkedDataHub' -keypass 'LinkedDataHub' -dname 'CN=LDH, OU=LDH, O=AtomGraph, L=Copenhagen, ST=Denmark, C=DK' -ext 'SAN=uri:https://
+              - Fn::GetAtt:
+                  - LDHLoadBalancerAE0C323C
+                  - DNSName
+              - |-
+                /admin/acl/agents/386a2559-09ac-42e3-a924-a1b1fc509f3c/#this' -validity 3650
+                openssl pkcs12 -in '/var/linkeddatahub/ssl/secretary/keystore.p12' -passin pass:'LinkedDataHub' -out '/var/linkeddatahub/ssl/secretary/cert.pem' -passout pass:'LinkedDataHub'
+                aws s3 cp /var/linkeddatahub/ssl/owner/keystore.p12 s3://
+              - Ref: OwnerCertBucket1E08D396
+              - |-
+                
+                aws s3 cp /var/linkeddatahub/ssl/owner/public.pem s3://
+              - Ref: OwnerCertBucket1E08D396
+    DependsOn:
+      - EC2ClusterDefaultAutoScalingGroupInstanceRoleDefaultPolicy48FD0809
+      - EC2ClusterDefaultAutoScalingGroupInstanceRole924B2787
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/LaunchConfig
+  EC2ClusterDefaultAutoScalingGroupASG7813E020:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MaxSize: "2"
+      MinSize: "1"
+      DesiredCapacity: "1"
+      LaunchConfigurationName:
+        Ref: EC2ClusterDefaultAutoScalingGroupLaunchConfig7DEC12CE
+      Tags:
+        - Key: Name
+          PropagateAtLaunch: true
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+      VPCZoneIdentifier:
+        - Ref: PUBLICSUBNETID
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: true
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/ASG
+  EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleFD1C2EB4:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: Name
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/DrainECSHook/Function/ServiceRole/Resource
+  EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleDefaultPolicyDC34541F:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - ec2:DescribeInstances
+              - ec2:DescribeInstanceAttribute
+              - ec2:DescribeInstanceStatus
+              - ec2:DescribeHosts
+            Effect: Allow
+            Resource: "*"
+          - Action: autoscaling:CompleteLifecycleAction
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - ":autoscaling:us-east-1:"
+                  - Ref: AWS::AccountId
+                  - :autoScalingGroup:*:autoScalingGroupName/
+                  - Ref: EC2ClusterDefaultAutoScalingGroupASG7813E020
+          - Action:
+              - ecs:DescribeContainerInstances
+              - ecs:DescribeTasks
+            Condition:
+              ArnEquals:
+                ecs:cluster:
+                  Fn::GetAtt:
+                    - EC2ClusterA0B52722
+                    - Arn
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - ecs:ListContainerInstances
+              - ecs:SubmitContainerStateChange
+              - ecs:SubmitTaskStateChange
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - EC2ClusterA0B52722
+                - Arn
+          - Action:
+              - ecs:UpdateContainerInstancesState
+              - ecs:ListTasks
+            Condition:
+              ArnEquals:
+                ecs:cluster:
+                  Fn::GetAtt:
+                    - EC2ClusterA0B52722
+                    - Arn
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleDefaultPolicyDC34541F
+      Roles:
+        - Ref: EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleFD1C2EB4
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/DrainECSHook/Function/ServiceRole/DefaultPolicy/Resource
+  EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionC923C5B8:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          import boto3, json, os, time
+
+          ecs = boto3.client('ecs')
+          autoscaling = boto3.client('autoscaling')
+
+
+          def lambda_handler(event, context):
+            print(json.dumps(event))
+            cluster = os.environ['CLUSTER']
+            snsTopicArn = event['Records'][0]['Sns']['TopicArn']
+            lifecycle_event = json.loads(event['Records'][0]['Sns']['Message'])
+            instance_id = lifecycle_event.get('EC2InstanceId')
+            if not instance_id:
+              print('Got event without EC2InstanceId: %s', json.dumps(event))
+              return
+
+            instance_arn = container_instance_arn(cluster, instance_id)
+            print('Instance %s has container instance ARN %s' % (lifecycle_event['EC2InstanceId'], instance_arn))
+
+            if not instance_arn:
+              return
+
+            task_arns = container_instance_task_arns(cluster, instance_arn)
+            
+            if task_arns:
+              print('Instance ARN %s has task ARNs %s' % (instance_arn, ', '.join(task_arns)))
+
+            while has_tasks(cluster, instance_arn, task_arns):
+              time.sleep(10)
+
+            try:
+              print('Terminating instance %s' % instance_id)
+              autoscaling.complete_lifecycle_action(
+                  LifecycleActionResult='CONTINUE',
+                  **pick(lifecycle_event, 'LifecycleHookName', 'LifecycleActionToken', 'AutoScalingGroupName'))
+            except Exception as e:
+              # Lifecycle action may have already completed.
+              print(str(e))
+
+
+          def container_instance_arn(cluster, instance_id):
+            """Turn an instance ID into a container instance ARN."""
+            arns = ecs.list_container_instances(cluster=cluster, filter='ec2InstanceId==' + instance_id)['containerInstanceArns']
+            if not arns:
+              return None
+            return arns[0]
+
+          def container_instance_task_arns(cluster, instance_arn):
+            """Fetch tasks for a container instance ARN."""
+            arns = ecs.list_tasks(cluster=cluster, containerInstance=instance_arn)['taskArns']
+            return arns
+
+          def has_tasks(cluster, instance_arn, task_arns):
+            """Return True if the instance is running tasks for the given cluster."""
+            instances = ecs.describe_container_instances(cluster=cluster, containerInstances=[instance_arn])['containerInstances']
+            if not instances:
+              return False
+            instance = instances[0]
+
+            if instance['status'] == 'ACTIVE':
+              # Start draining, then try again later
+              set_container_instance_to_draining(cluster, instance_arn)
+              return True
+
+            task_count = None
+
+            if task_arns:
+              # Fetch details for tasks running on the container instance
+              tasks = ecs.describe_tasks(cluster=cluster, tasks=task_arns)['tasks']
+              if tasks:
+                # Consider any non-stopped tasks as running
+                task_count = sum(task['lastStatus'] != 'STOPPED' for task in tasks) + instance['pendingTasksCount']
+            
+            if not task_count:
+              # Fallback to instance task counts if detailed task information is unavailable
+              task_count = instance['runningTasksCount'] + instance['pendingTasksCount']
+              
+            print('Instance %s has %s tasks' % (instance_arn, task_count))
+
+            return task_count > 0
+
+          def set_container_instance_to_draining(cluster, instance_arn):
+            ecs.update_container_instances_state(
+                cluster=cluster,
+                containerInstances=[instance_arn], status='DRAINING')
+
+
+          def pick(dct, *keys):
+            """Pick a subset of a dict."""
+            return {k: v for k, v in dct.items() if k in keys}
+      Role:
+        Fn::GetAtt:
+          - EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleFD1C2EB4
+          - Arn
+      Environment:
+        Variables:
+          CLUSTER:
+            Ref: EC2ClusterA0B52722
+      Handler: index.lambda_handler
+      Runtime: python3.6
+      Tags:
+        - Key: Name
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+      Timeout: 310
+    DependsOn:
+      - EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleDefaultPolicyDC34541F
+      - EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionServiceRoleFD1C2EB4
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/DrainECSHook/Function/Resource
+  EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionAllowInvokeLinkedDataHubStackEC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic1F1618598187A179:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionC923C5B8
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic0EA0A408
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/DrainECSHook/Function/AllowInvoke:LinkedDataHubStackEC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic1F161859
+  EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionTopicC97C9EDF:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic0EA0A408
+      Endpoint:
+        Fn::GetAtt:
+          - EC2ClusterDefaultAutoScalingGroupDrainECSHookFunctionC923C5B8
+          - Arn
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/DrainECSHook/Function/Topic/Resource
+  EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRole3DF9760A:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: autoscaling.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: Name
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/LifecycleHookDrainHook/Role/Resource
+  EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRoleDefaultPolicyB25F8099:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sns:Publish
+            Effect: Allow
+            Resource:
+              Ref: EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic0EA0A408
+        Version: "2012-10-17"
+      PolicyName: EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRoleDefaultPolicyB25F8099
+      Roles:
+        - Ref: EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRole3DF9760A
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/LifecycleHookDrainHook/Role/DefaultPolicy/Resource
+  EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic0EA0A408:
+    Type: AWS::SNS::Topic
+    Properties:
+      Tags:
+        - Key: Name
+          Value: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/LifecycleHookDrainHook/Topic/Resource
+  EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookD47C6696:
+    Type: AWS::AutoScaling::LifecycleHook
+    Properties:
+      AutoScalingGroupName:
+        Ref: EC2ClusterDefaultAutoScalingGroupASG7813E020
+      LifecycleTransition: autoscaling:EC2_INSTANCE_TERMINATING
+      DefaultResult: CONTINUE
+      HeartbeatTimeout: 300
+      NotificationTargetARN:
+        Ref: EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookTopic0EA0A408
+      RoleARN:
+        Fn::GetAtt:
+          - EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRole3DF9760A
+          - Arn
+    DependsOn:
+      - EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRoleDefaultPolicyB25F8099
+      - EC2ClusterDefaultAutoScalingGroupLifecycleHookDrainHookRole3DF9760A
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Cluster/DefaultAutoScalingGroup/LifecycleHookDrainHook/Resource
+  EC2Service904511EF:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster:
+        Ref: EC2ClusterA0B52722
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      EnableECSManagedTags: false
+      HealthCheckGracePeriodSeconds: 60
+      LaunchType: EC2
+      LoadBalancers:
+        - ContainerName: nginx
+          ContainerPort: 80
+          TargetGroupArn:
+            Ref: LDHLoadBalancerPublicListenerECSGroup2215C89B
+        - ContainerName: nginx
+          ContainerPort: 443
+          TargetGroupArn:
+            Ref: LDHLoadBalancerNginxHTTPSListenerLDHNginxHTTPSTargetGroup10D37CD9
+      SchedulingStrategy: REPLICA
+      TaskDefinition:
+        Ref: LDHTaskDefinitionDF5ADF89
+    DependsOn:
+      - LDHLoadBalancerNginxHTTPSListenerLDHNginxHTTPSTargetGroup10D37CD9
+      - LDHLoadBalancerNginxHTTPSListener4A043FBE
+      - LDHLoadBalancerPublicListenerECSGroup2215C89B
+      - LDHLoadBalancerPublicListenerA8BAC59E
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/EC2Service/Service/Service
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/31Ty27jMAz8lt4ddZ097a1pt/tC0AZxfoBhaC/XsmTokSIw/O+l5Tp2W2BPmhlSNDWkc5Wvc/Xl5g5e/ApP9W2H1pHqigBYZw+l2YGDhgK5bE/eRoeUPVjjg4sYhvhzDG1MaIr32VCrI1yr7onCi3X1BvWQsWBFPBoKs7Dx3iJDYGuGzP+FZ/XRBHd5X3iUCsLoOFx+OhvbVG8p9Blp8IFRWzgdQYNBNtV5bncr+n3S5dly+x2fctgHMm/xCb/FDuAqCtePL2ifaVt51W1tdQ1PuM/8V9XdR6wp+TkiaRblwiOuD+Dr71Sy4cmlj4o1AVj6WGo6+jB2OUEpVZA78zDJwZkE+4yhUd3e6qSmc2c1Y/J3Rr9l9IMPO2dL1sOsY7AeQYuDqtsIKUYyPw+iwb/SW8lVdNcJf0rdckl4QU2/rK1HVxeCGAfN8QSq+yHlpiJLvCPXsPfCxEgjlskOeXTcLnZq5gfbMiYPB5BMXrUQxB+5+nkNTrNpfZ/9gTPc5vLbqG8qv/nnmVcumsANqf14vgIkpoltVwMAAA==
+    Metadata:
+      aws:cdk:path: LinkedDataHubStack/CDKMetadata/Default
+Outputs:
+  DNSName:
+    Value:
+      Fn::GetAtt:
+        - LDHLoadBalancerAE0C323C
+        - DNSName
+  LoadBalancerDNSName:
+    Value:
+      Fn::GetAtt:
+        - LDHLoadBalancerAE0C323C
+        - DNSName
+  OwnerCertBucketName:
+    Value:
+      Ref: OwnerCertBucket1E08D396
+
