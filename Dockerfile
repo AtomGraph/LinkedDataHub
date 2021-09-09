@@ -43,7 +43,7 @@ RUN useradd --no-log-init -U ldh && \
     apt-get install -y xmlstarlet && \
     apt-get install -y gettext-base && \
     apt-get install -y uuid-runtime && \
-    setfacl -m user:ldh:rwx . && \
+    setfacl -Rm user:ldh:rwx . && \
     rm -rf webapps/* && \
     rm -rf /var/lib/apt/lists/*
 
