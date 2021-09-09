@@ -30,6 +30,8 @@ LABEL maintainer="martynas@atomgraph.com"
 
 ARG SOURCE_COMMIT=
 
+UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -44,7 +46,7 @@ ENV STYLESHEET=static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/layout.xsl
 
 ENV CACHE_STYLESHEET=true
 
-ENV ATOMGRAPH_UPLOAD_ROOT=
+ENV UPLOAD_ROOT=$UPLOAD_ROOT
 
 ENV PROXY_HOST=
 
@@ -157,7 +159,7 @@ RUN useradd --no-log-init -U ldh && \
     setfacl -Rm user:ldh:rwx . && \
     setfacl -Rm user:ldh:rx /var/linkeddatahub/datasets && \
     setfacl -Rm user:ldh:rwx /var/linkeddatahub/based-datasets && \
-    setfacl -Rm user:ldh:rwx "$ATOMGRAPH_UPLOAD_ROOT"
+    setfacl -Rm user:ldh:rwx "$UPLOAD_ROOT"
 
 USER ldh
 

@@ -128,8 +128,8 @@ if [ -z "$CLIENT_TRUSTSTORE_PASSWORD" ] ; then
     exit 1
 fi
 
-if [ -z "$ATOMGRAPH_UPLOAD_ROOT" ] ; then
-    echo '$ATOMGRAPH_UPLOAD_ROOT not set'
+if [ -z "$UPLOAD_ROOT" ] ; then
+    echo '$UPLOAD_ROOT not set'
     exit 1
 fi
 
@@ -186,9 +186,9 @@ fi
 
 printf "\n### Base URI: %s\n" "$BASE_URI"
 
-# create AtomGraph upload root
+# create upload root
 
-mkdir -p "${ATOMGRAPH_UPLOAD_ROOT}${UPLOAD_CONTAINER_PATH}"
+mkdir -p "${UPLOAD_ROOT}${UPLOAD_CONTAINER_PATH}"
 
 # functions that wait for other services to start
 
@@ -557,7 +557,7 @@ SECRETARY_CERT_ALIAS_PARAM="--stringparam aplc:secretaryCertAlias '$SECRETARY_CE
 CLIENT_TRUSTSTORE_PARAM="--stringparam aplc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
 CLIENT_KEYSTORE_PASSWORD_PARAM="--stringparam aplc:clientKeyStorePassword '$CLIENT_KEYSTORE_PASSWORD' "
 CLIENT_TRUSTSTORE_PASSWORD_PARAM="--stringparam aplc:clientTrustStorePassword '$CLIENT_TRUSTSTORE_PASSWORD' "
-ATOMGRAPH_UPLOAD_ROOT_PARAM="--stringparam aplc:uploadRoot 'file://$ATOMGRAPH_UPLOAD_ROOT' "
+UPLOAD_ROOT_PARAM="--stringparam aplc:uploadRoot 'file://$UPLOAD_ROOT' "
 SIGN_UP_CERT_VALIDITY_PARAM="--stringparam aplc:signUpCertValidity '$SIGN_UP_CERT_VALIDITY' "
 CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$webapp_context_dataset' "
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
@@ -629,7 +629,7 @@ transform="xsltproc \
   $CLIENT_TRUSTSTORE_PARAM \
   $CLIENT_KEYSTORE_PASSWORD_PARAM \
   $CLIENT_TRUSTSTORE_PASSWORD_PARAM \
-  $ATOMGRAPH_UPLOAD_ROOT_PARAM \
+  $UPLOAD_ROOT_PARAM \
   $SIGN_UP_CERT_VALIDITY_PARAM \
   $CONTEXT_DATASET_PARAM \
   $AUTH_QUERY_PARAM \
