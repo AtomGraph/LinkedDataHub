@@ -50,7 +50,7 @@ fi
 
 echo "1111"
 
-ls -l "$CATALINA_HOME"
+ls -l /usr/local/tomcat/webapps/ROOT/WEB-INF/classes/com/atomgraph/linkeddatahub/
 
 transform="xsltproc \
   --output conf/server.xml \
