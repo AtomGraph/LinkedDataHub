@@ -30,7 +30,7 @@ LABEL maintainer="martynas@atomgraph.com"
 
 ARG SOURCE_COMMIT=
 
-UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
+ARG UPLOAD_ROOT=/var/www/linkeddatahub/uploads/
 
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
