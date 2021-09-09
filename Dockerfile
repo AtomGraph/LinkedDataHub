@@ -26,6 +26,8 @@ FROM atomgraph/letsencrypt-tomcat:9202d2963c6cc8e0bd5152c3fe6e2e40f63c1dfa
 
 RUN useradd --no-log-init -U ldh
 
+USER ldh
+
 LABEL maintainer="martynas@atomgraph.com"
 
 # hash of the current commit
@@ -150,7 +152,5 @@ COPY --from=maven /jena/* /jena
 ENV JENA_HOME=/jena
 
 ENV PATH="${PATH}:${JENA_HOME}/bin"
-
-USER ldh
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
