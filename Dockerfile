@@ -44,6 +44,7 @@ RUN useradd --no-log-init -U ldh && \
     apt-get install -y gettext-base && \
     apt-get install -y uuid-runtime && \
     setfacl -Rm user:ldh:rwx . && \
+    setfacl -m user:ldh:w /etc/hosts && \
     rm -rf webapps/* && \
     rm -rf /var/lib/apt/lists/*
 
