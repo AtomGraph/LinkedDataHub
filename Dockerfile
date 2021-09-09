@@ -32,6 +32,8 @@ ARG SOURCE_COMMIT=
 
 ARG UPLOAD_ROOT=/var/www/linkeddatahub/uploads
 
+ARG UPLOAD_CONTAINER_PATH=uploads
+
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
@@ -86,7 +88,7 @@ ENV ADMIN_DATASET_URL=file:///var/linkeddatahub/datasets/admin.trig
 
 ENV END_USER_DATASET_URL=file:///var/linkeddatahub/datasets/end-user.trig
 
-ENV UPLOAD_CONTAINER_PATH=uploads
+ENV UPLOAD_CONTAINER_PATH=$UPLOAD_CONTAINER_PATH
 
 ENV MAX_CONTENT_LENGTH=
 
@@ -159,9 +161,8 @@ RUN useradd --no-log-init -U ldh && \
     setfacl -Rm user:ldh:rwx . && \
     setfacl -Rm user:ldh:rx /var/linkeddatahub/datasets && \
     setfacl -Rm user:ldh:rwx /var/linkeddatahub/based-datasets && \
-    mkdir -p "$UPLOAD_ROOT" && \
-    setfacl -Rm group:ldh:rwx "$UPLOAD_ROOT" && \
-    setfacl -Rm default:group:ldh:rwx "$UPLOAD_ROOT"
+    mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}"
+    setfacl -Rm user:ldh:rw "$UPLOAD_ROOT"
 
 USER ldh
 
