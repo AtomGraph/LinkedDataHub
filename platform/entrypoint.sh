@@ -683,6 +683,8 @@ printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
 
 wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
+ls -l /etc
+
 if [ -n "$PROXY_HOST" ] ; then
     # wait for the proxy server
 
