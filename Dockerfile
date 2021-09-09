@@ -35,9 +35,17 @@ ENV SOURCE_COMMIT=$SOURCE_COMMIT
 WORKDIR $CATALINA_HOME
 
 # add non-root user "ldh" and give it access to $CATALINA_HOME
+# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN useradd --no-log-init -U ldh && \
-    setfacl -m user:ldh:rwx .
+    apt-get update --allow-releaseinfo-change && \
+    apt-get install -y acl && \
+    apt-get install -y xmlstarlet && \
+    apt-get install -y gettext-base && \
+    apt-get install -y uuid-runtime && \
+    setfacl -m user:ldh:rwx . && \
+    rm -rf webapps/* && \
+    rm -rf /var/lib/apt/lists/*
 
 # add XSLT stylesheet that makes changes to ROOT.xml
 
@@ -102,15 +110,6 @@ ENV IMPORT_KEEPALIVE=
 ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
-
-# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
-
-RUN rm -rf webapps/* && \
-    apt-get update --allow-releaseinfo-change && \
-    apt-get install -y xmlstarlet && \
-    apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime && \
-    rm -rf /var/lib/apt/lists/*
 
 # copy entrypoint
 
