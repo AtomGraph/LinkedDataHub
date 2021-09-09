@@ -49,6 +49,8 @@ USER ldh
 
 # add XSLT stylesheet that makes changes to ROOT.xml
 
+RUN echo "0000"
+
 COPY platform/context.xsl conf/context.xsl
 
 ENV CACHE_MODEL_LOADS=true
@@ -113,7 +115,11 @@ ENV GOOGLE_CLIENT_SECRET=
 
 # copy entrypoint
 
+RUN echo "1111"
+
 COPY platform/entrypoint.sh entrypoint.sh
+
+RUN echo "2222"
 
 # copy SPARQL query used to split the default graph into named graphs
 
