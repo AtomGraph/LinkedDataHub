@@ -48,6 +48,8 @@ if [ -n "$HTTPS" ] ; then
     HTTPS_PARAM="--stringparam https $HTTPS "
 fi
 
+echo "1111"
+
 transform="xsltproc \
   --output conf/server.xml \
   $HTTP_PARAM \
@@ -188,6 +190,8 @@ printf "\n### Base URI: %s\n" "$BASE_URI"
 
 # create AtomGraph upload root
 
+echo "2222"
+
 mkdir -p "$ATOMGRAPH_UPLOAD_ROOT"/"$UPLOAD_CONTAINER_PATH"
 
 # functions that wait for other services to start
@@ -287,6 +291,8 @@ envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.r
 
 webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
 based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
+
+echo "3333"
 
 case "$CONTEXT_DATASET_URL" in
     "file://"*)
@@ -397,7 +403,11 @@ export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UU
 
 # copy mounted client keystore to a location where the webapp can access it
 
+echo "4444"
+
 mkdir -p "$(dirname "$CLIENT_KEYSTORE")"
+
+echo "5555"
 
 cp -f "$CLIENT_KEYSTORE_MOUNT" "$(dirname "$CLIENT_KEYSTORE")"
 
@@ -411,6 +421,8 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
     if [ "$SELF_SIGNED_CERT" = true ] ; then
         printf "\n### Importing server certificate into the client truststore\n\n"
+
+echo "6666"
 
         mkdir -p "$(dirname "$CLIENT_TRUSTSTORE")"
 
@@ -427,6 +439,8 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     printf "\n### Importing default CA certificates into the client truststore\n\n"
  
     export CACERTS="${JAVA_HOME}/lib/security/cacerts"
+
+echo "7777"
 
     keytool -importkeystore \
         -destkeystore "$CLIENT_TRUSTSTORE" \
@@ -466,6 +480,8 @@ if [ -z "$LOAD_DATASETS" ]; then
         LOAD_DATASETS=false
     fi
 fi
+
+echo "8888"
 
 # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
 if [ "$LOAD_DATASETS" = "true" ]; then
