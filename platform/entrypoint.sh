@@ -50,6 +50,8 @@ fi
 
 echo "1111"
 
+ls -l "$CATALINA_HOME"
+
 transform="xsltproc \
   --output conf/server.xml \
   $HTTP_PARAM \
