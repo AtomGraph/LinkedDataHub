@@ -44,13 +44,12 @@ RUN useradd --no-log-init -U ldh && \
     apt-get install -y gettext-base && \
     apt-get install -y uuid-runtime && \
     setfacl -Rm user:ldh:rwx . && \
-    setfacl -m user:ldh:w /etc/hosts && \
     rm -rf webapps/* && \
     rm -rf /var/lib/apt/lists/*
 
 # add XSLT stylesheet that makes changes to ROOT.xml
 
-COPY --chown=ldh:ldh platform/context.xsl conf/context.xsl
+COPY platform/context.xsl conf/context.xsl
 
 ENV CACHE_MODEL_LOADS=true
 
@@ -114,39 +113,39 @@ ENV GOOGLE_CLIENT_SECRET=
 
 # copy entrypoint
 
-COPY --chown=ldh:ldh platform/entrypoint.sh entrypoint.sh
+COPY platform/entrypoint.sh entrypoint.sh
 
 # copy SPARQL query used to split the default graph into named graphs
 
-COPY --chown=ldh:ldh platform/split-default-graph.rq.template split-default-graph.rq.template
+COPY platform/split-default-graph.rq.template split-default-graph.rq.template
 
 # copy SPARQL query used to get metadata of the root app service from the system dataset
 
-COPY --chown=ldh:ldh platform/select-root-services.rq.template select-root-services.rq.template
+COPY platform/select-root-services.rq.template select-root-services.rq.template
 
 # copy the metadata of the built-in secretary agent
 
-COPY --chown=ldh:ldh platform/root-secretary.trig.template root-secretary.trig.template
+COPY platform/root-secretary.trig.template root-secretary.trig.template
 
-COPY --chown=ldh:ldh platform/root-owner.trig.template root-owner.trig.template
+COPY platform/root-owner.trig.template root-owner.trig.template
 
 # copy default datasets
 
-COPY --chown=ldh:ldh platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
+COPY platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
-COPY --chown=ldh:ldh platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
+COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
 # copy webapp config
 
-COPY --chown=ldh:ldh platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
+COPY platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
 
 # copy platform webapp (exploded) from the maven stage of the build
 
-COPY --chown=ldh:ldh --from=maven /usr/src/platform/target/ROOT webapps/ROOT/
+COPY --from=maven /usr/src/platform/target/ROOT webapps/ROOT/
 
 # copy extracted Jena from the maven stage of the build
 
-COPY --chown=ldh:ldh --from=maven /jena/* /jena
+COPY --from=maven /jena/* /jena
 
 # setup Jena
 
