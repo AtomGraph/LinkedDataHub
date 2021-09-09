@@ -44,6 +44,7 @@ RUN useradd --no-log-init -U ldh && \
     apt-get install -y gettext-base && \
     apt-get install -y uuid-runtime && \
     setfacl -Rm user:ldh:rwx . && \
+    setfacl -Rm user:ldh:r /var/linkeddatahub/datasets && \
     rm -rf webapps/* && \
     rm -rf /var/lib/apt/lists/*
 
