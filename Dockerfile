@@ -22,9 +22,9 @@ RUN mvn -Pstandalone clean install
 
 # ==============================
 
-RUN useradd -M -U ldh
-
 FROM atomgraph/letsencrypt-tomcat:9202d2963c6cc8e0bd5152c3fe6e2e40f63c1dfa
+
+RUN useradd --no-log-init -U ldh
 
 LABEL maintainer="martynas@atomgraph.com"
 
