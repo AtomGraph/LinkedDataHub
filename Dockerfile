@@ -98,6 +98,16 @@ ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
 
+# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
+
+RUN apt-get update --allow-releaseinfo-change && \
+    apt-get install -y acl && \
+    apt-get install -y xmlstarlet && \
+    apt-get install -y gettext-base && \
+    apt-get install -y uuid-runtime && \
+    rm -rf webapps/* && \
+    rm -rf /var/lib/apt/lists/*
+
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
@@ -126,20 +136,6 @@ COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
 COPY platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
 
-# add non-root user "ldh" and give it access to $CATALINA_HOME
-# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
-
-RUN useradd --no-log-init -U ldh && \
-    apt-get update --allow-releaseinfo-change && \
-    apt-get install -y acl && \
-    apt-get install -y xmlstarlet && \
-    apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime && \
-    setfacl -Rm user:ldh:rwx . && \
-    setfacl -Rm user:ldh:r /var/linkeddatahub/datasets && \
-    rm -rf webapps/* && \
-    rm -rf /var/lib/apt/lists/*
-
 # copy platform webapp (exploded) from the maven stage of the build
 
 COPY --from=maven /usr/src/platform/target/ROOT webapps/ROOT/
@@ -153,6 +149,12 @@ COPY --from=maven /jena/* /jena
 ENV JENA_HOME=/jena
 
 ENV PATH="${PATH}:${JENA_HOME}/bin"
+
+# add non-root user "ldh" and give it access to $CATALINA_HOME
+
+RUN useradd --no-log-init -U ldh && \
+    setfacl -Rm user:ldh:rwx . && \
+    setfacl -Rm user:ldh:r /var/linkeddatahub/datasets
 
 USER ldh
 
