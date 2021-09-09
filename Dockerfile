@@ -154,6 +154,8 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 # add non-root user "ldh" and give it access to $CATALINA_HOME
 
 RUN useradd --no-log-init -U ldh && \
+    chmod +x entrypoint.sh && \
+    chmod +x modify_hosts.sh && \
     mkdir /var/linkeddatahub/based-datasets && \
     setfacl -Rm user:ldh:rwx . && \
     setfacl -Rm user:ldh:rx /var/linkeddatahub/datasets && \

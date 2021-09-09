@@ -694,9 +694,11 @@ if [ -n "$PROXY_HOST" ] ; then
 
     # set localhost to the nginx IP address - we want to loopback to it
 
-    proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
+    #proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
 
-    echo "${proxy_ip} localhost" >> /etc/hosts
+    #echo "${proxy_ip} localhost" >> /etc/hosts
+    
+    ./modify_hosts.sh
 fi
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
