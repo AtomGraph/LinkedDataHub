@@ -24,10 +24,6 @@ RUN mvn -Pstandalone clean install
 
 FROM atomgraph/letsencrypt-tomcat:9202d2963c6cc8e0bd5152c3fe6e2e40f63c1dfa
 
-RUN useradd --no-log-init -U ldh
-
-USER ldh
-
 LABEL maintainer="martynas@atomgraph.com"
 
 # hash of the current commit
@@ -37,6 +33,19 @@ ARG SOURCE_COMMIT=
 ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
+
+# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
+
+RUN rm -rf webapps/* && \
+    apt-get update --allow-releaseinfo-change && \
+    apt-get install -y xmlstarlet && \
+    apt-get install -y gettext-base && \
+    apt-get install -y uuid-runtime && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd --no-log-init -U ldh
+
+USER ldh
 
 # add XSLT stylesheet that makes changes to ROOT.xml
 
@@ -101,15 +110,6 @@ ENV IMPORT_KEEPALIVE=
 ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
-
-# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
-
-RUN rm -rf webapps/* && \
-    apt-get update --allow-releaseinfo-change && \
-    apt-get install -y xmlstarlet && \
-    apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime && \
-    rm -rf /var/lib/apt/lists/*
 
 # copy entrypoint
 
