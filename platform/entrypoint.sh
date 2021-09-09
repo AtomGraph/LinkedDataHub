@@ -698,9 +698,9 @@ if [ -n "$PROXY_HOST" ] ; then
 
     #echo "${proxy_ip} localhost" >> /etc/hosts
     
-    echo "${proxy_ip} localhost" >> ./.hosts
+    #echo "${proxy_ip} localhost" >> ./.hosts
     
-    export HOSTALIASES=./.hosts
+    #export HOSTALIASES=./.hosts
 fi
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
