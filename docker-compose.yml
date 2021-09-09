@@ -54,7 +54,7 @@ services:
       - OWNER_MBOX=${OWNER_MBOX}
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
-    entrypoint: /bin/sh -c "\"$$(getent hosts \"${HOST}\" | awk '{ print $1 }') localhost \" >> /etc/hosts && /bin/sh ./entrypoint.sh"
+    entrypoint: /bin/sh -c "\"$$(getent hosts \"${HOST}\" | awk '{ print $$1 }') localhost \" >> /etc/hosts && /bin/sh ./entrypoint.sh"
     volumes:
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
       - ./ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem:ro
