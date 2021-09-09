@@ -154,7 +154,7 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 
 RUN useradd --no-log-init -U ldh && \
     setfacl -Rm user:ldh:rwx . && \
-    setfacl -Rm user:ldh:r /var/linkeddatahub/datasets
+    setfacl -Rm user:ldh:rx /var/linkeddatahub/datasets
 
 USER ldh
 
