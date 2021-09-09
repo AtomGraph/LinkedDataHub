@@ -38,7 +38,7 @@ WORKDIR $CATALINA_HOME
 
 # add XSLT stylesheet that makes changes to ROOT.xml
 
-COPY --chown ldh:ldh platform/context.xsl conf/context.xsl
+COPY --chown=ldh:ldh platform/context.xsl conf/context.xsl
 
 ENV CACHE_MODEL_LOADS=true
 
@@ -111,39 +111,39 @@ RUN rm -rf webapps/* && \
 
 # copy entrypoint
 
-COPY --chown ldh:ldh platform/entrypoint.sh entrypoint.sh
+COPY --chown=ldh:ldh platform/entrypoint.sh entrypoint.sh
 
 # copy SPARQL query used to split the default graph into named graphs
 
-COPY --chown ldh:ldh platform/split-default-graph.rq.template split-default-graph.rq.template
+COPY --chown=ldh:ldh platform/split-default-graph.rq.template split-default-graph.rq.template
 
 # copy SPARQL query used to get metadata of the root app service from the system dataset
 
-COPY --chown ldh:ldh platform/select-root-services.rq.template select-root-services.rq.template
+COPY --chown=ldh:ldh platform/select-root-services.rq.template select-root-services.rq.template
 
 # copy the metadata of the built-in secretary agent
 
-COPY --chown ldh:ldh platform/root-secretary.trig.template root-secretary.trig.template
+COPY --chown=ldh:ldh platform/root-secretary.trig.template root-secretary.trig.template
 
-COPY --chown ldh:ldh platform/root-owner.trig.template root-owner.trig.template
+COPY --chown=ldh:ldh platform/root-owner.trig.template root-owner.trig.template
 
 # copy default datasets
 
-COPY --chown ldh:ldh platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
+COPY --chown=ldh:ldh platform/datasets/admin.trig /var/linkeddatahub/datasets/admin.trig
 
-COPY --chown ldh:ldh platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
+COPY --chown=ldh:ldh platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 
 # copy webapp config
 
-COPY --chown ldh:ldh platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
+COPY --chown=ldh:ldh platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
 
 # copy platform webapp (exploded) from the maven stage of the build
 
-COPY --chown ldh:ldh --from=maven /usr/src/platform/target/ROOT webapps/ROOT/
+COPY --chown=ldh:ldh --from=maven /usr/src/platform/target/ROOT webapps/ROOT/
 
 # copy extracted Jena from the maven stage of the build
 
-COPY --chown ldh:ldh --from=maven /jena/* /jena
+COPY --chown=ldh:ldh --from=maven /jena/* /jena
 
 # setup Jena
 
