@@ -161,7 +161,8 @@ RUN useradd --no-log-init -U ldh && \
     setfacl -Rm user:ldh:rwx /var/linkeddatahub/based-datasets && \
     mkdir -p "$UPLOAD_ROOT" && \
     setfacl -Rdm user:ldh:rwx "$UPLOAD_ROOT" && \
-    setfacl -Rm user:ldh:rwx "$UPLOAD_ROOT"
+    setfacl -Rm user:ldh:rwx "$UPLOAD_ROOT" \
+    ls -l "$UPLOAD_ROOT"
 
 USER ldh
 
