@@ -54,7 +54,6 @@ services:
       - OWNER_MBOX=${OWNER_MBOX}
       # - GOOGLE_CLIENT_ID=
       # - GOOGLE_CLIENT_SECRET=
-    user: root
     volumes:
       - ./ssl/server:/var/linkeddatahub/ssl/server:ro
       - ./ssl/owner/public.pem:/var/linkeddatahub/ssl/owner/public.pem:ro
