@@ -188,7 +188,7 @@ printf "\n### Base URI: %s\n" "$BASE_URI"
 
 # create upload root
 
-mkdir -p "${UPLOAD_ROOT}${UPLOAD_CONTAINER_PATH}"
+mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}"
 
 # functions that wait for other services to start
 
