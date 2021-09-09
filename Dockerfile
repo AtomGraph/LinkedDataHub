@@ -156,7 +156,8 @@ RUN useradd --no-log-init -U ldh && \
     mkdir /var/linkeddatahub/based-datasets && \
     setfacl -Rm user:ldh:rwx . && \
     setfacl -Rm user:ldh:rx /var/linkeddatahub/datasets && \
-    setfacl -Rm user:ldh:rwx /var/linkeddatahub/based-datasets
+    setfacl -Rm user:ldh:rwx /var/linkeddatahub/based-datasets && \
+    setfacl -Rm user:ldh:rwx "$ATOMGRAPH_UPLOAD_ROOT"
 
 USER ldh
 

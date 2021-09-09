@@ -188,7 +188,7 @@ printf "\n### Base URI: %s\n" "$BASE_URI"
 
 # create AtomGraph upload root
 
-mkdir -p "$ATOMGRAPH_UPLOAD_ROOT"/"$UPLOAD_CONTAINER_PATH"
+mkdir -p "${ATOMGRAPH_UPLOAD_ROOT}${UPLOAD_CONTAINER_PATH}"
 
 # functions that wait for other services to start
 
