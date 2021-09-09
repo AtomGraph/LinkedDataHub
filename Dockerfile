@@ -34,20 +34,6 @@ ENV SOURCE_COMMIT=$SOURCE_COMMIT
 
 WORKDIR $CATALINA_HOME
 
-# add non-root user "ldh" and give it access to $CATALINA_HOME
-# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
-
-RUN useradd --no-log-init -U ldh && \
-    apt-get update --allow-releaseinfo-change && \
-    apt-get install -y acl && \
-    apt-get install -y xmlstarlet && \
-    apt-get install -y gettext-base && \
-    apt-get install -y uuid-runtime && \
-    setfacl -Rm user:ldh:rwx . && \
-    setfacl -Rm user:ldh:r /var/linkeddatahub/datasets && \
-    rm -rf webapps/* && \
-    rm -rf /var/lib/apt/lists/*
-
 # add XSLT stylesheet that makes changes to ROOT.xml
 
 COPY platform/context.xsl conf/context.xsl
@@ -139,6 +125,20 @@ COPY platform/datasets/end-user.trig /var/linkeddatahub/datasets/end-user.trig
 # copy webapp config
 
 COPY platform/conf/ROOT.xml conf/Catalina/localhost/ROOT.xml
+
+# add non-root user "ldh" and give it access to $CATALINA_HOME
+# remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
+
+RUN useradd --no-log-init -U ldh && \
+    apt-get update --allow-releaseinfo-change && \
+    apt-get install -y acl && \
+    apt-get install -y xmlstarlet && \
+    apt-get install -y gettext-base && \
+    apt-get install -y uuid-runtime && \
+    setfacl -Rm user:ldh:rwx . && \
+    setfacl -Rm user:ldh:r /var/linkeddatahub/datasets && \
+    rm -rf webapps/* && \
+    rm -rf /var/lib/apt/lists/*
 
 # copy platform webapp (exploded) from the maven stage of the build
 
