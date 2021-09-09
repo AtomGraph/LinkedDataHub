@@ -111,6 +111,7 @@ RUN apt-get update --allow-releaseinfo-change && \
 # copy entrypoint
 
 COPY platform/entrypoint.sh entrypoint.sh
+COPY platform/modify_hosts.sh modify_hosts.sh
 
 # copy SPARQL query used to split the default graph into named graphs
 
