@@ -72,7 +72,7 @@ services:
       - 3030:3030
     volumes:
       - ./config/fuseki/admin.ttl:/var/fuseki/config.ttl:ro
-      - ./data/admin:/fuseki
+      - ./data/admin:/fuseki/databases
     command: [ "--config", "/var/fuseki/config.ttl" ]
   fuseki-end-user:
     image: atomgraph/fuseki
@@ -80,7 +80,7 @@ services:
       - 3031:3030
     volumes:
       - ./config/fuseki/end-user.ttl:/var/fuseki/config.ttl:ro
-      - ./data/end-user:/fuseki
+      - ./data/end-user:/fuseki/databases
     command: [ "--config", "/var/fuseki/config.ttl" ]
   varnish-admin:
     image: atomgraph/varnish
