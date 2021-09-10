@@ -51,20 +51,12 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      OWNER_STATE_OR_PROVINCE=Denmark
      OWNER_COUNTRY_NAME=DK
      ```
-  3. If deploying on `localhost`, create a file named `docker-compose.override.yml` and add the following configuration:
-     ```
-     version: "2.3"
-     services:
-       linkeddatahub:
-         user: root
-     ```
-     On `localhost`, the entrypoint needs to make changes to the container's `/etc/hosts` file which requires `root` priviliges. Do not commit the `docker-compose.override.yml` file to version control.
-  4. Setup SSL certificates/keys by running this from command line (replace `$owner_cert_pwd` and `$secretary_cert_pwd` with your own passwords):
+  3. Setup SSL certificates/keys by running this from command line (replace `$owner_cert_pwd` and `$secretary_cert_pwd` with your own passwords):
      ```
      ./scripts/setup.sh .env ssl $owner_cert_pwd $secretary_cert_pwd 3650
      ```
      The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed.
-  5. Launch the application services by running this from command line:
+  4. Launch the application services by running this from command line:
      ```
      docker-compose up
      ```
@@ -75,12 +67,12 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      ```
      linkeddatahub_1     | 09-Feb-2021 14:18:10.536 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [32609] milliseconds
      ```
-  6. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `$owner_cert_pwd` value supplied to `setup.sh`)
+  5. Install `ssl/owner/keystore.p12` into a web browser of your choice (password is the `$owner_cert_pwd` value supplied to `setup.sh`)
      - Google Chrome: `Settings > Advanced > Manage Certificates > Import...`
      - Mozilla Firefox: `Options > Privacy > Security > View Certificates... > Import...`
      - Apple Safari: The file is installed directly into the operating system. Open the file and import it using the [Keychain Access](https://support.apple.com/guide/keychain-access/what-is-keychain-access-kyca1083/mac) tool.
      - Microsoft Edge: Does not support certificate management, you need to install the file into Windows. [Read more here](https://social.technet.microsoft.com/Forums/en-US/18301fff-0467-4e41-8dee-4e44823ed5bf/microsoft-edge-browser-and-ssl-certificates?forum=win10itprogeneral).
-  7. Open **https://localhost:4443/** in that web browser
+  6. Open **https://localhost:4443/** in that web browser
 
   ### Notes
 
