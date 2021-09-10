@@ -6,6 +6,7 @@ services:
     volumes:
       - ./http-tests/ssl/server:/etc/nginx/ssl
   linkeddatahub:
+    user: root
     ports:
       - 8001:8000 # debugger
     environment:
