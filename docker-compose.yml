@@ -36,6 +36,7 @@ services:
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}
       - HTTP_SCHEME=https
+      - HTTP_PORT=7070
       - HTTP_PROXY_NAME=${HOST}
       - HTTP_PROXY_PORT=${HTTPS_PORT}
       - HTTP_REDIRECT_PORT=${HTTPS_PORT}
