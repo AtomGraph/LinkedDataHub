@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-getfacl /var/linkeddatahub
-getfacl /var/linkeddatahub -d
-
 # set timezone
 
 if [ -n "$TZ" ] ; then

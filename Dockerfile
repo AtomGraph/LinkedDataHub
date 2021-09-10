@@ -163,10 +163,6 @@ RUN useradd --no-log-init -U ldh && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     setfacl -Rm user:ldh:rw "$UPLOAD_ROOT"
 
-#     mkdir -p /var/linkeddatahub/based-datasets && \
-#    setfacl -Rm user:ldh:rwx /var/linkeddatahub/based-datasets && \
-
-
 USER ldh
 
 ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
