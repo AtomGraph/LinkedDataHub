@@ -667,16 +667,6 @@ if [ -n "$PROXY_HOST" ] ; then
     printf "\n### Waiting for %s...\n" "$PROXY_HOST"
 
     wait_for_host "$PROXY_HOST" "$TIMEOUT"
-
-    current_user=$(id -u -n)
-
-    if [ "$HOST" = "localhost" ] && [ "$current_user" = "root" ] ; then
-        # set localhost to the nginx IP address - we want to loopback to it
-
-        proxy_ip=$(getent hosts "$PROXY_HOST" | awk '{ print $1 }')
-
-        echo "${proxy_ip} localhost" >> /etc/hosts
-    fi
 fi
 
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
