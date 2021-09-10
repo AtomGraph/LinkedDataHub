@@ -32,6 +32,7 @@ services:
       - TZ="Europe/Copenhagen"
       #- CATALINA_OPTS="-Duser.timezone=Europe/Copenhagen"
       - PROXY_HOST=nginx
+      - PROXY_BASE_URI=https://nginx:8443/
       - PROTOCOL=${PROTOCOL}
       - HOST=${HOST}
       - ABS_PATH=${ABS_PATH}

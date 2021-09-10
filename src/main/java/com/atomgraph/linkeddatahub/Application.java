@@ -238,7 +238,7 @@ public class Application extends ResourceConfig
     private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, uploadRoot;
+    private final URI baseURI, proxyBaseURI, uploadRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
@@ -280,6 +280,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.proxyBaseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyBaseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
@@ -316,7 +317,7 @@ public class Application extends ResourceConfig
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString,
             final String putUpdateString, final String deleteUpdateString,
-            final String baseURIString,
+            final String baseURIString, final String proxyBaseURIString,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
@@ -382,7 +383,14 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(APLC.baseUri);
         }
         baseURI = URI.create(baseURIString);
-
+        
+        if (proxyBaseURIString == null)
+        {
+            if (log.isErrorEnabled()) log.error("Proxy base URI property '{}' not configured", APLC.proxyBaseUri.getURI());
+            throw new ConfigurationException(APLC.proxyBaseUri);
+        }
+        proxyBaseURI = URI.create(proxyBaseURIString);
+        
         if (appQueryString == null)
         {
             if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.appQuery.getURI());
@@ -466,9 +474,9 @@ public class Application extends ResourceConfig
             
             if (baseURI.getHost().equals("localhost")) // is only needed for/will only work with self-signed cert on localhost
             {
-                client.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
-                importClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
-                noCertClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+                client.register(new BaseURIRewriteFilter(baseURI, proxyBaseURI));
+                importClient.register(new BaseURIRewriteFilter(baseURI, proxyBaseURI));
+                noCertClient.register(new BaseURIRewriteFilter(baseURI, proxyBaseURI));
             }
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);

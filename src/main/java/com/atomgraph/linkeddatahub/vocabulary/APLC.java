@@ -50,6 +50,8 @@ public class APLC
 
     public static final ObjectProperty baseUri = m_model.createObjectProperty( NS + "baseUri" );
     
+    public static final ObjectProperty proxyBaseUri = m_model.createObjectProperty( NS + "proxyBaseUri" );
+    
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );
