@@ -11,8 +11,8 @@ services:
       - UPSTREAM_SERVER=linkeddatahub
       - UPSTREAM_HTTP_PORT=8080
       - SERVER_NAME=${HOST}
-      - SERVER_HTTPS_PORT=8080 # because of nginx-unprivileged
-      - SERVER_HTTP_PORT=8443 # because of nginx-unprivileged
+      - SERVER_HTTPS_PORT=8443 # because of nginx-unprivileged
+      - SERVER_HTTP_PORT=8080 # because of nginx-unprivileged
       - SERVER_CERT_FILE=/etc/nginx/ssl/server.crt
       - SERVER_KEY_FILE=/etc/nginx/ssl/server.key
       - MAX_BODY_SIZE=2097152
