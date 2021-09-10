@@ -68,6 +68,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
+import com.atomgraph.linkeddatahub.client.filter.BaseURIRewriteFilter;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -462,6 +463,10 @@ public class Application extends ResourceConfig
             client = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, null);
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
+            
+            client.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+            importClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+            noCertClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
