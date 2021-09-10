@@ -5,14 +5,14 @@ services:
     mem_limit: 128m
     command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$MAX_BODY_SIZE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
-      - ${HTTP_PORT}:${HTTP_PORT} # allow Tomcat to do HTTP to HTTPS redirect
-      - ${HTTPS_PORT}:${HTTPS_PORT} # HTTPS
+      - ${HTTP_PORT}:8080 # allow Tomcat to do HTTP to HTTPS redirect
+      - ${HTTPS_PORT}:8443 # HTTPS
     environment:
       - UPSTREAM_SERVER=linkeddatahub
       - UPSTREAM_HTTP_PORT=8080
       - SERVER_NAME=${HOST}
-      - SERVER_HTTPS_PORT=${HTTPS_PORT}
-      - SERVER_HTTP_PORT=${HTTP_PORT}
+      - SERVER_HTTPS_PORT=8080 # because of nginx-unprivileged
+      - SERVER_HTTP_PORT=8443 # because of nginx-unprivileged
       - SERVER_CERT_FILE=/etc/nginx/ssl/server.crt
       - SERVER_KEY_FILE=/etc/nginx/ssl/server.key
       - MAX_BODY_SIZE=2097152
