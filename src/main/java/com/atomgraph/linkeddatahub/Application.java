@@ -464,9 +464,12 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
-            client.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
-            importClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
-            noCertClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+            if (baseURI.getHost().equals("localhost")) // is only needed for/will only work with self-signed cert on localhost
+            {
+                client.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+                importClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+                noCertClient.register(new BaseURIRewriteFilter(baseURI, URI.create("https://nginx:8443/")));
+            }
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
             if (secretaryCert == null)
