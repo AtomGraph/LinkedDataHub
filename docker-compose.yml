@@ -68,6 +68,7 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
     image: atomgraph/fuseki
+    user: root
     ports:
       - 3030:3030
     volumes:
@@ -76,6 +77,7 @@ services:
     command: [ "--config", "/var/fuseki/config.ttl" ]
   fuseki-end-user:
     image: atomgraph/fuseki
+    user: root
     ports:
       - 3031:3030
     volumes:
