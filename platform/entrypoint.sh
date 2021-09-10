@@ -68,6 +68,11 @@ eval "$transform"
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
 
+if [ -z "$PROXY_BASE_URI" ] ; then
+    echo '$PROXY_BASE_URI not set'
+    exit 1
+fi
+
 if [ -z "$TIMEOUT" ] ; then
     echo '$TIMEOUT not set'
     exit 1
@@ -548,6 +553,7 @@ fi
 # change context configuration
 
 BASE_URI_PARAM="--stringparam aplc:baseUri '$BASE_URI' "
+PROXY_BASE_URI_PARAM="--stringparam aplc:proxyBaseUri '$PROXY_BASE_URI' "
 CLIENT_KEYSTORE_PARAM="--stringparam aplc:clientKeyStore 'file://$CLIENT_KEYSTORE' "
 SECRETARY_CERT_ALIAS_PARAM="--stringparam aplc:secretaryCertAlias '$SECRETARY_CERT_ALIAS' "
 CLIENT_TRUSTSTORE_PARAM="--stringparam aplc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
@@ -620,6 +626,7 @@ transform="xsltproc \
   $CACHE_STYLESHEET_PARAM \
   $RESOLVING_UNCACHED_PARAM \
   $BASE_URI_PARAM \
+  $PROXY_BASE_URI_PARAM \
   $CLIENT_KEYSTORE_PARAM \
   $SECRETARY_CERT_ALIAS_PARAM \
   $CLIENT_TRUSTSTORE_PARAM \
