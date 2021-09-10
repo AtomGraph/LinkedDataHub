@@ -84,9 +84,9 @@ mkdir -p "$out_folder"/server
 IP_ADDR_MATCH=$(echo "${env['HOST']}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
 
 if [ -n "$IP_ADDR_MATCH" ]; then
-    ext="subjectAltName=IP:${env['HOST']}" # IP address
+    ext="subjectAltName=IP:${env['HOST']},DNS:nginx" # IP address
 else
-    ext="subjectAltName=DNS:${env['HOST']}" # hostname
+    ext="subjectAltName=DNS:${env['HOST']},DNS:nginx" # hostname
 fi
 
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
