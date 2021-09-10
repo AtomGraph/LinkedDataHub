@@ -14,4 +14,4 @@ PREFIX tdb2:    <http://jena.apache.org/2016/tdb#>
     fuseki:dataset <#dataset> .
 
 <#dataset> a tdb2:DatasetTDB2 ;
-    tdb2:location "databases/DB2" .
+    tdb2:location "/fuseki/databases/DB2" .
