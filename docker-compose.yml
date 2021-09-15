@@ -22,8 +22,6 @@ services:
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
     build: .
-    expose:
-      - 7070
     ports:
       - 8001:8000 # debugger
     environment:

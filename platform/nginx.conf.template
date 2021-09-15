@@ -1,3 +1,5 @@
+pid /tmp/nginx.pid;
+
 events { 
     worker_connections 1024;
 }
