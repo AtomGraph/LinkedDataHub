@@ -86,12 +86,12 @@ services:
     image: atomgraph/varnish
     depends_on:
       - linkeddatahub
+    tmpfs: /var/lib/varnish:exec
     environment:
       - BACKEND_HOST=fuseki-admin
       - BACKEND_PORT=3030
       - CLIENT_HOST=linkeddatahub
       - VARNISH_TTL=86400
-    privileged: true
     entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
@@ -99,6 +99,7 @@ services:
     image: atomgraph/varnish
     depends_on:
       - linkeddatahub
+    tmpfs: /var/lib/varnish:exec
     environment:
       - BACKEND_HOST=fuseki-end-user
       - BACKEND_PORT=3030
