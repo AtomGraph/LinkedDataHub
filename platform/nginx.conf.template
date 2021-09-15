@@ -44,7 +44,7 @@ http {
         server_name $SERVER_NAME;
     
         location / {
-            return 301 https://$server_name:$SERVER_HTTPS_PORT$request_uri;
+            return 301 https://$server_name:$HTTPS_PORT$request_uri;
         }
     }
 
