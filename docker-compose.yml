@@ -92,7 +92,7 @@ services:
       - CLIENT_HOST=linkeddatahub
       - VARNISH_TTL=86400
     privileged: true
-    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /bin/sh ./entrypoint.sh"
+    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
