@@ -96,7 +96,7 @@ services:
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
-    image: varnish
+    image: atomgraph/varnish
     depends_on:
       - linkeddatahub
     environment:
