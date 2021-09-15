@@ -67,8 +67,8 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
-    image: atomgraph/fuseki
-    user: root
+    image: atomgraph/fuseki:61eb41c33b2f9ee4bf4ab0156818145806215738
+    user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     ports:
       - 3030:3030
     volumes:
@@ -76,8 +76,8 @@ services:
       - ./data/admin:/fuseki/databases
     command: [ "--config", "/var/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki
-    user: root
+    image: atomgraph/fuseki:61eb41c33b2f9ee4bf4ab0156818145806215738
+    user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     ports:
       - 3031:3030
     volumes:
@@ -98,7 +98,7 @@ services:
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
-    image: atomgraph/varnish
+    image: varnish
     depends_on:
       - linkeddatahub
     environment:
@@ -106,8 +106,8 @@ services:
       - BACKEND_PORT=3030
       - CLIENT_HOST=linkeddatahub
       - VARNISH_TTL=86400
-    privileged: true
-    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /bin/sh ./entrypoint.sh"
+      - VARNISH_SIZE=1G
+    entrypoint: /bin/sh -c "envsubst < /etc/varnish/default.vcl.template > /etc/varnish/default.vcl && /usr/local/bin/docker-varnish-entrypoint"
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   email-server:

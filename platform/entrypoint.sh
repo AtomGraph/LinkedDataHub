@@ -103,6 +103,11 @@ if [ -z "$ABS_PATH" ] ; then
     exit 1
 fi
 
+if [ -z "$OWNER_PUBLIC_KEY" ] ; then
+    echo '$OWNER_PUBLIC_KEY not set'
+    exit 1
+fi
+
 if [ -z "$CLIENT_KEYSTORE" ] ; then
     echo '$CLIENT_KEYSTORE not set'
     exit 1
