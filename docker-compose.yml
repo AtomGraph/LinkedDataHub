@@ -84,7 +84,7 @@ services:
       - ./data/end-user:/fuseki/databases
     command: [ "--config", "/var/fuseki/config.ttl" ]
   varnish-admin:
-    image: atomgraph/varnish
+    image: atomgraph/varnish:5755de9443f5d1e3c7438fc70dc01c897578d1f7
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish:exec
@@ -98,7 +98,7 @@ services:
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
-    image: atomgraph/varnish
+    image: atomgraph/varnish:5755de9443f5d1e3c7438fc70dc01c897578d1f7
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish:exec
