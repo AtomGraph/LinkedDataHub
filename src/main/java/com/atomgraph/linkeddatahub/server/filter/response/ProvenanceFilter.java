@@ -67,7 +67,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
                 addLiteral(PROV.generatedAtTime, GregorianCalendar.getInstance());
                 // TO-DO: ACL access mode?
             
-        if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
+            if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
                 graph.addProperty(PROV.wasAttributedTo, agent);

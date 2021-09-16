@@ -741,7 +741,7 @@ public class Application extends ResourceConfig
         register(new ResponseHeaderFilter());
         register(new XsltExecutableFilter());
         if (isInvalidateCache()) register(new BackendInvalidationFilter());
-        register(new ProvenanceFilter());
+//        register(new ProvenanceFilter());
     }
     
     protected void registerExceptionMappers()
