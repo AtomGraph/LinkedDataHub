@@ -280,6 +280,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.proxyHttpPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.proxyHttpPort.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.proxyHttpsPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.proxyHttpsPort.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
@@ -316,7 +318,7 @@ public class Application extends ResourceConfig
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString,
             final String putUpdateString, final String deleteUpdateString,
-            final String baseURIString, final String proxyHostname,
+            final String baseURIString, final String proxyHostname, final Integer proxyHttpPort, final Integer proxyHttpsPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
@@ -465,11 +467,12 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
-            if (proxyHostname != null) // is only needed for/will only work with self-signed cert on localhost
+            // rewrite is only needed for/will only work with self-signed cert on localhost
+            if (proxyHostname != null || proxyHttpPort != null || proxyHttpsPort != null)
             {
-                client.register(new HostnameRewriteFilter(baseURI.getHost(), proxyHostname));
-                importClient.register(new HostnameRewriteFilter(baseURI.getHost(), proxyHostname));
-                noCertClient.register(new HostnameRewriteFilter(baseURI.getHost(), proxyHostname));
+                client.register(new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort));
+                importClient.register(new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort));
+                noCertClient.register(new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort));
             }
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);

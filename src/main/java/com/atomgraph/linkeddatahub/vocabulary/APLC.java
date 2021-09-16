@@ -50,8 +50,12 @@ public class APLC
 
     public static final ObjectProperty baseUri = m_model.createObjectProperty( NS + "baseUri" );
     
-    public static final ObjectProperty proxyHost = m_model.createObjectProperty( NS + "proxyHost" );
-    
+    public static final DatatypeProperty proxyHost = m_model.createDatatypeProperty( NS + "proxyHost" );
+
+    public static final DatatypeProperty proxyHttpPort = m_model.createDatatypeProperty( NS + "proxyHttpPort" );
+
+    public static final DatatypeProperty proxyHttpsPort = m_model.createDatatypeProperty( NS + "proxyHttpsPort" );
+
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 
     public static final DatatypeProperty ownerAuthQuery = m_model.createDatatypeProperty( NS + "ownerAuthQuery" );

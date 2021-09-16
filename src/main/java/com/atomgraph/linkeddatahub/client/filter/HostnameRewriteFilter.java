@@ -33,32 +33,59 @@ public class HostnameRewriteFilter implements ClientRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(HostnameRewriteFilter.class);
 
-    private final String hostname, newHostname;
+    private final String hostname;
+    private final Integer httpPort, httpsPort;
 
-    public HostnameRewriteFilter(String hostname, String newHostname)
+    public HostnameRewriteFilter(String hostname, Integer httpPort, Integer httpsPort)
     {
         this.hostname = hostname;
-        this.newHostname = newHostname;
+        this.httpPort = httpPort;
+        this.httpsPort = httpsPort;
     }
     
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        if (cr.getUri().getHost().equals(getHostname()))
+        URI newUri = cr.getUri();
+
+        if (getHostname() != null)
         {
             try
             {
-                URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), cr.getUri().getPort(),
-                        cr.getUri().getPath(), cr.getUri().getQuery(), cr.getUri().getFragment());
-
-                if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
-
-                cr.setUri(newUri);
+                newUri = new URI(newUri.getScheme(), newUri.getUserInfo(), getHostname(), newUri.getPort(), newUri.getPath(), newUri.getQuery(), newUri.getFragment());
             }
             catch (URISyntaxException ex)
             {
                 // shouldn't happen
             }
+        }
+        if (getHTTPPort() != null && newUri.getPort() == 80)
+        {
+            try
+            {
+                newUri = new URI(newUri.getScheme(), newUri.getUserInfo(), newUri.getHost(), getHTTPPort(), newUri.getPath(), newUri.getQuery(), newUri.getFragment());
+            }
+            catch (URISyntaxException ex)
+            {
+                // shouldn't happen
+            }
+        }
+        if (getHTTPSPort() != null && newUri.getPort() == 443)
+        {
+            try
+            {
+                newUri = new URI(newUri.getScheme(), newUri.getUserInfo(), newUri.getHost(), getHTTPSPort(), newUri.getPath(), newUri.getQuery(), newUri.getFragment());
+            }
+            catch (URISyntaxException ex)
+            {
+                // shouldn't happen
+            }
+        }
+        
+        if (!newUri.equals(cr.getUri()))
+        {
+            if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
+            cr.setUri(newUri);
         }
     }
     
@@ -66,10 +93,15 @@ public class HostnameRewriteFilter implements ClientRequestFilter
     {
         return hostname;
     }
-    
-    public String getNewHostname()
+
+    public Integer getHTTPPort()
     {
-        return newHostname;
+        return httpPort;
     }
-    
+
+    public Integer getHTTPSPort()
+    {
+        return httpsPort;
+    }
+
 }
