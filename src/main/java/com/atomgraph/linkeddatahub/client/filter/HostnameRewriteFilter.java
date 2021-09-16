@@ -59,7 +59,7 @@ public class HostnameRewriteFilter implements ClientRequestFilter
                 // shouldn't happen
             }
         }
-        if (getHTTPPort() != null && newUri.getPort() == 80)
+        if (getHTTPPort() != null)
         {
             try
             {
@@ -70,7 +70,7 @@ public class HostnameRewriteFilter implements ClientRequestFilter
                 // shouldn't happen
             }
         }
-        if (getHTTPSPort() != null && newUri.getPort() == 443)
+        if (getHTTPSPort() != null)
         {
             try
             {

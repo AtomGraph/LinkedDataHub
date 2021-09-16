@@ -167,6 +167,7 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestFilter;
 import javax.xml.transform.TransformerException;
 import net.jodah.expiringmap.ExpiringMap;
 import net.sf.saxon.om.TreeInfo;
@@ -470,9 +471,11 @@ public class Application extends ResourceConfig
             // rewrite is only needed for/will only work with self-signed cert on localhost
             if (proxyHostname != null || proxyHttpPort != null || proxyHttpsPort != null)
             {
-                client.register(new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort));
-                importClient.register(new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort));
-                noCertClient.register(new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort));
+                ClientRequestFilter rewriteFilter = new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort);
+                
+                client.register(rewriteFilter);
+                importClient.register(rewriteFilter);
+                noCertClient.register(rewriteFilter);
             }
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);
