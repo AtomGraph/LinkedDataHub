@@ -68,7 +68,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.linkeddatahub.client.filter.BaseURIRewriteFilter;
+import com.atomgraph.linkeddatahub.client.filter.HostnameRewriteFilter;
 import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -98,7 +98,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilte
 import com.atomgraph.linkeddatahub.server.filter.request.auth.ProxiedWebIDFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.ResponseHeaderFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
-import com.atomgraph.linkeddatahub.server.filter.response.ProvenanceFilter;
 import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
@@ -238,7 +237,7 @@ public class Application extends ResourceConfig
     private final Source stylesheet;
     private final boolean cacheStylesheet;
     private final boolean resolvingUncached;
-    private final URI baseURI, proxyBaseURI, uploadRoot;
+    private final URI baseURI, uploadRoot;
     private final boolean invalidateCache;
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
@@ -280,7 +279,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.proxyBaseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyBaseUri.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.invalidateCache.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.cookieMaxAge.getURI())) : null,
@@ -317,7 +316,7 @@ public class Application extends ResourceConfig
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString,
             final String putUpdateString, final String deleteUpdateString,
-            final String baseURIString, final String proxyBaseURIString,
+            final String baseURIString, final String proxyHostname,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
@@ -419,8 +418,6 @@ public class Application extends ResourceConfig
         }
         this.cookieMaxAge = cookieMaxAge;
 
-        if (proxyBaseURIString != null) proxyBaseURI = URI.create(proxyBaseURIString);
-        else proxyBaseURI = null;
 
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
@@ -468,11 +465,11 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
-            if (proxyBaseURI != null) // is only needed for/will only work with self-signed cert on localhost
+            if (proxyHostname != null) // is only needed for/will only work with self-signed cert on localhost
             {
-                client.register(new BaseURIRewriteFilter(baseURI, proxyBaseURI));
-                importClient.register(new BaseURIRewriteFilter(baseURI, proxyBaseURI));
-                noCertClient.register(new BaseURIRewriteFilter(baseURI, proxyBaseURI));
+                client.register(new HostnameRewriteFilter(baseURI.getHost(), proxyHostname));
+                importClient.register(new HostnameRewriteFilter(baseURI.getHost(), proxyHostname));
+                noCertClient.register(new HostnameRewriteFilter(baseURI.getHost(), proxyHostname));
             }
             
             Certificate secretaryCert = keyStore.getCertificate(secretaryCertAlias);

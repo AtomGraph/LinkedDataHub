@@ -28,27 +28,27 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class BaseURIRewriteFilter implements ClientRequestFilter
+public class HostnameRewriteFilter implements ClientRequestFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(BaseURIRewriteFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(HostnameRewriteFilter.class);
 
-    private final URI base, newBase;
+    private final String hostname, newHostname;
 
-    public BaseURIRewriteFilter(URI base, URI newBase)
+    public HostnameRewriteFilter(String hostname, String newHostname)
     {
-        this.base = base;
-        this.newBase = newBase;
+        this.hostname = hostname;
+        this.newHostname = newHostname;
     }
     
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        if (!getBaseURI().relativize(cr.getUri()).isAbsolute())
+        if (cr.getUri().getHost().equals(getHostname()))
         {
             try
             {
-                URI newUri = new URI(getNewBaseURI().getScheme(), getNewBaseURI().getUserInfo(), getNewBaseURI().getHost(), getNewBaseURI().getPort(),
+                URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), cr.getUri().getPort(),
                         cr.getUri().getPath(), cr.getUri().getQuery(), cr.getUri().getFragment());
 
                 if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
@@ -62,14 +62,14 @@ public class BaseURIRewriteFilter implements ClientRequestFilter
         }
     }
     
-    public URI getBaseURI()
+    public String getHostname()
     {
-        return base;
+        return hostname;
     }
     
-    public URI getNewBaseURI()
+    public String getNewHostname()
     {
-        return newBase;
+        return newHostname;
     }
     
 }
