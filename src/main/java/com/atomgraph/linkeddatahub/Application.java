@@ -471,7 +471,11 @@ public class Application extends ResourceConfig
             // rewrite is only needed for/will only work with self-signed cert on localhost
             if (proxyHostname != null || proxyHttpPort != null || proxyHttpsPort != null)
             {
-                ClientRequestFilter rewriteFilter = new HostnameRewriteFilter(proxyHostname, proxyHttpPort, proxyHttpsPort);
+                Map<Integer, Integer> portMapping = new HashMap<>();
+                // portMapping.put(???, proxyHttpPort);
+                portMapping.put(baseURI.getPort(), proxyHttpsPort);
+                
+                ClientRequestFilter rewriteFilter = new HostnameRewriteFilter(baseURI, proxyHostname, portMapping);
                 
                 client.register(rewriteFilter);
                 importClient.register(rewriteFilter);

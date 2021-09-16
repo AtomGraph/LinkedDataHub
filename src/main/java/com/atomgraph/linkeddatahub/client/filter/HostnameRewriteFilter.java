@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.client.filter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import org.slf4j.Logger;
@@ -33,60 +34,43 @@ public class HostnameRewriteFilter implements ClientRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(HostnameRewriteFilter.class);
 
+    private final URI baseURI;
     private final String hostname;
-    private final Integer httpPort, httpsPort;
+    private final Map<Integer, Integer> portMapping;
 
-    public HostnameRewriteFilter(String hostname, Integer httpPort, Integer httpsPort)
+    public HostnameRewriteFilter(URI baseURI, String hostname, Map<Integer, Integer> portMapping)
     {
+        this.baseURI = baseURI;
         this.hostname = hostname;
-        this.httpPort = httpPort;
-        this.httpsPort = httpsPort;
+        this.portMapping = portMapping;
     }
     
     @Override
     public void filter(ClientRequestContext cr) throws IOException
     {
-        URI newUri = cr.getUri();
+        if (getBaseURI().relativize(cr.getUri()).isAbsolute()) return; // don't rewrite URIs that are not relative to the base URI (e.g. SPARQL Protocol URLs)
 
-        if (getHostname() != null)
+        try
         {
-            try
-            {
-                newUri = new URI(newUri.getScheme(), newUri.getUserInfo(), getHostname(), newUri.getPort(), newUri.getPath(), newUri.getQuery(), newUri.getFragment());
-            }
-            catch (URISyntaxException ex)
-            {
-                // shouldn't happen
-            }
-        }
-        if (getHTTPPort() != null)
-        {
-            try
-            {
-                newUri = new URI(newUri.getScheme(), newUri.getUserInfo(), newUri.getHost(), getHTTPPort(), newUri.getPath(), newUri.getQuery(), newUri.getFragment());
-            }
-            catch (URISyntaxException ex)
-            {
-                // shouldn't happen
-            }
-        }
-        if (getHTTPSPort() != null)
-        {
-            try
-            {
-                newUri = new URI(newUri.getScheme(), newUri.getUserInfo(), newUri.getHost(), getHTTPSPort(), newUri.getPath(), newUri.getQuery(), newUri.getFragment());
-            }
-            catch (URISyntaxException ex)
-            {
-                // shouldn't happen
-            }
-        }
+            Integer port = cr.getUri().getPort();
+            if (getPortMapping().containsKey(port)) port = getPortMapping().get(port); // map port numbers
+                
+            URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), port,
+                    cr.getUri().getPath(), cr.getUri().getQuery(), cr.getUri().getFragment());
+            
         
-        if (!newUri.equals(cr.getUri()))
-        {
             if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
             cr.setUri(newUri);
         }
+        catch (URISyntaxException ex)
+        {
+            // shouldn't happen
+        }
+    }
+    
+    public URI getBaseURI()
+    {
+        return baseURI;
     }
     
     public String getHostname()
@@ -94,14 +78,9 @@ public class HostnameRewriteFilter implements ClientRequestFilter
         return hostname;
     }
 
-    public Integer getHTTPPort()
+    public Map<Integer, Integer> getPortMapping()
     {
-        return httpPort;
-    }
-
-    public Integer getHTTPSPort()
-    {
-        return httpsPort;
+        return portMapping;
     }
 
 }
