@@ -86,13 +86,13 @@ mkdir -p "$out_folder"/server
 IP_ADDR_MATCH=$(echo "${env['HOST']}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" || test $? = 1)
 
 if [ -n "$IP_ADDR_MATCH" ]; then
-    if [ "${env['HOST']}" = "127.0.0.1" ]; then
+    if [ -n "$proxy_host" ]; then
         ext="subjectAltName=IP:${env['HOST']},DNS:${proxy_host}" # IP address - special case for localhost
     else
         ext="subjectAltName=IP:${env['HOST']}" # IP address
     fi
 else
-    if [ "${env['HOST']}" = "localhost" ]; then
+    if [ -n "$proxy_host" ]; then
         ext="subjectAltName=DNS:${env['HOST']},DNS:${proxy_host}" # hostname - special case for localhost
     else
         ext="subjectAltName=DNS:${env['HOST']}" # hostname
