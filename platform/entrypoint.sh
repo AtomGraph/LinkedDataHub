@@ -68,11 +68,6 @@ eval "$transform"
 
 # check mandatory environmental variables (which are used in conf/ROOT.xml)
 
-if [ -z "$PROXY_BASE_URI" ] ; then
-    echo '$PROXY_BASE_URI not set'
-    exit 1
-fi
-
 if [ -z "$TIMEOUT" ] ; then
     echo '$TIMEOUT not set'
     exit 1
@@ -558,7 +553,6 @@ fi
 # change context configuration
 
 BASE_URI_PARAM="--stringparam aplc:baseUri '$BASE_URI' "
-PROXY_BASE_URI_PARAM="--stringparam aplc:proxyBaseUri '$PROXY_BASE_URI' "
 CLIENT_KEYSTORE_PARAM="--stringparam aplc:clientKeyStore 'file://$CLIENT_KEYSTORE' "
 SECRETARY_CERT_ALIAS_PARAM="--stringparam aplc:secretaryCertAlias '$SECRETARY_CERT_ALIAS' "
 CLIENT_TRUSTSTORE_PARAM="--stringparam aplc:clientTrustStore 'file://$CLIENT_TRUSTSTORE' "
@@ -570,6 +564,10 @@ CONTEXT_DATASET_PARAM="--stringparam aplc:contextDataset '$webapp_context_datase
 MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
+
+if [ -n "$PROXY_BASE_URI" ] ; then
+    PROXY_BASE_URI_PARAM="--stringparam aplc:proxyBaseUri '$PROXY_BASE_URI' "
+fi
 
 if [ -n "$CACHE_MODEL_LOADS" ] ; then
     CACHE_MODEL_LOADS_PARAM="--stringparam a:cacheModelLoads '$CACHE_MODEL_LOADS' "
