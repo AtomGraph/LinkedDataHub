@@ -109,8 +109,14 @@ WHERE
           }
       }
     UNION
-      { ?auth  acl:agentClass  ?AuthenticatedAgentClass ; # must be set to acl:AuthenticatedAgent/rdfs:Resource
-               acl:mode        ?Mode
+      { ?auth  acl:mode        ?Mode
+          {
+            ?auth acl:agentClass  ?AuthenticatedAgentClass ; # must be set to acl:AuthenticatedAgent/rdfs:Resource
+          }
+        UNION
+          {
+            ?auth acl:agent ?agent
+          }
           { ?auth  acl:accessTo  ?this
             OPTIONAL
               { ?this  a  ?Type }

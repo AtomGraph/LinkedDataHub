@@ -67,6 +67,7 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -107,15 +108,14 @@ public class SignUp extends GraphStoreImpl
     public static final String KEY_ALIAS = "linkeddatahub-client";
     public static final int MIN_PASSWORD_LENGTH = 6;
     public static final MediaType PKCS12_MEDIA_TYPE = MediaType.valueOf("application/x-pkcs12");
-    public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
-    public static final String AGENT_PATH = "acl/agents/";
-    public static final String AUTHORIZATION_PATH = "acl/authorizations/";
+    public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf"; // TO-DO: move to configuration
+    public static final String AGENT_PATH = "acl/agents/"; // TO-DO: move to configuration
 
     private final URI uri;
     private final Application application;
     private final Ontology ontology;
     private final Model countryModel;
-    private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
+    private final UriBuilder agentContainerUriBuilder;
     private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
@@ -150,7 +150,6 @@ public class SignUp extends GraphStoreImpl
         
         // TO-DO: extract Agent container URI from ontology Restrictions
         agentContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AGENT_PATH);
-        authorizationContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AUTHORIZATION_PATH);
        
         try
         {
@@ -187,12 +186,12 @@ public class SignUp extends GraphStoreImpl
     
     @POST
     @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        Resource forClass = model.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-        ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
+        Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
         try
         {
             Resource agent = it.next();
@@ -231,48 +230,56 @@ public class SignUp extends GraphStoreImpl
                 Model publicKeyModel = ModelFactory.createDefaultModel();
                 createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
                 publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(publicKeyModel);
-
                 Resource publicKeyForClass = ResourceFactory.createResource(forClass.getNameSpace() + LACL.PublicKey.getLocalName());
-                Response publicKeyResponse = super.post(publicKeyModel, URI.create(publicKeyForClass.getURI()));
-                if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                {
-                    if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
-                    throw new WebApplicationException("Cannot create PublicKey");
-                }
-
-                URI publicKeyGraphUri = publicKeyResponse.getLocation();
-                publicKeyModel = (Model)super.get(false, publicKeyGraphUri).getEntity();
-                Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
-
-                agent.addProperty(Cert.key, publicKey); // add public key
-                model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                URI agentGraphUri = URI.create(agent.getURI());
-                agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+                ResIterator resIt = publicKeyModel.listResourcesWithProperty(RDF.type, publicKeyForClass);
                 
-                Response agentResponse = super.post(model, false, agentGraphUri);
-                if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                try
                 {
-                    if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                    throw new WebApplicationException("Cannot create Agent");
+                    Resource publicKey = resIt.next();
+                    URI publicKeyGraphUri = URI.create(publicKey.getURI());
+                    publicKeyGraphUri = new URI(publicKeyGraphUri.getScheme(), publicKeyGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+
+                    Response publicKeyResponse = super.put(publicKeyModel, false, publicKeyGraphUri);
+                    if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
+                        throw new InternalServerErrorException("Cannot create PublicKey");
+                    }
+
+                    agent.addProperty(Cert.key, publicKey); // add public key
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                    URI agentGraphUri = URI.create(agent.getURI());
+                    agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+
+                    Response agentResponse = super.put(agentModel, false, agentGraphUri);
+                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                        throw new InternalServerErrorException("Cannot create Agent");
+                    }
+
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                    if (download)
+                    {
+                        return Response.ok(keyStoreBytes).
+                            type(PKCS12_MEDIA_TYPE).
+                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                            build();
+                    }
+                    else
+                    {
+                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                        return agentResponse;
+                    }
                 }
-
-                // remove secretary WebID from cache
-                getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                if (download)
+                finally
                 {
-                    return Response.ok(keyStoreBytes).
-                        type(PKCS12_MEDIA_TYPE).
-                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                        build();
-                }
-                else
-                {
-                    LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                    sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
-
-                    return agentResponse;
+                    resIt.close();
                 }
             }
         }
@@ -282,7 +289,7 @@ public class SignUp extends GraphStoreImpl
         }
         catch (IllegalArgumentException ex)
         {
-            throw new SkolemizationException(ex, model);
+            throw new SkolemizationException(ex, agentModel);
         }
         catch (Exception ex)
         {
@@ -389,7 +396,7 @@ public class SignUp extends GraphStoreImpl
     {
         return ontology;
     }
-
+   
     public int getValidityDays()
     {
         return validityDays;
@@ -405,11 +412,6 @@ public class SignUp extends GraphStoreImpl
         return agentContainerUriBuilder.clone();
     }
 
-    public UriBuilder getAuthorizationContainerUriBuilder()
-    {
-        return authorizationContainerUriBuilder.clone();
-    }
-    
     public Address getSignUpAddress()
     {
         return signUpAddress;

@@ -86,7 +86,7 @@ public class Login extends GraphStoreImpl
     private final String emailText;
     private final Query userAccountQuery;
     private final String clientID, clientSecret;
-    
+
     @Inject
     public Login(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
@@ -198,39 +198,47 @@ public class Login extends GraphStoreImpl
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(accountModel);
-
                     Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.UserAccount.getLocalName());
-                    Response userAccountResponse = super.post(accountModel, URI.create(userAccountForClass.getURI()));
-                    if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    
+                    ResIterator resIt = accountModel.listResourcesWithProperty(RDF.type, userAccountForClass);
+                    try
                     {
-                        if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
-                        throw new WebApplicationException("Cannot create UserAccount");
-                    }
-                    if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
+                        userAccount = resIt.next();
+                        URI userAccountGraphUri = URI.create(userAccount.getURI());
+                        userAccountGraphUri = new URI(userAccountGraphUri.getScheme(), userAccountGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
 
-                    URI userAccountGraphUri = userAccountResponse.getLocation();
-                    accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
-                    userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
-
-                    agent.addProperty(FOAF.account, userAccount);
-                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                    URI agentGraphUri = URI.create(agent.getURI());
-                    agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-
-                    try (Response agentResponse = super.post(agentModel, false, agentGraphUri))
-                    {
-                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        Response userAccountResponse = super.put(accountModel, false, userAccountGraphUri);
+                        if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {
-                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                            throw new WebApplicationException("Cannot create Agent");
+                            if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
+                            throw new WebApplicationException("Cannot create UserAccount");
                         }
+                        if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                        // remove secretary WebID from cache
-                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+                        agent.addProperty(FOAF.account, userAccount);
+                        agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
-                        sendEmail(agent);
+                        URI agentGraphUri = URI.create(agent.getURI());
+                        agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+
+                        try (Response agentResponse = super.put(agentModel, false, agentGraphUri))
+                        {
+                            if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                            {
+                                if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                                throw new WebApplicationException("Cannot create Agent");
+                            }
+
+                            // remove secretary WebID from cache
+                            getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                            if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                            sendEmail(agent);
+                        }
+                    }
+                    finally
+                    {
+                        resIt.close();
                     }
                 }
                 catch (UnsupportedEncodingException | URISyntaxException | MessagingException | WebApplicationException ex)

@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
+ * Rewrites base URI-relative client request URIs with a specified hostname and port.
+ * That allows the webapp to do a localhost-like loopback to the nginx service, which then proxies them to back to Tomcat which rewrites them back to the original URIs (from RDF data).
+ * 
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
 public class HostnameRewriteFilter implements ClientRequestFilter

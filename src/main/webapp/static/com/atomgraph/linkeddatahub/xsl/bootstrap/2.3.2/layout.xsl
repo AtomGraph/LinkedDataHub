@@ -375,6 +375,8 @@ exclude-result-prefixes="#all">
                             then(resource => {
                                 stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub/domain#}services"] = resource;
                                 return Promise.all(docPromises);
+                            }, error => {
+                                return Promise.all(docPromises);
                             }).
                             then(resources => {
                                 const cache = {};

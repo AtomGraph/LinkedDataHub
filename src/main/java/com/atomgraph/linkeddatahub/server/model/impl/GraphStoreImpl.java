@@ -18,16 +18,12 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
@@ -40,12 +36,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ResIterator;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,71 +67,34 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.system = system;
     }
     
-    @POST
-    @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
-        
-        if (model.isEmpty()) return Response.noContent().build();
-        
-        if (defaultGraph)
-        {
-            if (log.isDebugEnabled()) log.debug("POST Model to default graph");
-            getDatasetAccessor().add(model);
-            return Response.ok().build();
-        }
-        else
-        {
-            final boolean existingGraph;
-            if (graphUri != null) existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
-            else
-            {
-                existingGraph = false;
-  
-                final URI forClass;
-                try
-                {
-                    if (getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
-                        forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-                    else
-                        throw new BadRequestException("aplt:ForClass parameter not provided");
-                    
-                    return post(model, forClass);
-                }
-                catch (URISyntaxException ex)
-                {
-                    throw new BadRequestException(ex);
-                }
-            }
-
-            // is this implemented correctly? The specification is not very clear.
-            if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
-            getDatasetAccessor().add(graphUri.toString(), model);
-
-            if (existingGraph) return Response.ok().build();
-            else return Response.created(graphUri).build();
-        }
-    }
-
-    public Response post(Model model, URI forClass)
-    {
-        Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-        if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-        
-        try
-        {
-            URI graphUri = URI.create(instance.getURI());
-            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-            super.post(model, false, graphUri);
-            return Response.created(graphUri).entity(model).build();
-        }
-        catch (URISyntaxException ex)
-        {
-            // shouldn't happen
-            throw new InternalServerErrorException(ex);
-        }
-    }
+//    @POST
+//    @Override
+//    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+//    {
+//        if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
+//        
+//        if (model.isEmpty()) return Response.noContent().build();
+//        
+//        if (defaultGraph)
+//        {
+//            if (log.isDebugEnabled()) log.debug("POST Model to default graph");
+//            getDatasetAccessor().add(model);
+//            return Response.ok().build();
+//        }
+//        else
+//        {
+//            // TO-DO: push this logic (which supports graphUri == null) down to the superclass
+//            final boolean existingGraph;
+//            if (graphUri != null) existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
+//            else existingGraph = false;
+//
+//            if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
+//            getDatasetAccessor().add(graphUri.toString(), model);
+//
+//            if (existingGraph) return Response.ok().build();
+//            else return Response.created(graphUri).build();
+//        }
+//    }
  
     @PATCH
     public Response patch(UpdateRequest updateRequest)
@@ -172,40 +126,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return rb.build();
         
     }
-    
-    /**
-     * Extracts the individual that is being created from the input RDF graph.
-     * 
-     * @param model RDF input graph
-     * @param forClass RDF class
-     * @return RDF resource
-     */
-    public Resource getCreatedDocument(Model model, Resource forClass)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-        
-        ResIterator it = model.listSubjectsWithProperty(RDF.type, forClass);
-        try
-        {
-            if (it.hasNext())
-            {
-                Resource created = it.next();
-                
-                // handle creation of "things" - they are not documents themselves, so we return the attached document instead
-                if (created.hasProperty(FOAF.isPrimaryTopicOf))
-                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
-                else
-                    return created;
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-        
-        return null;
-    }
-    
+
     public UriInfo getUriInfo()
     {
         return uriInfo;
