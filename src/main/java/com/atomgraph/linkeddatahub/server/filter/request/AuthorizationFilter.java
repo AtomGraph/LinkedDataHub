@@ -100,7 +100,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
         if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
-        if (getApplication().isPresent() && !getClientApplication().get().equals(getApplication().get())) return; // skip authentication if target app is not the client app
+        if (getApplication().isEmpty() || (getApplication().isPresent() && !getClientApplication().get().equals(getApplication().get()))) return; // skip authentication if target app is not the client app
         
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);

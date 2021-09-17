@@ -72,7 +72,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
         if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
-        if (getApplication().isPresent() && !getClientApplication().get().equals(getApplication().get())) return; // skip authentication if target app is not the client app
+        if (getApplication().isEmpty() || (getApplication().isPresent() && !getClientApplication().get().equals(getApplication().get()))) return; // skip authentication if target app is not the client app
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
