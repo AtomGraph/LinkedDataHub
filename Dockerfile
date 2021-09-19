@@ -163,7 +163,7 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 # add non-root user "ldh" and give it access to $CATALINA_HOME
 
 RUN useradd --no-log-init -U ldh && \
-    setfacl -Rm user:ldh:rwx . && \
+    chown -R ldh:ldh . && \
     chown -R ldh:ldh /var/linkeddatahub && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     setfacl -Rm user:ldh:rw "$UPLOAD_ROOT"
