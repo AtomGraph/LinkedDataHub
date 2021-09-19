@@ -48,8 +48,6 @@ if [ -n "$HTTPS" ] ; then
     HTTPS_PARAM="--stringparam https $HTTPS "
 fi
 
-echo "AAAA"
-
 transform="xsltproc \
   --output conf/server.xml \
   $HTTP_PARAM \
@@ -284,8 +282,6 @@ append_quads()
 
 # extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
 
-echo "BBBB"
-
 envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
 
 # base the $CONTEXT_DATASET
@@ -306,8 +302,6 @@ case "$CONTEXT_DATASET_URL" in
         curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
 esac
 
-echo "CCCC"
-
 trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
 
 sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
@@ -322,8 +316,6 @@ root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="
 root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
 root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
 root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
-
-echo "DDDD"
 
 rm -f root_service_metadata.xml select-root-services.rq
 

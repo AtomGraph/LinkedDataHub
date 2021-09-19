@@ -166,7 +166,7 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh . && \
     chown -R ldh:ldh /var/linkeddatahub && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
-    setfacl -Rm user:ldh:rw "$UPLOAD_ROOT"
+    chown -R ldh:ldh "$UPLOAD_ROOT"
 
 USER ldh
 
