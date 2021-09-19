@@ -106,6 +106,8 @@ ENV GOOGLE_CLIENT_ID=
 
 ENV GOOGLE_CLIENT_SECRET=
 
+HEALTHCHECK --start-period=80s CMD curl -f http://localhost:$HTTP_PORT || exit 1
+
 # remove default Tomcat webapps and install xmlstarlet (used for XPath queries) and envsubst (for variable substitution)
 
 RUN apt-get update --allow-releaseinfo-change && \
