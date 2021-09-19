@@ -164,8 +164,8 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 
 RUN useradd --no-log-init -U ldh && \
     setfacl -Rm user:ldh:rwx . && \
-    setfacl -Rm user:ldh:rwx /var/linkeddatahub && \
-    setfacl -Rm default:user:ldh:rwx /var/linkeddatahub && \
+    mkdir /var/linkeddatahub && \
+    chown -R ldh:ldh && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     setfacl -Rm user:ldh:rw "$UPLOAD_ROOT"
 
