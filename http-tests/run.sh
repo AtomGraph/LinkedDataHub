@@ -121,6 +121,8 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
+run_tests $(find . -type f -name 'request-access-html.sh')
+(( error_count += $? ))
 run_tests $(find . -type f -name 'request-access.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'webid-delegation.sh')
