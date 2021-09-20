@@ -35,6 +35,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Records each HTTP interaction in a timestamped meta named graph.
@@ -46,6 +48,8 @@ import org.apache.jena.vocabulary.RDF;
 public class ProvenanceFilter implements ContainerResponseFilter
 {
     
+    private static final Logger log = LoggerFactory.getLogger(ProvenanceFilter.class);
+
     @Inject javax.inject.Provider<Optional<Service>> service;
 
     @Override
@@ -73,6 +77,7 @@ public class ProvenanceFilter implements ContainerResponseFilter
                 graph.addProperty(PROV.wasAttributedTo, agent);
             }
             
+            if (log.isDebugEnabled()) log.debug("PUTting {} triples of provenance metadata", graph.getModel().size());
             getService().get().getDatasetAccessor().putModel(graphGraphUri, model);
         }
     }
