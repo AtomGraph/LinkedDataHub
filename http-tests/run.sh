@@ -107,7 +107,7 @@ export AGENT_CERT_PWD="changeit"
 
 start_time=$(date +%s)
 
-run_tests "signup.sh"
+run_tests "admin/signup.sh"
 (( error_count += $? ))
 
 export AGENT_URI="$("$SCRIPT_ROOT"/webid-uri.sh "$AGENT_CERT_FILE")"
@@ -121,8 +121,6 @@ download_dataset "$ADMIN_ENDPOINT_URL" > "$TMP_ADMIN_DATASET"
 
 ### Other tests ###
 
-run_tests $(find . -type f -name 'request-access.sh')
-(( error_count += $? ))
 run_tests $(find . -type f -name 'webid-delegation.sh')
 (( error_count += $? ))
 run_tests $(find . -type f -name 'HEAD-accept.sh')
