@@ -98,8 +98,8 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <!-- moved to bs2:SignedUp in client.xsl -->
-<!--    <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2">
+    <!-- match the first resource, whatever it is -->
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Main" priority="3">
         <div class="alert alert-success row-fluid">
             <div class="span1">
                 <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
@@ -115,8 +115,11 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
         <xsl:apply-templates select="key('resources-by-type', '&cert;RSAPublicKey')[cert:modulus/text()]" mode="bs2:Block"/>
         <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>
-    </xsl:template>-->
+    </xsl:template>
     
+    <!-- suppress other resources -->
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2"/>
+
     <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TargetContainer" priority="1"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
