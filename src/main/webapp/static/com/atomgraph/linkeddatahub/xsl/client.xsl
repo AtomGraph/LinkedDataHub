@@ -640,14 +640,6 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-<!--        <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:uri()"/>
-            <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="service-uri" select="$service-uri"/>
-        </xsl:call-template>-->
         
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
@@ -757,43 +749,6 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
-    
-<!--    <xsl:template name="onContainerQueryServiceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="content" as="element()?"/>
-        <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="service-uri" as="xs:anyURI"/>
-        
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="service" select="key('resources', $service-uri)" as="element()"/>
-                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-                    
-                    <xsl:call-template name="apl:RenderContainer">
-                        <xsl:with-param name="container-id" select="$container-id"/>
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="content" select="$content"/>
-                        <xsl:with-param name="select-string" select="$select-string"/>
-                        <xsl:with-param name="select-xml" select="$select-xml"/>
-                        <xsl:with-param name="service" select="$service"/>
-                        <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                 error response - could not load query results 
-                <xsl:call-template name="render-container-error">
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="message" select="?message"/>
-                </xsl:call-template>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
 
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
@@ -2047,39 +2002,6 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
     </xsl:template>
     
-    <!-- render dropdown from SPARQL service results -->
-    
-<!--    <xsl:template name="onServiceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="service-select" as="element()?"/>
-        <xsl:param name="selected-service" as="xs:anyURI?"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="results" select="." as="document-node()"/>
-                    <ixsl:set-property name="services" select="$results" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                    
-                    <xsl:for-each select="$service-select">
-                        <xsl:result-document href="?." method="ixsl:append-content">
-                            <xsl:for-each select="$results//*[@rdf:about]">
-                                <xsl:sort select="ac:label(.)"/>
-
-                                <xsl:apply-templates select="." mode="xhtml:Option">
-                                    <xsl:with-param name="value" select="@rdf:about"/>
-                                    <xsl:with-param name="selected" select="@rdf:about = $selected-service"/>
-                                </xsl:apply-templates>
-                            </xsl:for-each>
-                        </xsl:result-document>
-                    </xsl:for-each>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>-->
-    
     <!-- embed content -->
     
     <xsl:template name="onContentLoad">
@@ -2194,24 +2116,25 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
-        <xsl:choose>
-            <xsl:when test="starts-with($uri, $apl:base)">
-                <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- unset #uri value -->
-                <xsl:for-each select="id('uri', ixsl:page())">
-                    <ixsl:set-property name="value" select="()" object="."/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- set #uri value -->
-                <xsl:for-each select="id('uri', ixsl:page())">
-                    <ixsl:set-property name="value" select="$uri" object="."/>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
-
+        <xsl:if test="$uri">
+            <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <xsl:choose>
+                <xsl:when test="starts-with($uri, $apl:base)">
+                    <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <!-- unset #uri value -->
+                    <xsl:for-each select="id('uri', ixsl:page())">
+                        <ixsl:set-property name="value" select="()" object="."/>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- set #uri value -->
+                    <xsl:for-each select="id('uri', ixsl:page())">
+                        <ixsl:set-property name="value" select="$uri" object="."/>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+        
         <xsl:if test="$push-state">
             <xsl:call-template name="apl:PushState">
                 <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })"/>
@@ -2566,26 +2489,6 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
-<!--                     signup succesfully completed 
-                    <xsl:when test="starts-with($action, resolve-uri('sign up', $apl:base))">
-                        <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
-                        <xsl:for-each select="id($form-id, ixsl:page())/../..">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:call-template name="bs2:SignedUp">
-                                    <xsl:with-param name="created-uri" select="$created-uri"/>
-                                </xsl:call-template>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:when>
-                     access successfully requested 
-                    <xsl:when test="starts-with($action, resolve-uri('request access', $apl:base))">
-                        <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
-                        <xsl:for-each select="id($form-id, ixsl:page())/../..">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <xsl:call-template name="bs2:AccessRequested"/>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:when>-->
                     <!-- render the created resource as a typeahead input -->
                     <xsl:when test="$typeahead-span">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -2635,45 +2538,6 @@ extension-element-prefixes="ixsl"
                 <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <xsl:template name="bs2:SignedUp">
-        <xsl:param name="created-uri" as="xs:anyURI"/>
-        <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <div class="span1">
-                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
-            </div>
-            <div class="span11">
-                <p>Congratulations! Your <a href="{$created-uri}">WebID profile</a> has been created. You can see its data below.</p>
-                <p>
-                    <strong>Authentication details have been sent to your email address.</strong>
-                </p>
-            </div>
-        </div>
-    </xsl:template>
-    
-    <xsl:template name="bs2:AccessRequested">
-        <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <div class="span1">
-                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
-            </div>
-            <div class="span11">
-                <p>Your access request has been created.</p>
-                <p>You will be notified when the administrator approves or rejects it.</p>
-            </div>
-        </div>
     </xsl:template>
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
