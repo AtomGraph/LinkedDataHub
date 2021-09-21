@@ -143,7 +143,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();
-                if (log.isDebugEnabled()) log.debug("Passing $lacl:Agent to XSLT: <{}>", agent);
+                if (log.isDebugEnabled()) log.debug("Passing $acl:Agent to XSLT: <{}>", agent);
                 Source source = getSource(agent.getModel());
                 if (agent.hasProperty(FOAF.isPrimaryTopicOf) && agent.getProperty(FOAF.isPrimaryTopicOf).getObject().isURIResource())
                     source.setSystemId(agent.getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()); // URI accessible via document-uri($lacl:Agent)

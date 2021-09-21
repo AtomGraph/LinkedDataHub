@@ -84,7 +84,11 @@ extension-element-prefixes="ixsl"
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="apl:ontology" as="xs:anyURI"/>
-    <xsl:param name="apl:services" as="document-node()?"/>
+    <xsl:param name="apl:services" as="document-node()?">
+        <xsl:document>
+            <rdf:RDF></rdf:RDF>
+        </xsl:document>
+    </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
     <xsl:param name="search-container-uri" select="resolve-uri('search/', $apl:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
