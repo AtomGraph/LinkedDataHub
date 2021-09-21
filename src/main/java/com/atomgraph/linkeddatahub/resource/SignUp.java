@@ -272,7 +272,9 @@ public class SignUp extends GraphStoreImpl
                     LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
                     sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
-                    return Response.ok().entity(agentModel.add(publicKeyModel)).build(); // don't return 201 Created as we don't want a redirect in client.xsl
+                    return Response.ok().
+                        entity(agentModel.add(publicKeyModel)).
+                        build(); // don't return 201 Created as we don't want a redirect in client.xsl
                 }
             }
         }

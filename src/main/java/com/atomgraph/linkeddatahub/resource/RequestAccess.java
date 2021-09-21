@@ -129,12 +129,12 @@ public class RequestAccess extends GraphStoreImpl
     
     @POST
     @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model requestModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        Resource forClass = model.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-        ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
+        Resource forClass = requestModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+        ResIterator it = requestModel.listResourcesWithProperty(RDF.type, forClass);
         try
         {
             Resource accessRequest = it.next();
@@ -154,7 +154,7 @@ public class RequestAccess extends GraphStoreImpl
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            Response cr = super.post(model, false, null); // don't wrap into try-with-resources because that will close the Response
+            super.post(requestModel, false, null); // don't wrap into try-with-resources because that will close the Response
 
             try
             {
@@ -165,7 +165,9 @@ public class RequestAccess extends GraphStoreImpl
                 if (log.isErrorEnabled()) log.error("Could not send Context creation email to Agent: {}", agent.getURI());
             }
 
-            return cr;
+            return Response.ok().
+                entity(requestModel).
+                build(); // don't return 201 Created as we don't want a redirect in client.xsl
         }
         finally
         {
