@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
+    <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
 <xsl:stylesheet version="2.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -92,13 +94,13 @@ WHERE
                 <li>
                     <div class="btn-group">
                         <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
-                            <xsl:apply-templates select="key('resources', '&acl;Agent', document(ac:document-uri('&acl;')))" mode="apl:logo">
+                            <xsl:apply-templates select="key('resources', '&foaf;Agent', document(ac:document-uri('&foaf;')))" mode="apl:logo">
                                 <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                             </xsl:apply-templates>
                         </button>
                         <ul class="dropdown-menu pull-right">
                             <li>
-                                <xsl:for-each select="key('resources-by-type', '&acl;Agent', $acl:Agent)">
+                                <xsl:for-each select="key('resources-by-type', '&lacl;Agent', $acl:Agent)">
                                     <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                                 </xsl:for-each>
                             </li>

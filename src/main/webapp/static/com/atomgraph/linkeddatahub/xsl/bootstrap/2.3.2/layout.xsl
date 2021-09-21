@@ -563,6 +563,7 @@ exclude-result-prefixes="#all">
 
                     <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">SPARQL editor</a>
                 </li>
+                <!-- overridden in acl/layout.xsl! TO-DO: extract into separate template -->
                 <li>
                     <div class="btn-group">
                         <button type="button" title="{ac:label($acl:Agent//*[@rdf:about][1])}">
