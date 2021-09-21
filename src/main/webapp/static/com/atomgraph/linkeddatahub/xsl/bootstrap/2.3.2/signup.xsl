@@ -100,21 +100,33 @@ exclude-result-prefixes="#all">
     
     <!-- match the first resource, whatever it is -->
     <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Main" priority="3">
-        <div class="alert alert-success row-fluid">
-            <div class="span1">
-                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
-            </div>
-            <div class="span11">
-                <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                <p>
-                    <strong>Authentication details have been sent to your email address.</strong>
-                </p>
-            </div>
-        </div>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
         
-        <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
-        <xsl:apply-templates select="key('resources-by-type', '&cert;RSAPublicKey')[cert:modulus/text()]" mode="bs2:Block"/>
-        <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>
+            <div class="alert alert-success row-fluid">
+                <div class="span1">
+                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+                </div>
+                <div class="span11">
+                    <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
+                    <p>
+                        <strong>Authentication details have been sent to your email address.</strong>
+                    </p>
+                </div>
+            </div>
+
+            <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
+            <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#PublicKey'))[@rdf:about]" mode="bs2:Block"/>
+            <!--<xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>-->
+        </div>
     </xsl:template>
     
     <!-- suppress other resources -->
