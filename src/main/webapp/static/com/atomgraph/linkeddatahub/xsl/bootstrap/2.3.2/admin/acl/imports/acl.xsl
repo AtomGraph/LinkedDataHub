@@ -53,7 +53,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
-    <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource][$acl:mode = '&acl;Control']" mode="bs2:Block" priority="1">
         <xsl:next-match/>
         
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
