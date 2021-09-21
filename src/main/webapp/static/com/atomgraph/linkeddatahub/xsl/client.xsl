@@ -2250,12 +2250,14 @@ extension-element-prefixes="ixsl"
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
 
-        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
-        <xsl:call-template name="apl:LoadContents">
-            <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="content-ids" select="$content-ids"/>
-            <xsl:with-param name="state" select="$state"/>
-        </xsl:call-template>
+        <xsl:if test="$uri">
+            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
+            <xsl:call-template name="apl:LoadContents">
+                <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="content-ids" select="$content-ids"/>
+                <xsl:with-param name="state" select="$state"/>
+            </xsl:call-template>
+        </xsl:if>
 
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
