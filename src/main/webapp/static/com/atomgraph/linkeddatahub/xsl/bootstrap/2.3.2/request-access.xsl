@@ -90,7 +90,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
         
-            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form">
+            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
                 <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
                 <xsl:with-param name="create-resource" select="false()"/>
             </xsl:apply-templates>
@@ -139,7 +139,7 @@ exclude-result-prefixes="#all">
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ou'"/>
             <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="value" select="resolve-uri('acl/authorization-requests/', $apl:base)"/>
+            <xsl:with-param name="value" select="resolve-uri('acl/authorization-requests/', $ldt:base)"/>
         </xsl:call-template>
         <!-- generate AuthorizationRequestItem title -->
         <xsl:call-template name="xhtml:Input">
@@ -206,7 +206,7 @@ exclude-result-prefixes="#all">
         <label>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('../sparql', $apl:base)"/> <!-- end-user endpoint -->
+                <xsl:with-param name="value" select="resolve-uri('../sparql', $ldt:base)"/> <!-- end-user endpoint -->
                 <xsl:with-param name="type" select="'checkbox'"/>
                 <xsl:with-param name="checked" select="true()"/>
             </xsl:call-template>
@@ -217,7 +217,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="lacl:requestAccessToClass/@rdf:*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        <xsl:variable name="classes" select="key('resources', (resolve-uri('../admin/model/ontologies/default/#Root', $apl:base), resolve-uri('../admin/model/ontologies/default/#Container', $apl:base), resolve-uri('../admin/model/ontologies/default/#Item', $apl:base), resolve-uri('../admin/model/ontologies/default/#File', $apl:base)), document(resolve-uri('../admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
+        <xsl:variable name="classes" select="key('resources', (resolve-uri('../admin/model/ontologies/default/#Root', $ldt:base), resolve-uri('../admin/model/ontologies/default/#Container', $ldt:base), resolve-uri('../admin/model/ontologies/default/#Item', $ldt:base), resolve-uri('../admin/model/ontologies/default/#File', $ldt:base)), document(resolve-uri('../admin/model/ontologies/default/', $ldt:base)))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
             <xsl:for-each select="$classes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>

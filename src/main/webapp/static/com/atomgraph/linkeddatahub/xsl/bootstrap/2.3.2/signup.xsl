@@ -92,7 +92,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
         
-            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form">
+            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
                 <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
             </xsl:apply-templates>
         </div>
@@ -112,9 +112,9 @@ exclude-result-prefixes="#all">
             </div>
         </div>
         
-        <xsl:apply-templates select="key('resources-by-type', concat($apl:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
+        <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
         <xsl:apply-templates select="key('resources-by-type', '&cert;RSAPublicKey')[cert:modulus/text()]" mode="bs2:Block"/>
-        <xsl:apply-templates select="key('resources-by-type', concat($apl:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>
+        <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>
     </xsl:template>-->
     
     <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TargetContainer" priority="1"/>
@@ -128,7 +128,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- select the Agent blank node -->
-<!--    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($apl:base, 'ns#Person')]" mode="bs2:Form" priority="2">
+<!--    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($ldt:base, 'ns#Person')]" mode="bs2:Form" priority="2">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
@@ -142,7 +142,7 @@ exclude-result-prefixes="#all">
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ou'"/>
             <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="value" select="resolve-uri('acl/agents/', $apl:base)"/>
+            <xsl:with-param name="value" select="resolve-uri('acl/agents/', $ldt:base)"/>
         </xsl:call-template>
     </xsl:template>
     

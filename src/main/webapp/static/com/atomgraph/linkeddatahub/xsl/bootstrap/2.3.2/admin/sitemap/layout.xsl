@@ -31,7 +31,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[rdf:type/@rdf:resource][foaf:isPrimaryTopicOf/@rdf:resource][$apl:ontology][apl:listSuperClasses(rdf:type/@rdf:resource) = '&lsm;Ontology']" mode="bs2:Actions">
         <xsl:if test="$acl:Agent//@rdf:about">
-            <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $apl:base)]}" method="get">
+            <form class="pull-right" action="{foaf:isPrimaryTopicOf/@rdf:resource[starts-with(., $ldt:base)]}" method="get">
                 <input type="hidden" name="clear"/>
                 <button class="btn btn-primary" type="submit">Clear</button>
             </form>
@@ -43,7 +43,7 @@ exclude-result-prefixes="#all">
     <!-- hide extra class -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&lsm;Class'][not(* except rdf:type)]" mode="bs2:Form" priority="1"/>
     
-    <xsl:template match="*[@rdf:about = resolve-uri('sitemap/ontologies/', $apl:base)] | *[@rdf:about = resolve-uri('model/ontologies/', $apl:base)]" mode="bs2:Right">
+    <xsl:template match="*[@rdf:about = resolve-uri('sitemap/ontologies/', $ldt:base)] | *[@rdf:about = resolve-uri('model/ontologies/', $ldt:base)]" mode="bs2:Right">
         <xsl:if test="$acl:Agent//@rdf:about">
             <div class="well well-small">
                 <h2 class="nav-header">Ontology import</h2>

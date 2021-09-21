@@ -53,7 +53,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
-    <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:next-match/>
         
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
@@ -64,7 +64,7 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
         
-        <form method="post" action="{ac:build-uri(resolve-uri('acl/authorizations/', $apl:base), map{ 'forClass': string(resolve-uri('ns#Authorization', $apl:base)) })}">
+        <form method="post" action="{ac:build-uri(resolve-uri('acl/authorizations/', $ldt:base), map{ 'forClass': string(resolve-uri('ns#Authorization', $ldt:base)) })}">
             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>
@@ -83,7 +83,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('ns#Authorization', $apl:base)"/> <!-- Authorization class URI -->
+                <xsl:with-param name="value" select="resolve-uri('ns#Authorization', $ldt:base)"/> <!-- Authorization class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
@@ -176,7 +176,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('ns#AuthorizationItem', $apl:base)"/> <!-- AuthorizationItem class URI -->
+                <xsl:with-param name="value" select="resolve-uri('ns#AuthorizationItem', $ldt:base)"/> <!-- AuthorizationItem class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
@@ -186,7 +186,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('acl/authorizations/', $apl:base)"/>
+                <xsl:with-param name="value" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">

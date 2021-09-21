@@ -29,7 +29,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:variable name="property" select=".." as="element()"/>
 
-        <xsl:variable name="ontologies-doc" select="document(resolve-uri('ontologies/', $apl:base))" as="document-node()?"/>
+        <xsl:variable name="ontologies-doc" select="document(resolve-uri('ontologies/', $ldt:base))" as="document-node()?"/>
         <xsl:variable name="ontologies" select="key('resources-by-type', '&lsm;Ontology', $ontologies-doc)" as="element()*"/>
         <select name="ou" id="{$id}">
             <xsl:for-each select="$ontologies">
