@@ -72,7 +72,8 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>
+    <!-- currently doesn't work because the client-side does not refresh the bs2:NavBarActions -->
+    <!--<xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>-->
     
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
