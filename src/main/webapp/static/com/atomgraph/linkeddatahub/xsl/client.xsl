@@ -2194,9 +2194,9 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
-        <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <xsl:choose>
             <xsl:when test="starts-with($uri, $apl:base)">
+                <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- unset #uri value -->
                 <xsl:for-each select="id('uri', ixsl:page())">
@@ -2204,6 +2204,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
+                <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- set #uri value -->
                 <xsl:for-each select="id('uri', ixsl:page())">
                     <ixsl:set-property name="value" select="$uri" object="."/>
@@ -2552,7 +2553,7 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
                 </ixsl:schedule-action>-->
                 <xsl:apply-templates select="?body" mode="apl:Document">
-                    <xsl:with-param name="uri" select="$uri"/>
+                    <!--<xsl:with-param name="uri" select="$uri"/>-->
                     <!--<xsl:with-param name="fragment" select="$fragment"/>-->
                     <xsl:with-param name="container-id" select="$container-id"/>
 <!--                    <xsl:with-param name="state" select="$state"/>
