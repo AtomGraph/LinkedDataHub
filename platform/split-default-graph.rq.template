@@ -10,15 +10,15 @@ PREFIX dct:     <http://purl.org/dc/terms/>
 
 CONSTRUCT
 {
-    GRAPH ?graphGraph {
-        [ a sd:NamedGraph ;
-            sd:name ?graph ;
-            foaf:maker <${OWNER_URI}> ;
-            acl:owner <${OWNER_URI}> ;
-            prov:wasAttributedTo <${OWNER_URI}> ;
-            prov:generatedAtTime ?now
-        ]
-    }
+    #GRAPH ?graphGraph {
+    #    [ a sd:NamedGraph ;
+    #        sd:name ?graph ;
+    #        foaf:maker <${OWNER_URI}> ;
+    #        acl:owner <${OWNER_URI}> ;
+    #        prov:wasAttributedTo <${OWNER_URI}> ;
+    #        prov:generatedAtTime ?now
+    #    ]
+    #}
     GRAPH ?graph {
         ?s ?p ?o
     }
@@ -28,6 +28,6 @@ WHERE
     GRAPH ?graph {
         ?s ?p ?o
     }
-    BIND (UUID() AS ?graphGraph)
-    BIND (NOW() AS ?now)
+    #BIND (UUID() AS ?graphGraph)
+    #BIND (NOW() AS ?now)
 }
