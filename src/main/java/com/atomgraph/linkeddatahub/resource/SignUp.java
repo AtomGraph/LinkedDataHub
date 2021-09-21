@@ -187,12 +187,12 @@ public class SignUp extends GraphStoreImpl
     
     @POST
     @Override
-    public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        Resource forClass = model.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-        ResIterator it = model.listResourcesWithProperty(RDF.type, forClass);
+        Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
         try
         {
             Resource agent = it.next();
@@ -245,12 +245,12 @@ public class SignUp extends GraphStoreImpl
                 Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
                 agent.addProperty(Cert.key, publicKey); // add public key
-                model.add(model.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+                agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
                 URI agentGraphUri = URI.create(agent.getURI());
                 agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
                 
-                Response agentResponse = super.post(model, false, agentGraphUri);
+                Response agentResponse = super.post(agentModel, false, agentGraphUri);
                 if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create Agent");
@@ -272,7 +272,7 @@ public class SignUp extends GraphStoreImpl
                     LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
                     sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
 
-                    return agentResponse;
+                    return Response.ok().entity(agentModel.add(publicKeyModel)).build(); // don't return 201 Created as we don't want a redirect in client.xsl
                 }
             }
         }
@@ -282,7 +282,7 @@ public class SignUp extends GraphStoreImpl
         }
         catch (IllegalArgumentException ex)
         {
-            throw new SkolemizationException(ex, model);
+            throw new SkolemizationException(ex, agentModel);
         }
         catch (Exception ex)
         {

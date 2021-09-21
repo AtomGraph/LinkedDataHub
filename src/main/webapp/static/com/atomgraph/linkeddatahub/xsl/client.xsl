@@ -2556,7 +2556,7 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 201 and ?headers?location">
                 <xsl:variable name="created-uri" select="?headers?location" as="xs:anyURI"/>
                 <xsl:choose>
-                    <!-- signup succesfully completed -->
+<!--                     signup succesfully completed 
                     <xsl:when test="starts-with($action, resolve-uri('sign up', $apl:base))">
                         <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                         <xsl:for-each select="id($form-id, ixsl:page())/../..">
@@ -2567,7 +2567,7 @@ extension-element-prefixes="ixsl"
                             </xsl:result-document>
                         </xsl:for-each>
                     </xsl:when>
-                    <!-- access successfully requested -->
+                     access successfully requested 
                     <xsl:when test="starts-with($action, resolve-uri('request access', $apl:base))">
                         <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                         <xsl:for-each select="id($form-id, ixsl:page())/../..">
@@ -2575,7 +2575,7 @@ extension-element-prefixes="ixsl"
                                 <xsl:call-template name="bs2:AccessRequested"/>
                             </xsl:result-document>
                         </xsl:for-each>
-                    </xsl:when>
+                    </xsl:when>-->
                     <!-- render the created resource as a typeahead input -->
                     <xsl:when test="$typeahead-span">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
