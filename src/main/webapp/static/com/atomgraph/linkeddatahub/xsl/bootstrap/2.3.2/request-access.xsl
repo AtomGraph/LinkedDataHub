@@ -100,25 +100,31 @@ exclude-result-prefixes="#all">
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
     <!-- match the first resource, whatever it is -->
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Main" priority="3">
-        <xsl:param name="class" select="'alert alert-success row-fluid offset2 span7'" as="xs:string?"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
         <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
-            
-            <div class="span1">
-                <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
-            </div>
-            <div class="span11">
-                <p>Your access request has been created.</p>
-                <p>You will be notified when the administrator approves or rejects it.</p>
+
+            <div class="alert alert-success row-fluid ">
+                <div class="span1">
+                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
+                </div>
+                <div class="span11">
+                    <p>Your access request has been created.</p>
+                    <p>You will be notified when the administrator approves or rejects it.</p>
+                </div>
             </div>
         </div>
     </xsl:template>
 
     <!-- suppress other resources -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2"/>
+    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2"/>
 
     <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TargetContainer" priority="2"/>
     
