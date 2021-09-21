@@ -2133,14 +2133,14 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
                 </xsl:otherwise>
             </xsl:choose>
-        </xsl:if>
-        
-        <xsl:if test="$push-state">
-            <xsl:call-template name="apl:PushState">
-                <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })"/>
-                <xsl:with-param name="title" select="title"/>
-                <xsl:with-param name="container-id" select="$container-id"/>
-            </xsl:call-template>
+
+            <xsl:if test="$push-state">
+                <xsl:call-template name="apl:PushState">
+                    <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })"/>
+                    <xsl:with-param name="title" select="title"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                </xsl:call-template>
+            </xsl:if>
         </xsl:if>
 
         <!-- set document.title which history.pushState() does not do -->
