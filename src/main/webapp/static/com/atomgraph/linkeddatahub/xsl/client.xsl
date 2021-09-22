@@ -3209,9 +3209,11 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="if (not(starts-with($uri, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string($uri) }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onDelete"/>
-        </ixsl:schedule-action>
+        <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ 'Are you sure?' ])">
+            <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onDelete"/>
+            </ixsl:schedule-action>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="div[tokenize(@class, ' ') = 'modal']//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
