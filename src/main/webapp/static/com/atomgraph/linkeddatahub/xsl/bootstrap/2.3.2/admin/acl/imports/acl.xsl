@@ -56,8 +56,13 @@ exclude-result-prefixes="#all">
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
     <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string(resolve-uri('ns#Authorization', $ldt:base)) })" as="xs:anyURI"/>
-        
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/> <!-- TO-DO: override with "multipart/form-data" for File instances -->
+
         <xsl:next-match/>
         
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
@@ -69,7 +74,20 @@ exclude-result-prefixes="#all">
         </xsl:if>
         
         <!-- .form-horizontal is required so that client.xsl can match this form and intercept its onsubmit event -->
-        <form method="post" class="form-horizontal" action="{$action}">
+        <form method="{$method}" action="{$action}">
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$accept-charset">
+                <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$enctype">
+                <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+            </xsl:if>
+            
             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>
