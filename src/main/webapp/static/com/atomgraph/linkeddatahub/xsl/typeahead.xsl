@@ -97,12 +97,9 @@ version="3.0"
         
         <!-- if the value hasn't changed during the delay -->
         <xsl:if test="$query = $element/ixsl:get(., 'value')">
-            <!--<xsl:value-of select="ixsl:call(ixsl:window(), $js-function, [ ixsl:event(), $uri, $callback ])"/>-->
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="typeahead:xml-loaded">
-                    <!--<xsl:with-param name="action" select="$callback" as="function(*)" />-->
                     <xsl:with-param name="element" select="$element" as="element()"/>
-                    <xsl:with-param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
                     <xsl:with-param name="resource-types" select="$resource-types"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -113,7 +110,6 @@ version="3.0"
         <xsl:context-item as="map(*)" use="required"/>
         
         <xsl:param name="element" as="element()"/>
-        <xsl:param name="container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI*"/>
         
         <xsl:variable name="menu" select="$element/following-sibling::ul" as="element()"/>
@@ -121,6 +117,7 @@ version="3.0"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
+                    <!-- TO-DO: is this actually used? -->
                     <xsl:if test="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.typeahead'))">
                         <ixsl:set-property name="LinkedDataHub.typeahead" select="[]"/> <!-- empty array -->
                     </xsl:if>
@@ -129,7 +126,7 @@ version="3.0"
                     <xsl:call-template name="typeahead:process">
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
-                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about[not(. = $container-uri)]]"/>
+                        <xsl:with-param name="items" select="rdf:RDF/*[@rdf:about]"/>
                         <xsl:with-param name="resource-types" select="$resource-types"/>
                         <xsl:with-param name="element" select="$element"/>
                         <xsl:with-param name="name" select="'ou'"/>
