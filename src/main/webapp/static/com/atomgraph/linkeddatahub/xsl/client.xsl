@@ -3027,7 +3027,8 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="element" select="."/>
                         <xsl:with-param name="query" select="ixsl:get(., 'value')"/>
                         <xsl:with-param name="uri" select="$results-uri"/>
-                        <xsl:with-param name="resource-types" select="$resource-types"/>
+                        <!-- we don't want to use rdfs:Resource as a type because a filter in typeahead:process would not select any resources with this type -->
+                        <xsl:with-param name="resource-types" select="$resource-types[not(. = '&rdfs;Resource')]"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
