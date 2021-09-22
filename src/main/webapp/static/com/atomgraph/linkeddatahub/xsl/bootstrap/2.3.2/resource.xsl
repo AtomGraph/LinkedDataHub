@@ -291,6 +291,9 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:Block"/>
         </div>
+        
+        <!-- apply contents of this type's apl:template annotation property -->
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
     
     <!-- LEFT NAV -->
@@ -330,7 +333,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK -->
     
     <!-- match instances that have an apl:content property OR instances of types that have an an apl:template annotation property -->
-    <xsl:template match="*[apl:content/@rdf:resource] | *[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="bs2:Block">
+<!--    <xsl:template match="*[apl:content/@rdf:resource] | *[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="bs2:Block">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" as="xs:string?"/>
 
@@ -341,7 +344,7 @@ extension-element-prefixes="ixsl"
         
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- HEADER -->
 
