@@ -54,6 +54,8 @@ exclude-result-prefixes="#all">
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
     <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string(resolve-uri('ns#Authorization', $ldt:base)) })" as="xs:anyURI"/>
+        
         <xsl:next-match/>
         
         <xsl:if test="lacl:requestMode/@rdf:resource = '&acl;Control'">
@@ -64,7 +66,8 @@ exclude-result-prefixes="#all">
             </div>
         </xsl:if>
         
-        <form method="post" action="{ac:build-uri(resolve-uri('acl/authorizations/', $ldt:base), map{ 'forClass': string(resolve-uri('ns#Authorization', $ldt:base)) })}">
+        <!-- .form-horizontal is required so that client.xsl can match this form and intercept its onsubmit event -->
+        <form method="post" class="form-horizontal" action="{$action}">
             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'rdf'"/>
