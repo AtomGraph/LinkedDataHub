@@ -272,7 +272,7 @@ extension-element-prefixes="ixsl"
         </div>
         
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
-        <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+        <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
     
     <!-- MAIN -->
@@ -291,9 +291,6 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:Block"/>
         </div>
-        
-        <!-- apply contents of this type's apl:template annotation property -->
-        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
     
     <!-- LEFT NAV -->
@@ -329,23 +326,7 @@ extension-element-prefixes="ixsl"
             <!--<xsl:apply-templates mode="#current"/>-->
         </div>
     </xsl:template>
-    
-    <!-- BLOCK -->
-    
-    <!-- match instances that have an apl:content property OR instances of types that have an an apl:template annotation property -->
-<!--    <xsl:template match="*[apl:content/@rdf:resource] | *[rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]]" mode="bs2:Block">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
 
-        <xsl:next-match>
-            <xsl:with-param name="id" select="$id"/>
-            <xsl:with-param name="class" select="$class"/>
-        </xsl:next-match>
-        
-        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
-        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
-    </xsl:template>-->
-    
     <!-- HEADER -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
