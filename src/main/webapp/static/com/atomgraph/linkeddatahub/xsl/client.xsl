@@ -2544,7 +2544,7 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         
         <xsl:choose>
-            <xsl:when test="?status = 204'"> <!-- No Content -->
+            <xsl:when test="?status = 204"> <!-- No Content -->
                 <xsl:variable name="resource-uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
                 <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$resource-uri"/></xsl:message>
                 <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
