@@ -2540,6 +2540,31 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template name="onDelete">
+        <xsl:context-item as="map(*)" use="required"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 204'"> <!-- No Content -->
+                <xsl:variable name="resource-uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
+                <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$resource-uri"/></xsl:message>
+                <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDocumentLoad">
+                        <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:when>
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="control-groups" select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
@@ -3177,6 +3202,15 @@ extension-element-prefixes="ixsl"
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddForm"/>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
+    <xsl:template match="button[tokenize(@class, ' ') = 'btn-delete'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+        <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string($uri) }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onDelete"/>
         </ixsl:schedule-action>
     </xsl:template>
     
