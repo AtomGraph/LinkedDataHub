@@ -13,13 +13,9 @@
     <> a def:Root ;
         dct:title "Root" ;
         dct:description "Root container" ;
-        apl:content <#content1> .
+        apl:content <#content> .
 
-    <#content1> a apl:Content ;
-        rdf:first <queries/default/select-geo-resources/#this> ;
-        rdf:rest <#content2> .
-
-    <#content2> a apl:Content ;
+    <#content> a apl:Content ;
         rdf:first """<div xmlns=\"http://www.w3.org/1999/xhtml\">
     <h2>Content</h2>
     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris malesuada eget justo tempus dictum. In sed velit vel mauris pellentesque aliquet. Quisque nec nulla cursus dolor auctor laoreet in non justo. In varius porttitor luctus. Curabitur lobortis urna a nisl eleifend aliquet. Maecenas dignissim pellentesque metus vel tincidunt. Nam vehicula malesuada odio, ut iaculis sem aliquet in. Curabitur suscipit nisi non ante malesuada, non sodales ipsum lobortis. Praesent id porttitor ligula. Suspendisse efficitur rutrum enim in laoreet.</p>
