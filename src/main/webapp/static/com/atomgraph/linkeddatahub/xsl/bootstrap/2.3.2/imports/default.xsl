@@ -629,6 +629,7 @@ exclude-result-prefixes="#all"
     
     <!-- blank nodes that only have rdf:type xsd:* and no other properties become literal inputs -->
     <!-- TO-DO: expand pattern to handle other XSD datatypes -->
+    <!-- TO-DO: move to Web-Client -->
     <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[starts-with(@rdf:resource, '&xsd;')])]]" mode="bs2:FormControl" priority="2">
         <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
@@ -651,6 +652,11 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="value" select="key('resources', .)/rdf:type/@rdf:resource"/>
         </xsl:call-template>
+        
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- blank nodes that only have non-XSD rdf:type and no other properties become resource typeaheads -->
