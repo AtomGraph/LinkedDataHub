@@ -109,7 +109,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="sioc:email/@rdf:" mode="bs2:FormControlTypeLabel">
+    <xsl:template match="sioc:email/@rdf:*" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
