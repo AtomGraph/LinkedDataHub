@@ -710,26 +710,33 @@ exclude-result-prefixes="#all"
         <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <xsl:if test="not($type = 'hidden') and $type-label">
-            <span class="help-inline">
-                <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri($forClass))">
+            <xsl:choose>
+                <xsl:when test="$forClass">
+                    <span class="help-inline">
                         <xsl:choose>
-                            <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                </xsl:value-of>
+                            <xsl:when test="doc-available(ac:document-uri($forClass))">
+                                <xsl:choose>
+                                    <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
+                                    <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                        </xsl:value-of>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="$forClass"/>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="$forClass"/>
                             </xsl:otherwise>
                         </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$forClass"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </span>
+                    </span>
+                </xsl:when>
+                <xsl:otherwise>
+                    <span class="help-inline">Resource</span>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:if>
     </xsl:template>
     
