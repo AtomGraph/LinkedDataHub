@@ -3431,10 +3431,12 @@ extension-element-prefixes="ixsl"
                                 </xsl:result-document>
                             </xsl:for-each>
                             
-                            <!-- add event listeners to the descendants of the form -->
-                            <xsl:call-template name="add-form-listeners">
-                                <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
-                            </xsl:call-template>
+                            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+                            <xsl:if test="id($form-id, ixsl:page())">
+                                <xsl:call-template name="add-form-listeners">
+                                    <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
+                                </xsl:call-template>
+                            </xsl:if>
                             
                             <xsl:if test="$new-target-id">
                                 <!-- overwrite target-id input's value with the provided value -->
@@ -3496,10 +3498,12 @@ extension-element-prefixes="ixsl"
                                 </xsl:otherwise>
                             </xsl:choose>
                             
-                            <!-- add event listeners to the descendants of the form -->
-                            <xsl:call-template name="add-form-listeners">
-                                <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
-                            </xsl:call-template>
+                            <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
+                            <xsl:if test="id($form-id, ixsl:page())">
+                                <xsl:call-template name="add-form-listeners">
+                                    <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
+                                </xsl:call-template>
+                            </xsl:if>
                     
                             <xsl:if test="$new-target-id">
                                 <!-- overwrite target-id input's value with the provided value -->
