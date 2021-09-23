@@ -179,9 +179,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
         
-        <xsl:if test="$type-label">
-            <span class="help-inline">Resource</span>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="lacl:requestAgent[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">

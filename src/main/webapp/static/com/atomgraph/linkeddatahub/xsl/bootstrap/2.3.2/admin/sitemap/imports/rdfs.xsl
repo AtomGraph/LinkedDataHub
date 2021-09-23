@@ -24,28 +24,6 @@ exclude-result-prefixes="#all">
 
     <xsl:preserve-space elements="rdfs:comment"/>
     
-    <!--
-    <xsl:template match="rdfs:isDefinedBy/@rdf:*" mode="bs2:FormControl" priority="1">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:variable name="property" select=".." as="element()"/>
-
-        <xsl:variable name="ontologies-doc" select="document(resolve-uri('ontologies/', $ldt:base))" as="document-node()?"/>
-        <xsl:variable name="ontologies" select="key('resources-by-type', '&lsm;Ontology', $ontologies-doc)" as="element()*"/>
-        <select name="ou" id="{$id}">
-            <xsl:for-each select="$ontologies">
-                <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
-                <xsl:apply-templates select="." mode="xhtml:Option">
-                    <xsl:with-param name="selected" select="@rdf:about =  $property/@rdf:resource"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-        </select>
-
-        <span class="help-inline">Resource</span>
-    </xsl:template>
-    
-    <xsl:template match="rdfs:isDefinedBy[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
-    -->
-    
     <xsl:template match="rdfs:comment/text()" mode="bs2:FormControl">
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         
@@ -53,16 +31,9 @@ exclude-result-prefixes="#all">
             <xsl:value-of select="."/>
         </textarea>
 
-        <xsl:if test="$type-label">
-            <xsl:choose>
-                <xsl:when test="../@rdf:datatype">
-                    <xsl:apply-templates select="../@rdf:datatype"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <span class="help-inline">Literal</span>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
 
 </xsl:stylesheet>

@@ -330,14 +330,6 @@ exclude-result-prefixes="#all"
                                 </xsl:apply-templates>
                                 <xsl:text> </xsl:text>
                             </span>
-                            <!--
-                            <input type="checkbox" value="auto">
-                                <xsl:if test="$auto">
-                                    <xsl:attribute name="checked">checked</xsl:attribute>
-                                </xsl:if>
-                            </input>
-                            <span class="help-inline">Auto</span>
-                            -->
                         </div>
                     </div>
                 <!-- </fieldset> -->
@@ -535,20 +527,11 @@ exclude-result-prefixes="#all"
                                     </xsl:otherwise>
                                 </xsl:choose>
                             
-                                <xsl:if test="not($type = 'hidden') and $type-label">
-                                    <span class="help-inline">
-                                        <xsl:choose>
-                                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
-                                                <xsl:value-of>
-                                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                                </xsl:value-of>
-                                            </xsl:when>
-                                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
-                                                <xsl:value-of select="$forClass"/>
-                                            </xsl:otherwise>
-                                        </xsl:choose>
-                                    </span>
-                                </xsl:if>
+                                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                                    <xsl:with-param name="type" select="$type"/>
+                                    <xsl:with-param name="type-label" select="$type-label"/>
+                                    <xsl:with-param name="forClass" select="$forClass"/>
+                                </xsl:apply-templates>
                             </xsl:if>
                         </xsl:if>
                     </xsl:when>
@@ -565,13 +548,42 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
                 
-                <xsl:if test="not($type = 'hidden') and $type-label">
-                    <span class="help-inline">Resource</span>
-                </xsl:if>
+                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="type-label" select="$type-label"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
 
+    <xsl:template match="@rdf:resource" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" as="xs:boolean"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <xsl:choose>
+                <xsl:when test="$forClass">
+                    <span class="help-inline">
+                        <xsl:choose>
+                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))"> <!-- server-side Saxon has access to the sitemap ontology -->
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </xsl:when>
+                            <xsl:otherwise> <!-- client-side Saxon-JS does not have access to the sitemap ontology -->
+                                <xsl:value-of select="$forClass"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </span>
+                </xsl:when>
+                <xsl:otherwise>
+                    <span class="help-inline">Resource</span>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- object blank node -->
     <xsl:template match="*[@rdf:about]/*/@rdf:nodeID | *[@rdf:nodeID]/*/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
@@ -607,9 +619,10 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:apply-templates>
                 
-                <xsl:if test="not($type = 'hidden') and $type-label">
-                    <span class="help-inline">Resource</span>
-                </xsl:if>
+                <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                    <xsl:with-param name="type" select="$type"/>
+                    <xsl:with-param name="type-label" select="$type-label"/>
+                </xsl:apply-templates>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -677,6 +690,18 @@ exclude-result-prefixes="#all"
                 <input type="hidden" class="forClass" value="{$forClass}"/> <!-- required by ?Type FILTER -->
             </xsl:otherwise>
         </xsl:choose>
+
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" as="xs:boolean"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
 
         <xsl:if test="not($type = 'hidden') and $type-label">
             <span class="help-inline">

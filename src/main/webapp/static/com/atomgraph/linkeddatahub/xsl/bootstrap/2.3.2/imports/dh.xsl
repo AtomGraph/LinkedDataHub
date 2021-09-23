@@ -56,28 +56,11 @@ exclude-result-prefixes="#all">
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
-            <span class="help-inline">
-                <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri($forClass))">
-                        <xsl:choose>
-                            <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$forClass"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$forClass"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </span>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+        </xsl:apply-templates>
     </xsl:template>
     
 </xsl:stylesheet>

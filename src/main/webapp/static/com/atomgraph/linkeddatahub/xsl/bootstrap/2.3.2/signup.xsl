@@ -187,9 +187,9 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
         
-        <xsl:if test="$type-label">
-            <span class="help-inline">Resource</span>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
         
     <!-- change foaf:mbox object type from resource to literal -->
@@ -207,6 +207,16 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
         </xsl:call-template>
+
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="foaf:mbox/@rdf:*" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <xsl:if test="not($type = 'hidden') and $type-label">
             <span class="help-inline">Literal</span>
@@ -243,9 +253,10 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="disabled" select="$disabled"/>
                     </xsl:call-template>
 
-                    <xsl:if test="$type-label">
-                        <span class="help-inline">Literal</span>
-                    </xsl:if>
+                    <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+                        <xsl:with-param name="type" select="$type"/>
+                        <xsl:with-param name="type-label" select="$type-label"/>
+                    </xsl:apply-templates>
                 </div>
             </div>
         </fieldset>
@@ -254,6 +265,15 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="../../@rdf:about | ../../@rdf:nodeID" mode="#current">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
+    </xsl:template>
+    
+    <xsl:template match="foaf:member/@rdf:*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <span class="help-inline">Literal</span>
+        </xsl:if>
     </xsl:template>
     
     <!-- make properties required -->

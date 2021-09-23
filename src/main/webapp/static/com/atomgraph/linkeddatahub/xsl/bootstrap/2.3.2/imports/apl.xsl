@@ -33,7 +33,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
 
-        <span class="help-inline">Resource</span>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
     </xsl:template>
     
 </xsl:stylesheet>

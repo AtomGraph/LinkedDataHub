@@ -32,7 +32,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="class" select="$class"/>
         </xsl:call-template>
         
-        <span class="help-inline">Upload</span>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
     </xsl:template>
 
     <xsl:template match="nfo:fileName/@rdf:datatype" mode="bs2:FormControl">
@@ -40,5 +40,14 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:next-match>
     </xsl:template>
-     
+
+    <xsl:template match="nfo:fileName/text() | *[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <span class="help-inline">Upload</span>
+        </xsl:if>
+    </xsl:template>
+    
 </xsl:stylesheet>

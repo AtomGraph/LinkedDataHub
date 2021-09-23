@@ -50,7 +50,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </select>
 
-        <span class="help-inline">Resource</span>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel"/>
     </xsl:template>
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>

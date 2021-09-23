@@ -82,33 +82,18 @@ exclude-result-prefixes="#all">
             </xsl:otherwise>
         </xsl:choose>
 
-        <xsl:if test="not($type = 'hidden') and $type-label">
-            <span class="help-inline">
-                <xsl:choose>
-                    <xsl:when test="doc-available(ac:document-uri($forClass))">
-                        <xsl:choose>
-                            <xsl:when test="$forClass = '&rdfs;Resource'">Resource</xsl:when>
-                            <xsl:when test="doc-available(ac:document-uri($forClass)) and key('resources', $forClass, document(ac:document-uri($forClass)))">
-                                <xsl:value-of>
-                                    <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                                </xsl:value-of>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of select="$forClass"/>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="$forClass"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </span>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+            <xsl:with-param name="forClass" select="$forClass"/>
+        </xsl:apply-templates>
     </xsl:template>
 
     <xsl:template match="sioc:email/@rdf:*"  mode="bs2:FormControl">
+        <xsl:param name="type" select="'text'" as="xs:string"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'ol'"/>
@@ -117,7 +102,20 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="class" select="$class"/>
             <xsl:with-param name="value" select="substring-after(., 'mailto:')"/>
         </xsl:call-template>
-        <span class="help-inline">Literal</span>
+        
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
+    <xsl:template match="sioc:email/@rdf:" mode="bs2:FormControlTypeLabel">
+        <xsl:param name="type" as="xs:string?"/>
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <xsl:if test="not($type = 'hidden') and $type-label">
+            <span class="help-inline">Literal</span>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="sioc:content[@rdf:parseType = 'Literal']" mode="bs2:PropertyList"/>

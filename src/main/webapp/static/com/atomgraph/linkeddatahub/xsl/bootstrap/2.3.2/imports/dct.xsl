@@ -108,9 +108,9 @@ exclude-result-prefixes="#all">
             </optgroup>
         </select>
         
-        <xsl:if test="$type-label">
-            <span class="help-inline">Resource</span>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
      
 </xsl:stylesheet>
