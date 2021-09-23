@@ -268,7 +268,7 @@ ORDER BY ?title
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
-SELECT DISTINCT  ?auth ?agent
+SELECT DISTINCT  ?agent
 WHERE
 { GRAPH ?authGraph
   { ?this  foaf:primaryTopic  ?auth .
@@ -289,7 +289,7 @@ WHERE
 PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 
-SELECT DISTINCT  ?auth ?accessTo
+SELECT DISTINCT  ?accessTo
 WHERE
 { GRAPH ?authGraph
   { ?this  foaf:primaryTopic  ?auth .
