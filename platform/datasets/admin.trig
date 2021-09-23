@@ -596,7 +596,7 @@
 
     nsdd:Root a adm:Class ;
         rdfs:subClassOf sioc:Space, dh:Container ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingTitle ; # roots do not have parents, therefore no nsdd:MissingParent
         apl:template nsdd:ContainerChildren ;
         rdfs:label "Root" ;
@@ -604,7 +604,7 @@
 
     nsdd:Container a adm:Class ;
         rdfs:subClassOf dh:Container ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingParent, nsdd:MissingTitle ;
         apl:template nsdd:ContainerChildren ;
         rdfs:label "Container" ;
@@ -618,14 +618,14 @@
 
     nsdd:Item a adm:Class ;
         rdfs:subClassOf dh:Item ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor, nsdd:ContentConstructor ;
         spin:constraint nsdd:MissingContainer ;
         rdfs:label "Item" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:GenericService a adm:Class ;
         rdfs:subClassOf apl:GenericService ;
-        spin:constructor nsdd:TitleConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "Generic service" ;
         rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
@@ -633,7 +633,7 @@
 
     nsdd:DydraService a adm:Class ;
         rdfs:subClassOf apl:DydraService ;
-        spin:constructor nsdd:TitleConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "Dydra service" ;
         rdfs:comment "Dydra cloud repository" ;
@@ -641,63 +641,63 @@
 
     nsdd:File a adm:Class ;
         rdfs:subClassOf apl:File ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "File" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:Construct a adm:Class ;
         rdfs:subClassOf apl:Construct ;
-        spin:constructor nsdd:TitleConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "CONSTRUCT" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:Describe a adm:Class ;
         rdfs:subClassOf apl:Describe ;
-        spin:constructor nsdd:TitleConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "DESCRIBE" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:Select a adm:Class ;
         rdfs:subClassOf apl:Select ;
-        spin:constructor nsdd:TitleConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "SELECT" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:Ask a adm:Class ;
         rdfs:subClassOf apl:Ask ;
-        spin:constructor nsdd:TitleConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "ASK" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:RDFImport a adm:Class ;
         rdfs:subClassOf apl:RDFImport ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "RDF import" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:CSVImport a adm:Class ;
         rdfs:subClassOf apl:CSVImport ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "CSV import" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:GraphChart a adm:Class ;
         rdfs:subClassOf apl:GraphChart ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "Graph chart" ;
         rdfs:isDefinedBy nsdd: .
 
     nsdd:ResultSetChart a adm:Class ;
         rdfs:subClassOf apl:ResultSetChart ;
-        spin:constructor nsdd:TitleConstructor, nsdd:ContentConstructor ;
+        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
         spin:constraint nsdd:MissingTitle ;
         rdfs:label "Result set chart" ;
         rdfs:isDefinedBy nsdd: .
