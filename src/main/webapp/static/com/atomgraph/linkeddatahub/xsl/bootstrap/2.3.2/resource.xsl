@@ -668,13 +668,11 @@ extension-element-prefixes="ixsl"
     <!-- turn off default form controls for rdf:type as we are handling it specially with bs2:TypeControl -->
     <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:FormControl" priority="1"/>
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:FormControl" priority="1">
+<!--    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="legend" select="false()"/>
         </xsl:next-match>
-        
-        <!--<xsl:apply-templates select="." mode="bs2:ContentControl"/>-->
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:FormControl">
         <xsl:param name="id" select="concat('form-control-', generate-id())" as="xs:string?"/>
