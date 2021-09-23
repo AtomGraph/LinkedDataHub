@@ -3514,9 +3514,7 @@ extension-element-prefixes="ixsl"
                         </xsl:otherwise>
                     </xsl:choose>
 
-                    <xsl:for-each select="ixsl:page()//body">
-                        <ixsl:set-style name="cursor" select="'default'"/>
-                    </xsl:for-each>
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -3627,6 +3625,8 @@ extension-element-prefixes="ixsl"
 <!--                        <xsl:call-template name="add-value-listeners">
                             <xsl:with-param name="id" select="$new-control-group//input[@name = ('ob', 'ou', 'ol')]/@id"/>
                         </xsl:call-template>-->
+                        
+                        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
