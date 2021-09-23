@@ -2467,23 +2467,25 @@ extension-element-prefixes="ixsl"
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
-            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
-<!--                 trim the query string if it's present 
-                <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
-                 reload resource 
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>-->
-                <xsl:apply-templates select="?body" mode="apl:Document">
-                    <!--<xsl:with-param name="uri" select="$uri"/>-->
-                    <!--<xsl:with-param name="fragment" select="$fragment"/>-->
-                    <xsl:with-param name="container-id" select="$container-id"/>
-<!--                    <xsl:with-param name="state" select="$state"/>
-                    <xsl:with-param name="push-state" select="$push-state"/>-->
-                </xsl:apply-templates>
+            <xsl:when test="?status = 200">
+                <xsl:choose>
+                    <xsl:when test="?media-type = 'application/xhtml+xml'">
+                        <xsl:apply-templates select="?body" mode="apl:Document">
+                            <xsl:with-param name="container-id" select="$container-id"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <!--trim the query string if it's present--> 
+                        <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
+                         <!--reload resource--> 
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <xsl:call-template name="onDocumentLoad">
+                                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <!-- POST created new resource successfully -->
             <xsl:when test="?status = 201 and ?headers?location">
