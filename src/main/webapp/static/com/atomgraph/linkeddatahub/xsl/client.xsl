@@ -3163,6 +3163,8 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onAddValueCallback">
                 <xsl:with-param name="forClass" select="$forClass"/>
