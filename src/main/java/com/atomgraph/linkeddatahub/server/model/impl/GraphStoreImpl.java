@@ -27,7 +27,6 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
@@ -82,66 +81,49 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
-        if (model.isEmpty()) return Response.noContent().build();
-        
-        if (defaultGraph)
+        // neither default graph nor named graph specified -- obtain named graph URI from the forClass-typed resource
+        if (!defaultGraph && graphUri == null)
         {
-            if (log.isDebugEnabled()) log.debug("POST Model to default graph");
-            getDatasetAccessor().add(model);
-            return Response.ok().build();
-        }
-        else
-        {
-            final boolean existingGraph;
-            if (graphUri != null) existingGraph = getDatasetAccessor().containsModel(graphUri.toString());
-            else
+            try
             {
-                existingGraph = false;
-  
-                final URI forClass;
-                try
-                {
-                    if (getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
-                        forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-                    else
-                        throw new BadRequestException("aplt:ForClass parameter not provided");
-                    
-                    return post(model, forClass);
-                }
-                catch (URISyntaxException ex)
-                {
-                    throw new BadRequestException(ex);
-                }
+                if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
+                    throw new BadRequestException("aplt:ForClass parameter not provided");
+                
+                URI forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+                Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
+                if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+                graphUri = URI.create(instance.getURI());
+                graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+                return super.post(model, false, graphUri);
             }
-
-            // is this implemented correctly? The specification is not very clear.
-            if (log.isDebugEnabled()) log.debug("POST Model to named graph with URI: {} Did it already exist? {}", graphUri, existingGraph);
-            getDatasetAccessor().add(graphUri.toString(), model);
-
-            if (existingGraph) return Response.ok().build();
-            else return Response.created(graphUri).build();
+            catch (URISyntaxException ex)
+            {
+                throw new BadRequestException(ex);
+            }
         }
-    }
-
-    public Response post(Model model, URI forClass)
-    {
-        Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-        if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
         
-        try
-        {
-            URI graphUri = URI.create(instance.getURI());
-            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-            super.post(model, false, graphUri);
-            return Response.created(graphUri).entity(model).build();
-        }
-        catch (URISyntaxException ex)
-        {
-            // shouldn't happen
-            throw new InternalServerErrorException(ex);
-        }
+        return super.post(model, false, graphUri);
     }
- 
+//
+//    public Response post(Model model, URI forClass)
+//    {
+//        Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
+//        if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+//        
+//        try
+//        {
+//            URI graphUri = URI.create(instance.getURI());
+//            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+//            super.post(model, false, graphUri);
+//            return Response.created(graphUri).entity(model).build();
+//        }
+//        catch (URISyntaxException ex)
+//        {
+//            // shouldn't happen
+//            throw new InternalServerErrorException(ex);
+//        }
+//    }
+// 
     @PATCH
     public Response patch(UpdateRequest updateRequest)
     {
