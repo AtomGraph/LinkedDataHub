@@ -32,6 +32,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -124,7 +125,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
 
-    @POST
+    @PUT
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
