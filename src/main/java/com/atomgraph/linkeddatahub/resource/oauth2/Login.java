@@ -200,7 +200,8 @@ public class Login extends GraphStoreImpl
                     accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(accountModel);
 
                     Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.UserAccount.getLocalName());
-                    Response userAccountResponse = super.post(accountModel, URI.create(userAccountForClass.getURI()));
+                    URI userAccountGraphUri = URI.create(getCreatedDocument(accountModel, userAccountForClass).getURI());
+                    Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
@@ -208,7 +209,6 @@ public class Login extends GraphStoreImpl
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                    URI userAccountGraphUri = userAccountResponse.getLocation();
                     accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
                     userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 

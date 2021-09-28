@@ -233,14 +233,14 @@ public class SignUp extends GraphStoreImpl
                 publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(publicKeyModel);
 
                 Resource publicKeyForClass = ResourceFactory.createResource(forClass.getNameSpace() + LACL.PublicKey.getLocalName());
-                Response publicKeyResponse = super.post(publicKeyModel, URI.create(publicKeyForClass.getURI()));
+                URI publicKeyGraphUri = URI.create(getCreatedDocument(publicKeyModel, publicKeyForClass).getURI());
+                Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
                     throw new WebApplicationException("Cannot create PublicKey");
                 }
 
-                URI publicKeyGraphUri = publicKeyResponse.getLocation();
                 publicKeyModel = (Model)super.get(false, publicKeyGraphUri).getEntity();
                 Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 

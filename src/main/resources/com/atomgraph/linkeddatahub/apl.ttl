@@ -418,7 +418,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Content a rdfs:Class, owl:Class ;
     rdfs:subClassOf rdf:List ;
-    ldt:path "" ;
     ldt:fragment "{slug}" ;
     rdfs:label "Content" ;
     spin:constructor :ContentConstructor ;
