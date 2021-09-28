@@ -113,7 +113,6 @@ public class SignUp extends GraphStoreImpl
 
     private final URI uri;
     private final Application application;
-    private final Ontology ontology;
     private final Model countryModel;
     private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
@@ -125,10 +124,10 @@ public class SignUp extends GraphStoreImpl
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            Optional<Ontology> ontology, Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
@@ -136,7 +135,6 @@ public class SignUp extends GraphStoreImpl
         
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
-        this.ontology = ontology.get();
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -387,11 +385,6 @@ public class SignUp extends GraphStoreImpl
         return application;
     }
     
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-
     public int getValidityDays()
     {
         return validityDays;

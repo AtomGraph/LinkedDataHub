@@ -55,19 +55,17 @@ public class Clone extends GraphStoreImpl
 
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final Ontology ontology;
     private final DataManager dataManager;
     
     @Inject
-    public Clone(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Clone(@Context UriInfo uriInfo, @Context Request request, Optional<Ontology> ontology, Optional<Service> service, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
-        this.ontology = ontology.get();
         this.dataManager = dataManager;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -113,11 +111,6 @@ public class Clone extends GraphStoreImpl
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return application;
-    }
-    
-    public Ontology getOntology()
-    {
-        return ontology;
     }
 
     public DataManager getDataManager()

@@ -84,11 +84,11 @@ public class RequestAccess extends GraphStoreImpl
 
     @Inject
     public RequestAccess(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            Optional<Ontology> ontology, Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             @Context SecurityContext securityContext,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         if (securityContext == null || !(securityContext.getUserPrincipal() instanceof Agent)) throw new IllegalStateException("Agent is not authenticated");
         this.uri = uriInfo.getAbsolutePath();

@@ -54,9 +54,7 @@ public class Add extends com.atomgraph.linkeddatahub.resource.file.Container
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, request, mediaTypes,
-            service, application, ontology,
-            providers, system);
+        super(uriInfo, request, mediaTypes, ontology, service, application, providers, system);
     }
     
     @Override

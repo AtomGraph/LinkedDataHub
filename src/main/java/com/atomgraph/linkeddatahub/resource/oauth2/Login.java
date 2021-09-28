@@ -80,7 +80,6 @@ public class Login extends GraphStoreImpl
     
     private final HttpHeaders httpHeaders;
     private final Application application;
-    private final Ontology ontology;
     private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
@@ -89,13 +88,12 @@ public class Login extends GraphStoreImpl
     
     @Inject
     public Login(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            Optional<Ontology> ontology, Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
         this.httpHeaders = httpHeaders;
         this.application = application.get();
-        this.ontology = ontology.get();
 
         try
         {
@@ -352,11 +350,6 @@ public class Login extends GraphStoreImpl
         return application;
     }
 
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-    
     public Service getAgentService()
     {
         return getApplication().getService();

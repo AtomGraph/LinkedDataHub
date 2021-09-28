@@ -37,7 +37,7 @@ import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.util.Skolemizer;
@@ -81,16 +81,14 @@ public class Container extends GraphStoreImpl
 {
     private static final Logger log = LoggerFactory.getLogger(Container.class);
     
-    private final Ontology ontology;
     private final MessageDigest messageDigest;
     
     @Inject
     public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            Optional<Ontology> ontology, Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
-        this.ontology = ontology.get();
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
 
         try
         {
@@ -122,7 +120,7 @@ public class Container extends GraphStoreImpl
         {
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof SkolemizingModelProvider) model = ((SkolemizingModelProvider)reader).process(model);
+            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             return postMultipart(model, defaultGraph, graphUri, getFileNameBodyPartMap(multiPart));
@@ -341,11 +339,6 @@ public class Container extends GraphStoreImpl
         }
     }
 
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-    
     public MessageDigest getMessageDigest()
     {
         return messageDigest;

@@ -19,6 +19,8 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.processor.util.Skolemizer;
+import com.atomgraph.server.exception.SkolemizationException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -35,9 +37,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -60,16 +64,18 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
 
     private final UriInfo uriInfo;
+    private final Ontology ontology;
     private final Service service;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
 
     @Inject
-    public GraphStoreImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+    public GraphStoreImpl(@Context Request request, Optional<Ontology> ontology, Optional<Service> service, MediaTypes mediaTypes,
         @Context UriInfo uriInfo, @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service.get(), mediaTypes);
         this.uriInfo = uriInfo;
+        this.ontology = ontology.get();
         this.service = service.get();
         this.providers = providers;
         this.system = system;
@@ -79,10 +85,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
+        if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
         
-        // neither default graph nor named graph specified -- obtain named graph URI from the forClass-typed resource
-        if (!defaultGraph && graphUri == null)
+        // named graph specified -- obtain named graph URI from the forClass-typed resource URI
+        if (graphUri == null)
         {
             try
             {
@@ -94,7 +100,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
                 graphUri = URI.create(instance.getURI());
                 graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-                return super.post(model, false, graphUri);
             }
             catch (URISyntaxException ex)
             {
@@ -102,28 +107,34 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             }
         }
         
+        skolemize(model, graphUri); // cannot be default graph here
+        
         return super.post(model, false, graphUri);
     }
-//
-//    public Response post(Model model, URI forClass)
-//    {
-//        Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-//        if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-//        
-//        try
-//        {
-//            URI graphUri = URI.create(instance.getURI());
-//            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-//            super.post(model, false, graphUri);
-//            return Response.created(graphUri).entity(model).build();
-//        }
-//        catch (URISyntaxException ex)
-//        {
-//            // shouldn't happen
-//            throw new InternalServerErrorException(ex);
-//        }
-//    }
-// 
+
+    public Model skolemize(Model model, URI graphUri)
+    {
+        try
+        {
+            return new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+        }
+        catch (IllegalArgumentException ex)
+        {
+            throw new SkolemizationException(ex, model);
+        }
+    }
+
+    @POST
+    @Override
+    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
+
+        skolemize(model, graphUri); // cannot be default graph here
+        
+        return super.put(model, defaultGraph, graphUri);
+    }
+    
     @PATCH
     public Response patch(UpdateRequest updateRequest)
     {
@@ -191,6 +202,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public UriInfo getUriInfo()
     {
         return uriInfo;
+    }
+    
+    public Ontology getOntology()
+    {
+        return ontology;
     }
     
     public Service getService()

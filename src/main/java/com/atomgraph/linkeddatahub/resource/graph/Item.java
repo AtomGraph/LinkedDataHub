@@ -41,6 +41,7 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.update.UpdateRequest;
 
@@ -55,10 +56,10 @@ public class Item extends GraphStoreImpl implements Patchable
     private final EndpointAccessor endpointAccessor;
     
     @Inject
-    public Item(@Context Request request, Optional<Service> service, MediaTypes mediaTypes,
+    public Item(@Context Request request, Optional<Ontology> ontology, Optional<Service> service, MediaTypes mediaTypes,
         @Context UriInfo uriInfo, @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         this.endpointAccessor = service.get().getEndpointAccessor();
     }

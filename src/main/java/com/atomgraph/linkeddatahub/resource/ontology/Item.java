@@ -26,7 +26,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -56,19 +55,17 @@ public class Item extends GraphStoreImpl
 
     private final URI uri;
     private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final Ontology ontology;
     private final Resource resource;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Ontology> ontology, Optional<Service> service, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, ontology, service, mediaTypes, uriInfo, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
-        this.ontology = ontology.get();
         this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -131,11 +128,6 @@ public class Item extends GraphStoreImpl
     private com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return application;
-    }
-    
-    public Ontology getOntology()
-    {
-        return ontology;
     }
     
     public Resource getResource()
