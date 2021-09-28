@@ -38,6 +38,7 @@ import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
+import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
@@ -146,6 +147,7 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
     {
         super.process(resource);
         
+        // append dh:slug value to dh:Container/dh:Item/apl:Content (subclass) instances
         if (getOntology().isPresent() && !resource.hasProperty(DH.slug))
             {
                 Statement typeStmt = resource.getProperty(RDF.type);
@@ -156,7 +158,7 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
                     {
                         // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
                         Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
-                        if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
+                        if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item) || superClasses.contains(APL.Content))
                             resource.addLiteral(DH.slug, UUID.randomUUID().toString());
                     }
                 }
