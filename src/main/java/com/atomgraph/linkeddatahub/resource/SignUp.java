@@ -188,6 +188,9 @@ public class SignUp extends GraphStoreImpl
     public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
+        if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
+        
+        skolemize(agentModel);
 
         Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
@@ -213,6 +216,7 @@ public class SignUp extends GraphStoreImpl
             String keyStoreFileName = uuid + ".p12";
             java.nio.file.Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
 
+            if (!agent.isURIResource()) throw new IllegalStateException("Agent is not a URI resource");
             new WebIDCertGen("RSA", STORE_TYPE).generate(keyStorePath, password, password, KEY_ALIAS,
                 fullName, null, orgName, null, null, countryName, agent.getURI(), getValidityDays());
 

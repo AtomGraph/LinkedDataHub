@@ -88,7 +88,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
 
-        skolemize(model, URI.create("https://localhost:4443/1fc348c4-4faa-4e19-a2d1-5f082df37829/")); // cannot be default graph here
+        skolemize(model);
         // named graph specified -- obtain named graph URI from the forClass-typed resource URI
         if (graphUri == null) graphUri = getGraphURI(model, getUriInfo());
         
@@ -116,11 +116,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
     
-    public Model skolemize(Model model, URI graphUri)
+    public Model skolemize(Model model)
     {
         try
         {
-            return new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+            return new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(model);
         }
         catch (IllegalArgumentException ex)
         {
@@ -134,7 +134,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
 
-        skolemize(model, graphUri); // cannot be default graph here
+        skolemize(model);
         
         return super.put(model, defaultGraph, graphUri);
     }

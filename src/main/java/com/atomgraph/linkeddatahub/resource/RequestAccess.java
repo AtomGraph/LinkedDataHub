@@ -132,6 +132,9 @@ public class RequestAccess extends GraphStoreImpl
     public Response post(Model requestModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
+        if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
+
+        skolemize(requestModel);
 
         Resource forClass = requestModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = requestModel.listResourcesWithProperty(RDF.type, forClass);
