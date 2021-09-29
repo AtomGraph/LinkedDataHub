@@ -148,26 +148,28 @@ public class SkolemizingModelProvider extends com.atomgraph.server.io.Skolemizin
         super.process(resource);
         
         // append dh:slug property with UUID value to apl:Content instances and dh:Container/dh:Item subclass instances
-        if (getOntology().isPresent() && !resource.hasProperty(DH.slug))
-            {
-                Statement typeStmt = resource.getProperty(RDF.type);
-                if (typeStmt != null && typeStmt.getObject().isURIResource())
-                {
-                    OntClass ontClass = getOntology().get().getOntModel().getOntClass(typeStmt.getResource().getURI());
-                    if (ontClass != null)
-                    {
-                        if (ontClass.equals(APL.Content)) resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-                        else
-                        {
-                            // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
-                            Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
-                            if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
-                                resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-                        }
-                    }
-                }
-            }
+//        if (getOntology().isPresent() && !resource.hasProperty(DH.slug))
+//        {
+//            Statement typeStmt = resource.getProperty(RDF.type);
+//            if (typeStmt != null && typeStmt.getObject().isURIResource())
+//            {
+//                OntClass ontClass = getOntology().get().getOntModel().getOntClass(typeStmt.getResource().getURI());
+//                if (ontClass != null)
+//                {
+//                    if (ontClass.equals(APL.Content)) resource.addLiteral(DH.slug, UUID.randomUUID().toString());
+//                    else
+//                    {
+//                        // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
+//                        Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
+//                        if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
+//                            resource.addLiteral(DH.slug, UUID.randomUUID().toString());
+//                    }
+//                }
+//            }
+//        }
 
+        if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
+                
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
         {
             Resource format = resource.getProperty(DCTerms.format).

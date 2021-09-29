@@ -813,141 +813,50 @@
         rdfs:comment "Dydra cloud repository" ;
         rdfs:isDefinedBy nsds: .
 
-    nsds:ServiceItem a adm:Class ;
-        rdfs:subClassOf nsdd:Item, nsds:ItemOfServiceContainer ; # nsdd:Item, nsds:ItemOfServiceContainer ;
-        rdfs:label "Service item" ;
-        rdfs:isDefinedBy nsds: .
-
     nsds:File a adm:Class ;
-        rdfs:subClassOf nsdd:File, nsds:TopicOfFileItem, nsds:ItemOfFileContainer ;
+        rdfs:subClassOf nsdd:File ;
         rdfs:label "File" ;
         rdfs:comment "A document that represents an uploaded file" ;
         rdfs:isDefinedBy nsds: .
 
-    nsds:FileItem a adm:Class ;
-        rdfs:subClassOf nsdd:Item, nsds:ItemOfFilesContainer ;
-        rdfs:label "File item" ;
-        rdfs:isDefinedBy nsds: .
-
     nsds:RDFImport a adm:Class ;
-        rdfs:subClassOf nsdd:RDFImport, nsds:TopicOfImportItem ;
+        rdfs:subClassOf nsdd:RDFImport ;
         rdfs:label "RDF import" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:CSVImport a adm:Class ;
-        rdfs:subClassOf nsdd:CSVImport, nsds:TopicOfImportItem ;
+        rdfs:subClassOf nsdd:CSVImport ;
         rdfs:label "CSV import" ;
         rdfs:isDefinedBy nsds: .
 
-    nsds:ImportItem a adm:Class ;
-        rdfs:subClassOf nsdd:Item, nsds:ItemOfImportsContainer ;
-        rdfs:label "Import item" ;
-        rdfs:isDefinedBy nsds: .
-
     nsds:Construct a adm:Class ;
-        rdfs:subClassOf nsdd:Construct, nsds:TopicOfQueryItem ;
+        rdfs:subClassOf nsdd:Construct  ;
         rdfs:label "CONSTRUCT" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:Describe a adm:Class ;
-        rdfs:subClassOf nsdd:Describe, nsds:TopicOfQueryItem ;
+        rdfs:subClassOf nsdd:Describe ;
         rdfs:label "DESCRIBE" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:Select a adm:Class ;
-        rdfs:subClassOf nsdd:Select, nsds:TopicOfQueryItem ;
+        rdfs:subClassOf nsdd:Select ;
         rdfs:label "SELECT" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:Ask a adm:Class ;
-        rdfs:subClassOf nsdd:Ask, nsds:TopicOfQueryItem ;
+        rdfs:subClassOf nsdd:Ask ;
         rdfs:label "ASK" ;
         rdfs:isDefinedBy nsds: .
 
-    nsds:QueryItem a adm:Class ;
-        rdfs:subClassOf nsdd:Item, nsds:ItemOfQueriesContainer ;
-        rdfs:label "Query item" ;
-        rdfs:isDefinedBy nsds: .
-
     nsds:GraphChart a adm:Class ;
-        rdfs:subClassOf nsdd:GraphChart, nsds:TopicOfChartItem ;
+        rdfs:subClassOf nsdd:GraphChart ;
         rdfs:label "Graph chart" ;
         rdfs:isDefinedBy nsds: .
 
     nsds:ResultSetChart a adm:Class ;
-        rdfs:subClassOf nsdd:ResultSetChart, nsds:TopicOfChartItem ;
+        rdfs:subClassOf nsdd:ResultSetChart ;
         rdfs:label "Result set chart" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ChartItem a adm:Class ;
-        rdfs:subClassOf nsdd:Item, nsds:ItemOfChartsContainer ;
-        rdfs:label "Chart item" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:TopicOfServiceItem a adm:Restriction ;
-        owl:onProperty foaf:isPrimaryTopicOf ;
-        owl:allValuesFrom nsds:ServiceItem ;
-        rdfs:label "Topic of service item" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:TopicOfQueryItem a adm:Restriction ;
-        owl:onProperty foaf:isPrimaryTopicOf ;
-        owl:allValuesFrom nsds:QueryItem ;
-        rdfs:label "Topic of query item" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:TopicOfImportItem a adm:Restriction ;
-        owl:onProperty foaf:isPrimaryTopicOf ;
-        owl:allValuesFrom nsds:ImportItem ;
-        rdfs:label "Topic of import item" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:TopicOfFileItem a adm:Restriction ;
-        owl:onProperty foaf:isPrimaryTopicOf ;
-        owl:allValuesFrom nsds:FileItem ;
-        rdfs:label "Topic of file item" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:TopicOfChartItem a adm:Restriction ;
-        owl:onProperty foaf:isPrimaryTopicOf ;
-        owl:allValuesFrom nsds:ChartItem ;
-        rdfs:label "Topic of chart item" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ItemOfServiceContainer a adm:Restriction ;
-        owl:onProperty sioc:has_container ;
-        owl:hasValue <../services/> ;
-        rdfs:label "Has services container" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ItemOfFileContainer a adm:Restriction ;
-        owl:onProperty sioc:has_container ;
-        owl:hasValue <../uploads/> ;
-        rdfs:label "Has uploads container" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ItemOfImportsContainer a adm:Restriction ;
-        owl:onProperty sioc:has_container ;
-        owl:hasValue <../imports/> ;
-        rdfs:label "Has imports container" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ItemOfFilesContainer a adm:Restriction ;
-        owl:onProperty sioc:has_container ;
-        owl:hasValue <../files/> ;
-        rdfs:label "Has files container" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ItemOfQueriesContainer a adm:Restriction ;
-        owl:onProperty sioc:has_container ;
-        owl:hasValue <../queries/> ;
-        rdfs:label "Has queries container" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ItemOfChartsContainer a adm:Restriction ;
-        owl:onProperty sioc:has_container ;
-        owl:hasValue <../charts/> ;
-        rdfs:label "Has charts container" ;
         rdfs:isDefinedBy nsds: .
 
 }
