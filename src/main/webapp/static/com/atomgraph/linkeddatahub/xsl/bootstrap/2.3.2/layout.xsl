@@ -892,7 +892,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'uri', string(ac:uri()), 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
 
@@ -959,8 +959,6 @@ exclude-result-prefixes="#all">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
-
-                        <input type="hidden" value="{$graph-uri}"/>
                     </button>
                 </div>
             </xsl:if>
