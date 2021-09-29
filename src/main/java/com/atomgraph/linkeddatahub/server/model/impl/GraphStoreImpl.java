@@ -87,32 +87,35 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (defaultGraph) throw new BadRequestException("Default graph usage is disabled (reserved for system use)");
-        
+
+        skolemize(model, URI.create("https://localhost:4443/1fc348c4-4faa-4e19-a2d1-5f082df37829/")); // cannot be default graph here
         // named graph specified -- obtain named graph URI from the forClass-typed resource URI
-        if (graphUri == null)
-        {
-            try
-            {
-                if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
-                    throw new BadRequestException("aplt:ForClass parameter not provided");
-                
-                URI forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-                Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-                if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-                graphUri = URI.create(instance.getURI());
-                graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-            }
-            catch (URISyntaxException ex)
-            {
-                throw new BadRequestException(ex);
-            }
-        }
-        
-        skolemize(model, graphUri); // cannot be default graph here
+        if (graphUri == null) graphUri = getGraphURI(model, getUriInfo());
         
         return super.post(model, false, graphUri);
     }
 
+    public URI getGraphURI(Model model, UriInfo uriInfo)
+    {
+        try
+        {
+            if (!uriInfo.getQueryParameters().containsKey(APLT.forClass.getLocalName()))
+                throw new BadRequestException("aplt:ForClass parameter not provided");
+
+            URI forClass = new URI(uriInfo.getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+            Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
+            if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+            URI graphUri = URI.create(instance.getURI());
+            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+            
+            return graphUri;
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new BadRequestException(ex);
+        }
+    }
+    
     public Model skolemize(Model model, URI graphUri)
     {
         try
