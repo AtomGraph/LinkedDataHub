@@ -26,7 +26,6 @@
 {
 
     <> a adm:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Root" ;
         dct:description "Root container" .
 
@@ -36,7 +35,6 @@
 {
 
     <search/> a adm:Container ;
-        # dh:select <queries/default/select-labelled/#this> ;
         dct:title "Search" ;
         dct:description "Search resources by label" .
 
@@ -46,7 +44,6 @@
 {
 
     <queries/> a adm:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -57,7 +54,6 @@
 
     <queries/default/> a adm:Container ;
         sioc:has_parent <queries/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Default queries" .
 
@@ -124,7 +120,7 @@
 <queries/default/select-children/>
 {
 
-    <queries/default/select-children/> a adm:QueryItem ;
+    <queries/default/select-children/> a adm:Item ;
         sioc:has_container <queries/default/> ;
         dct:title "Select children" ;
         foaf:primaryTopic <queries/default/select-children/#this> .
@@ -161,7 +157,7 @@
 <queries/default/select-labelled/>
 {
 
-    <queries/default/select-labelled/> a adm:QueryItem ;
+    <queries/default/select-labelled/> a adm:Item ;
         sioc:has_container <queries/default/> ;
         dct:title "Select labelled" ;
         foaf:primaryTopic <queries/default/select-labelled/#this> .
@@ -198,7 +194,6 @@
 
     <acl/> a adm:Container ;
         sioc:has_parent <> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Access control" ;
         dct:description "Manage agents, user accounts and authorizations" .
 
@@ -209,7 +204,6 @@
 
     <acl/authorizations/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Authorizations" ;
         dct:description "Manage who has access to which resources" .
 
@@ -220,7 +214,6 @@
 
     <acl/authorization-requests/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Authorization requests" ;
         dct:description "Manage who has access to which resources" .
 
@@ -231,7 +224,6 @@
 
     <acl/agents/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Agents" ;
         dct:description "Manage people and software agents that have access" .
 
@@ -242,7 +234,6 @@
 
     <acl/public-keys/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Public keys" ;
         dct:description "Manage RSA public keys" .
 
@@ -253,7 +244,6 @@
 
     <acl/users/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Users" ;
         dct:description "Manage agent user accounts and credentials" .
 
@@ -264,7 +254,6 @@
 
     <acl/groups/> a adm:Container ;
         sioc:has_parent <acl/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Groups" ;
         dct:description "Manage agent groups that have access" .
 
@@ -277,7 +266,7 @@
 <acl/authorizations/public/>
 {
 
-    <acl/authorizations/public/> a adm:AuthorizationItem ;
+    <acl/authorizations/public/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Public access" ;
         foaf:primaryTopic <acl/authorizations/public/#this> .
@@ -299,7 +288,7 @@
 <acl/authorizations/sign-up/>
 {
 
-    <acl/authorizations/sign-up/> a adm:AuthorizationItem ;
+    <acl/authorizations/sign-up/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Signup access" ;
         foaf:primaryTopic <acl/authorizations/sign-up/#this> .
@@ -319,7 +308,7 @@
 <acl/authorizations/request-access/>
 {
 
-    <acl/authorizations/request-access/> a adm:AuthorizationItem ;
+    <acl/authorizations/request-access/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Authorization request access" ;
         foaf:primaryTopic <acl/authorizations/request-access/#this> .
@@ -339,7 +328,7 @@
 <acl/authorizations/oauth2-login/>
 {
 
-    <acl/authorizations/oauth2-login/> a adm:AuthorizationItem ;
+    <acl/authorizations/oauth2-login/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "OAuth2 login access" ;
         foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
@@ -359,7 +348,7 @@
 <acl/authorizations/authorize-google/>
 {
 
-    <acl/authorizations/authorize-google/> a adm:AuthorizationItem ;
+    <acl/authorizations/authorize-google/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Google's OAuth2 authorization" ;
         foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
@@ -379,7 +368,7 @@
 <acl/authorizations/append-request/>
 {
 
-    <acl/authorizations/append-request/> a adm:AuthorizationItem ;
+    <acl/authorizations/append-request/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Append authorization request" ;
         foaf:primaryTopic <acl/authorizations/append-request/#this> .
@@ -400,7 +389,7 @@
 <acl/authorizations/full-control/>
 {
 
-    <acl/authorizations/full-control/> a adm:AuthorizationItem ;
+    <acl/authorizations/full-control/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Full control" ;
         foaf:primaryTopic <acl/authorizations/full-control/#this> .
@@ -421,7 +410,7 @@
 <acl/authorizations/write-append/>
 {
 
-    <acl/authorizations/write-append/> a adm:AuthorizationItem ;
+    <acl/authorizations/write-append/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Write/append access" ;
         foaf:primaryTopic <acl/authorizations/write-append/#this> .
@@ -442,7 +431,7 @@
 <acl/authorizations/read/>
 {
 
-    <acl/authorizations/read/> a adm:AuthorizationItem ;
+    <acl/authorizations/read/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Read access" ;
         foaf:primaryTopic <acl/authorizations/read/#this> .
@@ -463,7 +452,7 @@
 <acl/authorizations/creator/>
 {
 
-    <acl/authorizations/creator/> a adm:AuthorizationItem ;
+    <acl/authorizations/creator/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Creator access" ;
         foaf:primaryTopic <acl/authorizations/creator/#this> .
@@ -485,7 +474,7 @@
 <acl/groups/owners/>
 {
 
-    <acl/groups/owners/> a adm:GroupItem ;
+    <acl/groups/owners/> a adm:Item ;
         sioc:has_container <acl/groups/> ;
         dct:title "Owners" ;
         foaf:primaryTopic <acl/groups/owners/#this> .
@@ -502,7 +491,7 @@
 <acl/groups/writers/>
 {
 
-    <acl/groups/writers/> a adm:GroupItem ;
+    <acl/groups/writers/> a adm:Item ;
         sioc:has_container <acl/groups/> ;
         dct:title "Writers" ;
         foaf:primaryTopic <acl/groups/writers/#this> .
@@ -519,7 +508,7 @@
 <acl/groups/readers/>
 {
 
-    <acl/groups/readers/> a adm:GroupItem ;
+    <acl/groups/readers/> a adm:Item ;
         sioc:has_container <acl/groups/> ;
         dct:title "Readers" ;
         foaf:primaryTopic <acl/groups/readers/#this> .
@@ -540,7 +529,6 @@
 
     <model/> a adm:Container ;
         sioc:has_parent <> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Model" ;
         dct:description "Manage application model: classes, properties, constraints etc." .
 
@@ -551,7 +539,6 @@
 
     <model/ontologies/> a adm:Container ;
         sioc:has_parent <model/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Ontologies" ;
         dct:description "Manage ontologies that define application domain" .
 
@@ -564,7 +551,7 @@
 <model/ontologies/domain/>
 {
 
-    <model/ontologies/domain/> a adm:OntologyItem ;
+    <model/ontologies/domain/> a adm:Item ;
         sioc:has_container <model/ontologies/> ;
         dct:title "Domain" ;
         foaf:primaryTopic nsd: .
@@ -582,7 +569,7 @@
 <model/ontologies/default/>
 {
 
-    <model/ontologies/default/> a adm:OntologyItem ;
+    <model/ontologies/default/> a adm:Item ;
         sioc:has_container <model/ontologies/> ;
         dct:title "Default" ;
         foaf:primaryTopic nsdd: .
@@ -766,7 +753,7 @@
 <model/ontologies/namespace/>
 {
 
-    <model/ontologies/namespace/> a adm:OntologyItem ;
+    <model/ontologies/namespace/> a adm:Item ;
         sioc:has_container <model/ontologies/> ;
         dct:title "Namespace" ;
         foaf:primaryTopic ns: .
@@ -785,7 +772,7 @@
 <model/ontologies/system/>
 {
 
-    <model/ontologies/system/> a adm:OntologyItem ;
+    <model/ontologies/system/> a adm:Item ;
         sioc:has_container <model/ontologies/> ;
         dct:title "System domain" ;
         foaf:primaryTopic nsds: .
@@ -798,7 +785,7 @@
         owl:versionInfo "1.0-SNAPSHOT" .
 
     nsds:GenericService a adm:Class ;
-        rdfs:subClassOf nsdd:GenericService, nsds:TopicOfServiceItem ;
+        rdfs:subClassOf nsdd:GenericService ;
         ldt:path "{isPrimaryTopicOf.slug}/" ;
         ldt:fragment "this" ;
         rdfs:label "Generic service" ;
@@ -806,7 +793,7 @@
         rdfs:isDefinedBy nsds: .
 
     nsds:DydraService a adm:Class ;
-        rdfs:subClassOf nsdd:DydraService, nsds:TopicOfServiceItem ;
+        rdfs:subClassOf nsdd:DydraService ;
         ldt:path "{isPrimaryTopicOf.slug}/" ;
         ldt:fragment "this" ;
         rdfs:label "Dydra service" ;
