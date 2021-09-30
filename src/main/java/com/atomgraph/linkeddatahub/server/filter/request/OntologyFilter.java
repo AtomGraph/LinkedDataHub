@@ -101,6 +101,12 @@ public class OntologyFilter implements ContainerRequestFilter
                     cr.getHeaders().putSingle(ModelProvider.REQUEST_URI_HEADER, uri); // provide a base URI hint to ModelProvider
                     return cr.readEntity(Model.class);
                 }
+                catch (Exception ex)
+                {
+                    if (log.isErrorEnabled()) log.error("Could not load ontology from URI: {}", uri);
+                    // TO-DO: replace with Jena's OntologyException
+                    throw new OntologyException("Could not load ontology from URI '" + uri + "'");
+                }
             }
         }
         
