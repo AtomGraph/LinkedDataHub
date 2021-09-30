@@ -31,6 +31,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -111,27 +112,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return ResourceFactory.createResource(uriInfo.getQueryParameters().getFirst(APLT.forClass.getLocalName()));
     }
     
-//    public URI getGraphURI(Model model)
-//    {
-//        try
-//        {
-//            if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
-//                throw new BadRequestException("aplt:ForClass parameter not provided");
-//
-//            URI forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-//            Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-//            if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-//            URI graphUri = URI.create(instance.getURI());
-//            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-//            
-//            return graphUri;
-//        }
-//        catch (URISyntaxException ex)
-//        {
-//            throw new BadRequestException(ex);
-//        }
-//    }
-
+    @PUT
+    @Override
+    public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+        
+        return super.put(model, defaultGraph, graphUri);
+    }
+    
     public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
     {
         return new Skolemizer(ontology.get(), baseUriBuilder, absolutePathBuilder);
