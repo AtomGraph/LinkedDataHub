@@ -337,6 +337,7 @@ public class SignUp extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         Resource publicKeyRes = model.createResource().
             addProperty(RDF.type, cls).
+            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
         publicKeyItem.addProperty(FOAF.primaryTopic, publicKeyRes);
