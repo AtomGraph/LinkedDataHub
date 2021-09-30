@@ -109,6 +109,7 @@ public class SignUp extends GraphStoreImpl
     public static final MediaType PKCS12_MEDIA_TYPE = MediaType.valueOf("application/x-pkcs12");
     public static final String COUNTRY_DATASET_PATH = "/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/countries.rdf";
     public static final String AGENT_PATH = "acl/agents/";
+    public static final String PUBLIC_KEY_PATH = "acl/public-keys/";
     public static final String AUTHORIZATION_PATH = "acl/authorizations/";
 
     private final URI uri;
@@ -191,8 +192,8 @@ public class SignUp extends GraphStoreImpl
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        graphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(agentModel);
+        URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(agentGraphUri)).build(agentModel);
         
         Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
@@ -234,10 +235,9 @@ public class SignUp extends GraphStoreImpl
                 RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
                 Model publicKeyModel = ModelFactory.createDefaultModel();
                 createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
-                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getAgentContainerUriBuilder()).build(publicKeyModel);
+                URI publicKeyGraphUri = getUriInfo().getBaseUriBuilder().path(PUBLIC_KEY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
-                Resource publicKeyForClass = ResourceFactory.createResource(forClass.getNameSpace() + LACL.PublicKey.getLocalName());
-                URI publicKeyGraphUri = URI.create(getCreatedDocument(publicKeyModel, publicKeyForClass).getURI());
+                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.from(publicKeyGraphUri)).build(publicKeyModel);
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
@@ -251,9 +251,6 @@ public class SignUp extends GraphStoreImpl
                 agent.addProperty(Cert.key, publicKey); // add public key
                 agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 
-                URI agentGraphUri = URI.create(agent.getURI());
-                agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-                
                 Response agentResponse = super.post(agentModel, false, agentGraphUri);
                 if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
@@ -333,7 +330,7 @@ public class SignUp extends GraphStoreImpl
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.PublicKey.getLocalName()); // subclassOf LACL.PublicKey
-        Resource itemCls = model.createResource(namespace + LACL.PublicKey.getLocalName() + "Item");
+        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
 
         Resource publicKeyItem = model.createResource().
             addProperty(RDF.type, itemCls).
