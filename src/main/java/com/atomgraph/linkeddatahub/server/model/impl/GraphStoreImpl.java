@@ -18,8 +18,8 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
-import com.atomgraph.processor.util.Skolemizer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
