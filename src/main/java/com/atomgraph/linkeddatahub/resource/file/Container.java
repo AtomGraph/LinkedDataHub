@@ -37,7 +37,7 @@ import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.io.SkolemizingModelProvider;
+import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.util.Skolemizer;
@@ -122,7 +122,7 @@ public class Container extends GraphStoreImpl
         {
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
-            if (reader instanceof SkolemizingModelProvider) model = ((SkolemizingModelProvider)reader).process(model);
+            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             return postMultipart(model, defaultGraph, graphUri, getFileNameBodyPartMap(multiPart));

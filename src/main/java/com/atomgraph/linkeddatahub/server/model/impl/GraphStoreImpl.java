@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.processor.util.Skolemizer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -35,9 +36,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -63,6 +66,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final Service service;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
+    @Inject Optional<Ontology> ontology;
 
     @Inject
     public GraphStoreImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes,
@@ -104,26 +108,12 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         
         return super.post(model, false, graphUri);
     }
-//
-//    public Response post(Model model, URI forClass)
-//    {
-//        Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-//        if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-//        
-//        try
-//        {
-//            URI graphUri = URI.create(instance.getURI());
-//            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-//            super.post(model, false, graphUri);
-//            return Response.created(graphUri).entity(model).build();
-//        }
-//        catch (URISyntaxException ex)
-//        {
-//            // shouldn't happen
-//            throw new InternalServerErrorException(ex);
-//        }
-//    }
-// 
+
+    public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
+    {
+        return new Skolemizer(ontology.get(), baseUriBuilder, absolutePathBuilder); // not optimal to create Skolemizer for each Model
+    }
+    
     @PATCH
     public Response patch(UpdateRequest updateRequest)
     {

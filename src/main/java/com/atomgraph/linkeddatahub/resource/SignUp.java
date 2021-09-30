@@ -191,6 +191,8 @@ public class SignUp extends GraphStoreImpl
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
+        getSkolemizer(getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("agents")).build(agentModel);
+        
         Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
         try
