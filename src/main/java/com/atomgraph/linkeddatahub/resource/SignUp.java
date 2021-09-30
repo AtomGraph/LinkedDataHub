@@ -237,7 +237,7 @@ public class SignUp extends GraphStoreImpl
                 createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
                 URI publicKeyGraphUri = getUriInfo().getBaseUriBuilder().path(PUBLIC_KEY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
 
-                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.from(publicKeyGraphUri)).build(publicKeyModel);
+                publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(publicKeyGraphUri)).build(publicKeyModel);
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
