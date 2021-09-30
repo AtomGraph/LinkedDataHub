@@ -57,16 +57,16 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
                     OntClass typeClass = getOntology().getOntModel().getOntResource(type).asClass();
                     
                     OntClass pathClass = getPathClass(typeClass);
-                    final String path;
-                    if (pathClass != null)  path = getStringValue(pathClass, LDT.path);
-                    else path = null;
+                    final String pathTemplate;
+                    if (pathClass != null) pathTemplate = getStringValue(pathClass, LDT.path);
+                    else pathTemplate = null;
 
                     OntClass fragmentClass = getFragmentClass(typeClass);
-                    final String fragment;
-                    if (fragmentClass != null) fragment = getStringValue(fragmentClass, LDT.fragment);
-                    else fragment = null;
+                    final String fragmentTemplate;
+                    if (fragmentClass != null) fragmentTemplate = getStringValue(fragmentClass, LDT.fragment);
+                    else fragmentTemplate = null;
 
-                    return build(resource, getUriBuilder(path), path, fragment);
+                    return build(resource, getUriBuilder(pathTemplate), pathTemplate, fragmentTemplate);
                 }
             }
         }
@@ -78,13 +78,11 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
         return null;
     }
     
-    public UriBuilder getUriBuilder(String path)
+    public UriBuilder getUriBuilder(String pathTemplate)
     {
-        if (path == null) throw new IllegalArgumentException("Path cannot be null");
-
         // treat paths starting with / as absolute, others as relative (to the current absolute path)
         // JAX-RS URI templates do not have this distinction (leading slash is irrelevant)
-        if (path.startsWith("/")) return getBaseUriBuilder().clone();
+        if (pathTemplate != null && pathTemplate.startsWith("/")) return getBaseUriBuilder().clone();
         else return getAbsolutePathBuilder().clone();
     }
     

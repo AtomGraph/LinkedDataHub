@@ -219,7 +219,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:subClassOf ldt:Query ;
     ldt:fragment "{slug}" ;
     # ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
+    ldt:fragment "id{slug}" ;
     spin:constructor :QueryConstructor ;
     spin:constraint [ a :MissingPropertyValue ;
             rdfs:label "Missing sp:text" ;
