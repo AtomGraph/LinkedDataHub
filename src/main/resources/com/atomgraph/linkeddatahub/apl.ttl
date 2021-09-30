@@ -112,6 +112,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Service a rdfs:Class, owl:Class ;
     rdfs:subClassOf sd:Service ;
+    ldt:fragment "id{slug}" ;
     spin:constructor :ServiceConstructor ;
     spin:constraint [ a :MissingPropertyValue ;
             rdfs:label "Missing supported language" ;
@@ -217,8 +218,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Query a rdfs:Class, owl:Class ;
     rdfs:subClassOf ldt:Query ;
-    ldt:fragment "{slug}" ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     spin:constructor :QueryConstructor ;
     spin:constraint [ a :MissingPropertyValue ;
@@ -266,7 +265,8 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 # files
 
 :File a rdfs:Class, owl:Class ;
-    rdfs:subClassOf dh:Item, nfo:FileDataObject ;
+    rdfs:subClassOf nfo:FileDataObject ; # dh:Item, 
+    ldt:fragment "id{slug}" ;
     spin:constructor :FileConstructor ;
     spin:constraint :MissingFileName ;
     rdfs:label "File" ;
@@ -290,8 +290,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Import a rdfs:Class, owl:Class ;
     rdfs:subClassOf prov:Activity ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
+    ldt:fragment "id{slug}" ;
     spin:constructor :ImportConstructor ;
     spin:constraint :MissingAction, :MissingFile ;
     rdfs:label "Import" ;
@@ -354,8 +353,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Chart a rdfs:Class, owl:Class ;
     rdfs:label "Chart" ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
+    ldt:fragment "id{slug}" ;
     spin:constructor :ChartConstructor ;
     spin:constraint :MissingQuery, :MissingChartType ;
     rdfs:isDefinedBy : .
@@ -419,7 +417,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Content a rdfs:Class, owl:Class ;
     rdfs:subClassOf rdf:List ;
-    ldt:fragment "{slug}" ;
+    ldt:fragment "id{slug}" ;
     rdfs:label "Content" ;
     spin:constructor :ContentConstructor ;
     # spin:constraint :MissingFirst, :MissingNext ;

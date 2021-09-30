@@ -109,13 +109,5 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
         
         return uri;
     }
-    
-//    public Resource getParent(Resource resource)
-//    {
-//        Resource parent = resource.getPropertyResourceValue(SIOC.HAS_PARENT);
-//        if (parent != null) return parent;
-//        parent = resource.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-//        return parent;
-//    }
 
 }
