@@ -12,7 +12,7 @@
 <${OWNER_DOC_URI}>
 {
 
-    <${OWNER_DOC_URI}> a adm:AgentItem ;
+    <${OWNER_DOC_URI}> a adm:Item ;
         sioc:has_container <acl/agents/> ;
         dct:title "${OWNER_COMMON_NAME}" ;
         foaf:primaryTopic <${OWNER_URI}> .
@@ -34,7 +34,7 @@
 <acl/public-keys/${OWNER_KEY_UUID}/>
 {
 
-    <acl/public-keys/${OWNER_KEY_UUID}/> a adm:PublicKeyItem ;
+    <acl/public-keys/${OWNER_KEY_UUID}/> a adm:Item ;
         dct:title "${OWNER_COMMON_NAME}" ;
         foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> .
 
