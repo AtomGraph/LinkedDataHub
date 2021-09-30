@@ -87,17 +87,28 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
     }
     
     @Override
-    public URI build(Resource resource, UriBuilder builder, String path, String fragment)
+    public URI build(Resource resource, UriBuilder builder, String pathTemplate, String fragmentTemplate)
     {
         if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
         if (builder == null) throw new IllegalArgumentException("UriBuilder cannot be null");
 
-        Map<String, String> nameValueMap = getNameValueMap(resource, new UriTemplateParser(path));
-        if (path != null) builder = builder.path(path);
+        URI uri = builder.build();
         
-        return builder.path(path).fragment(fragment).buildFromMap(nameValueMap); // TO-DO: wrap into SkolemizationException
+        if (pathTemplate != null)
+        {
+            Map<String, String> nameValueMap = getNameValueMap(resource, new UriTemplateParser(pathTemplate));
+            uri = builder.path(pathTemplate).buildFromMap(nameValueMap);
+            builder = UriBuilder.fromUri(uri);
+        }
+        
+        if (fragmentTemplate != null)
+        {
+            Map<String, String> nameValueMap = getNameValueMap(resource, new UriTemplateParser(fragmentTemplate));
+            uri = builder.fragment(fragmentTemplate).buildFromMap(nameValueMap);
+        }
+        
+        return uri;
     }
-    
     
 //    public Resource getParent(Resource resource)
 //    {
