@@ -140,7 +140,7 @@ WHERE
               }
           }
         # hardcoded list of types that can be public in admin app (regardless of what Authorizations allow)
-        FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "OntologyItem")), uri(concat(str(?Ontology), "AgentItem")), uri(concat(str(?Ontology), "PublicKeyItem"))) )
+        # FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "OntologyItem")), uri(concat(str(?Ontology), "AgentItem")), uri(concat(str(?Ontology), "PublicKeyItem"))) )
       }
     UNION
       { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization .
