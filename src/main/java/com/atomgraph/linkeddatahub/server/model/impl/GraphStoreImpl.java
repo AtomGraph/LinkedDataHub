@@ -20,8 +20,8 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
+import com.atomgraph.processor.vocabulary.SIOC;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -45,7 +45,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
@@ -85,38 +84,57 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder()).build(model);
-        
         // neither default graph nor named graph specified -- obtain named graph URI from the forClass-typed resource
-        if (!defaultGraph && graphUri == null) graphUri = getGraphURI(model);
+        if (!defaultGraph && graphUri == null)
+        {
+            Resource forClass = getForClass(getUriInfo());
+            Resource doc = getCreatedDocument(model, forClass);
+            if (doc == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+
+            Resource parent = getParent(doc);
+            // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(model);
+            
+            graphUri = URI.create(getCreatedDocument(model, forClass).getURI());
+        }
+        else
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(model);
         
         return super.post(model, false, graphUri);
     }
 
-    public URI getGraphURI(Model model)
+    public Resource getForClass(UriInfo uriInfo)
     {
-        try
-        {
-            if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
-                throw new BadRequestException("aplt:ForClass parameter not provided");
+        if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
+            throw new BadRequestException("aplt:ForClass parameter not provided");
 
-            URI forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-            Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
-            if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-            URI graphUri = URI.create(instance.getURI());
-            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
-            
-            return graphUri;
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new BadRequestException(ex);
-        }
+        return ResourceFactory.createResource(uriInfo.getQueryParameters().getFirst(APLT.forClass.getLocalName()));
     }
     
+//    public URI getGraphURI(Model model)
+//    {
+//        try
+//        {
+//            if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
+//                throw new BadRequestException("aplt:ForClass parameter not provided");
+//
+//            URI forClass = new URI(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
+//            Resource instance = getCreatedDocument(model, ResourceFactory.createResource(forClass.toString()));
+//            if (instance == null || !instance.isURIResource()) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+//            URI graphUri = URI.create(instance.getURI());
+//            graphUri = new URI(graphUri.getScheme(), graphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
+//            
+//            return graphUri;
+//        }
+//        catch (URISyntaxException ex)
+//        {
+//            throw new BadRequestException(ex);
+//        }
+//    }
+
     public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
     {
-        return new Skolemizer(ontology.get(), baseUriBuilder, absolutePathBuilder); // not optimal to create Skolemizer for each Model
+        return new Skolemizer(ontology.get(), baseUriBuilder, absolutePathBuilder);
     }
     
     @PATCH
@@ -169,10 +187,12 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 Resource created = it.next();
                 
                 // handle creation of "things" - they are not documents themselves, so we return the attached document instead
-                if (created.hasProperty(FOAF.isPrimaryTopicOf))
-                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
-                else
-                    return created;
+//                if (created.hasProperty(FOAF.isPrimaryTopicOf))
+//                    return created.getPropertyResourceValue(FOAF.isPrimaryTopicOf);
+//                else
+//                    return created;
+
+                return created;
             }
         }
         finally
@@ -181,6 +201,14 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
         
         return null;
+    }
+    
+    public Resource getParent(Resource doc)
+    {
+        Resource parent = doc.getPropertyResourceValue(SIOC.HAS_PARENT);
+        if (parent != null) return parent;
+        parent = doc.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+        return parent;
     }
     
     public UriInfo getUriInfo()

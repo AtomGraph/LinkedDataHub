@@ -109,5 +109,5 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
         
         return uri;
     }
-
+    
 }
