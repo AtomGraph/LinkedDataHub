@@ -16,11 +16,17 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
-import com.atomgraph.processor.vocabulary.SIOC;
+import static com.atomgraph.processor.util.Skolemizer.getNameValueMap;
+import com.atomgraph.processor.vocabulary.LDT;
+import java.net.URI;
+import java.util.Map;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.vocabulary.RDF;
+import org.glassfish.jersey.uri.internal.UriTemplateParser;
 
 /**
  *
@@ -35,32 +41,72 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
     }
 
     @Override
-    public UriBuilder getUriBuilder(String path, Resource resource, OntClass typeClass)
+    public URI build(Resource resource)
+    {
+        if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        StmtIterator it = resource.listProperties(RDF.type);
+        
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource type = it.next().getResource(); // will fail if rdf:type object is not a resource
+                if (getOntology().getOntModel().getOntResource(type).canAs(OntClass.class))
+                {
+                    OntClass typeClass = getOntology().getOntModel().getOntResource(type).asClass();
+                    
+                    OntClass pathClass = getPathClass(typeClass);
+                    final String path;
+                    if (pathClass != null)  path = getStringValue(pathClass, LDT.path);
+                    else path = null;
+
+                    OntClass fragmentClass = getFragmentClass(typeClass);
+                    final String fragment;
+                    if (fragmentClass != null) fragment = getStringValue(fragmentClass, LDT.fragment);
+                    else fragment = null;
+
+                    return build(resource, getUriBuilder(path), path, fragment);
+                }
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+        
+        return null;
+    }
+    
+    public UriBuilder getUriBuilder(String path)
     {
         if (path == null) throw new IllegalArgumentException("Path cannot be null");
-        if (typeClass == null) throw new IllegalArgumentException("OntClass cannot be null");
 
         // treat paths starting with / as absolute, others as relative (to the current absolute path)
         // JAX-RS URI templates do not have this distinction (leading slash is irrelevant)
-        if (path.startsWith("/"))
-            return getBaseUriBuilder().clone();
-        else
-        {
-            Resource parent = getParent(resource);
-            if (parent != null) return UriBuilder.fromUri(parent.getURI());
-            parent = getParent(typeClass);
-            if (parent != null) return UriBuilder.fromUri(parent.getURI());
-            return getAbsolutePathBuilder().clone();
-        }
-        
+        if (path.startsWith("/")) return getBaseUriBuilder().clone();
+        else return getAbsolutePathBuilder().clone();
     }
     
-    public Resource getParent(Resource resource)
+    @Override
+    public URI build(Resource resource, UriBuilder builder, String path, String fragment)
     {
-        Resource parent = resource.getPropertyResourceValue(SIOC.HAS_PARENT);
-        if (parent != null) return parent;
-        parent = resource.getPropertyResourceValue(SIOC.HAS_CONTAINER);
-        return parent;
+        if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (builder == null) throw new IllegalArgumentException("UriBuilder cannot be null");
+
+        Map<String, String> nameValueMap = getNameValueMap(resource, new UriTemplateParser(path));
+        if (path != null) builder = builder.path(path);
+        
+        return builder.path(path).fragment(fragment).buildFromMap(nameValueMap); // TO-DO: wrap into SkolemizationException
     }
+    
+    
+//    public Resource getParent(Resource resource)
+//    {
+//        Resource parent = resource.getPropertyResourceValue(SIOC.HAS_PARENT);
+//        if (parent != null) return parent;
+//        parent = resource.getPropertyResourceValue(SIOC.HAS_CONTAINER);
+//        return parent;
+//    }
 
 }
