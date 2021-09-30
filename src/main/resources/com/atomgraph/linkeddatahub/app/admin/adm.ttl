@@ -140,12 +140,12 @@ ORDER BY ?title
     rdfs:label "Ontology" ;
     rdfs:isDefinedBy : .
 
-:Restriction a rdfs:Class ;
-    rdfs:subClassOf lsm:Restriction ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Restriction" ;
-    rdfs:isDefinedBy : .
+#:Restriction a rdfs:Class ;
+#    rdfs:subClassOf lsm:Restriction ;
+#    ldt:path "{isPrimaryTopicOf.slug}/" ;
+#    ldt:fragment "this" ;
+#    rdfs:label "Restriction" ;
+#    rdfs:isDefinedBy : .
 
 :Authorization a rdfs:Class ;
     rdfs:subClassOf lacl:Authorization ;

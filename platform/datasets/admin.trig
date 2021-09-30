@@ -277,7 +277,6 @@
         rdfs:comment "Allows unauthorized access" ;
         acl:accessTo <ns>, # admin ontologies are public
             <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/system/>, <model/ontologies/domain/> ; # end-user ontologies are public
-        acl:accessToClass adm:AgentItem, adm:PublicKeyItem ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
