@@ -98,7 +98,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             graphUri = URI.create(getCreatedDocument(model, forClass).getURI());
         }
         else
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).build(model);
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
         
         return super.post(model, false, graphUri);
     }
