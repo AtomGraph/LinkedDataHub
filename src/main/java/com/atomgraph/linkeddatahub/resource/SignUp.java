@@ -116,7 +116,6 @@ public class SignUp extends GraphStoreImpl
     private final Application application;
     private final Ontology ontology;
     private final Model countryModel;
-    private final UriBuilder agentContainerUriBuilder, authorizationContainerUriBuilder;
     private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
@@ -148,10 +147,6 @@ public class SignUp extends GraphStoreImpl
         {
             throw new WebApplicationException(ex);
         }
-        
-        // TO-DO: extract Agent container URI from ontology Restrictions
-        agentContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AGENT_PATH);
-        authorizationContainerUriBuilder = uriInfo.getBaseUriBuilder().path(AUTHORIZATION_PATH);
        
         try
         {
@@ -236,7 +231,6 @@ public class SignUp extends GraphStoreImpl
                 URI publicKeyGraphUri = getUriInfo().getBaseUriBuilder().path(PUBLIC_KEY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                 Model publicKeyModel = ModelFactory.createDefaultModel();
                 createPublicKey(publicKeyModel, publicKeyGraphUri, forClass.getNameSpace(), certPublicKey);
-
                 publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(publicKeyGraphUri)).build(publicKeyModel);
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -256,6 +250,17 @@ public class SignUp extends GraphStoreImpl
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create Agent");
                     throw new WebApplicationException("Cannot create Agent");
+                }
+                
+                URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                Model authModel = ModelFactory.createDefaultModel();
+                createAuthorization(authModel, authGraphUri, forClass.getNameSpace(), agentGraphUri);
+                authModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
+                Response authResponse = super.post(authModel, false, authGraphUri);
+                if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                {
+                    if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                    throw new WebApplicationException("Cannot create Authorization");
                 }
 
                 // remove secretary WebID from cache
@@ -346,6 +351,28 @@ public class SignUp extends GraphStoreImpl
         return publicKeyRes;
     }
     
+    public Resource createAuthorization(Model model, URI graphURI, String namespace, URI agentGraphURI)
+    {
+        // TO-DO: improve class URI retrieval
+        Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
+        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
+
+        Resource authItem = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, itemCls).
+            addLiteral(DH.slug, UUID.randomUUID().toString());
+        Resource auth = model.createResource().
+            addProperty(RDF.type, cls).
+            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
+            addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
+            addProperty(ACL.mode, ACL.Read).
+            addProperty(ACL.agentClass, FOAF.Agent).
+            addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
+        authItem.addProperty(FOAF.primaryTopic, auth);
+        auth.addProperty(FOAF.isPrimaryTopicOf, authItem);
+        
+        return auth;
+    }
+    
     public void sendEmail(Resource agent, LocalDate certExpires, byte[] keyStoreBytes, String keyStoreFileName) throws MessagingException, UnsupportedEncodingException
     {
         // send email with attached KeyStore
@@ -402,16 +429,6 @@ public class SignUp extends GraphStoreImpl
     public Model getCountryModel()
     {
         return countryModel;
-    }
-    
-    public UriBuilder getAgentContainerUriBuilder()
-    {
-        return agentContainerUriBuilder.clone();
-    }
-
-    public UriBuilder getAuthorizationContainerUriBuilder()
-    {
-        return authorizationContainerUriBuilder.clone();
     }
     
     public Address getSignUpAddress()

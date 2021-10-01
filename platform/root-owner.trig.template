@@ -27,13 +27,6 @@
 
     <${SECRETARY_URI}> acl:delegates <${OWNER_URI}> .
 
-    # authorization to make this graph public
-
-    <${OWNER_DOC_URI}#auth> a adm:Authorization ;
-        acl:accessTo <${OWNER_DOC_URI}> ;
-        acl:mode acl:Read ;
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
-
 }
 
 # PUBLIC KEY
@@ -60,7 +53,7 @@
 
 }
 
-# AUTHORIZATION
+# AUTHORIZATIONS
 
 # root owner is a member of the owners group
 
@@ -68,4 +61,18 @@
 {
 
     <acl/groups/owners/#this> foaf:member <${OWNER_URI}> .
+}
+
+<acl/authorizations/${OWNER_KEY_UUID}/> # TO-DO: use $OWNER_AUTH_UUID
+{
+
+    <acl/authorizations/${OWNER_KEY_UUID}/> a adm:Item ;
+        dct:title "Public owner's WebID" ;
+        foaf:primaryTopic <acl/authorizations/${OWNER_KEY_UUID}/#this> .
+
+    <acl/authorizations/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;
+        acl:accessTo <${OWNER_DOC_URI}> ;
+        acl:mode acl:Read ;
+        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
+
 }
