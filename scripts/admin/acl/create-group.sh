@@ -114,9 +114,9 @@ else
     group="_:auth" # blank node
 fi
 
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
-fi
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
 
 args+=("-f")
 args+=("$cert_pem_file")
