@@ -233,9 +233,9 @@ public class SignUp extends GraphStoreImpl
                 if (!(cert.getPublicKey() instanceof RSAPublicKey)) throw new IllegalStateException("Certificate PublicKey is not an RSAPublicKey");
 
                 RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
-                Model publicKeyModel = ModelFactory.createDefaultModel();
-                createPublicKey(publicKeyModel, forClass.getNameSpace(), certPublicKey);
                 URI publicKeyGraphUri = getUriInfo().getBaseUriBuilder().path(PUBLIC_KEY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                Model publicKeyModel = ModelFactory.createDefaultModel();
+                createPublicKey(publicKeyModel, publicKeyGraphUri, forClass.getNameSpace(), certPublicKey);
 
                 publicKeyModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(publicKeyGraphUri)).build(publicKeyModel);
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
@@ -326,13 +326,13 @@ public class SignUp extends GraphStoreImpl
         return new SPINConstraintViolationException(cvs, resource.getModel());
     }
 
-    public Resource createPublicKey(Model model, String namespace, RSAPublicKey publicKey)
+    public Resource createPublicKey(Model model, URI graphURI, String namespace, RSAPublicKey publicKey)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.PublicKey.getLocalName()); // subclassOf LACL.PublicKey
         Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
 
-        Resource publicKeyItem = model.createResource().
+        Resource publicKeyItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         Resource publicKeyRes = model.createResource().
