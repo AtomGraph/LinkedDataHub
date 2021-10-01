@@ -31,7 +31,7 @@ group=$(curl -s -k \
   "$group_doc" \
   -H "Accept: application/n-triples" \
   | cat \
-  | sed -rn "s/<${group_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
+  | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${group_doc//\//\\/}> \./\1/p")
 
 # create authorization
 
