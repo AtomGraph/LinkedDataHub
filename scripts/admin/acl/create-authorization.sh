@@ -150,7 +150,7 @@ container="${base}acl/authorizations/"
 
 # create item/graph
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
+pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
 item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
 

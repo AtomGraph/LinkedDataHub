@@ -101,7 +101,7 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 args+=("--for-class")
-args+=("${base}ns#Item")
+args+=("${base}admin/model/ontologies/default/#Item")
 
 turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
