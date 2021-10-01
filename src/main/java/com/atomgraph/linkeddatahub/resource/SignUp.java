@@ -254,7 +254,7 @@ public class SignUp extends GraphStoreImpl
                 
                 URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                 Model authModel = ModelFactory.createDefaultModel();
-                createAuthorization(authModel, authGraphUri, forClass.getNameSpace(), agentGraphUri);
+                createAuthorization(authModel, authGraphUri, forClass.getNameSpace(), agentGraphUri, publicKeyGraphUri);
                 authModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
                 Response authResponse = super.post(authModel, false, authGraphUri);
                 if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -351,7 +351,7 @@ public class SignUp extends GraphStoreImpl
         return publicKeyRes;
     }
     
-    public Resource createAuthorization(Model model, URI graphURI, String namespace, URI agentGraphURI)
+    public Resource createAuthorization(Model model, URI graphURI, String namespace, URI agentGraphURI, URI publicKeyURI)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
@@ -364,6 +364,7 @@ public class SignUp extends GraphStoreImpl
             addProperty(RDF.type, cls).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
+            addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyURI.toString())).
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
