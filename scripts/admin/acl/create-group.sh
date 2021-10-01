@@ -98,6 +98,9 @@ fi
 
 container="${base}acl/authorizations/"
 
+item=$(../../create-item.sh --container "$container" --title "$name")
+echo "GROUP ITEM: $item"
+
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     group="<${uri}>" # URI
@@ -110,34 +113,24 @@ if [ -z "$1" ]; then
 fi
 
 args+=("-f")
-args+=("${cert_pem_file}")
+args+=("$cert_pem_file")
 args+=("-p")
-args+=("${cert_password}")
+args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--for-class")
-args+=("${base}ns#Group") # class
+#args+=("--for-class")
+#args+=("${base}ns#Group") # class
+args+=("$item")
 
 turtle+="@prefix ns:	<ns#> .\n"
-turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
-turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
-turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${group} a ns:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="${group} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:GroupItem .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${group} .\n"
+turtle+="${group} foaf:isPrimaryTopicOf ${item} .\n"
 
 if [ -n "$description" ] ; then
+    turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
     turtle+="${group} dct:description \"${description}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
 for member in "${members[@]}"
@@ -146,4 +139,6 @@ do
 done
 
 # submit Turtle doc to the server
-echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}"
+$(echo -e "$turtle" | turtle --base="$base" | ../../create-document.sh "${args[@]}")
+
+echo "GROUP?! $group"

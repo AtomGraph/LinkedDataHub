@@ -106,7 +106,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
 
     public Resource getForClass(UriInfo uriInfo)
     {
-        if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName()))
+        if (!uriInfo.getQueryParameters().containsKey(APLT.forClass.getLocalName()))
             throw new BadRequestException("aplt:ForClass parameter not provided");
 
         return ResourceFactory.createResource(uriInfo.getQueryParameters().getFirst(APLT.forClass.getLocalName()));
