@@ -145,7 +145,7 @@ do
 done
 
 echo "TURTLE:"
-echo "$turtle"
+echo -e "$turtle"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
