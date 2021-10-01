@@ -96,7 +96,7 @@ if [ ${#members[@]} -eq 0 ]; then
     exit 1
 fi
 
-container="${base}acl/authorizations/"
+container="${base}acl/groups/"
 
 # create item/graph
 
@@ -144,7 +144,11 @@ do
     turtle+="${group} foaf:member <$member> .\n"
 done
 
-printf '%s\n' "${args[@]}"
+
+for index in ${!args[@]}; do
+    echo $((index+1))/${#args[@]} = "${args[index]}"
+done
+
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
