@@ -103,7 +103,6 @@ container="${base}acl/groups/"
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$name")
-echo "GROUP ITEM: $item"
 
 popd > /dev/null
 

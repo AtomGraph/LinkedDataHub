@@ -148,6 +148,14 @@ fi
 
 container="${base}acl/authorizations/"
 
+# create item/graph
+
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$name")
+
+popd > /dev/null
+
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     auth="<${uri}>" # URI
@@ -155,9 +163,9 @@ else
     auth="_:auth" # blank node
 fi
 
-if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
-fi
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
@@ -165,29 +173,21 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--for-class")
-args+=("${base}ns#Authorization")
+#args+=("--for-class")
+#args+=("${base}ns#Authorization")
+args+=("$item")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix acl:	<http://www.w3.org/ns/auth/acl#> .\n"
-turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${auth} a ns:Authorization .\n"
 turtle+="${auth} rdfs:label \"${label}\" .\n"
-turtle+="${auth} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:AuthorizationItem .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${auth} .\n"
+turtle+="${auth} foaf:isPrimaryTopicOf <${item}> .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${auth} rdfs:comment \"${comment}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
 for agent in "${agents[@]}"
