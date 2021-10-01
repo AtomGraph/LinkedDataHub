@@ -144,6 +144,8 @@ do
     turtle+="${group} foaf:member <$member> .\n"
 done
 
+printf '%s\n' "${args[@]}"
+
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 # submit Turtle doc to the server
