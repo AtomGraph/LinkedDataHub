@@ -102,7 +102,7 @@ container="${base}acl/authorizations/"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-item=$(create-item.sh --container "$container" --title "$name")
+item=$(./create-item.sh --container "$container" --title "$name")
 echo "GROUP ITEM: $item"
 
 popd > /dev/null
