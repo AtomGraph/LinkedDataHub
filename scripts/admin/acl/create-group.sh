@@ -144,11 +144,8 @@ do
     turtle+="${group} foaf:member <$member> .\n"
 done
 
-
-for index in ${!args[@]}; do
-    echo $((index+1))/${#args[@]} = "${args[index]}"
-done
-
+echo "TURTLE:"
+echo "$turtle"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
