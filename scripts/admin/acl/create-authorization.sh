@@ -152,7 +152,7 @@ container="${base}acl/authorizations/"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$name")
+item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
 
 popd > /dev/null
 
