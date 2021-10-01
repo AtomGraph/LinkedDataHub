@@ -132,7 +132,7 @@ turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="${group} a ns:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="${group} foaf:isPrimaryTopicOf ${item} .\n"
+turtle+="${group} foaf:isPrimaryTopicOf <${item}> .\n"
 
 if [ -n "$description" ] ; then
     turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
