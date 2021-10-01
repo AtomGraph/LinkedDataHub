@@ -98,8 +98,14 @@ fi
 
 container="${base}acl/authorizations/"
 
-item=$(../../create-item.sh --container "$container" --title "$name")
+# create item/graph
+
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+item=$(create-item.sh --container "$container" --title "$name")
 echo "GROUP ITEM: $item"
+
+popd > /dev/null
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
