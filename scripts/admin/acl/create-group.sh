@@ -144,9 +144,6 @@ do
     turtle+="${group} foaf:member <$member> .\n"
 done
 
-echo "TURTLE:"
-echo -e "$turtle"
-
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 # submit Turtle doc to the server
@@ -154,4 +151,4 @@ echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
 
 popd > /dev/null
 
-echo "GROUP?! $group"
+echo "$item"
