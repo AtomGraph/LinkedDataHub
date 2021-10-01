@@ -71,7 +71,7 @@
         foaf:primaryTopic <acl/authorizations/${OWNER_KEY_UUID}/#this> .
 
     <acl/authorizations/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;
-        acl:accessTo <${OWNER_DOC_URI}> ;
+        acl:accessTo <${OWNER_DOC_URI}>, <acl/public-keys/${OWNER_KEY_UUID}/> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
