@@ -272,6 +272,37 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- CREATE DOCUMENT -->
+
+    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:CreateDocument" priority="1">
+        <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
+                </xsl:apply-templates>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+
+            <xsl:variable name="this" select="@rdf:about"/>
+            <ul class="dropdown-menu">
+                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#Container', $apl:base), resolve-uri('admin/model/ontologies/default/#Item', $apl:base)), document(resolve-uri('admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
+                <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+            </ul>
+        </div>
+    </xsl:template>
+
     <!-- CREATE -->
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">

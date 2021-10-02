@@ -561,7 +561,6 @@ extension-element-prefixes="ixsl"
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
 
                                 <!-- won't traverse blank nodes, only URI resources -->
-                                <!--<xsl:variable name="action" select="current-group()/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:allValuesFrom/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>-->
                                 <li>
                                     <button type="button" class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">

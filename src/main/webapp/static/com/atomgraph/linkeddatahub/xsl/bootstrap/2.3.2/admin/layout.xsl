@@ -30,7 +30,7 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
-    <xsl:template match="rdf:RDF[$acl:Agent]" mode="bs2:Create" priority="1">
+<!--    <xsl:template match="rdf:RDF[$acl:Agent]" mode="bs2:Create" priority="1">
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
@@ -50,7 +50,7 @@ exclude-result-prefixes="#all">
                 </xsl:call-template>
             </ul>
         </div>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
     <xsl:template name="bs2:ConstructorList">
