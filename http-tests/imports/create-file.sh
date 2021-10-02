@@ -43,7 +43,9 @@ file_doc_ntriples=$(./get-document.sh \
 
 popd > /dev/null
 
-file=$(echo "$file_doc_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${file_doc//\//\\/}> \./\1/p" | tr -d '\r')
+# echo "FILE NTRIPLES: $file_doc_ntriples"
+
+file=$(echo "$file_doc_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${file_doc//\//\\/}> \./\1/p")
 
 echo "$file" # file URL used in other tests
 
