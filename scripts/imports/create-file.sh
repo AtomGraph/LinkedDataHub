@@ -151,7 +151,7 @@ rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=${ns}File\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
-rdf_post+="-F \"ob=${item}\"\n"
+rdf_post+="-F \"ou=${item}\"\n"
 
 if [ -n "$description" ] ; then
     rdf_post+="-F \"su=${file_uri}\"\n"
