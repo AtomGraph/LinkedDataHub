@@ -766,7 +766,7 @@
 
 }
 
-# system
+# system TO-DO: remove nsds: ontology
 
 <model/ontologies/system/>
 {
@@ -801,6 +801,7 @@
 
     nsds:File a adm:Class ;
         rdfs:subClassOf nsdd:File ;
+        ldt:path "/uploads/{slug}" ;
         rdfs:label "File" ;
         rdfs:comment "A document that represents an uploaded file" ;
         rdfs:isDefinedBy nsds: .

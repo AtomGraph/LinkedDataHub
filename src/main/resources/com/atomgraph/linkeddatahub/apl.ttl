@@ -200,7 +200,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
             owl:onProperty foaf:isPrimaryTopicOf ;
             owl:allValuesFrom :GraphItem
         ] ;
-    ldt:path "{isPrimaryTopicOf.slug}/" ;
+    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "this" ;
     rdfs:label "Dataset" ;
     rdfs:isDefinedBy : .

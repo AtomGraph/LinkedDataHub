@@ -137,13 +137,14 @@ popd > /dev/null
 
 # need to create explicit file URI since that is what this script returns (not the graph URI)
 
-slug=$(uuidgen) # TO-DO: use $file_slug?
-file_uri="${item}#id${slug}"
+if [ -z "$file_slug" ] ; then
+    file_slug=$(uuidgen)
+fi
 
 # https://stackoverflow.com/questions/19116016/what-is-the-right-way-to-post-multipart-form-data-using-curl
 
 rdf_post+="-F \"rdf=\"\n"
-rdf_post+="-F \"su=${file_uri}\"\n"
+rdf_post+="-F \"sb=file\"\n"
 rdf_post+="-F \"pu=http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#fileName\"\n"
 rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
@@ -154,12 +155,12 @@ rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
 rdf_post+="-F \"ou=${item}\"\n"
 
 if [ -n "$description" ] ; then
-    rdf_post+="-F \"su=${file_uri}\"\n"
+    rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=http://purl.org/dc/terms/description\"\n"
     rdf_post+="-F \"ol=${description}\"\n"
 fi
 if [ -n "$file_slug" ] ; then
-    rdf_post+="-F \"su=${file_uri}\"\n"
+    rdf_post+="-F \"sb=file\"\n"
     rdf_post+="-F \"pu=https://www.w3.org/ns/ldt/document-hierarchy/domain#slug\"\n"
     rdf_post+="-F \"ol=${file_slug}\"\n"
 
