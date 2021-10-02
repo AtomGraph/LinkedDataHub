@@ -98,14 +98,6 @@ fi
 
 container="${base}acl/groups/"
 
-# create item/graph
-
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
-
-item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$name")
-
-popd > /dev/null
-
 # allow explicit URIs
 if [ -n "$uri" ] ; then
     group="<${uri}>" # URI
@@ -113,9 +105,19 @@ else
     group="_:auth" # blank node
 fi
 
-#if [ -z "$1" ]; then
-#    args+=("${base}service") # default target URL = graph store
-#fi
+if [ -z "$1" ]; then
+    # create graph
+
+    pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
+
+    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
+
+    popd > /dev/null
+
+    args+=("$graph") # default target URL = named graph URI
+else
+    graph="$1"
+fi
 
 args+=("-f")
 args+=("$cert_pem_file")
@@ -123,15 +125,12 @@ args+=("-p")
 args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
-#args+=("--for-class")
-#args+=("${base}ns#Group") # class
-args+=("$item")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="${group} a ns:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="${group} foaf:isPrimaryTopicOf <${item}> .\n"
+turtle+="${group} foaf:isPrimaryTopicOf <${graph}> .\n"
 
 if [ -n "$description" ] ; then
     turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
@@ -150,4 +149,4 @@ echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
 
 popd > /dev/null
 
-echo "$item"
+echo "$graph"

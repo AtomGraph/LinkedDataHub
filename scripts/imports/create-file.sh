@@ -121,19 +121,19 @@ class="${ns}File"
 #forClass=$(urlencode "$class")
 container="${base}files/"
 
-# create item/graph
+if [ -z "$1" ]; then
+    # create graph
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
+    pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
-item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
+    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
 
-popd > /dev/null
+    popd > /dev/null
 
-#if [ -z "$1" ]; then
-#    target="${base}uploads?forClass=${forClass}" # default target URL = uploads endpoint
-#else
-#    target="${1}?forClass=${forClass}"
-#fi
+    args+=("$graph") # default target URL = named graph URI
+else
+    graph="$1"
+fi
 
 # need to create explicit file URI since that is what this script returns (not the graph URI)
 
@@ -152,7 +152,7 @@ rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=${class}\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
-rdf_post+="-F \"ou=${item}\"\n"
+rdf_post+="-F \"ou=${graph}\"\n"
 
 if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"
@@ -167,6 +167,6 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -v --config - "$item"
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -v --config - "$graph"
 
-echo "$item"
+echo "$graph"
