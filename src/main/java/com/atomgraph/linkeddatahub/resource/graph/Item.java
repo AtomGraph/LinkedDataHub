@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -43,6 +44,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.update.UpdateRequest;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 /**
  *
@@ -75,6 +77,14 @@ public class Item extends GraphStoreImpl implements Patchable
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         return super.post(model, false, getURI());
+    }
+    
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Override
+    public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        return super.postMultipart(multiPart, false, getURI());
     }
     
     @Override
