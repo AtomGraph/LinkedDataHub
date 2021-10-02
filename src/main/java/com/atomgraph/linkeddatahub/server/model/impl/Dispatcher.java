@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.resource.Imports;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.SignUp;
-import com.atomgraph.linkeddatahub.resource.Uploads;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -111,12 +110,12 @@ public class Dispatcher
     {
         return RequestAccess.class;
     }
-    
-    @Path("uploads")
-    public Object getUploadEndpoint()
-    {
-        return Uploads.class;
-    }
+//    
+//    @Path("uploads")
+//    public Object getUploadEndpoint()
+//    {
+//        return Uploads.class;
+//    }
 
     @Path("uploads/{sha1sum}/")
     public Object getFileItem()
