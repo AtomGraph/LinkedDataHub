@@ -265,8 +265,8 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 # files
 
 :File a rdfs:Class, owl:Class ;
-    rdfs:subClassOf nfo:FileDataObject ; # dh:Item, 
-    ldt:fragment "id{slug}" ;
+    rdfs:subClassOf nfo:FileDataObject ;
+    ldt:path "/uploads/{slug}
     spin:constructor :FileConstructor ;
     spin:constraint :MissingFileName ;
     rdfs:label "File" ;
