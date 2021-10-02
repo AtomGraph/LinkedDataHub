@@ -123,9 +123,9 @@ container="${base}files/"
 
 # create item/graph
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
+pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$name")
+item=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
 
 popd > /dev/null
 
@@ -149,7 +149,7 @@ rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${ns}File\"\n"
+rdf_post+="-F \"ou=${class}\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
 rdf_post+="-F \"ou=${item}\"\n"
 
