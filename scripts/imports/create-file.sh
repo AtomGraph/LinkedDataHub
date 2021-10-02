@@ -169,4 +169,4 @@ fi
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -v --config - "$item"
 
-echo "$file_uri"
+echo "$item"

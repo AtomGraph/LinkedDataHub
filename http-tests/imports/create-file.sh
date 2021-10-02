@@ -35,7 +35,7 @@ file_doc=$(./create-file.sh \
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-file_ntriples=$(./get-document.sh \
+file_doc_ntriples=$(./get-document.sh \
   -f "$AGENT_CERT_FILE" \
   -p "$AGENT_CERT_PWD" \
   --accept 'application/n-triples' \
@@ -43,11 +43,15 @@ file_ntriples=$(./get-document.sh \
 
 popd > /dev/null
 
-file=$(echo "$file_ntriples" \
-| grep '<http://xmlns.com/foaf/0.1/primaryTopic>' \
-| cut -d " " -f 3 \
-| cut -d "<" -f 2 \
-| cut -d ">" -f 1) # cut < > to get URI
+# echo "FILE NTRIPLES: $file_doc_ntriples"
+
+file=$(echo "$file_doc_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${file_doc//\//\\/}> \./\1/p")
+
+#file=$(echo "$file_doc_ntriples" \
+#| grep '<http://xmlns.com/foaf/0.1/primaryTopic>' \
+#| cut -d " " -f 3 \
+#| cut -d "<" -f 2 \
+#| cut -d ">" -f 1) # cut < > to get URI
 
 echo "$file" # file URL used in other tests
 
