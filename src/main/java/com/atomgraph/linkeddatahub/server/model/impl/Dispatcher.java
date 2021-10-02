@@ -16,8 +16,13 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.linkeddatahub.resource.Add;
+import com.atomgraph.linkeddatahub.resource.Clone;
+import com.atomgraph.linkeddatahub.resource.Imports;
+import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.SignUp;
+import com.atomgraph.linkeddatahub.resource.Uploads;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -80,13 +85,13 @@ public class Dispatcher
     @Path("ns")
     public Object getOntology()
     {
-        return com.atomgraph.linkeddatahub.resource.Namespace.class;
+        return Namespace.class;
     }
 
     @Path("ns/{slug}/")
     public Object getSubOntology()
     {
-        return com.atomgraph.linkeddatahub.resource.Namespace.class;
+        return Namespace.class;
     }
 
     @Path("{container}/ontologies/{uuid}/")
@@ -110,7 +115,7 @@ public class Dispatcher
     @Path("uploads")
     public Object getUploadEndpoint()
     {
-        return com.atomgraph.linkeddatahub.resource.file.Container.class;
+        return Uploads.class;
     }
 
     @Path("uploads/{sha1sum}/")
@@ -122,19 +127,19 @@ public class Dispatcher
     @Path("imports")
     public Object getImportEndpoint()
     {
-        return com.atomgraph.linkeddatahub.resource.imports.Container.class;
+        return Imports.class;
     }
 
     @Path("add")
     public Object getAddEndpoint()
     {
-        return com.atomgraph.linkeddatahub.resource.Add.class;
+        return Add.class;
     }
     
     @Path("clone")
     public Object getCloneEndpoint()
     {
-        return com.atomgraph.linkeddatahub.resource.Clone.class;
+        return Clone.class;
     }
 
     @Path("oauth2/authorize/google")

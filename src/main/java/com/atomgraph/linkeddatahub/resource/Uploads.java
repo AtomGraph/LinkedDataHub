@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.resource.file;
+package com.atomgraph.linkeddatahub.resource;
 
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -77,15 +77,15 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Container extends GraphStoreImpl
+public class Uploads extends GraphStoreImpl
 {
-    private static final Logger log = LoggerFactory.getLogger(Container.class);
+    private static final Logger log = LoggerFactory.getLogger(Uploads.class);
     
     private final Ontology ontology;
     private final MessageDigest messageDigest;
     
     @Inject
-    public Container(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
+    public Uploads(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
             Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {

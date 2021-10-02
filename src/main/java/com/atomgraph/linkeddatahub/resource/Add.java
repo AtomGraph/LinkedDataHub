@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Add extends com.atomgraph.linkeddatahub.resource.file.Container
+public class Add extends com.atomgraph.linkeddatahub.resource.Uploads
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
