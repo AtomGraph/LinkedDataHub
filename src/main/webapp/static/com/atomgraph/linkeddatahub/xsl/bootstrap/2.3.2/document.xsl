@@ -340,19 +340,6 @@ extension-element-prefixes="ixsl"
                     <li class="divider"></li>
                 </xsl:if>
 
-                <!--if the current resource is a Container, show Container and Item constructors--> 
-                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#Container', $apl:base), resolve-uri('admin/model/ontologies/default/#Item', $apl:base)), document(resolve-uri('admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
-                <!-- current resource is a container -->
-                <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = (resolve-uri('admin/model/ontologies/default/#Root', $apl:base), resolve-uri('admin/model/ontologies/default/#Container', $apl:base))">
-                    <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
-
-                    <xsl:if test="$default-classes">
-                        <li class="divider"></li>
-                    </xsl:if>
-                </xsl:if>
-
                 <xsl:apply-templates select="$default-classes" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
