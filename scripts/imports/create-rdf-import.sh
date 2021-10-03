@@ -146,10 +146,6 @@ fi
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
 fi
-if [ -n "$slug" ] ; then
-    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
-    turtle+="_:item dh:slug \"${slug}\" .\n"
-fi
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"
