@@ -275,6 +275,7 @@ extension-element-prefixes="ixsl"
     <!-- CREATE DOCUMENT -->
 
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:CreateDocument" priority="1">
+        <xsl:param name="ontology" as="xs:anyURI"/>
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
 
         <div>
@@ -295,7 +296,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="document-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#Container', $apl:base), resolve-uri('admin/model/ontologies/default/#Item', $apl:base)), document(resolve-uri('admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
+                <xsl:variable name="document-classes" select="key('resources', ($ontology || 'Container', $ontology || 'Item'), document(ac:document-uri($ontology)))" as="element()*"/>
                 <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>

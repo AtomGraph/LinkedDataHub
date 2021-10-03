@@ -52,6 +52,25 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>-->
     
+    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:CreateDocument">
+                <xsl:with-param name="ontology" select="resolve-uri('ns#', $apl:base)"/>
+                <xsl:with-param name="class" select="'btn-group pull-left'"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
+    
     <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
     <xsl:template name="bs2:ConstructorList">
         <xsl:param name="ontology" as="xs:anyURI"/>
