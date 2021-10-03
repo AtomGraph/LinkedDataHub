@@ -34,6 +34,7 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
@@ -75,6 +76,12 @@ public class Imports extends GraphStoreImpl
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
+    @Path("{path: .*}")
+    public Object getSubResource()
+    {
+        return GraphStoreImpl.class;
+    }
+        
     @GET
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
@@ -122,6 +129,7 @@ public class Imports extends GraphStoreImpl
         return application;
     }
     
+    @Override
     public Ontology getOntology()
     {
         return ontology;

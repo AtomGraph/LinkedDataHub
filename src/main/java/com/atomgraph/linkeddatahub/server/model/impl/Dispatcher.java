@@ -110,12 +110,6 @@ public class Dispatcher
     {
         return RequestAccess.class;
     }
-//    
-//    @Path("uploads")
-//    public Object getUploadEndpoint()
-//    {
-//        return Uploads.class;
-//    }
 
     @Path("uploads/{sha1sum}/")
     public Object getFileItem()
