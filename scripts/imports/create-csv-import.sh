@@ -123,7 +123,17 @@ fi
 container="${base}imports/"
 
 if [ -z "$1" ]; then
-    args+=("${base}imports") # default target URL = import endpoint
+    # create graph
+
+    pushd . > /dev/null && cd "$SCRIPT_ROOT"
+
+    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
+
+    popd > /dev/null
+
+    args+=("${base}imports?graph=${graph}") # default target URL = imports endpoint with a named graph URI param
+else
+    graph="$1"
 fi
 
 args+=("-f")
@@ -132,33 +142,22 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--for-class")
-args+=("${base}admin/model/ontologies/system/#CSVImport")
 
 turtle+="@prefix nsds:	<admin/model/ontologies/system/#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a nsds:CSVImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import spin:query <${query}> .\n"
 turtle+="_:import apl:action <${action}> .\n"
 turtle+="_:import apl:file <${file}> .\n"
 turtle+="_:import apl:delimiter \"${delimiter}\" .\n"
-turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:ImportItem .\n"
-turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item dct:title \"${title}\" .\n"
-turtle+="_:item foaf:primaryTopic _:import .\n"
+turtle+="_:import foaf:isPrimaryTopicOf <${graph}> .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
-fi
-if [ -n "$slug" ] ; then
-    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server
@@ -168,3 +167,5 @@ export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"
+
+echo "$graph"

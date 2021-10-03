@@ -146,7 +146,7 @@ if [ -z "$request_base" ] ; then
     request_base="$base"
 fi
 
-query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file" "${request_base}service")
+query_doc=$(./create-query.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$query_doc_slug" --query-file "$query_file") # "${request_base}service"
 query_doc=$(echo "$query_doc" | sed -e "s|$base|$request_base|g")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -155,9 +155,9 @@ query_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --acc
 
 popd > /dev/null
 
-query=$(echo "$query_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+query=$(echo "$query_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${query_doc//\//\\/}> \./\1/p")
 
-file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv" "${request_base}uploads")
+file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "text/csv") # TO-DO: "${request_base}uploads"
 file_doc=$(echo "$file_doc" | sed -e "s|$base|$request_base|g")
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
@@ -166,6 +166,6 @@ file_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --acce
 
 popd > /dev/null
 
-file=$(echo "$file_ntriples" | grep '<http://xmlns.com/foaf/0.1/primaryTopic>' | cut -d " " -f 3 | cut -d "<" -f 2 | cut -d ">" -f 1) # cut < > from URI
+file=$(echo "$file_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${file_doc//\//\\/}> \./\1/p")
 
-./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" --delimiter "," "${request_base}imports"
+./create-csv-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" --delimiter "," # TO-DO: "${request_base}imports"
