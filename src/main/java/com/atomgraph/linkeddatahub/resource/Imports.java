@@ -32,6 +32,7 @@ import java.net.URI;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.ServletConfig;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -44,6 +45,7 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
@@ -99,22 +101,39 @@ public class Imports extends GraphStoreImpl
         if (constructor.getStatus() == Status.CREATED.getStatusCode() || constructor.getStatus() == Status.OK.getStatusCode()) // import created
         {
             URI importGraphUri = graphUri; // constructor.getLocation();
-            Model importModel = (Model)super.get(false, importGraphUri).getEntity();
+            Model importModel = model; // (Model)super.get(false, importGraphUri).getEntity();
             InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), importModel);
             Resource doc = infModel.createResource(importGraphUri.toString());
-            Resource topic = doc.getPropertyResourceValue(FOAF.primaryTopic);
             
-            if (topic != null && topic.canAs(Import.class))
+            ResIterator it = infModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, doc);
+            try
             {
-                Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
-                // start the import asynchroniously
-                if (topic.canAs(CSVImport.class))
-                    getSystem().submitImport(topic.as(CSVImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
-                if (topic.canAs(RDFImport.class))
-                    getSystem().submitImport(topic.as(RDFImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                if (it.hasNext())
+                {
+                    Resource topic = it.next();
+
+                    if (topic != null && topic.canAs(Import.class))
+                    {
+                        Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
+                        // start the import asynchroniously
+                        if (topic.canAs(CSVImport.class))
+                            getSystem().submitImport(topic.as(CSVImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                        if (topic.canAs(RDFImport.class))
+                            getSystem().submitImport(topic.as(RDFImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                    }
+                    else
+                        if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
+                }
+                else
+                {
+                    if (log.isErrorEnabled()) log.error("Import resource with foaf:isPrimaryTopicOf <{}> property not found in graph", doc);
+                    throw new BadRequestException("Import resource with foaf:isPrimaryTopicOf <" + doc + "> property not found in graph");
+                }
             }
-            else
-                if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
+            finally
+            {
+                it.close();
+            }
         }
         
         return constructor;
