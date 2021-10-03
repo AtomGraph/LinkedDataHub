@@ -63,12 +63,12 @@ public class Item extends GraphStoreImpl
     private final Resource resource;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());

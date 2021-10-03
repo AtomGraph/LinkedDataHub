@@ -51,12 +51,12 @@ public class Namespace extends GraphStoreImpl
     private final URI uri;
     
     @Inject
-    public Namespace(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Namespace(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }

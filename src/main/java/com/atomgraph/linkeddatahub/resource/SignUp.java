@@ -124,11 +124,11 @@ public class SignUp extends GraphStoreImpl
 
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
-    public SignUp(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
         if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app

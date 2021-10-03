@@ -96,19 +96,20 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(GraphStoreImpl.class);
 
     private final UriInfo uriInfo;
+    private final Ontology ontology;
     private final Service service;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
     private final MessageDigest messageDigest;
 
-    @Inject Optional<Ontology> ontology;
-
     @Inject
-    public GraphStoreImpl(@Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-        @Context UriInfo uriInfo, @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+    public GraphStoreImpl(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+        Optional<Ontology> ontology, Optional<Service> service,
+        @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service.get(), mediaTypes);
         this.uriInfo = uriInfo;
+        this.ontology = ontology.get();
         this.service = service.get();
         this.providers = providers;
         this.system = system;
@@ -169,7 +170,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     
     public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
     {
-        return new Skolemizer(ontology.get(), baseUriBuilder, absolutePathBuilder);
+        return new Skolemizer(getOntology(), baseUriBuilder, absolutePathBuilder);
     }
     
     @PATCH
@@ -442,11 +443,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
 
-    public Ontology getOntology()
-    {
-        return ontology.get();
-    }
-    
     public MessageDigest getMessageDigest()
     {
         return messageDigest;
@@ -493,7 +489,12 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         return uriInfo;
     }
-    
+
+    public Ontology getOntology()
+    {
+        return ontology;
+    }
+
     public Service getService()
     {
         return service;

@@ -43,14 +43,12 @@ public class Item extends com.atomgraph.linkeddatahub.resource.upload.Item
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Optional<Ontology> ontology, Optional<Service> service, 
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, request, service, mediaTypes,
-            application, ontology,
-            dataManager, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, dataManager, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     

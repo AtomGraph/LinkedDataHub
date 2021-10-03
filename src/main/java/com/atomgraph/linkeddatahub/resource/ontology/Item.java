@@ -26,7 +26,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.server.util.SPARQLClientOntologyLoader;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -55,20 +54,16 @@ public class Item extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
     private final URI uri;
-    private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final Ontology ontology;
     private final Resource resource;
     
     @Inject
-    public Item(@Context UriInfo uriInfo, @Context Request request, Optional<Service> service, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, service, mediaTypes, uriInfo, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application.get();
-        this.ontology = ontology.get();
         this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -96,21 +91,7 @@ public class Item extends GraphStoreImpl
             String ontologyURI = topic.getURI();
             
             if (OntDocumentManager.getInstance().getFileManager().hasCachedModel(ontologyURI))
-            {
                 OntDocumentManager.getInstance().getFileManager().removeCacheModel(ontologyURI);
-  
-                // here be dragons! Without explicitly reloading the cleared ontology here, owl:import with its URI can lead to a request loopback later on
-//                new SPARQLClientOntologyLoader(getSystem().getOntModelSpec(), getSystem().getSitemapQuery()).
-//                    getOntology(getApplication(),
-//                        getApplication().getService(),
-//                        ontologyURI,
-//                        getSystem().getOntModelSpec(),
-//                        getOntology().getOntModel());
-            }
-//            
-//            List<String> referers = getHttpHeaders().getRequestHeader("Referer");
-//            if (referers != null && !referers.isEmpty())
-//                return Response.seeOther(URI.create(referers.get(0))).build();
         }
         
         return super.get(defaultGraph, getURI());
@@ -127,17 +108,7 @@ public class Item extends GraphStoreImpl
     {
         return uri;
     }
-    
-    private com.atomgraph.linkeddatahub.apps.model.Application getApplication()
-    {
-        return application;
-    }
-    
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-    
+
     public Resource getResource()
     {
         return resource;

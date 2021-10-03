@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.resource;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import java.net.URI;
 import java.util.Map;
@@ -44,19 +45,17 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class Add extends com.atomgraph.linkeddatahub.resource.Uploads
+public class Add extends GraphStoreImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Add.class);
 
     @Inject
-    public Add(@Context UriInfo uriInfo, @Context Request request, MediaTypes mediaTypes,
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+    public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
+            Optional<Ontology> ontology, Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(uriInfo, request, mediaTypes,
-            service, application, ontology,
-            providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
     }
     
     @Override
