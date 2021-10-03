@@ -117,7 +117,7 @@ if [ -z "$1" ]; then
 
     popd > /dev/null
 
-    args+=("$graph") # default target URL = named graph URI
+    args+=("${base}imports?graph=${graph}") # default target URL = imports endpoint with a named graph URI param
 else
     graph="$1"
 fi
