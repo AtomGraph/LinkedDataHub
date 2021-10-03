@@ -26,6 +26,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
+import com.atomgraph.linkeddatahub.resource.graph.Item;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.net.URI;
 import java.util.Optional;
@@ -79,7 +80,7 @@ public class Imports extends GraphStoreImpl
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        return GraphStoreImpl.class;
+        return Item.class;
     }
         
     @GET
