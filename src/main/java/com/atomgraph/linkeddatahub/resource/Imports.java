@@ -98,7 +98,7 @@ public class Imports extends GraphStoreImpl
         
         if (constructor.getStatus() == Status.CREATED.getStatusCode() || constructor.getStatus() == Status.OK.getStatusCode()) // import created
         {
-            URI importGraphUri = constructor.getLocation();
+            URI importGraphUri = graphUri; // constructor.getLocation();
             Model importModel = (Model)super.get(false, importGraphUri).getEntity();
             InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), importModel);
             Resource doc = infModel.createResource(importGraphUri.toString());
