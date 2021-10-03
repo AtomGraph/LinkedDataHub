@@ -123,7 +123,7 @@ container="${base}files/"
 if [ -z "$1" ]; then
     # create graph
 
-    pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
+    pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
     graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
 
