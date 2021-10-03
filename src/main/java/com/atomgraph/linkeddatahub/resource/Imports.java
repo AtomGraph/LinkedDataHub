@@ -96,7 +96,7 @@ public class Imports extends GraphStoreImpl
     {
         Response constructor = super.post(model, defaultGraph, graphUri); // construct Import
         
-        if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
+        if (constructor.getStatus() == Status.CREATED.getStatusCode() || constructor.getStatus() == Status.OK.getStatusCode()) // import created
         {
             URI importGraphUri = constructor.getLocation();
             Model importModel = (Model)super.get(false, importGraphUri).getEntity();
