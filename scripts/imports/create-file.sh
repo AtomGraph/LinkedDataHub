@@ -125,7 +125,7 @@ if [ -z "$1" ]; then
 
     pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
-    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
+    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
 
     popd > /dev/null
 
