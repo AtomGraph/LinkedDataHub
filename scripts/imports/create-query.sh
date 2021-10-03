@@ -98,7 +98,7 @@ if [ -z "$1" ]; then
 
     pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 
-    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$label")
+    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
 
     popd > /dev/null
 
@@ -126,11 +126,6 @@ turtle+="_:query foaf:isPrimaryTopicOf <${graph}> .\n"
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
 fi
-
-# set env values in the Turtle doc and sumbit it to the server
-
-# make Jena scripts available
-export PATH=$PATH:$JENA_HOME/bin
 
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ../create-document.sh "${args[@]}"

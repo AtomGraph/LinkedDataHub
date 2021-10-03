@@ -118,7 +118,6 @@ urlencode()
 
 ns="${base}admin/model/ontologies/system/#"
 class="${ns}File"
-#forClass=$(urlencode "$class")
 container="${base}files/"
 
 if [ -z "$1" ]; then
