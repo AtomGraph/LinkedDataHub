@@ -1,5 +1,5 @@
 @prefix ns:	<model/ontologies/namespace/#> .
-@prefix nsdd:	<3#> .
+@prefix nsdd:	<model/ontologies/default/#> .
 @prefix adm:	<ns#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
