@@ -2,7 +2,6 @@
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
-@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix dct:	<http://purl.org/dc/terms/> .
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
@@ -32,21 +31,10 @@
 
 # CONTAINERS
 
-<search/>
-{
-
-    <search/> a nsdd:Container ;
-        # dh:select <queries/default/select-labelled/#this> ;
-        dct:title "Search" ;
-        dct:description "Search resources by keyword" .
-
-}
-
 <queries/>
 {
 
     <queries/> a nsdd:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -57,7 +45,6 @@
 
     <queries/default/> a nsdd:Container ;
         sioc:has_parent <queries/> ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Default" ;
         dct:description "Default queries" .
 
@@ -67,7 +54,6 @@
 {
 
     <files/> a nsdd:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Files" ;
         dct:description "Uploaded files" .
 
@@ -77,7 +63,6 @@
 {
 
     <imports/> a nsdd:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Imports" ;
         dct:description "Data imports" .
 
@@ -87,7 +72,6 @@
 {
 
     <geo/> a nsdd:Container ;
-        # dh:select <queries/default/select-geo-resources/#this> ;
         dct:title "geo" ;
         dct:description "Geolocated resources" .
 
@@ -97,7 +81,6 @@
 {
 
     <latest/> a nsdd:Container ;
-        # dh:select <queries/default/select-latest/#this> ;
         dct:title "Latest" ;
         dct:description "Latest resources" .
 
@@ -107,7 +90,6 @@
 {
 
     <charts/> a nsdd:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Charts" ;
         dct:description "Saved charts" .
 
@@ -117,7 +99,6 @@
 {
 
     <services/> a nsdd:Container ;
-        # dh:select <queries/default/select-children/#this> ;
         dct:title "Services" ;
         dct:description "SPARQL services" .
 

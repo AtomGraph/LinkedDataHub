@@ -90,7 +90,6 @@ extension-element-prefixes="ixsl"
         </xsl:document>
     </xsl:param>
     <xsl:param name="ac:lang" select="ixsl:get(ixsl:get(ixsl:page(), 'documentElement'), 'lang')" as="xs:string"/>
-    <xsl:param name="search-container-uri" select="resolve-uri('search/', $apl:base)" as="xs:anyURI"/>
     <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
@@ -126,7 +125,6 @@ extension-element-prefixes="ixsl"
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
-        <xsl:message>Search container URI: <xsl:value-of select="$search-container-uri"/></xsl:message>
         <xsl:message>$ac:limit: <xsl:value-of select="$ac:limit"/></xsl:message>
         <xsl:message>$ac:offset: <xsl:value-of select="$ac:offset"/></xsl:message>
         <xsl:message>$ac:order-by: <xsl:value-of select="$ac:order-by"/></xsl:message>
@@ -2607,10 +2605,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="text" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
-        <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
-<!--        <xsl:param name="container-doc" select="document(ac:build-uri($container-uri, map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>-->
         <xsl:param name="select-uri" select="resolve-uri('queries/default/select-labelled/#this', $apl:base)" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
@@ -2965,10 +2961,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
         <xsl:param name="results-uri" as="xs:anyURI?"/>
-        <xsl:param name="container-uri" select="$search-container-uri" as="xs:anyURI?"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
-<!--        <xsl:param name="container-doc" select="document(ac:build-uri($container-uri, map{ 'accept': 'application/rdf+xml' }))" as="document-node()?"/>-->
         <xsl:param name="select-uri" select="resolve-uri('queries/default/select-labelled/#this', $apl:base)" as="xs:anyURI"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()?"/>

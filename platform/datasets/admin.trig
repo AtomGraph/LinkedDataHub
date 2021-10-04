@@ -29,15 +29,6 @@
 
 }
 
-<search/>
-{
-
-    <search/> a adm:Container ;
-        dct:title "Search" ;
-        dct:description "Search resources by label" .
-
-}
-
 <queries/>
 {
 
