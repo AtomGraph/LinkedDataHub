@@ -110,9 +110,9 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 args+=("--for-class")
-args+=("${base}admin/model/ontologies/system/#Select")
+args+=("${base}admin/model/ontologies/default/#Select")
 
-turtle+="@prefix nsds:	<admin/model/ontologies/system/#> .\n"
+turtle+="@prefix nsds:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"

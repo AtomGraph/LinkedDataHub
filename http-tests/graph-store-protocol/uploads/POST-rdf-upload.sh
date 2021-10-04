@@ -52,11 +52,11 @@ rdf_post+="-F \"ol=@${file};type=${file_content_type}\"\n"
 rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
 rdf_post+="-F \"ol=Whateverest\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
-rdf_post+="-F \"ou=${ADMIN_BASE_URL}model/ontologies/system/#File\"\n"
+rdf_post+="-F \"ou=${ADMIN_BASE_URL}model/ontologies/default/#File\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
 rdf_post+="-F \"ou=${graph}\"\n"
 
-forClass=$(urlencode "${ADMIN_BASE_URL}model/ontologies/system/#File")
+forClass=$(urlencode "${ADMIN_BASE_URL}model/ontologies/default/#File")
 
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" \

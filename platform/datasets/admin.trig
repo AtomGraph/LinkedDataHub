@@ -1,7 +1,5 @@
 @prefix ns:	<model/ontologies/namespace/#> .
-@prefix nsd:	<model/ontologies/domain/#> .
 @prefix nsdd:	<model/ontologies/default/#> .
-@prefix nsds:	<model/ontologies/system/#> .
 @prefix adm:	<ns#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
@@ -276,7 +274,7 @@
         rdfs:label "Public access" ;
         rdfs:comment "Allows unauthorized access" ;
         acl:accessTo <ns>, # admin ontologies are public
-            <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/system/>, <model/ontologies/domain/> ; # end-user ontologies are public
+            <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/domain/> ; # end-user ontologies are public
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -545,24 +543,6 @@
 
 # ONTOLOGIES
 
-# domain
-
-<model/ontologies/domain/>
-{
-
-    <model/ontologies/domain/> a adm:Item ;
-        sioc:has_container <model/ontologies/> ;
-        dct:title "Domain" ;
-        foaf:primaryTopic nsd: .
-
-    nsd: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/domain/> ;
-        rdfs:label "Domain" ;
-        rdfs:comment "Domain ontology of the application" ;
-        owl:versionInfo "1.0-SNAPSHOT" .
-
-}
-
 # default
 
 <model/ontologies/default/>
@@ -761,88 +741,7 @@
         foaf:isPrimaryTopicOf <model/ontologies/namespace/> ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
-        owl:imports nsd:, nsds: ;
-        owl:versionInfo "1.0-SNAPSHOT" .
-
-}
-
-# system
-
-<model/ontologies/system/>
-{
-
-    <model/ontologies/system/> a adm:Item ;
-        sioc:has_container <model/ontologies/> ;
-        dct:title "System domain" ;
-        foaf:primaryTopic nsds: .
-
-    nsds: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/system/> ;
-        rdfs:label "System domain" ;
-        rdfs:comment "System ontology of the application" ;
         owl:imports nsdd: ;
         owl:versionInfo "1.0-SNAPSHOT" .
-
-    nsds:GenericService a adm:Class ;
-        rdfs:subClassOf nsdd:GenericService ;
-        ldt:path "{isPrimaryTopicOf.slug}/" ;
-        ldt:fragment "this" ;
-        rdfs:label "Generic service" ;
-        rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:DydraService a adm:Class ;
-        rdfs:subClassOf nsdd:DydraService ;
-        ldt:path "{isPrimaryTopicOf.slug}/" ;
-        ldt:fragment "this" ;
-        rdfs:label "Dydra service" ;
-        rdfs:comment "Dydra cloud repository" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:File a adm:Class ;
-        rdfs:subClassOf nsdd:File ;
-        rdfs:label "File" ;
-        rdfs:comment "A document that represents an uploaded file" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:RDFImport a adm:Class ;
-        rdfs:subClassOf nsdd:RDFImport ;
-        rdfs:label "RDF import" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:CSVImport a adm:Class ;
-        rdfs:subClassOf nsdd:CSVImport ;
-        rdfs:label "CSV import" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:Construct a adm:Class ;
-        rdfs:subClassOf nsdd:Construct  ;
-        rdfs:label "CONSTRUCT" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:Describe a adm:Class ;
-        rdfs:subClassOf nsdd:Describe ;
-        rdfs:label "DESCRIBE" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:Select a adm:Class ;
-        rdfs:subClassOf nsdd:Select ;
-        rdfs:label "SELECT" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:Ask a adm:Class ;
-        rdfs:subClassOf nsdd:Ask ;
-        rdfs:label "ASK" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:GraphChart a adm:Class ;
-        rdfs:subClassOf nsdd:GraphChart ;
-        rdfs:label "Graph chart" ;
-        rdfs:isDefinedBy nsds: .
-
-    nsds:ResultSetChart a adm:Class ;
-        rdfs:subClassOf nsdd:ResultSetChart ;
-        rdfs:label "Result set chart" ;
-        rdfs:isDefinedBy nsds: .
 
 }

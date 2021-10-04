@@ -92,31 +92,31 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/system/#GenericService', $apl:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/default/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/default/#GenericService', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-service')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#Describe', $apl:base), resolve-uri('admin/model/ontologies/system/#Construct', $apl:base), resolve-uri('admin/model/ontologies/system/#Select', $apl:base), resolve-uri('admin/model/ontologies/system/#Ask', $apl:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/default/#Describe', $apl:base), resolve-uri('admin/model/ontologies/default/#Construct', $apl:base), resolve-uri('admin/model/ontologies/default/#Select', $apl:base), resolve-uri('admin/model/ontologies/default/#Ask', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-query')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/system/#File', $apl:base)]" mode="apl:logo" priority="1">
+    <xsl:template match="*[$apl:base][@rdf:about = resolve-uri('admin/model/ontologies/default/#File', $apl:base)]" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-file')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/system/#RDFImport', $apl:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/default/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/default/#RDFImport', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-import')"/>
     </xsl:template>
     
-    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/system/#ResultSetChart', $apl:base), resolve-uri('admin/model/ontologies/system/#GraphChart', $apl:base))]" mode="apl:logo">
+    <xsl:template match="*[$apl:base][@rdf:about = (resolve-uri('admin/model/ontologies/default/#ResultSetChart', $apl:base), resolve-uri('admin/model/ontologies/default/#GraphChart', $apl:base))]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-chart')"/>
