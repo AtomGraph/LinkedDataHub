@@ -1,5 +1,5 @@
 @prefix ns:	<model/ontologies/namespace/#> .
-@prefix nsdd:	<model/ontologies/default/#> .
+@prefix nsdd:	<3#> .
 @prefix adm:	<ns#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
@@ -274,7 +274,7 @@
         rdfs:label "Public access" ;
         rdfs:comment "Allows unauthorized access" ;
         acl:accessTo <ns>, # admin ontologies are public
-            <model/ontologies/namespace/>, <model/ontologies/default/>, <model/ontologies/domain/> ; # end-user ontologies are public
+            <model/ontologies/namespace/>, <model/ontologies/default/> ; # end-user ontologies are public
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 

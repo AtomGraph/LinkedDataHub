@@ -9,7 +9,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create a constraint making the sioc:content property mandatory
 
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/domain/"
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 constraint="${ontology_doc}#NewConstraint"
 
 ./create-property-constraint.sh \

@@ -2955,7 +2955,7 @@ extension-element-prefixes="ixsl"
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
     <xsl:template match="input[tokenize(@class, ' ') = 'type-typeahead']" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="results-uri" select="resolve-uri('admin/model/ontologies/domain/', $apl:base)"/>
+            <xsl:with-param name="results-uri" select="resolve-uri('admin/model/ontologies/namespace/', $apl:base)"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -3390,7 +3390,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
-            <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/domain/', $apl:base)"/>
+            <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/namespace/', $apl:base)"/>
         </xsl:next-match>
     </xsl:template>
     

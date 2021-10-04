@@ -13,13 +13,13 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
 -f "$OWNER_CERT_FILE" \
 -p "$OWNER_CERT_PWD" \
 --import "https://schema.org" \
-"${ADMIN_BASE_URL}model/ontologies/domain/"
+"${ADMIN_BASE_URL}model/ontologies/namespace/"
 
 popd > /dev/null
 
-# check that the template is present in the ontology
+# check that the import is present in the ontology
 
 curl -k -f -s -N \
   -H "Accept: application/n-triples" \
-  "${ADMIN_BASE_URL}model/ontologies/domain/" \
-| grep -q "<${ADMIN_BASE_URL}model/ontologies/domain/#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"
+  "${ADMIN_BASE_URL}model/ontologies/namespace/" \
+| grep -q "<${ADMIN_BASE_URL}model/ontologies/namespace/#> <http://www.w3.org/2002/07/owl#imports> <https://schema.org>"

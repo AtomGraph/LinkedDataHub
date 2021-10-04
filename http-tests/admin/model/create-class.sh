@@ -9,7 +9,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create class
 
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/domain/"
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 class="${ontology_doc}#NewClass"
 
 ./create-class.sh \

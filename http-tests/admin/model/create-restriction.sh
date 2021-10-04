@@ -9,7 +9,7 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT/admin/model"
 
 # create restriction
 
-ontology_doc="${ADMIN_BASE_URL}model/ontologies/domain/"
+ontology_doc="${ADMIN_BASE_URL}model/ontologies/namespace/"
 restriction="${ontology_doc}#Restriction"
 
 ./create-restriction.sh \
