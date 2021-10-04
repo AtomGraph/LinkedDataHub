@@ -68,19 +68,11 @@ public class APLC
 
     public static final DatatypeProperty authCacheControl = m_model.createDatatypeProperty( NS + "authCacheControl" );
 
-    public static final DatatypeProperty sitemapQuery = m_model.createDatatypeProperty( NS + "sitemapQuery" );
-
-    public static final DatatypeProperty graphDocumentQuery = m_model.createDatatypeProperty( NS + "graphDocumentQuery" );
-    
-    public static final DatatypeProperty restrictionsQuery = m_model.createDatatypeProperty( NS + "restrictionsQuery" );
-    
     public static final DatatypeProperty putUpdate = m_model.createDatatypeProperty( NS + "putUpdate" );
     
     public static final DatatypeProperty deleteUpdate = m_model.createDatatypeProperty( NS + "deleteUpdate" );
     
     public static final ObjectProperty uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );
-
-    public static final DatatypeProperty remoteVariableBindings = m_model.createDatatypeProperty( NS + "remoteVariableBindings" );
 
     public static final DatatypeProperty invalidateCache = m_model.createDatatypeProperty( NS + "invalidateCache" );
 
@@ -116,10 +108,6 @@ public class APLC
 
     public static final DatatypeProperty appQuery = m_model.createDatatypeProperty( NS + "appQuery" );
     
-    public static final DatatypeProperty insertOwnerUpdate = m_model.createDatatypeProperty( NS + "insertOwnerUpdate" );
-    
-    public static final DatatypeProperty ontologyImportQuery = m_model.createDatatypeProperty( NS + "ontologyImportQuery" );
-
     public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" );
     
     public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" );

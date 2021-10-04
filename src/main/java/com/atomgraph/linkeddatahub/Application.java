@@ -230,7 +230,6 @@ public class Application extends ResourceConfig
     private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
-    private final boolean remoteVariableBindings;
     private final Processor xsltProc = new Processor(false);
     private final XsltCompiler xsltComp;
     private final XsltExecutable xsltExec;
@@ -270,7 +269,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.secretaryCertAlias.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStore.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.clientTrustStorePassword.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.remoteVariableBindings.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(APLC.remoteVariableBindings.getURI())) : false,
             servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.authQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.ownerAuthQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
@@ -315,7 +313,6 @@ public class Application extends ResourceConfig
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
-            final boolean remoteVariableBindings,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString,
             final String putUpdateString, final String deleteUpdateString,
@@ -425,7 +422,6 @@ public class Application extends ResourceConfig
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
         this.preemptiveAuth = preemptiveAuth;
-        this.remoteVariableBindings = remoteVariableBindings;
         this.stylesheet = stylesheet;
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
@@ -1132,11 +1128,6 @@ public class Application extends ResourceConfig
     public boolean isPreemptiveAuth()
     {
         return preemptiveAuth;
-    }
-
-    public boolean isRemoteVariableBindings()
-    {
-        return remoteVariableBindings;
     }
     
     public OntModelSpec getOntModelSpec()
