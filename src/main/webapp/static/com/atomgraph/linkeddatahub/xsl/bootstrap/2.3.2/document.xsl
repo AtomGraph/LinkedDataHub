@@ -304,6 +304,8 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <xsl:template match="*" mode="bs2:CreateDocument"/>
+
     <!-- CREATE -->
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
