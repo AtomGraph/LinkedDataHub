@@ -98,7 +98,6 @@ public class Login extends GraphStoreImpl
 
     private final HttpHeaders httpHeaders;
     private final Application application;
-    private final Ontology ontology;
     private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
@@ -113,7 +112,6 @@ public class Login extends GraphStoreImpl
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.httpHeaders = httpHeaders;
         this.application = application.get();
-        this.ontology = ontology.get();
 
         try
         {
@@ -245,7 +243,12 @@ public class Login extends GraphStoreImpl
 
                         Model authModel = ModelFactory.createDefaultModel();
                         URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                        createAuthorization(authModel, authGraphUri, getOntology().getURI(), agentGraphUri, userAccountGraphUri);
+                        createAuthorization(authModel,
+                            authGraphUri,
+                            getOntology().getURI(),
+                            accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                            agentGraphUri,
+                            userAccountGraphUri);
                         getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
                         Response authResponse = super.post(authModel, false, authGraphUri);
                         if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -347,7 +350,7 @@ public class Login extends GraphStoreImpl
         return account;
     }
 
-    public Resource createAuthorization(Model model, URI graphURI, String namespace, URI agentGraphURI, URI userAccountGraphURI)
+    public Resource createAuthorization(Model model, URI graphURI, String namespace, Resource container, URI agentGraphURI, URI userAccountGraphURI)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
@@ -355,6 +358,7 @@ public class Login extends GraphStoreImpl
 
         Resource authItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
+            addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
@@ -409,11 +413,6 @@ public class Login extends GraphStoreImpl
     public Application getApplication()
     {
         return application;
-    }
-
-    public Ontology getOntology()
-    {
-        return ontology;
     }
     
     public Service getAgentService()

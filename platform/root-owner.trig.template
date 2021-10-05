@@ -34,6 +34,7 @@
 {
 
     <acl/public-keys/${OWNER_KEY_UUID}/> a adm:Item ;
+        sioc:has_container <acl/public-keys/> ;
         dct:title "${OWNER_COMMON_NAME}" .
 
     <acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
@@ -58,6 +59,7 @@
 {
 
     <acl/authorizations/${OWNER_KEY_UUID}/> a adm:Item ;
+        sioc:has_container <acl/authorizations/> ;
         dct:title "Public owner's WebID" .
 
     <acl/authorizations/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;

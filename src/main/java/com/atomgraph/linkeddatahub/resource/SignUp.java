@@ -35,6 +35,7 @@ import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.DH;
+import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.server.exception.SkolemizationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
@@ -209,7 +210,11 @@ public class SignUp extends GraphStoreImpl
             Resource country = agent.getRequiredProperty(FOAF.based_near).getResource();
             String countryName = getCountryModel().createResource(country.getURI()).
                     getRequiredProperty(DCTerms.title).getString();
-            agent = appendAgent(agentModel, agentGraphUri, forClass.getNameSpace(), agent); // append Item data
+            agent = appendAgent(agentModel,
+                agentGraphUri,
+                forClass.getNameSpace(),
+                agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
+                agent); // append Item data
             
             String uuid = UUID.randomUUID().toString();
             String keyStoreFileName = uuid + ".p12";
@@ -231,7 +236,11 @@ public class SignUp extends GraphStoreImpl
                 RSAPublicKey certPublicKey = (RSAPublicKey)cert.getPublicKey();
                 URI publicKeyGraphUri = getUriInfo().getBaseUriBuilder().path(PUBLIC_KEY_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                 Model publicKeyModel = ModelFactory.createDefaultModel();
-                createPublicKey(publicKeyModel, publicKeyGraphUri, forClass.getNameSpace(), certPublicKey);
+                createPublicKey(publicKeyModel,
+                    publicKeyGraphUri,
+                    forClass.getNameSpace(),
+                    publicKeyModel.createResource(getUriInfo().getBaseUri().resolve(PUBLIC_KEY_PATH).toString()),
+                    certPublicKey);
                 getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(publicKeyGraphUri)).build(publicKeyModel);
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -255,7 +264,12 @@ public class SignUp extends GraphStoreImpl
                 
                 URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                 Model authModel = ModelFactory.createDefaultModel();
-                createAuthorization(authModel, authGraphUri, forClass.getNameSpace(), agentGraphUri, publicKeyGraphUri);
+                createAuthorization(authModel,
+                    authGraphUri,
+                    forClass.getNameSpace(),
+                    authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                    agentGraphUri,
+                    publicKeyGraphUri);
                 getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
                 Response authResponse = super.post(authModel, false, authGraphUri);
                 if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -335,12 +349,13 @@ public class SignUp extends GraphStoreImpl
         return new SPINConstraintViolationException(cvs, resource.getModel());
     }
 
-    public Resource appendAgent(Model model, URI graphURI, String namespace, Resource agent)
+    public Resource appendAgent(Model model, URI graphURI, String namespace, Resource container, Resource agent)
     {
         Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
 
         Resource agentItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
+            addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
 
         agent.addProperty(FOAF.isPrimaryTopicOf, agentItem);
@@ -348,7 +363,7 @@ public class SignUp extends GraphStoreImpl
         return agent;
     }
     
-    public Resource createPublicKey(Model model, URI graphURI, String namespace, RSAPublicKey publicKey)
+    public Resource createPublicKey(Model model, URI graphURI, String namespace, Resource container, RSAPublicKey publicKey)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.PublicKey.getLocalName()); // subclassOf LACL.PublicKey
@@ -356,6 +371,7 @@ public class SignUp extends GraphStoreImpl
 
         Resource publicKeyItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
+            addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource publicKeyRes = model.createResource().
@@ -369,7 +385,7 @@ public class SignUp extends GraphStoreImpl
         return publicKeyRes;
     }
     
-    public Resource createAuthorization(Model model, URI graphURI, String namespace, URI agentGraphURI, URI publicKeyURI)
+    public Resource createAuthorization(Model model, URI graphURI, String namespace, Resource container, URI agentGraphURI, URI publicKeyURI)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
@@ -377,6 +393,7 @@ public class SignUp extends GraphStoreImpl
 
         Resource authItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
+            addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
