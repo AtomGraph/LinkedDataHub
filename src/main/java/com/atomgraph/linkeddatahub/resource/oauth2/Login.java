@@ -187,18 +187,18 @@ public class Login extends GraphStoreImpl
             if (!accountExists) // UserAccount with this ID does not exist yet
             {
                 Model agentModel = ModelFactory.createDefaultModel();
-//                InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), agentModel);
+                URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+
                 String email = jwt.getClaim("email").asString();
-                //String issuer = jwt.getIssuer();
                 createAgent(agentModel,
+                    agentGraphUri,
                     getOntology().getURI(),
-                    agentModel.createResource(getUriInfo().getBaseUri().resolve("acl/agents/").toString()),
+                    agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                     jwt.getClaim("given_name").asString(),
                     jwt.getClaim("family_name").asString(),
                     email,
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 // skolemize here because this Model will not go through SkolemizingModelProvider
-                URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                 getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(agentGraphUri)).build(agentModel);
                 
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
@@ -208,16 +208,17 @@ public class Login extends GraphStoreImpl
                     Resource agent = it.next();
                 
                     Model accountModel = ModelFactory.createDefaultModel();
+                    URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     Resource userAccount = createUserAccount(accountModel,
+                        userAccountGraphUri,
                         getOntology().getURI(),
-                        accountModel.createResource(getUriInfo().getBaseUri().resolve("acl/users/").toString()),
+                        accountModel.createResource(getUriInfo().getBaseUri().resolve(ACCOUNT_PATH).toString()),
                         jwt.getSubject(),
                         jwt.getIssuer(),
                         jwt.getClaim("name").asString(),
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     
-                    URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(userAccountGraphUri)).build(accountModel);
                     Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
@@ -240,8 +241,8 @@ public class Login extends GraphStoreImpl
                         throw new WebApplicationException("Cannot create Agent");
                     }
 
-                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     Model authModel = ModelFactory.createDefaultModel();
+                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     createAuthorization(authModel, authGraphUri, getOntology().getURI(), agentGraphUri, userAccountGraphUri);
                     getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
                     Response authResponse = super.post(authModel, false, authGraphUri);
@@ -288,13 +289,13 @@ public class Login extends GraphStoreImpl
         //throw new JWTVerificationException();
     }
     
-    public Resource createAgent(Model model, String namespace, Resource container, String givenName, String familyName, String email, String imgUrl)
+    public Resource createAgent(Model model, URI graphURI, String namespace, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.Agent.getLocalName()); // subclassOf LACL.Agent
         Resource itemCls = model.createResource(namespace + "Item");
 
-        Resource agentDoc =  model.createResource().
+        Resource agentItem =  model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
@@ -305,21 +306,21 @@ public class Login extends GraphStoreImpl
             addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
-            addProperty(FOAF.isPrimaryTopicOf, agentDoc);
+            addProperty(FOAF.isPrimaryTopicOf, agentItem);
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
             
-        agentDoc.addProperty(FOAF.primaryTopic, agent);
+        agent.addProperty(FOAF.isPrimaryTopicOf, agentItem);
         
         return agent;
     }
     
-    public Resource createUserAccount(Model model, String namespace, Resource container, String id, String issuer, String name, String email)
+    public Resource createUserAccount(Model model, URI graphURI, String namespace, Resource container, String id, String issuer, String name, String email)
     {
         // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.UserAccount.getLocalName()); // subclassOf LACL.UserAccount
         Resource itemCls = model.createResource(namespace + "Item");
+        Resource cls = model.createResource(namespace + LACL.UserAccount.getLocalName()); // subclassOf LACL.UserAccount
 
-        Resource accountDoc = model.createResource().
+        Resource accountItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
@@ -332,9 +333,10 @@ public class Login extends GraphStoreImpl
             addLiteral(SIOC.NAME, name).
             addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
-            addProperty(FOAF.isPrimaryTopicOf, accountDoc);
-        accountDoc.addProperty(FOAF.primaryTopic, account);
-
+            addProperty(FOAF.isPrimaryTopicOf, accountItem);
+        
+        account.addProperty(FOAF.isPrimaryTopicOf, accountItem);
+        
         return account;
     }
 
@@ -347,6 +349,7 @@ public class Login extends GraphStoreImpl
         Resource authItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addLiteral(DH.slug, UUID.randomUUID().toString());
+        
         Resource auth = model.createResource().
             addProperty(RDF.type, cls).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
@@ -355,7 +358,7 @@ public class Login extends GraphStoreImpl
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
-        authItem.addProperty(FOAF.primaryTopic, auth);
+        
         auth.addProperty(FOAF.isPrimaryTopicOf, authItem);
         
         return auth;
