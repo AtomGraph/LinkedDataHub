@@ -209,7 +209,8 @@ public class SignUp extends GraphStoreImpl
             Resource country = agent.getRequiredProperty(FOAF.based_near).getResource();
             String countryName = getCountryModel().createResource(country.getURI()).
                     getRequiredProperty(DCTerms.title).getString();
-
+            agent = appendAgent(agentModel, agentGraphUri, forClass.getNameSpace(), agent); // append Item data
+            
             String uuid = UUID.randomUUID().toString();
             String keyStoreFileName = uuid + ".p12";
             java.nio.file.Path keyStorePath = Paths.get(System.getProperty("java.io.tmpdir") + File.separator + keyStoreFileName);
@@ -239,7 +240,7 @@ public class SignUp extends GraphStoreImpl
                     throw new WebApplicationException("Cannot create PublicKey");
                 }
 
-                publicKeyModel = (Model)super.get(false, publicKeyGraphUri).getEntity();
+                //publicKeyModel = (Model)super.get(false, publicKeyGraphUri).getEntity();
                 Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
 
                 agent.addProperty(Cert.key, publicKey); // add public key
@@ -334,6 +335,19 @@ public class SignUp extends GraphStoreImpl
         return new SPINConstraintViolationException(cvs, resource.getModel());
     }
 
+    public Resource appendAgent(Model model, URI graphURI, String namespace, Resource agent)
+    {
+        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
+
+        Resource agentItem = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, itemCls).
+            addLiteral(DH.slug, UUID.randomUUID().toString());
+
+        agent.addProperty(FOAF.isPrimaryTopicOf, agentItem);
+
+        return agent;
+    }
+    
     public Resource createPublicKey(Model model, URI graphURI, String namespace, RSAPublicKey publicKey)
     {
         // TO-DO: improve class URI retrieval

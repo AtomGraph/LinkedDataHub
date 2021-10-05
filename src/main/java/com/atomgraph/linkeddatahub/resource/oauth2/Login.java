@@ -228,11 +228,9 @@ public class Login extends GraphStoreImpl
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                    //accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
                     ResIterator userAccountIt = accountModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, ResourceFactory.createResource(userAccountGraphUri.toString()));
                     try
                     {
-//                        userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
                         userAccount = userAccountIt.next();
 
                         agent.addProperty(FOAF.account, userAccount);
