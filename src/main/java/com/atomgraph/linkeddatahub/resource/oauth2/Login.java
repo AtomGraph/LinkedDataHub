@@ -207,7 +207,7 @@ public class Login extends GraphStoreImpl
                 
                     Model accountModel = ModelFactory.createDefaultModel();
                     URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    Resource userAccount = createUserAccount(accountModel,
+                    createUserAccount(accountModel,
                         userAccountGraphUri,
                         getOntology().getURI(),
                         accountModel.createResource(getUriInfo().getBaseUri().resolve(ACCOUNT_PATH).toString()),
@@ -215,7 +215,6 @@ public class Login extends GraphStoreImpl
                         jwt.getIssuer(),
                         jwt.getClaim("name").asString(),
                         email);
-                    userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                     
                     getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(userAccountGraphUri)).build(accountModel);
                     Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
@@ -229,8 +228,9 @@ public class Login extends GraphStoreImpl
                     ResIterator userAccountIt = accountModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, ResourceFactory.createResource(userAccountGraphUri.toString()));
                     try
                     {
-                        userAccount = userAccountIt.next();
+                        Resource userAccount = userAccountIt.next();
 
+                        userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
                         agent.addProperty(FOAF.account, userAccount);
                         agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
 

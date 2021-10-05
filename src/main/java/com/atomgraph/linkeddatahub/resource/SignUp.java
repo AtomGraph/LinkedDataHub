@@ -249,53 +249,60 @@ public class SignUp extends GraphStoreImpl
                     throw new WebApplicationException("Cannot create PublicKey");
                 }
 
-                //publicKeyModel = (Model)super.get(false, publicKeyGraphUri).getEntity();
-                Resource publicKey = publicKeyModel.createResource(publicKeyGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
-
-                agent.addProperty(Cert.key, publicKey); // add public key
-                agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                Response agentResponse = super.post(agentModel, false, agentGraphUri);
-                if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                ResIterator publicKeyIt = publicKeyModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, ResourceFactory.createResource(publicKeyGraphUri.toString()));
+                try
                 {
-                    if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                    throw new WebApplicationException("Cannot create Agent");
+                    Resource publicKey = publicKeyIt.next();
+
+                    agent.addProperty(Cert.key, publicKey); // add public key
+                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                        throw new WebApplicationException("Cannot create Agent");
+                    }
+
+                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    Model authModel = ModelFactory.createDefaultModel();
+                    createAuthorization(authModel,
+                        authGraphUri,
+                        forClass.getNameSpace(),
+                        authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
+                        agentGraphUri,
+                        publicKeyGraphUri);
+                    getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
+                    Response authResponse = super.post(authModel, false, authGraphUri);
+                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                        throw new WebApplicationException("Cannot create Authorization");
+                    }
+
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                    if (download)
+                    {
+                        return Response.ok(keyStoreBytes).
+                            type(PKCS12_MEDIA_TYPE).
+                            header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
+                            build();
+                    }
+                    else
+                    {
+                        LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
+                        sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
+
+                        return Response.ok().
+                            entity(agentModel.add(publicKeyModel)).
+                            build(); // don't return 201 Created as we don't want a redirect in client.xsl
+                    }
                 }
-                
-                URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                Model authModel = ModelFactory.createDefaultModel();
-                createAuthorization(authModel,
-                    authGraphUri,
-                    forClass.getNameSpace(),
-                    authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
-                    agentGraphUri,
-                    publicKeyGraphUri);
-                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
-                Response authResponse = super.post(authModel, false, authGraphUri);
-                if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                finally
                 {
-                    if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                    throw new WebApplicationException("Cannot create Authorization");
-                }
-
-                // remove secretary WebID from cache
-                getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                if (download)
-                {
-                    return Response.ok(keyStoreBytes).
-                        type(PKCS12_MEDIA_TYPE).
-                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cert.p12").
-                        build();
-                }
-                else
-                {
-                    LocalDate certExpires = LocalDate.now().plusDays(getValidityDays()); // ((X509Certificate)cert).getNotAfter(); 
-                    sendEmail(agent, certExpires, keyStoreBytes, keyStoreFileName);
-
-                    return Response.ok().
-                        entity(agentModel.add(publicKeyModel)).
-                        build(); // don't return 201 Created as we don't want a redirect in client.xsl
+                    publicKeyIt.close();
                 }
             }
         }
@@ -356,7 +363,7 @@ public class SignUp extends GraphStoreImpl
         Resource agentItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addProperty(SIOC.HAS_CONTAINER, container).
-            addLiteral(DH.slug, UUID.randomUUID().toString());
+            addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: does not match the URI
 
         agent.addProperty(FOAF.isPrimaryTopicOf, agentItem);
 
