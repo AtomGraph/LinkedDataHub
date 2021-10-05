@@ -199,7 +199,7 @@ public class Login extends GraphStoreImpl
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 // skolemize here because this Model will not go through SkolemizingModelProvider
                 URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                getSkolemizer(getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path(AGENT_PATH)).build(agentModel);
+                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(agentGraphUri)).build(agentModel);
                 
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try

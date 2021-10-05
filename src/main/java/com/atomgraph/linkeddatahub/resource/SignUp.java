@@ -40,6 +40,7 @@ import com.atomgraph.server.exception.SkolemizationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
+import com.google.common.base.CharMatcher;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -315,6 +316,9 @@ public class SignUp extends GraphStoreImpl
         String password = passwordStmt.getString();
         if (password.length() < MIN_PASSWORD_LENGTH)
             throw createSPINConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate password must be at least " + MIN_PASSWORD_LENGTH + " characters long");
+        if (!CharMatcher.ascii().matchesAllOf(password))
+            throw createSPINConstraintViolationException(certStmt.getResource(), LACL.password, "Certificate password must only contain ASCII characters");
+
         // remove password so we don't store it as RDF
         passwordStmt.remove();
         certStmt.remove();
