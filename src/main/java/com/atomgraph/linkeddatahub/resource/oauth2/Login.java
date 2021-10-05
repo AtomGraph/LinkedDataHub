@@ -23,6 +23,8 @@ import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Service;
+import static com.atomgraph.linkeddatahub.resource.SignUp.AGENT_PATH;
+import static com.atomgraph.linkeddatahub.resource.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -65,6 +67,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -93,7 +96,8 @@ public class Login extends GraphStoreImpl
 
     public static final String TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
     public static final String USER_INFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo";
-    
+    public static final String ACCOUNT_PATH = "acl/users/";
+
     private final HttpHeaders httpHeaders;
     private final Application application;
     private final Ontology ontology;
@@ -196,7 +200,7 @@ public class Login extends GraphStoreImpl
                     email,
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 // skolemize here because this Model will not go through SkolemizingModelProvider
-                agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/agents/")).build(agentModel);
+                agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path(AGENT_PATH)).build(agentModel);
                 
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
@@ -213,7 +217,7 @@ public class Login extends GraphStoreImpl
                         jwt.getClaim("name").asString(),
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                    accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path("acl/users/")).build(accountModel);
+                    accountModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH)).build(accountModel);
 
                     Resource userAccountForClass = ResourceFactory.createResource(getOntology().getNameSpace() + LACL.UserAccount.getLocalName());
                     URI userAccountGraphUri = URI.create(getCreatedDocument(accountModel, userAccountForClass).getURI());
@@ -234,20 +238,29 @@ public class Login extends GraphStoreImpl
                     URI agentGraphUri = URI.create(agent.getURI());
                     agentGraphUri = new URI(agentGraphUri.getScheme(), agentGraphUri.getSchemeSpecificPart(), null).normalize(); // strip the possible fragment identifier
 
-                    try (Response agentResponse = super.post(agentModel, false, agentGraphUri))
+                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
-                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
-                        {
-                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                            throw new WebApplicationException("Cannot create Agent");
-                        }
-
-                        // remove secretary WebID from cache
-                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
-                        sendEmail(agent);
+                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                        throw new WebApplicationException("Cannot create Agent");
                     }
+
+                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                    Model authModel = ModelFactory.createDefaultModel();
+                    createAuthorization(authModel, authGraphUri, getOntology().getURI(), agentGraphUri, userAccountGraphUri);
+                    authModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
+                    Response authResponse = super.post(authModel, false, authGraphUri);
+                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    {
+                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                        throw new WebApplicationException("Cannot create Authorization");
+                    }
+
+                    // remove secretary WebID from cache
+                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                    if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                    sendEmail(agent);
                 }
                 catch (UnsupportedEncodingException | URISyntaxException | MessagingException | WebApplicationException ex)
                 {
@@ -284,7 +297,7 @@ public class Login extends GraphStoreImpl
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.Agent.getLocalName()); // subclassOf LACL.Agent
-        Resource itemCls = model.createResource(namespace + LACL.Agent.getLocalName() + "Item");
+        Resource itemCls = model.createResource(namespace + "Item");
 
         Resource agentDoc =  model.createResource().
             addProperty(RDF.type, itemCls).
@@ -296,6 +309,7 @@ public class Login extends GraphStoreImpl
             addLiteral(FOAF.givenName, givenName).
             addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
+            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(FOAF.isPrimaryTopicOf, agentDoc);
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
             
@@ -308,7 +322,7 @@ public class Login extends GraphStoreImpl
     {
         // TO-DO: improve class URI retrieval
         Resource cls = model.createResource(namespace + LACL.UserAccount.getLocalName()); // subclassOf LACL.UserAccount
-        Resource itemCls = model.createResource(namespace + LACL.UserAccount.getLocalName() + "Item");
+        Resource itemCls = model.createResource(namespace + "Item");
 
         Resource accountDoc = model.createResource().
             addProperty(RDF.type, itemCls).
@@ -322,12 +336,36 @@ public class Login extends GraphStoreImpl
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
             addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
+            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(FOAF.isPrimaryTopicOf, accountDoc);
         accountDoc.addProperty(FOAF.primaryTopic, account);
 
         return account;
     }
 
+    public Resource createAuthorization(Model model, URI graphURI, String namespace, URI agentGraphURI, URI userAccountGraphURI)
+    {
+        // TO-DO: improve class URI retrieval
+        Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
+        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
+
+        Resource authItem = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, itemCls).
+            addLiteral(DH.slug, UUID.randomUUID().toString());
+        Resource auth = model.createResource().
+            addProperty(RDF.type, cls).
+            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
+            addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
+            addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
+            addProperty(ACL.mode, ACL.Read).
+            addProperty(ACL.agentClass, FOAF.Agent).
+            addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
+        authItem.addProperty(FOAF.primaryTopic, auth);
+        auth.addProperty(FOAF.isPrimaryTopicOf, authItem);
+        
+        return auth;
+    }
+    
     public void sendEmail(Resource agent) throws MessagingException, UnsupportedEncodingException
     {
         String givenName = agent.getRequiredProperty(FOAF.givenName).getString();
