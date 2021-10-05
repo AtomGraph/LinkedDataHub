@@ -14,13 +14,12 @@
 
     <${OWNER_DOC_URI}> a adm:Item ;
         sioc:has_container <acl/agents/> ;
-        dct:title "${OWNER_COMMON_NAME}" ;
-        foaf:primaryTopic <${OWNER_URI}> .
+        dct:title "${OWNER_COMMON_NAME}" .
 
     <${OWNER_URI}> a adm:Agent ;
+        foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
         foaf:name "${OWNER_COMMON_NAME}" ;
         foaf:mbox <mailto:${OWNER_MBOX}> ;
-        foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
         cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
 
     # secretary delegates the owner agent
@@ -35,21 +34,13 @@
 {
 
     <acl/public-keys/${OWNER_KEY_UUID}/> a adm:Item ;
-        dct:title "${OWNER_COMMON_NAME}" ;
-        foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> .
+        dct:title "${OWNER_COMMON_NAME}" .
 
     <acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
-        rdfs:label "${OWNER_COMMON_NAME}" ;
         foaf:isPrimaryTopicOf <acl/public-keys/${OWNER_KEY_UUID}/> ;
+        rdfs:label "${OWNER_COMMON_NAME}" ;
         cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
         cert:exponent 65537 .
-
-    # authorization to make this graph public
-
-    <acl/public-keys/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;
-        acl:accessTo <acl/public-keys/${OWNER_KEY_UUID}/> ;
-        acl:mode acl:Read ;
-        acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
 }
 
@@ -67,10 +58,10 @@
 {
 
     <acl/authorizations/${OWNER_KEY_UUID}/> a adm:Item ;
-        dct:title "Public owner's WebID" ;
-        foaf:primaryTopic <acl/authorizations/${OWNER_KEY_UUID}/#this> .
+        dct:title "Public owner's WebID" .
 
     <acl/authorizations/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;
+        foaf:isPrimaryTopicOf <acl/authorizations/${OWNER_KEY_UUID}/> ;
         acl:accessTo <${OWNER_DOC_URI}>, <acl/public-keys/${OWNER_KEY_UUID}/> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
