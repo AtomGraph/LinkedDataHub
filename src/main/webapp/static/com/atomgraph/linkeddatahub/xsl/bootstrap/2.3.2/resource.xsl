@@ -704,6 +704,17 @@ extension-element-prefixes="ixsl"
                                 <button type="button" class="btn btn-large pull-right btn-remove-resource" title="Remove this resource"></button>
                             </div>
                         </xsl:if>
+
+                        <!-- "Copy URI" button -->
+                        <button title="{key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))}">
+                            <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn'"/>
+                            </xsl:apply-templates>
+
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'copy-uri', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </button>
                         
                         <xsl:value-of select="ac:label(.)"/>
                     </legend>
