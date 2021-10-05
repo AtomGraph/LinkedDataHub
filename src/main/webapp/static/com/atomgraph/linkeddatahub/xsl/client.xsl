@@ -3293,7 +3293,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-copy-uri']" mode="ixsl:onclick">
         <!-- get resource URI from its heading title attribute, both in bs2:Actions and bs2:FormControl mode -->
-        <xsl:variable name="uri-or-bnode" select="../../h2/a/@title | ../legend/following-sibling::input[@name = ('su', 'sb')]/@value" as="xs:string"/>
+        <xsl:variable name="uri-or-bnode" select="../../h2/a/@title | ../following-sibling::input[@name = ('su', 'sb')]/@value" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
     </xsl:template>
 
