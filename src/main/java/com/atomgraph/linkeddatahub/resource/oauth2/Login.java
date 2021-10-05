@@ -33,7 +33,6 @@ import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
-import com.atomgraph.processor.util.Skolemizer;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -200,7 +199,7 @@ public class Login extends GraphStoreImpl
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 // skolemize here because this Model will not go through SkolemizingModelProvider
                 URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                agentModel = new Skolemizer(getOntology(), getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path(AGENT_PATH)).build(agentModel);
+                getSkolemizer(getUriInfo().getBaseUriBuilder(), getUriInfo().getBaseUriBuilder().path(AGENT_PATH)).build(agentModel);
                 
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
