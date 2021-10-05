@@ -61,7 +61,7 @@ public class Add extends GraphStoreImpl
 
     @Inject
     public Add(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<Ontology> ontology, Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
+            Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);

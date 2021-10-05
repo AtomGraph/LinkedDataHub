@@ -54,8 +54,6 @@ public class Clone extends GraphStoreImpl
     private static final Logger log = LoggerFactory.getLogger(Clone.class);
 
     private final URI uri;
-//    private final com.atomgraph.linkeddatahub.apps.model.Application application;
-    private final Ontology ontology;
     private final DataManager dataManager;
     
     @Inject
@@ -66,8 +64,6 @@ public class Clone extends GraphStoreImpl
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-//        this.application = application.get();
-        this.ontology = ontology.get();
         this.dataManager = dataManager;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
@@ -110,11 +106,6 @@ public class Clone extends GraphStoreImpl
         return uri;
     }
  
-//    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
-//    {
-//        return application;
-//    }
-
     public DataManager getDataManager()
     {
         return dataManager;
