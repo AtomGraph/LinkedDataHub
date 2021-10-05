@@ -228,35 +228,44 @@ public class Login extends GraphStoreImpl
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                    accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
-                    userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
-
-                    agent.addProperty(FOAF.account, userAccount);
-                    agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
-
-                    Response agentResponse = super.post(agentModel, false, agentGraphUri);
-                    if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                    //accountModel = (Model)super.get(false, userAccountGraphUri).getEntity();
+                    ResIterator userAccountIt = accountModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, ResourceFactory.createResource(userAccountGraphUri.toString()));
+                    try
                     {
-                        if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                        throw new WebApplicationException("Cannot create Agent");
-                    }
+//                        userAccount = accountModel.createResource(userAccountGraphUri.toString()).getPropertyResourceValue(FOAF.primaryTopic);
+                        userAccount = userAccountIt.next();
 
-                    Model authModel = ModelFactory.createDefaultModel();
-                    URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-                    createAuthorization(authModel, authGraphUri, getOntology().getURI(), agentGraphUri, userAccountGraphUri);
-                    getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
-                    Response authResponse = super.post(authModel, false, authGraphUri);
-                    if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        agent.addProperty(FOAF.account, userAccount);
+                        agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
+
+                        Response agentResponse = super.post(agentModel, false, agentGraphUri);
+                        if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        {
+                            if (log.isErrorEnabled()) log.error("Cannot create Agent");
+                            throw new WebApplicationException("Cannot create Agent");
+                        }
+
+                        Model authModel = ModelFactory.createDefaultModel();
+                        URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
+                        createAuthorization(authModel, authGraphUri, getOntology().getURI(), agentGraphUri, userAccountGraphUri);
+                        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
+                        Response authResponse = super.post(authModel, false, authGraphUri);
+                        if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
+                        {
+                            if (log.isErrorEnabled()) log.error("Cannot create Authorization");
+                            throw new WebApplicationException("Cannot create Authorization");
+                        }
+
+                        // remove secretary WebID from cache
+                        getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
+
+                        if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
+                        sendEmail(agent);
+                    }
+                    finally
                     {
-                        if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                        throw new WebApplicationException("Cannot create Authorization");
+                        userAccountIt.close();
                     }
-
-                    // remove secretary WebID from cache
-                    getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
-
-                    if (log.isDebugEnabled()) log.debug("Created Agent for user ID: {}", jwt.getSubject());
-                    sendEmail(agent);
                 }
                 catch (UnsupportedEncodingException | MessagingException | WebApplicationException ex)
                 {

@@ -343,12 +343,13 @@ public class SignUp extends GraphStoreImpl
         Resource publicKeyItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addLiteral(DH.slug, UUID.randomUUID().toString());
+        
         Resource publicKeyRes = model.createResource().
             addProperty(RDF.type, cls).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
-        publicKeyItem.addProperty(FOAF.primaryTopic, publicKeyRes);
+        
         publicKeyRes.addProperty(FOAF.isPrimaryTopicOf, publicKeyItem);
         
         return publicKeyRes;
@@ -363,6 +364,7 @@ public class SignUp extends GraphStoreImpl
         Resource authItem = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addLiteral(DH.slug, UUID.randomUUID().toString());
+        
         Resource auth = model.createResource().
             addProperty(RDF.type, cls).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
@@ -371,7 +373,7 @@ public class SignUp extends GraphStoreImpl
             addProperty(ACL.mode, ACL.Read).
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
-        authItem.addProperty(FOAF.primaryTopic, auth);
+
         auth.addProperty(FOAF.isPrimaryTopicOf, authItem);
         
         return auth;
