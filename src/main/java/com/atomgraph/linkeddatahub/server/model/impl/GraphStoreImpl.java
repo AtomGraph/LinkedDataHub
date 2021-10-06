@@ -244,7 +244,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
 
-        /**
+    /**
      * Handles multipart <code>PUT</code>
      * Files are written to storage before the RDF data is passed to the default <code>PUT</code> handler method.
      * 
