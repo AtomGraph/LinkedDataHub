@@ -95,7 +95,7 @@ public class Item extends GraphStoreImpl implements Patchable
         return super.put(model, false, getURI());
     }
     
-    @POST
+    @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Override
     public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
