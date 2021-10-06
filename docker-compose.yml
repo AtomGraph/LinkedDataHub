@@ -22,6 +22,7 @@ services:
       - ./ssl/server:/etc/nginx/ssl:ro
   linkeddatahub:
     image: atomgraph/linkeddatahub:latest
+    user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
     ports:
       - 8001:8000 # debugger
@@ -79,7 +80,7 @@ services:
     command: [ "--config", "/var/fuseki/config.ttl" ]
   fuseki-end-user:
     image: atomgraph/fuseki:61eb41c33b2f9ee4bf4ab0156818145806215738
-    user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
+    user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     environment:
       - JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75
     ports:
@@ -90,7 +91,7 @@ services:
     command: [ "--config", "/var/fuseki/config.ttl" ]
   varnish-admin:
     image: atomgraph/varnish:446f28a3cfedc276b2c27a971455659be98d7351
-    user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
+    user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish:exec
