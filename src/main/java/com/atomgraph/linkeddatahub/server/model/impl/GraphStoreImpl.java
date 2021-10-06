@@ -270,7 +270,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
             
-            return post(model, defaultGraph, graphUri);
+            return put(model, defaultGraph, graphUri);
         }
         catch (URISyntaxException ex)
         {
