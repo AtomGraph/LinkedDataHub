@@ -227,7 +227,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
-            return postMultipart(model, defaultGraph, graphUri, getFileNameBodyPartMap(multiPart));
+            int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
+            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
+            
+            return post(model, defaultGraph, graphUri);
         }
         catch (URISyntaxException ex)
         {
@@ -240,8 +243,48 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             throw new BadRequestException(ex);
         }
     }
-    
-    public Response postMultipart(Model model, Boolean defaultGraph, URI graphUri, Map<String, FormDataBodyPart> fileNameBodyPartMap)
+
+        /**
+     * Handles multipart <code>PUT</code>
+     * Files are written to storage before the RDF data is passed to the default <code>PUT</code> handler method.
+     * 
+     * @param multiPart multipart form data
+     * @param defaultGraph true if default graph is requested
+     * @param graphUri named graph URI
+     * @return HTTP response
+     */
+    @PUT
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+    {
+        if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
+
+        try
+        {
+            Model model = parseModel(multiPart);
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+            MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
+            if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
+            if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
+
+            int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
+            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
+            
+            return post(model, defaultGraph, graphUri);
+        }
+        catch (URISyntaxException ex)
+        {
+            if (log.isErrorEnabled()) log.error("URI '{}' has syntax error in request with media type: {}", ex.getInput(), multiPart.getMediaType());
+            throw new BadRequestException(ex);
+        }
+        catch (RuntimeIOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not read uploaded file as media type: {}", multiPart.getMediaType());
+            throw new BadRequestException(ex);
+        }
+    }
+
+    public int writeFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
@@ -268,8 +311,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             resIt.close();
         }
 
-        if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", count);
-        return post(model, defaultGraph, graphUri);
+        return count;
     }
     
     /**
