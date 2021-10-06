@@ -30,19 +30,13 @@ import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
 import javax.ws.rs.NotAcceptableException;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
-import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -55,11 +49,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Item extends GraphStoreImpl
+public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
 {
     private static final Logger log = LoggerFactory.getLogger(Item.class);
     
-    private final URI uri;
     private final Resource resource;
     
     @Inject
@@ -69,24 +62,15 @@ public class Item extends GraphStoreImpl
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
-        this.uri = uriInfo.getAbsolutePath();
-        this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
+        this.resource = ModelFactory.createDefaultModel().createResource(uriInfo.getAbsolutePath().toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
 
     @PostConstruct
     public void init()
     {
-        getResource().getModel().add(describe());
+        getResource().getModel().add(getDatasetAccessor().getModel(getResource().toString()));
     }
-    
-//    @GET
-//    @Override
-//    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-//    {
-//        // use indirection to load file (/uploads/{slug}) description from the file document graph (/files/{slug})
-//        return super.get(false, URI.create(getResource().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()));
-//    }
     
     @Override
     public ResponseBuilder getResponseBuilder(Model model)
@@ -101,7 +85,7 @@ public class Item extends GraphStoreImpl
         }
         
         // respond with file content if Variant is compatible with the File's MediaType. otherwise, send RDF
-        if (getFormat().isCompatible(variant.getMediaType()))
+        if (getFormat(getResource()).isCompatible(variant.getMediaType()))
         {
             URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
             File file = new File(fileURI);
@@ -124,12 +108,12 @@ public class Item extends GraphStoreImpl
         return super.getResponseBuilder(model);
     }
     
-    public javax.ws.rs.core.MediaType getFormat()
+    public javax.ws.rs.core.MediaType getFormat(Resource resource)
     {
-        Resource format = getResource().getPropertyResourceValue(DCTerms.format);
+        Resource format = resource.getPropertyResourceValue(DCTerms.format);
         if (format == null)
         {
-            if (log.isErrorEnabled()) log.error("File '{}' does not have a media type", getResource());
+            if (log.isErrorEnabled()) log.error("File '{}' does not have a media type", resource);
             throw new IllegalStateException("File does not have a media type (dct:format)");
         }
         
@@ -140,19 +124,9 @@ public class Item extends GraphStoreImpl
     public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
         List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
-        list.add(getFormat());
+        list.add(getFormat(getResource()));
 
         return list;
-    }
-    
-    public Model describe()
-    {
-        return getService().getSPARQLClient().loadModel(QueryFactory.create("DESCRIBE <" + getURI() + ">"));
-    }
-    
-    public URI getURI()
-    {
-        return uri;
     }
     
     public Resource getResource()
