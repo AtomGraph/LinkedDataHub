@@ -80,13 +80,13 @@ public class Item extends GraphStoreImpl
         getResource().getModel().add(describe());
     }
     
-    @GET
-    @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        // use indirection to load file (/uploads/{slug}) description from the file document graph (/files/{slug})
-        return super.get(false, URI.create(getResource().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()));
-    }
+//    @GET
+//    @Override
+//    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
+//    {
+//        // use indirection to load file (/uploads/{slug}) description from the file document graph (/files/{slug})
+//        return super.get(false, URI.create(getResource().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()));
+//    }
     
     @Override
     public ResponseBuilder getResponseBuilder(Model model)
