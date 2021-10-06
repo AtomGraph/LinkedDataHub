@@ -2340,94 +2340,28 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="response" select="ixsl:get(ixsl:get($event, 'detail'), 'response')"/>
         <xsl:variable name="html" select="if (ixsl:contains($event, 'detail.xml')) then ixsl:get($event, 'detail.xml') else ()" as="document-node()?"/>
 
-        <xsl:choose>
-            <!-- special case for add/clone data forms: redirect to the container -->
-            <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
-                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
-                <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                <!-- load document -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-                <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:when test="ixsl:get($response, 'status') = 200">
-                <!-- trim the query string if it's present -->
-                <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
-                <!-- reload resource -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:when>
-            <!-- POST created new resource successfully -->
-            <xsl:when test="ixsl:get($response, 'status') = 201 and ixsl:call(ixsl:get($response, 'headers'), 'has', [ 'Location' ])">
-                <xsl:variable name="created-uri" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Location' ])" as="xs:anyURI"/>
-                        
-                <xsl:choose>
-                    <!-- if form submit did not originate from a typeahead (target), load the created resource -->
-                    <xsl:when test="not($typeahead-span)">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                            <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:when>
-                    <!-- otherwise, render the created resource as a typeahead input -->
-                    <xsl:otherwise>
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="onTypeaheadResourceLoad">
-                                <xsl:with-param name="resource-uri" select="$created-uri"/>
-                                <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
-                                <xsl:with-param name="modal-form" select="$form"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:when>
-            <xsl:when test="ixsl:get($response, 'status') = 400 and $html">
-                <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
-                
-                <xsl:for-each select="$html">
-                    <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
-                    <xsl:variable name="form" as="element()">
-                        <xsl:apply-templates select="//form[@class = 'form-horizontal']" mode="form">
-                            <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:variable>
-
-<!--                    <xsl:result-document href="#{$form-id}" method="ixsl:replace-content">
-                        <xsl:copy-of select="$form/*"/>
-                    </xsl:result-document>-->
-                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                        <div class="row-fluid">
-                            <div class="left-nav span2"></div>
-
-                            <div class="span7">
-                                <xsl:copy-of select="$form"/>
-                            </div>
-                        </div>
-                    </xsl:result-document>
-                    
-                    <xsl:call-template name="add-form-listeners">
-                        <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
-                    </xsl:call-template>
-                    
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ixsl:get($response, 'statusText') ])"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:variable name="response" as="map(*)">
+            <xsl:map>
+                <xsl:map-entry key="'body'" select="$html"/>
+                <xsl:map-entry key="'status'" select="ixsl:get($response, 'status')"/>
+                <xsl:map-entry key="'media-type'" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Content-Type' ])"/>
+                <xsl:map-entry key="'headers'">
+                    <xsl:map>
+                        <xsl:map-entry key="'location'" select="ixsl:call(ixsl:get($response, 'headers'), 'get', [ 'Location' ])"/>
+                        <!-- TO-DO: create a map of all headers from response.headers -->
+                    </xsl:map>
+                </xsl:map-entry>
+            </xsl:map>
+        </xsl:variable>
+        
+        <xsl:for-each select="$response">
+            <xsl:call-template name="onFormLoad">
+                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="action" select="$action"/>
+                <xsl:with-param name="form" select="$form"/>
+                <xsl:with-param name="target-id" select="$target-id"/>
+            </xsl:call-template>
+        </xsl:for-each>
     </xsl:template>
     
     <!-- after form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
