@@ -222,9 +222,9 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         try
         {
             Model model = parseModel(multiPart);
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
@@ -262,9 +262,9 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         try
         {
             Model model = parseModel(multiPart);
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
