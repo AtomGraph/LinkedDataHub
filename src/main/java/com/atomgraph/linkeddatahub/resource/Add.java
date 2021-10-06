@@ -81,10 +81,7 @@ public class Add extends GraphStoreImpl
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
-            int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
-            if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
-            
-            return post(model, defaultGraph, graphUri);
+            return postFileBodyPart(model, getFileNameBodyPartMap(multiPart)); // do not write the uploaded file -- instead append its triples/quads
         }
         catch (URISyntaxException ex)
         {
@@ -98,13 +95,11 @@ public class Add extends GraphStoreImpl
         }
     }
     
-    @Override
-    public int writeFiles(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
+    public Response postFileBodyPart(Model model, Map<String, FormDataBodyPart> fileNameBodyPartMap)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         if (fileNameBodyPartMap == null) throw new IllegalArgumentException("Map<String, FormDataBodyPart> cannot be null");
         
-        int count = 0;
         ResIterator resIt = model.listResourcesWithProperty(NFO.fileName);
         try
         {
@@ -121,14 +116,13 @@ public class Add extends GraphStoreImpl
             if (file.hasProperty(DCTerms.format)) mediaType = com.atomgraph.linkeddatahub.MediaType.valueOf(file.getPropertyResourceValue(DCTerms.format));
             if (mediaType != null) bodyPart.setMediaType(mediaType);
 
-            count++;
+            Model partModel = bodyPart.getValueAs(Model.class);
+            return post(partModel, false, URI.create(graph.getURI()));
         }
         finally
         {
             resIt.close();
         }
-        
-        return count;
     }
     
 }
