@@ -19,7 +19,7 @@ exclude-result-prefixes="#all">
 
     <xsl:preserve-space elements="nfo:fileName"/>
         
-    <xsl:template match="nfo:fileName/text() | *[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
+    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="accept" as="xs:string?"/>
@@ -41,7 +41,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>
 
-    <xsl:template match="nfo:fileName/text() | *[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
+    <xsl:template match="*[@rdf:*[local-name() = 'nodeID']]/nfo:fileName/@rdf:*[local-name() = 'nodeID'][key('resources', .)[not(* except rdf:type[@rdf:resource = '&xsd;string'])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 

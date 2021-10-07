@@ -86,7 +86,6 @@ exclude-result-prefixes="#all">
     <!--  To use xsl:import-schema, you need the schema-aware version of Saxon -->
     <!-- <xsl:import-schema namespace="http://www.w3.org/1999/xhtml" schema-location="http://www.w3.org/2002/08/xhtml/xhtml1-transitional.xsd"/> -->
   
-<!--    <xsl:include href="sparql.xsl"/>--> <!-- SPARQL-editor is now fully client-side -->
     <xsl:include href="signup.xsl"/>
     <xsl:include href="request-access.xsl"/>
 
@@ -880,17 +879,6 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- FORM -->
-
-<!--    <xsl:template match="rdf:RDF[$ac:forClass = resolve-uri('admin/model/ontologies/default/#File', $apl:base)]" mode="bs2:Form" priority="3">
-        <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('uploads', $apl:base), let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
-        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
-
-        <xsl:next-match>
-            <xsl:with-param name="action" select="$action"/>
-            <xsl:with-param name="enctype" select="$enctype"/>
-        </xsl:next-match>
-    </xsl:template>-->
 
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
