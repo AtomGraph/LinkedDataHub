@@ -87,7 +87,6 @@ ORDER BY ?title
 
 :Class a rdfs:Class ;
     rdfs:subClassOf lsm:Class ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     ldt:fragment "this" ;
     rdfs:label "Class" ;
@@ -95,14 +94,12 @@ ORDER BY ?title
 
 :Property a rdfs:Class ;
     rdfs:subClassOf lsm:Property ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Property" ;
     rdfs:isDefinedBy : .
 
 :Query a rdfs:Class ;
     rdfs:subClassOf lsm:Query ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Query" ;
     rdfs:isDefinedBy : .
@@ -129,7 +126,6 @@ ORDER BY ?title
 
 :MissingPropertyValue a rdfs:Class ;
     rdfs:subClassOf lsm:MissingPropertyValue ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     ldt:fragment "this" ;
     rdfs:label "Missing property value" ;
@@ -137,7 +133,6 @@ ORDER BY ?title
 
 :Ontology a rdfs:Class ;
     rdfs:subClassOf lsm:Ontology ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Ontology" ;
     rdfs:isDefinedBy : .
@@ -151,7 +146,6 @@ ORDER BY ?title
 
 :Authorization a rdfs:Class ;
     rdfs:subClassOf lacl:Authorization ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     apl:template :AuthorizationAgents ;
     rdfs:label "Authorization" ;
@@ -201,28 +195,24 @@ WHERE
 
 :CreatorAuthorization a rdfs:Class ;
     rdfs:subClassOf lacl:CreatorAuthorization ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Creator authorization" ;
     rdfs:isDefinedBy : .
 
 :AuthorizationRequest a rdfs:Class ;
     rdfs:subClassOf lacl:AuthorizationRequest ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Authorization request" ;
     rdfs:isDefinedBy : .
 
 :UserAccount a rdfs:Class ;
     rdfs:subClassOf lacl:UserAccount ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "User account" ;
     rdfs:isDefinedBy : .
 
 :Agent a rdfs:Class ;
     rdfs:subClassOf lacl:Agent ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Agent" ;
     rdfs:isDefinedBy : .
@@ -234,14 +224,12 @@ WHERE
 
 :PublicKey a rdfs:Class ;
     rdfs:subClassOf lacl:PublicKey ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Public key" ;
     rdfs:isDefinedBy : .
 
 :Group a rdfs:Class ;
     rdfs:subClassOf lacl:Group ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Group" ;
     rdfs:isDefinedBy : .
