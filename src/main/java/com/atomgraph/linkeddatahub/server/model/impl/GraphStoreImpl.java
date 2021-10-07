@@ -224,12 +224,28 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
-            if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
+            
+            // neither default graph nor named graph specified -- obtain named graph URI from the forClass-typed resource
+            if (!defaultGraph && graphUri == null)
+            {
+                Resource forClass = getForClass(getUriInfo());
+                Resource doc = getCreatedDocument(model, forClass);
+                if (doc == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
+                Resource parent = getParent(doc);
+                if (parent == null) throw new BadRequestException("Graph URI is not specified and no parent resource (sioc:has_parent or sioc:has_container) specified in request body.");
 
+                // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
+                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(model);
+
+                graphUri = URI.create(getCreatedDocument(model, forClass).getURI());
+            }
+            else
+                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+            
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
-            
+
+            if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
             return post(model, defaultGraph, graphUri);
         }
         catch (URISyntaxException ex)
