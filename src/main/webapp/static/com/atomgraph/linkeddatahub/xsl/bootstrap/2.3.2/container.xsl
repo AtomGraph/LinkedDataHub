@@ -450,6 +450,7 @@ exclude-result-prefixes="#all"
     <xsl:function name="ac:create-geo-object">
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="endpoint" as="xs:anyURI"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
@@ -462,10 +463,10 @@ exclude-result-prefixes="#all"
             <!-- use template literals because the query is multi-line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals -->
             <xsl:choose>
                 <xsl:when test="$graph-var-name">
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
