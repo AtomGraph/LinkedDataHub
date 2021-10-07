@@ -2401,7 +2401,7 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:when test="?status = 200">
                 <xsl:choose>
-                    <xsl:when test="?media-type = 'application/xhtml+xml'">
+                    <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                         <xsl:apply-templates select="?body" mode="apl:Document">
                             <xsl:with-param name="container-id" select="$container-id"/>
                         </xsl:apply-templates>
