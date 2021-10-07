@@ -22,6 +22,8 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
@@ -33,6 +35,7 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
@@ -50,7 +53,8 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
 
     private final UriInfo uriInfo;
     private final DataManager dataManager;
-    
+    private final MediaType[] readableMediaTypes;
+
     @Inject
     public ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
@@ -72,6 +76,11 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.dataManager = dataManager;
+        
+        List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
+        readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
+        readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
+        this.readableMediaTypes = readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()]);
         
         if (securityContext.getUserPrincipal() instanceof Agent &&
             securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
@@ -119,6 +128,12 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     public DataManager getDataManager()
     {
         return dataManager;
+    }
+    
+    @Override
+    public MediaType[] getReadableMediaTypes()
+    {
+        return readableMediaTypes;
     }
     
 }
