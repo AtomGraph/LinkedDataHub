@@ -46,7 +46,7 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
+    <xsl:key name="resources-by-is-primary-topic-of" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:isPrimaryTopicOf/@rdf:resource"/>
 
     <!-- PARALLAX -->
     
@@ -354,14 +354,14 @@ exclude-result-prefixes="#all"
             <xsl:text> </xsl:text>
             <xsl:apply-templates select="." mode="xhtml:Anchor"/>
 
-            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="bs2:Header">
+            <xsl:apply-templates select="key('resources-by-is-primary-topic-of', @rdf:about)" mode="bs2:Header">
                 <xsl:with-param name="class" select="'well well-small'"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>
 
     <!-- hide resources that will be shown paired/nested with a document -->
-    <xsl:template match="*[key('resources-by-primary-topic', @rdf:about)]" mode="bs2:BlockList" priority="1"/>
+    <xsl:template match="*[key('resources', foaf:isPrimaryTopicOf/@rdf:resource)]" mode="bs2:BlockList" priority="1"/>
 
     <xsl:template match="*[*][@rdf:*[local-name() = ('about', 'nodeID')]]" mode="bs2:BlockList" priority="0.8">
         <xsl:apply-templates select="." mode="bs2:Header"/>
