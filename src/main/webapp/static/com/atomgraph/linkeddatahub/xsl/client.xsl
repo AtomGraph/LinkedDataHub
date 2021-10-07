@@ -2049,7 +2049,7 @@ extension-element-prefixes="ixsl"
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:apply-templates select="?body" mode="apl:Document">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
@@ -2445,7 +2445,7 @@ extension-element-prefixes="ixsl"
                 </xsl:choose>
             </xsl:when>
             <!-- POST or PUT constraint violation response is 400 Bad Request -->
-            <xsl:when test="?status = 400 and ?media-type = 'application/xhtml+xml'">
+            <xsl:when test="?status = 400 and starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                 <xsl:for-each select="?body">
                     <xsl:variable name="form-id" select="ixsl:get($form, 'id')" as="xs:string"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
@@ -3332,7 +3332,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="new-target-id" as="xs:string?"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
@@ -3533,7 +3533,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="property" as="xs:anyURI"/>
         
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/xhtml+xml'">
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="doc-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
                     <xsl:variable name="form" as="element()">
