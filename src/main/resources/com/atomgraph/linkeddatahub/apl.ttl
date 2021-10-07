@@ -430,7 +430,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
       CONSTRUCT {
           ?this rdf:first [ a rdfs:Resource ] ;
-            rdf:rest [ a rdf:nil ] .
+            rdf:rest rdf:nil .
       }
       WHERE {}""" ;
     rdfs:label "Content constructor" ;

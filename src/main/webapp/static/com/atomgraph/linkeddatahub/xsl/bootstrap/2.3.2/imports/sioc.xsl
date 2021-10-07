@@ -36,32 +36,9 @@ exclude-result-prefixes="#all">
 
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:variable name="forClass" select="../../rdf:type/@rdf:resource" as="xs:anyURI?"/>
-        <!-- won't traverse blank nodes, only URI resources -->
-        <xsl:variable name="container" select="../../rdf:type/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/rdfs:subClassOf/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())/owl:hasValue/@rdf:resource" as="xs:anyURI?"/>
 
-        <span>
-            <xsl:choose>
-                <xsl:when test="$container">
-                    <xsl:choose>
-                        <xsl:when test="doc-available($container)">
-                            <xsl:apply-templates select="key('resources', $container, document(ac:document-uri($container)))" mode="apl:Typeahead"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:call-template name="xhtml:Input">
-                                <xsl:with-param name="name" select="'ou'"/>
-                                <xsl:with-param name="value" select="$container"/>
-                                <xsl:with-param name="type" select="'text'"/>
-<!--                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="class" select="$class"/>-->
-                            </xsl:call-template>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="key('resources', ac:uri(), document(ac:uri()))" mode="apl:Typeahead"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </span>
+        <xsl:apply-templates select="key('resources', ac:uri(), document(ac:uri()))" mode="apl:Typeahead"/>
+
         <xsl:text> </xsl:text>
 
         <xsl:choose>

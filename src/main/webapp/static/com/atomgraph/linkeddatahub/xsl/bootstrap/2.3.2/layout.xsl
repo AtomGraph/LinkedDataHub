@@ -121,7 +121,6 @@ exclude-result-prefixes="#all">
     <xsl:key name="resources-by-expression" match="*[@rdf:nodeID]" use="sp:expression/@rdf:about | sp:expression/@rdf:nodeID"/>
     <xsl:key name="resources-by-varname" match="*[@rdf:nodeID]" use="sp:varName"/>
     <xsl:key name="resources-by-arg1" match="*[@rdf:nodeID]" use="sp:arg1/@rdf:about | sp:arg1/@rdf:nodeID"/>
-    <xsl:key name="restrictions-by-container" match="*[rdf:type/@rdf:resource = '&owl;Restriction'][owl:onProperty/@rdf:resource = ('&sioc;has_parent', '&sioc;has_container')]" use="owl:allValuesFrom/@rdf:resource"/>
     
     <rdf:Description rdf:about="">
     </rdf:Description>
@@ -780,22 +779,6 @@ exclude-result-prefixes="#all">
             </ul>
         </div>
     </xsl:template>
-
-    <!-- always show ac:DocumentModes and ac:QueryEditorMode; only show ac:ContainerModes for dh:Container (subclass) instances -->
-<!--    <xsl:template match="*[@rdf:about][ac:uri()][(rdf:type/@rdf:resource = '&ac;ContainerMode' and (key('resources', key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource, $main-doc)/sioc:has_parent/@rdf:resource) or key('resources', ac:uri(), $main-doc)/core:stateOf/@rdf:resource = $apl:base) or rdf:type/@rdf:resource = '&ac;DocumentMode' or @rdf:about = '&ac;QueryEditorMode']" mode="bs2:ModeListItem" priority="1">
-        <xsl:param name="active" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
-
-        <li>
-            <xsl:if test="@rdf:about = $active">
-                <xsl:attribute name="class">active</xsl:attribute>
-            </xsl:if>
-
-            <a href="{if (not(starts-with($href, $ac:contextUri))) then ac:build-uri((), map{ 'uri': string($href), 'mode': string(@rdf:about) }) else if (contains(ac:uri(), '?')) then concat(ac:uri(), '&amp;mode=', encode-for-uri(@rdf:about)) else ac:build-uri(ac:uri(), map{ 'mode': string(@rdf:about) })}" title="{@rdf:about}">
-                <xsl:apply-templates select="." mode="apl:logo"/>
-            </a>
-        </li>
-    </xsl:template>-->
        
     <xsl:template match="*" mode="bs2:ModeListItem"/>
 
