@@ -113,7 +113,8 @@
 
     <queries/default/select-children/> a nsdd:Item ;
         sioc:has_container <queries/default/> ;
-        dct:title "Select children" .
+        dct:title "Select children" ;
+        foaf:primaryTopic <queries/default/select-children/#this> .
 
     <queries/default/select-children/#this> a nsdd:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-children/> ;
@@ -148,7 +149,8 @@
 
     <queries/default/select-geo-resources/> a nsdd:Item ;
         sioc:has_container <queries/default/> ;
-        dct:title "Select geo resources" .
+        dct:title "Select geo resources" ;
+        foaf:primaryTopic <queries/default/select-geo-resources/#this> .
 
     <queries/default/select-geo-resources/#this> a nsdd:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
@@ -180,7 +182,8 @@
 
     <queries/default/select-latest/> a nsdd:Item ;
         sioc:has_container <queries/default/> ;
-        dct:title "Select latest" .
+        dct:title "Select latest" ;
+        foaf:primaryTopic <queries/default/select-latest/#this> .
 
     <queries/default/select-latest/#this> a nsdd:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
@@ -205,7 +208,8 @@
 
     <queries/default/select-labelled/> a nsdd:Item ;
         sioc:has_container <queries/default/> ;
-        dct:title "Select labelled" .
+        dct:title "Select labelled" ;
+        foaf:primaryTopic <queries/default/select-labelled/#this> .
 
     <queries/default/select-labelled/#this> a nsdd:Select ;
         dct:title "Select labelled" ;

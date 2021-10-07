@@ -111,7 +111,8 @@
 
     <queries/default/select-children/> a adm:Item ;
         sioc:has_container <queries/default/> ;
-        dct:title "Select children" .
+        dct:title "Select children" ;
+        foaf:primaryTopic <queries/default/select-children/#this> .
 
     <queries/default/select-children/#this> a adm:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-children/> ;
@@ -147,7 +148,8 @@
 
     <queries/default/select-labelled/> a adm:Item ;
         sioc:has_container <queries/default/> ;
-        dct:title "Select labelled" .
+        dct:title "Select labelled" ;
+        foaf:primaryTopic <queries/default/select-labelled/#this> .
 
     <queries/default/select-labelled/#this> a adm:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-labelled/> ;
@@ -255,7 +257,8 @@
 
     <acl/authorizations/public/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Public access" .
+        dct:title "Public access" ;
+        foaf:primaryTopic <acl/authorizations/public/#this> .
 
     <acl/authorizations/public/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
@@ -275,7 +278,8 @@
 
     <acl/authorizations/sign-up/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Signup access" .
+        dct:title "Signup access" ;
+        foaf:primaryTopic <acl/authorizations/sign-up/#this> .
 
     <acl/authorizations/sign-up/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/sign-up/> ;
@@ -294,7 +298,8 @@
 
     <acl/authorizations/request-access/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Authorization request access" .
+        dct:title "Authorization request access" ;
+        foaf:primaryTopic <acl/authorizations/request-access/#this> .
 
     <acl/authorizations/request-access/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/request-access/> ;
@@ -313,7 +318,8 @@
 
     <acl/authorizations/oauth2-login/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "OAuth2 login access" .
+        dct:title "OAuth2 login access" ;
+        foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
 
     <acl/authorizations/oauth2-login/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/oauth2-login/> ;
@@ -332,7 +338,8 @@
 
     <acl/authorizations/authorize-google/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Google's OAuth2 authorization" .
+        dct:title "Google's OAuth2 authorization" ;
+        foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
 
     <acl/authorizations/authorize-google/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/authorize-google/> ;
@@ -351,7 +358,8 @@
 
     <acl/authorizations/append-request/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Append authorization request" .
+        dct:title "Append authorization request" ;
+        foaf:primaryTopic <acl/authorizations/append-request/#this> .
 
     <acl/authorizations/append-request/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/append-request/> ;
@@ -371,7 +379,8 @@
 
     <acl/authorizations/full-control/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Full control" .
+        dct:title "Full control" ;
+        foaf:primaryTopic <acl/authorizations/full-control/#this> .
 
     <acl/authorizations/full-control/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/full-control/> ;
@@ -391,7 +400,8 @@
 
     <acl/authorizations/write-append/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Write/append access" .
+        dct:title "Write/append access" ;
+        foaf:primaryTopic <acl/authorizations/write-append/#this> .
 
     <acl/authorizations/write-append/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/write-append/> ;
@@ -411,7 +421,8 @@
 
     <acl/authorizations/read/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Read access" .
+        dct:title "Read access" ;
+        foaf:primaryTopic <acl/authorizations/read/#this> .
 
     <acl/authorizations/read/#this> a adm:Authorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/read/> ;
@@ -431,7 +442,8 @@
 
     <acl/authorizations/creator/> a adm:Item ;
         sioc:has_container <acl/authorizations/> ;
-        dct:title "Creator access" .
+        dct:title "Creator access" ;
+        foaf:primaryTopic <acl/authorizations/creator/#this> .
 
     <acl/authorizations/creator/#this> a adm:CreatorAuthorization ;
         foaf:isPrimaryTopicOf <acl/authorizations/creator/> ;
@@ -452,7 +464,8 @@
 
     <acl/groups/owners/> a adm:Item ;
         sioc:has_container <acl/groups/> ;
-        dct:title "Owners" .
+        dct:title "Owners" ;
+        foaf:primaryTopic <acl/groups/owners/#this> .
 
     <acl/groups/owners/#this> a adm:Group ;
         foaf:name "Owners" ;
@@ -468,7 +481,8 @@
 
     <acl/groups/writers/> a adm:Item ;
         sioc:has_container <acl/groups/> ;
-        dct:title "Writers" .
+        dct:title "Writers" ;
+        foaf:primaryTopic <acl/groups/writers/#this> .
 
     <acl/groups/writers/#this> a adm:Group ;
         foaf:name "Writers" ;
@@ -484,7 +498,8 @@
 
     <acl/groups/readers/> a adm:Item ;
         sioc:has_container <acl/groups/> ;
-        dct:title "Readers" .
+        dct:title "Readers" ;
+        foaf:primaryTopic <acl/groups/readers/#this> .
 
     <acl/groups/readers/#this> a adm:Group ;
         foaf:name "Readers" ;
@@ -526,7 +541,8 @@
 
     <model/ontologies/default/> a adm:Item ;
         sioc:has_container <model/ontologies/> ;
-        dct:title "Default" .
+        dct:title "Default" ;
+        foaf:primaryTopic nsdd: .
 
     nsdd: a adm:Ontology ;
         foaf:isPrimaryTopicOf <model/ontologies/default/> ;
@@ -709,7 +725,8 @@
 
     <model/ontologies/namespace/> a adm:Item ;
         sioc:has_container <model/ontologies/> ;
-        dct:title "Namespace" .
+        dct:title "Namespace" ;
+        foaf:primaryTopic ns: .
 
     ns: a adm:Ontology ;
         foaf:isPrimaryTopicOf <model/ontologies/namespace/> ;
