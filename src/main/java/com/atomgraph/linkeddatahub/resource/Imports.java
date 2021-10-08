@@ -96,11 +96,11 @@ public class Imports extends GraphStoreImpl
     {
         Response constructor = super.post(model, defaultGraph, graphUri); // construct Import
         
-        if (constructor.getStatus() == Status.CREATED.getStatusCode() || constructor.getStatus() == Status.OK.getStatusCode()) // import created
+        if (constructor.getStatus() == Status.CREATED.getStatusCode()) // import created
         {
-            URI importGraphUri = graphUri; // constructor.getLocation();
-            Model importModel = model; // (Model)super.get(false, importGraphUri).getEntity();
-            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), importModel);
+            URI importGraphUri = constructor.getLocation();
+            //Model importModel = (Model)super.get(false, importGraphUri).getEntity();
+            InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
             Resource doc = infModel.createResource(importGraphUri.toString());
             
             ResIterator it = infModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, doc);
