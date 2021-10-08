@@ -121,17 +121,9 @@ class="${ns}File"
 container="${base}files/"
 
 if [ -z "$1" ]; then
-    # create graph
-
-    pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
-
-    popd > /dev/null
-
-    args+=("$graph") # default target URL = named graph URI
+    args+=("${base}service") # default target URL = graph store
 else
-    graph="$1"
+    target="$1"
 fi
 
 # need to create explicit file URI since that is what this script returns (not the graph URI)
@@ -151,7 +143,14 @@ rdf_post+="-F \"ol=${title}\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
 rdf_post+="-F \"ou=${class}\"\n"
 rdf_post+="-F \"pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf\"\n"
-rdf_post+="-F \"ou=${graph}\"\n"
+rdf_post+="-F \"ob=item\"\n"
+rdf_post+="-F \"sb=item\"\n"
+rdf_post+="-F \"pu=http://purl.org/dc/terms/title\"\n"
+rdf_post+="-F \"ol=${title}\"\n"
+rdf_post+="-F \"pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type\"\n"
+rdf_post+="-F \"ou=${ns}Item\"\n"
+rdf_post+="-F \"pu=http://rdfs.org/sioc/ns#has_container\"\n"
+rdf_post+="-F \"ou=${container}\"\n"
 
 if [ -n "$description" ] ; then
     rdf_post+="-F \"sb=file\"\n"

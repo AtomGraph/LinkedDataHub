@@ -94,17 +94,7 @@ container="${base}queries/"
 query=$(<"$query_file") # read query string from file
 
 if [ -z "$1" ]; then
-    # create graph
-
-    pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
-
-    popd > /dev/null
-
-    args+=("$graph") # default target URL = named graph URI
-else
-    graph="$1"
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
@@ -114,17 +104,25 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
-turtle+="_:query a nsds:Construct .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
+turtle+="_:query a nsdd:Construct .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="_:query foaf:isPrimaryTopicOf <${graph}> .\n"
+turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a nsdd:Item .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
+turtle+="_:item dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:query dct:description \"${description}\" .\n"
+fi
+if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
 # submit Turtle doc to the server

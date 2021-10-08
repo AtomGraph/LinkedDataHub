@@ -98,8 +98,6 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-#args+=("--for-class")
-#args+=("https://w3id.org/atomgraph/linkeddatahub/domain#Content")
 
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"

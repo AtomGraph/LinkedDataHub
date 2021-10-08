@@ -36,11 +36,6 @@ do
         shift # past argument
         shift # past value
         ;;
-        --for-class)
-        for_class="$2"
-        shift # past argument
-        shift # past value
-        ;;
         *)    # unknown option
         unknown+=("$1") # save it in an array for later
         shift # past argument
@@ -71,12 +66,7 @@ urlencode()
     python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
 }
 
-if [ -n "$for_class" ]; then
-    forClass=$(urlencode "$for_class")
-    target="${1}?forClass=${forClass}"
-else
-    target="$1"
-fi
+target="$1"
 
 # POST RDF document from stdin to the server and print Location URL
 cat - | curl -v -k -E "${cert_pem_file}":"${cert_password}" -d @- -H "Content-Type: ${content_type}" -H "Accept: text/turtle" "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

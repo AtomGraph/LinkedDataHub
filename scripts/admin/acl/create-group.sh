@@ -106,17 +106,7 @@ else
 fi
 
 if [ -z "$1" ]; then
-    # create graph
-
-    pushd . > /dev/null && cd "$SCRIPT_ROOT/admin"
-
-    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$name")
-
-    popd > /dev/null
-
-    args+=("$graph") # default target URL = named graph URI
-else
-    graph="$1"
+    args+=("${base}service") # default target URL = graph store
 fi
 
 args+=("-f")
@@ -127,14 +117,22 @@ args+=("-t")
 args+=("text/turtle") # content type
 
 turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${group} a ns:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
-turtle+="${group} foaf:isPrimaryTopicOf <${graph}> .\n"
+turtle+="${group} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a ns:Item .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
+turtle+="_:item dct:title \"${label}\" .\n"
 
 if [ -n "$description" ] ; then
-    turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
     turtle+="${group} dct:description \"${description}\" .\n"
+fi
+if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
 for member in "${members[@]}"

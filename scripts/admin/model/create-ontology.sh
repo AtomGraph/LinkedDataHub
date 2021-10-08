@@ -105,28 +105,25 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--for-class")
-args+=("${base}ns#Ontology")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${ontology} a ns:Ontology .\n"
 turtle+="${ontology} rdfs:label \"${label}\" .\n"
 turtle+="${ontology} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:OntologyItem .\n"
+turtle+="_:item a ns:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${ontology} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${ontology} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

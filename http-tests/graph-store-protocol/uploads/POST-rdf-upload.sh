@@ -56,14 +56,12 @@ rdf_post+="-F \"ou=${ADMIN_BASE_URL}model/ontologies/default/#File\"\n"
 rdf_post+="-F \"pu=http://www.w3.org/ns/sparql-service-description#name\"\n"
 rdf_post+="-F \"ou=${graph}\"\n"
 
-forClass=$(urlencode "${ADMIN_BASE_URL}model/ontologies/default/#File")
-
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" \
 | curl -w "%{http_code}\n" -v -k -D - --config - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
-  "${END_USER_BASE_URL}add?forClass=${forClass}" \
+  "${END_USER_BASE_URL}add" \
 | grep -q "$STATUS_OK"
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"

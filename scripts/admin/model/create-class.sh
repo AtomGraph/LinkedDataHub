@@ -142,30 +142,27 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-#args+=("--for-class")
-#args+=("${base}ns#Class")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${class} a ns:Class .\n"
 turtle+="${class} rdfs:label \"${label}\" .\n"
 turtle+="${class} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${class} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n"
-turtle+="_:item a ns:ClassItem .\n"
+turtle+="_:item a ns:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${class} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${class} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$constructor" ] ; then

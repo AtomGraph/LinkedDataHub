@@ -123,17 +123,7 @@ fi
 container="${base}imports/"
 
 if [ -z "$1" ]; then
-    # create graph
-
-    pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
-    graph=$(./create-item.sh -f "$cert_pem_file" -p "$cert_password" -b "$base" --container "$container" --title "$title")
-
-    popd > /dev/null
-
-    args+=("${base}imports?graph=${graph}") # default target URL = imports endpoint with a named graph URI param
-else
-    graph="$1"
+    args+=("${base}imports") # default target URL = import endpoint
 fi
 
 args+=("-f")
@@ -143,21 +133,29 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsds:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
-turtle+="_:import a nsds:CSVImport .\n"
+turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
+turtle+="_:import a nsdd:CSVImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import spin:query <${query}> .\n"
 turtle+="_:import apl:action <${action}> .\n"
 turtle+="_:import apl:file <${file}> .\n"
 turtle+="_:import apl:delimiter \"${delimiter}\" .\n"
-turtle+="_:import foaf:isPrimaryTopicOf <${graph}> .\n"
+turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
+turtle+="_:item a nsdd:Item .\n"
+turtle+="_:item sioc:has_container <${container}> .\n"
+turtle+="_:item dct:title \"${title}\" .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:import dct:description \"${description}\" .\n"
+fi
+if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+    turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 
 # set env values in the Turtle doc and sumbit it to the server

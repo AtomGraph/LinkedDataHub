@@ -106,24 +106,22 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
-args+=("--for-class")
-args+=("${base}admin/model/ontologies/default/#Container")
 
 turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
-turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:container a nsdd:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then
+    turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
     turtle+="_:container apl:content <${content}> .\n"
 fi
 if [ -n "$description" ] ; then
     turtle+="_:container dct:description \"${description}\" .\n"
 fi
 if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:container dh:slug \"${slug}\" .\n"
 fi
 

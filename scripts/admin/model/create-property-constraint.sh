@@ -120,15 +120,12 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-#args+=("--for-class")
-#args+=("${base}ns#MissingPropertyValue")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${constraint} a ns:MissingPropertyValue .\n"
@@ -136,15 +133,15 @@ turtle+="${constraint} rdfs:label \"${label}\" .\n"
 turtle+="${constraint} sp:arg1 <${property}> .\n"
 turtle+="${constraint} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${constraint} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n"
-turtle+="_:item a ns:ConstraintItem .\n"
+turtle+="_:item a ns:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${constraint} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${constraint} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

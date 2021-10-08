@@ -132,32 +132,29 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-args+=("--for-class")
-args+=("${base}admin/model/ontologies/default/#ResultSetChart") # class
 
-turtle+="@prefix nsds:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:  <http://spinrdf.org/spin#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:chart a nsds:ResultSetChart .\n"
+turtle+="_:chart a nsdd:ResultSetChart .\n"
 turtle+="_:chart dct:title \"${title}\" .\n"
 turtle+="_:chart spin:query <${query}> .\n"
 turtle+="_:chart apl:chartType <${chart_type}> .\n"
 turtle+="_:chart apl:categoryVarName \"${category_var_name}\" .\n"
 turtle+="_:chart apl:seriesVarName \"${series_var_name}\" .\n"
 turtle+="_:chart foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsds:ChartItem .\n"
+turtle+="_:item a nsdd:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
-turtle+="_:item foaf:primaryTopic _:chart .\n"
 
 if [ -n "$description" ] ; then
     turtle+="_:chart dct:description \"${description}\" .\n"
 fi
 if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 

@@ -128,8 +128,6 @@ args+=("-p")
 args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
-#args+=("--for-class")
-#args+=("${base}ns#Restriction")
 
 turtle+="@prefix ns:	<ns#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
@@ -137,22 +135,21 @@ turtle+="@prefix owl:	<http://www.w3.org/2002/07/owl#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${restriction} a ns:Restriction .\n"
 turtle+="${restriction} rdfs:label \"${label}\" .\n"
 turtle+="${restriction} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${restriction} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n"
-turtle+="_:item a ns:RestrictionItem .\n"
+turtle+="_:item a ns:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
-turtle+="_:item foaf:primaryTopic ${restriction} .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${restriction} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
     turtle+="_:item dh:slug \"${slug}\" .\n"
 fi
 if [ -n "$on_property" ] ; then
