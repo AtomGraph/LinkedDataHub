@@ -717,7 +717,14 @@ extension-element-prefixes="ixsl"
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
-                        
+                
+                <!-- is a new instance of Service was created, reload the LinkedDataHub.services data and re-render the service dropdown -->
+                <xsl:if test="sd:endpoint or dydra:repository">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onServiceLoad"/>
+                    </ixsl:schedule-action>
+                </xsl:if>
+
                 <xsl:if test="$container-id">
                     <!-- chart -->
                     <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
@@ -754,6 +761,23 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
+    <xsl:template name="onServiceLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
+            <xsl:for-each select="?body">
+                <ixsl:set-property name="services" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                
+                <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>                
+                <xsl:call-template name="apl:RenderServices">
+                    <xsl:with-param name="select" select="id('search-service', ixsl:page())"/>
+                    <xsl:with-param name="services" select="."/>
+                    <xsl:with-param name="selected-service" select="$service-uri"/>
+                </xsl:call-template>
+            </xsl:for-each>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
