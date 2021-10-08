@@ -116,7 +116,7 @@ class="${ns}File"
 container="${base}files/"
 
 if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
+    target="${base}service" # default target URL = graph store
 else
     target="$1"
 fi
