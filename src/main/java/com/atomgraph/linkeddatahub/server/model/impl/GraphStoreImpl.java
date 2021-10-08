@@ -136,6 +136,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
 
             graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
+            if (graphUri == null) throw new InternalServerErrorException("Named graph URI skolemization failed");
             ResourceUtils.renameResource(doc, graphUri.toString());
         }
         
@@ -220,6 +221,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
 
                 graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
+                if (graphUri == null) throw new InternalServerErrorException("Named graph URI skolemization failed");
                 ResourceUtils.renameResource(doc, graphUri.toString());
             }
 
