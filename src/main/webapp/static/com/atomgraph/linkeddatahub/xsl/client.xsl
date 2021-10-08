@@ -712,6 +712,18 @@ extension-element-prefixes="ixsl"
                     </xsl:if>
                 </xsl:if>
 
+                <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
+                <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'create-action']/..">
+                    <xsl:choose>
+                        <xsl:when test="sioc:has_container/@rdf:resource">
+                            <ixsl:set-style name="display" select="'none'"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <ixsl:set-style name="display" select="'block'"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+                        
                 <xsl:if test="$container-id">
                     <!-- chart -->
                     <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
