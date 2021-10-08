@@ -366,7 +366,8 @@ exclude-result-prefixes="#all">
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ontology": ontologyUri,
                             "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
-                            "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri
+                            "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri,
+                            "Q{}services-request-uri": servicesRequestUri
                             };
                         
                         SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).

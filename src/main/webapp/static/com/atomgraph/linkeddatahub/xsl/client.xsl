@@ -84,6 +84,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="apl:ontology" as="xs:anyURI"/>
+    <xsl:param name="services-request-uri" as="xs:anyURI"/>
     <xsl:param name="apl:services" as="document-node()?">
         <xsl:document>
             <rdf:RDF></rdf:RDF>
@@ -173,18 +174,10 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- initialize LinkedDataHub.services (and the search dropdown, if it's shown) -->
         <ixsl:set-property name="services" select="$apl:services" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:for-each select="id('search-service', ixsl:page())">
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:for-each select="$apl:services//*[@rdf:about]">
-                    <xsl:sort select="ac:label(.)"/>
-
-                    <xsl:apply-templates select="." mode="xhtml:Option">
-                        <xsl:with-param name="value" select="@rdf:about"/>
-                        <!--<xsl:with-param name="selected" select="@rdf:about = $selected-service"/>-->
-                    </xsl:apply-templates>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:call-template name="apl:RenderServices">
+            <xsl:with-param name="select" select="id('search-service', ixsl:page())"/>
+            <xsl:with-param name="services" select="$apl:services"/>
+        </xsl:call-template>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:call-template name="apl:LoadContents">
@@ -1821,6 +1814,27 @@ extension-element-prefixes="ixsl"
                 <span class="divider">/</span>
             </xsl:if>
         </li>
+    </xsl:template>
+
+    <!-- service select -->
+    
+    <xsl:template name="apl:RenderServices">
+        <xsl:param name="select" as="element()"/>
+        <xsl:param name="services" as="document-node()"/>
+        <xsl:param name="selected-service" as="xs:anyURI?"/>
+        
+        <xsl:for-each select="$select">
+            <xsl:result-document href="?." method="ixsl:append-content">
+                <xsl:for-each select="$services//*[@rdf:about]">
+                    <xsl:sort select="ac:label(.)"/>
+
+                    <xsl:apply-templates select="." mode="xhtml:Option">
+                        <xsl:with-param name="value" select="@rdf:about"/>
+                        <xsl:with-param name="selected" select="@rdf:about = $selected-service"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- chart -->
