@@ -719,7 +719,7 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
                 
                 <!-- is a new instance of Service was created, reload the LinkedDataHub.services data and re-render the service dropdown -->
-                <xsl:if test="sd:endpoint or dydra:repository">
+                <xsl:if test="//sd:endpoint or //dydra:repository">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onServiceLoad"/>
                     </ixsl:schedule-action>
