@@ -32,7 +32,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.GregorianCalendar;
 import java.util.Optional;
-import java.util.UUID;
 import javax.inject.Inject;
 import javax.mail.Address;
 import javax.mail.MessagingException;
@@ -42,6 +41,7 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -74,8 +74,6 @@ public class RequestAccess extends GraphStoreImpl
     
     private static final Logger log = LoggerFactory.getLogger(RequestAccess.class);
     
-    public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
-
     private final URI uri;
     private final Application application;
     private final Agent agent;
@@ -136,9 +134,17 @@ public class RequestAccess extends GraphStoreImpl
     {
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
-        URI requestGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_REQUEST_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(requestGraphUri)).build(requestModel);
+        // neither default graph nor named graph specified -- obtain named graph URI from the document
+        if (!defaultGraph && graphUri == null)
+        {
+            Resource graph = createGraph(requestModel);
+            if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
+            graphUri = URI.create(graph.getURI());
+        }
 
+        // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
+        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(requestModel);
+            
         Resource forClass = requestModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = requestModel.listResourcesWithProperty(RDF.type, forClass);
         try
@@ -160,7 +166,7 @@ public class RequestAccess extends GraphStoreImpl
             owner = agentModel.getResource(ownerURI);
             if (!agentModel.containsResource(owner)) throw new IllegalStateException("Could not load agent's <" + ownerURI + "> description from admin service");
 
-            super.post(requestModel, false, requestGraphUri); // don't wrap into try-with-resources because that will close the Response
+            super.post(requestModel, false, graphUri); // don't wrap into try-with-resources because that will close the Response
 
             try
             {
