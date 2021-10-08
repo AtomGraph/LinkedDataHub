@@ -21,7 +21,6 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
@@ -72,12 +71,10 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.DCTerms;
-import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -131,33 +128,22 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
-        // neither default graph nor named graph specified -- obtain named graph URI from the forClass-typed resource
+        // neither default graph nor named graph specified -- obtain named graph URI from the document
         if (!defaultGraph && graphUri == null)
         {
-            Resource forClass = getForClass(getUriInfo());
-            Resource doc = getCreatedDocument(model, forClass);
-            if (doc == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-            Resource parent = getParent(doc);
-            if (parent == null) throw new BadRequestException("Graph URI is not specified and no parent resource (sioc:has_parent or sioc:has_container) specified in request body.");
+            Resource doc = getCreatedDocument(model);
+            Resource parent = doc != null ? getParent(doc) : null;
+            if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
 
-            // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(model);
-            
-            graphUri = URI.create(getCreatedDocument(model, forClass).getURI());
+            graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
         }
-        else
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+        
+        // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
+        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
         
         return super.post(model, false, graphUri);
     }
 
-    public Resource getForClass(UriInfo uriInfo)
-    {
-        if (!uriInfo.getQueryParameters().containsKey(APLT.forClass.getLocalName()))
-            throw new BadRequestException("aplt:ForClass parameter not provided");
-
-        return ResourceFactory.createResource(uriInfo.getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-    }
     
     @PUT
     @Override
@@ -225,22 +211,18 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             
-            // neither default graph nor named graph specified -- obtain named graph URI from the forClass-typed resource
+            // neither default graph nor named graph specified -- obtain named graph URI from the document
             if (!defaultGraph && graphUri == null)
             {
-                Resource forClass = getForClass(getUriInfo());
-                Resource doc = getCreatedDocument(model, forClass);
-                if (doc == null) throw new BadRequestException("aplt:ForClass typed resource not found in model");
-                Resource parent = getParent(doc);
-                if (parent == null) throw new BadRequestException("Graph URI is not specified and no parent resource (sioc:has_parent or sioc:has_container) specified in request body.");
+                Resource doc = getCreatedDocument(model);
+                Resource parent = doc != null ? getParent(doc) : null;
+                if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
 
-                // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
-                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(model);
-
-                graphUri = URI.create(getCreatedDocument(model, forClass).getURI());
+                graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
             }
-            else
-                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+
+            // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
+            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
@@ -507,31 +489,45 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     }
     
     /**
-     * Extracts the individual that is being created from the input RDF graph.
+     * Extracts the document that is being created from the input RDF graph.
      * 
      * @param model RDF input graph
-     * @param forClass RDF class
      * @return RDF resource
      */
-    public Resource getCreatedDocument(Model model, Resource forClass)
+    public Resource getCreatedDocument(Model model)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
         
-        ResIterator it = model.listSubjectsWithProperty(RDF.type, forClass);
+        ResIterator it = model.listSubjectsWithProperty(SIOC.HAS_PARENT);
         try
         {
             if (it.hasNext())
             {
-                Resource created = it.next();
+                Resource doc = it.next();
 
-                return created;
+                return doc;
             }
         }
         finally
         {
             it.close();
         }
-        
+
+        it = model.listSubjectsWithProperty(SIOC.HAS_CONTAINER);
+        try
+        {
+            if (it.hasNext())
+            {
+                Resource doc = it.next();
+
+                return doc;
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
         return null;
     }
     
