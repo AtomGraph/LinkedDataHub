@@ -2767,19 +2767,12 @@ extension-element-prefixes="ixsl"
         </xsl:result-document>
 
         <!-- initialize SPARQL query service dropdown -->
-        <xsl:for-each select="id('query-service', ixsl:page())">
-            <xsl:variable name="service-select" select="." as="element()"/>
-            <xsl:result-document href="?." method="ixsl:append-content">
-                <xsl:for-each select="$apl:services//*[@rdf:about]">
-                    <xsl:sort select="ac:label(.)"/>
-
-                    <xsl:apply-templates select="." mode="xhtml:Option">
-                        <xsl:with-param name="value" select="@rdf:about"/>
-                        <!--<xsl:with-param name="selected" select="@rdf:about = $selected-service"/>-->
-                    </xsl:apply-templates>
-                </xsl:for-each>
-            </xsl:result-document>
-        </xsl:for-each>
+        <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
+        <xsl:call-template name="apl:RenderServices">
+            <xsl:with-param name="select" select="id('query-service', ixsl:page())"/>
+            <xsl:with-param name="services" select="ixsl:get(ixsl:window(), 'LinkedDataHub.services')"/>
+            <xsl:with-param name="selected-service" select="$service-uri"/>
+        </xsl:call-template>
 
         <!-- initialize YASQE on the textarea -->
         <xsl:variable name="js-statement" as="element()">
