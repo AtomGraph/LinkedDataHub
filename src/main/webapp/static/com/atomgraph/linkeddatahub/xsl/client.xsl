@@ -1849,6 +1849,8 @@ extension-element-prefixes="ixsl"
         
         <xsl:for-each select="$select">
             <xsl:result-document href="?." method="ixsl:replace-content">
+                <option value="">[SPARQL service]</option>
+                
                 <xsl:for-each select="$services//*[@rdf:about]">
                     <xsl:sort select="ac:label(.)"/>
 
