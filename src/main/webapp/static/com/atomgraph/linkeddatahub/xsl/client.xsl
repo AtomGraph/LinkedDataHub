@@ -713,7 +713,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
-                <xsl:variable name="is-item" select="sioc:has_container/@rdf:resource" as="xs:boolean"/>
+                <xsl:variable name="is-item" select="exists(sioc:has_container/@rdf:resource)" as="xs:boolean"/>
                 <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'create-action']/..">
                     <xsl:choose>
                         <xsl:when test="$is-item">
