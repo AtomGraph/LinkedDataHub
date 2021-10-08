@@ -147,7 +147,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
             <xsl:with-param name="value" select="resolve-uri('acl/authorization-requests/', $ldt:base)"/>
         </xsl:call-template>
-        <!-- generate AuthorizationRequestItem title -->
+        <!-- generate Item title -->
         <xsl:call-template name="xhtml:Input">
             <xsl:with-param name="name" select="'pu'"/>
             <xsl:with-param name="value" select="'&dct;title'"/>

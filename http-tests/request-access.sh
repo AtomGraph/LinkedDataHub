@@ -31,10 +31,8 @@ curl -w "%{http_code}\n" -k -s \
   --data-urlencode "ou=${AGENT_URI}" \
   --data-urlencode "sb=request-item" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=${ADMIN_BASE_URL}ns#AuthorizationRequestItem" \
+  --data-urlencode "ou=${ADMIN_BASE_URL}ns#Item" \
   --data-urlencode "pu=http://rdfs.org/sioc/ns#has_container" \
   --data-urlencode "ou=${ADMIN_BASE_URL}acl/authorization-requests/" \
-  --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
-  --data-urlencode "ob=request" \
   "${ADMIN_BASE_URL}request%20access?forClass=https%3A%2F%2Flocalhost%3A4443%2Fadmin%2Fns%23AuthorizationRequest" \
 | grep -q "${STATUS_OK}"
