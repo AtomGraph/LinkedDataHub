@@ -2761,7 +2761,7 @@ extension-element-prefixes="ixsl"
     <!-- run SPARQL query in editor -->
     
     <!-- TO-DO: change to 'query-form' @class? -->
-    <xsl:template match="form[@id = 'query-form']" mode="ixsl:onsubmit"> <!-- button[tokenize(@class, ' ') = 'btn-run-query'] -->
+    <xsl:template match="form[@id = 'query-form']" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
@@ -2775,7 +2775,8 @@ extension-element-prefixes="ixsl"
         
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
         <ixsl:schedule-action http-request="$request">
