@@ -1848,7 +1848,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="selected-service" as="xs:anyURI?"/>
         
         <xsl:for-each select="$select">
-            <xsl:result-document href="?." method="ixsl:append-content">
+            <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:for-each select="$services//*[@rdf:about]">
                     <xsl:sort select="ac:label(.)"/>
 
