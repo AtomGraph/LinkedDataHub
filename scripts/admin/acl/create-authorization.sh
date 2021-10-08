@@ -227,11 +227,5 @@ if [ -n "$write" ] ; then
     turtle+="${auth} acl:mode acl:Write .\n"
 fi
 
-pushd . > /dev/null && cd "$SCRIPT_ROOT"
-
 # submit Turtle doc to the server
 echo -e "$turtle" | turtle --base="$base" | ./create-document.sh "${args[@]}"
-
-popd > /dev/null
-
-echo "$graph"

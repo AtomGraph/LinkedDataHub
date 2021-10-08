@@ -111,11 +111,6 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
-urlencode()
-{
-    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
-}
-
 ns="${base}admin/model/ontologies/default/#"
 class="${ns}File"
 container="${base}files/"
@@ -165,6 +160,4 @@ if [ -n "$file_slug" ] ; then
 fi
 
 # POST RDF/POST multipart form from stdin to the server
-echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" -v --config - "$graph"
-
-echo "$graph"
+echo -e "$rdf_post" | curl -s -k -H "Accept: text/turtle" -E "$cert_pem_file":"$cert_password" --config - "$target" -v -D - | tr -d '\r' | sed -En 's/^Location: (.*)/\1/p'

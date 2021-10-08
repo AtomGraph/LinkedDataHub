@@ -61,11 +61,6 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-urlencode()
-{
-    python2 -c 'import urllib, sys; print urllib.quote(sys.argv[1] if len(sys.argv) > 1 else sys.stdin.read()[0:-1])' "$1"
-}
-
 target="$1"
 
 # POST RDF document from stdin to the server and print Location URL
