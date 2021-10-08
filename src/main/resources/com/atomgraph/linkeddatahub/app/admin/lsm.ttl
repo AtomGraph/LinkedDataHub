@@ -25,7 +25,6 @@
     rdfs:isDefinedBy : .
 
 :ClassConstructor a sp:Construct ;
-    rdfs:label "Class constructor" ;
     sp:text """
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
@@ -48,6 +47,7 @@ CONSTRUCT {
         rdfs:isDefinedBy [ a lsm:Ontology ] .
 }
 WHERE {}""" ;
+    rdfs:label "Class constructor" ;
     rdfs:isDefinedBy : .
 
 :Property a rdfs:Class ;
@@ -60,7 +60,6 @@ WHERE {}""" ;
 # TO-DO: :ObjectProperty/:DatatypeProperty subclasses?
 
 :PropertyConstructor a sp:Construct ;
-    rdfs:label "Property constructor" ;
     sp:text """
 PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
@@ -76,6 +75,7 @@ CONSTRUCT {
         rdfs:isDefinedBy [ a lsm:Ontology ] .
 }
 WHERE {}""" ;
+    rdfs:label "Property constructor" ;
     rdfs:isDefinedBy : .
 
 :Query a rdfs:Class ;
@@ -96,7 +96,7 @@ WHERE {}""" ;
     rdfs:isDefinedBy : .
 
 :QueryConstructor a sp:Construct ;
-  sp:text """
+    sp:text """
       PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
       PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
       PREFIX sp:      <http://spinrdf.org/sp#>
@@ -104,27 +104,12 @@ WHERE {}""" ;
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
+              rdfs:comment [ a xsd:string ] ;
               sp:text [ a xsd:string ] ;
               rdfs:isDefinedBy [ a lsm:Ontology ] .
       }
       WHERE {}""" ;
-    rdfs:label "CONSTRUCT constructor" ;
-    rdfs:isDefinedBy : .
-
-:DescribeConstructor a sp:Describe ;
-  sp:text """
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-      PREFIX sp:      <http://spinrdf.org/sp#>
-      PREFIX lsm:     <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#>
-
-      CONSTRUCT {
-          ?this rdfs:label [ a xsd:string ] ;
-              sp:text [ a xsd:string ] ;
-              rdfs:isDefinedBy [ a lsm:Ontology ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Describe constructor" ;
+    rdfs:label "Query constructor" ;
     rdfs:isDefinedBy : .
 
 :MissingPropertyValue a rdfs:Class ;
@@ -143,6 +128,7 @@ WHERE {}""" ;
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
             sp:arg1 [ a rdfs:Resource ] ;
             sp:arg2 [ a rdfs:Resource ] ;
             rdfs:isDefinedBy [ a lsm:Ontology ] .
@@ -169,6 +155,7 @@ WHERE {}""" ;
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
             spin:body [ a lsm:Query ] ;
             spin:labelTemplate [ a xsd:string ] ;
             spin:constraint [ a spl:Argument ;
@@ -196,8 +183,7 @@ PREFIX owl:     <http://www.w3.org/2002/07/owl#>
 PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 
 CONSTRUCT {
-    ?this
-        rdfs:label [ a xsd:string ] ;
+    ?this rdfs:label [ a xsd:string ] ;
         rdfs:comment [ a xsd:string ] ;
         owl:imports apl: ;
         owl:versionInfo "1.0-SNAPSHOT" .
@@ -223,6 +209,7 @@ WHERE {}""" ;
 
       CONSTRUCT {
           ?this rdfs:label [ a xsd:string ] ;
+            rdfs:comment [ a xsd:string ] ;
             owl:onProperty [ a rdf:Property ] ;
             owl:allValuesFrom [ a rdfs:Resource ] ;
             owl:hasValue [ a rdfs:Resource ] ;

@@ -389,7 +389,7 @@
         acl:accessToClass dh:Item, dh:Container ;
         acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
-        acl:agentClass <acl/groups/owners/#this> .
+        acl:agentGroup <acl/groups/owners/#this> .
 
 }
 
@@ -410,7 +410,7 @@
         acl:accessToClass dh:Item, dh:Container ;
         acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Write, acl:Append ;
-        acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this> .
+        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
 }
 
@@ -431,7 +431,7 @@
         acl:accessToClass c:Document, dh:Item, dh:Container, apl:File ;
         acl:accessTo <../sparql>, <../service>, <../uploads>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Read ;
-        acl:agentClass <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
+        acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 
 }
 

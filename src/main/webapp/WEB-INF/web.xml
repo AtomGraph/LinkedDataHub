@@ -42,7 +42,7 @@ WHERE
           }
         {   { ?auth  acl:agent  ?agent }
           UNION
-            { ?auth   acl:agentClass  ?Group .
+            { ?auth   acl:agentGroup  ?Group .
               ?Group  foaf:member     ?agent
             }
         }
@@ -104,7 +104,7 @@ WHERE
                foaf:isPrimaryTopicOf  ?doc
           { ?auth  acl:agent  ?agent }
         UNION
-          { ?auth   acl:agentClass  ?Group .
+          { ?auth   acl:agentGroup  ?Group .
             ?Group  foaf:member     ?agent
           }
       }

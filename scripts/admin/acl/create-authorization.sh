@@ -18,6 +18,7 @@ print_usage()
     printf "  --uri URI                            URI of the authorization (optional)\n"
     printf "  --agent AGENT_URI                    URI of the agent (optional)\n"
     printf "  --agent-class AGENT_CLASS_URI        URI of the agent class (optional)\n"
+    printf "  --agent-group AGENT_GROUP_URI        URI of the agent group (optional)\n"
     printf "  --to RESOURCE_URI                    URI of the controlled resource (optional)\n"
     printf "  --to-all-in RESOURCE_TYPE_URI        URI of the controlled resource type (optional)\n"
     printf "  --append APPEND_MODE                 Append mode (optional)\n"
@@ -79,6 +80,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --agent-group)
+        agent_groups+=("$2")
+        shift # past argument
+        shift # past value
+        ;;
         --to)
         tos+=("$2")
         shift # past argument
@@ -129,9 +135,9 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
-if [ ${#agents[@]} -eq 0 ] && [ ${#agent_classes[@]} -eq 0 ] ; then
+if [ ${#agents[@]} -eq 0 ] && [ ${#agent_classes[@]} -eq 0 ] && [ ${#agent_groups[@]} -eq 0 ] ; then
 
-    #echo '--agent or --agent-class not set'
+    #echo '--agent or --agent-class or --agent-group not set'
     print_usage
     exit 1
 fi
@@ -196,6 +202,10 @@ done
 for agent_class in "${agent_classes[@]}"
 do
     turtle+="${auth} acl:agentClass <${agent_class}> .\n"
+done
+for agent_group in "${agent_groups[@]}"
+do
+    turtle+="${auth} acl:agentGroup <${agent_group}> .\n"
 done
 for to in "${tos[@]}"
 do
