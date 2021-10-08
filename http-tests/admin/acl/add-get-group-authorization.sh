@@ -38,7 +38,7 @@ group=$(curl -s -k \
   -p "$OWNER_CERT_PWD" \
   -b "$ADMIN_BASE_URL" \
   --label "GET authorization" \
-  --agent-class "$group" \
+  --agent-group "$group" \
   --to "$END_USER_BASE_URL" \
   --read
 
