@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
