@@ -101,7 +101,7 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 
-turtle+="@prefix adm:	<ns#> .\n"
+turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:item a adm:Item .\n"

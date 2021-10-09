@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
@@ -190,7 +191,6 @@ public class Login extends GraphStoreImpl
                 String email = jwt.getClaim("email").asString();
                 createAgent(agentModel,
                     agentGraphUri,
-                    getOntology().getURI(),
                     agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                     jwt.getClaim("given_name").asString(),
                     jwt.getClaim("family_name").asString(),
@@ -209,7 +209,6 @@ public class Login extends GraphStoreImpl
                     URI userAccountGraphUri = getUriInfo().getBaseUriBuilder().path(ACCOUNT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
                     createUserAccount(accountModel,
                         userAccountGraphUri,
-                        getOntology().getURI(),
                         accountModel.createResource(getUriInfo().getBaseUri().resolve(ACCOUNT_PATH).toString()),
                         jwt.getSubject(),
                         jwt.getIssuer(),
@@ -299,70 +298,58 @@ public class Login extends GraphStoreImpl
         //throw new JWTVerificationException();
     }
     
-    public Resource createAgent(Model model, URI graphURI, String namespace, Resource container, String givenName, String familyName, String email, String imgUrl)
+    public Resource createAgent(Model model, URI graphURI, Resource container, String givenName, String familyName, String email, String imgUrl)
     {
-        // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.Agent.getLocalName()); // subclassOf LACL.Agent
-        Resource itemCls = model.createResource(namespace + "Item");
-
-        Resource agentItem =  model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+        Resource item =  model.createResource(graphURI.toString()).
+            addProperty(RDF.type, ADM.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource agent = model.createResource().
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, ADM.Agent).
             addLiteral(FOAF.givenName, givenName).
             addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
-            addProperty(FOAF.isPrimaryTopicOf, agentItem);
+            addProperty(FOAF.isPrimaryTopicOf, item);
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
             
-        agent.addProperty(FOAF.isPrimaryTopicOf, agentItem);
+        agent.addProperty(FOAF.isPrimaryTopicOf, item);
         
         return agent;
     }
     
-    public Resource createUserAccount(Model model, URI graphURI, String namespace, Resource container, String id, String issuer, String name, String email)
+    public Resource createUserAccount(Model model, URI graphURI, Resource container, String id, String issuer, String name, String email)
     {
-        // TO-DO: improve class URI retrieval
-        Resource itemCls = model.createResource(namespace + "Item");
-        Resource cls = model.createResource(namespace + LACL.UserAccount.getLocalName()); // subclassOf LACL.UserAccount
-
-        Resource accountItem = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+        Resource item = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, ADM.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource account = model.createResource().
             addLiteral(DCTerms.created, GregorianCalendar.getInstance()).
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, ADM.UserAccount).
             addLiteral(SIOC.ID, id).
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
             addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
-            addProperty(FOAF.isPrimaryTopicOf, accountItem);
+            addProperty(FOAF.isPrimaryTopicOf, item);
         
-        account.addProperty(FOAF.isPrimaryTopicOf, accountItem);
+        account.addProperty(FOAF.isPrimaryTopicOf, item);
         
         return account;
     }
 
     public Resource createAuthorization(Model model, URI graphURI, String namespace, Resource container, URI agentGraphURI, URI userAccountGraphURI)
     {
-        // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
-        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
-
-        Resource authItem = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+        Resource item = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, ADM.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, ADM.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
             addProperty(ACL.accessTo, ResourceFactory.createResource(userAccountGraphURI.toString())).
@@ -370,7 +357,7 @@ public class Login extends GraphStoreImpl
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
         
-        auth.addProperty(FOAF.isPrimaryTopicOf, authItem);
+        auth.addProperty(FOAF.isPrimaryTopicOf, item);
         
         return auth;
     }

@@ -101,11 +101,11 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 
-turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:item a nsdd:Item .\n"
+turtle+="_:item a def:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 

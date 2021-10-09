@@ -1,5 +1,5 @@
 /**
- *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
-import com.atomgraph.processor.vocabulary.LDT;
 import org.apache.jena.ontology.DatatypeProperty;
-import org.apache.jena.ontology.Individual;
+import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -26,17 +25,16 @@ import org.apache.jena.rdf.model.Resource;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-@Deprecated
-public class LSMT
+public class ADM
 {
 
     /** <p>The RDF model that holds the vocabulary terms</p> */
     private static OntModel m_model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, null);
     
     /** <p>The namespace of the vocabulary as a string</p> */
-    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/templates#";
+    public static final String NS = "https://w3id.org/atomgraph/linkeddatahub/admin#";
     
     /** <p>The namespace of the vocabulary as a string</p>
      *  @see #NS */
@@ -47,9 +45,19 @@ public class LSMT
     
     /** <p>The namespace of the vocabulary as a resource</p> */
     public static final Resource NAMESPACE = m_model.createResource( NS );
+
+    public static final OntClass Container = m_model.createClass( NS + "Container" );
+
+    public static final OntClass Item = m_model.createClass( NS + "Item" );
+
+    public static final OntClass Authorization = m_model.createClass( NS + "Authorization" );
+
+    public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
+
+    public static final OntClass Agent = m_model.createClass( NS + "Agent" );
+
+    public static final OntClass UserAccount = m_model.createClass( NS + "UserAccount" );
+
+    public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
     
-    public static final Individual Source = m_model.createIndividual( NS + "Source", LDT.Parameter);
-
-    public static final DatatypeProperty clear = m_model.createDatatypeProperty( NS + "clear");
-
 }

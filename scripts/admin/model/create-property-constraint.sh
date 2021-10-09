@@ -121,19 +121,19 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix ldt:	<https://www.w3.org/ns/ldt#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${constraint} a ns:MissingPropertyValue .\n"
+turtle+="${constraint} a adm:MissingPropertyValue .\n"
 turtle+="${constraint} rdfs:label \"${label}\" .\n"
 turtle+="${constraint} sp:arg1 <${property}> .\n"
 turtle+="${constraint} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${constraint} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n"
-turtle+="_:item a ns:Item .\n"
+turtle+="_:item a adm:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 

@@ -1,4 +1,4 @@
-@prefix nsdd:	<admin/model/ontologies/default/#> .
+@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
@@ -10,7 +10,7 @@
 <>
 {
 
-    <> a nsdd:Root ;
+    <> a def:Root ;
         dct:title "Root" ;
         dct:description "Root container" ;
         apl:content <#content1> .
@@ -34,7 +34,7 @@
 <queries/>
 {
 
-    <queries/> a nsdd:Container ;
+    <queries/> a def:Container ;
         dct:title "Queries" ;
         dct:description "SPARQL queries" .
 
@@ -43,7 +43,7 @@
 <queries/default/>
 {
 
-    <queries/default/> a nsdd:Container ;
+    <queries/default/> a def:Container ;
         sioc:has_parent <queries/> ;
         dct:title "Default" ;
         dct:description "Default queries" .
@@ -53,7 +53,7 @@
 <files/>
 {
 
-    <files/> a nsdd:Container ;
+    <files/> a def:Container ;
         dct:title "Files" ;
         dct:description "Uploaded files" .
 
@@ -62,7 +62,7 @@
 <imports/>
 {
 
-    <imports/> a nsdd:Container ;
+    <imports/> a def:Container ;
         dct:title "Imports" ;
         dct:description "Data imports" .
 
@@ -71,7 +71,7 @@
 <geo/>
 {
 
-    <geo/> a nsdd:Container ;
+    <geo/> a def:Container ;
         dct:title "geo" ;
         dct:description "Geolocated resources" .
 
@@ -80,7 +80,7 @@
 <latest/>
 {
 
-    <latest/> a nsdd:Container ;
+    <latest/> a def:Container ;
         dct:title "Latest" ;
         dct:description "Latest resources" .
 
@@ -89,7 +89,7 @@
 <charts/>
 {
 
-    <charts/> a nsdd:Container ;
+    <charts/> a def:Container ;
         dct:title "Charts" ;
         dct:description "Saved charts" .
 
@@ -98,7 +98,7 @@
 <services/>
 {
 
-    <services/> a nsdd:Container ;
+    <services/> a def:Container ;
         dct:title "Services" ;
         dct:description "SPARQL services" .
 
@@ -111,11 +111,11 @@
 <queries/default/select-children/>
 {
 
-    <queries/default/select-children/> a nsdd:Item ;
+    <queries/default/select-children/> a def:Item ;
         sioc:has_container <queries/default/> ;
         dct:title "Select children" .
 
-    <queries/default/select-children/#this> a nsdd:Select ;
+    <queries/default/select-children/#this> a def:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-children/> ;
         dct:title "Select children" ;
         sp:text """
@@ -133,7 +133,7 @@
         OPTIONAL
           { ?child  dct:title  ?title }
         OPTIONAL
-          { ?child  foaf:primaryTopic  ?thing }
+         { ?thing  foaf:isPrimaryTopicOf  ?child }
       }
     }
     ORDER BY ?title
@@ -146,11 +146,11 @@
 <queries/default/select-geo-resources/>
 {
 
-    <queries/default/select-geo-resources/> a nsdd:Item ;
+    <queries/default/select-geo-resources/> a def:Item ;
         sioc:has_container <queries/default/> ;
         dct:title "Select geo resources" .
 
-    <queries/default/select-geo-resources/#this> a nsdd:Select ;
+    <queries/default/select-geo-resources/#this> a def:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
         dct:title "Select geo resources" ;
         sp:text """
@@ -178,11 +178,11 @@
 <queries/default/select-latest/>
 {
 
-    <queries/default/select-latest/> a nsdd:Item ;
+    <queries/default/select-latest/> a def:Item ;
         sioc:has_container <queries/default/> ;
         dct:title "Select latest" .
 
-    <queries/default/select-latest/#this> a nsdd:Select ;
+    <queries/default/select-latest/#this> a def:Select ;
         foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
         dct:title "Select latest" ;
         sp:text """
@@ -203,11 +203,11 @@
 <queries/default/select-labelled/>
 {
 
-    <queries/default/select-labelled/> a nsdd:Item ;
+    <queries/default/select-labelled/> a def:Item ;
         sioc:has_container <queries/default/> ;
         dct:title "Select labelled" .
 
-    <queries/default/select-labelled/#this> a nsdd:Select ;
+    <queries/default/select-labelled/#this> a def:Select ;
         dct:title "Select labelled" ;
         sp:text """
     PREFIX  dct:  <http://purl.org/dc/terms/>

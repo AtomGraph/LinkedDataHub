@@ -1,0 +1,207 @@
+@base		<https://w3id.org/atomgraph/linkeddatahub/default> .
+
+@prefix :	<#> .
+@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+
+: a adm:Ontology ;
+    rdfs:label "Default" ;
+    rdfs:comment "Default document model" ;
+    owl:imports apl: ;
+    owl:versionInfo "1.0-SNAPSHOT" .
+
+:Root a adm:Class ;
+    rdfs:subClassOf sioc:Space, dh:Container ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
+    apl:template :ContainerChildren ;
+    rdfs:label "Root" ;
+    rdfs:isDefinedBy : .
+
+:Container a adm:Class ;
+    rdfs:subClassOf dh:Container ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constraint :MissingParent, :MissingTitle ;
+    apl:template :ContainerChildren ;
+    rdfs:label "Container" ;
+    rdfs:isDefinedBy : .
+
+:ContainerChildren a apl:Content ;
+    rdf:first :SelectChildren ;
+    rdf:rest rdf:nil ;
+    rdfs:label "Container children" ;
+    rdfs:isDefinedBy : .
+
+:SelectChildren a sp:Select ;
+    rdfs:label "Select children" ;
+    sp:text """
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+SELECT DISTINCT  ?child ?thing
+WHERE
+{ GRAPH ?childGraph
+  {   { ?child  sioc:has_parent  ?this }
+    UNION
+      { ?child  sioc:has_container  ?this }
+    ?child  a                     ?Type
+    OPTIONAL
+      { ?child  dct:title  ?title }
+    OPTIONAL
+      { ?thing  foaf:isPrimaryTopicOf  ?child }
+  }
+}
+ORDER BY ?title
+""" ;
+    rdfs:isDefinedBy : .
+
+:Item a adm:Class ;
+    rdfs:subClassOf dh:Item ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constraint :MissingContainer ;
+    rdfs:label "Item" ;
+    rdfs:isDefinedBy : .
+
+:GenericService a adm:Class ;
+    rdfs:subClassOf apl:GenericService ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Generic service" ;
+    rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
+    rdfs:isDefinedBy : .
+
+:DydraService a adm:Class ;
+    rdfs:subClassOf apl:DydraService ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Dydra service" ;
+    rdfs:comment "Dydra cloud repository" ;
+    rdfs:isDefinedBy : .
+
+:File a adm:Class ;
+    rdfs:subClassOf apl:File ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "File" ;
+    rdfs:isDefinedBy : .
+
+:Construct a adm:Class ;
+    rdfs:subClassOf apl:Construct ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "CONSTRUCT" ;
+    rdfs:isDefinedBy : .
+
+:Describe a adm:Class ;
+    rdfs:subClassOf apl:Describe ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "DESCRIBE" ;
+    rdfs:isDefinedBy : .
+
+:Select a adm:Class ;
+    rdfs:subClassOf apl:Select ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "SELECT" ;
+    rdfs:isDefinedBy : .
+
+:Ask a adm:Class ;
+    rdfs:subClassOf apl:Ask ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "ASK" ;
+    rdfs:isDefinedBy : .
+
+:RDFImport a adm:Class ;
+    rdfs:subClassOf apl:RDFImport ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "RDF import" ;
+    rdfs:isDefinedBy : .
+
+:CSVImport a adm:Class ;
+    rdfs:subClassOf apl:CSVImport ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "CSV import" ;
+    rdfs:isDefinedBy : .
+
+:GraphChart a adm:Class ;
+    rdfs:subClassOf apl:GraphChart ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Graph chart" ;
+    rdfs:isDefinedBy : .
+
+:ResultSetChart a adm:Class ;
+    rdfs:subClassOf apl:ResultSetChart ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Result set chart" ;
+    rdfs:isDefinedBy : .
+
+:TitleConstructor a adm:Construct ;
+    rdfs:label "Title constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+          ?this dct:title [ a xsd:string ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:DescriptionConstructor a adm:Construct ;
+    rdfs:label "Description constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+          ?this dct:description [ a xsd:string ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:ContentConstructor a adm:Construct ;
+    rdfs:label "Content constructor" ;
+    sp:text """
+        PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+
+        CONSTRUCT {
+          ?this apl:content [ a apl:Content ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:MissingParent a adm:MissingPropertyValue ;
+    rdfs:label "Missing parent" ;
+    rdfs:comment "Requires containers to have a parent container" ;
+    sp:arg1 sioc:has_parent ;
+    rdfs:isDefinedBy : .
+
+:MissingContainer a adm:MissingPropertyValue ;
+    rdfs:label "Missing container" ;
+    rdfs:comment "Requires items to have a parent container" ;
+    sp:arg1 sioc:has_container ;
+    rdfs:isDefinedBy : .
+
+:MissingTitle a adm:MissingPropertyValue ;
+    rdfs:label "Missing title" ;
+    rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
+    sp:arg1 dct:title ;
+    rdfs:isDefinedBy : .

@@ -20,7 +20,7 @@
 <urn:linkeddatahub:apps/admin> a lapp:AdminApplication ;
     dct:title "LinkedDataHub admin" ;
     ldt:base <admin/> ;
-    ldt:ontology <admin/ns#> ;
+    ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
     ldt:service <urn:linkeddatahub:services/admin> ;
     ac:stylesheet <static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/admin/layout.xsl> ;
     lapp:endUserApplication <urn:linkeddatahub:apps/end-user> .

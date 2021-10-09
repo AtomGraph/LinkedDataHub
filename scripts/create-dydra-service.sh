@@ -120,20 +120,20 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix a:	<https://w3id.org/atomgraph/core#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix dydra: <https://w3id.org/atomgraph/linkeddatahub/services/dydra#> .\n"
 turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:service a nsdd:DydraService .\n"
+turtle+="_:service a def:DydraService .\n"
 turtle+="_:service dct:title \"${title}\" .\n"
 turtle+="_:service dydra:repository <${repository}> .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Query .\n"
 turtle+="_:service sd:supportedLanguage sd:SPARQL11Update .\n"
 turtle+="_:service foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsdd:Item .\n"
+turtle+="_:item a def:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 

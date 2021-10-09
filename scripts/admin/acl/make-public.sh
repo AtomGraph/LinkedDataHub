@@ -71,13 +71,13 @@ curl -X PATCH \
 BASE <${base}admin/>
 
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-PREFIX  nsdd: <model/ontologies/default/#>
+PREFIX  def: <https://w3id.org/atomgraph/linkeddatahub/default#>
 
 INSERT DATA
 {
   GRAPH <acl/authorizations/public/>
   {
-    <acl/authorizations/public/#this> acl:accessToClass nsdd:Root, nsdd:Container, nsdd:Item, nsdd:File ;
+    <acl/authorizations/public/#this> acl:accessToClass def:Root, def:Container, def:Item, def:File ;
         acl:accessTo <../sparql> .
   }
 }

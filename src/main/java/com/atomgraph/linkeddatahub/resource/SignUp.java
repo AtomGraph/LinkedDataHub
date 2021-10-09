@@ -29,6 +29,7 @@ import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
+import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
@@ -238,7 +239,6 @@ public class SignUp extends GraphStoreImpl
                 Model publicKeyModel = ModelFactory.createDefaultModel();
                 createPublicKey(publicKeyModel,
                     publicKeyGraphUri,
-                    forClass.getNameSpace(),
                     publicKeyModel.createResource(getUriInfo().getBaseUri().resolve(PUBLIC_KEY_PATH).toString()),
                     certPublicKey);
                 getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(publicKeyGraphUri)).build(publicKeyModel);
@@ -268,7 +268,6 @@ public class SignUp extends GraphStoreImpl
                     Model authModel = ModelFactory.createDefaultModel();
                     createAuthorization(authModel,
                         authGraphUri,
-                        forClass.getNameSpace(),
                         authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
                         agentGraphUri,
                         publicKeyGraphUri);
@@ -370,41 +369,33 @@ public class SignUp extends GraphStoreImpl
         return agent;
     }
     
-    public Resource createPublicKey(Model model, URI graphURI, String namespace, Resource container, RSAPublicKey publicKey)
+    public Resource createPublicKey(Model model, URI graphURI, Resource container, RSAPublicKey publicKey)
     {
-        // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.PublicKey.getLocalName()); // subclassOf LACL.PublicKey
-        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
-
-        Resource publicKeyItem = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+        Resource item = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, ADM.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource publicKeyRes = model.createResource().
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, ADM.PublicKey).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
         
-        publicKeyRes.addProperty(FOAF.isPrimaryTopicOf, publicKeyItem);
+        publicKeyRes.addProperty(FOAF.isPrimaryTopicOf, item);
         
         return publicKeyRes;
     }
     
-    public Resource createAuthorization(Model model, URI graphURI, String namespace, Resource container, URI agentGraphURI, URI publicKeyURI)
+    public Resource createAuthorization(Model model, URI graphURI, Resource container, URI agentGraphURI, URI publicKeyURI)
     {
-        // TO-DO: improve class URI retrieval
-        Resource cls = model.createResource(namespace + LACL.Authorization.getLocalName()); // subclassOf LACL.Authorization
-        Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
-
-        Resource authItem = model.createResource(graphURI.toString()).
-            addProperty(RDF.type, itemCls).
+        Resource item = model.createResource(graphURI.toString()).
+            addProperty(RDF.type, ADM.Item).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
-            addProperty(RDF.type, cls).
+            addProperty(RDF.type, ADM.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
             addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyURI.toString())).
@@ -412,7 +403,7 @@ public class SignUp extends GraphStoreImpl
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
 
-        auth.addProperty(FOAF.isPrimaryTopicOf, authItem);
+        auth.addProperty(FOAF.isPrimaryTopicOf, item);
         
         return auth;
     }

@@ -107,10 +107,10 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle")
 
-turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:container a nsdd:Container .\n"
+turtle+="_:container a def:Container .\n"
 turtle+="_:container dct:title \"${title}\" .\n"
 turtle+="_:container sioc:has_parent <${parent}> .\n"
 if [ -n "$content" ] ; then

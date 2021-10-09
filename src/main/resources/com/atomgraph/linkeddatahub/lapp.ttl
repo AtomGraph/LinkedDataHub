@@ -91,7 +91,7 @@
       WHERE {
           BIND (STRUUID() AS ?uuid)
           BIND (URI(CONCAT(?uuid, "/")) AS ?base)
-          BIND (URI(CONCAT(?uuid, "/ns#")) AS ?ontology)
+          BIND (<https://w3id.org/atomgraph/linkeddatahub/admin#> AS ?ontology)
     }""" ;
     rdfs:label "Application constructor" ;
     rdfs:isDefinedBy : .

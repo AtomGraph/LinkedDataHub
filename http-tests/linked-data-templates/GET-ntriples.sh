@@ -25,4 +25,4 @@ curl -k -f -s -G \
   "$END_USER_BASE_URL" \
 | rapper -q --input ntriples --output ntriples /dev/stdin - \
 | tr -s '\n' '\t' \
-| grep "<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${ADMIN_BASE_URL}model/ontologies/default/#Root>"
+| grep "<${END_USER_BASE_URL}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/atomgraph/linkeddatahub/default#Root>"

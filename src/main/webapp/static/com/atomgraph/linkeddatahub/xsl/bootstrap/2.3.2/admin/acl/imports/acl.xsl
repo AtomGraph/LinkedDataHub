@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
@@ -57,7 +58,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string(resolve-uri('ns#Authorization', $ldt:base)) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': '&adm;Authorization' })" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
@@ -106,7 +107,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('ns#Authorization', $ldt:base)"/> <!-- Authorization class URI -->
+                <xsl:with-param name="value" select="'&adm;Authorization'"/> <!-- Authorization class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
@@ -199,7 +200,7 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('ns#AuthorizationItem', $ldt:base)"/> <!-- AuthorizationItem class URI -->
+                <xsl:with-param name="value" select="'&adm;Item'"/> <!-- Item class URI -->
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">

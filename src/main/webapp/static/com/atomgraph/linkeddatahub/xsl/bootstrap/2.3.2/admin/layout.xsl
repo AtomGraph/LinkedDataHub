@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lmod   "https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain#">
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -65,7 +66,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:CreateDocument">
-                <xsl:with-param name="ontology" select="resolve-uri('ns#', $apl:base)"/>
+                <xsl:with-param name="ontology" select="ac:document-uri('&adm;')"/>
                 <xsl:with-param name="class" select="'btn-group pull-left'"/>
             </xsl:apply-templates>
         </div>

@@ -111,7 +111,7 @@ if [ -z "$file_content_type" ] ; then
     exit 1
 fi
 
-ns="${base}admin/model/ontologies/default/#"
+ns="https://w3id.org/atomgraph/linkeddatahub/default#"
 class="${ns}File"
 container="${base}files/"
 

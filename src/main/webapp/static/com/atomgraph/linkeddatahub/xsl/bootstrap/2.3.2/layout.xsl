@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
+    <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY aplt   "https://w3id.org/atomgraph/linkeddatahub/templates#">
     <!ENTITY google "https://w3id.org/atomgraph/linkeddatahub/services/google#">
@@ -502,7 +504,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:CreateDocument">
-                <xsl:with-param name="ontology" select="resolve-uri('admin/model/ontologies/default/#', $apl:base)"/>
+                <xsl:with-param name="ontology" select="ac:document-uri('&def;')"/>
                 <xsl:with-param name="class" select="'btn-group pull-left'"/>
             </xsl:apply-templates>
             
@@ -588,7 +590,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$apl:client//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
-        <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base), map{ 'forClass': string(resolve-uri('admin/ns#Person', $apl:base)) })" as="xs:anyURI"/>
+        <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base), map{ 'forClass': string('&adm;Person') })" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
         

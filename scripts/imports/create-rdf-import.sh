@@ -119,17 +119,17 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix nsdd:	<admin/model/ontologies/default/#> .\n"
+turtle+="@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="_:import a nsdd:RDFImport .\n"
+turtle+="_:import a def:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
 turtle+="_:import apl:action <${action}> .\n"
 turtle+="_:import apl:file <${file}> .\n"
 turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a nsdd:Item .\n"
+turtle+="_:item a def:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 

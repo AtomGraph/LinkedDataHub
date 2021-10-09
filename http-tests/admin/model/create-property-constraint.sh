@@ -32,7 +32,7 @@ constraint="${ontology_doc}#NewConstraint"
 --label "Constrained class" \
 --slug constrained-class \
 --constraint "$constraint" \
---sub-class-of "${ADMIN_BASE_URL}model/ontologies/default/#Item" \
+--sub-class-of "https://w3id.org/atomgraph/linkeddatahub/default#Item" \
 "$ontology_doc"
 
 popd > /dev/null

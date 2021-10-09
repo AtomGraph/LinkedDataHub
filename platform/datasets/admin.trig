@@ -1,6 +1,5 @@
 @prefix ns:	<model/ontologies/namespace/#> .
-@prefix nsdd:	<model/ontologies/default/#> .
-@prefix adm:	<ns#> .
+@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
@@ -264,8 +263,7 @@
         foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows unauthorized access" ;
-        acl:accessTo <ns>, # admin ontologies are public
-            <model/ontologies/namespace/>, <model/ontologies/default/> ; # end-user ontologies are public
+        acl:accessTo <model/ontologies/namespace/> ; # end-user ontologies are public
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .
 
@@ -534,190 +532,6 @@
 
 # ONTOLOGIES
 
-# default
-
-<model/ontologies/default/>
-{
-
-    <model/ontologies/default/> a adm:Item ;
-        sioc:has_container <model/ontologies/> ;
-        dct:title "Default" ;
-        foaf:primaryTopic nsdd: .
-
-    nsdd: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/default/> ;
-        rdfs:label "Default" ;
-        rdfs:comment "Default document model" ;
-        owl:imports apl: ;
-        owl:versionInfo "1.0-SNAPSHOT" .
-
-    nsdd:Root a adm:Class ;
-        rdfs:subClassOf sioc:Space, dh:Container ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor, nsdd:ContentConstructor ;
-        spin:constraint nsdd:MissingTitle ; # roots do not have parents, therefore no nsdd:MissingParent
-        apl:template nsdd:ContainerChildren ;
-        rdfs:label "Root" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:Container a adm:Class ;
-        rdfs:subClassOf dh:Container ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor, nsdd:ContentConstructor ;
-        spin:constraint nsdd:MissingParent, nsdd:MissingTitle ;
-        apl:template nsdd:ContainerChildren ;
-        rdfs:label "Container" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:ContainerChildren a apl:Content ;
-        rdf:first <../queries/default/select-children/#this> ;
-        rdf:rest rdf:nil ;
-        rdfs:label "Container children" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:Item a adm:Class ;
-        rdfs:subClassOf dh:Item ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor, nsdd:ContentConstructor ;
-        spin:constraint nsdd:MissingContainer ;
-        rdfs:label "Item" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:GenericService a adm:Class ;
-        rdfs:subClassOf apl:GenericService ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "Generic service" ;
-        rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:DydraService a adm:Class ;
-        rdfs:subClassOf apl:DydraService ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "Dydra service" ;
-        rdfs:comment "Dydra cloud repository" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:File a adm:Class ;
-        rdfs:subClassOf apl:File ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "File" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:Construct a adm:Class ;
-        rdfs:subClassOf apl:Construct ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "CONSTRUCT" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:Describe a adm:Class ;
-        rdfs:subClassOf apl:Describe ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "DESCRIBE" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:Select a adm:Class ;
-        rdfs:subClassOf apl:Select ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "SELECT" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:Ask a adm:Class ;
-        rdfs:subClassOf apl:Ask ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "ASK" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:RDFImport a adm:Class ;
-        rdfs:subClassOf apl:RDFImport ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "RDF import" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:CSVImport a adm:Class ;
-        rdfs:subClassOf apl:CSVImport ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "CSV import" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:GraphChart a adm:Class ;
-        rdfs:subClassOf apl:GraphChart ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "Graph chart" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:ResultSetChart a adm:Class ;
-        rdfs:subClassOf apl:ResultSetChart ;
-        spin:constructor nsdd:TitleConstructor, nsdd:DescriptionConstructor ;
-        spin:constraint nsdd:MissingTitle ;
-        rdfs:label "Result set chart" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:TitleConstructor a adm:Construct ;
-        rdfs:label "Title constructor" ;
-        sp:text """
-            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-            PREFIX dct:     <http://purl.org/dc/terms/>
-
-            CONSTRUCT {
-              ?this dct:title [ a xsd:string ] .
-            }
-            WHERE {}""" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:DescriptionConstructor a adm:Construct ;
-        rdfs:label "Description constructor" ;
-        sp:text """
-            PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
-            PREFIX dct:     <http://purl.org/dc/terms/>
-
-            CONSTRUCT {
-              ?this dct:description [ a xsd:string ] .
-            }
-            WHERE {}""" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:ContentConstructor a adm:Construct ;
-        rdfs:label "Content constructor" ;
-        sp:text """
-            PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
-
-            CONSTRUCT {
-              ?this apl:content [ a apl:Content ] .
-            }
-            WHERE {}""" ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:MissingParent a adm:MissingPropertyValue ;
-        rdfs:label "Missing parent" ;
-        rdfs:comment "Requires containers to have a parent container" ;
-        sp:arg1 sioc:has_parent ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:MissingContainer a adm:MissingPropertyValue ;
-        rdfs:label "Missing container" ;
-        rdfs:comment "Requires items to have a parent container" ;
-        sp:arg1 sioc:has_container ;
-        rdfs:isDefinedBy nsdd: .
-
-    nsdd:MissingTitle a adm:MissingPropertyValue ;
-        rdfs:label "Missing title" ;
-        rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
-        sp:arg1 dct:title ;
-        rdfs:isDefinedBy nsdd: .
-
-}
-
-# ONTOLOGIES
-
 # namespace
 
 <model/ontologies/namespace/>
@@ -732,7 +546,7 @@
         foaf:isPrimaryTopicOf <model/ontologies/namespace/> ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
-        owl:imports nsdd: ;
+        owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;
         owl:versionInfo "1.0-SNAPSHOT" .
 
 }

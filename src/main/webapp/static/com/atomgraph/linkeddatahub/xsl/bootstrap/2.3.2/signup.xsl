@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
@@ -123,9 +124,8 @@ exclude-result-prefixes="#all">
                 </div>
             </div>
 
-            <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#Person'))[@rdf:about]" mode="bs2:Block"/>
-            <xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#PublicKey'))[@rdf:about]" mode="bs2:Block"/>
-            <!--<xsl:apply-templates select="key('resources-by-type', concat($ldt:base, 'ns#AgentItem'))[@rdf:about]" mode="bs2:Block"/>-->
+            <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="bs2:Block"/>
+            <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey'))[@rdf:about]" mode="bs2:Block"/>
         </div>
     </xsl:template>
     
@@ -141,13 +141,6 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
-
-    <!-- select the Agent blank node -->
-<!--    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)][@rdf:nodeID][rdf:type/@rdf:resource = concat($ldt:base, 'ns#Person')]" mode="bs2:Form" priority="2">
-        <xsl:apply-templates select="." mode="bs2:FormControl">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>-->
 
     <xsl:template match="*[@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)]/sioc:has_container" mode="bs2:FormControl">
         <xsl:apply-templates select="." mode="xhtml:Input">

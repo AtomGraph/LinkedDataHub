@@ -19,7 +19,7 @@ class="${ontology_doc}#NewClass"
 --uri "$class" \
 --label "New class" \
 --slug new-class \
---sub-class-of "${ADMIN_BASE_URL}model/ontologies/default/#Item" \
+--sub-class-of "https://w3id.org/atomgraph/linkeddatahub/default#Item" \
 "$ontology_doc"
 
 popd > /dev/null

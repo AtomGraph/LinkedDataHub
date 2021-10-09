@@ -329,7 +329,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="default-classes" select="key('resources', (resolve-uri('admin/model/ontologies/default/#GenericService', $apl:base), resolve-uri('admin/model/ontologies/default/#DydraService', $apl:base), resolve-uri('admin/model/ontologies/default/#Construct', $apl:base), resolve-uri('admin/model/ontologies/default/#Describe', $apl:base), resolve-uri('admin/model/ontologies/default/#Select', $apl:base), resolve-uri('admin/model/ontologies/default/#Ask', $apl:base), resolve-uri('admin/model/ontologies/default/#File', $apl:base), resolve-uri('admin/model/ontologies/default/#CSVImport', $apl:base), resolve-uri('admin/model/ontologies/default/#RDFImport', $apl:base), resolve-uri('admin/model/ontologies/default/#GraphChart', $apl:base), resolve-uri('admin/model/ontologies/default/#ResultSetChart', $apl:base)), document(resolve-uri('admin/model/ontologies/default/', $apl:base)))" as="element()*"/>
+                <xsl:variable name="default-classes" select="key('resources', ('&def;GenericService', '&def;DydraService', '&def;Construct', '&def;Describe', '&def;Select', '&def;Ask', '&def;File', '&def;CSVImport', '&def;RDFImport', '&def;GraphChart', '&def;ResultSetChart'), document(ac:document-uri('&def;')))" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$apl:ontology"/>

@@ -116,14 +116,14 @@ args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${group} a ns:Group .\n"
+turtle+="${group} a adm:Group .\n"
 turtle+="${group} foaf:name \"${label}\" .\n"
 turtle+="${group} foaf:isPrimaryTopicOf _:item .\n"
-turtle+="_:item a ns:Item .\n"
+turtle+="_:item a adm:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
+    <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY a      "https://w3id.org/atomgraph/core#">
@@ -376,7 +377,7 @@ exclude-result-prefixes="#all"
             <xsl:choose>
                 <xsl:when test="$apl:base and exists($types)">
                     <!-- constraint (sub)classes are in the admin ontology -->
-                    <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), resolve-uri('admin/ns#', $apl:base)))" as="xs:anyURI*"/>
+                    <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), ac:document-uri('&adm;')))" as="xs:anyURI*"/>
                     <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
                     <xsl:sequence select="exists(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this])"/>
                 </xsl:when>

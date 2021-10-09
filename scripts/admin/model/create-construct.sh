@@ -122,18 +122,18 @@ args+=("${cert_password}")
 args+=("-t")
 args+=("text/turtle") # content type
 
-turtle+="@prefix ns:	<ns#> .\n"
+turtle+="@prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .\n"
 turtle+="@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${query} a ns:Construct .\n"
+turtle+="${query} a adm:Construct .\n"
 turtle+="${query} rdfs:label \"${label}\" .\n"
 turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
 turtle+="${query} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${query} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n" # make a parameter?
-turtle+="_:item a ns:Item .\n"
+turtle+="_:item a adm:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 

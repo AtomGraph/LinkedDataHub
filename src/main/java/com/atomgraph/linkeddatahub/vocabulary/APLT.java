@@ -28,6 +28,7 @@ import org.apache.jena.rdf.model.Resource;
  *
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class APLT
 {
     /** <p>The RDF model that holds the vocabulary terms</p> */

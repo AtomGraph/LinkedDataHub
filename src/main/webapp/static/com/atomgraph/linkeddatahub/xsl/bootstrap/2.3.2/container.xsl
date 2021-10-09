@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
+    <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
@@ -503,8 +504,8 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $apl:base)" as="xs:anyURI"/>
-        <xsl:param name="type" select="resolve-uri('admin/model/ontologies/default/#GraphChart', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
+        <xsl:param name="type" select="xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
@@ -675,8 +676,8 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="doc-type" select="resolve-uri('ns#ChartItem', $apl:base)" as="xs:anyURI"/>
-        <xsl:param name="type" select="resolve-uri('admin/model/ontologies/default/#ResultSetChart', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
+        <xsl:param name="type" select="xs:anyURI('&def;ResultSetChart')" as="xs:anyURI"/>
         <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>

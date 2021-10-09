@@ -11,7 +11,7 @@ curl -k -w "%{http_code}\n" -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: text/html' \
-  --data-urlencode "forClass=${ADMIN_BASE_URL}ns#AuthorizationRequest" \
+  --data-urlencode "forClass=https://w3id.org/atomgraph/linkeddatahub/admin#AuthorizationRequest" \
   --data-urlencode "access-to=${END_USER_BASE_URL}" \
   "${ADMIN_BASE_URL}request%20access" \
 | grep -q "${STATUS_OK}"

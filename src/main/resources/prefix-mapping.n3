@@ -3,8 +3,9 @@
 [] lm:mapping
    
    [ lm:name "https://w3id.org/atomgraph/linkeddatahub/domain#" ;                       lm:altName "com/atomgraph/linkeddatahub/apl.ttl" ] ,
+   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/default#" ;                      lm:altName "com/atomgraph/linkeddatahub/def.ttl" ] ,
    [ lm:name "https://w3id.org/atomgraph/linkeddatahub/apps/domain#" ;                  lm:altName "com/atomgraph/linkeddatahub/lapp.ttl" ] ,
-   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/admin/domain#" ;                 lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
+   [ lm:name "https://w3id.org/atomgraph/linkeddatahub/admin#" ;                        lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
    [ lm:name "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#" ;         lm:altName "com/atomgraph/linkeddatahub/app/admin/lsm.ttl" ] ,
    [ lm:name "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#" ;             lm:altName "com/atomgraph/linkeddatahub/app/admin/lacl.ttl" ] ,
    [ lm:name "http://www.w3.org/2000/10/swap/pim/contact#" ;                            lm:altName "com/atomgraph/linkeddatahub/contact.rdf" ] ,
@@ -41,8 +42,9 @@
    [ lm:name "http://spinrdf.org/spl#" ;                                                lm:altName "etc/spl.spin.ttl" ] ,
 
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/domain" ;                      lm:altName "com/atomgraph/linkeddatahub/apl.ttl" ] ,
+   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/default" ;                     lm:altName "com/atomgraph/linkeddatahub/def.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/apps/domain" ;                 lm:altName "com/atomgraph/linkeddatahub/lapp.ttl" ] ,
-   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin/domain" ;                lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
+   [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin" ;                       lm:altName "com/atomgraph/linkeddatahub/app/admin/adm.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain" ;        lm:altName "com/atomgraph/linkeddatahub/app/admin/lsm.ttl" ] ,
    [ lm:prefix "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain" ;            lm:altName "com/atomgraph/linkeddatahub/app/admin/lacl.ttl" ] ,
    [ lm:prefix "http://www.w3.org/2000/10/swap/pim/contact" ;                           lm:altName "com/atomgraph/linkeddatahub/contact.rdf" ] ,
