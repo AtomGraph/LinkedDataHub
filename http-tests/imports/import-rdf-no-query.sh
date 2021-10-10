@@ -21,11 +21,19 @@ popd > /dev/null
 
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
+# create container
+
+container=$(./create-container.sh \
+-f "$AGENT_CERT_FILE" \
+-p "$AGENT_CERT_PWD" \
+-b "$END_USER_BASE_URL" \
+--title "Concepts" \
+--slug "concepts" \
+--parent "$END_USER_BASE_URL")
+
 # import RDF
 
 cd imports
-
-graph="${END_USER_BASE_URL}unesco/"
 
 ./import-rdf.sh \
 -f "$AGENT_CERT_FILE" \
@@ -34,7 +42,7 @@ graph="${END_USER_BASE_URL}unesco/"
 --title "Test" \
 --file "$pwd/test.ttl" \
 --file-content-type "text/turtle" \
---graph "$graph"
+--graph "$container"
 
 popd > /dev/null
 
@@ -43,7 +51,7 @@ popd > /dev/null
 counter=20
 i=0
 
-while [ "$i" -lt "$counter" ] && ! curl -G -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "$END_USER_BASE_URL" --data-urlencode "uri=${graph}" -H "Accept: application/n-triples" >/dev/null 2>&1
+while [ "$i" -lt "$counter" ] && ! curl -G -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "$container" -H "Accept: application/n-triples" >/dev/null 2>&1
 do
     sleep 1 ;
     i=$(( i+1 ))
@@ -56,6 +64,5 @@ done
 curl -G -k -f -s -N \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
---data-urlencode "uri=${graph}" \
-  "$END_USER_BASE_URL" \
+  "$container" \
 | grep -q "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>"
