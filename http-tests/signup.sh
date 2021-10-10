@@ -48,7 +48,7 @@ curl -k -s \
   --data-urlencode "ol=${uuid}" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
-  "${ADMIN_BASE_URL}sign%20up?forClass=https%3A%2F%2Flocalhost%3A4443%2Fadmin%2Fns%23Person&download=true" \
+  "${ADMIN_BASE_URL}sign%20up?forClass=https%3A%2F%2Fw3id.org%2Fatomgraph%2Flinkeddatahub%2Fadmin%23Person&download=true" \ # https://w3id.org/atomgraph/linkeddatahub/admin#Person
 > "$agent_p12_cert"
 
 # convert PKCS12 to PEM
