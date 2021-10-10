@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.model.impl;
 
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
@@ -70,4 +71,10 @@ public class RDFImportImpl extends ImportImpl implements RDFImport
         return getPropertyResourceValue(SPIN.query);
     }
 
+    @Override
+    public Resource getGraphName()
+    {
+        return getPropertyResourceValue(SD.name);
+    }
+    
 }

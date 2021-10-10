@@ -243,14 +243,12 @@ public class Executor
 
     protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-//        return new CSVStreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query, imp.getDelimiter());
         return new CSVGraphStoreOutputWriter(graphStoreClient, baseURI, query, imp.getDelimiter());
     }
 
     protected Function<Response, RDFGraphStoreOutput> getStreamRDFOutputWriter(RDFImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)
     {
-//        return new StreamRDFOutputWriter(imp.getContainer().getURI(), dataManager, baseURI, query);
-        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query);
+        return new StreamRDFOutputWriter(graphStoreClient, baseURI, query, imp.getGraphName() != null ? imp.getGraphName().getURI() : null);
     }
 
     public Response ban(DataManager dataManager, Resource proxy, String url)

@@ -17,6 +17,7 @@ print_usage()
     printf "\n"
     printf "  --action CONTAINER_URI               URI of the target container\n"
     printf "  --query QUERY_URI                    URI of the CONSTRUCT mapping query (optional)\n"
+    printf "  --graph GRAPH_URI                    URI of the graph (optional)\n"
     printf "  --file FILE_URI                      URI of the RDF file\n"
 }
 
@@ -63,6 +64,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --graph)
+        graph="$2"
+        shift # past argument
+        shift # past value
+        ;;
         --query)
         query="$2"
         shift # past argument
@@ -97,10 +103,6 @@ if [ -z "$title" ] ; then
     print_usage
     exit 1
 fi
-if [ -z "$action" ] ; then
-    print_usage
-    exit 1
-fi
 if [ -z "$file" ] ; then
     print_usage
     exit 1
@@ -126,13 +128,19 @@ turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:import a def:RDFImport .\n"
 turtle+="_:import dct:title \"${title}\" .\n"
-turtle+="_:import apl:action <${action}> .\n"
 turtle+="_:import apl:file <${file}> .\n"
 turtle+="_:import foaf:isPrimaryTopicOf _:item .\n"
 turtle+="_:item a def:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
 
+if [ -n "$action" ] ; then
+    turtle+="_:import apl:action <${action}> .\n"
+fi
+if [ -n "$graph" ] ; then
+    turtle+="@prefix sd:	<http://www.w3.org/ns/sparql-service-description#> .\n"
+    turtle+="_:import sd:name <${graph}> .\n"
+fi
 if [ -n "$query" ] ; then
     turtle+="@prefix spin:	<http://spinrdf.org/spin#> .\n"
     turtle+="_:import spin:query <${query}> .\n"

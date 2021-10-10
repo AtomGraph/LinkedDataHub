@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.client.GraphStoreClient;
-import com.atomgraph.etl.csv.ModelTransformer;
-import com.atomgraph.linkeddatahub.server.util.ModelSplitter;
 import java.io.InputStream;
 import java.util.Iterator;
 import org.apache.jena.query.Dataset;
@@ -43,14 +41,16 @@ public class RDFGraphStoreOutput
     private final InputStream is;
     private final Query query;
     private final Lang lang;
+    private final String graphURI;
     
-    public RDFGraphStoreOutput(GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang)
+    public RDFGraphStoreOutput(GraphStoreClient graphStoreClient, InputStream is, String base, Query query, Lang lang, String graphURI)
     {
         this.graphStoreClient = graphStoreClient;
         this.is = is;
         this.base = base;
         this.query = query;
         this.lang = lang;
+        this.graphURI = graphURI;
     }
     
     public void write()
@@ -72,6 +72,12 @@ public class RDFGraphStoreOutput
                     getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
                 }
             }
+        }
+        else
+        {
+            if (getGraphURI() == null) throw new IllegalStateException("Neither RDFImport query nor graph name is specified");
+            
+            getGraphStoreClient().add(getGraphURI(), model); // exceptions get swallowed by the client! TO-DO: wait for completion
         }
     }
     
@@ -98,6 +104,11 @@ public class RDFGraphStoreOutput
     public Lang getLang()
     {
         return lang;
+    }
+    
+    public String getGraphURI()
+    {
+        return graphURI;
     }
     
 }

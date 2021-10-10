@@ -25,6 +25,8 @@ pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 cd imports
 
+graph="${END_USER_BASE_URL}unesco/"
+
 ./import-rdf.sh \
 -f "$AGENT_CERT_FILE" \
 -p "$AGENT_CERT_PWD" \
@@ -32,18 +34,16 @@ cd imports
 --title "Test" \
 --file "$pwd/test.ttl" \
 --file-content-type "text/turtle" \
---action "$END_USER_BASE_URL"
+--graph "$graph"
 
 popd > /dev/null
-
-rdf_uri="http://vocabularies.unesco.org/thesaurus/concept7367"
 
 # wait until the imported data appears (since import is executed asynchronously)
 
 counter=20
 i=0
 
-while [ "$i" -lt "$counter" ] && ! curl -G -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "$END_USER_BASE_URL" --data-urlencode "uri=${rdf_uri}" -H "Accept: application/n-triples" >/dev/null 2>&1
+while [ "$i" -lt "$counter" ] && ! curl -G -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "$END_USER_BASE_URL" --data-urlencode "uri=${graph}" -H "Accept: application/n-triples" >/dev/null 2>&1
 do
     sleep 1 ;
     i=$(( i+1 ))
@@ -56,6 +56,6 @@ done
 curl -G -k -f -s -N \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
---data-urlencode "uri=${rdf_uri}" \
+--data-urlencode "uri=${graph}" \
   "$END_USER_BASE_URL" \
-| grep -q "<${rdf_uri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>"
+| grep -q "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>"

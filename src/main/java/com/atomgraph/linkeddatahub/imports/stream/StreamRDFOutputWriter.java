@@ -40,14 +40,15 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     private static final Logger log = LoggerFactory.getLogger(StreamRDFOutputWriter.class);
 
     private final GraphStoreClient graphStoreClient;
-    private final String baseURI;
+    private final String baseURI, graphURI;
     private final Query query;
 
-    public StreamRDFOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query)
+    public StreamRDFOutputWriter(GraphStoreClient graphStoreClient, String baseURI, Query query, String graphURI)
     {
         this.graphStoreClient = graphStoreClient;
         this.baseURI = baseURI;
         this.query = query;
+        this.graphURI = graphURI;
     }
 
     @Override
@@ -61,7 +62,7 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
             Lang lang = RDFLanguages.contentTypeToLang(mediaType.toString()); // convert media type to RDF language
             if (lang == null) throw new BadRequestException("Content type '" + mediaType + "' is not an RDF media type");
 
-            RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), is, getBaseURI(), getQuery(), lang);
+            RDFGraphStoreOutput output = new RDFGraphStoreOutput(getGraphStoreClient(), is, getBaseURI(), getQuery(), lang, getGraphURI());
             output.write();
             return output;
         }
@@ -85,6 +86,11 @@ public class StreamRDFOutputWriter implements Function<Response, RDFGraphStoreOu
     public Query getQuery()
     {
         return query;
+    }
+    
+    public String getGraphURI()
+    {
+        return graphURI;
     }
     
 }

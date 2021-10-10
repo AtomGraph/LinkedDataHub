@@ -292,7 +292,7 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:subClassOf prov:Activity ;
     ldt:fragment "id{slug}" ;
     spin:constructor :ImportConstructor ;
-    spin:constraint :MissingAction, :MissingFile ;
+    spin:constraint :MissingFile ;
     rdfs:label "Import" ;
     rdfs:isDefinedBy : .
 
@@ -300,13 +300,14 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:subClassOf :Import ; # restriction on media type?
     rdfs:label "CSV import" ;
     spin:constructor :CSVImportConstructor ;
-    spin:constraint :MissingQuery, :MissingDelimiter ;
+    spin:constraint :MissingAction, :MissingQuery, :MissingDelimiter ;
     rdfs:isDefinedBy : .
 
 :RDFImport a rdfs:Class, owl:Class ;
     rdfs:subClassOf :Import ; # restriction on media type?
     rdfs:label "RDF import" ;
     spin:constructor :RDFImportConstructor ;
+    # TO-DO: spin:constraint that checks that either spin:query or sd:name is provided
     rdfs:isDefinedBy : .
 
 #:XMLImport a rdfs:Class, owl:Class ;
@@ -315,11 +316,14 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 #    rdfs:isDefinedBy : .
 
 :ImportConstructor a sp:Construct ;
-    sp:text """PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
-        PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
+    sp:text """PREFIX :        <https://w3id.org/atomgraph/linkeddatahub/domain#>
+        PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
+        PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
 
         CONSTRUCT {
             ?this :action [ a dh:Container ] ;
+                sd:name [ a rdfs:Resource ] ;
                 :file [ a :File ] .
         }
         WHERE {}""" ;
@@ -362,7 +366,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
   sp:text """
       PREFIX :      <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX sd:    <http://www.w3.org/ns/sparql-service-description#>
 
       CONSTRUCT {
           ?this :chartType [ a rdfs:Resource ] .
