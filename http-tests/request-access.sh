@@ -34,5 +34,7 @@ curl -w "%{http_code}\n" -k -s \
   --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin#Item" \
   --data-urlencode "pu=http://rdfs.org/sioc/ns#has_container" \
   --data-urlencode "ou=${ADMIN_BASE_URL}acl/authorization-requests/" \
-  "${ADMIN_BASE_URL}request%20access?forClass=https%3A%2F%2Flocalhost%3A4443%2Fadmin%2Fns%23AuthorizationRequest" \
+  "${ADMIN_BASE_URL}request%20access?forClass=https%3A%2F%2Fw3id.org%2Fatomgraph%2Flinkeddatahub%2Fadmin%23AuthorizationRequest" \
 | grep -q "${STATUS_OK}"
+
+# https://w3id.org/atomgraph/linkeddatahub/admin#AuthorizationRequest - include this here so we get a match when replacing namespace URIs
