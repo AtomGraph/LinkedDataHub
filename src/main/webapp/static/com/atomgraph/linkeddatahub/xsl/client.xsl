@@ -746,7 +746,8 @@ extension-element-prefixes="ixsl"
                                 </div>
                             </xsl:result-document>
                             
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $query-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="onChartQueryLoad">
                                     <xsl:with-param name="query-uri" select="$query-uri"/>
                                     <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -1366,7 +1367,8 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:result-document>
 
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($content-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($content-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onContentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -1886,6 +1888,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else $ac:endpoint))[1])" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
                     <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
                     <!-- update progress bar -->
@@ -1893,7 +1896,7 @@ extension-element-prefixes="ixsl"
                         <ixsl:set-style name="width" select="'66%'" object="."/>
                     </xsl:for-each>
 
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container-id" select="$container-id"/>
@@ -2117,9 +2120,10 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="fragment" select="$fragment"/>
@@ -2265,6 +2269,7 @@ extension-element-prefixes="ixsl"
             $sparql: <xsl:value-of select="$sparql"/>
         </xsl:message>-->
         
+        <!-- TO-DO: do we need to proxy the $uri here? -->
         <xsl:choose>
             <xsl:when test="$sparql">
                 <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
@@ -2609,10 +2614,10 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
-        
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
-        <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
+        <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
 
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">
@@ -2961,8 +2966,9 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->        
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
-        <xsl:variable name="results" select="document($results-uri)" as="document-node()"/>
+        <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
         
         <xsl:choose>
             <xsl:when test="$key-code = 'Escape'">
