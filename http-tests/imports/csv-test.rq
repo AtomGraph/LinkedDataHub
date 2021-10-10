@@ -1,4 +1,4 @@
-PREFIX nsdd:       <admin/model/ontologies/default/#>
+PREFIX def:        <https://w3id.org/atomgraph/linkeddatahub/default#>
 PREFIX dct:        <http://purl.org/dc/terms/>
 PREFIX xsd:        <http://www.w3.org/2001/XMLSchema#> 
 PREFIX rdf:        <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -7,7 +7,7 @@ PREFIX sioc:       <http://rdfs.org/sioc/ns#>
 
 CONSTRUCT
 {
-    ?item a nsdd:Item ;
+    ?item a def:Item ;
         sioc:has_container ?this ;
         dh:slug ?id ;
         dct:title ?string ;
