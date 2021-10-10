@@ -23,8 +23,7 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode              ?Mode ;
-               foaf:isPrimaryTopicOf  ?doc .
+  {   { ?auth  acl:mode              ?Mode .
           { ?auth  acl:accessTo  ?this }
         UNION
           { SERVICE ?endpoint

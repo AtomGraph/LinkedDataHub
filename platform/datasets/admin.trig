@@ -2,6 +2,7 @@
 @prefix adm:	<https://w3id.org/atomgraph/linkeddatahub/admin#> .
 @prefix lacl:	<https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#> .
 @prefix lsm:	<https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
+@prefix def:	<https://w3id.org/atomgraph/linkeddatahub/default#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -384,7 +385,7 @@
         foaf:isPrimaryTopicOf <acl/authorizations/full-control/> ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
-        acl:accessToClass dh:Item, dh:Container ;
+        acl:accessToClass def:Item, def:Container ;
         acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
@@ -405,7 +406,7 @@
         foaf:isPrimaryTopicOf <acl/authorizations/write-append/> ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
-        acl:accessToClass dh:Item, dh:Container ;
+        acl:accessToClass def:Item, def:Container ;
         acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
@@ -426,7 +427,7 @@
         foaf:isPrimaryTopicOf <acl/authorizations/read/> ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
-        acl:accessToClass c:Document, dh:Item, dh:Container, apl:File ;
+        acl:accessToClass c:Document, def:Item, def:Container, apl:File ;
         acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone> ;
         acl:mode acl:Read ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
@@ -448,7 +449,7 @@
         rdfs:label "Creator access" ;
         rdfs:comment "Creators have full control of their created resources" ;
         lacl:accessProperty foaf:maker ;
-        acl:accessToClass dh:Item, dh:Container ;
+        acl:accessToClass def:Item, def:Container ;
         acl:agentClass acl:AuthenticatedAgent .
 
 }
