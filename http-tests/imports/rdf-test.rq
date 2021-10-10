@@ -7,12 +7,15 @@ PREFIX dct:   <http://purl.org/dc/terms/>
 
 CONSTRUCT
 {
-    ?concept foaf:isPrimaryTopicOf ?item ;
-        ?p ?o .
-    ?item a def:Item ;
-        sioc:has_container <concepts/> ;
-        dh:slug ?id ;
-        dct:title ?prefLabel .
+    GRAPH ?item
+    {
+        ?concept foaf:isPrimaryTopicOf ?item ;
+            ?p ?o .
+        ?item a def:Item ;
+            sioc:has_container ?this ;
+            dh:slug ?id ;
+            dct:title ?prefLabel .
+    }
 }
 WHERE
 {

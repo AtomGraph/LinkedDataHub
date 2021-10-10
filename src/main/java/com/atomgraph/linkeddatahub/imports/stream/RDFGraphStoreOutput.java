@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.util.Iterator;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -54,14 +57,21 @@ public class RDFGraphStoreOutput
     {
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, getInputStream(), getBase(), getLang());
-        if (getQuery() != null) model = new ModelTransformer().apply(getQuery(), model); // don't transform if query is null
-        Dataset rowDataset = ModelSplitter.split(model);
-        
-        Iterator<String> names = rowDataset.listNames();
-        while (names.hasNext())
+
+        if (getQuery() != null)
         {
-            String graphUri = names.next();
-            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
+            // use extended SPARQL syntax to allow CONSTRUCT GRAPH form
+            try (QueryExecution qex = QueryExecutionFactory.create(getQuery().toString(), Syntax.syntaxARQ, model))
+            {
+                Dataset dataset = qex.execConstructDataset();
+
+                Iterator<String> names = dataset.listNames();
+                while (names.hasNext())
+                {
+                    String graphUri = names.next();
+                    getGraphStoreClient().add(graphUri, dataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
+                }
+            }
         }
     }
     
