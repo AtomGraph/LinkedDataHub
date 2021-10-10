@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.StmtIterator;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
+@Deprecated
 public class ModelSplitter
 {
     

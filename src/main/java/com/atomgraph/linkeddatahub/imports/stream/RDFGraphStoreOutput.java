@@ -18,10 +18,7 @@ package com.atomgraph.linkeddatahub.imports.stream;
 
 import com.atomgraph.core.client.GraphStoreClient;
 import com.atomgraph.etl.csv.ModelTransformer;
-import com.atomgraph.linkeddatahub.server.util.ModelSplitter;
 import java.io.InputStream;
-import java.util.Iterator;
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -55,14 +52,8 @@ public class RDFGraphStoreOutput
         Model model = ModelFactory.createDefaultModel();
         RDFDataMgr.read(model, getInputStream(), getBase(), getLang());
         if (getQuery() != null) model = new ModelTransformer().apply(getQuery(), model); // don't transform if query is null
-        Dataset rowDataset = ModelSplitter.split(model);
-        
-        Iterator<String> names = rowDataset.listNames();
-        while (names.hasNext())
-        {
-            String graphUri = names.next();
-            getGraphStoreClient().add(graphUri, rowDataset.getNamedModel(graphUri)); // exceptions get swallowed by the client! TO-DO: wait for completion
-        }
+
+        getGraphStoreClient().add(null, model); // exceptions get swallowed by the client! TO-DO: wait for completion
     }
     
     public GraphStoreClient getGraphStoreClient()
