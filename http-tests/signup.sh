@@ -48,8 +48,10 @@ curl -k -s \
   --data-urlencode "ol=${uuid}" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
-  "${ADMIN_BASE_URL}sign%20up?forClass=https%3A%2F%2Fw3id.org%2Fatomgraph%2Flinkeddatahub%2Fadmin%23Person&download=true" \ # https://w3id.org/atomgraph/linkeddatahub/admin#Person
+  "${ADMIN_BASE_URL}sign%20up?forClass=https%3A%2F%2Fw3id.org%2Fatomgraph%2Flinkeddatahub%2Fadmin%23Person&download=true" \
 > "$agent_p12_cert"
+
+# https://w3id.org/atomgraph/linkeddatahub/admin#Person - include this here so we get a match when replacing namespace URIs
 
 # convert PKCS12 to PEM
 
