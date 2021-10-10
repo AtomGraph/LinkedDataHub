@@ -125,7 +125,7 @@ exclude-result-prefixes="#all">
             </div>
 
             <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="bs2:Block"/>
-            <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey'))[@rdf:about]" mode="bs2:Block"/>
+            <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="bs2:Block"/>
         </div>
     </xsl:template>
     
