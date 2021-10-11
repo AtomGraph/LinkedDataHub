@@ -70,28 +70,6 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates mode="bs2:Block"/>
         </div>
     </xsl:template>
-
-    <!-- RIGHT -->
-    
-    <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
-<!--    <xsl:template match="*[@rdf:about = ac:uri()][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
-        <xsl:variable name="definitions" as="document-node()">
-            <xsl:document>
-                <dl class="dl-horizontal">
-                    <xsl:apply-templates select="dct:created | dct:modified | foaf:maker | acl:owner | foaf:primaryTopic | dh:select" mode="bs2:PropertyList">
-                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
-                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
-                    </xsl:apply-templates>
-                </dl>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:if test="$definitions/*/*">
-            <div class="well well-small">
-                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
-            </div>
-        </xsl:if>
-    </xsl:template>-->
     
     <!-- GRAPH  -->
     
@@ -147,6 +125,11 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                            <!-- couple new instances with def:Item -->
+                            <xsl:apply-templates select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $apl:base)/rdf:RDF/*" mode="#current">
+                                <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                            </xsl:apply-templates>
+                    
                             <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
                                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
@@ -203,6 +186,11 @@ extension-element-prefixes="ixsl"
 
             <xsl:choose>
                 <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
+                    <!-- couple new instances with def:Item -->
+                    <xsl:apply-templates select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $apl:base)/rdf:RDF/*" mode="#current">
+                        <xsl:with-param name="inline" select="false()" tunnel="yes"/>
+                    </xsl:apply-templates>
+
                     <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="#current">
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
