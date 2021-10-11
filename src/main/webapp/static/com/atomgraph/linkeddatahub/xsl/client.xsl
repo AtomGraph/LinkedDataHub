@@ -3528,9 +3528,13 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()"/>
         <ixsl:set-property name="value" select="$query-string" object="$query-string-control-group/descendant::textarea[@name = 'ol']"/>
-        
+
+        <!-- TO-DO: apply apl:Typeahead template on the "Has container" input -->
+        <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
+        <ixsl:set-property name="value" select="resolve-uri('queries/', $apl:base)" object="$item-control-group/descendant::input[@name = 'ou']"/>
+
         <xsl:if test="$service-uri">
-            <!-- TO-DO: apply typeahead template on the "Service" input -->
+            <!-- TO-DO: apply apl:Typeahead template on the "Service" input -->
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
             <ixsl:set-property name="value" select="$service-uri" object="$service-control-group/descendant::input[@name = 'ou']"/>
         </xsl:if>
