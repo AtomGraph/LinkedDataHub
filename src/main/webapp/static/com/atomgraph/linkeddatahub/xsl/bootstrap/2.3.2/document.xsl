@@ -125,14 +125,8 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                            <xsl:if test="not($ac:forClass = ('&def;Container', '&def;Item'))">
-                                <!-- couple new instances with def:Item -->
-                                <xsl:apply-templates select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $apl:base)/rdf:RDF/*" mode="bs2:Form">
-                                    <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                                </xsl:apply-templates>
-                            </xsl:if>
-                    
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
+                            <!-- couple new instances with def:Item, if the instance type is not def:Item-->
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, (if (not($ac:forClass = ('&def;Container', '&def;Item'))) then xs:anyURI('&def;Item') else (), $ac:forClass), $apl:base)/rdf:RDF/*" mode="#current">
                                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -188,14 +182,8 @@ extension-element-prefixes="ixsl"
 
             <xsl:choose>
                 <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                    <xsl:if test="not($ac:forClass = ('&def;Container', '&def;Item'))">
-                        <!-- couple new instances with def:Item -->
-                        <xsl:apply-templates select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $apl:base)/rdf:RDF/*" mode="#current">
-                            <xsl:with-param name="inline" select="false()" tunnel="yes"/>
-                        </xsl:apply-templates>
-                    </xsl:if>
-
-                    <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="#current">
+                    <!-- couple new instances with def:Item, if the instance type is not def:Item-->
+                    <xsl:apply-templates select="ac:construct-doc($apl:ontology, (if (not($ac:forClass = ('&def;Container', '&def;Item'))) then xs:anyURI('&def;Item') else (), $ac:forClass), $apl:base)/rdf:RDF/*" mode="#current">
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>
