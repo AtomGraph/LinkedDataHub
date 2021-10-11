@@ -499,9 +499,7 @@ exclude-result-prefixes="#all"
                 <xsl:choose>
                     <xsl:when test="key('resources', ., document(ac:document-uri($doc-uri)))">
                         <span>
-                            <xsl:for-each select="key('resources', ., document(ac:document-uri($doc-uri)))">
-                                <xsl:apply-templates select="." mode="apl:Typeahead"/>
-                            </xsl:for-each>
+                            <xsl:apply-templates select="key('resources', ., document(ac:document-uri($doc-uri)))" mode="apl:Typeahead"/>
                         </span>
 
                         <xsl:if test="$template-doc">

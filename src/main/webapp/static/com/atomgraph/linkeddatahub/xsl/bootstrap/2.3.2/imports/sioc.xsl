@@ -34,10 +34,12 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
+        <span>
+            <xsl:apply-templates select="key('resources', ac:uri(), document(ac:uri()))" mode="apl:Typeahead"/>
+        </span>
+                        
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:variable name="forClass" select="../../rdf:type/@rdf:resource" as="xs:anyURI?"/>
-
-        <xsl:apply-templates select="key('resources', ac:uri(), document(ac:uri()))" mode="apl:Typeahead"/>
 
         <xsl:text> </xsl:text>
 

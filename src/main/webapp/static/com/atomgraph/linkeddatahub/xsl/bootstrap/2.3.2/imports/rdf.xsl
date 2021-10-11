@@ -102,11 +102,9 @@ exclude-result-prefixes="#all">
         <xsl:choose>
             <xsl:when test="doc-available($doc-uri) and key('resources', ., document($doc-uri))">
                 <span>
-                    <xsl:for-each select="key('resources', ., document($doc-uri))">
-                        <xsl:apply-templates select="." mode="apl:Typeahead">
-                            <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
-                        </xsl:apply-templates>
-                    </xsl:for-each>
+                    <xsl:apply-templates select="key('resources', ., document($doc-uri))" mode="apl:Typeahead">
+                        <xsl:with-param name="class" select="'btn add-typeahead add-typetypeahead'"/>
+                    </xsl:apply-templates>
                 </span>
             </xsl:when>
             <xsl:otherwise>

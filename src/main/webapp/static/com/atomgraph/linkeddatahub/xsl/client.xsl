@@ -493,51 +493,11 @@ extension-element-prefixes="ixsl"
             <xsl:next-match/>
         </span>
     </xsl:template>
-    
-    <!-- copied from layout.xsl which is not imported -->
-<!--    <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
-        <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
-
-        <button type="button">
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$disabled">
-                <xsl:attribute name="disabled">disabled</xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$title">
-                <xsl:attribute name="title"><xsl:value-of select="$title"/></xsl:attribute>
-            </xsl:if>
-            
-            <span class="pull-left">
-                <xsl:choose>
-                    <xsl:when test="key('resources', foaf:primaryTopic/@rdf:resource)">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="ac:label"/>
-                        </xsl:value-of>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of>
-                            <xsl:apply-templates select="." mode="ac:label"/>
-                        </xsl:value-of>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </span>
-            <span class="caret pull-right"></span>
-            <input type="hidden" name="ou" value="{@rdf:about}"/>
-        </button>
-    </xsl:template>-->
 
     <!-- if document has a topic, show it as the typeahead value instead -->
-    <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="apl:Typeahead" priority="1">
+<!--    <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="apl:Typeahead" priority="1">
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="rdf:RDF" mode="bs2:Right">
         <xsl:param name="id" as="xs:string?"/>
@@ -3531,15 +3491,16 @@ extension-element-prefixes="ixsl"
 
         <!-- TO-DO: apply apl:Typeahead template on the "Has container" input -->
         <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
-        <ixsl:set-property name="value" select="resolve-uri('queries/', $apl:base)" object="$item-control-group/descendant::input[@name = 'ou']"/>
+        <!--<ixsl:set-property name="value" select="resolve-uri('queries/', $apl:base)" object="$item-control-group/descendant::input[@name = 'ou']"/>-->
+        <xsl:variable name="container" select="resolve-uri('queries/', $apl:base)" as="xs:anyURI"/>
 
         <xsl:if test="$service-uri">
-<!--            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$container"/>
                     <xsl:with-param name="typeahead-span" select="id('remote-rdf-doc', ixsl:page())/.."/>
                 </xsl:call-template>
-            </ixsl:schedule-action>-->
+            </ixsl:schedule-action>
             
             <!-- TO-DO: apply apl:Typeahead template on the "Service" input -->
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
