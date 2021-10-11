@@ -66,7 +66,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <xsl:apply-templates select="." mode="bs2:CreateDocument">
-                <xsl:with-param name="ontology" select="ac:document-uri('&adm;')"/>
+                <xsl:with-param name="ontology" select="xs:anyURI('&adm;')"/>
                 <xsl:with-param name="class" select="'btn-group pull-left'"/>
             </xsl:apply-templates>
         </div>
