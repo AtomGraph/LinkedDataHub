@@ -3534,12 +3534,12 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="value" select="resolve-uri('queries/', $apl:base)" object="$item-control-group/descendant::input[@name = 'ou']"/>
 
         <xsl:if test="$service-uri">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+<!--            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$container"/>
                     <xsl:with-param name="typeahead-span" select="id('remote-rdf-doc', ixsl:page())/.."/>
                 </xsl:call-template>
-            </ixsl:schedule-action>
+            </ixsl:schedule-action>-->
             
             <!-- TO-DO: apply apl:Typeahead template on the "Service" input -->
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
