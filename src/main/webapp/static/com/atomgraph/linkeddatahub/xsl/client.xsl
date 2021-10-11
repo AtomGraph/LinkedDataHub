@@ -495,7 +495,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- copied from layout.xsl which is not imported -->
-    <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">
+<!--    <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -532,7 +532,7 @@ extension-element-prefixes="ixsl"
             <span class="caret pull-right"></span>
             <input type="hidden" name="ou" value="{@rdf:about}"/>
         </button>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- if document has a topic, show it as the typeahead value instead -->
     <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="apl:Typeahead" priority="1">
@@ -3534,6 +3534,13 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="value" select="resolve-uri('queries/', $apl:base)" object="$item-control-group/descendant::input[@name = 'ou']"/>
 
         <xsl:if test="$service-uri">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onTypeaheadResourceLoad">
+                    <xsl:with-param name="resource-uri" select="$container"/>
+                    <xsl:with-param name="typeahead-span" select="id('remote-rdf-doc', ixsl:page())/.."/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+            
             <!-- TO-DO: apply apl:Typeahead template on the "Service" input -->
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
             <ixsl:set-property name="value" select="$service-uri" object="$service-control-group/descendant::input[@name = 'ou']"/>

@@ -805,18 +805,9 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             
             <span class="pull-left">
-                <xsl:choose>
-                    <xsl:when test="key('resources', foaf:primaryTopic/@rdf:resource)">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="ac:label"/>
-                        </xsl:value-of>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of>
-                            <xsl:apply-templates select="." mode="ac:label"/>
-                        </xsl:value-of>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:value-of>
+                    <xsl:apply-templates select="." mode="ac:label"/>
+                </xsl:value-of>
             </span>
             <span class="caret pull-right"></span>
             <input type="hidden" name="ou" value="{@rdf:about}"/>
