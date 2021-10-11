@@ -56,13 +56,13 @@ extension-element-prefixes="ixsl"
 
     <!-- LOGO -->
 
-    <xsl:template match="*[$apl:base][rdf:type/@rdf:resource = ('&def;Root', '&def;Container')]" mode="apl:logo">
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&def;Container')]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][rdf:type/@rdf:resource = '&def;Item']" mode="apl:logo">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&def;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
@@ -82,39 +82,43 @@ extension-element-prefixes="ixsl"
         <!-- <xsl:sequence select="ac:label(.)"/> -->
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = '&def;Container']" mode="apl:logo" priority="1">
+    <xsl:template match="*[@rdf:about = '&def;Container']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-container')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = '&def;Item']" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = '&def;Item']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = ('&def;DydraService', '&def;GenericService')]" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = ('&def;DydraService', '&def;GenericService')]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-service')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = ('&def;Describe', '&def;Construct', '&def;Select', '&def;Ask')]" mode="apl:logo"/>
-
-    <xsl:template match="*[$apl:base][@rdf:about = '&def;File']" mode="apl:logo" priority="1">
+    <xsl:template match="*[@rdf:about = ('&def;Describe', '&def;Construct', '&def;Select', '&def;Ask')]" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-query')"/>
+    </xsl:template>
+    
+    <xsl:template match="*[@rdf:about = '&def;File']" mode="apl:logo" priority="1">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-file')"/>
     </xsl:template>
 
-    <xsl:template match="*[$apl:base][@rdf:about = ('&def;CSVImport', '&def;RDFImport')]" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = ('&def;CSVImport', '&def;RDFImport')]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-import')"/>
     </xsl:template>
     
-    <xsl:template match="*[$apl:base][@rdf:about = ('&def;ResultSetChart', '&def;GraphChart')]" mode="apl:logo">
+    <xsl:template match="*[@rdf:about = ('&def;ResultSetChart', '&def;GraphChart')]" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-chart')"/>
