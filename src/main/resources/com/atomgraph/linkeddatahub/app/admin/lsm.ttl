@@ -18,7 +18,7 @@
     rdfs:comment "Ontology of resource templates" .
 
 :Class a rdfs:Class ;
-    rdfs:subClassOf owl:Class ;
+    rdfs:subClassOf rdfs:Class ;
     spin:constructor :ClassConstructor ;
     spin:constraint :MissingRDFSLabel, :MissingRDFSisDefinedBy ;
     rdfs:label "Class" ;

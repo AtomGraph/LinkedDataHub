@@ -16,7 +16,7 @@
 : a adm:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports apl: ;
+    owl:imports apl:, adm: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a adm:Class ;
