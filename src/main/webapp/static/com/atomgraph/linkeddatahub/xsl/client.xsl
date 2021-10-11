@@ -3486,6 +3486,7 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
+        
         <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()"/>
         <ixsl:set-property name="value" select="$query-string" object="$query-string-control-group/descendant::textarea[@name = 'ol']"/>
 
@@ -3499,9 +3500,13 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
             
         <xsl:if test="$service-uri">
-            <!-- TO-DO: apply apl:Typeahead template on the "Service" input -->
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
-            <ixsl:set-property name="value" select="$service-uri" object="$service-control-group/descendant::input[@name = 'ou']"/>
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onTypeaheadResourceLoad">
+                    <xsl:with-param name="resource-uri" select="$container"/>
+                    <xsl:with-param name="typeahead-span" select="$service-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
         </xsl:if>
     </xsl:template>
     
@@ -3527,6 +3532,16 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
+        
+        <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
+        <xsl:variable name="container" select="resolve-uri('charts/', $apl:base)" as="xs:anyURI"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onTypeaheadResourceLoad">
+                <xsl:with-param name="resource-uri" select="$container"/>
+                <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+        
         <!-- handle both ResultSetChart and GraphChart here -->
         <xsl:variable name="chart-type-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()"/>
         <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::select[@name = 'ou']"/>
