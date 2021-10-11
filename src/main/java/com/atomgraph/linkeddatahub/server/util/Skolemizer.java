@@ -20,6 +20,7 @@ import static com.atomgraph.processor.util.Skolemizer.getNameValueMap;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.net.URI;
 import java.util.Map;
+import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.Ontology;
@@ -97,6 +98,7 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
         if (pathTemplate != null)
         {
             Map<String, String> nameValueMap = getNameValueMap(resource, new UriTemplateParser(pathTemplate));
+            nameValueMap.put("slug", UUID.randomUUID().toString());
             uri = builder.path(pathTemplate).buildFromMap(nameValueMap);
             builder = UriBuilder.fromUri(uri);
         }
@@ -104,6 +106,7 @@ public class Skolemizer extends com.atomgraph.processor.util.Skolemizer
         if (fragmentTemplate != null)
         {
             Map<String, String> nameValueMap = getNameValueMap(resource, new UriTemplateParser(fragmentTemplate));
+            nameValueMap.put("slug", UUID.randomUUID().toString());
             uri = builder.fragment(fragmentTemplate).buildFromMap(nameValueMap);
         }
         

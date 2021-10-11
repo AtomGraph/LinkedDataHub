@@ -38,14 +38,12 @@ import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
-import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import com.atomgraph.spinrdf.vocabulary.SP;
-import java.util.UUID;
 import javax.ws.rs.core.MediaType;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
@@ -82,19 +80,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
         return model;
     }
-
-//    @Override
-//    public Model skolemize(Ontology ontology, UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder, Model model)
-//    {
-//        try
-//        {
-//            return new Skolemizer(ontology, baseUriBuilder, absolutePathBuilder).build(model); // not optimal to create Skolemizer for each Model
-//        }
-//        catch (IllegalArgumentException ex)
-//        {
-//            throw new SkolemizationException(ex, model);
-//        }
-//    }
     
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
@@ -137,30 +122,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 //    @Override
     public Resource process(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
-//        super.process(resource);
-        
-        // append dh:slug property with UUID value to apl:Content instances and dh:Container/dh:Item subclass instances
-//        if (getOntology().isPresent() && !resource.hasProperty(DH.slug))
-//        {
-//            Statement typeStmt = resource.getProperty(RDF.type);
-//            if (typeStmt != null && typeStmt.getObject().isURIResource())
-//            {
-//                OntClass ontClass = getOntology().get().getOntModel().getOntClass(typeStmt.getResource().getURI());
-//                if (ontClass != null)
-//                {
-//                    if (ontClass.equals(APL.Content)) resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-//                    else
-//                    {
-//                        // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
-//                        Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
-//                        if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
-//                            resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-//                    }
-//                }
-//            }
-//        }
-
-        if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
+        //if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
                 
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
         {
@@ -189,17 +151,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
                 changeObject(resource.getModel().createResource("mailto:" + resource.getProperty(SIOC.EMAIL).getString())).getResource();
             if (log.isDebugEnabled()) log.debug("Resource: {} Email: {}", resource, email);
         }
-        
-        // password only used during WebID signup from now on
-        /*
-        if (resource.hasProperty(LACL.password) && resource.getProperty(LACL.password).getObject().isLiteral())
-        {
-            String passwordShaHex = BCrypt.hashpw(resource.getProperty(LACL.password).getString(), BCrypt.gensalt());
-            RDFNode password = resource.removeAll(LACL.password).
-                addProperty(LACL.passwordHash, passwordShaHex);
-            if (log.isDebugEnabled()) log.debug("Resource: {} Password BCrypt hash: {}", resource, password);
-        }
-        */
 
         if (resource.hasProperty(SP.text) && resource.getProperty(SP.text).getObject().isLiteral())
         {
@@ -226,7 +177,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
             String updateString = resource.getProperty(SP.text).getString();
             try
             {
-                UpdateRequest update = UpdateFactory.create(updateString);
+                UpdateFactory.create(updateString);
                 Resource type = null;
                 if (type != null)
                 {
