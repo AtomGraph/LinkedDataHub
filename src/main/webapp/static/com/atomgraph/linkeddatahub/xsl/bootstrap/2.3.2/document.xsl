@@ -250,40 +250,6 @@ extension-element-prefixes="ixsl"
             </xsl:value-of>
         </div>
     </xsl:template>
-    
-    <!-- CREATE DOCUMENT -->
-
-    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:CreateDocument" priority="1">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
-                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
-                    <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
-                </xsl:apply-templates>
-                <xsl:value-of>
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
-                </xsl:value-of>
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
-            </button>
-
-            <xsl:variable name="this" select="@rdf:about"/>
-            <ul class="dropdown-menu">
-                <xsl:variable name="document-classes" select="key('resources', ($ontology || 'Container', $ontology || 'Item'), document(ac:document-uri($ontology)))" as="element()*"/>
-                <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
-            </ul>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="*" mode="bs2:CreateDocument"/>
 
     <!-- CREATE -->
     
@@ -322,6 +288,19 @@ extension-element-prefixes="ixsl"
                     <li class="divider"></li>
                 </xsl:if>
 
+                <!--if the current resource is a Container, show Container and Item constructors--> 
+                <xsl:variable name="document-classes" select="key('resources', ('&def;Container', '&def;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
+                <!-- current resource is a container -->
+                <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&def;Container')">
+                    <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
+                        <xsl:sort select="ac:label(.)"/>
+                    </xsl:apply-templates>
+
+                    <xsl:if test="$default-classes">
+                        <li class="divider"></li>
+                    </xsl:if>
+                </xsl:if>
+                
                 <xsl:apply-templates select="$default-classes" mode="bs2:ConstructorListItem">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
