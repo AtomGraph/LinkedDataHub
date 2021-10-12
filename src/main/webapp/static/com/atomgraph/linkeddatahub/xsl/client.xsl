@@ -111,7 +111,6 @@ extension-element-prefixes="ixsl"
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
     <xsl:key name="violations-by-value" match="*" use="apl:violationValue/text()"/>
     <xsl:key name="resources-by-container" match="*[@rdf:about] | *[@rdf:nodeID]" use="sioc:has_parent/@rdf:resource | sioc:has_container/@rdf:resource"/>
-    <xsl:key name="resources-by-is-primary-topic-of" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:isPrimaryTopicOf/@rdf:resource"/>
 
     <xsl:strip-space elements="*"/>
 
@@ -496,8 +495,8 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- if document has a topic, show it as the typeahead value instead -->
-    <xsl:template match="*[key('resources-by-is-primary-topic-of', @rdf:about)]" mode="apl:Typeahead">
-        <xsl:apply-templates select="key('resources-by-is-primary-topic-of', @rdf:about)" mode="#current"/>
+    <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="apl:Typeahead">
+        <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:Right">
@@ -3504,7 +3503,7 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$container"/>
+                    <xsl:with-param name="resource-uri" select="$service-uri"/>
                     <xsl:with-param name="typeahead-span" select="$service-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>

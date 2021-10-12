@@ -13,6 +13,7 @@
 {
 
     <${OWNER_DOC_URI}> a adm:Item ;
+        foaf:primaryTopic <${OWNER_URI}> ;
         sioc:has_container <acl/agents/> ;
         dct:title "${OWNER_COMMON_NAME}" .
 
@@ -34,6 +35,7 @@
 {
 
     <acl/public-keys/${OWNER_KEY_UUID}/> a adm:Item ;
+        foaf:primaryTopic <acl/public-keys/${OWNER_KEY_UUID}/#this> ;
         sioc:has_container <acl/public-keys/> ;
         dct:title "${OWNER_COMMON_NAME}" .
 
@@ -59,6 +61,7 @@
 {
 
     <acl/authorizations/${OWNER_KEY_UUID}/> a adm:Item ;
+        foaf:primaryTopic <acl/authorizations/${OWNER_KEY_UUID}/#auth> ;
         sioc:has_container <acl/authorizations/> ;
         dct:title "Public owner's WebID" .
 
