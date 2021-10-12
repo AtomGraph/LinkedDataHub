@@ -193,7 +193,9 @@ extension-element-prefixes="ixsl"
             </xsl:choose>
 
             <xsl:if test="$create-resource">
-                <xsl:apply-templates select="." mode="bs2:Create"/>
+                <xsl:apply-templates select="." mode="bs2:Create">
+                    <xsl:with-param name="show-document-classes" select="false()"/>
+                </xsl:apply-templates>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:FormActions">
@@ -255,6 +257,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
+        <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$class">
@@ -288,16 +291,18 @@ extension-element-prefixes="ixsl"
                     <li class="divider"></li>
                 </xsl:if>
 
-                <!--if the current resource is a Container, show Container and Item constructors--> 
-                <xsl:variable name="document-classes" select="key('resources', ('&def;Container', '&def;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
-                <!-- current resource is a container -->
-                <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&def;Container')">
-                    <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
-                        <xsl:sort select="ac:label(.)"/>
-                    </xsl:apply-templates>
+                <xsl:if test="$show-document-classes">
+                    <!--if the current resource is a Container, show Container and Item constructors--> 
+                    <xsl:variable name="document-classes" select="key('resources', ('&def;Container', '&def;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
+                    <!-- current resource is a container -->
+                    <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&def;Container')">
+                        <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
 
-                    <xsl:if test="$default-classes">
-                        <li class="divider"></li>
+                        <xsl:if test="$default-classes">
+                            <li class="divider"></li>
+                        </xsl:if>
                     </xsl:if>
                 </xsl:if>
                 
