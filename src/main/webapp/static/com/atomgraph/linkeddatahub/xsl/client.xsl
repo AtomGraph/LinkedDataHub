@@ -493,11 +493,6 @@ extension-element-prefixes="ixsl"
             <xsl:next-match/>
         </span>
     </xsl:template>
-
-    <!-- if document has a topic, show it as the typeahead value instead -->
-<!--    <xsl:template match="*[*][key('resources', foaf:primaryTopic/@rdf:resource)]" mode="apl:Typeahead" priority="1">
-        <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
-    </xsl:template>-->
     
     <xsl:template match="rdf:RDF" mode="bs2:Right">
         <xsl:param name="id" as="xs:string?"/>
@@ -688,7 +683,7 @@ extension-element-prefixes="ixsl"
 
                 <xsl:if test="$container-id">
                     <!-- chart -->
-                    <xsl:for-each select="key('resources', foaf:primaryTopic/@rdf:resource)[spin:query][apl:chartType]">
+                    <xsl:for-each select="//*[spin:query][apl:chartType]">
                         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI?"/>
 
                         <xsl:if test="$query-uri">
