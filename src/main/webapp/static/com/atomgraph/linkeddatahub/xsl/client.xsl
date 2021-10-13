@@ -175,10 +175,13 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- initialize LinkedDataHub.services (and the search dropdown, if it's shown) -->
         <ixsl:set-property name="services" select="$apl:services" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <xsl:call-template name="apl:RenderServices">
-            <xsl:with-param name="select" select="id('search-service', ixsl:page())"/>
-            <xsl:with-param name="services" select="$apl:services"/>
-        </xsl:call-template>
+        <!-- #search-service may be missing (e.g. overridden by extending stylesheet -->
+        <xsl:for-each select="id('search-service', ixsl:page())">
+            <xsl:call-template name="apl:RenderServices">
+                <xsl:with-param name="select" select="."/>
+                <xsl:with-param name="services" select="$apl:services"/>
+            </xsl:call-template>
+        </xsl:for-each>
         <!-- load contents -->
         <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
         <xsl:call-template name="apl:LoadContents">
