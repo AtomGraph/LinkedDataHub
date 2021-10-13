@@ -541,7 +541,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
 
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
-    <xsl:template match="*[sp:text]" mode="apl:Content" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = '&def;Select'][sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
@@ -612,6 +612,36 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
     </xsl:template>
     
+    <!-- chart content -->
+    <xsl:template select="//*[spin:query/@rfd:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
+        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
+        <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
+        <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
+
+        <!-- append progress bar -->
+        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+            <div class="progress-bar">
+                <div class="progress progress-striped active">
+                    <div class="bar" style="width: 33%;"></div>
+                </div>
+            </div>
+        </xsl:result-document>
+
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+            <xsl:call-template name="onChartQueryLoad">
+                <xsl:with-param name="query-uri" select="$query-uri"/>
+                <xsl:with-param name="chart-type" select="$chart-type"/>
+                <xsl:with-param name="category" select="$category"/>
+                <xsl:with-param name="series" select="$series"/>
+                <xsl:with-param name="container-id" select="$container-id"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+
     <xsl:template name="first-time-message">
         <div class="hero-unit">
             <button type="button" class="close">×</button>
@@ -690,37 +720,10 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <xsl:if test="$container-id">
-                    <!-- chart -->
-                    <xsl:for-each select="//*[spin:query][apl:chartType]">
-                        <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI?"/>
-
-                        <xsl:if test="$query-uri">
-                            <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
-                            <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
-                            <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
-                            <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
-
-                            <!-- append progress bar -->
-                            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                                <div class="progress-bar">
-                                    <div class="progress progress-striped active">
-                                        <div class="bar" style="width: 33%;"></div>
-                                    </div>
-                                </div>
-                            </xsl:result-document>
-                            
-                            <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="onChartQueryLoad">
-                                    <xsl:with-param name="query-uri" select="$query-uri"/>
-                                    <xsl:with-param name="chart-type" select="$chart-type"/>
-                                    <xsl:with-param name="category" select="$category"/>
-                                    <xsl:with-param name="series" select="$series"/>
-                                    <xsl:with-param name="container-id" select="$container-id"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:if>
-                    </xsl:for-each>
+                    <!-- render content such as queries and charts -->
+                    <xsl:apply-templates select="/rdf:RDF/*" mode="apl:Content">
+                        <xsl:with-param name="container-id" select="$container-id"/>
+                    </xsl:apply-templates>
                 </xsl:if>
             </xsl:for-each>
         </xsl:for-each>
