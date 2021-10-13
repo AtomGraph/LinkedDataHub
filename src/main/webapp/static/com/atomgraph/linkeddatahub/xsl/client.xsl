@@ -572,8 +572,8 @@ extension-element-prefixes="ixsl"
         </xsl:message>
         
         <xsl:choose>
-            <!-- service URI is specified but its document could not be loaded -->
-            <xsl:when test="$service-uri and not(exists($service))">
+            <!-- service URI is not specified or specified and can be loaded -->
+            <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- store this content element -->
