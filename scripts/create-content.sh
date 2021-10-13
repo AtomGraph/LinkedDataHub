@@ -60,6 +60,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --slug)
+        slug="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -101,7 +106,6 @@ args+=("text/turtle") # content type
 
 turtle+="@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
 turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
-turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
 turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
 turtle+="${content} a apl:Content .\n"
 turtle+="${content} rdf:first <${first}> .\n"
@@ -113,6 +117,10 @@ else
 fi
 if [ -n "$title" ] ; then
     turtle+="${content} dct:title \"${title}\" .\n"
+fi
+if [ -n "$slug" ] ; then
+    turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
+    turtle+="${content} dh:slug \"${slug}\" .\n"
 fi
 
 # submit Turtle doc to the server
