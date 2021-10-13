@@ -281,7 +281,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$apl:ontology"/>
-                        <xsl:with-param name="visited-classes" select="($default-classes, $default-clases/apl:listSuperClasses(.))"/>
+                        <xsl:with-param name="visited-classes" select="($default-classes, $default-clases/apl:listSuperClasses(@rdf:about)/../..)"/>
                     </xsl:call-template>
                 </xsl:variable>
 
