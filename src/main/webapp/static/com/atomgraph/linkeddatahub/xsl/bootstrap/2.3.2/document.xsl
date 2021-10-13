@@ -277,7 +277,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
-                <xsl:variable name="default-classes" select="key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))" as="element()*"/>
+                <xsl:variable name="default-classes" select="key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = '&def;Root')]" as="element()*"/>
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
                         <xsl:with-param name="ontology" select="$apl:ontology"/>

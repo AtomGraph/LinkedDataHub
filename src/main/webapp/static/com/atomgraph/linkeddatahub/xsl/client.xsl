@@ -1902,6 +1902,20 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
 
+        <xsl:choose>
+            <xsl:when test="not(id($results-container-id, ixsl:page()))">
+                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                    <input name="href" type="hidden" value="{$content-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
+                    <div id="{$results-container-id}" class="sparql-results"/>
+                </xsl:result-document>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:for-each select="id($results-container-id, ixsl:page())/preceding-sibling::input[@name = 'href']">
+                    <ixsl:set-property name="value" select="$content-uri" object="."/>
+                </xsl:for-each>
+            </xsl:otherwise>
+        </xsl:choose>
+
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = ('application/rdf+xml', 'application/sparql-results+xml')">
@@ -1922,20 +1936,6 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                         </xsl:result-document>
                     </xsl:if>
-                    
-                    <xsl:choose>
-                        <xsl:when test="not(id($results-container-id, ixsl:page()))">
-                            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                                <input name="href" type="hidden" value="{$content-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
-                                <div id="{$results-container-id}" class="sparql-results"/>
-                            </xsl:result-document>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:for-each select="id($results-container-id, ixsl:page())/preceding-sibling::input[@name = 'href']">
-                                <ixsl:set-property name="value" select="$content-uri" object="."/>
-                            </xsl:for-each>
-                        </xsl:otherwise>
-                    </xsl:choose>
 
                     <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
                         <!-- initialize YASQE on the textarea -->
