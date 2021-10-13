@@ -175,7 +175,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
         <!-- initialize LinkedDataHub.services (and the search dropdown, if it's shown) -->
         <ixsl:set-property name="services" select="$apl:services" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- #search-service may be missing (e.g. overridden by extending stylesheet -->
+        <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
         <xsl:for-each select="id('search-service', ixsl:page())">
             <xsl:call-template name="apl:RenderServices">
                 <xsl:with-param name="select" select="."/>
@@ -2029,6 +2029,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="state" as="item()?"/>
 
+        <xsl:message>
+            onContentLoad $uri: <xsl:value-of select="$uri"/> $content-uri: <xsl:value-of select="$content-uri"/> $container-id: <xsl:value-of select="$container-id"/>
+        </xsl:message>
+        
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <!-- update progress bar -->
