@@ -567,49 +567,64 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="service-uri" select="if ($state?content-uri = $content-uri) then xs:anyURI(map:get($state, 'service-uri')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
 
-        <!-- create new cache entry using content URI as key -->
-        <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- store this content element -->
-        <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        <!-- store the initial SELECT query (without modifiers) -->
-        <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        <!-- store the first var name of the initial SELECT query -->
-        <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        <xsl:if test="$service-uri">
-            <!-- store (the URI of) the service -->
-            <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-            <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        </xsl:if>
-
-        <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:replace-limit">
-                    <xsl:with-param name="limit" select="$ac:limit" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
-        <xsl:variable name="select-xml" as="document-node()">
-            <xsl:document>
-                <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
-                    <xsl:with-param name="offset" select="$ac:offset" tunnel="yes"/>
-                </xsl:apply-templates>
-            </xsl:document>
-        </xsl:variable>
+        <xsl:message>
+            apl:Content $service-uri: <xsl:value-of select="$service-uri"/> exists($service): <xsl:value-of select="exists($service)"/>
+        </xsl:message>
         
-        <!-- store the transformed query XML -->
-        <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-        <!-- update progress bar -->
-        <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        <xsl:choose>
+            <xsl:when test="$service">
+                <!-- create new cache entry using content URI as key -->
+                <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <!-- store this content element -->
+                <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                <!-- store the initial SELECT query (without modifiers) -->
+                <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                <!-- store the first var name of the initial SELECT query -->
+                <ixsl:set-property name="focus-var-name" select="$focus-var-name" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                <xsl:if test="$service-uri">
+                    <!-- store (the URI of) the service -->
+                    <ixsl:set-property name="service-uri" select="$service-uri" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                    <ixsl:set-property name="service" select="$service" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                </xsl:if>
 
-        <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="container-id" select="$container-id"/>
-            <xsl:with-param name="content-uri" select="$content-uri"/>
-            <xsl:with-param name="content" select="."/>
-            <xsl:with-param name="select-string" select="$select-string"/>
-            <xsl:with-param name="select-xml" select="$select-xml"/>
-            <xsl:with-param name="service" select="$service"/>
-            <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-        </xsl:call-template>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="apl:replace-limit">
+                            <xsl:with-param name="limit" select="$ac:limit" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="select-xml" as="document-node()">
+                    <xsl:document>
+                        <xsl:apply-templates select="$select-xml" mode="apl:replace-offset">
+                            <xsl:with-param name="offset" select="$ac:offset" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:document>
+                </xsl:variable>
+
+                <!-- store the transformed query XML -->
+                <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                <!-- update progress bar -->
+                <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+
+                <xsl:call-template name="apl:RenderContainer">
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="content" select="."/>
+                    <xsl:with-param name="select-string" select="$select-string"/>
+                    <xsl:with-param name="select-xml" select="$select-xml"/>
+                    <xsl:with-param name="service" select="$service"/>
+                    <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <div class="alert alert-block">
+                        <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
+                    </div>
+                </xsl:result-document>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- chart content -->
