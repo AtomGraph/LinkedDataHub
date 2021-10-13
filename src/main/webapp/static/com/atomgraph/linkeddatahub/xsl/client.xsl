@@ -613,7 +613,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- chart content -->
-    <xsl:template match="*[spin:query/@rfd:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
+    <xsl:template match="*[spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
