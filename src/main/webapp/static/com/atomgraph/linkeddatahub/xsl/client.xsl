@@ -2038,11 +2038,22 @@ extension-element-prefixes="ixsl"
                 <!-- update progress bar -->
                 <ixsl:set-style name="width" select="'50%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
             
-                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
-                    <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                    <xsl:with-param name="state" select="$state"/>
-                </xsl:apply-templates>
+                <xsl:choose>
+                    <xsl:when test="key('resources', $content-uri, ?body)">
+                        <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
+                            <xsl:with-param name="uri" select="$uri"/>
+                            <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="state" select="$state"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                            <div class="alert alert-block">
+                                <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                            </div>
+                        </xsl:result-document>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
