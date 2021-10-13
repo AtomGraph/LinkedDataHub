@@ -2,7 +2,6 @@
 
 @prefix :	<#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
-@prefix lsm:    <https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
@@ -16,7 +15,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports apl:, lsm: ;
+    owl:imports apl: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a rdfs:Class ;
@@ -194,19 +193,19 @@ ORDER BY ?title
     rdfs:label "Primary topic of item" ;
     rdfs:isDefinedBy : .
 
-:MissingParent a lsm:MissingPropertyValue ;
+:MissingParent a apl:MissingPropertyValue ;
     rdfs:label "Missing parent" ;
     rdfs:comment "Requires containers to have a parent container" ;
     sp:arg1 sioc:has_parent ;
     rdfs:isDefinedBy : .
 
-:MissingContainer a lsm:MissingPropertyValue ;
+:MissingContainer a apl:MissingPropertyValue ;
     rdfs:label "Missing container" ;
     rdfs:comment "Requires items to have a parent container" ;
     sp:arg1 sioc:has_container ;
     rdfs:isDefinedBy : .
 
-:MissingTitle a lsm:MissingPropertyValue ;
+:MissingTitle a apl:MissingPropertyValue ;
     rdfs:label "Missing title" ;
     rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
     sp:arg1 dct:title ;
