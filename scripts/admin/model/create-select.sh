@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a new ontology in its own named graph.\n"
+    printf "Creates a SPARQL CONSTRUCT query in the Domain ontology.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -11,11 +11,12 @@ print_usage()
     printf "  -p, --cert-password CERT_PASSWORD    Password of the WebID certificate\n"
     printf "  -b, --base BASE_URI                  Base URI of the admin application\n"
     printf "\n"
-    printf "  --label LABEL                        Label of the ontology\n"
-    printf "  --comment COMMENT                    Description of the ontology (optional)\n"
+    printf "  --label LABEL                        Label of the query\n"
+    printf "  --comment COMMENT                    Description of the query (optional)\n"
     printf "  --slug STRING                        String that will be used as URI path segment (optional)\n"
     printf "\n"
-    printf "  --uri URI                            URI of the ontology (optional)\n"
+    printf "  --uri URI                            URI of the query (optional)\n"
+    printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -61,6 +62,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        --query-file)
+        query_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
         *)    # unknown arguments
         args+=("$1") # save it in an array for later
         shift # past argument
@@ -85,19 +91,29 @@ if [ -z "$label" ] ; then
     print_usage
     exit 1
 fi
+if [ -z "$query_file" ] ; then
+    print_usage
+    exit 1
+fi
 
-container="${base}model/ontologies/"
+container="${base}model/queries/"
+query_string=$(<"$query_file") # read query string from file
 
 # allow explicit URIs
 if [ -n "$uri" ] ; then
-    ontology="<${uri}>" # URI
+    query="<${uri}>" # URI
 else
-    ontology="_:ontology" # blank node
+    query="_:query" # blank node
 fi
 
 if [ -z "$1" ]; then
-    args+=("${base}service") # default target URL = graph store
+    print_usage
+    exit 1
 fi
+
+#if [ -z "$1" ]; then
+#    args+=("${base}service") # default target URL = graph store
+#fi
 
 args+=("-f")
 args+=("${cert_pem_file}")
@@ -112,15 +128,17 @@ turtle+="@prefix dct:	<http://purl.org/dc/terms/> .\n"
 turtle+="@prefix foaf:	<http://xmlns.com/foaf/0.1/> .\n"
 turtle+="@prefix sp:	<http://spinrdf.org/sp#> .\n"
 turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
-turtle+="${ontology} a adm:Ontology .\n"
-turtle+="${ontology} rdfs:label \"${label}\" .\n"
-turtle+="${ontology} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${query} a adm:Select .\n"
+turtle+="${query} rdfs:label \"${label}\" .\n"
+turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
+turtle+="${query} foaf:isPrimaryTopicOf _:item .\n"
+turtle+="${query} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n" # make a parameter?
 turtle+="_:item a adm:Item .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
-    turtle+="${ontology} rdfs:comment \"${comment}\" .\n"
+    turtle+="${query} rdfs:comment \"${comment}\" .\n"
 fi
 if [ -n "$slug" ] ; then
     turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
