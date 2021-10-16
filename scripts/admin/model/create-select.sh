@@ -2,7 +2,7 @@
 
 print_usage()
 {
-    printf "Creates a SPARQL CONSTRUCT query in the Domain ontology.\n"
+    printf "Creates a SPARQL SELECT query in the Domain ontology.\n"
     printf "\n"
     printf "Usage:  %s options [TARGET_URI]\n" "$0"
     printf "\n"
@@ -17,6 +17,7 @@ print_usage()
     printf "\n"
     printf "  --uri URI                            URI of the query (optional)\n"
     printf "  --query-file ABS_PATH                Absolute path to the text file with the SPARQL query string\n"
+    printf "  --service SERVICE_URI                URI of the SPARQL service specific to this query (optional)\n"
 }
 
 hash turtle 2>/dev/null || { echo >&2 "turtle not on \$PATH. Need to set \$JENA_HOME. Aborting."; exit 1; }
@@ -64,6 +65,11 @@ do
         ;;
         --query-file)
         query_file="$2"
+        shift # past argument
+        shift # past value
+        ;;
+        --service)
+        service="$2"
         shift # past argument
         shift # past value
         ;;
@@ -139,6 +145,10 @@ turtle+="_:item dct:title \"${label}\" .\n"
 
 if [ -n "$comment" ] ; then
     turtle+="${query} rdfs:comment \"${comment}\" .\n"
+fi
+if [ -n "$service" ] ; then
+    turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
+    turtle+="_:query apl:service <${service}> .\n"
 fi
 if [ -n "$slug" ] ; then
     turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
