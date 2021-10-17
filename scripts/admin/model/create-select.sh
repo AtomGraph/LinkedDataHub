@@ -148,7 +148,7 @@ if [ -n "$comment" ] ; then
 fi
 if [ -n "$service" ] ; then
     turtle+="@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .\n"
-    turtle+="_:query apl:service <${service}> .\n"
+    turtle+="${query} apl:service <${service}> .\n"
 fi
 if [ -n "$slug" ] ; then
     turtle+="@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .\n"
