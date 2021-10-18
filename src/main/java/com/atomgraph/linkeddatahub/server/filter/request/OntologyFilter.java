@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.client.locator.PrefixMapper;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
@@ -175,19 +174,7 @@ public class OntologyFilter implements ContainerRequestFilter
             schema = getOntology(adminApp).getOntModel();
         }
         else
-        {
             schema = null;
-            
-            String uriPrefix = app.getBase() + "ns";
-            
-            if (((PrefixMapper)getSystem().getOntModelSpec().getDocumentManager().getFileManager().getLocationMapper()).getPrefixAltEntry(uriPrefix) == null)
-                ((PrefixMapper)getSystem().
-                    getOntModelSpec().
-                    getDocumentManager().
-                    getFileManager().
-                    getLocationMapper()).
-                    addAltPrefixEntry(uriPrefix, "com/atomgraph/linkeddatahub/app/admin/adm.ttl");
-        }
 
         return getOntology(app, app.getPropertyResourceValue(LDT.ontology).getURI(), getSystem().getOntModelSpec(), schema);
     }
