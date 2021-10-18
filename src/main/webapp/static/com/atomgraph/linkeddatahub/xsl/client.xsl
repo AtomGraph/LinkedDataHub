@@ -4,6 +4,7 @@
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
     <!ENTITY dydra      "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
+    <!ENTITY adm        "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY a          "https://w3id.org/atomgraph/core#">
@@ -541,7 +542,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
 
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&sp;Select')][sp:text]" mode="apl:Content" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
