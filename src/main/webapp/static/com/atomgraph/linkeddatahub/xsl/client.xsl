@@ -2055,17 +2055,19 @@ extension-element-prefixes="ixsl"
             
                 <xsl:choose>
                     <xsl:when test="key('resources', $content-uri, ?body)">
-                        <h2>
-                            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(@rdf:resource)))" mode="apl:logo"/>
-                            <xsl:text> </xsl:text>
-                            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
-                        </h2>
-                        
-                        <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
-                            <xsl:with-param name="uri" select="$uri"/>
-                            <xsl:with-param name="container-id" select="$container-id"/>
-                            <xsl:with-param name="state" select="$state"/>
-                        </xsl:apply-templates>
+                        <xsl:for-each select="key('resources', $content-uri, ?body)">
+                            <h2>
+                                <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(@rdf:resource)))" mode="apl:logo"/>
+                                <xsl:text> </xsl:text>
+                                <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                            </h2>
+
+                            <xsl:apply-templates select="." mode="apl:Content">
+                                <xsl:with-param name="uri" select="$uri"/>
+                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <xsl:with-param name="state" select="$state"/>
+                            </xsl:apply-templates>
+                        </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
