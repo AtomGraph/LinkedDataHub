@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
         </xsl:next-match>
     </xsl:template>-->
     
-    <xsl:template match="dct:format/@rdf:*" mode="bs2:FormControl">
+    <xsl:template match="dct:format/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
