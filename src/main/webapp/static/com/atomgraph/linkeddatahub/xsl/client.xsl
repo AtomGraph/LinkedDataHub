@@ -966,14 +966,6 @@ extension-element-prefixes="ixsl"
                     </div>
                     
                     <div>
-<!--                        <h2>
-                            <xsl:for-each select="$content">
-                                <xsl:apply-templates select="." mode="apl:logo"/>
-                                <xsl:text> </xsl:text>
-                                <xsl:apply-templates select="." mode="xhtml:Anchor"/>
-                            </xsl:for-each>
-                        </h2>-->
-                        
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -2061,6 +2053,12 @@ extension-element-prefixes="ixsl"
             
                 <xsl:choose>
                     <xsl:when test="key('resources', $content-uri, ?body)">
+                        <h2>
+                            <xsl:apply-templates select="key('resources', rdf:type/@rdf:resource, document(ac:document-uri(@rdf:resource)))" mode="apl:logo"/>
+                            <xsl:text> </xsl:text>
+                            <xsl:apply-templates select="." mode="xhtml:Anchor"/>
+                        </h2>
+                        
                         <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
                             <xsl:with-param name="uri" select="$uri"/>
                             <xsl:with-param name="container-id" select="$container-id"/>
@@ -2213,9 +2211,22 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="results" select="." as="document-node()"/>
         <!-- replace content body with the loaded XHTML -->
-        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+        <xsl:for-each select="id($container-id, ixsl:page())/..">
+            <xsl:result-document select="?."  method="ixsl:append-content">>
+                <ul class="nav nav-tabs">
+                    <li class="active"><a>Content</a></li>
+                    <li><a>Properties</a></li>
+                    <li><a>Map</a></li>
+                    <li><a>Chart</a></li>
+                    <li><a>Graph</a></li>
+                </ul>
+            </xsl:result-document>
+            
             <xsl:copy-of select="id($container-id, $results)/*"/>
-        </xsl:result-document>
+        </xsl:for-each>
+        <!--        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <xsl:copy-of select="id($container-id, $results)/*"/>
+        </xsl:result-document>-->
 
         <xsl:choose>
             <!-- scroll fragment-identified element into view if fragment is provided-->
