@@ -2212,7 +2212,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="results" select="." as="document-node()"/>
         <!-- replace content body with the loaded XHTML -->
         <xsl:for-each select="id($container-id, ixsl:page())/..">
-            <xsl:result-document select="?."  method="ixsl:append-content">>
+            <xsl:result-document href="?."  method="ixsl:append-content">>
                 <ul class="nav nav-tabs">
                     <li class="active"><a>Content</a></li>
                     <li><a>Properties</a></li>
