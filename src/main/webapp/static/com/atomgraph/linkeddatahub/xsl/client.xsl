@@ -607,7 +607,9 @@ extension-element-prefixes="ixsl"
                 <!-- store the transformed query XML -->
                 <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 <!-- update progress bar -->
-                <ixsl:set-style name="width" select="'75%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+                <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+                    <ixsl:set-style name="width" select="'75%'" object="."/>
+                </xsl:for-each>
 
                 <xsl:call-template name="apl:RenderContainer">
                     <xsl:with-param name="container-id" select="$container-id"/>
