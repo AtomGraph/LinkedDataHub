@@ -305,11 +305,14 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 String fileName = file.getProperty(NFO.fileName).getString();
                 FormDataBodyPart bodyPart = fileNameBodyPartMap.get(fileName);
                 
-                // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
-                if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
-                writeFile(file, bodyPart);
-                    
-                count++;
+                if (bodyPart != null) // bodyPart is null if nfo:fileName is a simple input and not a file input
+                {
+                    // writing files has to go before post() as it can change model (e.g. add body part media type as dct:format)
+                    if (log.isDebugEnabled()) log.debug("Writing FormDataBodyPart with fileName {} to file with URI {}", fileName, file.getURI());
+                    writeFile(file, bodyPart);
+
+                    count++;
+                }
             }
         }
         finally
