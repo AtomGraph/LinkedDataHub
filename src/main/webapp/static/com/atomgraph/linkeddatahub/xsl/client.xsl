@@ -2059,7 +2059,8 @@ extension-element-prefixes="ixsl"
                     <xsl:when test="key('resources', $content-uri, ?body)">
                         <xsl:for-each select="key('resources', $content-uri, ?body)">
                             <h2>
-                                <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:logo"/>
+                                <!-- disable apl:logo until the def: vocabulary is dereferenceable -->
+                                <!--<xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:logo"/>-->
                                 <xsl:text> </xsl:text>
                                 <xsl:apply-templates select="." mode="xhtml:Anchor"/>
                             </h2>
