@@ -2078,7 +2078,9 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- content could not be loaded as RDF, embed id as is -->
             <xsl:when test="?status = 406">
-                <object data="{$content-uri}"/>
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <object data="{$content-uri}"/>
+                </xsl:result-document>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
