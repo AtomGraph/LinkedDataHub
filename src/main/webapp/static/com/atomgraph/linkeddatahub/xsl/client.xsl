@@ -640,14 +640,16 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
         <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
 
-        <!-- append progress bar -->
-        <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-            <div class="progress-bar">
-                <div class="progress progress-striped active">
-                    <div class="bar" style="width: 33%;"></div>
+        <xsl:if test="not(id($container-id, ixsl:page())//div[@class = 'progress-bar'])">
+            <!-- append progress bar if it's not already present -->
+            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
+                <div class="progress-bar">
+                    <div class="progress progress-striped active">
+                        <div class="bar" style="width: 33%;"></div>
+                    </div>
                 </div>
-            </div>
-        </xsl:result-document>
+            </xsl:result-document>
+        </xsl:if>
 
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
