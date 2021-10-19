@@ -739,6 +739,7 @@ extension-element-prefixes="ixsl"
                 <xsl:if test="$container-id">
                     <!-- render content such as queries and charts -->
                     <xsl:apply-templates select="/rdf:RDF/*" mode="apl:Content">
+                        <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="container-id" select="$container-id"/>
                     </xsl:apply-templates>
                 </xsl:if>
