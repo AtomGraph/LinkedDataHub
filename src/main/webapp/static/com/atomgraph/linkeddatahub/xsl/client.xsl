@@ -1338,8 +1338,8 @@ extension-element-prefixes="ixsl"
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:if test="exists($content-ids)">
             <xsl:for-each select="id($content-ids, ixsl:page())">
-                <xsl:variable name="content-uri" select="input[@name = 'href']/@value"/>
-                <xsl:variable name="container-id" select="@id"/>
+                <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
+                <xsl:variable name="container-id" select="@id" as="xs:string"/>
 
                 <!-- show progress bar -->
                 <xsl:result-document href="?." method="ixsl:append-content">
@@ -2045,7 +2045,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onContentLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="state" as="item()?"/>
 
@@ -2075,8 +2075,16 @@ extension-element-prefixes="ixsl"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
+            <!-- content could not be loaded as RDF, embed id as is -->
+            <xsl:when test="?status = 406">
+                <object data="{$content-uri}"/>
+            </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="ixsl:call(ixsl:get(ixsl:window(), 'console'), 'log', [ ?message ])"/>
+                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                    <div class="alert alert-block">
+                        <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                    </div>
+                </xsl:result-document>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
