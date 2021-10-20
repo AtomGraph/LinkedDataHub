@@ -3317,10 +3317,10 @@ extension-element-prefixes="ixsl"
     <xsl:template match="//body/div/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
-        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+        <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
             <xsl:map>
-                <xsl:map-entry key="'content-mode'" select="'&ac;ContentMode'"/>
+                <xsl:map-entry key="'content-mode'" select="'&apl;ContentMode'"/>
                 <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
                 <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
                 <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>

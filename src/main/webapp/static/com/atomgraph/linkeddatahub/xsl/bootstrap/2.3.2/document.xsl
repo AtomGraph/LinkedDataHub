@@ -71,6 +71,12 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- CONTENT -->
+    
+    <xsl:template match="rdf:RDF" mode="apl:Content">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
     <!-- GRAPH  -->
     
     <!-- TO-DO: reuse from Web-Client -->
