@@ -641,19 +641,19 @@ exclude-result-prefixes="#all">
 
             <div class="row-fluid">
                 <ul class="nav nav-tabs offset2 span7">
-                    <li class="content-mode {if ($ac:mode = '&apl;ContentMode') then 'active' else() }">
+                    <li class="content-mode{if ($ac:mode = '&apl;ContentMode') then ' active' else() }">
                         <a>Content</a>
                     </li>
-                    <li class="read-mode {if ($ac:mode = '&ac;ReadMode') then 'active' else() }">
+                    <li class="read-mode{if ($ac:mode = '&ac;ReadMode') then ' active' else() }">
                         <a>Properties</a>
                     </li>
-                    <li class="map-mode {if ($ac:mode = '&ac;MapMode') then 'active' else() }">
+                    <li class="map-mode{if ($ac:mode = '&ac;MapMode') then ' active' else() }">
                         <a>Map</a>
                     </li>
-                    <li class="chart-mode {if ($ac:mode = '&ac;ChartMode') then 'active' else() }">
+                    <li class="chart-mode{if ($ac:mode = '&ac;ChartMode') then ' active' else() }">
                         <a>Chart</a>
                     </li>
-                    <li class="graph-mode {if ($ac:mode = '&ac;GraphMode') then 'active' else() }">
+                    <li class="graph-mode{if ($ac:mode = '&ac;GraphMode') then ' active' else() }">
                         <a>Graph</a>
                     </li>
                 </ul>
