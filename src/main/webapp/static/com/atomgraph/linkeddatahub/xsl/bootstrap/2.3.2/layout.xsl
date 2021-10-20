@@ -641,7 +641,7 @@ exclude-result-prefixes="#all">
 
             <div class="row-fluid">
                 <ul class="nav nav-tabs offset2 span7">
-                    <li class="content-mode {if ($ac:mode = '&ac;ContentMode') then 'active' else() }">
+                    <li class="content-mode {if ($ac:mode = '&apl;ContentMode') then 'active' else() }">
                         <a>Content</a>
                     </li>
                     <li class="read-mode {if ($ac:mode = '&ac;ReadMode') then 'active' else() }">
