@@ -3310,6 +3310,17 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
     </xsl:template>
 
+    <!-- document mode tabs -->
+    
+    <xsl:template match="//body/div/ul[@class = 'nav nav-tabs']/li/a" mode="ixsl:onclick">
+        <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+
+        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $active-class ])"/>
+        
+        <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
+    </xsl:template>
+    
     <!-- FORM IDENTITY TRANSFORM -->
     
     <xsl:template match="@for | @id" mode="form" priority="1">
