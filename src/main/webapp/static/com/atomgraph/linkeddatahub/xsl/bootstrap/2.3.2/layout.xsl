@@ -658,7 +658,7 @@ exclude-result-prefixes="#all">
             </div>
                 
             <div id="content-body" class="container-fluid">
-                <xsl:apply-templates mode="#current">
+                <xsl:apply-templates mode="apl:Content">
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
             </div>
