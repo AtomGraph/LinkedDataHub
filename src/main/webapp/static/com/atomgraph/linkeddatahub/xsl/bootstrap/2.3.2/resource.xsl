@@ -486,7 +486,15 @@ extension-element-prefixes="ixsl"
             
             <div class="span7">
                 <xsl:if test="doc-available(ac:document-uri(rdf:first/@rdf:resource))">
-                    <xsl:apply-templates select="key('resources', rdf:first/@rdf:resource, document(ac:document-uri(rdf:first/@rdf:resource)))" mode="bs2:Header"/>
+                    <xsl:for-each select="key('resources', rdf:first/@rdf:resource, document(ac:document-uri(rdf:first/@rdf:resource)))">
+                        <h2>
+                            <xsl:apply-templates select="." mode="xhtml:Anchor">
+                                <xsl:with-param name="class" as="xs:string?">
+                                    <xsl:apply-templates select="." mode="apl:logo"/>
+                                </xsl:with-param>
+                            </xsl:apply-templates>
+                        </h2>
+                    </xsl:for-each>
                 </xsl:if>
 
                 <div>
