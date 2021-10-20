@@ -2211,18 +2211,6 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="results" select="." as="document-node()"/>
         
-        <!-- append nav-tabs to the parent of #{container-id} -->
-        <xsl:for-each select="id($container-id, ixsl:page())/..">
-            <xsl:result-document href="?."  method="ixsl:append-content">>
-                <ul class="nav nav-tabs">
-                    <li class="active"><a>Content</a></li>
-                    <li><a>Properties</a></li>
-                    <li><a>Map</a></li>
-                    <li><a>Chart</a></li>
-                    <li><a>Graph</a></li>
-                </ul>
-            </xsl:result-document>
-        </xsl:for-each>
         <!-- replace content body with the loaded XHTML -->
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:copy-of select="id($container-id, $results)/*"/>

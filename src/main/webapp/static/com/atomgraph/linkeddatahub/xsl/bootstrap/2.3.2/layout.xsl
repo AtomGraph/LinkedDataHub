@@ -637,6 +637,26 @@ exclude-result-prefixes="#all">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
+            <div class="row-fluid">
+                <ul class="nav nav-tabs offset2 span7">
+                    <li class="active">
+                        <a>Content</a>
+                    </li>
+                    <li>
+                        <a>Properties</a>
+                    </li>
+                    <li>
+                        <a>Map</a>
+                    </li>
+                    <li>
+                        <a>Chart</a>
+                    </li>
+                    <li>
+                        <a>Graph</a>
+                    </li>
+                </ul>
+            </div>
+                
             <div id="content-body" class="container-fluid">
                 <xsl:apply-templates mode="#current">
                     <xsl:sort select="ac:label(.)"/>
