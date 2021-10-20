@@ -639,20 +639,20 @@ exclude-result-prefixes="#all">
 
             <div class="row-fluid">
                 <ul class="nav nav-tabs offset2 span7">
-                    <li class="active">
+                    <li class="content-mode active">
                         <a>Content</a>
                     </li>
                     <li>
-                        <a>Properties</a>
+                        <a class="read-mode">Properties</a>
                     </li>
                     <li>
-                        <a>Map</a>
+                        <a class="map-mode">Map</a>
                     </li>
                     <li>
-                        <a>Chart</a>
+                        <a class="chart-mode">Chart</a>
                     </li>
                     <li>
-                        <a>Graph</a>
+                        <a class="graph-mode">Graph</a>
                     </li>
                 </ul>
             </div>
