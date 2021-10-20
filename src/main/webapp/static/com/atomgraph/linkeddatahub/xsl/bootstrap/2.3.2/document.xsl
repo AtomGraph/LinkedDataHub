@@ -73,12 +73,14 @@ extension-element-prefixes="ixsl"
     
     <!-- GRAPH  -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:Graph">
+    <!-- TO-DO: reuse from Web-Client -->
+<!--    <xsl:template match="rdf:RDF" mode="bs2:Graph">
         <xsl:apply-templates select="." mode="ac:SVG">
             <xsl:with-param name="width" select="'100%'"/>
+            <xsl:with-param name="step-count" select="20"/>
             <xsl:with-param name="spring-length" select="150" tunnel="yes"/>
         </xsl:apply-templates>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- FORM -->
 
