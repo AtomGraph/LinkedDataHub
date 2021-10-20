@@ -2052,8 +2052,10 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <!-- update progress bar -->
-                <ixsl:set-style name="width" select="'50%'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+                <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+                    <!-- update progress bar -->
+                    <ixsl:set-style name="width" select="'50%'" object="."/>
+                </xsl:for-each>
             
                 <xsl:choose>
                     <xsl:when test="key('resources', $content-uri, ?body)">

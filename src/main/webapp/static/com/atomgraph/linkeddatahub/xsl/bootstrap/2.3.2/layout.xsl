@@ -131,71 +131,6 @@ exclude-result-prefixes="#all">
         <xsl:sequence select="$ac:uri"/>
     </xsl:function>
     
-    <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
-        <body>
-            <xsl:choose>
-                <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                    <xsl:apply-templates select="." mode="bs2:ModalForm"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Form"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </body>
-    </xsl:template>
-
-    <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
-    <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
-        <body>
-            <xsl:choose>
-                <xsl:when test="$ac:method = 'GET'">
-                    <xsl:choose>
-                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:when test="$ac:method = 'POST' and key('resources-by-type', '&spin;ConstraintViolation')">
-                    <xsl:choose>
-                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="." mode="bs2:ModalForm"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="." mode="bs2:Form"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:next-match/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </body>
-    </xsl:template>
-    
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;InfoWindowMode']" mode="xhtml:Body" priority="1">
-        <body>
-            <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
-                <xsl:apply-templates select="." mode="bs2:Block">
-                    <xsl:with-param name="display" select="true()" tunnel="yes"/>
-                </xsl:apply-templates>
-            </div>
-        </body>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;ObjectMode']" mode="xhtml:Body" priority="2">
-        <body class="embed">
-            <div>
-                <xsl:apply-templates select="." mode="bs2:Object">
-                    <xsl:with-param name="show-controls" select="false()" tunnel="yes"/>
-                </xsl:apply-templates>
-            </div>
-        </body>
-    </xsl:template>
-    
     <!-- TITLE -->
 
     <xsl:template match="rdf:RDF" mode="xhtml:Title">
@@ -632,6 +567,73 @@ exclude-result-prefixes="#all">
             </a>
         </li>
     </xsl:template>
+    
+    <!-- BODY -->
+    
+    <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
+    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+        <body>
+            <xsl:choose>
+                <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                    <xsl:apply-templates select="." mode="bs2:ModalForm"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="bs2:Form"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </body>
+    </xsl:template>
+
+    <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
+    <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
+        <body>
+            <xsl:choose>
+                <xsl:when test="$ac:method = 'GET'">
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:when test="$ac:method = 'POST' and key('resources-by-type', '&spin;ConstraintViolation')">
+                    <xsl:choose>
+                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                            <xsl:apply-templates select="." mode="bs2:ModalForm"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates select="." mode="bs2:Form"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:next-match/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </body>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;InfoWindowMode']" mode="xhtml:Body" priority="1">
+        <body>
+            <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
+                <xsl:apply-templates select="." mode="bs2:Block">
+                    <xsl:with-param name="display" select="true()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </div>
+        </body>
+    </xsl:template>
+
+    <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;ObjectMode']" mode="xhtml:Body" priority="2">
+        <body class="embed">
+            <div>
+                <xsl:apply-templates select="." mode="bs2:Object">
+                    <xsl:with-param name="show-controls" select="false()" tunnel="yes"/>
+                </xsl:apply-templates>
+            </div>
+        </body>
+    </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
         <body>
@@ -658,9 +660,33 @@ exclude-result-prefixes="#all">
             </div>
                 
             <div id="content-body" class="container-fluid">
-                <xsl:apply-templates mode="apl:Content">
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
+                <xsl:choose>
+                    <xsl:when test="$ac:mode = '&ac;ReadMode'">
+                        <xsl:apply-templates>
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="$ac:mode = '&ac;MapMode'">
+                        <xsl:apply-templates mode="bs2:Map">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="$ac:mode = '&ac;MapMode'">
+                        <xsl:apply-templates mode="bs2:Map">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="$ac:mode = '&ac;ChartMode'">
+                        <xsl:apply-templates mode="bs2:Chart">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates mode="apl:Content">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
