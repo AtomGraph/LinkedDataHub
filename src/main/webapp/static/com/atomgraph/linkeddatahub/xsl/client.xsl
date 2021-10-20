@@ -3330,6 +3330,11 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($mode-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <!-- make other tabs inactive -->
+        <xsl:sequence select="../../li[not(tokenize(@class, ' ') = $active-class)]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <!-- make this tab active -->
+        <xsl:sequence select="../ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
             <xsl:call-template name="onDocumentLoad">
                 <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
