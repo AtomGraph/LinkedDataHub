@@ -3313,12 +3313,29 @@ extension-element-prefixes="ixsl"
     <!-- document mode tabs -->
     
     <xsl:template match="//body/div/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
+        <xsl:variable name="uri" select="ac:uri" as="xs:anyURI"/>
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
+        <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
+            <xsl:map>
+                <xsl:map-entry key="'content-mode'" select="'&ac;ContentMode'"/>
+                <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
+                <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
+                <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>
+                <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
+            </xsl:map>
+        </xsl:variable>
+        <xsl:variable name="mode" select="map:get($mode-classes, $active-class)" as="xs:string"/>
+        <xsl:variable name="mode-uri" select="ac:build-uri($uri, map{ 'mode': $mode })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($mode-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
-        <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ $active-class ])"/>
-        
-        <!--<ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>-->
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onDocumentLoad">
+                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
     </xsl:template>
     
     <!-- FORM IDENTITY TRANSFORM -->
