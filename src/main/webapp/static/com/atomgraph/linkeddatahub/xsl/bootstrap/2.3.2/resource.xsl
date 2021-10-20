@@ -495,7 +495,7 @@ extension-element-prefixes="ixsl"
                 <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
                 <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
                 
-                <xsl:if test="doc-available(rdf:first/@rdf:resource))">
+                <xsl:if test="doc-available(rdf:first/@rdf:resource)">
                     <xsl:apply-templates select="key('resources', rdf:first/@rdf:resource, document(ac:document-uri(rdf:first/@rdf:resource)))" mode="bs2:Header"/>
                 </xsl:if>
             </div>
