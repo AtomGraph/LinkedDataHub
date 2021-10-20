@@ -266,7 +266,7 @@ extension-element-prefixes="ixsl"
     <!-- BODY -->
     
     <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>
+<!--    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>-->
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
         <div class="row-fluid">
@@ -878,4 +878,8 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object"/>
     
+    <!-- BLOCK -->
+    
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
+
 </xsl:stylesheet>
