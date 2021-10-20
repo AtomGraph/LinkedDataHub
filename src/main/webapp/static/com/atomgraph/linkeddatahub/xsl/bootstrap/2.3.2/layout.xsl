@@ -642,17 +642,17 @@ exclude-result-prefixes="#all">
                     <li class="content-mode active">
                         <a>Content</a>
                     </li>
-                    <li>
-                        <a class="read-mode">Properties</a>
+                    <li class="read-mode">
+                        <a>Properties</a>
                     </li>
-                    <li>
-                        <a class="map-mode">Map</a>
+                    <li class="map-mode">
+                        <a>Map</a>
                     </li>
-                    <li>
-                        <a class="chart-mode">Chart</a>
+                    <li class="chart-mode">
+                        <a>Chart</a>
                     </li>
-                    <li>
-                        <a class="graph-mode">Graph</a>
+                    <li class="graph-mode">
+                        <a>Graph</a>
                     </li>
                 </ul>
             </div>
