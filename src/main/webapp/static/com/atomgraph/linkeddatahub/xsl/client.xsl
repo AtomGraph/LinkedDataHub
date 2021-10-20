@@ -3313,7 +3313,7 @@ extension-element-prefixes="ixsl"
     <!-- document mode tabs -->
     
     <xsl:template match="//body/div/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="ac:uri" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
