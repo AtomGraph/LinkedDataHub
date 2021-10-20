@@ -2210,7 +2210,8 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
 
         <xsl:variable name="results" select="." as="document-node()"/>
-        <!-- replace content body with the loaded XHTML -->
+        
+        <!-- append nav-tabs to the parent of #{container-id} -->
         <xsl:for-each select="id($container-id, ixsl:page())/..">
             <xsl:result-document href="?."  method="ixsl:append-content">>
                 <ul class="nav nav-tabs">
@@ -2221,13 +2222,12 @@ extension-element-prefixes="ixsl"
                     <li><a>Graph</a></li>
                 </ul>
             </xsl:result-document>
-            
-            <xsl:copy-of select="id($container-id, $results)/*"/>
         </xsl:for-each>
-        <!--        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+        <!-- replace content body with the loaded XHTML -->
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:copy-of select="id($container-id, $results)/*"/>
-        </xsl:result-document>-->
-
+        </xsl:result-document>
+        
         <xsl:choose>
             <!-- scroll fragment-identified element into view if fragment is provided-->
             <xsl:when test="id($fragment, ixsl:page())">
