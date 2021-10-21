@@ -87,7 +87,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="canvas-id" select="'chart-canvas'" as="xs:string"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
@@ -255,7 +255,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
-        <xsl:param name="canvas-id" as="xs:string"/>
+        <xsl:param name="canvas-id" select="'canvas-id'" as="xs:string"/>
 
         <xsl:apply-templates select="." mode="bs2:ChartForm">
             <xsl:with-param name="chart-type" select="$chart-type"/>
