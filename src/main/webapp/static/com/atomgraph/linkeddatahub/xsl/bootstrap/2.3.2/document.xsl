@@ -76,13 +76,341 @@ extension-element-prefixes="ixsl"
     <xsl:template match="rdf:RDF" mode="apl:Content">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
-    
+
     <!-- CHART -->
-    
+
+    <!-- graph chart (for RDF/XML results) -->
+
     <xsl:template match="rdf:RDF" mode="bs2:Chart">
-        <xsl:apply-templates mode="#current"/>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+
+        <xsl:apply-templates select="." mode="bs2:ChartForm">
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+        </xsl:apply-templates>
+
+        <div id="{$canvas-id}"></div>
     </xsl:template>
 
+    <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
+        <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
+        <xsl:param name="type" select="xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        <!-- table is the default chart type -->
+        <xsl:param name="chart-type" select="if (ixsl:query-params()?chart-type) then xs:anyURI(ixsl:query-params()?chart-type) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" select="ixsl:query-params()?category" as="xs:string?"/>
+        <xsl:param name="series" select="ixsl:query-params()?series" as="xs:string*"/>
+        <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
+        <xsl:param name="category-id" select="'category'" as="xs:string"/>
+        <xsl:param name="series-id" select="'series'" as="xs:string"/>
+        <xsl:param name="width" as="xs:string?"/>
+        <xsl:param name="height" select="'480'" as="xs:string?"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <!-- <xsl:param name="mode" as="xs:anyURI*"/> -->
+        <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
+        <xsl:param name="query" as="xs:string?"/>
+        <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+
+        <xsl:if test="$show-controls">
+            <form method="{$method}" action="{$action}">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$accept-charset">
+                    <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$enctype">
+                    <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                </xsl:if>
+
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span4">
+                            <label for="{$chart-type-id}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document(ac:document-uri('&apl;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </label>
+                            <br/>
+                            <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/apl.xsl -->
+                            <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
+                                <option value="&ac;Table">
+                                    <xsl:if test="$chart-type = '&ac;Table'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Table</xsl:text>
+                                </option>
+                                <option value="&ac;ScatterChart">
+                                    <xsl:if test="$chart-type = '&ac;ScatterChart'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Scatter chart</xsl:text>
+                                </option>
+                                <option value="&ac;LineChart">
+                                    <xsl:if test="$chart-type = '&ac;LineChart'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Line chart</xsl:text>
+                                </option>
+                                <option value="&ac;BarChart">
+                                    <xsl:if test="$chart-type = '&ac;BarChart'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Bar chart</xsl:text>
+                                </option>
+                                <option value="&ac;Timeline">
+                                    <xsl:if test="$chart-type = '&ac;Timeline'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Timeline</xsl:text>
+                                </option>
+                            </select>
+                        </div>
+                        <div class="span4">
+                            <label for="{$category-id}">Category</label>
+                            <br/>
+                            <select id="{$category-id}" name="ou" class="input-large chart-category">
+                                <option value="">
+                                    <!-- URI is the default category -->
+                                    <xsl:if test="not($category)">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>[URI/ID]</xsl:text>
+                                </option>
+
+                                <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+
+                                    <option value="{current-grouping-key()}">
+                                        <xsl:if test="$category = current-grouping-key()">
+                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                        </xsl:if>
+
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                        </xsl:value-of>
+                                    </option>
+                                </xsl:for-each-group>
+                            </select>
+                        </div>
+                        <div class="span4">
+                            <label for="{$series-id}">Series</label>
+                            <br/>
+                            <select id="{$series-id}" name="ou" multiple="multiple" class="input-large chart-series">
+                                <xsl:for-each-group select="*/*" group-by="concat(namespace-uri(), local-name())">
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}" use-when="system-property('xsl:product-name') = 'SAXON'"/>
+                                    <xsl:sort select="ac:property-label(.)" order="ascending" use-when="system-property('xsl:product-name') eq 'Saxon-JS'"/>
+
+                                    <option value="{current-grouping-key()}">
+                                        <xsl:if test="$series = current-grouping-key()">
+                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                        </xsl:if>
+
+                                        <xsl:value-of>
+                                            <xsl:apply-templates select="current-group()[1]" mode="ac:property-label"/>
+                                        </xsl:value-of>
+                                    </option>
+                                </xsl:for-each-group>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <xsl:if test="$show-save">
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-save-chart" type="button">
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                            </xsl:apply-templates>
+                        </button>
+                    </div>
+                </xsl:if>
+            </form>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- table chart (for SPARQL XML results) -->
+
+    <xsl:template match="srx:sparql" mode="bs2:Chart">
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
+        <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
+        <xsl:param name="canvas-id" as="xs:string"/>
+
+        <xsl:apply-templates select="." mode="bs2:ChartForm">
+            <xsl:with-param name="chart-type" select="$chart-type"/>
+            <xsl:with-param name="category" select="$category"/>
+            <xsl:with-param name="series" select="$series"/>
+        </xsl:apply-templates>
+
+        <div id="{$canvas-id}"></div>
+    </xsl:template>
+
+    <xsl:template match="srx:sparql" mode="bs2:ChartForm">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
+        <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
+        <xsl:param name="type" select="xs:anyURI('&def;ResultSetChart')" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" as="xs:string?"/>
+        <!-- table is the default chart type -->
+        <xsl:param name="chart-type" select="if (ixsl:query-params()?chart-type) then xs:anyURI(ixsl:query-params()?chart-type) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
+        <xsl:param name="category" select="ixsl:query-params()?category" as="xs:string?"/>
+        <xsl:param name="series" select="ixsl:query-params()?series" as="xs:string*"/>
+        <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
+        <xsl:param name="category-id" select="'category'" as="xs:string"/>
+        <xsl:param name="series-id" select="'series'" as="xs:string"/>
+        <xsl:param name="width" as="xs:string?"/>
+        <xsl:param name="height" select="'480'" as="xs:string?"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
+        <xsl:param name="query" as="xs:string?"/>
+        <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
+        <xsl:param name="show-save" select="true()" as="xs:boolean"/>
+
+        <xsl:if test="$show-controls">
+            <form method="{$method}" action="{$action}">
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$accept-charset">
+                    <xsl:attribute name="accept-charset"><xsl:value-of select="$accept-charset"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$enctype">
+                    <xsl:attribute name="enctype"><xsl:value-of select="$enctype"/></xsl:attribute>
+                </xsl:if>
+
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span4">
+                            <label for="{$chart-type-id}">
+                                <xsl:value-of>
+                                    <xsl:apply-templates select="key('resources', '&apl;chartType', document(ac:document-uri('&apl;')))" mode="ac:label"/>
+                                </xsl:value-of>
+                            </label>
+                            <br/>
+                            <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
+                                <option value="&ac;Table">
+                                    <xsl:if test="$chart-type = '&ac;Table'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Table</xsl:text>
+                                </option>
+                                <option value="&ac;ScatterChart">
+                                    <xsl:if test="$chart-type = '&ac;ScatterChart'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Scatter chart</xsl:text>
+                                </option>
+                                <option value="&ac;LineChart">
+                                    <xsl:if test="$chart-type = '&ac;LineChart'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Line chart</xsl:text>
+                                </option>
+                                <option value="&ac;BarChart">
+                                    <xsl:if test="$chart-type = '&ac;BarChart'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Bar chart</xsl:text>
+                                </option>
+                                <option value="&ac;Timeline">
+                                    <xsl:if test="$chart-type = '&ac;Timeline'">
+                                        <xsl:attribute name="selected">selected</xsl:attribute>
+                                    </xsl:if>
+
+                                    <xsl:text>Timeline</xsl:text>
+                                </option>
+                            </select>
+                        </div>
+                        <div class="span4">
+                            <xsl:call-template name="xhtml:Input">
+                                <xsl:with-param name="name" select="'pu'"/>
+                                <xsl:with-param name="type" select="'hidden'"/>
+                                <xsl:with-param name="value" select="'&apl;categoryVarName'"/>
+                            </xsl:call-template>
+
+                            <label for="{$category-id}">Category</label>
+                            <br/>
+                            <select id="{$category-id}" name="ol" class="input-large chart-category">
+                                <xsl:for-each select="srx:head/srx:variable">
+                                    <!-- leave the original variable order so it can be controlled from query -->
+
+                                    <option value="{@name}">
+                                        <xsl:if test="$category = @name">
+                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                        </xsl:if>
+
+                                        <xsl:value-of select="@name"/>
+                                    </option>
+                                </xsl:for-each>
+                            </select>
+                        </div>
+                        <div class="span4">
+                            <label for="{$series-id}">Series</label>
+                            <br/>
+                            <select id="{$series-id}" name="ol" multiple="multiple" class="input-large chart-series">
+                                <xsl:for-each select="srx:head/srx:variable">
+                                    <!-- leave the original variable order so it can be controlled from query -->
+
+                                    <option value="{@name}">
+                                        <xsl:if test="$series = @name">
+                                            <xsl:attribute name="selected">selected</xsl:attribute>
+                                        </xsl:if>
+
+                                        <xsl:value-of select="@name"/>
+                                    </option>
+                                </xsl:for-each>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <xsl:if test="$show-save">
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-save-chart" type="button">
+                            <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                                <xsl:with-param name="class" select="'btn btn-primary btn-save-chart'"/>
+                            </xsl:apply-templates>
+                        </button>
+                    </div>
+                </xsl:if>
+            </form>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- FORM -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ModalForm" priority="1">
