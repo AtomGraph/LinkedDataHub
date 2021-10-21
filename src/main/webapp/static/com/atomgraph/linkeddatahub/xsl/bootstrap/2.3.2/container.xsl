@@ -488,7 +488,7 @@ exclude-result-prefixes="#all"
 
     <!-- graph chart (for RDF/XML results) -->
 
-    <xsl:template match="rdf:RDF" mode="bs2:Chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="rdf:RDF" mode="bs2:Chart">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" select="distinct-values(*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
@@ -503,7 +503,7 @@ exclude-result-prefixes="#all"
         <div id="{$canvas-id}"></div>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'" priority="-1">
+    <xsl:template match="rdf:RDF" mode="bs2:ChartForm" priority="-1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
@@ -548,10 +548,9 @@ exclude-result-prefixes="#all"
                     <div class="row-fluid">
                         <div class="span4">
                             <label for="{$chart-type-id}">
-                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&apl;chartType', document(ac:document-uri('&apl;')))" mode="ac:label"/>
                                 </xsl:value-of>
-                                <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>
                             <br/>
                             <!-- TO-DO: replace with xsl:apply-templates on ac:Chart subclasses as in imports/apl.xsl -->
@@ -660,7 +659,7 @@ exclude-result-prefixes="#all"
 
     <!-- table chart (for SPARQL XML results) -->
 
-    <xsl:template match="srx:sparql" mode="bs2:Chart" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="srx:sparql" mode="bs2:Chart">
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
         <xsl:param name="category" select="srx:head/srx:variable[1]/@name" as="xs:string?"/>
         <xsl:param name="series" select="srx:head/srx:variable/@name" as="xs:string*"/>
@@ -675,7 +674,7 @@ exclude-result-prefixes="#all"
         <div id="{$canvas-id}"></div>
     </xsl:template>
 
-    <xsl:template match="srx:sparql" mode="bs2:ChartForm" use-when="system-property('xsl:product-name') eq 'Saxon-JS'">
+    <xsl:template match="srx:sparql" mode="bs2:ChartForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&def;ResultSetChart')" as="xs:anyURI"/>
@@ -720,10 +719,9 @@ exclude-result-prefixes="#all"
                     <div class="row-fluid">
                         <div class="span4">
                             <label for="{$chart-type-id}">
-                                <xsl:value-of use-when="system-property('xsl:product-name') = 'SAXON'">
+                                <xsl:value-of>
                                     <xsl:apply-templates select="key('resources', '&apl;chartType', document(ac:document-uri('&apl;')))" mode="ac:label"/>
                                 </xsl:value-of>
-                                <xsl:value-of use-when="system-property('xsl:product-name') eq 'Saxon-JS'">Chart type</xsl:value-of>
                             </label>
                             <br/>
                             <select id="{$chart-type-id}" name="ou" class="input-medium chart-type">
