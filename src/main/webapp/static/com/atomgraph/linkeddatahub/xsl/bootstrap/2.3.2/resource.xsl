@@ -880,6 +880,10 @@ extension-element-prefixes="ixsl"
     
     <!-- BLOCK -->
     
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
+    <!-- hide the current document resource -->
+    <xsl:template match="*[@rdf:about = ac:uri()]" mode="bs2:Block"/>
+
+    <!-- hide Content resources -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block"/>
 
 </xsl:stylesheet>
