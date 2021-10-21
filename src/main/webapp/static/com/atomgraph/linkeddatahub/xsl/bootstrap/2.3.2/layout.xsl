@@ -662,24 +662,32 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:choose>
                     <xsl:when test="$ac:mode = '&ac;ReadMode'">
-                        <xsl:apply-templates select="." mode="bs2:Block">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <div class="offset2 span7">
+                            <xsl:apply-templates select="." mode="bs2:Block">
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </div>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">
-                        <xsl:apply-templates select="." mode="bs2:Map">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <div class="offset2 span7">
+                            <xsl:apply-templates select="." mode="bs2:Map">
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </div>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                        <xsl:apply-templates select="." mode="bs2:Chart">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <div class="offset2 span7">
+                            <xsl:apply-templates select="." mode="bs2:Chart">
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </div>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                        <xsl:apply-templates select="." mode="bs2:Graph">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <div class="offset2 span7">
+                            <xsl:apply-templates select="." mode="bs2:Graph">
+                                <xsl:sort select="ac:label(.)"/>
+                            </xsl:apply-templates>
+                        </div>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:apply-templates select="." mode="apl:Content">
