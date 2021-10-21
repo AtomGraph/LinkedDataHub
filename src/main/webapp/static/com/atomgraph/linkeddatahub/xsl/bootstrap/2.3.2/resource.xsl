@@ -366,6 +366,18 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
+    <!-- BLOCK -->
+
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+        
+        <xsl:next-match>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+        </xsl:next-match>
+    </xsl:template>
+
     <!-- IMAGE -->
     
     <!-- TO-DO: move down to Web-Client -->
