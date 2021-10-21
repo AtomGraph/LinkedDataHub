@@ -3314,7 +3314,7 @@ extension-element-prefixes="ixsl"
 
     <!-- document mode tabs -->
     
-    <xsl:template match="//body/div/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
+    <xsl:template match="//body/div/ul[tokenize(@class, ' ') = 'nav-tabs']/li[not(tokenize(@class, ' ') = 'active')]/a" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="container-id" select="'content-body'" as="xs:string"/>
         <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
