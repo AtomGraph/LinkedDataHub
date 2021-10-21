@@ -106,18 +106,15 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <!-- table is the default chart type -->
-        <xsl:param name="chart-type" select="if (ixsl:query-params()?chart-type) then xs:anyURI(ixsl:query-params()?chart-type) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-        <xsl:param name="category" select="ixsl:query-params()?category" as="xs:string?"/>
-        <xsl:param name="series" select="ixsl:query-params()?series" as="xs:string*"/>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
         <xsl:param name="width" as="xs:string?"/>
         <xsl:param name="height" select="'480'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
-        <!-- <xsl:param name="mode" as="xs:anyURI*"/> -->
-        <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
@@ -277,18 +274,15 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" as="xs:string?"/>
-        <!-- table is the default chart type -->
-        <xsl:param name="chart-type" select="if (ixsl:query-params()?chart-type) then xs:anyURI(ixsl:query-params()?chart-type) else xs:anyURI('&ac;Table')" as="xs:anyURI?"/>
-        <xsl:param name="category" select="ixsl:query-params()?category" as="xs:string?"/>
-        <xsl:param name="series" select="ixsl:query-params()?series" as="xs:string*"/>
+        <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI?"/> <!-- table is the default chart type -->
+        <xsl:param name="category" as="xs:string?"/>
+        <xsl:param name="series" as="xs:string*"/>
         <xsl:param name="chart-type-id" select="'chart-type'" as="xs:string"/>
         <xsl:param name="category-id" select="'category'" as="xs:string"/>
         <xsl:param name="series-id" select="'series'" as="xs:string"/>
         <xsl:param name="width" as="xs:string?"/>
         <xsl:param name="height" select="'480'" as="xs:string?"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
-        <xsl:param name="mode" as="xs:anyURI*"/>
-        <xsl:param name="service" select="xs:anyURI(ixsl:query-params()?service)" as="xs:anyURI?"/>
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="show-controls" select="true()" as="xs:boolean"/>
         <xsl:param name="show-save" select="true()" as="xs:boolean"/>
