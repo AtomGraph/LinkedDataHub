@@ -858,7 +858,7 @@ exclude-result-prefixes="#all"
 
     <!-- container mode tabs -->
     
-    <xsl:template match="*[tokenize(@class, ' ') = 'resource-content']/div/ul[@class = 'nav nav-tabs']/li/a" mode="ixsl:onclick">
+    <xsl:template match="*[tokenize(@class, ' ') = 'resource-content']/div/ul[@class = 'nav nav-tabs']/li[not(tokenize(@class, ' ') = 'active')]/a" mode="ixsl:onclick">
         <xsl:variable name="container-id" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']/@id" as="xs:string"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, '.', '-'))" as="xs:anyURI"/>
