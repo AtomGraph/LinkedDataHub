@@ -747,6 +747,17 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="container-id" select="$container-id"/>
                     </xsl:apply-templates>
                 </xsl:if>
+                
+                <xsl:if test="id('map-canvas', ixsl:page())">
+                    <xsl:variable name="canvas-id" select="'map-canvas'" as="xs:string"/>
+                    <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
+                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                    <xsl:variable name="center-lat" select="56" as="xs:float"/>
+                    <xsl:variable name="center-lng" select="10" as="xs:float"/>
+                    <xsl:variable name="zoom" select="4" as="xs:integer"/>
+
+                    <ixsl:set-property name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'map')"/>
+                </xsl:if>
             </xsl:for-each>
         </xsl:for-each>
     </xsl:template>
@@ -758,7 +769,7 @@ extension-element-prefixes="ixsl"
             <xsl:for-each select="?body">
                 <ixsl:set-property name="services" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
-                <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>                
+                <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
                 <xsl:call-template name="apl:RenderServices">
                     <xsl:with-param name="select" select="id('search-service', ixsl:page())"/>
                     <xsl:with-param name="services" select="."/>

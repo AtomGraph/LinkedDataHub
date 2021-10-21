@@ -636,6 +636,15 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
+<!--        <xsl:param name="modes" select="" as="map(xs:string, xs:string)">
+            <xsl:map>
+                 document has content 
+                <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource)">
+                    <xsl:map-entry key="'content-mode'" select="'&apl;ContentMode'"/>
+                </xsl:if>
+            </xsl:map>
+        </xsl:param>-->
+        
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
