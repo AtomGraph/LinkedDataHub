@@ -224,10 +224,10 @@ extension-element-prefixes="ixsl"
     </xsl:function>
     
   <xsl:function name="apl:new" as="item()">
-    <xsl:param name="class" as="xs:string"/>
+    <xsl:param name="target" as="xs:string"/>
     <xsl:param name="arguments" as="array(*)"/>
     
-    <xsl:sequence select="ixsl:window() => ixsl:call( 'Reflect.construct', [ ixsl:window() => ixsl:get($class), $arguments ] )"/>
+    <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:window(), $target), $arguments ] )"/>
   </xsl:function>
     
     <xsl:function name="ac:build-describe" as="xs:string">

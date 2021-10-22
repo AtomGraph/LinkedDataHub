@@ -674,7 +674,7 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:choose>
                     <!-- check if the current document has content -->
-                    <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) and $ac:mode = '&apl;Content'">
+                    <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) and $ac:mode = '&apl;ContentMode'">
                         <xsl:apply-templates select="." mode="apl:Content">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>

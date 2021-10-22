@@ -255,8 +255,7 @@ extension-element-prefixes="ixsl"
 
     <!-- CONTENT -->
     
-    <!-- skip the properties of the the current Root and other root containers, Container, or Item - show only contents -->
-    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="apl:Content" priority="1">
+    <xsl:template match="*[apl:content/@rdf:* or rdf:type/@rdf:resource]" mode="apl:Content" priority="1">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
@@ -881,7 +880,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK -->
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[@rdf:about = ac:uri()]" mode="bs2:Block"/>
+    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:Block" priority="1"/>
 
     <!-- hide Content resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block"/>
