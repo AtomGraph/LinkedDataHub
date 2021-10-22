@@ -651,9 +651,11 @@ exclude-result-prefixes="#all">
 
             <div class="row-fluid">
                 <ul class="nav nav-tabs offset2 span7">
-                    <li class="content-mode{if ($ac:mode = '&apl;ContentMode') then ' active' else() }">
-                        <a>Content</a>
-                    </li>
+                    <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource)">
+                        <li class="content-mode{if ($ac:mode = '&apl;ContentMode') then ' active' else() }">
+                            <a>Content</a>
+                        </li>
+                    </xsl:if>
                     <li class="read-mode{if ($ac:mode = '&ac;ReadMode') then ' active' else() }">
                         <a>Properties</a>
                     </li>
@@ -671,14 +673,11 @@ exclude-result-prefixes="#all">
                 
             <div id="content-body" class="container-fluid">
                 <xsl:choose>
-                    <xsl:when test="$ac:mode = '&ac;ReadMode'">
-                        <div class="row-fluid">
-                            <div class="offset2 span7">
-                                <xsl:apply-templates select="." mode="bs2:Block">
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </div>
-                        </div>
+                    <!-- check if the current document has content -->
+                    <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) and $ac:mode = '&apl;Content'">
+                        <xsl:apply-templates select="." mode="apl:Content">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">
                         <div class="row-fluid">
@@ -708,9 +707,13 @@ exclude-result-prefixes="#all">
                         </div>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="apl:Content">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <div class="row-fluid">
+                            <div class="offset2 span7">
+                                <xsl:apply-templates select="." mode="bs2:Block">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </div>
+                        </div>
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
