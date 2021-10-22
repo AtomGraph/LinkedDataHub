@@ -775,7 +775,7 @@ extension-element-prefixes="ixsl"
 
                 <xsl:call-template name="render-chart">
                     <xsl:with-param name="data-table" select="$data-table"/>
-                    <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                    <xsl:with-param name="canvas-id" select="$canvas-id"/>
                     <xsl:with-param name="chart-type" select="$chart-type"/>
                     <xsl:with-param name="category" select="$category"/>
                     <xsl:with-param name="series" select="$series"/>
