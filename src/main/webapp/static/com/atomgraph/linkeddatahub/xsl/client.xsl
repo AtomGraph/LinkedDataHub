@@ -138,10 +138,10 @@ extension-element-prefixes="ixsl"
         <xsl:message>ixsl:query-params()?uri: <xsl:value-of select="ixsl:query-params()?uri"/></xsl:message>
 
         <!-- create a LinkedDataHub namespace -->
-        <ixsl:set-property name="LinkedDataHub" select="ac:new-object()"/>
+        <ixsl:set-property name="LinkedDataHub" select="apl:new-object()"/>
         <ixsl:set-property name="href" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else $apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="yasqe" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
             <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
@@ -208,18 +208,25 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))"/>
     </xsl:function>
 
-    <xsl:function name="ac:query-type" as="xs:string">
+    <xsl:function name="apl:query-type" as="xs:string">
         <xsl:param name="query-string" as="xs:string"/>
         
         <xsl:sequence select="analyze-string($query-string, '[^a-zA-Z]?(SELECT|ASK|DESCRIBE|CONSTRUCT)[^a-zA-Z]', 'i')/fn:match[1]/fn:group[@nr = '1']/string()"/>
     </xsl:function>
 
-    <xsl:function name="ac:new-object">
+    <xsl:function name="apl:new-object">
         <xsl:variable name="js-statement" as="element()">
             <root statement="{{ }}"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
+    
+  <xsl:function name="apl:new" as="item()">
+    <xsl:param name="class" as="xs:string"/>
+    <xsl:param name="arguments" as="array(*)"/>
+    
+    <xsl:sequence select="ixsl:window() => ixsl:call( 'Reflect.construct', [ ixsl:window() => ixsl:get($class), $arguments ] )"/>
+  </xsl:function>
     
     <xsl:function name="ac:build-describe" as="xs:string">
         <xsl:param name="select-string" as="xs:string"/> <!-- already with ?this value set -->
@@ -577,7 +584,7 @@ extension-element-prefixes="ixsl"
             <!-- service URI is not specified or specified and can be loaded -->
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
                 <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- store this content element -->
                 <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 <!-- store the initial SELECT query (without modifiers) -->
@@ -760,6 +767,15 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="zoom" select="4" as="xs:integer"/>
 
                 <ixsl:set-property name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                
+                <!-- logic ported from SPARQLMap -->
+                <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:lang/text() castable as xs:float]">
+                    <xsl:variable name="lat-lng" select="apl:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
+                    <xsl:variable name="marker-options" select="apl:new-object()"/>
+                    <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
+                    <ixsl:set-property name="map" select="$map" object="$marker-options"/>
+                    <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
+                </xsl:for-each>
             </xsl:if>
 
             <!-- TO-DO: replace hardcoded element ID -->
@@ -2008,7 +2024,7 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
 
                     <!-- create new cache entry using content URI as key -->
-                    <ixsl:set-property name="{$content-uri}" select="ac:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                    <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <ixsl:set-property name="results" select="$results" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                     <xsl:variable name="data-table" select="if ($results/rdf:RDF) then ac:rdf-data-table($results, $category, $series) else ac:sparql-results-data-table($results, $category, $series)"/>
                     <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
@@ -2738,7 +2754,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="ac:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&def;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
         <xsl:message>Query type: <xsl:value-of select="$query-type"/> forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
@@ -2763,7 +2779,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="ac:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="if (upper-case($query-type) = ('SELECT', 'ASK')) then xs:anyURI('&def;ResultSetChart') else xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
         <xsl:message>Query type: <xsl:value-of select="$query-type"/> Chart $forClass: <xsl:value-of select="$forClass"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
@@ -3632,7 +3648,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
         <xsl:param name="series" as="xs:string*"/>
-        <xsl:variable name="query-type" select="ac:query-type($query-string)" as="xs:string"/>
+        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
         <xsl:variable name="forClass" select="xs:anyURI('&def;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
