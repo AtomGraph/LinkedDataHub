@@ -767,8 +767,8 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="center-lat" select="56" as="xs:float"/>
                 <xsl:variable name="center-lng" select="10" as="xs:float"/>
                 <xsl:variable name="zoom" select="4" as="xs:integer"/>
-
-                <ixsl:set-property name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
+                <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <!-- logic ported from SPARQLMap -->
                 <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:lang/text() castable as xs:float]">
