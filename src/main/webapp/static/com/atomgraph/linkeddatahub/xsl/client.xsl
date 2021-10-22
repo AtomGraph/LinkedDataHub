@@ -733,33 +733,54 @@ extension-element-prefixes="ixsl"
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:for-each>
-                
-                <!-- is a new instance of Service was created, reload the LinkedDataHub.services data and re-render the service dropdown -->
-                <xsl:if test="//sd:endpoint or //dydra:repository">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onServiceLoad"/>
-                    </ixsl:schedule-action>
-                </xsl:if>
-
-                <xsl:if test="$container-id">
-                    <!-- render content such as queries and charts -->
-                    <xsl:apply-templates select="/rdf:RDF/*" mode="apl:Content">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="container-id" select="$container-id"/>
-                    </xsl:apply-templates>
-                </xsl:if>
-                
-                <xsl:if test="id('map-canvas', ixsl:page())">
-                    <xsl:variable name="canvas-id" select="'map-canvas'" as="xs:string"/>
-                    <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
-                    <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
-                    <xsl:variable name="center-lat" select="56" as="xs:float"/>
-                    <xsl:variable name="center-lng" select="10" as="xs:float"/>
-                    <xsl:variable name="zoom" select="4" as="xs:integer"/>
-
-                    <ixsl:set-property name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'map')"/>
-                </xsl:if>
             </xsl:for-each>
+
+            <!-- is a new instance of Service was created, reload the LinkedDataHub.services data and re-render the service dropdown -->
+            <xsl:if test="//sd:endpoint or //dydra:repository">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onServiceLoad"/>
+                </ixsl:schedule-action>
+            </xsl:if>
+
+            <xsl:if test="$container-id">
+                <!-- render content such as queries and charts -->
+                <xsl:apply-templates select="/rdf:RDF/*" mode="apl:Content">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="container-id" select="$container-id"/>
+                </xsl:apply-templates>
+            </xsl:if>
+
+            <!-- TO-DO: replace hardcoded element ID -->
+            <xsl:if test="id('map-canvas', ixsl:page())">
+                <xsl:variable name="canvas-id" select="'map-canvas'" as="xs:string"/>
+                <xsl:variable name="initial-load" select="true()" as="xs:boolean"/>
+                <!-- reuse center and zoom if map object already exists, otherwise set defaults -->
+                <xsl:variable name="center-lat" select="56" as="xs:float"/>
+                <xsl:variable name="center-lng" select="10" as="xs:float"/>
+                <xsl:variable name="zoom" select="4" as="xs:integer"/>
+
+                <ixsl:set-property name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            </xsl:if>
+
+            <!-- TO-DO: replace hardcoded element ID -->
+            <xsl:if test="id('chart-canvas', ixsl:page())">
+                <xsl:variable name="canvas-id" select="'chart-canvas'" as="xs:string"/>
+                <xsl:variable name="results" select="." as="document-node()"/>
+                <xsl:variable name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
+                <xsl:variable name="category" as="xs:string?"/>
+                <xsl:variable name="series" select="distinct-values($results/*/*/concat(namespace-uri(), local-name()))" as="xs:string*"/>
+                <xsl:variable name="data-table" select="ac:rdf-data-table($results, $category, $series)"/>
+                
+                <ixsl:set-property name="data-table" select="$data-table" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+                <xsl:call-template name="render-chart">
+                    <xsl:with-param name="data-table" select="$data-table"/>
+                    <xsl:with-param name="canvas-id" select="$chart-canvas-id"/>
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                </xsl:call-template>
+            </xsl:if>
         </xsl:for-each>
     </xsl:template>
 
