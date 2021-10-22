@@ -12,6 +12,7 @@
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY owl        "http://www.w3.org/2002/07/owl#">
+    <!ENTITY geo        "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY skos       "http://www.w3.org/2004/02/skos/core#">
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
     <!ENTITY http       "http://www.w3.org/2011/http#">
@@ -47,6 +48,7 @@ xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:owl="&owl;"
+xmlns:geo="&geo;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
 xmlns:dh="&dh;"
