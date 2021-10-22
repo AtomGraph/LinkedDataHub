@@ -49,7 +49,7 @@ import com.atomgraph.core.io.ResultSetProvider;
 import com.atomgraph.core.io.UpdateRequestProvider;
 import com.atomgraph.core.mapper.BadGatewayExceptionMapper;
 import com.atomgraph.core.provider.QueryParamProvider;
-import com.atomgraph.linkeddatahub.client.factory.DataManagerFactory;
+import com.atomgraph.linkeddatahub.writer.factory.DataManagerFactory;
 import com.atomgraph.server.mapper.NotFoundExceptionMapper;
 import com.atomgraph.core.riot.RDFLanguages;
 import com.atomgraph.core.riot.lang.RDFPostReaderFactory;
@@ -65,11 +65,11 @@ import com.atomgraph.linkeddatahub.model.CSVImport;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.File;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
-import com.atomgraph.linkeddatahub.client.factory.XsltExecutableSupplierFactory;
+import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.filter.HostnameRewriteFilter;
-import com.atomgraph.linkeddatahub.client.writer.ModelXSLTWriter;
+import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
@@ -105,6 +105,8 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.writer.Mode;
+import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.processor.vocabulary.AP;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.ParameterExceptionMapper;
@@ -162,6 +164,7 @@ import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -710,6 +713,15 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
+                in(RequestScoped.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(ModeFactory.class).to(new TypeLiteral<List<Mode>>() {}).
                 in(RequestScoped.class);
             }
         });

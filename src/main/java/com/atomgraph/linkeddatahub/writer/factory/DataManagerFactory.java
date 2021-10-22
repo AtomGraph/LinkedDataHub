@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.factory;
+package com.atomgraph.linkeddatahub.writer.factory;
 
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import org.apache.jena.util.FileManager;
@@ -24,7 +24,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.client.impl.DataManagerImpl;
+import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Optional;

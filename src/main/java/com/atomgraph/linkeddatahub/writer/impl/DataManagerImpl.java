@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.impl;
+package com.atomgraph.linkeddatahub.writer.impl;
 
 import org.apache.jena.util.LocationMapper;
 import java.net.URI;

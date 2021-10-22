@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.atomgraph.linkeddatahub.client.writer;
+package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
@@ -21,7 +21,7 @@ import static com.atomgraph.client.writer.ModelXSLTWriterBase.getSource;
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
-import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
@@ -89,6 +90,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
+    @Inject javax.inject.Provider<List<Mode>> modes;
 
     public ModelXSLTWriterBase(XsltExecutable xsltExec, OntModelSpec ontModelSpec, DataManager dataManager)
     {
@@ -274,9 +276,14 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Override
     public List<URI> getModes(Set<String> namespaces)
     {
-        return getModes(getUriInfo(), namespaces);
+        return getModes().stream().map(Mode::get).collect(Collectors.toList());
     }
 
+    public List<Mode> getModes()
+    {
+        return modes.get();
+    }
+    
     @Override
     public Set<String> getSupportedNamespaces()
     {

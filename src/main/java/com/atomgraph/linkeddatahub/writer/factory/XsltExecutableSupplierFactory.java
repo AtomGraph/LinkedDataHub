@@ -14,11 +14,11 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.factory;
+package com.atomgraph.linkeddatahub.writer.factory;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplierImpl;
-import com.atomgraph.linkeddatahub.client.factory.xslt.XsltExecutableSupplier;
+import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplierImpl;
+import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;

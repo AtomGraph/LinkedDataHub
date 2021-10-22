@@ -3379,8 +3379,8 @@ extension-element-prefixes="ixsl"
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="mode" select="map:get($mode-classes, $active-class)" as="xs:string"/>
-        <xsl:variable name="mode-uri" select="ac:build-uri($uri, map{ 'mode': $mode })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($mode-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <!--<xsl:variable name="mode-uri" select="ac:build-uri($uri, map{ 'mode': $mode })" as="xs:anyURI"/>-->
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->

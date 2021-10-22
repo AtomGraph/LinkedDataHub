@@ -1,5 +1,5 @@
 /**
- *  Copyright 2020 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,16 +14,34 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.factory.xslt;
+package com.atomgraph.linkeddatahub.writer;
 
+import java.net.URI;
 import java.util.function.Supplier;
-import net.sf.saxon.s9api.XsltExecutable;
 
 /**
  *
- * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
+ * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public interface XsltExecutableSupplier extends Supplier<XsltExecutable>
+public class Mode implements Supplier<URI>
 {
+
+    private final URI uri;
+
+    public Mode(String uri)
+    {
+        this.uri = URI.create(uri);
+    }
     
+    public Mode(URI uri)
+    {
+        this.uri = uri;
+    }
+    
+    @Override
+    public URI get()
+    {
+        return uri;
+    }
+
 }

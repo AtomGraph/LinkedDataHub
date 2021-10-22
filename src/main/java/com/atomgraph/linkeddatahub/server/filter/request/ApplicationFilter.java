@@ -20,10 +20,13 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Client;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -71,6 +74,14 @@ public class ApplicationFilter implements ContainerRequestFilter
         // has to go before ?uri logic because that will change the UriInfo
         if (request.getUriInfo().getQueryParameters().containsKey(AC.accept.getLocalName()))
             request.getHeaders().putSingle(HttpHeaders.ACCEPT, request.getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName()));
+
+        // used by ModeFactory and ModelXSLTWriterBase
+        if (request.getUriInfo().getQueryParameters().containsKey(AC.mode.getLocalName()))
+        {
+            List<String> modeUris = request.getUriInfo().getQueryParameters().get(AC.mode.getLocalName());
+            List<Mode> modes = modeUris.stream().map(Mode::new).collect(Collectors.toList());
+            request.setProperty(AC.mode.getURI(), modes);
+        }
 
         // there might also be a server app (which might be equal to the client app)
         if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))

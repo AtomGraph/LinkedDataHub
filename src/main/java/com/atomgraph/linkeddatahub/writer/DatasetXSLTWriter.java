@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.writer;
+package com.atomgraph.linkeddatahub.writer;
 
 import com.atomgraph.client.util.DataManager;
 import javax.ws.rs.Produces;
