@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -82,6 +83,7 @@ public class ApplicationFilter implements ContainerRequestFilter
             List<Mode> modes = modeUris.stream().map(Mode::new).collect(Collectors.toList());
             request.setProperty(AC.mode.getURI(), modes);
         }
+        else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
         // there might also be a server app (which might be equal to the client app)
         if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
