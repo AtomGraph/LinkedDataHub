@@ -780,9 +780,8 @@ extension-element-prefixes="ixsl"
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:if test="@rdf:about">
-                        <xsl:variable name="params" select="map{ 'url': string(@rdf:about) }" as="map(xs:string, xs:string)"/>
-                        <xsl:variable name="params-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $params => serialize(map { 'method': 'json' }) ])"/>
-                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onInfoWindowLoad', $params-obj ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:variable name="url" select="string(@rdf:about)" as="xs:string"/>
+                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onMarkerClick', $map, $marker, $url ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:if>
@@ -809,11 +808,45 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template name="onInfoWindowLoad"> <!-- match="." mode="ixsl:oninfoWindowLoad" -->
-        <xsl:param name="event"/>
+    <xsl:template name="onMarkerClick">
+        <xsl:param name="map"/>
+        <xsl:param name="marker"/>
         <xsl:param name="url" as="xs:string"/>
         
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onInfoWindowLoad: ' || $url ])"/>
+        <!-- InfoWindowMode is handled as a special case in layout.xsl -->
+        <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <xsl:call-template name="onInfoWindowLoad">
+                <xsl:with-param name="map" select="$map"/>
+                <xsl:with-param name="marker" select="$marker"/>
+            </xsl:call-template>
+        </ixsl:schedule-action>
+    </xsl:template>
+    
+    <xsl:template name="onInfoWindowLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="map"/>
+        <xsl:param name="marker"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
+                <xsl:variable name="info-window-options" select="apl:new-object()"/>
+                <!-- render first child of <body> as InfoWindow content -->
+                <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
+                <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
+                <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
+                <xsl:sequense select="ixsl:call($info-window, 'open', [ $map, $marker ])"/>
+                
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+            </xsl:when>
+            <xsl:otherwise>
+                
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template name="onServiceLoad">
