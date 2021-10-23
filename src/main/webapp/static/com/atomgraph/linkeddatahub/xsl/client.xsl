@@ -779,18 +779,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:variable name="info-window-options" select="apl:new-object()"/>
-                    <xsl:variable name="info-window-html" as="element()">
-                        <div>
-                            <xsl:apply-templates select="." mode="bs2:Header"/>
-                        </div>
-                    </xsl:variable>
-                    <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
-                    <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                    <xsl:variable name="render-info-window" select="apl:new('Function', [ 'map', 'marker', 'this.open(map, marker)' ])"/>
-                    <!-- bind arguments to the listener function -->
-                    <xsl:variable name="render-info-window" select="ixsl:call($render-info-window, 'bind', [ $info-window, $map, $marker ])"/>
-                    <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', $render-info-window ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'onInfoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:if>
 
@@ -816,6 +805,10 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
+    <xsl:template match="." mode="ixsl:onInfoWindowLoad">
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'ixsl:onInfoWindowLoad' ])"/>
+    </xsl:template>
+    
     <xsl:template name="onServiceLoad">
         <xsl:context-item as="map(*)" use="required"/>
 
