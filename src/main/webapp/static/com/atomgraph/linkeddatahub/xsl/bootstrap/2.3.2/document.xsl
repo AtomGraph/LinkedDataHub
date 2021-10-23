@@ -79,6 +79,12 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
+    <xsl:template match="rdf:RDF" mode="bs2:Map">
+        <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
+
+        <div id="{$canvas-id}"/>
+    </xsl:template>
+        
     <!-- CHART -->
 
     <!-- graph chart (for RDF/XML results) -->
