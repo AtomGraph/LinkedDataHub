@@ -781,7 +781,9 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
                     <!--<xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'onInfoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:if test="@rdf:about">
-                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onInfoWindowLoad', map{ 'url': string(@rdf:about) } ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:variable name="params" select="map{ 'url': string(@rdf:about) }" as="map(xs:string, xs:string)"/>
+                        <xsl:variable name="params-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $params => serialize(map { 'method': 'json' }) ])"/>
+                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onInfoWindowLoad', $params-obj ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:if>
