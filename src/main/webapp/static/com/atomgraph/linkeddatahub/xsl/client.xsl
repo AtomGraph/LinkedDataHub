@@ -779,7 +779,10 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'infoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <!--<xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'onInfoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>-->
+                    <xsl:if test="@rdf:about">
+                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onInfoWindowLoad', map{ 'url': str(@rdf:about) } ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:if>
                 </xsl:for-each>
             </xsl:if>
 
@@ -805,8 +808,11 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="." mode="ixsl:oninfoWindowLoad">
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'ixsl:oninfoWindowLoad' ])"/>
+    <xsl:template name="onInfoWindowLoad"> <!-- match="." mode="ixsl:oninfoWindowLoad" -->
+        <xsl:param name="event"/>
+        <xsl:param name="url" as="xs:string"/>
+        
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onInfoWindowLoad' ])"/>
     </xsl:template>
     
     <xsl:template name="onServiceLoad">

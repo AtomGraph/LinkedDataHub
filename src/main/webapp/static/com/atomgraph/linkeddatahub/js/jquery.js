@@ -130,6 +130,14 @@ var onContentDisplayToggle = function()
     $('body').find(".content").toggle();
 };
 
+var addGoogleMapsListener = function(object, type, options, templateName, params) {
+    object.addListener(type, 
+        function (event) {
+            SaxonJS.transform({ "initialTemplate": templateName, "templateParams": Object.assign(params, { "event": event }) });
+        },
+        options);
+};
+
 $(document).ready(function()
 {
     // turn off browser autocomplete for input's with our own autocomplete
