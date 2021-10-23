@@ -2300,7 +2300,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
 
         <xsl:call-template name="apl:LoadRDFDocument">
-            <xsl:with-param name="uri" select="apl:absolute-path()"/>
+            <xsl:with-param name="uri" select="$uri"/>
             <xsl:with-param name="container-id" select="$container-id"/>
         </xsl:call-template>
     </xsl:template>
