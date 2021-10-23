@@ -805,7 +805,7 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="." mode="ixsl:onInfoWindowLoad">
+    <xsl:template match="." mode="ixsl:oninfoWindowLoad">
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'ixsl:oninfoWindowLoad' ])"/>
     </xsl:template>
     
