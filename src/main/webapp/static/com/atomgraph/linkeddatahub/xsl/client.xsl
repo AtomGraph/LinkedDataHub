@@ -780,8 +780,8 @@ extension-element-prefixes="ixsl"
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
                     <xsl:if test="@rdf:about">
-                        <xsl:variable name="url" select="string(@rdf:about)" as="xs:string"/>
-                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onMarkerClick', $map, $marker, $url ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:variable name="uri" select="string(@rdf:about)" as="xs:string"/>
+                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onMarkerClick', $map, $marker, $uri ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:if>
@@ -811,7 +811,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onMarkerClick">
         <xsl:param name="map"/>
         <xsl:param name="marker"/>
-        <xsl:param name="url" as="xs:string"/>
+        <xsl:param name="uri" as="xs:string"/>
         
         <!-- InfoWindowMode is handled as a special case in layout.xsl -->
         <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>

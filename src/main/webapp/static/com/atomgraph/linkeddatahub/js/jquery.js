@@ -130,7 +130,7 @@ var onContentDisplayToggle = function()
     $('body').find(".content").toggle();
 };
 
-var addGoogleMapsListener = function(object, type, options, templateName, map, marker, url)
+var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
 {
     object.addListener(type, 
         function (event)
@@ -138,7 +138,7 @@ var addGoogleMapsListener = function(object, type, options, templateName, map, m
             SaxonJS.transform({
                 "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
                 "initialTemplate": templateName,
-                "templateParams": { "event": event, "marker": marker, "map": map, "url": url }
+                "templateParams": { "event": event, "marker": marker, "map": map, "uri": uri }
             });
         },
         options);
