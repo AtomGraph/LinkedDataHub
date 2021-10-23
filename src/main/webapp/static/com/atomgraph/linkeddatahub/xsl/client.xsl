@@ -781,7 +781,7 @@ extension-element-prefixes="ixsl"
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
                     <!--<xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'onInfoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:if test="@rdf:about">
-                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onInfoWindowLoad', map{ 'url': str(@rdf:about) } ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onInfoWindowLoad', map{ 'url': string(@rdf:about) } ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:if>
