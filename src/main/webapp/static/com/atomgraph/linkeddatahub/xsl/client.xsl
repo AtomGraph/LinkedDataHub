@@ -791,7 +791,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
                     <!-- make sure $info-window is evaluated -->
                     <xsl:sequence select="$info-window[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:variable name="render-info-window" select="apl:new('Function', [ 'infoWindow', 'marker', 'this.open(map, marker)' ])"/>
+                    <xsl:variable name="render-info-window" select="apl:new('Function', [ 'map', 'marker', 'this.open(map, marker)' ])"/>
                     <!-- bind arguments to the listener function -->
                     <xsl:variable name="render-info-window" select="ixsl:call($render-info-window, 'bind', [ $info-window, $map, $marker ])"/>
                     <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', $render-info-window ])[current-date() lt xs:date('2000-01-01')]"/>
