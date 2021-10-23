@@ -839,7 +839,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
                 <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
                 <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                <xsl:sequense select="ixsl:call($info-window, 'open', [ $map, $marker ])"/>
+                <xsl:sequence select="ixsl:call($info-window, 'open', [ $map, $marker ])[current-date() lt xs:date('2000-01-01')]"/>
                 
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
