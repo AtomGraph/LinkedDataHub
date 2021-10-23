@@ -777,6 +777,18 @@ extension-element-prefixes="ixsl"
                     <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
                     <ixsl:set-property name="map" select="$map" object="$marker-options"/>
                     <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
+                    <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
+<!--                    <xsl:variable name="info-window-options" select="apl:new-object()"/>
+                    <xsl:variable name="info-window-html" as="element()">
+                        <div>
+                            <xsl:apply-templates select="." mode="bs2:Block">
+                                <xsl:with-param name="display" select="true()" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </div>
+                    </xsl:variable>
+                    <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
+                    <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
+                    <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', $render-info-window ])[current-date() lt xs:date('2000-01-01')]"/>-->
                 </xsl:for-each>
             </xsl:if>
 
