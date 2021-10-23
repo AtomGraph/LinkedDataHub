@@ -1,4 +1,4 @@
-/* global stylesheetUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
+/* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
 var onTypeaheadInputBlur = function()
 {
@@ -133,7 +133,11 @@ var onContentDisplayToggle = function()
 var addGoogleMapsListener = function(object, type, options, templateName, params) {
     object.addListener(type, 
         function (event) {
-            SaxonJS.transform({ "initialTemplate": templateName, "templateParams": Object.assign(params, { "event": event }) });
+            SaxonJS.transform({
+                "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
+                "initialTemplate": templateName,
+                "templateParams": Object.assign(params, { "event": event })
+            });
         },
         options);
 };
