@@ -779,7 +779,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'onInfoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>
+                    <xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'infoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:if>
 
@@ -806,7 +806,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="." mode="ixsl:onInfoWindowLoad">
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'ixsl:onInfoWindowLoad' ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'ixsl:oninfoWindowLoad' ])"/>
     </xsl:template>
     
     <xsl:template name="onServiceLoad">
