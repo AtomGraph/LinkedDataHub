@@ -130,9 +130,11 @@ var onContentDisplayToggle = function()
     $('body').find(".content").toggle();
 };
 
-var addGoogleMapsListener = function(object, type, options, templateName, params) {
+var addGoogleMapsListener = function(object, type, options, templateName, params)
+{
     object.addListener(type, 
-        function (event) {
+        function (event)
+        {
             SaxonJS.transform({
                 "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
                 "initialTemplate": templateName,

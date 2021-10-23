@@ -779,7 +779,6 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
-                    <!--<xsl:sequence select="ixsl:call($marker, 'addListener', [ 'click', ixsl:get(ixsl:window(), 'onInfoWindowLoad') ])[current-date() lt xs:date('2000-01-01')]"/>-->
                     <xsl:if test="@rdf:about">
                         <xsl:variable name="params" select="map{ 'url': string(@rdf:about) }" as="map(xs:string, xs:string)"/>
                         <xsl:variable name="params-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $params => serialize(map { 'method': 'json' }) ])"/>
@@ -814,7 +813,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="event"/>
         <xsl:param name="url" as="xs:string"/>
         
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onInfoWindowLoad' ])"/>
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onInfoWindowLoad: ' || $url ])"/>
     </xsl:template>
     
     <xsl:template name="onServiceLoad">
