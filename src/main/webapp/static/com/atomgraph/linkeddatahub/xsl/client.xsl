@@ -771,7 +771,7 @@ extension-element-prefixes="ixsl"
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <!-- logic ported from SPARQLMap -->
-                <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:lang/text() castable as xs:float]">
+                <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
                     <xsl:variable name="lat-lng" select="apl:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
                     <xsl:variable name="marker-options" select="apl:new-object()"/>
                     <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
