@@ -637,21 +637,12 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="xhtml:Body">
-<!--        <xsl:param name="modes" select="" as="map(xs:string, xs:string)">
-            <xsl:map>
-                 document has content 
-                <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource)">
-                    <xsl:map-entry key="'content-mode'" select="'&apl;ContentMode'"/>
-                </xsl:if>
-            </xsl:map>
-        </xsl:param>-->
-        
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div class="row-fluid">
                 <ul class="nav nav-tabs offset2 span7">
-                    <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource)">
+                    <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))">
                         <li class="content-mode{if ($ac:mode = '&apl;ContentMode') then ' active' else() }">
                             <a>Content</a>
                         </li>
@@ -673,8 +664,8 @@ exclude-result-prefixes="#all">
                 
             <div id="content-body" class="container-fluid">
                 <xsl:choose>
-                    <!-- check if the current document has content -->
-                    <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) and $ac:mode = '&apl;ContentMode'">
+                    <!-- check if the current document has content or its class has content -->
+                    <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))) or $ac:mode = '&apl;ContentMode'">
                         <xsl:apply-templates select="." mode="apl:Content">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
