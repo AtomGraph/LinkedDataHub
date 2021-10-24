@@ -776,6 +776,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="marker-options" select="apl:new-object()"/>
                     <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
                     <ixsl:set-property name="map" select="$map" object="$marker-options"/>
+                    <ixsl:set-property name="label" select="ac:label(.)" object="$marker-options"/>
                     <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
                     <!-- make sure $marker is evaluated -->
                     <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
@@ -840,15 +841,31 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
                     <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
                     <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                    <xsl:sequence select="ixsl:call($info-window, 'open', [ $map, $marker ])[current-date() lt xs:date('2000-01-01')]"/>
-
-                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                    <xsl:variable name="open-options" select="apl:new-object()"/>
+                    <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
+                    <ixsl:set-property name="map" select="$map" object="$open-options"/>
+                    <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
+                    <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                
+                <xsl:variable name="info-window-options" select="apl:new-object()"/>
+                <xsl:variable name="info-window-html" as="element()">
+                    <div class="alert alert-block">
+                        <strong>Could not map resource: <a href="{$uri}"><xsl:value-of select="$uri"/></a></strong>
+                    </div>
+                </xsl:variable>
+                <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
+                <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
+                <xsl:variable name="open-options" select="apl:new-object()"/>
+                <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
+                <ixsl:set-property name="map" select="$map" object="$open-options"/>
+                <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
+                <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <xsl:template name="onServiceLoad">
