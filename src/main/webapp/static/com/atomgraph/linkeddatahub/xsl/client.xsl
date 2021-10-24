@@ -223,12 +223,12 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:function>
     
-  <xsl:function name="apl:new" as="item()">
-    <xsl:param name="target" as="xs:string"/>
-    <xsl:param name="arguments" as="array(*)"/>
-    
-    <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:window(), $target), $arguments ] )"/>
-  </xsl:function>
+    <xsl:function name="apl:new" as="item()">
+        <xsl:param name="target" as="xs:string"/>
+        <xsl:param name="arguments" as="array(*)"/>
+
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'Reflect.construct', [ ixsl:get(ixsl:window(), $target), $arguments ] )"/>
+    </xsl:function>
     
     <xsl:function name="ac:build-describe" as="xs:string">
         <xsl:param name="select-string" as="xs:string"/> <!-- already with ?this value set -->
@@ -820,7 +820,7 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
             <xsl:call-template name="onInfoWindowLoad">
                 <xsl:with-param name="map" select="$map"/>
                 <xsl:with-param name="marker" select="$marker"/>
@@ -836,7 +836,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI"/>
 
         <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
+            <xsl:when test="?status = 200 and starts-with(?media-type, 'text/html')">
                 <xsl:for-each select="?body">
                     <xsl:variable name="info-window-options" select="apl:new-object()"/>
                     <!-- render first child of <body> as InfoWindow content -->
