@@ -812,7 +812,7 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onMarkerClick">
         <xsl:param name="map"/>
         <xsl:param name="marker"/>
-        <xsl:param name="uri" as="xs:string"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
         
         <!-- InfoWindowMode is handled as a special case in layout.xsl -->
         <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
@@ -824,6 +824,7 @@ extension-element-prefixes="ixsl"
             <xsl:call-template name="onInfoWindowLoad">
                 <xsl:with-param name="map" select="$map"/>
                 <xsl:with-param name="marker" select="$marker"/>
+                <xsl:with-param name="uri" select="$uri"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
@@ -832,7 +833,8 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="map"/>
         <xsl:param name="marker"/>
-        
+        <xsl:param name="uri" as="xs:anyURI"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
                 <xsl:for-each select="?body">
