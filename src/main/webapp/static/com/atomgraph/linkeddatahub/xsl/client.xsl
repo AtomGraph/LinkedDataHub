@@ -703,9 +703,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="container-id" as="xs:string?"/>
 
         <xsl:for-each select="?body">
-            <!-- store document under window.LinkedDataHub[$content-uri] -->
-            <xsl:variable name="content-uri" select="$uri" as="xs:anyURI"/>
+            <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
+            <xsl:param name="content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
             <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+            <!-- store document under window.LinkedDataHub[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
             <!-- focus on current resource -->
