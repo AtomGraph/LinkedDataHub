@@ -834,14 +834,16 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
-                <xsl:variable name="info-window-options" select="apl:new-object()"/>
-                <!-- render first child of <body> as InfoWindow content -->
-                <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
-                <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
-                <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                <xsl:sequence select="ixsl:call($info-window, 'open', [ $map, $marker ])[current-date() lt xs:date('2000-01-01')]"/>
-                
-                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:for-each select="?body">
+                    <xsl:variable name="info-window-options" select="apl:new-object()"/>
+                    <!-- render first child of <body> as InfoWindow content -->
+                    <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
+                    <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
+                    <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
+                    <xsl:sequence select="ixsl:call($info-window, 'open', [ $map, $marker ])[current-date() lt xs:date('2000-01-01')]"/>
+
+                    <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 
