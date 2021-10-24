@@ -69,6 +69,7 @@ import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.filter.HostnameRewriteFilter;
+import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -445,9 +446,12 @@ public class Application extends ResourceConfig
         this.invalidateCache = invalidateCache;
         this.authCacheControl = authCacheControl;
 
-        // add RDF/POST serialization
+        // add RDF/POST reader
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
+        // add HTML/JSON-LD reader
+        RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
+        RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML, new HtmlJsonLDReaderFactory());
         // register plain RDF/XML writer as default
         RDFWriterRegistry.register(Lang.RDFXML, RDFFormat.RDFXML_PLAIN); 
 

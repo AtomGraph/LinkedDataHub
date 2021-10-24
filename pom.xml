@@ -154,6 +154,11 @@
             <version>0.5.9</version>
         </dependency>
         <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.14.3</version>
+        </dependency>
+        <dependency>
             <!-- comes with atomgraph/letsencrypt-tomcat -->
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-coyote</artifactId>
