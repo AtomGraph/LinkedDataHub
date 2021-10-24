@@ -672,7 +672,10 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">
                         <div class="row-fluid">
-                            <div class="offset2 span7">
+                            <div class="offset2 span7 content resource-content">
+                                <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
+                                <input name="href" type="hidden" value="{ac:uri()}"/>
+                                
                                 <xsl:apply-templates select="." mode="bs2:Map">
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
@@ -681,7 +684,10 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;ChartMode'">
                         <div class="row-fluid">
-                            <div class="offset2 span7">
+                            <div class="offset2 span7 content resource-content">
+                                <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
+                                <input name="href" type="hidden" value="{ac:uri()}"/>
+                                
                                 <xsl:apply-templates select="." mode="bs2:Chart">
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
@@ -690,7 +696,10 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;GraphMode'">
                         <div class="row-fluid">
-                            <div class="offset2 span7">
+                            <div class="offset2 span7 content resource-content">
+                                <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
+                                <input name="href" type="hidden" value="{ac:uri()}"/>
+                                
                                 <xsl:apply-templates select="." mode="bs2:Graph">
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
@@ -699,7 +708,10 @@ exclude-result-prefixes="#all">
                     </xsl:when>
                     <xsl:otherwise>
                         <div class="row-fluid">
-                            <div class="offset2 span7">
+                            <div class="offset2 span7 content resource-content">
+                                <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
+                                <input name="href" type="hidden" value="{ac:uri()}"/>
+                                
                                 <xsl:apply-templates select="." mode="bs2:Block">
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>

@@ -505,7 +505,7 @@ extension-element-prefixes="ixsl"
                         <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
                     </xsl:if>
 
-                    <!--<object data="{ac:build-uri(xs:anyURI(rdf:first/@rdf:resource), map{ 'mode': '&aplt;ObjectMode' })}" type="text/html"></object>-->
+                    <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
                     <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
                 </div>
             </div>

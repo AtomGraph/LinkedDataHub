@@ -820,6 +820,7 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
+        <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
             <xsl:call-template name="onInfoWindowLoad">
                 <xsl:with-param name="map" select="$map"/>
