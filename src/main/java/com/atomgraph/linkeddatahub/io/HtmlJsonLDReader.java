@@ -46,6 +46,7 @@ public class HtmlJsonLDReader extends JsonLDReader
     public HtmlJsonLDReader(Lang lang, ParserProfile profile, ErrorHandler errorHandler)
     {
         super(lang, profile, errorHandler);
+        System.setProperty("com.github.jsonldjava.disallowRemoteContextLoading", "true");
     }
 
     @Override

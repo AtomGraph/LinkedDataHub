@@ -1,0 +1,7 @@
+[
+  {
+    "Content-Location": "http://schema.org",
+    "X-Classpath": "contexts/example.jsonld",
+    "Content-Type": "application/ld+json"
+  }
+]
