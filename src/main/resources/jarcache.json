@@ -1,7 +1,7 @@
 [
   {
     "Content-Location": "http://schema.org",
-    "X-Classpath": "contexts/example.jsonld",
+    "X-Classpath": "com/atomgraph/linkeddatahub/schema.org.jsonldcontext",
     "Content-Type": "application/ld+json"
   }
 ]
