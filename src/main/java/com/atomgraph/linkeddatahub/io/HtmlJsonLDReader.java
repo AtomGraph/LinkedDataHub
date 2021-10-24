@@ -73,7 +73,8 @@ public class HtmlJsonLDReader extends JsonLDReader
         if (jsonLdElements.isEmpty()) throw new RiotParseException("<script> element with type=\"application/ld+json\" not found",  -1,  -1);
         
         // TO-DO: what should be done with multiple <script type="application/ld+json"> elements?
-        super.read(new StringReader(jsonLdElements.get(0).text()), baseURI, JSONLD.getContentType(), output, context);
+        String jsonLd = jsonLdElements.get(0).text();
+        super.read(new StringReader(jsonLd), baseURI, JSONLD.getContentType(), output, context);
     }
 
 }
