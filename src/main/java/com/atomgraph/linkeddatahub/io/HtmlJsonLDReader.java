@@ -31,6 +31,7 @@ import org.apache.jena.riot.system.StreamRDF;
 import org.apache.jena.sparql.util.Context;
 import org.apache.jena.util.FileUtils;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 
@@ -82,9 +83,12 @@ public class HtmlJsonLDReader extends JsonLDReader
 
         context.set(JSONLD_OPTIONS, getJsonLdOptions());
         
-        // TO-DO: what should be done with multiple <script type="application/ld+json"> elements?
-        String jsonLd = jsonLdElements.get(0).data();
-        super.read(new StringReader(jsonLd), baseURI, JSONLD.getContentType(), output, context);
+        // read from all <script type="application/ld+json"> elements
+        for (Element element : jsonLdElements)
+        {
+            String jsonLd = element.data();
+            super.read(new StringReader(jsonLd), baseURI, JSONLD.getContentType(), output, context);
+        }
     }
 
     public JsonLdOptions getJsonLdOptions()
