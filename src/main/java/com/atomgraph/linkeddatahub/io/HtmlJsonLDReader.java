@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.io;
 
+import com.github.jsonldjava.core.JsonLdOptions;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -24,7 +25,6 @@ import org.apache.jena.riot.Lang;
 import static org.apache.jena.riot.Lang.JSONLD;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RiotParseException;
-import org.apache.jena.riot.lang.JsonLDReader;
 import org.apache.jena.riot.system.ErrorHandler;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.StreamRDF;
@@ -43,9 +43,17 @@ import org.jsoup.select.Elements;
 public class HtmlJsonLDReader extends JsonLDReader
 {
 
+    private final JsonLdOptions options;
+    
     public HtmlJsonLDReader(Lang lang, ParserProfile profile, ErrorHandler errorHandler)
     {
+        this(lang, profile, errorHandler, null);
+    }
+    
+    public HtmlJsonLDReader(Lang lang, ParserProfile profile, ErrorHandler errorHandler, JsonLdOptions options)
+    {
         super(lang, profile, errorHandler);
+        this.options = options;
     }
 
     @Override
@@ -71,10 +79,17 @@ public class HtmlJsonLDReader extends JsonLDReader
         Elements jsonLdElements = html.selectXpath("/html/head/script[@type = 'application/ld+json']");
 
         if (jsonLdElements.isEmpty()) throw new RiotParseException("<script> element with type=\"application/ld+json\" not found",  -1,  -1);
+
+        context.set(JSONLD_OPTIONS, getJsonLdOptions());
         
         // TO-DO: what should be done with multiple <script type="application/ld+json"> elements?
         String jsonLd = jsonLdElements.get(0).data();
         super.read(new StringReader(jsonLd), baseURI, JSONLD.getContentType(), output, context);
     }
 
+    public JsonLdOptions getJsonLdOptions()
+    {
+        return options;
+    }
+    
 }

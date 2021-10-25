@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.io;
 
 import com.atomgraph.core.MediaType;
+import com.github.jsonldjava.core.JsonLdOptions;
 import org.apache.jena.atlas.lib.InternalErrorException;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.LangBuilder;
@@ -31,17 +32,35 @@ import org.apache.jena.riot.system.ParserProfile;
 public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
 {
     
+    private final JsonLdOptions options;
+
     // TO-DO: move to RDFLanguages
     public static final Lang HTML = LangBuilder.create("HTML", MediaType.TEXT_HTML).
             addFileExtensions("html").
             build();
     
+    public HtmlJsonLDReaderFactory()
+    {
+        this(null);
+    }
+    
+    public HtmlJsonLDReaderFactory(JsonLdOptions options)
+    {
+        this.options = options;
+    }
+    
     @Override
     public ReaderRIOT create(Lang lang, ParserProfile profile) 
     {
         if ( !HTML.equals(lang) )
-            throw new InternalErrorException("Attempt to parse " + lang + " as HTML") ;
-        return new HtmlJsonLDReader(lang, profile, profile.getErrorHandler());
+            throw new InternalErrorException("Attempt to parse " + lang + " as HTML");
+        
+        return new HtmlJsonLDReader(lang, profile, profile.getErrorHandler(), getJsonLdOptions());
     }
 
+    public JsonLdOptions getJsonLdOptions()
+    {
+        return options;
+    }
+    
 }

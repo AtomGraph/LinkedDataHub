@@ -164,6 +164,9 @@ import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
+import com.github.jsonldjava.core.DocumentLoader;
+import com.github.jsonldjava.core.JsonLdOptions;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -259,6 +262,7 @@ public class Application extends ResourceConfig
     public Application(@Context ServletConfig servletConfig) throws URISyntaxException, MalformedURLException, IOException
     {
         this(
+            servletConfig,
             new MediaTypes(),
             servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(A.maxGetRequestSize.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI()) != null ? Boolean.parseBoolean(servletConfig.getServletContext().getInitParameter(A.cacheModelLoads.getURI())) : true,
@@ -311,7 +315,7 @@ public class Application extends ResourceConfig
         this.contextDataset = getDataset(servletConfig.getServletContext(), contextDatasetURI);
     }
     
-    public Application(final MediaTypes mediaTypes,
+    public Application(final ServletConfig servletConfig, final MediaTypes mediaTypes,
             final Integer maxGetRequestSize, final boolean cacheModelLoads, final boolean preemptiveAuth, final boolean cacheSitemap,
             final LocationMapper locationMapper, final Source stylesheet, final boolean cacheStylesheet, final boolean resolvingUncached,
             final String clientKeyStoreURIString, final String clientKeyStorePassword,
@@ -449,9 +453,24 @@ public class Application extends ResourceConfig
         // add RDF/POST reader
         RDFLanguages.register(RDFLanguages.RDFPOST);
         RDFParserRegistry.registerLangTriples(RDFLanguages.RDFPOST, new RDFPostReaderFactory());
+
         // add HTML/JSON-LD reader
-        RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
-        RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML, new HtmlJsonLDReaderFactory());
+        DocumentLoader documentLoader = new DocumentLoader();
+        JsonLdOptions jsonLdOptions = new JsonLdOptions();
+        try (InputStream contextStream = servletConfig.getServletContext().getResourceAsStream("com/atomgraph/linkeddatahub/schema.org.jsonldcontext"))
+        {
+            String jsonContext = new String(contextStream.readAllBytes(), StandardCharsets.UTF_8);
+            documentLoader.addInjectedDoc("http://schema.org", jsonContext);
+            jsonLdOptions.setDocumentLoader(documentLoader);
+            
+            RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
+            RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML, new HtmlJsonLDReaderFactory(jsonLdOptions));
+        }
+        catch (IOException ex)
+        {
+            if (log.isErrorEnabled()) log.error("schema.org @context not found", ex);
+        }
+
         // register plain RDF/XML writer as default
         RDFWriterRegistry.register(Lang.RDFXML, RDFFormat.RDFXML_PLAIN); 
 
