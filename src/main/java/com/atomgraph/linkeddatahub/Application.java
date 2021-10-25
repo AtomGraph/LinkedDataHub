@@ -461,6 +461,7 @@ public class Application extends ResourceConfig
         {
             String jsonContext = new String(contextStream.readAllBytes(), StandardCharsets.UTF_8);
             documentLoader.addInjectedDoc("http://schema.org", jsonContext);
+            documentLoader.addInjectedDoc("https://schema.org", jsonContext);
             jsonLdOptions.setDocumentLoader(documentLoader);
             
             RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
