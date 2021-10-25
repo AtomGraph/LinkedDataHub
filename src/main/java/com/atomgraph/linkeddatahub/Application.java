@@ -457,7 +457,7 @@ public class Application extends ResourceConfig
         // add HTML/JSON-LD reader
         DocumentLoader documentLoader = new DocumentLoader();
         JsonLdOptions jsonLdOptions = new JsonLdOptions();
-        try (InputStream contextStream = servletConfig.getServletContext().getResourceAsStream("com/atomgraph/linkeddatahub/schema.org.jsonldcontext"))
+        try (InputStream contextStream = servletConfig.getServletContext().getResourceAsStream("/WEB-INF/classes/com/atomgraph/linkeddatahub/schema.org.jsonldcontext.json"))
         {
             String jsonContext = new String(contextStream.readAllBytes(), StandardCharsets.UTF_8);
             documentLoader.addInjectedDoc("http://schema.org", jsonContext);
