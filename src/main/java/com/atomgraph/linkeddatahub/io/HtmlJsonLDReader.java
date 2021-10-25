@@ -76,7 +76,7 @@ public class HtmlJsonLDReader extends JsonLDReader
     public void read(Reader in, String baseURI, Lang lang, StreamRDF output, Context context)
     {
         Document html = Parser.htmlParser().parseInput(in, baseURI);
-        Elements jsonLdElements = html.selectXpath("/html/head/script[@type = 'application/ld+json']");
+        Elements jsonLdElements = html.selectXpath("/html//script[@type = 'application/ld+json']");
 
         if (jsonLdElements.isEmpty()) throw new RiotParseException("<script> element with type=\"application/ld+json\" not found",  -1,  -1);
 
