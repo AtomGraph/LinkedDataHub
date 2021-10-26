@@ -70,6 +70,7 @@ import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
 import com.atomgraph.linkeddatahub.client.filter.HostnameRewriteFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
+import com.atomgraph.linkeddatahub.io.JsonLDReader;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
 import com.atomgraph.linkeddatahub.listener.ImportListener;
 import com.atomgraph.linkeddatahub.model.Import;
@@ -202,6 +203,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -465,7 +467,8 @@ public class Application extends ResourceConfig
             jsonLdOptions.setDocumentLoader(documentLoader);
             
             RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
-            RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML, new HtmlJsonLDReaderFactory(jsonLdOptions));
+            RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML,
+                new HtmlJsonLDReaderFactory(new JsonLDReader(Lang.JSONLD, null, ErrorHandlerFactory.getDefaultErrorHandler()), jsonLdOptions));
         }
         catch (IOException ex)
         {

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.atomgraph.linkeddatahub.io ;
+package com.atomgraph.linkeddatahub.io;
 
 import java.io.IOException ;
 import java.io.InputStream ;

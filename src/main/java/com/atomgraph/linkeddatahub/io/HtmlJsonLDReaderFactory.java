@@ -32,6 +32,7 @@ import org.apache.jena.riot.system.ParserProfile;
 public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
 {
     
+    private final JsonLDReader jsonLDReader;
     private final JsonLdOptions options;
 
     // TO-DO: move to RDFLanguages
@@ -39,13 +40,14 @@ public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
             addFileExtensions("html").
             build();
     
-    public HtmlJsonLDReaderFactory()
+    public HtmlJsonLDReaderFactory(JsonLDReader jsonLDReader)
     {
-        this(null);
+        this(jsonLDReader, null);
     }
     
-    public HtmlJsonLDReaderFactory(JsonLdOptions options)
+    public HtmlJsonLDReaderFactory(JsonLDReader jsonLDReader, JsonLdOptions options)
     {
+        this.jsonLDReader = jsonLDReader;
         this.options = options;
     }
     
@@ -55,9 +57,14 @@ public class HtmlJsonLDReaderFactory implements ReaderRIOTFactory
         if ( !HTML.equals(lang) )
             throw new InternalErrorException("Attempt to parse " + lang + " as HTML");
         
-        return new HtmlJsonLDReader(lang, profile, profile.getErrorHandler(), getJsonLdOptions());
+        return new HtmlJsonLDReader(getJsonLDReader(), getJsonLdOptions());
     }
 
+    public JsonLDReader getJsonLDReader()
+    {
+        return jsonLDReader;
+    }
+    
     public JsonLdOptions getJsonLdOptions()
     {
         return options;
