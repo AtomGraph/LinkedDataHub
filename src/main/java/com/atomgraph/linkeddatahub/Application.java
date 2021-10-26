@@ -204,6 +204,8 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
+import org.apache.jena.riot.system.ParserProfile;
+import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
@@ -465,10 +467,11 @@ public class Application extends ResourceConfig
             documentLoader.addInjectedDoc("http://schema.org", jsonContext);
             documentLoader.addInjectedDoc("https://schema.org", jsonContext);
             jsonLdOptions.setDocumentLoader(documentLoader);
-            
+
+            ParserProfile profile = RiotLib.profile(HtmlJsonLDReaderFactory.HTML, null, ErrorHandlerFactory.getDefaultErrorHandler());
             RDFLanguages.register(HtmlJsonLDReaderFactory.HTML);
             RDFParserRegistry.registerLangTriples(HtmlJsonLDReaderFactory.HTML,
-                new HtmlJsonLDReaderFactory(new JsonLDReader(Lang.JSONLD, null, ErrorHandlerFactory.getDefaultErrorHandler()), jsonLdOptions));
+                new HtmlJsonLDReaderFactory(new JsonLDReader(Lang.JSONLD, profile, profile.getErrorHandler()), jsonLdOptions));
         }
         catch (IOException ex)
         {
