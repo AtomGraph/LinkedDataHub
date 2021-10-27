@@ -3485,7 +3485,7 @@ extension-element-prefixes="ixsl"
                             <rdf:first rdf:nodeID="A2"/>
                         </rdf:Description>
                         <rdf:Description rdf:nodeID="A2">
-                            <rdf:type rdf:resource="&rdf;type"/>
+                            <rdf:type rdf:resource="&rdfs;Resource"/>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
@@ -3515,8 +3515,10 @@ extension-element-prefixes="ixsl"
                     <xsl:apply-templates select="$constructor//rdf:first" mode="bs2:FormControl"/>
                 </xsl:result-document>
                 
+                <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
+                <!--<xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="apl:PostConstructMode"/>-->
                 <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="apl:PostConstructMode"/>
+                <xsl:apply-templates select="descendant::*[tokenize(@class, ' ') = 'wymeditor']" mode="apl:PostConstructMode"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
