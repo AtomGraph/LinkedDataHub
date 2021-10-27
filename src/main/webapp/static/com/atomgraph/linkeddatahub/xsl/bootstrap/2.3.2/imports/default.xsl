@@ -819,7 +819,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
         <select class="help-inline content-type">
             <option value="&rdfs;Resource">
-                <xsl:if test="self::@rdf:*">
+                <xsl:if test="self::attribute()">
                     <xsl:attribute name="selected">selected</xsl:attribute>
                 </xsl:if>
                 
