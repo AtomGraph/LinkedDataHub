@@ -796,6 +796,8 @@ exclude-result-prefixes="#all"
 
     <xsl:template match="*[@rdf:*[local-name() = 'parseType'] = 'Literal']/xhtml:*" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
         <textarea name="ol" id="{$id}" class="wymeditor">
             <xsl:apply-templates select="xhtml:*" mode="xml-to-string"/>
@@ -805,11 +807,16 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="name" select="'lt'"/>
             <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
         </xsl:call-template>
+        
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
     </xsl:template>
 
     <!-- FORM CONTROL TYPE LABEL -->
 
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/*" mode="bs2:FormControlTypeLabel" priority="1">
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
         <select class="help-inline content-type">
             <option value="&rdfs;Resource" selected="select">Resource</option>
             <option value="&rdf;XMLLiteral">HTML</option>
