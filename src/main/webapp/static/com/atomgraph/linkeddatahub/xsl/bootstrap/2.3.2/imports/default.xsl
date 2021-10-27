@@ -794,7 +794,7 @@ exclude-result-prefixes="#all"
 
     <!-- WYSIWYG editor for XMLLiteral objects -->
 
-    <xsl:template match="*[@rdf:*[local-name() = 'parseType'] = 'Literal']/xhtml:*" mode="bs2:FormControl">
+    <xsl:template match="*[@rdf:parseType = 'Literal']/xhtml:*" mode="bs2:FormControl">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>

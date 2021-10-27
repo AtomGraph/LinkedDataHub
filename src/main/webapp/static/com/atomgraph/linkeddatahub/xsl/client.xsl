@@ -3482,7 +3482,7 @@ extension-element-prefixes="ixsl"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first>
+                            <rdf:first rdf:parseType="Literal">
                                 <xhtml:div/>
                             </rdf:first>
                         </rdf:Description>
