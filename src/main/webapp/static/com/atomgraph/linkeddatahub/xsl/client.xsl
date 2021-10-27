@@ -3482,10 +3482,9 @@ extension-element-prefixes="ixsl"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first rdf:nodeID="A2"/>
-                        </rdf:Description>
-                        <rdf:Description rdf:nodeID="A2">
-                            <rdf:type rdf:resource="&rdf;type"/>
+                            <rdf:first rdf:parseType="Literal">
+                                <xhtml:div/>
+                            </rdf:first>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
@@ -3502,9 +3501,10 @@ extension-element-prefixes="ixsl"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first rdf:parseType="Literal">
-                                <xhtml:div/>
-                            </rdf:first>
+                            <rdf:first rdf:nodeID="A2"/>
+                        </rdf:Description>
+                        <rdf:Description rdf:nodeID="A2">
+                            <rdf:type rdf:resource="&rdf;type"/>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
@@ -3514,6 +3514,9 @@ extension-element-prefixes="ixsl"
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <xsl:apply-templates select="$constructor//rdf:first" mode="bs2:FormControl"/>
                 </xsl:result-document>
+                
+                <!-- initialize wymeditor textarea -->
+                <xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="apl:PostConstructMode"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
