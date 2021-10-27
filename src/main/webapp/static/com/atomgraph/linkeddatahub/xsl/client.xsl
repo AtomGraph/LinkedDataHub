@@ -3475,16 +3475,17 @@ extension-element-prefixes="ixsl"
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
     <xsl:template match="select[tokenize(@class, ' ') = 'content-type']" mode="ixsl:onchange">
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
+        <xsl:variable name="control-group" select="../.." as="element()"/>
 
         <xsl:if test="$content-type = '&rdfs;Resource'">
             <xsl:variable name="constructor" as="document-node()">
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first rdf:parseType="Literal">
-                                <xhtml:div/>
-                            </rdf:first>
+                            <rdf:first rdf:nodeID="A2"/>
+                        </rdf:Description>
+                        <rdf:Description rdf:nodeID="A2">
+                            <rdf:type rdf:resource="&rdf;type"/>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
@@ -3501,10 +3502,9 @@ extension-element-prefixes="ixsl"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first rdf:nodeID="A2"/>
-                        </rdf:Description>
-                        <rdf:Description rdf:nodeID="A2">
-                            <rdf:type rdf:resource="&rdf;type"/>
+                            <rdf:first rdf:parseType="Literal">
+                                <xhtml:div/>
+                            </rdf:first>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
