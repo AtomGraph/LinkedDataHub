@@ -3474,13 +3474,47 @@ extension-element-prefixes="ixsl"
     
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
     <xsl:template match="select[tokenize(@class, ' ') = 'content-type']" mode="ixsl:onchange">
-        <xsl:param name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
 
         <xsl:if test="$content-type = '&rdfs;Resource'">
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'URI resource' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="constructor" as="document-node()">
+                <xsl:document>
+                    <rdf:RDF>
+                        <rdf:Description rdf:nodeID="A1">
+                            <rdf:first>
+                                <xhtml:div/>
+                            </rdf:first>
+                        </rdf:Description>
+                    </rdf:RDF>
+                </xsl:document>
+            </xsl:variable>
+            
+            <xsl:for-each select="$control-group">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:apply-templates select="$constructor//rdf:first" mode="bs2:FormControl"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
         <xsl:if test="$content-type = '&rdf;XMLLiteral'">
-            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'XML literal' ])[current-date() lt xs:date('2000-01-01')]"/>
+            <xsl:variable name="constructor" as="document-node()">
+                <xsl:document>
+                    <rdf:RDF>
+                        <rdf:Description rdf:nodeID="A1">
+                            <rdf:first rdf:nodeID="A2"/>
+                        </rdf:Description>
+                        <rdf:Description rdf:nodeID="A2">
+                            <rdf:type rdf:resource="&rdf;type"/>
+                        </rdf:Description>
+                    </rdf:RDF>
+                </xsl:document>
+            </xsl:variable>
+            
+            <xsl:for-each select="$control-group">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:apply-templates select="$constructor//rdf:first" mode="bs2:FormControl"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
     </xsl:template>
     
