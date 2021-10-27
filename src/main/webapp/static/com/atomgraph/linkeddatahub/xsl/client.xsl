@@ -3470,6 +3470,20 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
     
+    <!-- -->
+    
+    <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
+    <xsl:template match="select[tokenize(@class, ' ') = 'content-type']" mode="ixsl:onchange">
+        <xsl:param name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
+
+        <xsl:if test="$content-type = '&rdfs;Resource'">
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'URI resource' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+        <xsl:if test="$content-type = '&rdf;XMLLiteral'">
+            <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'XML literal' ])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- FORM IDENTITY TRANSFORM -->
     
     <xsl:template match="@for | @id" mode="form" priority="1">

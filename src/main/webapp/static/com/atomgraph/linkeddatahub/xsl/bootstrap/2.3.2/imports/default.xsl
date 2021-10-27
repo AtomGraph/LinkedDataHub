@@ -791,15 +791,6 @@ exclude-result-prefixes="#all"
             </div>
         </div>
     </xsl:template>
-    
-    <!-- FORM CONTROL TYPE LABEL -->
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/*" mode="bs2:FormControlTypeLabel" priority="1">
-        <select class="help-inline content-type">
-            <option value="uri">Resource</option>
-            <option value="html">HTML</option>
-        </select>
-    </xsl:template>
 
     <!-- WYSIWYG editor for XMLLiteral objects -->
 
@@ -814,6 +805,15 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="name" select="'lt'"/>
             <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
         </xsl:call-template>
+    </xsl:template>
+
+    <!-- FORM CONTROL TYPE LABEL -->
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/*" mode="bs2:FormControlTypeLabel" priority="1">
+        <select class="help-inline content-type">
+            <option value="&rdfs;Resource" selected="select">Resource</option>
+            <option value="&rdf;XMLLiteral">HTML</option>
+        </select>
     </xsl:template>
 
     <!-- real numbers -->
