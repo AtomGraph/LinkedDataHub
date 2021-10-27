@@ -3482,9 +3482,10 @@ extension-element-prefixes="ixsl"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first rdf:parseType="Literal">
-                                <xhtml:div/>
-                            </rdf:first>
+                            <rdf:first rdf:nodeID="A2"/>
+                        </rdf:Description>
+                        <rdf:Description rdf:nodeID="A2">
+                            <rdf:type rdf:resource="&rdf;type"/>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
@@ -3501,10 +3502,9 @@ extension-element-prefixes="ixsl"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
-                            <rdf:first rdf:nodeID="A2"/>
-                        </rdf:Description>
-                        <rdf:Description rdf:nodeID="A2">
-                            <rdf:type rdf:resource="&rdf;type"/>
+                            <rdf:first rdf:parseType="Literal">
+                                <xhtml:div/>
+                            </rdf:first>
                         </rdf:Description>
                     </rdf:RDF>
                 </xsl:document>
