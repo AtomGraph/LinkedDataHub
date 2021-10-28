@@ -3490,14 +3490,14 @@ extension-element-prefixes="ixsl"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-controls" as="element()">
+            <xsl:variable name="new-controls" as="element()*">
                 <xsl:apply-templates select="$constructor//rdf:first/@rdf:*" mode="bs2:FormControl"/>
             </xsl:variable>
             
             <xsl:for-each select="$controls">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <!-- don't insert a new <div class="controls">, only its children -->
-                    <xsl:copy-of select="$new-controls/div/*"/>
+                    <xsl:copy-of select="$new-controls"/>
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
@@ -3513,14 +3513,14 @@ extension-element-prefixes="ixsl"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-controls" as="element()">
+            <xsl:variable name="new-controls" as="element()*">
                 <xsl:apply-templates select="$constructor//rdf:first/xhtml:*" mode="bs2:FormControl"/>
             </xsl:variable>
 
             <xsl:for-each select="$controls">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <!-- don't insert a new <div class="controls">, only its children -->
-                    <xsl:copy-of select="$new-controls/div/*"/>
+                    <xsl:copy-of select="$new-controls"/>
                 </xsl:result-document>
                 
                 <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
