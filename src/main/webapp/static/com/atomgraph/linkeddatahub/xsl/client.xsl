@@ -3490,7 +3490,7 @@ extension-element-prefixes="ixsl"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-controls" as="element()*">
+            <xsl:variable name="new-controls" as="node()*">
                 <xsl:apply-templates select="$constructor//rdf:first/@rdf:*" mode="bs2:FormControl"/>
             </xsl:variable>
             
@@ -3513,7 +3513,7 @@ extension-element-prefixes="ixsl"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-controls" as="element()*">
+            <xsl:variable name="new-controls" as="node()*">
                 <xsl:apply-templates select="$constructor//rdf:first/xhtml:*" mode="bs2:FormControl"/>
             </xsl:variable>
 
