@@ -3497,7 +3497,7 @@ extension-element-prefixes="ixsl"
             <xsl:for-each select="$control-group">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <!-- don't insert a new <div class="control-group">, only its children -->
-                    <xsl:copy-of select="$new-control-group/*"/>
+                    <xsl:copy-of select="$new-control-group/div/*"/>
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
@@ -3520,7 +3520,7 @@ extension-element-prefixes="ixsl"
             <xsl:for-each select="$control-group">
                 <xsl:result-document href="?." method="ixsl:replace-content">
                     <!-- don't insert a new <div class="control-group">, only its children -->
-                    <xsl:copy-of select="$new-control-group/*"/>
+                    <xsl:copy-of select="$new-control-group/div/*"/>
                 </xsl:result-document>
                 
                 <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
