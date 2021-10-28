@@ -34,6 +34,11 @@ import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.MessageBodyWriter;
+import javax.ws.rs.ext.Providers;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.ParsingException;
@@ -59,6 +64,8 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
 
     private static final Logger log = LoggerFactory.getLogger(RDFPostCleanupFilter.class);
 
+    @Context Providers providers;
+
     @Override
     public void filter(ContainerRequestContext context) throws IOException
     {
@@ -68,7 +75,7 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
             {
                 // set re-serialized RDF/POST as request entity stream
                 context.setEntityStream(is);
-                // replace generic Form URL-encoded media type with RDF/POST
+                // TO-DO: replace generic Form URL-encoded media type with RDF/POST
                 // context.setMediaType(MediaType.APPLICATION_RDF_URLENCODED_TYPE);
             }
             catch (ParsingException ex)
@@ -84,6 +91,15 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
                 ContainerRequest request = (ContainerRequest)context;
                 FormDataMultiPart multiPart = request.readEntity(FormDataMultiPart.class);
                 fixRDFPostMultiPart(multiPart, StandardCharsets.UTF_8);
+
+                MultivaluedMap<String, Object> headers = new MultivaluedHashMap<>();
+                request.getHeaders().entrySet().stream().forEach(entry -> entry.getValue().forEach(value -> headers.add(entry.getKey(), value)));
+                ByteArrayOutputStream baos =  new ByteArrayOutputStream();
+                
+                MessageBodyWriter<FormDataMultiPart> writer = getProviders().getMessageBodyWriter(FormDataMultiPart.class, null, null, request.getMediaType());
+                writer.writeTo(multiPart, FormDataMultiPart.class, null, null, request.getMediaType(), headers, baos);
+                
+                request.setEntityStream(new ByteArrayInputStream(baos.toByteArray()));
             }
             catch (ParsingException ex)
             {
@@ -150,7 +166,7 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
     }
     
     
-    public void fixRDFPostMultiPart(FormDataMultiPart multiPart, Charset charset) throws IOException, ParsingException
+    public FormDataMultiPart fixRDFPostMultiPart(FormDataMultiPart multiPart, Charset charset) throws IOException, ParsingException
     {
         String charsetName = charset.name();
         for (int i = 0; i < multiPart.getBodyParts().size(); i++)
@@ -207,6 +223,8 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
                 }
             }
         }
+        
+        return multiPart;
     }
     
     /**
@@ -280,6 +298,11 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
             new Canonicalizer(baos).write(xhtml);
             return baos.toString(StandardCharsets.UTF_8.name());
         }
+    }
+    
+    public Providers getProviders()
+    {
+        return providers;
     }
     
 }
