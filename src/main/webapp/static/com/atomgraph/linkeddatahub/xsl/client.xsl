@@ -673,6 +673,10 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
 
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:Content">
+        <xsl:apply-templates select="." mode="bs2:Block"/>
+    </xsl:template>
+    
     <xsl:template name="first-time-message">
         <div class="hero-unit">
             <button type="button" class="close">×</button>
