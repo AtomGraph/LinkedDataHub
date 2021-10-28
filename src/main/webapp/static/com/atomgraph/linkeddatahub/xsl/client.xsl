@@ -674,7 +674,15 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:Content">
-        <xsl:apply-templates select="." mode="bs2:Block"/>
+        <xsl:param name="container-id" as="xs:string"/>
+
+        <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+            <ixsl:set-style name="width" select="'75%'" object="."/>
+        </xsl:for-each>
+        
+        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <xsl:apply-templates select="." mode="bs2:Block"/>
+        </xsl:result-document>
     </xsl:template>
     
     <xsl:template name="first-time-message">
