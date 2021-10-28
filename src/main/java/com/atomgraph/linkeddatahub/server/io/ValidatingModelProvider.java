@@ -82,19 +82,6 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
 
         return model;
     }
-
-//    @Override
-//    public Model skolemize(Ontology ontology, UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder, Model model)
-//    {
-//        try
-//        {
-//            return new Skolemizer(ontology, baseUriBuilder, absolutePathBuilder).build(model); // not optimal to create Skolemizer for each Model
-//        }
-//        catch (IllegalArgumentException ex)
-//        {
-//            throw new SkolemizationException(ex, model);
-//        }
-//    }
     
     @Override
     public Model write(Model model, OutputStream os, Lang lang, String baseURI)
@@ -134,32 +121,8 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         return super.process(model); // apply processing from superclasses
     }
     
-//    @Override
     public Resource process(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
-//        super.process(resource);
-        
-        // append dh:slug property with UUID value to apl:Content instances and dh:Container/dh:Item subclass instances
-//        if (getOntology().isPresent() && !resource.hasProperty(DH.slug))
-//        {
-//            Statement typeStmt = resource.getProperty(RDF.type);
-//            if (typeStmt != null && typeStmt.getObject().isURIResource())
-//            {
-//                OntClass ontClass = getOntology().get().getOntModel().getOntClass(typeStmt.getResource().getURI());
-//                if (ontClass != null)
-//                {
-//                    if (ontClass.equals(APL.Content)) resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-//                    else
-//                    {
-//                        // cannot use ontClass.hasSuperClass() here as it does not traverse the chain
-//                        Set<OntClass> superClasses = ontClass.listSuperClasses().toSet();
-//                        if (superClasses.contains(DH.Container) || superClasses.contains(DH.Item))
-//                            resource.addLiteral(DH.slug, UUID.randomUUID().toString());
-//                    }
-//                }
-//            }
-//        }
-
         if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
                 
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())

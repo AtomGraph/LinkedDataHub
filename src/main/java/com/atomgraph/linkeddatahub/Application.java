@@ -93,7 +93,7 @@ import com.atomgraph.server.mapper.ConfigurationExceptionMapper;
 import com.atomgraph.linkeddatahub.server.factory.OntologyFactory;
 import com.atomgraph.linkeddatahub.server.factory.ServiceFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.OntologyFilter;
-import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
+import com.atomgraph.linkeddatahub.server.filter.request.RDFPostCleanupFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.ContentLengthLimitFilter;
@@ -774,7 +774,7 @@ public class Application extends ResourceConfig
         register(IDTokenFilter.class);
         register(AuthorizationFilter.class);
         register(ContentLengthLimitFilter.class);
-        register(new RDFPostCleanupInterceptor());
+        register(new RDFPostCleanupFilter());
     }
 
     protected void registerContainerResponseFilters()
