@@ -29,7 +29,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
@@ -41,7 +40,6 @@ import nu.xom.ParsingException;
 import nu.xom.canonical.Canonicalizer;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.vocabulary.RDF;
-import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.server.ContainerRequest;
@@ -154,64 +152,60 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
     
     public void fixRDFPostMultiPart(FormDataMultiPart multiPart, Charset charset) throws IOException, ParsingException
     {
-        List<String> keys = new ArrayList<>(), values = new ArrayList<>();
-        Iterator<BodyPart> it = multiPart.getBodyParts().iterator(); // not using getFields() to retain ordering
-
         String charsetName = charset.name();
-        int i = 0;
-        while (it.hasNext())
+        for (int i = 0; i < multiPart.getBodyParts().size(); i++)
         {
-            FormDataBodyPart bodyPart = (FormDataBodyPart)it.next();
+            FormDataBodyPart bodyPart = (FormDataBodyPart)multiPart.getBodyParts().get(i);
 
             // it's a file (if the filename is not empty)
             if (bodyPart.getContentDisposition().getFileName() != null &&
                     !bodyPart.getContentDisposition().getFileName().isEmpty())
             {
-                keys.add(bodyPart.getName());
                 if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getContentDisposition().getFileName());
-                values.add(bodyPart.getContentDisposition().getFileName());
             }
             else
             {
                 if (bodyPart.isSimple() && !bodyPart.getValue().isEmpty())
                 {
                     if (log.isDebugEnabled()) log.debug("FormDataBodyPart name: {} value: {}", bodyPart.getName(), bodyPart.getValue());
-                    keys.add(bodyPart.getName());
-                    values.add(bodyPart.getValue());
+//                    keys.add(bodyPart.getName());
+//                    values.add(bodyPart.getValue());
 
                     // only fix XMLLiterals that are objects of rdf:first
                     // in case of XHTML from WYMEditor, stmt.getLiteral().isWellFormedXML() == false at this point
                     // we want to fix 2 cases (URL-decoded):
 
                     // 1. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&ol=value&lt=http://...XMLLiteral...
-                    if (i >= 1 && i + 1 < keys.size() && // check bounds
-                        keys.get(i - 1).equals(TokenizerRDFPost.URI_PRED) &&
-                        values.get(i - 1) != null && values.get(i - 1).equals(RDF.first.getURI()) &&
-                        keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&
-                        keys.get(i + 1).equals(TokenizerRDFPost.TYPE)&&
-                        values.get(i + 1) != null && values.get(i + 1).equals(RDF.xmlLiteral.getURI()) &&
-                        values.get(i) != null)
+                    if (i >= 1 && i + 1 < multiPart.getBodyParts().size() && // check bounds
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getName().equals(TokenizerRDFPost.URI_PRED) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue() != null &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue().equals(RDF.first.getURI()) &&
+                        bodyPart.getName().equals(TokenizerRDFPost.LITERAL_OBJ) &&
+                        bodyPart.getValue() != null &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i + 1)).getName().equals(TokenizerRDFPost.TYPE) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i + 1)).getValue() != null &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i + 1)).getValue().equals(RDF.xmlLiteral.getURI()))
                     {
-                        String xml = values.get(i);
+                        String xml = bodyPart.getValue();
                         bodyPart.setValue(fixXHTML(xml, charsetName));
                     }
 
                     // 2. ...pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#first&lt=http://...XMLLiteral&ol=value...
                     if (i >= 2 &&
-                        keys.get(i - 2).equals(TokenizerRDFPost.URI_PRED) &&
-                        values.get(i - 2) != null && values.get(i - 2).equals(RDF.first.getURI()) &&
-                        keys.get(i - 1).equals(TokenizerRDFPost.TYPE) &&
-                        values.get(i - 1) != null && values.get(i - 1).equals(RDF.xmlLiteral.getURI()) &&
-                        keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&
-                        values.get(i) != null)
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getName().equals(TokenizerRDFPost.URI_PRED) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getValue() != null &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 2)).getValue().equals(RDF.first.getURI()) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getName().equals(TokenizerRDFPost.TYPE) &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue() != null &&
+                        ((FormDataBodyPart)multiPart.getBodyParts().get(i - 1)).getValue().equals(RDF.xmlLiteral.getURI()) &&
+                        bodyPart.getName().equals(TokenizerRDFPost.LITERAL_OBJ) &&
+                        bodyPart.getValue() != null)
                     {
-                        String xml = values.get(i);
+                        String xml = bodyPart.getValue();
                         bodyPart.setValue(fixXHTML(xml, charsetName));
                     }
                 }
             }
-
-            i++;
         }
     }
     
@@ -242,9 +236,9 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
                 keys.get(i - 1).equals(TokenizerRDFPost.URI_PRED) &&
                 values.get(i - 1) != null && values.get(i - 1).equals(RDF.first.getURI()) &&
                 keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&
+                values.get(i) != null &&
                 keys.get(i + 1).equals(TokenizerRDFPost.TYPE)&&
-                values.get(i + 1) != null && values.get(i + 1).equals(RDF.xmlLiteral.getURI()) &&
-                values.get(i) != null)
+                values.get(i + 1) != null && values.get(i + 1).equals(RDF.xmlLiteral.getURI()))
             {
                 String xml = values.get(i);
                 values.set(i, fixXHTML(xml, charsetName));
@@ -255,9 +249,9 @@ public class RDFPostCleanupFilter implements ContainerRequestFilter
                 keys.get(i - 2).equals(TokenizerRDFPost.URI_PRED) &&
                 values.get(i - 2) != null && values.get(i - 2).equals(RDF.first.getURI()) &&
                 keys.get(i - 1).equals(TokenizerRDFPost.TYPE) &&
+                values.get(i) != null &&
                 values.get(i - 1) != null && values.get(i - 1).equals(RDF.xmlLiteral.getURI()) &&
-                keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ) &&
-                values.get(i) != null)
+                keys.get(i).equals(TokenizerRDFPost.LITERAL_OBJ))
             {
                 String xml = values.get(i);
                 values.set(i, fixXHTML(xml, charsetName));
