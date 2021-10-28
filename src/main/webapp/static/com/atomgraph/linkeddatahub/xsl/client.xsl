@@ -3475,7 +3475,7 @@ extension-element-prefixes="ixsl"
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
     <xsl:template match="select[tokenize(@class, ' ') = 'content-type']" mode="ixsl:onchange">
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="control-group" select="../.." as="element()"/>
+        <xsl:variable name="controls" select=".." as="element()"/>
 
         <xsl:if test="$content-type = '&rdfs;Resource'">
             <xsl:variable name="constructor" as="document-node()">
@@ -3490,14 +3490,14 @@ extension-element-prefixes="ixsl"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-control-group" as="element()">
-                <xsl:apply-templates select="$constructor//rdf:first" mode="bs2:FormControl"/>
+            <xsl:variable name="new-controls" as="element()">
+                <xsl:apply-templates select="$constructor//rdf:first/@rdf:*" mode="bs2:FormControl"/>
             </xsl:variable>
             
-            <xsl:for-each select="$control-group">
+            <xsl:for-each select="$controls">
                 <xsl:result-document href="?." method="ixsl:replace-content">
-                    <!-- don't insert a new <div class="control-group">, only its children -->
-                    <xsl:copy-of select="$new-control-group/div/*"/>
+                    <!-- don't insert a new <div class="controls">, only its children -->
+                    <xsl:copy-of select="$new-controls/div/*"/>
                 </xsl:result-document>
             </xsl:for-each>
         </xsl:if>
@@ -3513,14 +3513,14 @@ extension-element-prefixes="ixsl"
                     </rdf:RDF>
                 </xsl:document>
             </xsl:variable>
-            <xsl:variable name="new-control-group" as="element()">
-                <xsl:apply-templates select="$constructor//rdf:first" mode="bs2:FormControl"/>
+            <xsl:variable name="new-controls" as="element()">
+                <xsl:apply-templates select="$constructor//rdf:first/xhtml:*" mode="bs2:FormControl"/>
             </xsl:variable>
 
-            <xsl:for-each select="$control-group">
+            <xsl:for-each select="$controls">
                 <xsl:result-document href="?." method="ixsl:replace-content">
-                    <!-- don't insert a new <div class="control-group">, only its children -->
-                    <xsl:copy-of select="$new-control-group/div/*"/>
+                    <!-- don't insert a new <div class="controls">, only its children -->
+                    <xsl:copy-of select="$new-controls/div/*"/>
                 </xsl:result-document>
                 
                 <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
