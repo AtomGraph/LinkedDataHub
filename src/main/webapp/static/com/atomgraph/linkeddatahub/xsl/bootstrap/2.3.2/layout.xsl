@@ -674,8 +674,11 @@ exclude-result-prefixes="#all">
                     <xsl:otherwise>
                         <div class="row-fluid">
                             <div class="offset2 span7 content resource-content" id="{generate-id()}">
-                                <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
+                                <!-- hidden inputs that are used to retrieve $content-uri in client.xsl -->
                                 <input name="href" type="hidden" value="{ac:uri()}"/>
+                                <xsl:for-each select="key('resources', ac:uri())/foaf:primaryTopic/@rdf:resource">
+                                    <input name="href" type="hidden" value="{ac:uri()}"/>
+                                </xsl:for-each>
 
                                 <xsl:choose>
                                     <xsl:when test="$ac:mode = '&ac;MapMode'">

@@ -680,6 +680,7 @@ extension-element-prefixes="ixsl"
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
         
+        <!-- TO-DO: don't replace if the container already contains this content? -->
         <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
             <xsl:apply-templates select="." mode="bs2:Block"/>
         </xsl:result-document>
