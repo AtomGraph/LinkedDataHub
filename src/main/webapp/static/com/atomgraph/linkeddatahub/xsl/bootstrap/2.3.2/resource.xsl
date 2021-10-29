@@ -253,15 +253,6 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <!-- CONTENT -->
-    
-    <xsl:template match="*[apl:content/@rdf:* or rdf:type/@rdf:resource]" mode="apl:Content" priority="1">
-        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
-        <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
-    </xsl:template>
-
-    <xsl:template match="*" mode="apl:Content"/>
-    
     <!-- BODY -->
     
     <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
@@ -452,7 +443,7 @@ extension-element-prefixes="ixsl"
         </ul>
     </xsl:template>
     
-    <!-- CONTENT -->
+    <!-- CONTENT LIST -->
     
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first[@rdf:parseType = 'Literal']/xhtml:div]" mode="apl:ContentList" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>

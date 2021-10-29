@@ -553,13 +553,12 @@ extension-element-prefixes="ixsl"
 
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="apl:Content" priority="1">
-        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="state" as="item()?"/>
         <!-- set ?this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="if ($state?content-uri = $content-uri) then string(map:get($state, 'query-string')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="if ($state?content-uri = $content-uri) then string(map:get($state, 'query-string')) else replace(sp:text, '\?this', concat('&lt;', @rdf:about, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
             <xsl:choose>
                 <!-- override $select-json with the query taken from $state -->
@@ -714,6 +713,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="container-id" as="xs:string?"/>
 
+        <xsl:message>onRDFDocumentLoad $uri: <xsl:value-of select="$uri"/> $container-id: <xsl:value-of select="$container-id"/></xsl:message>
+
         <xsl:for-each select="?body">
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
             <xsl:variable name="content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
@@ -769,13 +770,11 @@ extension-element-prefixes="ixsl"
                 </ixsl:schedule-action>
             </xsl:if>
 
-            <xsl:if test="$container-id">
-                <!-- render content such as queries and charts -->
+<!--            <xsl:if test="$container-id">
                 <xsl:apply-templates select="/rdf:RDF/*" mode="apl:Content">
-                    <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container-id" select="$container-id"/>
                 </xsl:apply-templates>
-            </xsl:if>
+            </xsl:if>-->
 
             <!-- TO-DO: replace hardcoded element ID -->
             <xsl:if test="id('map-canvas', ixsl:page())">
@@ -2199,7 +2198,7 @@ extension-element-prefixes="ixsl"
                     <xsl:when test="key('resources', $content-uri, ?body)">
                         <xsl:for-each select="key('resources', $content-uri, ?body)">
                             <xsl:apply-templates select="." mode="apl:Content">
-                                <xsl:with-param name="uri" select="$uri"/>
+                                <!--<xsl:with-param name="uri" select="$uri"/>-->
                                 <xsl:with-param name="container-id" select="$container-id"/>
                                 <xsl:with-param name="state" select="$state"/>
                             </xsl:apply-templates>

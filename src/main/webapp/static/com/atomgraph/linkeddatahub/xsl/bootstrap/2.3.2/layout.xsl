@@ -666,9 +666,10 @@ exclude-result-prefixes="#all">
                 <xsl:choose>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))) or $ac:mode = '&apl;ContentMode'">
-                        <xsl:apply-templates select="." mode="apl:Content">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
+                        <xsl:for-each select="key('resources', ac:uri())">
+                            <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+                            <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+                        </xsl:for-each>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">
                         <div class="row-fluid">
