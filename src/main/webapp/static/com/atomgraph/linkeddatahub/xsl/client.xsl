@@ -2338,6 +2338,13 @@ extension-element-prefixes="ixsl"
                 </xsl:otherwise>
             </xsl:choose>
 
+            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
+            <xsl:call-template name="apl:LoadContents">
+                <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="content-ids" select="$content-ids"/>
+                <xsl:with-param name="state" select="$state"/>
+            </xsl:call-template>
+
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
                     <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })"/>
@@ -2377,15 +2384,6 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $apl:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
-
-        <xsl:if test="$uri">
-            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
-            <xsl:call-template name="apl:LoadContents">
-                <xsl:with-param name="uri" select="$uri"/>
-                <xsl:with-param name="content-ids" select="$content-ids"/>
-                <xsl:with-param name="state" select="$state"/>
-            </xsl:call-template>
-        </xsl:if>
 
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="$uri"/>
