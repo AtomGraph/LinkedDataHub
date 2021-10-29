@@ -672,38 +672,28 @@ exclude-result-prefixes="#all">
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <div class="row-fluid">
-                            <div class="offset2 span7 content resource-content" id="{generate-id()}">
-                                <!-- hidden inputs that are used to retrieve $content-uri in client.xsl -->
-                                <input name="href" type="hidden" value="{ac:uri()}"/>
-                                <xsl:for-each select="key('resources', ac:uri())/foaf:primaryTopic/@rdf:resource">
-                                    <input name="href" type="hidden" value="{ac:uri()}"/>
-                                </xsl:for-each>
-
-                                <xsl:choose>
-                                    <xsl:when test="$ac:mode = '&ac;MapMode'">
-                                        <xsl:apply-templates select="." mode="bs2:Map">
-                                            <xsl:sort select="ac:label(.)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:when>
-                                    <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                                        <xsl:apply-templates select="." mode="bs2:Chart">
-                                            <xsl:sort select="ac:label(.)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:when>
-                                    <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                                        <xsl:apply-templates select="." mode="bs2:Graph">
-                                            <xsl:sort select="ac:label(.)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:apply-templates select="." mode="bs2:Block">
-                                            <xsl:sort select="ac:label(.)"/>
-                                        </xsl:apply-templates>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </div>
-                        </div>
+                        <xsl:choose>
+                            <xsl:when test="$ac:mode = '&ac;MapMode'">
+                                <xsl:apply-templates mode="bs2:Map">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:when test="$ac:mode = '&ac;ChartMode'">
+                                <xsl:apply-templates mode="bs2:Chart">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:when test="$ac:mode = '&ac;GraphMode'">
+                                <xsl:apply-templates mode="bs2:Graph">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates mode="bs2:Block">
+                                    <xsl:sort select="ac:label(.)"/>
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:otherwise>
                 </xsl:choose>
             </div>

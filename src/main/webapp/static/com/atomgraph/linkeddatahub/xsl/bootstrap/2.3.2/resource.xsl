@@ -320,6 +320,28 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
 
+    <!-- BLOCK -->
+    
+    <xsl:template match="*[*][@rdf:about]" mode="bs2:Block">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span7 content resource-content'" as="xs:string?"/>
+
+        <div class="row-fluid">
+            <input name="href" type="hidden" value="{@rdf:about}"/>
+            
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <xsl:next-match>
+                <xsl:with-param name="id" select="$id"/>
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:next-match>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+    </xsl:template>
+    
+    <!-- TO-DO: override other modes -->
+    
     <!-- HEADER -->
 
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Header">
