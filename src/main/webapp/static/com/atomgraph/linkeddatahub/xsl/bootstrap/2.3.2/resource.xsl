@@ -323,7 +323,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK -->
     
     <xsl:template match="*[*][@rdf:about]" mode="bs2:Block">
-        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'span7 content resource-content'" as="xs:string?"/>
 
         <div class="row-fluid">
