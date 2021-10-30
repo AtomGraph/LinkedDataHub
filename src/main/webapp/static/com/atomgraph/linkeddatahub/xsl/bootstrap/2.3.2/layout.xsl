@@ -106,7 +106,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:httpHeaders" as="xs:string"/> 
     <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:uri" as="xs:anyURI"/>
-    <xsl:param name="ac:mode" select="xs:anyURI('&ac;ReadMode')" as="xs:anyURI*"/>
+    <xsl:param name="ac:mode" as="xs:anyURI*"/> <!-- select="xs:anyURI('&ac;ReadMode')"  -->
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$acl:Agent[doc-available($apl:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
@@ -643,7 +643,7 @@ exclude-result-prefixes="#all">
             <div class="row-fluid">
                 <ul class="nav nav-tabs offset2 span7">
                     <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))">
-                        <li class="content-mode{if ($ac:mode = '&apl;ContentMode') then ' active' else() }">
+                        <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
                             <a>Content</a>
                         </li>
                     </xsl:if>
@@ -665,35 +665,31 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:choose>
                     <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))) or $ac:mode = '&apl;ContentMode'">
+                    <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))) or $ac:mode = '&apl;ContentMode'">
                         <xsl:for-each select="key('resources', ac:uri())">
                             <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
                             <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
                         </xsl:for-each>
                     </xsl:when>
+                    <xsl:when test="$ac:mode = '&ac;MapMode'">
+                        <xsl:apply-templates mode="bs2:Map">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="$ac:mode = '&ac;ChartMode'">
+                        <xsl:apply-templates mode="bs2:Chart">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:when test="$ac:mode = '&ac;GraphMode'">
+                        <xsl:apply-templates mode="bs2:Graph">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
                     <xsl:otherwise>
-                        <xsl:choose>
-                            <xsl:when test="$ac:mode = '&ac;MapMode'">
-                                <xsl:apply-templates mode="bs2:Map">
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                                <xsl:apply-templates mode="bs2:Chart">
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                                <xsl:apply-templates mode="bs2:Graph">
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:apply-templates mode="bs2:Block">
-                                    <xsl:sort select="ac:label(.)"/>
-                                </xsl:apply-templates>
-                            </xsl:otherwise>
-                        </xsl:choose>
+                        <xsl:apply-templates mode="bs2:Block">
+                            <xsl:sort select="ac:label(.)"/>
+                        </xsl:apply-templates>
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
