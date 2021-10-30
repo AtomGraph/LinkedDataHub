@@ -167,10 +167,10 @@ extension-element-prefixes="ixsl"
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
         <!-- initialize breadcrumbs, chart etc. -->
-<!--        <xsl:call-template name="apl:LoadRDFDocument">
+        <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
             <xsl:with-param name="container-id" select="'content-body'"/>
-        </xsl:call-template>-->
+        </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
