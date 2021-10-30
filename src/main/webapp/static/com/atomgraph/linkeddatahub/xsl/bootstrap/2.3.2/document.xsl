@@ -79,6 +79,8 @@ extension-element-prefixes="ixsl"
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
 
+    <!-- MAP -->
+    
     <xsl:template match="rdf:RDF" mode="bs2:Map">
         <xsl:param name="canvas-id" select="'map-canvas'" as="xs:string"/>
 

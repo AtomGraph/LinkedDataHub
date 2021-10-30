@@ -665,7 +665,7 @@ exclude-result-prefixes="#all">
             <div id="content-body" class="container-fluid">
                 <xsl:choose>
                     <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))) or $ac:mode = '&apl;ContentMode'">
+                    <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and (key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))))">
                         <xsl:for-each select="key('resources', ac:uri())">
                             <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
                             <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
