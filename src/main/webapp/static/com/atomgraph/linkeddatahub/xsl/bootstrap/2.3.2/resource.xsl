@@ -327,14 +327,20 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" select="'span7 content resource-content'" as="xs:string?"/>
 
         <div class="row-fluid">
-            <input name="href" type="hidden" value="{@rdf:about}"/>
-            
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <xsl:next-match>
-                <xsl:with-param name="id" select="$id"/>
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:next-match>
+            <div>
+                <xsl:if test="$id">
+                    <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+                </xsl:if>
+                <xsl:if test="$class">
+                    <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+                </xsl:if>
+
+                <input name="href" type="hidden" value="{@rdf:about}"/>
+
+                <xsl:next-match/>
+            </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
