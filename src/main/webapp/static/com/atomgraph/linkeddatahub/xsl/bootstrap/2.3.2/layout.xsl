@@ -672,22 +672,22 @@ exclude-result-prefixes="#all">
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;MapMode'">
-                        <xsl:apply-templates mode="bs2:Map">
+                        <xsl:apply-templates select="." mode="bs2:Map">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;ChartMode'">
-                        <xsl:apply-templates mode="bs2:Chart">
+                        <xsl:apply-templates select="." mode="bs2:Chart">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;GraphMode'">
-                        <xsl:apply-templates mode="bs2:Graph">
+                        <xsl:apply-templates select="." mode="bs2:Graph">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates mode="bs2:Block">
+                        <xsl:apply-templates select="." mode="bs2:Block">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>
