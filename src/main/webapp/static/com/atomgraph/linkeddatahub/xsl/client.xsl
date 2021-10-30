@@ -2339,13 +2339,6 @@ extension-element-prefixes="ixsl"
                 </xsl:otherwise>
             </xsl:choose>
 
-            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
-            <xsl:call-template name="apl:LoadContents">
-                <xsl:with-param name="uri" select="$uri"/>
-                <xsl:with-param name="content-ids" select="$content-ids"/>
-                <xsl:with-param name="state" select="$state"/>
-            </xsl:call-template>
-
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
                     <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })"/>
@@ -2386,6 +2379,16 @@ extension-element-prefixes="ixsl"
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
 
+        <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
+        <xsl:if test="$uri">
+            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
+            <xsl:call-template name="apl:LoadContents">
+                <xsl:with-param name="uri" select="$uri"/>
+                <xsl:with-param name="content-ids" select="$content-ids"/>
+                <xsl:with-param name="state" select="$state"/>
+            </xsl:call-template>
+        </xsl:if>
+        
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="$uri"/>
             <xsl:with-param name="container-id" select="$container-id"/>
