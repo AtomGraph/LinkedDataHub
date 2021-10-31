@@ -640,29 +640,29 @@ exclude-result-prefixes="#all">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
-            <div class="row-fluid">
-                <ul class="nav nav-tabs offset2 span7">
-                    <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))">
-                        <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
-                            <a>Content</a>
-                        </li>
-                    </xsl:if>
-                    <li class="read-mode{if ($ac:mode = '&ac;ReadMode') then ' active' else() }">
-                        <a>Properties</a>
-                    </li>
-                    <li class="map-mode{if ($ac:mode = '&ac;MapMode') then ' active' else() }">
-                        <a>Map</a>
-                    </li>
-                    <li class="chart-mode{if ($ac:mode = '&ac;ChartMode') then ' active' else() }">
-                        <a>Chart</a>
-                    </li>
-                    <li class="graph-mode{if ($ac:mode = '&ac;GraphMode') then ' active' else() }">
-                        <a>Graph</a>
-                    </li>
-                </ul>
-            </div>
-                
             <div id="content-body" class="container-fluid">
+                <div class="row-fluid">
+                    <ul class="nav nav-tabs offset2 span7">
+                        <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))">
+                            <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
+                                <a>Content</a>
+                            </li>
+                        </xsl:if>
+                        <li class="read-mode{if ($ac:mode = '&ac;ReadMode') then ' active' else() }">
+                            <a>Properties</a>
+                        </li>
+                        <li class="map-mode{if ($ac:mode = '&ac;MapMode') then ' active' else() }">
+                            <a>Map</a>
+                        </li>
+                        <li class="chart-mode{if ($ac:mode = '&ac;ChartMode') then ' active' else() }">
+                            <a>Chart</a>
+                        </li>
+                        <li class="graph-mode{if ($ac:mode = '&ac;GraphMode') then ' active' else() }">
+                            <a>Graph</a>
+                        </li>
+                    </ul>
+                </div>
+            
                 <xsl:choose>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and (key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))))">
