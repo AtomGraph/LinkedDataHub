@@ -502,7 +502,8 @@ extension-element-prefixes="ixsl"
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         
-        <div>
+        <!-- @data-content-uri is used to retrieve $content-uri in client.xsl -->
+        <div data-content-uri="{rdf:first/@rdf:resource}">
             <xsl:if test="$id">
                 <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
             </xsl:if>
@@ -525,10 +526,9 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
                 </xsl:if>
 
-                <div>
-                    <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
+<!--                <div>
                     <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
-                </div>
+                </div>-->
             </div>
             
             <div class="right-nav span3"></div>

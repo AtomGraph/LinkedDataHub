@@ -1480,7 +1480,7 @@ extension-element-prefixes="ixsl"
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:if test="exists($content-ids)">
             <xsl:for-each select="id($content-ids, ixsl:page())">
-                <xsl:variable name="content-uri" select="input[@name = 'href']/@value" as="xs:anyURI"/>
+                <xsl:variable name="content-uri" select="ixsl:get('dataset.contentUri', .)" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
                 <xsl:variable name="container-id" select="@id" as="xs:string"/>
 
                 <!-- show progress bar -->
