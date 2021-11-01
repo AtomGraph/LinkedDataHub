@@ -500,9 +500,16 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content'][rdf:first/@rdf:resource]" mode="apl:ContentList" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'content resource-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
         
-        <div class="row-fluid">
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+                    
             <div class="left-nav span2"></div>
             
             <div class="span7">
@@ -519,13 +526,6 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
 
                 <div>
-                    <xsl:if test="$id">
-                        <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-                    </xsl:if>
-                    <xsl:if test="$class">
-                        <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-                    </xsl:if>
-
                     <!-- hidden input that is used to retrieve $content-uri in client.xsl -->
                     <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
                 </div>
