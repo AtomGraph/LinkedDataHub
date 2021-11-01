@@ -673,10 +673,17 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:Content">
+    <xsl:template match="*[*][@rdf:about]" mode="apl:Content">
         <xsl:param name="container-id" as="xs:string"/>
 
         <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        
+        <!-- inject content into the container element, unless it's the current document which already has content -->
+        <xsl:if test="not(@rdf:about = ac:uri())">
+            <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                <xsl:apply-templates select="." mode="bs2:Block"/>
+            </xsl:result-document>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template name="first-time-message">
