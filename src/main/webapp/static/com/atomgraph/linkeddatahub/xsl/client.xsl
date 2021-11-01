@@ -1491,7 +1491,8 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="onContentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="container-id" select="$container-id"/>
+                        <xsl:with-param name="container" select="$container"/>
+                        <!--<xsl:with-param name="container-id" select="$container-id"/>-->
                         <xsl:with-param name="state" select="$state"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
