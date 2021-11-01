@@ -2218,7 +2218,7 @@ extension-element-prefixes="ixsl"
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:for-each select="$content">
+                        <xsl:for-each select="$container">
                             <xsl:result-document href="?." method="ixsl:replace-content">
                                 <div class="alert alert-block">
                                     <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
@@ -2230,14 +2230,14 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- content could not be loaded as RDF, embed id as is -->
             <xsl:when test="?status = 406">
-                <xsl:for-each select="$content">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <object data="{$content-uri}"/>
                     </xsl:result-document>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="$content">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <div class="alert alert-block">
                             <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
