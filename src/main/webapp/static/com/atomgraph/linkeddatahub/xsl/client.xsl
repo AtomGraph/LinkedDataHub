@@ -554,7 +554,7 @@ extension-element-prefixes="ixsl"
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="state" as="item()?"/>
@@ -617,12 +617,12 @@ extension-element-prefixes="ixsl"
                 <!-- store the transformed query XML -->
                 <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 <!-- update progress bar -->
-                <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+                <xsl:for-each select="$container//div[@class = 'bar']">
                     <ixsl:set-style name="width" select="'75%'" object="."/>
                 </xsl:for-each>
 
                 <xsl:call-template name="apl:RenderContainer">
-                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="content-uri" select="$content-uri"/>
                     <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="select-string" select="$select-string"/>
@@ -632,33 +632,38 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">
-                        <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
-                    </div>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not load service resource: <a href="{$service-uri}"><xsl:value-of select="$service-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
     <!-- chart content -->
     <xsl:template match="*[spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
         <xsl:variable name="series" select="apl:seriesProperty/@rdf:resource | apl:seriesVarName" as="xs:string*"/>
         <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
 
-        <xsl:if test="not(id($container-id, ixsl:page())//div[@class = 'progress-bar'])">
+        <xsl:if test="not($container//div[@class = 'progress-bar'])">
             <!-- append progress bar if it's not already present -->
-            <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                <div class="progress-bar">
-                    <div class="progress progress-striped active">
-                        <div class="bar" style="width: 33%;"></div>
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:append-content">
+                    <div class="progress-bar">
+                        <div class="progress progress-striped active">
+                            <div class="bar" style="width: 33%;"></div>
+                        </div>
                     </div>
-                </div>
-            </xsl:result-document>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
 
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
@@ -668,15 +673,16 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="chart-type" select="$chart-type"/>
                 <xsl:with-param name="category" select="$category"/>
                 <xsl:with-param name="series" select="$series"/>
-                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="container" select="$container"/>
             </xsl:call-template>
         </ixsl:schedule-action>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about]" mode="apl:Content">
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <!--<xsl:param name="container-id" as="xs:string"/>-->
 
-        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'bar']"/>
         
         <!-- inject content into the container element, unless it's the current document which already has content -->
         <xsl:if test="not(@rdf:about = ac:uri())">
@@ -684,9 +690,11 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="." mode="bs2:Block"/>
             </xsl:variable>
             
-            <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                <xsl:copy-of select="$block/*"/>
-            </xsl:result-document>
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:copy-of select="$block/*"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:if>
     </xsl:template>
     
@@ -775,13 +783,6 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="onServiceLoad"/>
                 </ixsl:schedule-action>
             </xsl:if>
-
-<!--            <xsl:if test="$container-id">
-                <xsl:apply-templates select="/rdf:RDF/*" mode="apl:Content">
-                    <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="container-id" select="$container-id"/>
-                </xsl:apply-templates>
-            </xsl:if>-->
 
             <!-- TO-DO: replace hardcoded element ID -->
             <xsl:if test="id('map-canvas', ixsl:page())">
@@ -915,7 +916,8 @@ extension-element-prefixes="ixsl"
     <!-- when container RDF/XML results load, render them -->
     <xsl:template name="onContainerResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-xml" as="document-node()"/>
@@ -924,7 +926,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="service" as="element()?"/>
 
         <!-- update progress bar -->
-        <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+        <xsl:for-each select="$container//div[@class = 'bar']">
             <ixsl:set-style name="width" select="'75%'" object="."/>
         </xsl:for-each>
 
@@ -945,10 +947,11 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
-                    <xsl:variable name="active-class" select="id($container-id, ixsl:page())//ul[@class = 'nav nav-tabs']/li[tokenize(@class, ' ') = 'active']/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
+                    <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[tokenize(@class, ' ') = 'active']/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
 
                     <xsl:call-template name="render-container">
-                        <xsl:with-param name="container-id" select="$container-id"/>
+<!--                        <xsl:with-param name="container-id" select="$container-id"/>-->
+                        <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
@@ -963,10 +966,10 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
 
                     <!-- only append facets if they are not already present -->
-                    <xsl:if test="not(id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']/*)">
+                    <xsl:if test="not($container/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']/*)">
                         <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
                         
-                        <xsl:for-each select="id($container-id, ixsl:page())/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']">
+                        <xsl:for-each select="$container/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
                             </xsl:result-document>
@@ -981,7 +984,8 @@ extension-element-prefixes="ixsl"
                         <xsl:call-template name="render-facets">
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="container-id" select="$facet-container-id"/>
+                            <xsl:with-param name="container" select="id($facet-container-id, ixsl:page())"/>
+<!--                            <xsl:with-param name="container-id" select="$facet-container-id"/>-->
                         </xsl:call-template>
                     </xsl:if>
 
@@ -998,8 +1002,8 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="parallax-container-id" select="$container-id || '-right-nav'" as="xs:string"/>
 
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-                        <xsl:if test="not(id($container-id, ixsl:page())/following-sibling::div[tokenize(@class, ' ') = 'right-nav']/*)">
-                            <xsl:for-each select="id($container-id, ixsl:page())/following-sibling::div[tokenize(@class, ' ') = 'right-nav']">
+                        <xsl:if test="not($container/following-sibling::div[tokenize(@class, ' ') = 'right-nav']/*)">
+                            <xsl:for-each select="$container/following-sibling::div[tokenize(@class, ' ') = 'right-nav']">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
                                 </xsl:result-document>
@@ -1020,7 +1024,7 @@ extension-element-prefixes="ixsl"
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
                 <xsl:call-template name="render-container-error">
-                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="message" select="?message"/>
                 </xsl:call-template>
             </xsl:otherwise>
@@ -1031,7 +1035,8 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template name="render-container">
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="results" as="document-node()"/>
@@ -1046,14 +1051,14 @@ extension-element-prefixes="ixsl"
         <xsl:param name="order-by-container-id" select="$container-id || '-container-order'" as="xs:string?"/>
 
         <!-- hide progress bar -->
-        <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'progress-bar']">
+        <xsl:for-each select="$container//div[@class = 'progress-bar']">
             <ixsl:set-style name="display" select="'none'" object="."/>
         </xsl:for-each>
                 
         <xsl:choose>
             <!-- container results are already rendered - replace the content of the div -->
-            <xsl:when test="id($container-id, ixsl:page())/div[ul]">
-                <xsl:for-each select="id($container-id, ixsl:page())/div[ul]">
+            <xsl:when test="$container/div[ul]">
+                <xsl:for-each select="$container/div[ul]">
                     <xsl:result-document href="?." method="ixsl:replace-content">
                         <xsl:call-template name="container-mode">
                             <xsl:with-param name="container-id" select="$container-id"/>
@@ -1088,45 +1093,47 @@ extension-element-prefixes="ixsl"
                     </ixsl:schedule-action>
                 </xsl:for-each>
 
-                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                    <div class="pull-right">
-                        <form class="form-inline">
-                            <label for="{$order-by-container-id}">
-                                <!-- currently no space for the label in the layout -->
-                                <!--<xsl:text>Order by </xsl:text>-->
-                                
-                                <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
-                                    <!-- show the default option if the container query does not have an ORDER BY -->
-                                    <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
-                                        <option>[None]</option>
-                                    </xsl:if>
-                                </select>
-                                
-                                <xsl:choose>
-                                    <xsl:when test="not($desc)">
-                                        <button type="button" class="btn btn-order-by">Ascending</button>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <button type="button" class="btn btn-order-by btn-order-by-desc">Descending</button>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </label>
-                        </form>
-                    </div>
-                    
-                    <div>
-                        <xsl:call-template name="container-mode">
-                            <xsl:with-param name="container-id" select="$container-id"/>
-                            <xsl:with-param name="select-xml" select="$select-xml"/>
-                            <xsl:with-param name="results" select="$results"/>
-                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
-                            <xsl:with-param name="desc" select="$desc"/>
-                            <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
-                            <xsl:with-param name="default-desc" select="$default-desc"/>
-                            <xsl:with-param name="active-class" select="$active-class"/>
-                        </xsl:call-template>
-                    </div>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div class="pull-right">
+                            <form class="form-inline">
+                                <label for="{$order-by-container-id}">
+                                    <!-- currently no space for the label in the layout -->
+                                    <!--<xsl:text>Order by </xsl:text>-->
+
+                                    <select id="{$order-by-container-id}" name="order-by" class="input-medium container-order">
+                                        <!-- show the default option if the container query does not have an ORDER BY -->
+                                        <xsl:if test="not($select-xml/json:map/json:array[@key = 'order'])">
+                                            <option>[None]</option>
+                                        </xsl:if>
+                                    </select>
+
+                                    <xsl:choose>
+                                        <xsl:when test="not($desc)">
+                                            <button type="button" class="btn btn-order-by">Ascending</button>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <button type="button" class="btn btn-order-by btn-order-by-desc">Descending</button>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </label>
+                            </form>
+                        </div>
+
+                        <div>
+                            <xsl:call-template name="container-mode">
+                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <xsl:with-param name="select-xml" select="$select-xml"/>
+                                <xsl:with-param name="results" select="$results"/>
+                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate"/>
+                                <xsl:with-param name="desc" select="$desc"/>
+                                <xsl:with-param name="default-order-by-predicate" select="$default-order-by-predicate"/>
+                                <xsl:with-param name="default-desc" select="$default-desc"/>
+                                <xsl:with-param name="active-class" select="$active-class"/>
+                            </xsl:call-template>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
 
@@ -1189,45 +1196,32 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template name="render-container-error">
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="message" as="xs:string"/>
 
         <!-- update progress bar -->
-        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'progress-bar']"/>
-        
-        <xsl:choose>
-            <!-- container results are already rendered -->
-            <xsl:when test="id('container-pane', ixsl:page())">
-                <xsl:result-document href="#container-pane" method="ixsl:replace-content">
+        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <div id="container-pane">
                     <div class="alert alert-block">
                         <strong>Error during query execution:</strong>
                         <pre>
                             <xsl:value-of select="$message"/>
                         </pre>
                     </div>
-                </xsl:result-document>
-            </xsl:when>
-            <!-- first time rendering the container results -->
-            <xsl:otherwise>
-                <xsl:result-document href="#main-content" method="ixsl:append-content">
-                    <div id="container-pane">
-                        <div class="alert alert-block">
-                            <strong>Error during query execution:</strong>
-                            <pre>
-                                <xsl:value-of select="$message"/>
-                            </pre>
-                        </div>
-                    </div>
-                </xsl:result-document>
-            </xsl:otherwise>
-        </xsl:choose>
+                </div>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template name="render-facets">
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
         <!-- use the first SELECT variable as the facet variable name (so that we do not generate facets based on other variables) -->
         <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="container-id" as="xs:string"/>
 
         <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
         <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
@@ -1241,7 +1235,7 @@ extension-element-prefixes="ixsl"
 
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="bs2:FilterIn">
-                    <xsl:with-param name="container-id" select="$container-id"/>
+                    <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="id" select="$id"/>
                     <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
                     <xsl:with-param name="predicate" select="$predicate"/>
@@ -1995,7 +1989,8 @@ extension-element-prefixes="ixsl"
 
     <xsl:template name="onChartQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -2017,14 +2012,15 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="content-uri" select="xs:anyURI(translate($query-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
                     <!-- update progress bar -->
-                    <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+                    <xsl:for-each select="$container//div[@class = 'bar']">
                         <ixsl:set-style name="width" select="'66%'" object="."/>
                     </xsl:for-each>
 
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
                             <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="container-id" select="$container-id"/>
+<!--                            <xsl:with-param name="container-id" select="$container-id"/>-->
+                            <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
@@ -2035,17 +2031,19 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+                <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'bar']"/>
         
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">
-                        <strong>Error during query execution:</strong>
-                        <pre>
-                            <xsl:value-of select="$response?message"/>
-                        </pre>
-                    </div>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -2053,7 +2051,8 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onSPARQLResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="results-container-id" select="$container-id || '-sparql-results'" as="xs:string"/>
         <xsl:param name="chart-canvas-id" select="$container-id || '-chart-canvas'" as="xs:string"/>
         <xsl:param name="chart-type" select="xs:anyURI('&ac;Table')" as="xs:anyURI"/>
@@ -2069,10 +2068,12 @@ extension-element-prefixes="ixsl"
 
         <xsl:choose>
             <xsl:when test="not(id($results-container-id, ixsl:page()))">
-                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                    <input name="href" type="hidden" value="{$content-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
-                    <div id="{$results-container-id}" class="sparql-results"/>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <input name="href" type="hidden" value="{$content-uri}"/> <!-- used as $content-uri in chart form's onchange events -->
+                        <div id="{$results-container-id}" class="sparql-results"/>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:for-each select="id($results-container-id, ixsl:page())/preceding-sibling::input[@name = 'href']">
@@ -2095,11 +2096,13 @@ extension-element-prefixes="ixsl"
                     </xsl:for-each>
 
                     <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
-                        <xsl:result-document href="#{$container-id}" method="{$content-method}">
-                            <xsl:call-template name="bs2:QueryEditor">
-                                <xsl:with-param name="query" select="$query"/>
-                            </xsl:call-template>
-                        </xsl:result-document>
+                        <xsl:for-each select="$container">
+                            <xsl:result-document href="?." method="{$content-method}">
+                                <xsl:call-template name="bs2:QueryEditor">
+                                    <xsl:with-param name="query" select="$query"/>
+                                </xsl:call-template>
+                            </xsl:result-document>
+                        </xsl:for-each>
                     </xsl:if>
 
                     <xsl:if test="$show-editor and not(id('query-form', ixsl:page()))">
@@ -2142,13 +2145,13 @@ extension-element-prefixes="ixsl"
                         </xsl:call-template>
                     </xsl:if>
                     
-                    <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'progress-bar']">
+                    <xsl:for-each select="$container//div[@class = 'progress-bar']">
                         <ixsl:set-style name="display" select="'none'" object="."/>
                     </xsl:for-each>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'progress-bar']">
+                <xsl:for-each select="$container//div[@class = 'progress-bar']">
                     <ixsl:set-style name="display" select="'none'" object="."/>
                 </xsl:for-each>
                     
@@ -2188,7 +2191,8 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
         <xsl:param name="state" as="item()?"/>
 
         <xsl:message>
@@ -2197,7 +2201,7 @@ extension-element-prefixes="ixsl"
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
+                <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
@@ -2207,32 +2211,39 @@ extension-element-prefixes="ixsl"
                         <xsl:for-each select="key('resources', $content-uri, ?body)">
                             <xsl:apply-templates select="." mode="apl:Content">
                                 <xsl:with-param name="uri" select="$uri"/>
-                                <xsl:with-param name="container-id" select="$container-id"/>
+                                <!--<xsl:with-param name="container-id" select="$container-id"/>-->
+                                <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="state" select="$state"/>
                             </xsl:apply-templates>
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                            <div class="alert alert-block">
-                                <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
-                            </div>
-                        </xsl:result-document>
+                        <xsl:for-each select="$content">
+                            <xsl:result-document href="?." method="ixsl:replace-content">
+                                <div class="alert alert-block">
+                                    <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                                </div>
+                            </xsl:result-document>
+                        </xsl:for-each>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
             <!-- content could not be loaded as RDF, embed id as is -->
             <xsl:when test="?status = 406">
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <object data="{$content-uri}"/>
-                </xsl:result-document>
+                <xsl:for-each select="$content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <object data="{$content-uri}"/>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                    <div class="alert alert-block">
-                        <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
-                    </div>
-                </xsl:result-document>
+                <xsl:for-each select="$content">
+                    <xsl:result-document href="?." method="ixsl:replace-content">
+                        <div class="alert alert-block">
+                            <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
