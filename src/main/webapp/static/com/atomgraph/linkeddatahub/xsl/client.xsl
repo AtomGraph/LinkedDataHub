@@ -680,8 +680,12 @@ extension-element-prefixes="ixsl"
         
         <!-- inject content into the container element, unless it's the current document which already has content -->
         <xsl:if test="not(@rdf:about = ac:uri())">
-            <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+            <xsl:variable name="block" as="element()">
                 <xsl:apply-templates select="." mode="bs2:Block"/>
+            </xsl:variable>
+            
+            <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
+                <xsl:copy-of select="$block/*"/>
             </xsl:result-document>
         </xsl:if>
     </xsl:template>

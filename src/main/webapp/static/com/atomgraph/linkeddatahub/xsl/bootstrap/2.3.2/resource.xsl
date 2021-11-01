@@ -322,22 +322,24 @@ extension-element-prefixes="ixsl"
 
     <!-- BLOCK -->
     
-    <xsl:template match="*[*][@rdf:about]" mode="bs2:Block">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'span7 content resource-content'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
 
-        <div class="row-fluid">
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <div>
-                <xsl:if test="$id">
-                    <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            <div class="span7">
+                <xsl:if test="@rdf:about">
+                    <input name="href" type="hidden" value="{@rdf:about}"/>
                 </xsl:if>
-                <xsl:if test="$class">
-                    <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
-                </xsl:if>
-
-                <input name="href" type="hidden" value="{@rdf:about}"/>
 
                 <xsl:next-match/>
             </div>
