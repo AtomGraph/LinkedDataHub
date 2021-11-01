@@ -673,18 +673,11 @@ extension-element-prefixes="ixsl"
         </ixsl:schedule-action>
     </xsl:template>
 
-<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:Content">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:Content">
         <xsl:param name="container-id" as="xs:string"/>
 
-        <xsl:for-each select="id($container-id, ixsl:page())//div[@class = 'bar']">
-            <ixsl:set-style name="width" select="'75%'" object="."/>
-        </xsl:for-each>
-        
-         TO-DO: don't replace if the container already contains this content? 
-        <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-            <xsl:apply-templates select="." mode="bs2:Block"/>
-        </xsl:result-document>
-    </xsl:template>-->
+        <ixsl:set-style name="display" select="'none'" object="id($container-id, ixsl:page())//div[@class = 'bar']"/>
+    </xsl:template>
     
     <xsl:template name="first-time-message">
         <div class="hero-unit">
@@ -1016,6 +1009,7 @@ extension-element-prefixes="ixsl"
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
                 <xsl:call-template name="render-container-error">
+                    <xsl:with-param name="container-id" select="$container-id"/>
                     <xsl:with-param name="message" select="?message"/>
                 </xsl:call-template>
             </xsl:otherwise>

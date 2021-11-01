@@ -73,6 +73,7 @@ alert.violation { background-image: url('../icons/ic_error_white_24px.svg '); ba
 h2.access-required { background-image: url('../icons/baseline-warning-24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 h2.container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 h2.item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
+.nav-tabs .content-mode a { background-image: url('../icons/view_list_black_24dp.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .read-mode a { background-image: url('../icons/ic_details_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .list-mode a { background-image: url('../icons/ic_view_list_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
 .nav-tabs .table-mode a { background-image: url('../icons/ic_border_all_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; }
