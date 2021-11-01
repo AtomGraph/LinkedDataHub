@@ -1476,6 +1476,7 @@ extension-element-prefixes="ixsl"
             <xsl:for-each select="id($content-ids, ixsl:page())">
                 <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
                 <xsl:variable name="container-id" select="@id" as="xs:string"/>
+                <xsl:variable name="container" select="id(@id, ixsl:page())" as="element()"/>
 
                 <!-- show progress bar -->
                 <xsl:result-document href="?." method="ixsl:append-content">
