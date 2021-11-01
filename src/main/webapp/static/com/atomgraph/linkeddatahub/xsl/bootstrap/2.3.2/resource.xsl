@@ -333,13 +333,16 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
+            <xsl:if test="@rdf:about">
+                <xsl:attribute name="data-content-uri" select="@rdf:about"/>
+            </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="span7">
-                <xsl:if test="@rdf:about">
+<!--                <xsl:if test="@rdf:about">
                     <input name="href" type="hidden" value="{@rdf:about}"/>
-                </xsl:if>
+                </xsl:if>-->
 
                 <xsl:next-match/>
             </div>
