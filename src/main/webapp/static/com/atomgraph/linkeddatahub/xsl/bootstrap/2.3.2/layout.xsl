@@ -641,14 +641,16 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
+                <xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
+                
                 <div class="row-fluid">
                     <ul class="nav nav-tabs offset2 span7">
-                        <xsl:if test="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))">
+                        <xsl:if test="$has-content">
                             <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
                                 <a>Content</a>
                             </li>
                         </xsl:if>
-                        <li class="read-mode{if ($ac:mode = '&ac;ReadMode') then ' active' else() }">
+                        <li class="read-mode{if ($ac:mode = '&ac;ReadMode' or (not($ac:mode) and not($has-content))) then ' active' else() }">
                             <a>Properties</a>
                         </li>
                         <li class="map-mode{if ($ac:mode = '&ac;MapMode') then ' active' else() }">
@@ -665,7 +667,7 @@ exclude-result-prefixes="#all">
             
                 <xsl:choose>
                     <!-- check if the current document has content or its class has content -->
-                    <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and (key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.))))">
+                    <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and $has-content">
                         <xsl:for-each select="key('resources', ac:uri())">
                             <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
                             <xsl:apply-templates select="rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
