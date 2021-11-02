@@ -543,7 +543,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="active-class" select="../@class" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
@@ -570,7 +570,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
@@ -617,7 +617,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
         <xsl:variable name="select-xml" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-xml')" as="document-node()"/>
@@ -663,7 +663,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="predicate" select="ixsl:get(., 'value')" as="xs:anyURI?"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
@@ -710,7 +710,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="desc" select="contains(@class, 'btn-order-by-desc')" as="xs:boolean"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
@@ -756,7 +756,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//*[tokenize(@class, ' ') = 'nav-header']" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="facet-container" select="ancestor::div[tokenize(@class, ' ') = 'faceted-nav']" as="element()"/>
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
@@ -1024,7 +1024,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//input[@type = 'checkbox']" mode="ixsl:onchange">
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
         <!-- collect the values/types/datatypes of all checked inputs within this facet and build an array of maps -->
@@ -1072,7 +1072,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
-        <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')/translate(., '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(ixsl:get($container, 'dataset.contentUri'), '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="predicate" select="input/@value" as="xs:anyURI"/>
         <xsl:variable name="select-string" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'select-query')" as="xs:string"/>
