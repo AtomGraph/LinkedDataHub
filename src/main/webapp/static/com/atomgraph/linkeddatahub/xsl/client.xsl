@@ -2998,7 +2998,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
-        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <!--<xsl:variable name="container-id" select="'content-body'" as="xs:string"/>-->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
