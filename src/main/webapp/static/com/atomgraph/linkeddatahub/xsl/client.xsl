@@ -2593,7 +2593,7 @@ extension-element-prefixes="ixsl"
     <!-- after form is submitted. TO-DO: split into multiple callbacks and avoid <xsl:choose>? -->
     <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" as="element()"/>
+        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <!--<xsl:param name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:param name="action" as="xs:anyURI"/>
         <xsl:param name="form" as="element()"/>
