@@ -745,8 +745,9 @@ exclude-result-prefixes="#all"
     <!-- facet header on click -->
     
     <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//*[tokenize(@class, ' ') = 'nav-header']" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'faceted-nav']" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate(ancestor::div[tokenize(@class, ' ') = 'left-nav']/following-sibling::div[tokenize(@class, ' ') = 'resource-content']/input[@name = 'href']/@value, '.', '-'))" as="xs:anyURI"/>        
+        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+        <xsl:variable name="content-uri" select="ixsl:get(., 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
+        <xsl:variable name="facet-container" select="ancestor::div[tokenize(@class, ' ') = 'faceted-nav']" as="element()"/>
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
@@ -763,7 +764,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$container">
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <xsl:variable name="container-id" select="@id" as="xs:string"/>
+                    <!--<xsl:variable name="container-id" select="@id" as="xs:string"/>-->
                     <!-- the subject is a variable - trim the leading question mark -->
                     <xsl:variable name="subject-var-name" select="substring-after($bgp-triples-map/json:string[@key = 'subject'], '?')" as="xs:string"/>
                     <!-- predicate is a URI -->
@@ -799,7 +800,7 @@ exclude-result-prefixes="#all"
                     <!-- load facet values, their counts and optional labels -->
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
                         <xsl:call-template name="onFacetValueResultsLoad">
-                            <xsl:with-param name="container-id" select="$container-id"/>
+                            <xsl:with-param name="container" select="$facet-container"/>
                             <xsl:with-param name="predicate" select="$predicate"/>
                             <xsl:with-param name="object-var-name" select="$object-var-name"/>
                             <xsl:with-param name="count-var-name" select="$count-var-name"/>
@@ -832,7 +833,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onFacetValueResultsLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
         <xsl:param name="object-var-name" as="xs:string"/>
         <xsl:param name="count-var-name" as="xs:string"/>
@@ -847,9 +848,11 @@ exclude-result-prefixes="#all"
                         <xsl:choose>
                             <!-- special case for rdf:type - we expect its values to be in the ontology (classes), not in the instance data -->
                             <xsl:when test="$predicate = '&rdf;type'">
-                                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                                    <ul class="well well-small nav nav-list"></ul>
-                                </xsl:result-document>
+                                <xsl:for-each select="$container">
+                                    <xsl:result-document href="?." method="ixsl:append-content">
+                                        <ul class="well well-small nav nav-list"></ul>
+                                    </xsl:result-document>
+                                </xsl:for-each>
 
                                 <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
                                     <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
@@ -859,7 +862,7 @@ exclude-result-prefixes="#all"
                                     <!-- load the label of the object type -->
                                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                         <xsl:call-template name="onFacetValueTypeLoad">
-                                            <xsl:with-param name="container-id" select="$container-id"/>
+                                            <xsl:with-param name="container" select="$container"/>
                                             <xsl:with-param name="object-var-name" select="$object-var-name"/>
                                             <xsl:with-param name="count-var-name" select="$count-var-name"/>
                                             <xsl:with-param name="object-type" select="$object-type"/>
@@ -870,26 +873,27 @@ exclude-result-prefixes="#all"
                             </xsl:when>
                             <xsl:otherwise>
                                 <!-- toggle the caret direction -->
-                                <xsl:for-each select="id($container-id, ixsl:page())/h2/span[tokenize(@class, ' ') = 'caret']">
+                                <xsl:for-each select="$container/h2/span[tokenize(@class, ' ') = 'caret']">
                                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                                 </xsl:for-each>
                 
-                                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                                    <ul class="well well-small nav nav-list">
-                                        <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
-                                            <!-- order by count first -->
-                                            <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>
-                                            <!-- order by label second -->
-                                            <xsl:sort select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
-                                            <xsl:sort select="srx:binding[@name = $object-var-name]/srx:*"/>
+                                <xsl:for-each select="$container">
+                                    <xsl:result-document href="?." method="ixsl:append-content">
+                                        <ul class="well well-small nav nav-list">
+                                            <xsl:apply-templates select="$results//srx:result[srx:binding[@name = $object-var-name]]" mode="bs2:FacetValueItem">
+                                                <!-- order by count first -->
+                                                <xsl:sort select="xs:integer(srx:binding[@name = $count-var-name]/srx:literal)" order="descending"/>
+                                                <!-- order by label second -->
+                                                <xsl:sort select="srx:binding[@name = $label-sample-var-name]/srx:literal"/>
+                                                <xsl:sort select="srx:binding[@name = $object-var-name]/srx:*"/>
 
-                                            <xsl:with-param name="container-id" select="$container-id"/>
-                                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                                            <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                                            <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
-                                        </xsl:apply-templates>
-                                    </ul>
-                                </xsl:result-document>
+                                                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                                                <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                                                <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
+                                            </xsl:apply-templates>
+                                        </ul>
+                                    </xsl:result-document>
+                                </xsl:for-each>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:if>
@@ -897,14 +901,16 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- error response - could not load query results -->
-                <xsl:result-document href="#{$container-id}" method="ixsl:append-content">
-                    <div class="alert alert-block">
-                        <strong>Error during query execution:</strong>
-                        <pre>
-                            <xsl:value-of select="$response?message"/>
-                        </pre>
-                    </div>
-                </xsl:result-document>
+                <xsl:for-each select="$container">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <div class="alert alert-block">
+                            <strong>Error during query execution:</strong>
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </div>
+                    </xsl:result-document>
+                </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
         
@@ -913,7 +919,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="srx:result" mode="bs2:FacetValueItem">
-        <xsl:param name="container-id" as="xs:string"/>
         <xsl:param name="object-var-name" as="xs:string"/>
         <xsl:param name="count-var-name" as="xs:string"/>
         <xsl:param name="label-sample-var-name" as="xs:string?"/>
@@ -961,7 +966,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="onFacetValueTypeLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" as="xs:string"/>
+        <xsl:param name="container" as="element()"/>
         <xsl:param name="object-var-name" as="xs:string"/>
         <xsl:param name="count-var-name" as="xs:string"/>
         <xsl:param name="object-type" as="xs:anyURI"/>
@@ -970,10 +975,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string?"/>
         
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-        <xsl:variable name="existing-items" select="id($container-id, ixsl:page())/ul/li" as="element()*"/>
+        <xsl:variable name="existing-items" select="$container/ul/li" as="element()*"/>
         <xsl:variable name="new-item" as="element()">
             <xsl:apply-templates select="$value-result" mode="bs2:FacetValueItem">
-                <xsl:with-param name="container-id" select="$container-id"/>
                 <xsl:with-param name="object-var-name" select="$object-var-name"/>
                 <xsl:with-param name="count-var-name" select="$count-var-name"/>
                 <xsl:with-param name="label">
@@ -998,7 +1002,7 @@ exclude-result-prefixes="#all"
             </xsl:perform-sort>
         </xsl:variable>
 
-        <xsl:for-each select="id($container-id, ixsl:page())/ul">
+        <xsl:for-each select="$container/ul">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:sequence select="$items"/>
             </xsl:result-document>
