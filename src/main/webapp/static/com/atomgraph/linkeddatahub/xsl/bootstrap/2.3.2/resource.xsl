@@ -324,7 +324,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid content resource-content'" as="xs:string?"/>
+        <xsl:param name="class" select="if (@rdf:about) then 'row-fluid content resource-content' else 'row-fluid content'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -340,10 +340,6 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="span7">
-<!--                <xsl:if test="@rdf:about">
-                    <input name="href" type="hidden" value="{@rdf:about}"/>
-                </xsl:if>-->
-
                 <xsl:next-match/>
             </div>
 
@@ -528,10 +524,6 @@ extension-element-prefixes="ixsl"
                         </h2>
                     </xsl:for-each>
                 </xsl:if>
-
-<!--                <div>
-                    <input name="href" type="hidden" value="{rdf:first/@rdf:resource}"/>
-                </div>-->
             </div>
             
             <div class="right-nav span3"></div>

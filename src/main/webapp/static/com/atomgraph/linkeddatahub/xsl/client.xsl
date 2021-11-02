@@ -683,8 +683,8 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'bar']"/>
         
-        <!-- inject content into the container element, unless it's the current document which already has content -->
-        <xsl:if test="not(@rdf:about = ac:uri())">
+        <!-- inject content into the container element, unless it already has content -->
+        <xsl:if test="not($container/*)">
             <xsl:variable name="block" as="element()">
                 <xsl:apply-templates select="." mode="bs2:Block"/>
             </xsl:variable>
