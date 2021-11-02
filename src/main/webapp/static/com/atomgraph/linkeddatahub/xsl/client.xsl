@@ -2022,8 +2022,7 @@ extension-element-prefixes="ixsl"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
                         <xsl:call-template name="onSPARQLResultsLoad">
                             <xsl:with-param name="content-uri" select="$content-uri"/>
-<!--                            <xsl:with-param name="container-id" select="$container-id"/>-->
-                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
                             <xsl:with-param name="chart-type" select="$chart-type"/>
                             <xsl:with-param name="category" select="$category"/>
                             <xsl:with-param name="series" select="$series"/>
@@ -3004,7 +3003,7 @@ extension-element-prefixes="ixsl"
         <ixsl:schedule-action http-request="$request">
             <xsl:call-template name="onSPARQLResultsLoad">
                 <xsl:with-param name="content-uri" select="$content-uri"/>
-                <xsl:with-param name="container-id" select="$container-id"/>
+                <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
                 <xsl:with-param name="query" select="$query"/>
             </xsl:call-template>
         </ixsl:schedule-action>
