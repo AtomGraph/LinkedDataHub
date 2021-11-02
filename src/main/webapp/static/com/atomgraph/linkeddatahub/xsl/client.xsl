@@ -949,7 +949,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:call-template name="render-container">
 <!--                        <xsl:with-param name="container-id" select="$container-id"/>-->
-                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
