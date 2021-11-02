@@ -708,7 +708,6 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: unify with container ORDER BY onchange -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-order-by']" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
-        <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
@@ -738,7 +737,7 @@ exclude-result-prefixes="#all"
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
         <xsl:call-template name="apl:RenderContainer">
-            <xsl:with-param name="container" select="$results-container"/>
+            <xsl:with-param name="container" select="$container"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="content" select="$content"/>
             <xsl:with-param name="select-string" select="$select-string"/>
