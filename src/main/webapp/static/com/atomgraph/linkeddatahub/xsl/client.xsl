@@ -558,8 +558,6 @@ extension-element-prefixes="ixsl"
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
         <xsl:param name="state" as="item()?"/>
-        <!-- only use the middle column as container -->
-        <xsl:variable name="container" select="$container/div[@class = 'span7']" as="element()"/>
         <!-- set ?this variable value unless getting the query string from state -->
         <xsl:variable name="select-string" select="if ($state?content-uri = $content-uri) then string(map:get($state, 'query-string')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
@@ -649,8 +647,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
         <xsl:param name="container" as="element()"/>
         <!--<xsl:param name="container-id" as="xs:string"/>-->
-        <!-- only use the middle column as container -->
-        <xsl:variable name="container" select="$container/div[@class = 'span7']" as="element()"/>
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
@@ -955,7 +951,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:call-template name="render-container">
 <!--                        <xsl:with-param name="container-id" select="$container-id"/>-->
-                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
@@ -970,10 +966,10 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
 
                     <!-- only append facets if they are not already present -->
-                    <xsl:if test="not($container/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']/*)">
+                    <xsl:if test="not($container/div[tokenize(@class, ' ') = 'left-nav']/*)">
                         <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
                         
-                        <xsl:for-each select="$container/preceding-sibling::div[tokenize(@class, ' ') = 'left-nav']">
+                        <xsl:for-each select="$container/div[tokenize(@class, ' ') = 'left-nav']">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
                             </xsl:result-document>
@@ -1006,8 +1002,8 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="parallax-container-id" select="$container-id || '-right-nav'" as="xs:string"/>
 
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-                        <xsl:if test="not($container/following-sibling::div[tokenize(@class, ' ') = 'right-nav']/*)">
-                            <xsl:for-each select="$container/following-sibling::div[tokenize(@class, ' ') = 'right-nav']">
+                        <xsl:if test="not($container/div[tokenize(@class, ' ') = 'right-nav']/*)">
+                            <xsl:for-each select="$container/div[tokenize(@class, ' ') = 'right-nav']">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
                                 </xsl:result-document>
@@ -1018,7 +1014,8 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="results" select="$grouped-results"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="service" select="$service"/>
-                            <xsl:with-param name="container-id" select="$parallax-container-id"/>
+                            <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
+                            <!--<xsl:with-param name="container-id" select="$parallax-container-id"/>-->
                         </xsl:call-template>
                     </xsl:if>
                     
