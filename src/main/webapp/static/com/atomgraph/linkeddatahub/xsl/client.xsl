@@ -1469,7 +1469,7 @@ extension-element-prefixes="ixsl"
                 <!-- show progress bar in the middle column -->
                 <xsl:for-each select="div[@class = 'span7']">
                     <xsl:result-document href="?." method="ixsl:append-content">
-                        <div class="progress-bar span12">
+                        <div class="progress-bar">
                             <div class="progress progress-striped active">
                                 <div class="bar" style="width: 25%;"></div>
                             </div>
