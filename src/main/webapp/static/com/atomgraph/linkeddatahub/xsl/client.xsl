@@ -653,7 +653,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$chart-type: <xsl:value-of select="$chart-type"/> $category: <xsl:value-of select="$category"/> $series: <xsl:value-of select="$series"/></xsl:message>
 
         <xsl:for-each select="$container//div[@class = 'bar']">
-            <ixsl:set-style name="width" select="'75%'" object="."/>
+            <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
 
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
@@ -674,8 +674,8 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'bar']"/>
         
-        <!-- inject content into the container element, unless it already has content -->
-        <xsl:if test="not($container/*)">
+        <!-- inject content into the container element, unless it already has content (except progress-bar) -->
+        <xsl:if test="not($container/*[not(@class = 'progress-bar')])">
             <xsl:variable name="block" as="element()">
                 <xsl:apply-templates select="." mode="bs2:Block"/>
             </xsl:variable>
@@ -2002,7 +2002,7 @@ extension-element-prefixes="ixsl"
 
                     <!-- update progress bar -->
                     <xsl:for-each select="$container//div[@class = 'bar']">
-                        <ixsl:set-style name="width" select="'66%'" object="."/>
+                        <ixsl:set-style name="width" select="'83%'" object="."/>
                     </xsl:for-each>
 
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
