@@ -169,7 +169,6 @@ extension-element-prefixes="ixsl"
         <!-- initialize breadcrumbs, chart etc. -->
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
@@ -2407,7 +2406,6 @@ extension-element-prefixes="ixsl"
         
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="container" select="$container"/>
         </xsl:call-template>
     </xsl:template>
     
