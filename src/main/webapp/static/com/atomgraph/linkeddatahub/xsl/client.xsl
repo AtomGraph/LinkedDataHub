@@ -1074,24 +1074,6 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <!-- first time rendering the container results -->
             <xsl:otherwise>
-                <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
-                <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
-                
-                <xsl:for-each select="$bgp-triples-map">
-                    <xsl:variable name="id" select="generate-id()" as="xs:string"/>
-                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
-
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="bs2:OrderBy">
-                            <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
-                            <xsl:with-param name="id" select="$id"/>
-                            <xsl:with-param name="predicate" select="$predicate"/>
-                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:for-each>
-
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="pull-right">
@@ -1132,6 +1114,24 @@ extension-element-prefixes="ixsl"
                             </xsl:call-template>
                         </div>
                     </xsl:result-document>
+                </xsl:for-each>
+                
+                <!-- use the BGPs where the predicate is a URI value and the subject and object are variables -->
+                <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')]" as="element()*"/>
+                
+                <xsl:for-each select="$bgp-triples-map">
+                    <xsl:variable name="id" select="generate-id()" as="xs:string"/>
+                    <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="bs2:OrderBy">
+                            <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
+                            <xsl:with-param name="id" select="$id"/>
+                            <xsl:with-param name="predicate" select="$predicate"/>
+                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
