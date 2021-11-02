@@ -645,7 +645,6 @@ extension-element-prefixes="ixsl"
     <!-- chart content -->
     <xsl:template match="*[spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="apl:Content" priority="1">
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:variable name="query-uri" select="xs:anyURI(spin:query/@rdf:resource)" as="xs:anyURI"/>
         <xsl:variable name="chart-type" select="xs:anyURI(apl:chartType/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="category" select="apl:categoryProperty/@rdf:resource | apl:categoryVarName" as="xs:string?"/>
@@ -670,12 +669,11 @@ extension-element-prefixes="ixsl"
 
     <xsl:template match="*[*][@rdf:about]" mode="apl:Content">
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" as="xs:string"/>-->
 
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'bar']"/>
         
-        <!-- inject content into the container element, unless it already has content (except progress-bar) -->
-        <xsl:if test="not($container/*[not(@class = 'progress-bar')])">
+        <!-- inject content into the container's middle column, unless it already has content (except progress-bar) -->
+        <xsl:if test="not($container/div[@class = 'span7']/*[not(@class = 'progress-bar')])">
             <xsl:variable name="block" as="element()">
                 <xsl:apply-templates select="." mode="bs2:Block"/>
             </xsl:variable>
@@ -939,7 +937,6 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[tokenize(@class, ' ') = 'active']/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
 
                     <xsl:call-template name="render-container">
-<!--                        <xsl:with-param name="container-id" select="$container-id"/>-->
                         <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
@@ -974,7 +971,6 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="container" select="id($facet-container-id, ixsl:page())"/>
-<!--                            <xsl:with-param name="container-id" select="$facet-container-id"/>-->
                         </xsl:call-template>
                     </xsl:if>
 
@@ -1004,7 +1000,6 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="select-xml" select="$select-xml"/>
                             <xsl:with-param name="service" select="$service"/>
                             <xsl:with-param name="container" select="id($parallax-container-id, ixsl:page())"/>
-                            <!--<xsl:with-param name="container-id" select="$parallax-container-id"/>-->
                         </xsl:call-template>
                     </xsl:if>
                     
@@ -1411,7 +1406,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="query" as="xs:string?"/>
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
@@ -1979,7 +1973,6 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onChartQueryLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" as="xs:string"/>-->
         <xsl:param name="query-uri" as="xs:anyURI"/>
         <xsl:param name="chart-type" as="xs:anyURI"/>
         <xsl:param name="category" as="xs:string?"/>
@@ -2199,7 +2192,6 @@ extension-element-prefixes="ixsl"
                         <xsl:for-each select="key('resources', $content-uri, ?body)">
                             <xsl:apply-templates select="." mode="apl:Content">
                                 <xsl:with-param name="uri" select="$uri"/>
-                                <!--<xsl:with-param name="container-id" select="$container-id"/>-->
                                 <xsl:with-param name="container" select="$container"/>
                                 <xsl:with-param name="state" select="$state"/>
                             </xsl:apply-templates>
@@ -2242,7 +2234,6 @@ extension-element-prefixes="ixsl"
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
-        <!--<xsl:param name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
@@ -2310,7 +2301,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
 
@@ -2446,7 +2436,6 @@ extension-element-prefixes="ixsl"
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="uri" select="$uri"/>
                         <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                        <!--<xsl:with-param name="container" select="id($container-id, ixsl:page())"/>-->
                         <xsl:with-param name="state" select="$state"/>
                         <!-- we don't want to push the same state we just popped back to -->
                         <xsl:with-param name="push-state" select="false()"/>
@@ -2548,7 +2537,6 @@ extension-element-prefixes="ixsl"
     <!-- the same logic as onFormLoad but handles only responses to multipart requests invoked via JS function fetchDispatchXML() -->
     <xsl:template match="." mode="ixsl:onmultipartFormLoad">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <!--<xsl:param name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:variable name="event" select="ixsl:event()"/>
         <xsl:variable name="action" select="ixsl:get(ixsl:get($event, 'detail'), 'action')" as="xs:anyURI"/>
         <xsl:variable name="form" select="ixsl:get(ixsl:get($event, 'detail'), 'target')" as="element()"/> <!-- not ixsl:get(ixsl:event(), 'target') because that's the whole document -->
@@ -2575,7 +2563,6 @@ extension-element-prefixes="ixsl"
         <xsl:for-each select="$response">
             <xsl:call-template name="onFormLoad">
                 <xsl:with-param name="container" select="$container"/>
-<!--                <xsl:with-param name="container-id" select="$container-id"/>-->
                 <xsl:with-param name="action" select="$action"/>
                 <xsl:with-param name="form" select="$form"/>
                 <xsl:with-param name="target-id" select="$target-id"/>
@@ -2587,7 +2574,6 @@ extension-element-prefixes="ixsl"
     <xsl:template name="onFormLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <!--<xsl:param name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:param name="action" as="xs:anyURI"/>
         <xsl:param name="form" as="element()"/>
         <xsl:param name="target-id" as="xs:string?"/>
@@ -2624,7 +2610,6 @@ extension-element-prefixes="ixsl"
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
                         <xsl:apply-templates select="?body" mode="apl:Document">
                             <xsl:with-param name="container" select="$container"/>
-                            <!--<xsl:with-param name="container-id" select="$container-id"/>-->
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
@@ -2918,7 +2903,6 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <!--<xsl:variable name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
@@ -2956,7 +2940,6 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <!--<xsl:variable name="container-id" select="'content-body'" as="xs:string"/>-->
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
@@ -2990,7 +2973,6 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <!--<xsl:variable name="container-id" select="'content-body'" as="xs:string"/>-->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -3642,7 +3624,7 @@ extension-element-prefixes="ixsl"
     <!-- after "Create" or "Edit" buttons are clicked" -->
     <xsl:template name="onAddForm">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container-id" select="'content-body'" as="xs:string"/>
+        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="add-class" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
@@ -3733,15 +3715,18 @@ extension-element-prefixes="ixsl"
                                 </xsl:when>
                                 <!-- there's no <form> so we're not in EditMode - replace the whole content -->
                                 <xsl:otherwise>
-                                    <xsl:result-document href="#{$container-id}" method="ixsl:replace-content">
-                                        <div class="row-fluid">
-                                            <div class="left-nav span2"></div>
+                                    <xsl:for-each select="$container">
+                                        <xsl:result-document href="?." method="ixsl:replace-content">
+                                            <!-- TO-DO: move to server-side as a separate template that extends bs2:Form? -->
+                                            <div class="row-fluid">
+                                                <div class="left-nav span2"></div>
 
-                                            <div class="span7">
-                                                <xsl:copy-of select="$form"/>
+                                                <div class="span7">
+                                                    <xsl:copy-of select="$form"/>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </xsl:result-document>
+                                        </xsl:result-document>
+                                    </xsl:for-each>
                                 </xsl:otherwise>
                             </xsl:choose>
                             

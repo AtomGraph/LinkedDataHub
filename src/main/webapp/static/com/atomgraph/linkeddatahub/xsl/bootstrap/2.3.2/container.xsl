@@ -82,7 +82,6 @@ exclude-result-prefixes="#all"
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
-                <!--<xsl:with-param name="container-id" select="$properties-container-id"/>-->
                 <xsl:with-param name="container" select="id($properties-container-id, ixsl:page())"/>
                 <xsl:with-param name="var-name" select="$focus-var-name"/>
                 <xsl:with-param name="results" select="$results"/>
@@ -140,7 +139,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="predicate" as="xs:anyURI"/>
         <xsl:variable name="results" select="if (?status = 200 and ?media-type = 'application/rdf+xml') then ?body else ()" as="document-node()?"/>
-        <xsl:variable name="existing-items" select="id($container-id, ixsl:page())/li" as="element()*"/>
+        <xsl:variable name="existing-items" select="$container/li" as="element()*"/>
         <xsl:variable name="new-item" as="element()">
             <li>
                 <a title="{$predicate}">
