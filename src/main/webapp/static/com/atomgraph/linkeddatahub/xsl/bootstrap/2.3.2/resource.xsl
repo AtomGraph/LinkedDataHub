@@ -324,7 +324,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
-        <xsl:param name="content-uri" as="xs:anyURI"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid content'" as="xs:string?"/>
 
         <div>
