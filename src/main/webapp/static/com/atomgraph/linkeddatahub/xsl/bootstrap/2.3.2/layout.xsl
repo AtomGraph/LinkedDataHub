@@ -1096,6 +1096,24 @@ exclude-result-prefixes="#all">
 
     <!-- BLOCK -->
 
+    <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="bs2:Block" priority="1">
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- mark chart instances as .resource-content which is then rendered by client.xsl -->
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- embed file content -->
     <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
