@@ -322,10 +322,25 @@ extension-element-prefixes="ixsl"
 
     <!-- BLOCK -->
     
+    <!-- hide the current document resource -->
+    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:Block" priority="1"/>
+
+    <!-- hide Content resources -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
+
+    <!-- hide inlined blank node resources from the main block flow -->
+    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="1">
+        <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
+        
+        <xsl:if test="$display">
+            <xsl:next-match/>
+        </xsl:if>
+    </xsl:template>
+
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
-        <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid content'" as="xs:string?"/>
+        <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -893,13 +908,5 @@ extension-element-prefixes="ixsl"
     <!-- OBJECT -->
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Object"/>
-    
-    <!-- BLOCK -->
-    
-    <!-- hide the current document resource -->
-    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:Block" priority="1"/>
-
-    <!-- hide Content resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block"/>
 
 </xsl:stylesheet>
