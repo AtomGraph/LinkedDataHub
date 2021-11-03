@@ -2457,12 +2457,22 @@ extension-element-prefixes="ixsl"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onDocumentLoad">
-                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <!-- abort the previous request, if any -->
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+        </xsl:if>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onDocumentLoad">
+                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        
+        <!-- store the new request object -->
+        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
     <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
@@ -2613,7 +2623,7 @@ extension-element-prefixes="ixsl"
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
-                        <!--trim the query string if it's present--> 
+                        <!-- trim the query string if it's present --> 
                         <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
                          <!--reload resource--> 
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
@@ -2641,12 +2651,22 @@ extension-element-prefixes="ixsl"
                     </xsl:when>
                     <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:otherwise>
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                            <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        <!-- abort the previous request, if any -->
+                        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+                            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+                        </xsl:if>
+
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                                <xsl:call-template name="onDocumentLoad">
+                                    <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
+                                    <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        
+                        <!-- store the new request object -->
+                        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
@@ -2781,12 +2801,22 @@ extension-element-prefixes="ixsl"
                     
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <!-- abort the previous request, if any -->
+                    <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+                        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+                    </xsl:if>
+
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <xsl:call-template name="onDocumentLoad">
+                                <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    
+                    <!-- store the new request object -->
+                    <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 </xsl:if>
             </xsl:when>
             <xsl:when test="$key-code = 'ArrowUp'">
@@ -2827,12 +2857,22 @@ extension-element-prefixes="ixsl"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onDocumentLoad">
-                <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <!-- abort the previous request, if any -->
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+        </xsl:if>
+
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onDocumentLoad">
+                    <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        
+        <!-- store the new request object -->
+        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
     <!-- prompt for query title (also reused for its document) -->
