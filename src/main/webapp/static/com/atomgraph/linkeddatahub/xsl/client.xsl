@@ -2459,6 +2459,7 @@ extension-element-prefixes="ixsl"
         
         <!-- abort the previous request, if any -->
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
         </xsl:if>
         
@@ -2653,6 +2654,7 @@ extension-element-prefixes="ixsl"
                     <xsl:otherwise>
                         <!-- abort the previous request, if any -->
                         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+                            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
                         </xsl:if>
 
@@ -2803,6 +2805,7 @@ extension-element-prefixes="ixsl"
 
                     <!-- abort the previous request, if any -->
                     <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+                        <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
                         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
                     </xsl:if>
 
@@ -2859,6 +2862,7 @@ extension-element-prefixes="ixsl"
         
         <!-- abort the previous request, if any -->
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
         </xsl:if>
 
@@ -3382,6 +3386,7 @@ extension-element-prefixes="ixsl"
 
         <!-- abort the previous request, if any -->
         <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
             <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
         </xsl:if>
 
