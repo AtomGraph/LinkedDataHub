@@ -2007,6 +2007,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="series" select="$series"/>
                             <xsl:with-param name="show-editor" select="false()"/>
                             <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
+                            <xsl:with-param name="push-state" select="false()"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:for-each>
