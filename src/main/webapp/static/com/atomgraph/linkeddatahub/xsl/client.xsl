@@ -2666,7 +2666,7 @@ extension-element-prefixes="ixsl"
                         </xsl:variable>
                         
                         <!-- store the new request object -->
-                        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
@@ -3380,9 +3380,19 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddForm"/>
-        </ixsl:schedule-action>
+        <!-- abort the previous request, if any -->
+        <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+            <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+        </xsl:if>
+
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddForm"/>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        
+        <!-- store the new request object -->
+        <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-delete'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
