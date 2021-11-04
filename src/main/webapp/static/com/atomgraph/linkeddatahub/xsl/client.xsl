@@ -2281,6 +2281,9 @@ extension-element-prefixes="ixsl"
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:when>
+            <xsl:when test="?status = 0">
+                <!-- HTTP request was terminated - do nothing -->
+            </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 
