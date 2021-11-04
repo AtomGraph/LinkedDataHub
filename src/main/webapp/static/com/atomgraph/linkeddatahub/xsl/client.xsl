@@ -656,15 +656,18 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
 
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onChartQueryLoad">
-                <xsl:with-param name="query-uri" select="$query-uri"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-                <xsl:with-param name="container" select="$container"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onChartQueryLoad">
+                    <xsl:with-param name="query-uri" select="$query-uri"/>
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                    <xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="*[*][@rdf:about]" mode="apl:Content">
@@ -740,13 +743,16 @@ extension-element-prefixes="ixsl"
 
                     <xsl:variable name="parent-uri" select="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$parent-uri">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="apl:BreadCrumbResourceLoad">
-                                <xsl:with-param name="id" select="'breadcrumb-nav'"/>
-                                <xsl:with-param name="this-uri" select="$parent-uri"/>
-                                <xsl:with-param name="leaf" select="false()"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                                    <xsl:with-param name="this-uri" select="$parent-uri"/>
+                                    <xsl:with-param name="leaf" select="false()"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:if>
 
@@ -766,9 +772,12 @@ extension-element-prefixes="ixsl"
 
             <!-- is a new instance of Service was created, reload the LinkedDataHub.services data and re-render the service dropdown -->
             <xsl:if test="//sd:endpoint or //dydra:repository">
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onServiceLoad"/>
-                </ixsl:schedule-action>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onServiceLoad"/>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:if>
 
             <!-- TO-DO: replace hardcoded element ID -->
@@ -832,14 +841,17 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
-            <xsl:call-template name="onInfoWindowLoad">
-                <xsl:with-param name="map" select="$map"/>
-                <xsl:with-param name="marker" select="$marker"/>
-                <xsl:with-param name="uri" select="$uri"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
+                <xsl:call-template name="onInfoWindowLoad">
+                    <xsl:with-param name="map" select="$map"/>
+                    <xsl:with-param name="marker" select="$marker"/>
+                    <xsl:with-param name="uri" select="$uri"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template name="onInfoWindowLoad">
@@ -1110,14 +1122,17 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="bs2:OrderBy">
-                            <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
-                            <xsl:with-param name="id" select="$id"/>
-                            <xsl:with-param name="predicate" select="$predicate"/>
-                            <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="bs2:OrderBy">
+                                <xsl:with-param name="container" select="id($order-by-container-id, ixsl:page())"/>
+                                <xsl:with-param name="id" select="$id"/>
+                                <xsl:with-param name="predicate" select="$predicate"/>
+                                <xsl:with-param name="order-by-predicate" select="$order-by-predicate" as="xs:anyURI?"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:otherwise>
         </xsl:choose>
@@ -1218,15 +1233,18 @@ extension-element-prefixes="ixsl"
             <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
             <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="bs2:FilterIn">
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="id" select="$id"/>
-                    <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
-                    <xsl:with-param name="predicate" select="$predicate"/>
-                    <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+            <xsl:variable name="request" as="item()*">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="bs2:FilterIn">
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="id" select="$id"/>
+                        <xsl:with-param name="subject-var-name" select="$subject-var-name"/>
+                        <xsl:with-param name="predicate" select="$predicate"/>
+                        <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
     
@@ -1472,14 +1490,17 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
 
                 <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($content-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onContentLoad">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="content-uri" select="$content-uri"/>
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="state" select="$state"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onContentLoad">
+                            <xsl:with-param name="uri" select="$uri"/>
+                            <xsl:with-param name="content-uri" select="$content-uri"/>
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="state" select="$state"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
@@ -1494,11 +1515,14 @@ extension-element-prefixes="ixsl"
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($uri), 'param': 'dummy' })" as="xs:anyURI"/>
 
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onRDFDocumentLoad">
-                <xsl:with-param name="uri" select="$uri"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onRDFDocumentLoad">
+                    <xsl:with-param name="uri" select="$uri"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- show "Add data"/"Save as" form -->
@@ -1707,12 +1731,15 @@ extension-element-prefixes="ixsl"
                 
                 <xsl:if test="$container">
                     <!-- fill the container typeahead value, if it's provided -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                        <xsl:call-template name="onTypeaheadResourceLoad">
-                            <xsl:with-param name="resource-uri" select="$container"/>
-                            <xsl:with-param name="typeahead-span" select="id('remote-rdf-doc', ixsl:page())/.."/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                            <xsl:call-template name="onTypeaheadResourceLoad">
+                                <xsl:with-param name="resource-uri" select="$container"/>
+                                <xsl:with-param name="typeahead-span" select="id('remote-rdf-doc', ixsl:page())/.."/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:if>
 
                 <ixsl:set-style name="cursor" select="'default'"/>
@@ -1731,14 +1758,17 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="select-uri" select="key('resources', $apl:base)/dh:select/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$select-uri">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="apl:RootChildrenSelectLoad">
-                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="this-uri" select="$apl:base"/>
-                                <xsl:with-param name="select-uri" select="$select-uri"/>
-                                <xsl:with-param name="endpoint" select="$ac:endpoint"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="apl:RootChildrenSelectLoad">
+                                    <xsl:with-param name="id" select="$id"/>
+                                    <xsl:with-param name="this-uri" select="$apl:base"/>
+                                    <xsl:with-param name="select-uri" select="$select-uri"/>
+                                    <xsl:with-param name="endpoint" select="$ac:endpoint"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:when>
@@ -1769,11 +1799,14 @@ extension-element-prefixes="ixsl"
                         <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', $this-uri, '&gt;'))" as="xs:string"/>
                         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
 
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="apl:RootChildrenResultsLoad">
-                                <xsl:with-param name="id" select="$id"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="apl:RootChildrenResultsLoad">
+                                    <xsl:with-param name="id" select="$id"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
                 </xsl:for-each>
             </xsl:when>
@@ -1841,13 +1874,16 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="resource" select="key('resources', $this-uri)" as="element()?"/>
                     <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$parent-uri">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="apl:BreadCrumbResourceLoad">
-                                <xsl:with-param name="id" select="$id"/>
-                                <xsl:with-param name="this-uri" select="$parent-uri"/>
-                                <xsl:with-param name="leaf" select="$leaf"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                                    <xsl:with-param name="id" select="$id"/>
+                                    <xsl:with-param name="this-uri" select="$parent-uri"/>
+                                    <xsl:with-param name="leaf" select="$leaf"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:if>
 
                     <!-- append to the breadcrumb list -->
@@ -1998,18 +2034,21 @@ extension-element-prefixes="ixsl"
                         <ixsl:set-style name="width" select="'83%'" object="."/>
                     </xsl:for-each>
 
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onSPARQLResultsLoad">
-                            <xsl:with-param name="content-uri" select="$content-uri"/>
-                            <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
-                            <xsl:with-param name="chart-type" select="$chart-type"/>
-                            <xsl:with-param name="category" select="$category"/>
-                            <xsl:with-param name="series" select="$series"/>
-                            <xsl:with-param name="show-editor" select="false()"/>
-                            <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
-                            <xsl:with-param name="push-state" select="false()"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+                            <xsl:call-template name="onSPARQLResultsLoad">
+                                <xsl:with-param name="content-uri" select="$content-uri"/>
+                                <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
+                                <xsl:with-param name="chart-type" select="$chart-type"/>
+                                <xsl:with-param name="category" select="$category"/>
+                                <xsl:with-param name="series" select="$series"/>
+                                <xsl:with-param name="show-editor" select="false()"/>
+                                <xsl:with-param name="content-method" select="xs:QName('ixsl:append-content')"/>
+                                <xsl:with-param name="push-state" select="false()"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -2269,18 +2308,22 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="fragment" select="$fragment"/>
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="fallback" select="true()"/>
-                        <xsl:with-param name="service-uri" select="$service-uri"/>
-                        <xsl:with-param name="service" select="$service"/>
-                        <xsl:with-param name="state" select="$state"/>
-                        <xsl:with-param name="push-state" select="$push-state"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
+                
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="uri" select="$uri"/>
+                            <xsl:with-param name="fragment" select="$fragment"/>
+                            <xsl:with-param name="container" select="$container"/>
+                            <xsl:with-param name="fallback" select="true()"/>
+                            <xsl:with-param name="service-uri" select="$service-uri"/>
+                            <xsl:with-param name="service" select="$service"/>
+                            <xsl:with-param name="state" select="$state"/>
+                            <xsl:with-param name="push-state" select="$push-state"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:when test="?status = 0">
                 <!-- HTTP request was terminated - do nothing -->
@@ -2424,16 +2467,18 @@ extension-element-prefixes="ixsl"
         <!-- TO-DO: do we need to proxy the $uri here? -->
         <xsl:choose>
             <xsl:when test="$sparql">
-                <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
-                <ixsl:schedule-action http-request="$request">
-                    <xsl:call-template name="onSPARQLResultsLoad">
-                        <xsl:with-param name="content-uri" select="$uri"/>
-                        <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
-                        <!-- we don't want to push a state that was just popped -->
-                        <xsl:with-param name="push-state" select="false()"/>
-                        <xsl:with-param name="query" select="$query-string"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+                        <xsl:call-template name="onSPARQLResultsLoad">
+                            <xsl:with-param name="content-uri" select="$uri"/>
+                            <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
+                            <!-- we don't want to push a state that was just popped -->
+                            <xsl:with-param name="push-state" select="false()"/>
+                            <xsl:with-param name="query" select="$query-string"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- abort the previous request, if any -->
@@ -2561,13 +2606,16 @@ extension-element-prefixes="ixsl"
                 </xsl:variable>
                 <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
 
-                <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
-                    <xsl:call-template name="onFormLoad">
-                        <xsl:with-param name="action" select="$action"/>
-                        <xsl:with-param name="form" select="$form"/>
-                        <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
+                        <xsl:call-template name="onFormLoad">
+                            <xsl:with-param name="action" select="$action"/>
+                            <xsl:with-param name="form" select="$form"/>
+                            <xsl:with-param name="target-id" select="$form/input[@class = 'target-id']/@value"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -2627,13 +2675,18 @@ extension-element-prefixes="ixsl"
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
                 <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                
                 <!-- load document -->
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                
                 <!-- remove the modal div -->
                 <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
@@ -2653,13 +2706,17 @@ extension-element-prefixes="ixsl"
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 
                         <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
-                         <!--reload resource--> 
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                            <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        
+                        <!--reload resource--> 
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                                <xsl:call-template name="onDocumentLoad">
+                                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
@@ -2669,13 +2726,16 @@ extension-element-prefixes="ixsl"
                 <xsl:choose>
                     <!-- render the created resource as a typeahead input -->
                     <xsl:when test="$typeahead-span">
-                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                            <xsl:call-template name="onTypeaheadResourceLoad">
-                                <xsl:with-param name="resource-uri" select="$created-uri"/>
-                                <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
-                                <xsl:with-param name="modal-form" select="$form"/>
-                            </xsl:call-template>
-                        </ixsl:schedule-action>
+                        <xsl:variable name="request" as="item()*">
+                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                <xsl:call-template name="onTypeaheadResourceLoad">
+                                    <xsl:with-param name="resource-uri" select="$created-uri"/>
+                                    <xsl:with-param name="typeahead-span" select="$typeahead-span"/>
+                                    <xsl:with-param name="modal-form" select="$form"/>
+                                </xsl:call-template>
+                            </ixsl:schedule-action>
+                        </xsl:variable>
+                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:when>
                     <!-- if the form submit did not originate from a typeahead (target), load the created resource -->
                     <xsl:otherwise>
@@ -2734,12 +2794,15 @@ extension-element-prefixes="ixsl"
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                    <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <xsl:otherwise>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -2917,12 +2980,15 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddSaveQueryForm">
-                <xsl:with-param name="query-string" select="$query-string"/>
-                <xsl:with-param name="service-uri" select="$service-uri"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddSaveQueryForm">
+                    <xsl:with-param name="query-string" select="$query-string"/>
+                    <xsl:with-param name="service-uri" select="$service-uri"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- prompt for chart title (also reused for its document) -->
@@ -2953,15 +3019,18 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddSaveChartForm">
-                <xsl:with-param name="query-string" select="$query-string"/>
-                <xsl:with-param name="service-uri" select="$service-uri"/>
-                <xsl:with-param name="chart-type" select="$chart-type"/>
-                <xsl:with-param name="category" select="$category"/>
-                <xsl:with-param name="series" select="$series"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddSaveChartForm">
+                    <xsl:with-param name="query-string" select="$query-string"/>
+                    <xsl:with-param name="service-uri" select="$service-uri"/>
+                    <xsl:with-param name="chart-type" select="$chart-type"/>
+                    <xsl:with-param name="category" select="$category"/>
+                    <xsl:with-param name="series" select="$series"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- open SPARQL editor -->
@@ -3047,13 +3116,16 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
 
-        <ixsl:schedule-action http-request="$request">
-            <xsl:call-template name="onSPARQLResultsLoad">
-                <xsl:with-param name="content-uri" select="$content-uri"/>
-                <xsl:with-param name="container" select="$container"/>
-                <xsl:with-param name="query" select="$query"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="$request">
+                <xsl:call-template name="onSPARQLResultsLoad">
+                    <xsl:with-param name="content-uri" select="$content-uri"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="query" select="$query"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- chart-type onchange -->
@@ -3367,13 +3439,16 @@ extension-element-prefixes="ixsl"
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddValueCallback">
-                <xsl:with-param name="forClass" select="$forClass"/>
-                <xsl:with-param name="control-group" select="$control-group"/>
-                <xsl:with-param name="property" select="$property"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddValueCallback">
+                    <xsl:with-param name="forClass" select="$forClass"/>
+                    <xsl:with-param name="control-group" select="$control-group"/>
+                    <xsl:with-param name="property" select="$property"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
@@ -3386,9 +3461,12 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddForm"/>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddForm"/>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-add-data']" mode="ixsl:onclick">
@@ -3426,9 +3504,12 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="request-uri" select="if (not(starts-with($uri, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string($uri) }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ 'Are you sure?' ])">
-            <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onDelete"/>
-            </ixsl:schedule-action>
+            <xsl:variable name="request" as="item()*">
+                <ixsl:schedule-action http-request="map{ 'method': 'DELETE', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                    <xsl:call-template name="onDelete"/>
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
     </xsl:template>
     
@@ -3867,21 +3948,29 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
         <xsl:variable name="container" select="resolve-uri('queries/', $apl:base)" as="xs:anyURI"/>
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onTypeaheadResourceLoad">
-                <xsl:with-param name="resource-uri" select="$container"/>
-                <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onTypeaheadResourceLoad">
+                    <xsl:with-param name="resource-uri" select="$container"/>
+                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             
         <xsl:if test="$service-uri">
             <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$service-uri"/>
-                    <xsl:with-param name="typeahead-span" select="$service-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
+            
+            <xsl:variable name="request" as="item()*">
+                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <xsl:call-template name="onTypeaheadResourceLoad">
+                        <xsl:with-param name="resource-uri" select="$service-uri"/>
+                        <xsl:with-param name="typeahead-span" select="$service-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                    </xsl:call-template>
+                </ixsl:schedule-action>
+            </xsl:variable>
+            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:if>
     </xsl:template>
     
@@ -3910,12 +3999,16 @@ extension-element-prefixes="ixsl"
         
         <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
         <xsl:variable name="container" select="resolve-uri('charts/', $apl:base)" as="xs:anyURI"/>
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-            <xsl:call-template name="onTypeaheadResourceLoad">
-                <xsl:with-param name="resource-uri" select="$container"/>
-                <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onTypeaheadResourceLoad">
+                    <xsl:with-param name="resource-uri" select="$container"/>
+                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         
         <!-- handle both ResultSetChart and GraphChart here -->
         <xsl:variable name="chart-type-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()"/>
@@ -3928,15 +4021,18 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="query-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
         <xsl:variable name="target-id" select="$query-control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
         
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-            <xsl:call-template name="onAddSaveQueryForm">
-                <xsl:with-param name="query-string" select="$query-string"/>
-                <xsl:with-param name="service-uri" select="$service-uri"/>
-                <xsl:with-param name="add-class" select="()"/>
-                <xsl:with-param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
-                <xsl:with-param name="target-id" select="$target-id"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddSaveQueryForm">
+                    <xsl:with-param name="query-string" select="$query-string"/>
+                    <xsl:with-param name="service-uri" select="$service-uri"/>
+                    <xsl:with-param name="add-class" select="()"/>
+                    <xsl:with-param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])"/>
+                    <xsl:with-param name="target-id" select="$target-id"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template name="onAddValueCallback">

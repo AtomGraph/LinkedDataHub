@@ -805,15 +805,18 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
                     <!-- load facet values, their counts and optional labels -->
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-                        <xsl:call-template name="onFacetValueResultsLoad">
-                            <xsl:with-param name="container" select="$facet-container"/>
-                            <xsl:with-param name="predicate" select="$predicate"/>
-                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                            <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                            <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                            <xsl:call-template name="onFacetValueResultsLoad">
+                                <xsl:with-param name="container" select="$facet-container"/>
+                                <xsl:with-param name="predicate" select="$predicate"/>
+                                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                                <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                                <xsl:with-param name="label-sample-var-name" select="$label-sample-var-name"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
@@ -867,15 +870,18 @@ exclude-result-prefixes="#all"
                                     <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
                                     <!-- load the label of the object type -->
-                                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                        <xsl:call-template name="onFacetValueTypeLoad">
-                                            <xsl:with-param name="container" select="$container"/>
-                                            <xsl:with-param name="object-var-name" select="$object-var-name"/>
-                                            <xsl:with-param name="count-var-name" select="$count-var-name"/>
-                                            <xsl:with-param name="object-type" select="$object-type"/>
-                                            <xsl:with-param name="value-result" select="$value-result"/>
-                                        </xsl:call-template>
-                                    </ixsl:schedule-action>
+                                    <xsl:variable name="request" as="item()*">
+                                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                                            <xsl:call-template name="onFacetValueTypeLoad">
+                                                <xsl:with-param name="container" select="$container"/>
+                                                <xsl:with-param name="object-var-name" select="$object-var-name"/>
+                                                <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                                                <xsl:with-param name="object-type" select="$object-type"/>
+                                                <xsl:with-param name="value-result" select="$value-result"/>
+                                            </xsl:call-template>
+                                        </ixsl:schedule-action>
+                                    </xsl:variable>
+                                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                                 </xsl:for-each>
                             </xsl:when>
                             <xsl:otherwise>
@@ -1145,12 +1151,15 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <!-- load result count -->
-        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
-            <xsl:call-template name="apl:ResultCountResultsLoad">
-                <xsl:with-param name="container-id" select="'result-counts'"/>
-                <xsl:with-param name="count-var-name" select="$count-var-name"/>
-            </xsl:call-template>
-        </ixsl:schedule-action>
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
+                <xsl:call-template name="apl:ResultCountResultsLoad">
+                    <xsl:with-param name="container-id" select="'result-counts'"/>
+                    <xsl:with-param name="count-var-name" select="$count-var-name"/>
+                </xsl:call-template>
+            </ixsl:schedule-action>
+        </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <xsl:template name="apl:ResultCountResultsLoad">
