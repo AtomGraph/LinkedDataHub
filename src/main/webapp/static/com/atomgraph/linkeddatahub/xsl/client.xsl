@@ -85,7 +85,7 @@ extension-element-prefixes="ixsl"
     <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
-    <xsl:include href="chart.xsl"/>
+    <xsl:include href="client/chart.xsl"/>
     
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
