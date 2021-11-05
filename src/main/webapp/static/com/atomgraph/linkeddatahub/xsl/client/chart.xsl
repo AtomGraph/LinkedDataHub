@@ -112,7 +112,6 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
-    
     <xsl:template name="onAddSaveChartForm">
         <xsl:param name="query-string" as="xs:string"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
