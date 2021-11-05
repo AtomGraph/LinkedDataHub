@@ -3145,7 +3145,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes either from resource-content's @data-content-uri or from an input in the 'query-form' -->
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()?"/>
         <xsl:variable name="content-uri" select="translate((ixsl:get($container, 'dataset.contentUri'), ancestor::div[contains-token(@class, 'sparql-results')]/preceding-sibling::input[@name = 'href']/@value)[1], '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -3178,7 +3178,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes either from resource-content's @data-content-uri or from an input in the 'query-form' -->
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()?"/>
         <xsl:variable name="content-uri" select="translate((ixsl:get($container, 'dataset.contentUri'), ancestor::div[contains-token(@class, 'sparql-results')]/preceding-sibling::input[@name = 'href']/@value)[1], '.', '-')" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -3209,7 +3209,7 @@ extension-element-prefixes="ixsl"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes either from resource-content's @data-content-uri or from an input in the 'query-form' -->
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate((ixsl:get($container, 'dataset.contentUri'), ancestor::div[contains-token(@class, 'sparql-results')]/preceding-sibling::input[@name = 'href']/@value)[1], '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
