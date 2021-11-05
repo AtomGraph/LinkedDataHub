@@ -73,18 +73,18 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/functions.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/imports/default.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/imports/default.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/resource.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/document.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/container.xsl"/>
-    <xsl:import href="../../../../com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/sparql.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/document.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/container.xsl"/>
+    <xsl:import href="bootstrap/2.3.2/sparql.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
-    <xsl:include href="client/container.xsl"/>
-    <xsl:include href="client/chart.xsl"/>
-    <xsl:include href="client/form.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/container.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/chart.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
     
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
