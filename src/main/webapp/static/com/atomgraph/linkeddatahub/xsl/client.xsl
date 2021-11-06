@@ -76,14 +76,16 @@ extension-element-prefixes="ixsl"
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/sparql.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
     <xsl:import href="typeahead.xsl"/>
 
-    <xsl:include href="bootstrap/2.3.2/client/container.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/breadcrumb.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/chart.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/container.xsl"/>
     <xsl:include href="bootstrap/2.3.2/client/form.xsl"/>
-    
+    <xsl:include href="bootstrap/2.3.2/client/map.xsl"/>
+    <xsl:include href="bootstrap/2.3.2/client/sparql.xsl"/>
+
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
@@ -708,22 +710,11 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="center-lng" select="10" as="xs:float"/>
                 <xsl:variable name="zoom" select="4" as="xs:integer"/>
                 <xsl:variable name="map" select="ac:create-map($canvas-id, $center-lat, $center-lng, $zoom)"/>
+                
                 <ixsl:set-property name="map" select="$map" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
-                <!-- logic ported from SPARQLMap -->
                 <xsl:for-each select="//rdf:Description[geo:lat/text() castable as xs:float][geo:long/text() castable as xs:float]">
-                    <xsl:variable name="lat-lng" select="apl:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
-                    <xsl:variable name="marker-options" select="apl:new-object()"/>
-                    <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
-                    <ixsl:set-property name="map" select="$map" object="$marker-options"/>
-                    <ixsl:set-property name="label" select="ac:label(.)" object="$marker-options"/>
-                    <xsl:variable name="marker" select="apl:new('google.maps.Marker', [ $marker-options ])"/>
-                    <!-- make sure $marker is evaluated -->
-                    <xsl:sequence select="$marker[current-date() lt xs:date('2000-01-01')]"/>
-                    <xsl:if test="@rdf:about">
-                        <xsl:variable name="uri" select="string(@rdf:about)" as="xs:string"/>
-                        <xsl:sequence select="ixsl:call(ixsl:window(), 'addGoogleMapsListener', [ $marker, 'click', (), 'onMarkerClick', $map, $marker, $uri ])[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
+                    <xsl:template name="gm:AddMarker"/>
                 </xsl:for-each>
             </xsl:if>
 
@@ -747,71 +738,6 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </xsl:if>
         </xsl:for-each>
-    </xsl:template>
-
-    <xsl:template name="onMarkerClick">
-        <xsl:param name="map"/>
-        <xsl:param name="marker"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        
-        <!-- InfoWindowMode is handled as a special case in layout.xsl -->
-        <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-
-        <xsl:variable name="request" as="item()*">
-            <!-- request HTML instead of XHTML because Google Maps' InfoWindow doesn't support XHTML -->
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'text/html' } }">
-                <xsl:call-template name="onInfoWindowLoad">
-                    <xsl:with-param name="map" select="$map"/>
-                    <xsl:with-param name="marker" select="$marker"/>
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
-    <xsl:template name="onInfoWindowLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="map"/>
-        <xsl:param name="marker"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and starts-with(?media-type, 'text/html')">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="info-window-options" select="apl:new-object()"/>
-                    <!-- render first child of <body> as InfoWindow content -->
-                    <xsl:variable name="info-window-html" select="/html/body/*[1]" as="element()"/>
-                    <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
-                    <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                    <xsl:variable name="open-options" select="apl:new-object()"/>
-                    <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
-                    <ixsl:set-property name="map" select="$map" object="$open-options"/>
-                    <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
-                    <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="info-window-options" select="apl:new-object()"/>
-                <xsl:variable name="info-window-html" as="element()">
-                    <div class="alert alert-block">
-                        <strong>Could not map resource: <a href="{$uri}"><xsl:value-of select="$uri"/></a></strong>
-                    </div>
-                </xsl:variable>
-                <ixsl:set-property name="content" select="$info-window-html" object="$info-window-options"/>
-                <xsl:variable name="info-window" select="apl:new('google.maps.InfoWindow', [ $info-window-options ])"/>
-                <xsl:variable name="open-options" select="apl:new-object()"/>
-                <ixsl:set-property name="anchor" select="$marker" object="$open-options"/>
-                <ixsl:set-property name="map" select="$map" object="$open-options"/>
-                <ixsl:set-property name="shouldFocus" select="false()" object="$open-options"/>
-                <xsl:sequence select="ixsl:call($info-window, 'open', [ $open-options ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
-        
-        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
     </xsl:template>
     
     <xsl:template name="onServiceLoad">
@@ -957,7 +883,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <!-- load breadcrumbs -->
+    <!-- load RDF document -->
     
     <xsl:template name="apl:LoadRDFDocument">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -1312,55 +1238,6 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <!-- breadcrumbs -->
-    
-    <xsl:template name="apl:BreadCrumbResourceLoad">
-        <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="this-uri" as="xs:anyURI"/>
-        <xsl:param name="leaf" as="xs:boolean"/>
-
-        <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $this-uri)" as="element()?"/>
-                    <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
-                    <xsl:if test="$parent-uri">
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="apl:BreadCrumbResourceLoad">
-                                    <xsl:with-param name="id" select="$id"/>
-                                    <xsl:with-param name="this-uri" select="$parent-uri"/>
-                                    <xsl:with-param name="leaf" select="$leaf"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
-
-                    <!-- append to the breadcrumb list -->
-                    <xsl:for-each select="id($id, ixsl:page())/ul">
-                        <xsl:variable name="content" select="*" as="element()*"/>
-                        <!-- we want to prepend the parent resource to the beginning of the breadcrumb list -->
-                        <xsl:result-document href="?." method="ixsl:replace-content">
-                            <xsl:apply-templates select="$resource" mode="bs2:BreadCrumbListItem">
-                                <xsl:with-param name="leaf" select="$leaf"/>
-                            </xsl:apply-templates>
-                            
-                            <xsl:copy-of select="$content"/>
-                        </xsl:result-document>
-                    </xsl:for-each>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
-                    <p class="alert">Error loading breadcrumbs</p>
-                </xsl:result-document>
-                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-    
     <!-- render dropdown for root containers -->
     <xsl:template match="*[@rdf:about = ($apl:base, resolve-uri('charts/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('latest/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('queries/', $apl:base))]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
@@ -1407,24 +1284,6 @@ extension-element-prefixes="ixsl"
             <xsl:text> </xsl:text>
             <xsl:apply-templates select="." mode="xhtml:Anchor">
                 <xsl:with-param name="id" select="()"/>
-            </xsl:apply-templates>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-    
-    <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <xsl:variable name="class" as="xs:string?">
-                <xsl:apply-templates select="." mode="apl:logo"/>
-            </xsl:variable>
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-                <xsl:with-param name="class" select="$class"/>
             </xsl:apply-templates>
 
             <xsl:if test="not($leaf)">

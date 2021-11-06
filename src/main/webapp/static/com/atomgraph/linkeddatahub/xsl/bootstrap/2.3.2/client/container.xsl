@@ -40,55 +40,6 @@ exclude-result-prefixes="#all"
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     
-    <!-- FUNCTIONS -->
-
-    <xsl:function name="ac:create-map">
-        <xsl:param name="canvas-id" as="xs:string"/>
-        <xsl:param name="lat" as="xs:float"/>
-        <xsl:param name="lng" as="xs:float"/>
-        <xsl:param name="zoom" as="xs:integer"/>
-
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="new google.maps.Map(document.getElementById('{$canvas-id}'), {{ center: new google.maps.LatLng({$lat}, {$lng}), zoom: {$zoom} }})"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:function>
-
-    <xsl:function name="ac:create-geo-object">
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="endpoint" as="xs:anyURI"/>
-        <xsl:param name="select-string" as="xs:string"/>
-        <xsl:param name="focus-var-name" as="xs:string"/>
-        <xsl:param name="graph-var-name" as="xs:string?"/>
-
-        <!-- set ?this value -->
-        <xsl:variable name="select-string" select="replace($select-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="js-statement" as="element()">
-            <!-- TO-DO: move Geo under AtomGraph namespace -->
-            <!-- use template literals because the query is multi-line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals -->
-            <xsl:choose>
-                <xsl:when test="$graph-var-name">
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:function>
-
-    <xsl:template name="ac:add-geo-listener">
-        <xsl:param name="content-uri" as="xs:anyURI"/>
-
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="window.LinkedDataHub['{$content-uri}'].map.addListener('idle', function() {{ window.LinkedDataHub['{$content-uri}'].geo.loadMarkers(window.LinkedDataHub['{$content-uri}'].geo.addMarkers); }})"/>
-        </xsl:variable>
-        <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
-    </xsl:template>
-    
     <!-- TEMPLATES -->
 
     <xsl:template match="srx:result" mode="bs2:FacetValueItem">
