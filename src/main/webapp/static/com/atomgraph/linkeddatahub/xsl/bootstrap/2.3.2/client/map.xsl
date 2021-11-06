@@ -101,7 +101,8 @@ exclude-result-prefixes="#all"
     
     <xsl:template name="gm:AddMarker">
         <xsl:context-item as="element()" use="required"/> <!-- rdf:Description -->
-        
+        <xsl:param name="map" as="item()"/>
+
         <xsl:variable name="lat-lng" select="apl:new('google.maps.LatLng', [ xs:float(geo:lat/text()), xs:float(geo:long/text()) ])"/>
         <xsl:variable name="marker-options" select="apl:new-object()"/>
         <ixsl:set-property name="position" select="$lat-lng" object="$marker-options"/>
