@@ -26,6 +26,7 @@
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY nfo        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY gm     "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -59,6 +60,7 @@ xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:skos="&skos;"
 xmlns:dydra="&dydra;"
+xmlns:gm="&gm;"
 xmlns:dydra-urn="urn:dydra:"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
