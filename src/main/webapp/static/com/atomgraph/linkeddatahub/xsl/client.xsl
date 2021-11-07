@@ -1870,7 +1870,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
-        <xsl:param name="select-uri" select="resolve-uri('queries/default/select-labelled/#this', $apl:base)" as="xs:anyURI"/>
+        <xsl:param name="select-uri" select="xs:anyURI('&def;SelectLabelled')" as="xs:anyURI"/>
         <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>
         <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>

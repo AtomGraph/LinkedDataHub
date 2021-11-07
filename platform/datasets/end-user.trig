@@ -93,42 +93,6 @@
 
 # QUERIES
 
-# select children
-
-<queries/default/select-children/>
-{
-
-    <queries/default/select-children/> a def:Item ;
-        sioc:has_container <queries/default/> ;
-        dct:title "Select children" ;
-        foaf:primaryTopic <queries/default/select-children/#this> .
-
-    <queries/default/select-children/#this> a def:Select ;
-        foaf:isPrimaryTopicOf <queries/default/select-children/> ;
-        dct:title "Select children" ;
-        sp:text """
-    PREFIX  dct:  <http://purl.org/dc/terms/>
-    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-
-    SELECT DISTINCT  ?child ?thing
-    WHERE
-    { GRAPH ?childGraph
-      {   { ?child  sioc:has_parent  ?this }
-        UNION
-          { ?child  sioc:has_container  ?this }
-        ?child  a                     ?Type
-        OPTIONAL
-          { ?child  dct:title  ?title }
-        OPTIONAL
-         { ?thing  foaf:isPrimaryTopicOf  ?child }
-      }
-    }
-    ORDER BY ?title
-    """ .
-
-}
-
 # select geo resources
 
 <queries/default/select-geo-resources/>
@@ -184,45 +148,6 @@
       { ?dated  dct:created  ?created }
     }
     ORDER BY DESC(?created)
-    """ .
-
-}
-
-# select labelled
-
-<queries/default/select-labelled/>
-{
-
-    <queries/default/select-labelled/> a def:Item ;
-        sioc:has_container <queries/default/> ;
-        dct:title "Select labelled" ;
-        foaf:primaryTopic <queries/default/select-labelled/#this> .
-
-    <queries/default/select-labelled/#this> a def:Select ;
-        dct:title "Select labelled" ;
-        sp:text """
-    PREFIX  dct:  <http://purl.org/dc/terms/>
-    PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
-    PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
-    PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
-
-    SELECT DISTINCT  ?resource
-    WHERE
-      {   { ?resource  a  ?Type .
-            ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
-            FILTER isURI(?resource)
-          }
-        UNION
-          { GRAPH ?graph
-              { ?resource  a  ?Type .
-                ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
-                FILTER isURI(?resource)
-              }
-          }
-      }
     """ .
 
 }
