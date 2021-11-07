@@ -1,0 +1,240 @@
+@base		<https://w3id.org/atomgraph/linkeddatahub/default> .
+
+@prefix :	<#> .
+@prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
+@prefix sp:	<http://spinrdf.org/sp#> .
+@prefix spin:	<http://spinrdf.org/spin#> .
+@prefix sioc:	<http://rdfs.org/sioc/ns#> .
+@prefix foaf:	<http://xmlns.com/foaf/0.1/> .
+@prefix dct:	<http://purl.org/dc/terms/> .
+
+: a owl:Ontology ;
+    rdfs:label "Default" ;
+    rdfs:comment "Default document model" ;
+    owl:imports apl: ;
+    owl:versionInfo "1.0-SNAPSHOT" .
+
+:Root a rdfs:Class ;
+    rdfs:subClassOf sioc:Space, dh:Container ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
+    apl:template :ContainerChildren ;
+    rdfs:label "Root" ;
+    rdfs:isDefinedBy : .
+
+:Container a rdfs:Class ;
+    rdfs:subClassOf dh:Container ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constraint :MissingParent, :MissingTitle ;
+    apl:template :ContainerChildren ;
+    rdfs:label "Container" ;
+    rdfs:isDefinedBy : .
+
+:ContainerChildren a apl:Content ;
+    rdf:first :SelectChildren ;
+    rdf:rest rdf:nil ;
+    rdfs:label "Container children" ;
+    rdfs:isDefinedBy : .
+
+:Item a rdfs:Class ;
+    rdfs:subClassOf dh:Item ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constraint :MissingContainer ;
+    rdfs:label "Item" ;
+    rdfs:isDefinedBy : .
+
+:GenericService a rdfs:Class ;
+    rdfs:subClassOf apl:GenericService, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Generic service" ;
+    rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
+    rdfs:isDefinedBy : .
+
+:DydraService a rdfs:Class ;
+    rdfs:subClassOf apl:DydraService, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Dydra service" ;
+    rdfs:comment "Dydra cloud repository" ;
+    rdfs:isDefinedBy : .
+
+:File a rdfs:Class ;
+    rdfs:subClassOf apl:File, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "File" ;
+    rdfs:isDefinedBy : .
+
+:Construct a rdfs:Class ;
+    rdfs:subClassOf apl:Construct, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "CONSTRUCT" ;
+    rdfs:isDefinedBy : .
+
+:Describe a rdfs:Class ;
+    rdfs:subClassOf apl:Describe, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "DESCRIBE" ;
+    rdfs:isDefinedBy : .
+
+:Select a rdfs:Class ;
+    rdfs:subClassOf apl:Select, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "SELECT" ;
+    rdfs:isDefinedBy : .
+
+:Ask a rdfs:Class ;
+    rdfs:subClassOf apl:Ask, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "ASK" ;
+    rdfs:isDefinedBy : .
+
+:RDFImport a rdfs:Class ;
+    rdfs:subClassOf apl:RDFImport, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "RDF import" ;
+    rdfs:isDefinedBy : .
+
+:CSVImport a rdfs:Class, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:CSVImport ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "CSV import" ;
+    rdfs:isDefinedBy : .
+
+:GraphChart a rdfs:Class, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:GraphChart ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Graph chart" ;
+    rdfs:isDefinedBy : .
+
+:ResultSetChart a rdfs:Class ;
+    rdfs:subClassOf apl:ResultSetChart, :PrimaryTopicOfItem ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
+    rdfs:label "Result set chart" ;
+    rdfs:isDefinedBy : .
+
+:TitleConstructor a sp:Construct ;
+    rdfs:label "Title constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+          ?this dct:title [ a xsd:string ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:DescriptionConstructor a sp:Construct ;
+    rdfs:label "Description constructor" ;
+    sp:text """
+        PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX dct:     <http://purl.org/dc/terms/>
+
+        CONSTRUCT {
+          ?this dct:description [ a xsd:string ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:ContentConstructor a sp:Construct ;
+    rdfs:label "Content constructor" ;
+    sp:text """
+        PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+
+        CONSTRUCT {
+          ?this apl:content [ a apl:Content ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
+:PrimaryTopicOfItem a owl:Restriction ;
+    owl:onProperty foaf:isPrimaryTopicOf ;
+    owl:allValuesFrom :Item ;
+    rdfs:label "Primary topic of item" ;
+    rdfs:isDefinedBy : .
+
+:MissingParent a apl:MissingPropertyValue ;
+    rdfs:label "Missing parent" ;
+    rdfs:comment "Requires containers to have a parent container" ;
+    sp:arg1 sioc:has_parent ;
+    rdfs:isDefinedBy : .
+
+:MissingContainer a apl:MissingPropertyValue ;
+    rdfs:label "Missing container" ;
+    rdfs:comment "Requires items to have a parent container" ;
+    sp:arg1 sioc:has_container ;
+    rdfs:isDefinedBy : .
+
+:MissingTitle a apl:MissingPropertyValue ;
+    rdfs:label "Missing title" ;
+    rdfs:comment "Requires resources to have a title from Dublin Core Terms vocabulary" ;
+    sp:arg1 dct:title ;
+    rdfs:isDefinedBy : .
+
+:SelectChildren a sp:Select ;
+    rdfs:label "Select children" ;
+    sp:text """
+PREFIX  dct:  <http://purl.org/dc/terms/>
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+
+SELECT DISTINCT  ?child ?thing
+WHERE
+{ GRAPH ?childGraph
+  {   { ?child  sioc:has_parent  ?this }
+    UNION
+      { ?child  sioc:has_container  ?this }
+    ?child  a                     ?Type
+    OPTIONAL
+      { ?child  dct:title  ?title }
+    OPTIONAL
+      { ?thing  foaf:isPrimaryTopicOf  ?child }
+  }
+}
+ORDER BY ?title
+""" ;
+    rdfs:isDefinedBy : .
+
+:SelectLabelled a sp:Select ;
+    rdfs:label "Select labelled" ;
+    sp:text """
+    PREFIX  dct:  <http://purl.org/dc/terms/>
+    PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX  skos: <http://www.w3.org/2004/02/skos/core#>
+    PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX  sioc: <http://rdfs.org/sioc/ns#>
+    PREFIX  dc:   <http://purl.org/dc/elements/1.1/>
+
+    SELECT DISTINCT  ?resource
+    WHERE
+      {   { ?resource  a  ?Type .
+            ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+            FILTER isURI(?resource)
+          }
+        UNION
+          { GRAPH ?graph
+              { ?resource  a  ?Type .
+                ?resource (((((((rdfs:label|dc:title)|dct:title)|foaf:name)|foaf:givenName)|foaf:familyName)|sioc:name)|skos:prefLabel)|sioc:content ?label
+                FILTER isURI(?resource)
+              }
+          }
+      }
+    """ ;
+    rdfs:isDefinedBy : .
