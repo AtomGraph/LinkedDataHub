@@ -30,6 +30,7 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -131,8 +132,9 @@ public class Item extends GraphStoreImpl
     @Override
     public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
-        List<javax.ws.rs.core.MediaType> list = super.getWritableMediaTypes(clazz);
+        List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
         list.add(getFormat());
+        list.addAll(super.getWritableMediaTypes(clazz));
 
         return list;
     }
