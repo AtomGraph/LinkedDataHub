@@ -142,7 +142,7 @@ public class Item extends GraphStoreImpl
         list.addAll(super.getWritableMediaTypes(clazz).stream().map(mt ->
             {
                 Map<String, String> params = new HashMap<>();
-                params.putAll(mt.getParameters());
+                // params.putAll(mt.getParameters()); // ignore existing "charset" parameters because they leads to Jersey putting the "image/jpeg" variant as the last one
                 params.put("q", "0.9"); // lower the priority of RDF formats compared to the main file format (dct:format)
 
                 return new MediaType(mt.getType(), mt.getSubtype(), params);
