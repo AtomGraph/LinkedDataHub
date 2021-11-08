@@ -322,6 +322,57 @@ extension-element-prefixes="ixsl"
 
     <!-- BLOCK -->
     
+
+    <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="bs2:Block" priority="1">
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- mark chart instances as .resource-content which is then rendered by client.xsl -->
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+        <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="content-uri" select="$content-uri"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <!-- embed file content -->
+    <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$content-uri">
+                <xsl:attribute name="data-content-uri" select="$content-uri"/>
+            </xsl:if>
+
+            <xsl:apply-templates select="." mode="bs2:Left"/>
+
+            <div class="span7">
+                <xsl:apply-templates select="." mode="bs2:Header"/>
+
+                <xsl:apply-templates select="." mode="bs2:PropertyList"/>
+            
+                <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
+                <object data="{@rdf:about}" type="{$media-type}"></object>
+            </div>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
+        </div>
+    </xsl:template>
+    
     <!-- hide the current document resource -->
     <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:Block" priority="1"/>
 
@@ -400,6 +451,11 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:TypeList"/>
         </div>
     </xsl:template>
+
+    <!-- PROPERTY LIST -->
+    
+    <!-- suppress types in property list - we show them in the bs2:Header instead -->
+    <xsl:template match="rdf:type[@rdf:resource]" mode="bs2:PropertyList"/>
 
     <!-- IMAGE -->
     

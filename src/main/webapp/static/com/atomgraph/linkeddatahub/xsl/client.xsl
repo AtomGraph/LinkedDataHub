@@ -597,7 +597,8 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about]" mode="apl:Content">
         <xsl:param name="container" as="element()"/>
 
-        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'bar']"/>
+        <!-- hide progress bar -->
+        <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
         <!-- inject content into the container's middle column, unless it already has content (except progress-bar) -->
         <xsl:if test="not($container/div[@class = 'span7']/*[not(@class = 'progress-bar')])">
