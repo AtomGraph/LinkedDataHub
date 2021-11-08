@@ -1481,7 +1481,7 @@ extension-element-prefixes="ixsl"
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
-            <!-- content could not be loaded as RDF, embed id as is -->
+            <!-- content could not be loaded as RDF -->
             <xsl:when test="?status = 406">
                 <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:replace-content">

@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.List;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -31,13 +30,13 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotAcceptableException;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
@@ -107,19 +106,11 @@ public class Item extends GraphStoreImpl
             URI fileURI = getSystem().getUploadRoot().resolve(getUriInfo().getPath());
             File file = new File(fileURI);
 
-            try
-            {
-                if (!file.exists()) throw new FileNotFoundException();
+            if (!file.exists()) throw new NotFoundException(new FileNotFoundException("File '" + getUriInfo().getPath() + "' not found"));
 
-                return super.getResponseBuilder(model, graphUri).entity(file).
-                        type(variant.getMediaType());
-                //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
-            }
-            catch (FileNotFoundException ex)
-            {
-                if (log.isWarnEnabled()) log.warn("File with URI '{}' not found", fileURI);
-                throw new WebApplicationException(ex, Response.Status.NOT_FOUND);
-            }
+            return super.getResponseBuilder(model, graphUri).entity(file).
+                    type(variant.getMediaType());
+            //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
         }
         
         return super.getResponseBuilder(model, graphUri);
@@ -140,7 +131,7 @@ public class Item extends GraphStoreImpl
     @Override
     public List<javax.ws.rs.core.MediaType> getWritableMediaTypes(Class clazz)
     {
-        List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
+        List<javax.ws.rs.core.MediaType> list = super.getWritableMediaTypes(clazz);
         list.add(getFormat());
 
         return list;
