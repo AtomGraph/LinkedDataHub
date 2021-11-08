@@ -31,7 +31,10 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -39,6 +42,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.NotAcceptableException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.QueryFactory;
@@ -134,7 +138,16 @@ public class Item extends GraphStoreImpl
     {
         List<javax.ws.rs.core.MediaType> list = new ArrayList<>();
         list.add(getFormat());
-        list.addAll(super.getWritableMediaTypes(clazz));
+        
+        list.addAll(super.getWritableMediaTypes(clazz).stream().map(mt ->
+            {
+                Map<String, String> params = new HashMap<>();
+                params.putAll(mt.getParameters());
+                params.put("q", "0.9"); // lower the priority of RDF formats compared to the main file format (dct:format)
+
+                return new MediaType(mt.getType(), mt.getSubtype(), params);
+            } ).
+            collect(Collectors.toList()));
 
         return list;
     }

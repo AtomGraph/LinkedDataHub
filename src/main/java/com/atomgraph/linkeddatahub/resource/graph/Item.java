@@ -23,6 +23,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -134,8 +135,7 @@ public class Item extends GraphStoreImpl implements Patchable
         {
             String accept = getUriInfo().getQueryParameters().getFirst(AC.accept.getLocalName());
             
-            MediaType mediaType = MediaType.valueOf(accept); // parse value
-            mediaType = new MediaType(mediaType.getType(), mediaType.getSubtype(), MediaTypes.UTF8_PARAM); // set charset=UTF-8
+            MediaType mediaType = MediaType.valueOf(accept).withCharset(StandardCharsets.UTF_8.name()); // set charset=UTF-8
             return Arrays.asList(mediaType);
         }
 
