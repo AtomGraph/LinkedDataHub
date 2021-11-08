@@ -74,9 +74,9 @@
 
     <request%20access> a adm:RequestAccess ;
         dct:title "Request access" ;
-        apl:content <request%20access#content> .
+        apl:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
 
-    <request%20access#content> a apl:Content ;
+    <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> a apl:Content ;
         rdf:first """<div xmlns="http://www.w3.org/1999/xhtml">
     <p class="lead">Request access</p>
     <p>Ask for access to a restricted resource by making a request. It will be reviewed by the application's
