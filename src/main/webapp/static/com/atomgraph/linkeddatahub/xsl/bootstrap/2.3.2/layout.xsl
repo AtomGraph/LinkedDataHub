@@ -1116,24 +1116,31 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- embed file content -->
-    <xsl:template match="*[*][dct:format]" mode="bs2:Block" priority="2">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" as="xs:string?"/>
+    <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
             </xsl:if>
             <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$content-uri">
+                <xsl:attribute name="data-content-uri" select="$content-uri"/>
             </xsl:if>
 
-            <xsl:apply-templates select="." mode="bs2:Header"/>
+            <xsl:apply-templates select="." mode="bs2:Left"/>
 
-            <xsl:apply-templates select="." mode="bs2:PropertyList"/>
-            
-            <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
-            <object data="{@rdf:about}" type="{$media-type}"></object>
+            <div class="span7">
+                <xsl:next-match/>
+                <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
+                <object data="{@rdf:about}" type="{$media-type}"></object>
+            </div>
+
+            <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
     </xsl:template>
 
