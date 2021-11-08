@@ -506,24 +506,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             throw new WebApplicationException(ex);
         }
     }
-
-    /**
-     * Returns response builder for the given RDF model.
-     * 
-     * @param model RDF model
-     * @return response builder
-     */
-    public Response.ResponseBuilder getResponseBuilder(Model model)
-    {
-        return new com.atomgraph.core.model.impl.Response(getRequest(),
-                model,
-                null,
-                getEntityTag(model),
-                getWritableMediaTypes(Model.class),
-                Collections.<Locale>emptyList(),
-                Collections.<String>emptyList()).
-            getResponseBuilder();
-    }
     
     /**
      * Extracts the document that is being created from the input RDF graph.
@@ -588,7 +570,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         
         List<Date> dates = new ArrayList<>();
 
-        
         StmtIterator createdIt = resource.listProperties(DCTerms.created);
         try
         {

@@ -31,7 +31,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import java.util.ArrayList;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -87,11 +86,11 @@ public class Item extends GraphStoreImpl
         // use indirection to load file (/uploads/{slug}) description from the file document graph (/files/{slug})
 //        return super.get(false, URI.create(getResource().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()));
         
-        return getResponseBuilder(getResource().getModel()).build();
+        return getResponseBuilder(getResource().getModel(), graphUri).build();
     }
     
     @Override
-    public ResponseBuilder getResponseBuilder(Model model)
+    public ResponseBuilder getResponseBuilder(Model model, URI graphUri)
     {
         List<Variant> variants = com.atomgraph.core.model.impl.Response.getVariantListBuilder(getWritableMediaTypes(Model.class), getLanguages(), getEncodings()).
             add().build();
@@ -112,7 +111,7 @@ public class Item extends GraphStoreImpl
             {
                 if (!file.exists()) throw new FileNotFoundException();
 
-                return super.getResponseBuilder(model).entity(file).
+                return super.getResponseBuilder(model, graphUri).entity(file).
                         type(variant.getMediaType());
                 //header("Content-Disposition", "attachment; filename=\"" + getRequiredProperty(NFO.fileName).getString() + "\"").
             }
@@ -123,7 +122,7 @@ public class Item extends GraphStoreImpl
             }
         }
         
-        return super.getResponseBuilder(model);
+        return super.getResponseBuilder(model, graphUri);
     }
     
     public javax.ws.rs.core.MediaType getFormat()
