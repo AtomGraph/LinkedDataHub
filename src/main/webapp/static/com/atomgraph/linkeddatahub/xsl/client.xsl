@@ -2115,11 +2115,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
         <xsl:param name="results-uri" as="xs:anyURI?"/>
         <xsl:param name="resource-types" select="ancestor::div[@class = 'controls']/input[@class = 'forClass']/@value" as="xs:anyURI*"/>
-        <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
-        <xsl:param name="select-uri" select="resolve-uri('queries/default/select-labelled/#this', $apl:base)" as="xs:anyURI"/>
-        <!-- TO-DO: use <ixsl:schedule-action> instead -->
-        <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()?"/>
-        <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string?"/>
+        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string?"/>
         <xsl:param name="limit" select="100" as="xs:integer?"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <!-- convert resource type URIs to SPARQLBuilder URIs -->
@@ -2132,7 +2128,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->        
+        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
         
