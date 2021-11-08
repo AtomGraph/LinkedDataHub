@@ -113,7 +113,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="select-labelled-string" select="key('resources', '&def;SelectLabelled', document('&def;'))/sp:text" as="xs:string"/>  <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
+    <xsl:param name="select-labelled-string" select="key('resources', '&def;SelectLabelled', document(ac:document-uri('&def;')))/sp:text" as="xs:string"/>  <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
