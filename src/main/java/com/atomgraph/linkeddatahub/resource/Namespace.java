@@ -72,7 +72,7 @@ public class Namespace extends GraphStoreImpl
         Model model = ModelFactory.createDefaultModel();
         getSystem().getOntModelSpec().getDocumentManager().getFileManager().readModel(model, ontologyURI);
         
-        return getResponse(model);
+        return getResponse(model, getURI());
     }
     
     

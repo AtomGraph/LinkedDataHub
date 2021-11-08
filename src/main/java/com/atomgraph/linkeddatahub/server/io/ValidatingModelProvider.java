@@ -124,7 +124,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     public Resource process(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
         if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
-                
+
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
         {
             Resource format = resource.getProperty(DCTerms.format).

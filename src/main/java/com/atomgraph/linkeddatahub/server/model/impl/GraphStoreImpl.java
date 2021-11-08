@@ -38,9 +38,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -67,10 +70,14 @@ import javax.ws.rs.ext.Providers;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.atlas.RuntimeIOException;
+import org.apache.jena.datatypes.xsd.XSDDateTime;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
@@ -134,6 +141,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             Resource graph = createGraph(model);
             if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
             graphUri = URI.create(graph.getURI());
+            
+            model.add(model.createResource(graphUri.toString()), DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
         
         // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
@@ -160,6 +169,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+        
+        model.add(model.createResource(graphUri.toString()), DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         return super.put(model, defaultGraph, graphUri);
     }
@@ -227,6 +238,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 Resource graph = createGraph(model);
                 if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
                 graphUri = URI.create(graph.getURI());
+                
+                model.add(model.createResource(graphUri.toString()), DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             }
 
             // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
@@ -494,9 +507,22 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
 
-    public MessageDigest getMessageDigest()
+    /**
+     * Returns response builder for the given RDF model.
+     * 
+     * @param model RDF model
+     * @return response builder
+     */
+    public Response.ResponseBuilder getResponseBuilder(Model model)
     {
-        return messageDigest;
+        return new com.atomgraph.core.model.impl.Response(getRequest(),
+                model,
+                null,
+                getEntityTag(model),
+                getWritableMediaTypes(Model.class),
+                Collections.<Locale>emptyList(),
+                Collections.<String>emptyList()).
+            getResponseBuilder();
     }
     
     /**
@@ -548,6 +574,59 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (parent != null) return parent;
         parent = doc.getPropertyResourceValue(SIOC.HAS_CONTAINER);
         return parent;
+    }
+
+    @Override
+    public Date getLastModified(Model model, URI graphUri)
+    {
+        return getLastModified(model.createResource(graphUri.toString()));
+    }
+        
+    public Date getLastModified(Resource resource)
+    {
+        if (resource == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        List<Date> dates = new ArrayList<>();
+
+        
+        StmtIterator createdIt = resource.listProperties(DCTerms.created);
+        try
+        {
+            while (createdIt.hasNext())
+            {
+                Statement stmt = createdIt.next();
+                if (stmt.getObject().isLiteral() && stmt.getObject().asLiteral().getValue() instanceof XSDDateTime)
+                    dates.add(((XSDDateTime)stmt.getObject().asLiteral().getValue()).asCalendar().getTime());
+            }
+        }
+        finally
+        {
+            createdIt.close();
+        }
+
+        StmtIterator modifiedIt = resource.listProperties(DCTerms.modified);
+        try
+        {
+            while (modifiedIt.hasNext())
+            {
+                Statement stmt = modifiedIt.next();
+                if (stmt.getObject().isLiteral() && stmt.getObject().asLiteral().getValue() instanceof XSDDateTime)
+                    dates.add(((XSDDateTime)stmt.getObject().asLiteral().getValue()).asCalendar().getTime());
+            }
+        }
+        finally
+        {
+            modifiedIt.close();
+        }
+        
+        if (!dates.isEmpty()) return Collections.max(dates);
+        
+        return null;
+    }
+    
+    public MessageDigest getMessageDigest()
+    {
+        return messageDigest;
     }
     
     public UriInfo getUriInfo()
