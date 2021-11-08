@@ -113,6 +113,9 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
+    <xsl:param name="select-labelled-uri" select="xs:anyURI('&def;SelectLabelled')" as="xs:anyURI"/> <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
+    <xsl:param name="select-labelled-doc" select="document(ac:build-uri($apl:base, map{ 'uri': string(ac:document-uri($select-labelled-uri)), 'accept': 'application/rdf+xml' }))" as="document-node()"/>
+    <xsl:param name="select-labelled-string" select="key('resources', $select-labelled-uri, $select-doc)/sp:text" as="xs:string"/>
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -1869,10 +1872,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
-        <!-- TO-DO: use <ixsl:schedule-action> instead -->
-        <xsl:param name="select-uri" select="xs:anyURI('&def;SelectLabelled')" as="xs:anyURI"/>
-        <xsl:param name="select-doc" select="document(ac:build-uri(ac:document-uri($select-uri), map{ 'accept': 'application/rdf+xml' }))" as="document-node()"/>
-        <xsl:param name="select-string" select="key('resources', $select-uri, $select-doc)/sp:text" as="xs:string"/>
+        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <!-- TO-DO: refactor query building using XSLT -->
