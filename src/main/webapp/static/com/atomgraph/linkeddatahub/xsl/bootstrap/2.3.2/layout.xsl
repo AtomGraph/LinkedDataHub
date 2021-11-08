@@ -1135,7 +1135,10 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="span7">
-                <xsl:next-match/>
+                <xsl:apply-templates select="." mode="bs2:Header"/>
+
+                <xsl:apply-templates select="." mode="bs2:PropertyList"/>
+            
                 <xsl:variable name="media-type" select="substring-after(dct:format[1]/@rdf:resource, 'http://www.sparontologies.net/mediatype/')" as="xs:string"/>
                 <object data="{@rdf:about}" type="{$media-type}"></object>
             </div>
