@@ -113,7 +113,6 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:query" select="ixsl:query-params()?query" as="xs:string?"/>
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
-    <xsl:param name="select-labelled-string" select="key('resources', '&def;SelectLabelled', document(ac:document-uri('&def;')))/sp:text" as="xs:string"/>  <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -148,6 +147,9 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="href" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else $apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- can't make $select-labelled-string a global param because the documentPool does not apply there: https://saxonica.plan.io/issues/5156 -->
+        <xsl:variable name="select-labelled-string" select="key('resources', '&def;SelectLabelled', document(ac:document-uri('&def;')))/sp:text" as="xs:string"/> <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
+        <ixsl:set-property name="select-labelled-string" select="$select-labelled-string" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
             <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
@@ -1870,7 +1872,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="resource-types" as="xs:anyURI?"/>
-        <xsl:param name="select-string" select="$select-labelled-string" as="xs:string"/>
+        <xsl:param name="select-string" select="ixsl:get(ixsl:window(), 'LinkedDataHub.select-labelled-string')" as="xs:string"/>
         <xsl:param name="limit" select="100" as="xs:integer"/>
         <xsl:variable name="key-code" select="ixsl:get(ixsl:event(), 'code')" as="xs:string"/>
         <!-- TO-DO: refactor query building using XSLT -->
