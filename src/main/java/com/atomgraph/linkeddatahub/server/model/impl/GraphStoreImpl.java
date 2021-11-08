@@ -561,6 +561,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Date getLastModified(Model model, URI graphUri)
     {
+        if (graphUri == null) return null;
+        
         return getLastModified(model.createResource(graphUri.toString()));
     }
         
