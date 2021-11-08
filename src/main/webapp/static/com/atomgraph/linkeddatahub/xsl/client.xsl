@@ -115,7 +115,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="select-labelled-uri" select="xs:anyURI('&def;SelectLabelled')" as="xs:anyURI"/> <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
     <xsl:param name="select-labelled-doc" select="document(ac:build-uri($apl:base, map{ 'uri': string(ac:document-uri($select-labelled-uri)), 'accept': 'application/rdf+xml' }))" as="document-node()"/>
-    <xsl:param name="select-labelled-string" select="key('resources', $select-labelled-uri, $select-doc)/sp:text" as="xs:string"/>
+    <xsl:param name="select-labelled-string" select="key('resources', $select-labelled-uri, $select-labelled-doc)/sp:text" as="xs:string"/>
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
