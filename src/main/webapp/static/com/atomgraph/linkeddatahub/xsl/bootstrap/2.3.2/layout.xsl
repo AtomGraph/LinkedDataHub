@@ -725,7 +725,7 @@ exclude-result-prefixes="#all">
                 <xsl:map-entry key="'&ac;GraphMode'" select="'graph-mode'"/>
             </xsl:map>
         </xsl:param>
-        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) ' active' else '')" as="xs:string?"/>
+        <xsl:param name="class" select="map:get($mode-classes, @rdf:about) || (if ($active) then ' active' else ())" as="xs:string?"/>
 
         <li>
             <xsl:if test="$class">
