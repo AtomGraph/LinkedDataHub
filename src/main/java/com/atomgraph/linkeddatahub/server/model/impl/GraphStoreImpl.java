@@ -43,7 +43,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -142,7 +141,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
             graphUri = URI.create(graph.getURI());
             
-            model.add(model.createResource(graphUri.toString()), DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            model.createResource(graphUri.toString()).
+                addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         }
         
         // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
@@ -170,8 +170,9 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
         
-        model.remove(model.createResource(graphUri.toString()), DCTerms.modified, null);
-        model.add(model.createResource(graphUri.toString()), DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        model.createResource(graphUri.toString()).
+            removeAll(DCTerms.modified).
+            addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         return super.put(model, defaultGraph, graphUri);
     }
@@ -240,7 +241,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
                 graphUri = URI.create(graph.getURI());
                 
-                model.add(model.createResource(graphUri.toString()), DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+                model.createResource(graphUri.toString()).
+                    addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
             }
 
             // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
