@@ -16,6 +16,7 @@
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
+    <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
 ]>
 <xsl:stylesheet version="3.0"
@@ -35,6 +36,7 @@ xmlns:http="&http;"
 xmlns:ldt="&ldt;"
 xmlns:sp="&sp;"
 xmlns:spin="&spin;"
+xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
