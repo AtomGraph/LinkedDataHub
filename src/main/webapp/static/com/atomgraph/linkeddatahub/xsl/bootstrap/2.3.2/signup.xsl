@@ -65,14 +65,6 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
     </xsl:template>
-
-    <!-- move the content above form -->
-<!--    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
-        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
-        <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
-
-        <xsl:apply-templates select="." mode="bs2:Block"/>
-    </xsl:template>-->
     
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
@@ -98,9 +90,8 @@ exclude-result-prefixes="#all">
             </div>
         </div>
     </xsl:template>
-    
-    <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
+
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="apl:ContentList" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
@@ -124,15 +115,18 @@ exclude-result-prefixes="#all">
                         </p>
                     </div>
                 </div>
-
-                <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="bs2:Block"/>
-                <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="bs2:Block"/>
             </div>
         </div>
     </xsl:template>
     
-    <!-- suppress other resources -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Block" priority="2"/>
+    <!-- match the first resource, whatever it is -->
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
+        <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="#current"/>
+        <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="#current"/>
+    </xsl:template>
+    
+    <!-- suppress resources other than adm:Person and adm:PublicKey -->
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&adm;Person', '&adm;PublicKey'))]" mode="bs2:Block" priority="2"/>
 
     <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TargetContainer" priority="1"/>
 
