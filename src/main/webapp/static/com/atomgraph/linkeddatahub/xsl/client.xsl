@@ -601,7 +601,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
         <!-- inject content into the container's middle column, unless it already has content (except .progress-bar or h2). TO-DO: better condition -->
-        <xsl:if test="not($container/div[@class = 'span7']/*[not(@class = 'progress-bar')] or self::h2)">
+        <xsl:if test="not($container/div[@class = 'span7']/*[not(@class = 'progress-bar' or self::h2)])">
             <xsl:variable name="block" as="element()">
                 <xsl:apply-templates select="." mode="bs2:Block"/>
             </xsl:variable>
