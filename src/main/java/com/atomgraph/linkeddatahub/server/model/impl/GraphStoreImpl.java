@@ -170,6 +170,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
         
+        model.remove(model.createResource(graphUri.toString()), DCTerms.modified, null);
         model.add(model.createResource(graphUri.toString()), DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
         return super.put(model, defaultGraph, graphUri);
