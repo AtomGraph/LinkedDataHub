@@ -270,7 +270,7 @@ extension-element-prefixes="ixsl"
     
     <!-- MAIN -->
     
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Main">
+<!--    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Main">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span7'" as="xs:string?"/>
 
@@ -284,7 +284,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:Block"/>
         </div>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- LEFT NAV -->
     

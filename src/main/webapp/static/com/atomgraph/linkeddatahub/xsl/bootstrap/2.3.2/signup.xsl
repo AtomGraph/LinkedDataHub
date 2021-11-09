@@ -69,20 +69,14 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
 
-        <div class="row-fluid">
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <xsl:apply-templates select="." mode="bs2:Main"/>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
+        <xsl:apply-templates select="." mode="bs2:Block"/>
     </xsl:template>
     
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="2"/>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:Main" priority="2">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -102,7 +96,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Main" priority="3">
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -132,7 +126,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- suppress other resources -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2"/>
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Block" priority="2"/>
 
     <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:TargetContainer" priority="1"/>
 
