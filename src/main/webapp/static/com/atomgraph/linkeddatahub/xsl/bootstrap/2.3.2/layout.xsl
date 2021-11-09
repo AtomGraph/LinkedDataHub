@@ -645,25 +645,7 @@ exclude-result-prefixes="#all">
                 <xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
                 
                 <div class="row-fluid">
-                    <ul class="nav nav-tabs offset2 span7">
-                        <xsl:if test="$has-content">
-                            <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
-                                <a>Content</a>
-                            </li>
-                        </xsl:if>
-                        <li class="read-mode{if ($ac:mode = '&ac;ReadMode' or (not($ac:mode) and not($has-content))) then ' active' else() }">
-                            <a>Properties</a>
-                        </li>
-                        <li class="map-mode{if ($ac:mode = '&ac;MapMode') then ' active' else() }">
-                            <a>Map</a>
-                        </li>
-                        <li class="chart-mode{if ($ac:mode = '&ac;ChartMode') then ' active' else() }">
-                            <a>Chart</a>
-                        </li>
-                        <li class="graph-mode{if ($ac:mode = '&ac;GraphMode') then ' active' else() }">
-                            <a>Graph</a>
-                        </li>
-                    </ul>
+                    <xsl:apply-templates select="." mode="bs2:ModeTabs"/>
                 </div>
             
                 <xsl:choose>
@@ -699,6 +681,30 @@ exclude-result-prefixes="#all">
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
+        <xsl:param name="modes" select="key('resources-by-type', ('&ac;Mode'), document(ac:document-uri('&ac;')))" as="element()*"/>
+
+        <ul class="nav nav-tabs offset2 span7">
+            <xsl:if test="$has-content">
+                <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
+                    <a>Content</a>
+                </li>
+            </xsl:if>
+            <li class="read-mode{if ($ac:mode = '&ac;ReadMode' or (not($ac:mode) and not($has-content))) then ' active' else() }">
+                <a>Properties</a>
+            </li>
+            <li class="map-mode{if ($ac:mode = '&ac;MapMode') then ' active' else() }">
+                <a>Map</a>
+            </li>
+            <li class="chart-mode{if ($ac:mode = '&ac;ChartMode') then ' active' else() }">
+                <a>Chart</a>
+            </li>
+            <li class="graph-mode{if ($ac:mode = '&ac;GraphMode') then ' active' else() }">
+                <a>Graph</a>
+            </li>
+        </ul>
     </xsl:template>
     
     <xsl:template match="*[*][@rdf:about = ac:uri()]" mode="bs2:PropertyList">
@@ -815,7 +821,7 @@ exclude-result-prefixes="#all">
         
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:ModeList" priority="1"/>
 
-    <xsl:template match="rdf:RDF[key('resources', key('resources', ac:uri())/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&apl;Dataset']" mode="bs2:ModeList"/>
+    <!--<xsl:template match="rdf:RDF[key('resources', key('resources', ac:uri())/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&apl;Dataset']" mode="bs2:ModeList"/>-->
 
     <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
         <div class="btn-group pull-right">

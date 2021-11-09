@@ -50,7 +50,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>-->
     
-    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
+    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
@@ -66,9 +66,9 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
+<!--    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
-    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="2"/>
+    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="2"/>-->
 
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
