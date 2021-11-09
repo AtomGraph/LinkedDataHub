@@ -361,7 +361,7 @@ exclude-result-prefixes="#all"
     -->
 
     <!-- hide the dct:created/dct:modified properties of graph resources - those are managed automatically by the Graph Store -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:modified" mode="bs2:FormControl"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:modified" mode="bs2:FormControl" priority="1"/>
 
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
