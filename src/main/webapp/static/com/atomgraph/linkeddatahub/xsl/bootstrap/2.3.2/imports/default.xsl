@@ -97,12 +97,6 @@ exclude-result-prefixes="#all"
         </xsl:if>
     </xsl:function>
 
-<!--    <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
-        <xsl:param name="class" as="xs:anyURI"/>
-
-        <xsl:sequence select="apl:listSubClasses($class, false(), $apl:ontology)"/>
-    </xsl:function>-->
-    
     <xsl:function name="apl:listSubClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
@@ -362,7 +356,10 @@ exclude-result-prefixes="#all"
         </xsl:apply-templates>
     </xsl:template>
     -->
-    
+
+    <!-- hide the dct:created/dct:modified properties of graph resources - those are managed automatically by the Graph Store -->
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:created | *[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]/dct:modified" mode="bs2:FormControl"/>
+
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">
         <xsl:param name="this" select="xs:anyURI(concat(namespace-uri(), local-name()))" as="xs:anyURI"/>
