@@ -58,7 +58,7 @@
 <geo/>
 {
 
-    <geo/> a def:Container ;
+    <geo/> a def:Item ;
         dct:title "Geo" ;
         dct:description "Geolocated resources" ;
         apl:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
@@ -72,7 +72,7 @@
 <latest/>
 {
 
-    <latest/> a def:Container ;
+    <latest/> a def:Item ;
         dct:title "Latest" ;
         dct:description "Latest resources" ;
         apl:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
