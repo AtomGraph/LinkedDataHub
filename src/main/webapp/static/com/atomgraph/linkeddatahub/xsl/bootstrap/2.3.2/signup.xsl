@@ -43,21 +43,23 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
+<!--    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
         <xsl:apply-templates select="." mode="bs2:Form">
             <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
-            <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+            <xsl:with-param name="enctype" select="()"/>
         </xsl:apply-templates>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <xsl:apply-templates mode="#current">
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
+                <xsl:for-each select="key('resources', ac:uri())">
+                    <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+                </xsl:for-each>
+
+                <xsl:apply-templates select="." mode="bs2:Block"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
@@ -65,12 +67,12 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- move the content above form -->
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
+<!--    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
         <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
         <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
 
         <xsl:apply-templates select="." mode="bs2:Block"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
 
@@ -78,7 +80,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -88,17 +90,19 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
         
-            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
-                <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
-                <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
-            </xsl:apply-templates>
+            <div class="offset2 span7">
+                <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
+                    <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+                    <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+                </xsl:apply-templates>
+            </div>
         </div>
     </xsl:template>
     
     <!-- match the first resource, whatever it is -->
     <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -108,20 +112,22 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
         
-            <div class="alert alert-success row-fluid">
-                <div class="span1">
-                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+            <div class="offset2 span7">
+                <div class="alert alert-success row-fluid">
+                    <div class="span1">
+                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Signup complete"/>
+                    </div>
+                    <div class="span11">
+                        <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
+                        <p>
+                            <strong>Authentication details have been sent to your email address.</strong>
+                        </p>
+                    </div>
                 </div>
-                <div class="span11">
-                    <p>Congratulations! Your WebID profile has been created. You can see its data below.</p>
-                    <p>
-                        <strong>Authentication details have been sent to your email address.</strong>
-                    </p>
-                </div>
-            </div>
 
-            <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="bs2:Block"/>
-            <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="bs2:Block"/>
+                <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="bs2:Block"/>
+                <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="bs2:Block"/>
+            </div>
         </div>
     </xsl:template>
     
