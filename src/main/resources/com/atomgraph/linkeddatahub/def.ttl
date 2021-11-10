@@ -105,15 +105,15 @@
     rdfs:label "RDF import" ;
     rdfs:isDefinedBy : .
 
-:CSVImport a rdfs:Class, :PrimaryTopicOfItem ;
-    rdfs:subClassOf apl:CSVImport ;
+:CSVImport a rdfs:Class ;
+    rdfs:subClassOf apl:CSVImport, :PrimaryTopicOfItem ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "CSV import" ;
     rdfs:isDefinedBy : .
 
-:GraphChart a rdfs:Class, :PrimaryTopicOfItem ;
-    rdfs:subClassOf apl:GraphChart ;
+:GraphChart a rdfs:Class ;
+    rdfs:subClassOf apl:GraphChart, :PrimaryTopicOfItem ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Graph chart" ;
