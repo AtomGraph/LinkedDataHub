@@ -300,7 +300,6 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
-    
 
     <!-- remove <fieldset> (button is within <legend>) -->
     <xsl:template match="fieldset/legend/div/button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">

@@ -25,6 +25,22 @@ xmlns:foaf="&foaf;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
+    <xsl:variable name="class-containers" as="map(xs:string, xs:anyURI)">
+        <xsl:map>
+            <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $apl:base)"/>
+            <xsl:map-entry key="'&def;DydraService'" select="resolve-uri('services/', $apl:base)"/>
+            <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $apl:base)"/>
+            <xsl:map-entry key="'&def;Construct'" select="resolve-uri('queries/', $apl:base)"/>
+            <xsl:map-entry key="'&def;Describe'" select="resolve-uri('queries/', $apl:base)"/>
+            <xsl:map-entry key="'&def;Select'" select="resolve-uri('queries/', $apl:base)"/>
+            <xsl:map-entry key="'&def;Ask'" select="resolve-uri('queries/', $apl:base)"/>
+            <xsl:map-entry key="'&def;RDFImport'" select="resolve-uri('imports/', $apl:base)"/>
+            <xsl:map-entry key="'&def;CSVImport'" select="resolve-uri('imports/', $apl:base)"/>
+            <xsl:map-entry key="'&def;GraphChart'" select="resolve-uri('charts/', $apl:base)"/>
+            <xsl:map-entry key="'&def;ResultSetChart'" select="resolve-uri('charts/', $apl:base)"/>
+        </xsl:map>
+    </xsl:variable>
+    
     <!-- override the value of sioc:has_parent/sioc:has_constructor in constructor with current URI -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="type" select="'text'" as="xs:string"/>
@@ -34,13 +50,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <span>
-            <xsl:apply-templates select="key('resources', ac:uri(), document(ac:uri()))" mode="apl:Typeahead"/>
-        </span>
-                        
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:variable name="forClass" select="../../rdf:type/@rdf:resource" as="xs:anyURI?"/>
-
+        <xsl:variable name="container" select="if (map:contains($class-containers, $forClass)) then map:get($class-containers, $forClass) else ac:uri()" as="xs:anyURI"/>
+        <span>
+            <xsl:apply-templates select="key('resources', $container, document($container))" mode="apl:Typeahead"/>
+        </span>
+        
         <xsl:text> </xsl:text>
 
         <xsl:choose>
