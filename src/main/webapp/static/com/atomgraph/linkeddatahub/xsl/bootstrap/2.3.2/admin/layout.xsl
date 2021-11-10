@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
         <!-- check if ontology document is available -->
         <xsl:if test="doc-available(ac:document-uri($ontology))">
             <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
-            <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+            <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about = ('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group')][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
             <xsl:apply-templates select="$classes[let $about := @rdf:about return not(@rdf:about = ($classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
@@ -93,4 +93,23 @@ exclude-result-prefixes="#all">
         </xsl:apply-imports>
     </xsl:template>
         
+    <!-- FORM CONTROL -->
+    
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
+        <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
+            <xsl:map>
+                <xsl:map-entry key="'&adm;Ontology'" select="resolve-uri('model/ontologies/', $apl:base)"/>
+                <xsl:map-entry key="'&adm;Authorization'" select="resolve-uri('acl/authorizations/', $apl:base)"/>
+                <xsl:map-entry key="'&adm;Person'" select="resolve-uri('acl/agents/', $apl:base)"/>
+                <xsl:map-entry key="'&adm;PublicKey'" select="resolve-uri('acl/public-keys/', $apl:base)"/>
+                <xsl:map-entry key="'&adm;UserAccount'" select="resolve-uri('acl/users/', $apl:base)"/>
+                <xsl:map-entry key="'&adm;Group'" select="resolve-uri('acl/groups/', $apl:base)"/>
+            </xsl:map>
+        </xsl:param>
+    
+        <xsl:next-match>
+            <xsl:with-param name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
+        </xsl:next-match>
+    </xsl:template>
+    
 </xsl:stylesheet>

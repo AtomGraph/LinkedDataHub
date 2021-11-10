@@ -1011,6 +1011,30 @@ exclude-result-prefixes="#all">
         </fieldset>
     </xsl:template>
     
+    <!-- FORM CONTROL -->
+    
+    <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
+        <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
+            <xsl:map>
+                <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $apl:base)"/>
+                <xsl:map-entry key="'&def;DydraService'" select="resolve-uri('services/', $apl:base)"/>
+                <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $apl:base)"/>
+                <xsl:map-entry key="'&def;Construct'" select="resolve-uri('queries/', $apl:base)"/>
+                <xsl:map-entry key="'&def;Describe'" select="resolve-uri('queries/', $apl:base)"/>
+                <xsl:map-entry key="'&def;Select'" select="resolve-uri('queries/', $apl:base)"/>
+                <xsl:map-entry key="'&def;Ask'" select="resolve-uri('queries/', $apl:base)"/>
+                <xsl:map-entry key="'&def;RDFImport'" select="resolve-uri('imports/', $apl:base)"/>
+                <xsl:map-entry key="'&def;CSVImport'" select="resolve-uri('imports/', $apl:base)"/>
+                <xsl:map-entry key="'&def;GraphChart'" select="resolve-uri('charts/', $apl:base)"/>
+                <xsl:map-entry key="'&def;ResultSetChart'" select="resolve-uri('charts/', $apl:base)"/>
+            </xsl:map>
+        </xsl:param>
+    
+        <xsl:next-match>
+            <xsl:with-param name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- NAVBAR ACTIONS -->
 
     <xsl:template match="rdf:RDF" mode="bs2:NavBarActions" priority="1">
