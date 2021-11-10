@@ -51,29 +51,17 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <xsl:apply-templates mode="#current">
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
+                <xsl:for-each select="key('resources', ac:uri())">
+                    <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
+                </xsl:for-each>
+
+                <xsl:apply-templates select="." mode="bs2:Block"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
     </xsl:template>
-    
-    <!-- move the content above form -->
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)]" mode="xhtml:Body" priority="2">
-        <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
-        <xsl:apply-templates use-when="system-property('xsl:product-name') = 'SAXON'" select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
 
-        <div class="row-fluid">
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <xsl:apply-templates select="." mode="bs2:Main"/>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>
-    
     <!-- currently doesn't work because the client-side does not refresh the bs2:NavBarActions -->
     <!--<xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>-->
     
@@ -81,7 +69,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="2"/>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Main" priority="2">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -103,32 +91,27 @@ exclude-result-prefixes="#all">
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Main" priority="3">
+    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-
-            <div class="alert alert-success row-fluid ">
-                <div class="span1">
-                    <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
-                </div>
-                <div class="span11">
-                    <p>Your access request has been created.</p>
-                    <p>You will be notified when the administrator approves or rejects it.</p>
+        <div class="row-fluid">
+            <div class="offset2 span7">
+                <div class="alert alert-success row-fluid ">
+                    <div class="span1">
+                        <img src="{resolve-uri('static/com/atomgraph/linkeddatahub/icons/baseline_done_white_48dp.png', $ac:contextUri)}" alt="Request created"/>
+                    </div>
+                    <div class="span11">
+                        <p>Your access request has been created.</p>
+                        <p>You will be notified when the administrator approves or rejects it.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </xsl:template>
 
     <!-- suppress other resources -->
-    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Main" priority="2"/>
+    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:Block" priority="2"/>
 
     <xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TargetContainer" priority="2"/>
     
@@ -136,10 +119,16 @@ exclude-result-prefixes="#all">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
+        </xsl:next-match>
+    </xsl:template>
+
+    <!-- make properties required -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]/*" mode="bs2:FormControl" priority="1">
+        <xsl:next-match>
             <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
-                
+    
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:forClass]/sioc:has_parent | *[@rdf:about or @rdf:nodeID][$ldt:base][$ac:forClass][ac:uri() = resolve-uri('request%20access', $ldt:base)]/sioc:has_container" mode="bs2:FormControl" priority="4">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
