@@ -646,7 +646,7 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="." mode="bs2:ModeTabs"/>
                 </div>
             
-                <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
+                <xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
                 <xsl:choose>
                     <!-- check if the current document has content or its class has content -->
                     <xsl:when test="(not($ac:mode) or $ac:mode = '&apl;ContentMode') and $has-content">
