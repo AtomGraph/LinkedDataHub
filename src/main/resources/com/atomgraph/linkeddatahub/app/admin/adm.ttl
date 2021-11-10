@@ -59,66 +59,65 @@
     rdfs:isDefinedBy : .
 
 :Class a rdfs:Class ;
-    rdfs:subClassOf lsm:Class ;
+    rdfs:subClassOf lsm:Class, :PrimaryTopicOfItem ;
     ldt:fragment "id{slug}" ;
     ldt:fragment "this" ;
     rdfs:label "Class" ;
     rdfs:isDefinedBy : .
 
 :Property a rdfs:Class ;
-    rdfs:subClassOf lsm:Property ;
+    rdfs:subClassOf lsm:Property, :PrimaryTopicOfItem ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Property" ;
     rdfs:isDefinedBy : .
 
 :Query a rdfs:Class ;
-    rdfs:subClassOf lsm:Query ;
+    rdfs:subClassOf lsm:Query, :PrimaryTopicOfItem ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Query" ;
     rdfs:isDefinedBy : .
 
 :Construct a rdfs:Class ;
-    rdfs:subClassOf :Query, lsm:Construct ;
+    rdfs:subClassOf :Query, lsm:Construct, :PrimaryTopicOfItem ;
     rdfs:label "CONSTRUCT" ;
     rdfs:isDefinedBy : .
 
 :Describe a rdfs:Class ;
-    rdfs:subClassOf :Query, lsm:Describe ;
+    rdfs:subClassOf :Query, lsm:Describe, :PrimaryTopicOfItem ;
     rdfs:label "DESCRIBE" ;
     rdfs:isDefinedBy : .
 
 :Select a rdfs:Class ;
-    rdfs:subClassOf :Query ;
+    rdfs:subClassOf :Query, :PrimaryTopicOfItem ;
     rdfs:label "SELECT" ;
     rdfs:isDefinedBy : .
 
 :Ask a rdfs:Class ;
-    rdfs:subClassOf :Query ;
+    rdfs:subClassOf :Query, :PrimaryTopicOfItem ;
     rdfs:label "ASK" ;
     rdfs:isDefinedBy : .
 
 :MissingPropertyValue a rdfs:Class ;
-    rdfs:subClassOf lsm:MissingPropertyValue ;
+    rdfs:subClassOf lsm:MissingPropertyValue, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     ldt:fragment "this" ;
     rdfs:label "Missing property value" ;
     rdfs:isDefinedBy : .
 
 :Ontology a rdfs:Class ;
-    rdfs:subClassOf lsm:Ontology ;
+    rdfs:subClassOf lsm:Ontology, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Ontology" ;
     rdfs:isDefinedBy : .
 
 #:Restriction a rdfs:Class ;
 #    rdfs:subClassOf lsm:Restriction ;
-#    # ldt:path "{isPrimaryTopicOf.slug}/" ;
 #    ldt:fragment "id{slug}" ;
 #    rdfs:label "Restriction" ;
 #    rdfs:isDefinedBy : .
 
 :Authorization a rdfs:Class ;
-    rdfs:subClassOf lacl:Authorization ;
+    rdfs:subClassOf lacl:Authorization, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     apl:template :AuthorizationAgents ;
     rdfs:label "Authorization" ;
@@ -167,44 +166,50 @@ WHERE
     rdfs:isDefinedBy : .
 
 :CreatorAuthorization a rdfs:Class ;
-    rdfs:subClassOf lacl:CreatorAuthorization ;
+    rdfs:subClassOf lacl:CreatorAuthorization, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Creator authorization" ;
     rdfs:isDefinedBy : .
 
 :AuthorizationRequest a rdfs:Class ;
-    rdfs:subClassOf lacl:AuthorizationRequest ;
+    rdfs:subClassOf lacl:AuthorizationRequest, :PrimaryTopicOfItem ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Authorization request" ;
     rdfs:isDefinedBy : .
 
 :UserAccount a rdfs:Class ;
-    rdfs:subClassOf lacl:UserAccount ;
+    rdfs:subClassOf lacl:UserAccount, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     rdfs:label "User account" ;
     rdfs:isDefinedBy : .
 
 :Agent a rdfs:Class ;
-    rdfs:subClassOf lacl:Agent ;
+    rdfs:subClassOf lacl:Agent, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Agent" ;
     rdfs:isDefinedBy : .
 
 :Person a rdfs:Class ;
-    rdfs:subClassOf lacl:Person, :Agent ;
+    rdfs:subClassOf lacl:Person, :Agent, :PrimaryTopicOfItem ;
     rdfs:label "Person" ;
     rdfs:isDefinedBy : .
 
 :PublicKey a rdfs:Class ;
-    rdfs:subClassOf lacl:PublicKey ;
+    rdfs:subClassOf lacl:PublicKey, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Public key" ;
     rdfs:isDefinedBy : .
 
 :Group a rdfs:Class ;
-    rdfs:subClassOf lacl:Group ;
+    rdfs:subClassOf lacl:Group, :PrimaryTopicOfItem  ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Group" ;
+    rdfs:isDefinedBy : .
+
+:PrimaryTopicOfItem a owl:Restriction ;
+    owl:onProperty foaf:isPrimaryTopicOf ;
+    owl:allValuesFrom :Item ;
+    rdfs:label "Primary topic of item" ;
     rdfs:isDefinedBy : .
 
 # INSTANCES

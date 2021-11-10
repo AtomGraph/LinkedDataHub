@@ -85,6 +85,7 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
                     <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
                     <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+                    <xsl:with-param name="create-resource" select="false()"/>
                 </xsl:apply-templates>
             </div>
         </div>
@@ -120,6 +121,7 @@ exclude-result-prefixes="#all">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
             <xsl:with-param name="legend" select="false()"/>
+            <xsl:with-param name="required" select="true()"/>
         </xsl:next-match>
     </xsl:template>
 
