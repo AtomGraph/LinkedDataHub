@@ -681,7 +681,9 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:Footer"/>
         </body>
     </xsl:template>
-    
+
+    <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')]" mode="bs2:ModeTabs" priority="1"/>
+
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
 

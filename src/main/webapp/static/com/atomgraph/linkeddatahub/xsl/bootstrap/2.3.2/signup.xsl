@@ -43,13 +43,7 @@ xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all">
 
-<!--    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
-        <xsl:apply-templates select="." mode="bs2:Form">
-            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
-            <xsl:with-param name="enctype" select="()"/>
-        </xsl:apply-templates>
-    </xsl:template>-->
-    
+
     <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="xhtml:Body" priority="2">
         <body>
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
@@ -92,19 +86,17 @@ exclude-result-prefixes="#all">
             </div>
         </div>
     </xsl:template>
-
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="apl:ContentList" priority="3">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-        
+    
+    <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:Block" priority="3">
+        <xsl:apply-templates select="." mode="bs2:Form">
+            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+            <xsl:with-param name="enctype" select="()"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <!-- match the first resource, whatever it is -->
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
+        <div class="row-fluid">
             <div class="offset2 span7">
                 <div class="alert alert-success row-fluid">
                     <div class="span1">
@@ -119,10 +111,7 @@ exclude-result-prefixes="#all">
                 </div>
             </div>
         </div>
-    </xsl:template>
-    
-    <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:Block" priority="3">
+        
         <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="#current"/>
         <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="#current"/>
     </xsl:template>
