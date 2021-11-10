@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
         <div>
             <xsl:if test="$id">
@@ -81,11 +81,12 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
         
-            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
-                <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
-                <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
-                <xsl:with-param name="create-resource" select="false()"/>
-            </xsl:apply-templates>
+            <div class="offset2 span7">
+                <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
+                    <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+                    <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+                </xsl:apply-templates>
+            </div>
         </div>
     </xsl:template>
 
