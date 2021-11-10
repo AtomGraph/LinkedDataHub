@@ -9,6 +9,7 @@
     <!ENTITY acl    "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
+    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
@@ -22,6 +23,7 @@ xmlns:rdf="&rdf;"
 xmlns:rdfs="&rdfs;"
 xmlns:acl="&acl;"
 xmlns:ldt="&ldt;"
+xmlns:sioc="&sioc;"
 xmlns:foaf="&foaf;"
 xmlns:spin="&spin;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
