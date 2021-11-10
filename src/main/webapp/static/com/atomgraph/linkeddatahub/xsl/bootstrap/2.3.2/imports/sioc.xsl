@@ -52,15 +52,15 @@ exclude-result-prefixes="#all">
         <xsl:param name="required" select="false()" as="xs:boolean"/>
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
 
-        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
-        <xsl:variable name="forClass" select="../../rdf:type/@rdf:resource" as="xs:anyURI?"/>
-        <xsl:variable name="container" select="if (map:contains($class-containers, $forClass)) then map:get($class-containers, $forClass) else ac:uri()" as="xs:anyURI"/>
+        <xsl:variable name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
         <span>
             <xsl:apply-templates select="key('resources', $container, document($container))" mode="apl:Typeahead"/>
         </span>
         
         <xsl:text> </xsl:text>
 
+        <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl. Not the same as $ac:forClass! -->
+        <xsl:variable name="forClass" select="../../rdf:type/@rdf:resource" as="xs:anyURI?"/>
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
                 <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $apl:ontology)" as="attribute()*"/>
