@@ -60,10 +60,6 @@ exclude-result-prefixes="#all">
         </body>
     </xsl:template>
     
-<!--    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Left" priority="2"/>
-
-    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right" priority="2"/>-->
-
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
