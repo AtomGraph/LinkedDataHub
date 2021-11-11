@@ -80,7 +80,9 @@ exclude-result-prefixes="#all">
     
     <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
     <xsl:template name="bs2:ConstructorList">
+        <xsl:param name="ontology" as="element()"/>
         <xsl:param name="classes" as="element()*"/>
+        <xsl:param name="visited-classes" as="element()*"/>
 
         <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
             <xsl:sort select="ac:label(.)"/>
