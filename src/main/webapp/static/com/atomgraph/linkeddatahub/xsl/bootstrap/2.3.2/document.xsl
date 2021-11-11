@@ -664,16 +664,18 @@ extension-element-prefixes="ixsl"
 
             <!-- show user-defined classes. Apply to owl:imported ontologies recursively -->
             <xsl:for-each select="$ontology/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
-                <xsl:variable name="ontology-uri" select="." as="xs:anyURI"/>
+                <xsl:variable name="import-uri" select="." as="xs:anyURI"/>
                 
-                <xsl:for-each select="document(ac:document-uri(.))">
-                    <xsl:variable name="classes" select="rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology-uri][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+                <xsl:for-each select="document(ac:document-uri($import-uri))">
+                    <xsl:variable name="classes" select="rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $import-uri][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
-                    <xsl:call-template name="bs2:ConstructorList">
-                        <xsl:with-param name="ontology" select="key('resources', $ontology-uri)"/>
-                        <xsl:with-param name="classes" select="$classes"/>
-                        <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
-                    </xsl:call-template>
+                    <xsl:if test="key('resources', $import-uri)">
+                        <xsl:call-template name="bs2:ConstructorList">
+                            <xsl:with-param name="ontology" select="key('resources', $import-uri)"/>
+                            <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
+                        </xsl:call-template>
+                    </xsl:if>
                 </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
