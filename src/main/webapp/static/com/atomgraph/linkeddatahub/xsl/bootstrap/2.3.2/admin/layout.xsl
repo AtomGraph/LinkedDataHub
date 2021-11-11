@@ -77,13 +77,14 @@ exclude-result-prefixes="#all">
     <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
     <xsl:template name="bs2:ConstructorList">
         <xsl:param name="ontology" as="xs:anyURI"/>
+        <xsl:param name="classes" select="('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group')" as="xs:anyURI*"/>
+        <xsl:param name="ont-doc" select="if (ac:document-uri($ontology)) then document(ac:document-uri($ontology)) else ()" as="document-node()?"/>
+        <xsl:param name="class-elems" select="key('resources', $classes, $ont-doc)][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
 
         <!-- check if ontology document is available -->
-        <xsl:if test="doc-available(ac:document-uri($ontology))">
-            <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
-            <xsl:variable name="classes" select="$ont-doc/rdf:RDF/*[@rdf:about = ('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group')][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-            <xsl:apply-templates select="$classes[let $about := @rdf:about return not(@rdf:about = ($classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)][not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))]" mode="bs2:ConstructorListItem">
+        <xsl:if test="$ont-doc">
+            <xsl:apply-templates select="$class-elems" mode="bs2:ConstructorListItem">
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
         </xsl:if>
