@@ -52,7 +52,6 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
 
     private static final Logger log = LoggerFactory.getLogger(Item.class);
 
-    private final URI uri;
     private final Resource resource;
     
     @Inject
@@ -62,8 +61,7 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
-        this.uri = uriInfo.getAbsolutePath();
-        this.resource = ModelFactory.createDefaultModel().createResource(uri.toString());
+        this.resource = ModelFactory.createDefaultModel().createResource(uriInfo.getAbsolutePath().toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }
     
@@ -101,11 +99,6 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         return super.post(model, false, getURI());
-    }
-    
-    public URI getURI()
-    {
-        return uri;
     }
 
     public Resource getResource()
