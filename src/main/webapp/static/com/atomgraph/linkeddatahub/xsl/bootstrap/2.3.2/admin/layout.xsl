@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
             <xsl:call-template name="bs2:ConstructorList">
                 <xsl:with-param name="ontology" select="key('resources', $apl:client//ldt:ontology/@rdf:resource, document(ac:document-uri($apl:client//ldt:ontology/@rdf:resource)))"/>
                 <xsl:with-param name="classes" select="$classes"/>
-                <xsl:with-param name="classes" select="()"/>
+                <xsl:with-param name="visited-classes" select="()"/>
             </xsl:call-template>
         </div>
     </xsl:template>
