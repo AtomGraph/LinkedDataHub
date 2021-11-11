@@ -1029,9 +1029,10 @@ exclude-result-prefixes="#all">
                 <xsl:map-entry key="'&def;ResultSetChart'" select="resolve-uri('charts/', $apl:base)"/>
             </xsl:map>
         </xsl:param>
-    
+        <xsl:param name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
+
         <xsl:next-match>
-            <xsl:with-param name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
+            <xsl:with-param name="container" select="$container" as="xs:anyURI"/>
         </xsl:next-match>
     </xsl:template>
     
