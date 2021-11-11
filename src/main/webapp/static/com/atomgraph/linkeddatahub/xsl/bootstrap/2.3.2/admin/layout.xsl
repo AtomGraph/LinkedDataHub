@@ -79,7 +79,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="ontology" as="xs:anyURI"/>
         <xsl:param name="classes" select="('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group')" as="xs:anyURI*"/>
         <xsl:param name="ont-doc" select="if (ac:document-uri($ontology)) then document(ac:document-uri($ontology)) else ()" as="document-node()?"/>
-        <xsl:param name="class-elems" select="key('resources', $classes, $ont-doc)][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+        <xsl:param name="class-elems" select="key('resources', $classes, $ont-doc)[rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
 
         <!-- check if ontology document is available -->
