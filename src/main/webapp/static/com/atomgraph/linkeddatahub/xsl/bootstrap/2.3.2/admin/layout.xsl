@@ -34,7 +34,28 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
+    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
+        <xsl:param name="id" as="xs:string?"/>
+        <xsl:param name="class" select="'span2'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <xsl:apply-templates select="." mode="bs2:Create">
+                <xsl:with-param name="class" select="'btn-group pull-left'"/>
+                <xsl:with-param name="classes" select="key('resources', ('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group'), document(ac:document-uri('&adm;')))"/>
+            </xsl:apply-templates>
+        </div>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF[$acl:Agent]" mode="bs2:Create" priority="1">
+        <xsl:param name="classes" as="element()*"/>
+
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
                 <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
@@ -51,40 +72,19 @@ exclude-result-prefixes="#all">
             <ul class="dropdown-menu">
                 <xsl:call-template name="bs2:ConstructorList">
                     <xsl:with-param name="ontology" select="xs:anyURI($apl:client//ldt:ontology/@rdf:resource)"/>
+                    <xsl:with-param name="classes" select="$classes"/>
                 </xsl:call-template>
             </ul>
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
-            </xsl:if>
-            
-            <xsl:apply-templates select="." mode="bs2:Create">
-                <xsl:with-param name="class" select="'btn-group pull-left'"/>
-            </xsl:apply-templates>
-        </div>
-    </xsl:template>
-    
     <!-- unlike in the end-user app, only show classes from top-level ontology - don't recurse into imports -->
     <xsl:template name="bs2:ConstructorList">
-        <xsl:param name="ontology" as="xs:anyURI"/>
-        <xsl:param name="classes" select="(xs:anyURI('&adm;Ontology'), xs:anyURI('&adm;Authorization'), xs:anyURI('&adm;Person'), xs:anyURI('&adm;PublicKey'), xs:anyURI('&adm;UserAccount'), xs:anyURI('&adm;Group'))" as="xs:anyURI*"/>
-        <xsl:param name="ont-doc" select="if (ac:document-uri($ontology)) then document(ac:document-uri($ontology)) else ()" as="document-node()?"/>
-        <xsl:param name="class-elems" select="key('resources', $classes, $ont-doc)[rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
-        <xsl:param name="visited-classes" as="element()*"/>
+        <xsl:param name="classes" as="element()*"/>
 
         <!-- check if ontology document is available -->
         <xsl:if test="$ont-doc">
-            <xsl:apply-templates select="$class-elems" mode="bs2:ConstructorListItem">
+            <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
         </xsl:if>
