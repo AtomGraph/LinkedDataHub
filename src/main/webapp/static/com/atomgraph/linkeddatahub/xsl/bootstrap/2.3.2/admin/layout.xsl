@@ -68,13 +68,11 @@ exclude-result-prefixes="#all">
                 <span class="caret"></span>
             </button>
 
-            <xsl:variable name="this" select="@rdf:about"/>
-            <ul class="dropdown-menu">
-                <xsl:call-template name="bs2:ConstructorList">
-                    <!--<xsl:with-param name="ontology" select="xs:anyURI($apl:client//ldt:ontology/@rdf:resource)"/>-->
-                    <xsl:with-param name="classes" select="$classes"/>
-                </xsl:call-template>
-            </ul>
+            <xsl:call-template name="bs2:ConstructorList">
+                <xsl:with-param name="ontology" select="key('resources', $apl:client//ldt:ontology/@rdf:resource, document(ac:document-uri($apl:client//ldt:ontology/@rdf:resource)))"/>
+                <xsl:with-param name="classes" select="$classes"/>
+                <xsl:with-param name="classes" select="()"/>
+            </xsl:call-template>
         </div>
     </xsl:template>
     
@@ -84,9 +82,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
 
-        <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
+        <ul class="dropdown-menu">
+            <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                <xsl:sort select="ac:label(.)"/>
+            </xsl:apply-templates>
+        </ul>
     </xsl:template>
     
     <!-- allow subject editing in admin EditMode -->
