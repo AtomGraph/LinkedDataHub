@@ -185,7 +185,6 @@ PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 CONSTRUCT {
     ?this rdfs:label [ a xsd:string ] ;
         rdfs:comment [ a xsd:string ] ;
-        owl:imports apl: ;
         owl:versionInfo "1.0-SNAPSHOT" .
 }
 WHERE {}""" ;
