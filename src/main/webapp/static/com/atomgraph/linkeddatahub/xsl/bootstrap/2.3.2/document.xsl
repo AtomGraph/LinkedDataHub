@@ -655,30 +655,26 @@ extension-element-prefixes="ixsl"
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
 
-        <!-- check if ontology document is available -->
-        <xsl:if test="doc-available(ac:document-uri($ontology))">
-            <xsl:variable name="ont-doc" select="document(ac:document-uri($ontology))" as="document-node()"/>
-            <xsl:variable name="constructor-list" as="element()*">
-                <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
-                <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem"> <!-- [not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))] -->
-                    <xsl:sort select="ac:label(.)"/>
-                </xsl:apply-templates>
+        <xsl:variable name="constructor-list" as="element()*">
+            <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
+            <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem"> <!-- [not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))] -->
+                <xsl:sort select="ac:label(.)"/>
+            </xsl:apply-templates>
 
-                <!-- show user-defined classes. Apply to owl:imported ontologies recursively -->
-                <xsl:for-each select="key('resources', $ontology, $ont-doc)/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
-                    <xsl:variable name="ontology" select="." as="xs:anyURI"/>
-                    <xsl:call-template name="bs2:ConstructorList">
-                        <xsl:with-param name="classes" select="document(ac:document-uri($ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]"/>
-                        <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
-                    </xsl:call-template>
-                </xsl:for-each>
-            </xsl:variable>
-            <!-- avoid nesting lists without items (classes) -->
-            <xsl:if test="$constructor-list">
-                <ul>
-                    <xsl:copy-of select="$constructor-list"/>
-                </ul>
-            </xsl:if>
+            <!-- show user-defined classes. Apply to owl:imported ontologies recursively -->
+            <xsl:for-each select="key('resources', $ontology, $ont-doc)/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
+                <xsl:variable name="ontology" select="." as="xs:anyURI"/>
+                <xsl:call-template name="bs2:ConstructorList">
+                    <xsl:with-param name="classes" select="document(ac:document-uri($ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]"/>
+                    <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
+                </xsl:call-template>
+            </xsl:for-each>
+        </xsl:variable>
+        <!-- avoid nesting lists without items (classes) -->
+        <xsl:if test="$constructor-list">
+            <ul>
+                <xsl:copy-of select="$constructor-list"/>
+            </ul>
         </xsl:if>
     </xsl:template>
     

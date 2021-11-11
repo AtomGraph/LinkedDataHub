@@ -82,12 +82,9 @@ exclude-result-prefixes="#all">
     <xsl:template name="bs2:ConstructorList">
         <xsl:param name="classes" as="element()*"/>
 
-        <!-- check if ontology document is available -->
-        <xsl:if test="$ont-doc">
-            <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
-                <xsl:sort select="ac:label(.)"/>
-            </xsl:apply-templates>
-        </xsl:if>
+        <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <!-- allow subject editing in admin EditMode -->
