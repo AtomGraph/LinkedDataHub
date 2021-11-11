@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
             <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
                 <xsl:call-template name="bs2:ConstructorList">
-                    <xsl:with-param name="ontology" select="xs:anyURI($apl:client//ldt:ontology/@rdf:resource)"/>
+                    <!--<xsl:with-param name="ontology" select="xs:anyURI($apl:client//ldt:ontology/@rdf:resource)"/>-->
                     <xsl:with-param name="classes" select="$classes"/>
                 </xsl:call-template>
             </ul>

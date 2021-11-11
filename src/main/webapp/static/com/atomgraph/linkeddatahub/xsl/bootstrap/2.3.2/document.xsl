@@ -612,10 +612,10 @@ extension-element-prefixes="ixsl"
                 <span class="caret"></span>
             </button>
 
-            <xsl:variable name="this" select="@rdf:about"/>
             <ul class="dropdown-menu">
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
+                        <xsl:with-param name="ontology" select="key('resources', $apl:ontology, document(ac:document-uri($apl:ontology)))"/>
                         <xsl:with-param name="classes" select="$classes"/>
                         <xsl:with-param name="visited-classes" select="($default-classes, $default-classes/apl:listSuperClasses(@rdf:about)/../..)"/>
                     </xsl:call-template>
@@ -652,6 +652,7 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*" mode="bs2:Create"/>
 
     <xsl:template name="bs2:ConstructorList">
+        <xsl:param name="ontology" as="element()"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
 
@@ -662,12 +663,18 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <!-- show user-defined classes. Apply to owl:imported ontologies recursively -->
-            <xsl:for-each select="key('resources', $ontology, $ont-doc)/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
-                <xsl:variable name="ontology" select="." as="xs:anyURI"/>
-                <xsl:call-template name="bs2:ConstructorList">
-                    <xsl:with-param name="classes" select="document(ac:document-uri($ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]"/>
-                    <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
-                </xsl:call-template>
+            <xsl:for-each select="$ontology/owl:imports/@rdf:resource[doc-available(ac:document-uri(.))]">
+                <xsl:variable name="ontology-uri" select="." as="xs:anyURI"/>
+                
+                <xsl:for-each select="document(ac:document-uri(.))">
+                    <xsl:variable name="classes" select="rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ontology-uri][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+
+                    <xsl:call-template name="bs2:ConstructorList">
+                        <xsl:with-param name="ontology" select="key('resources', $ontology-uri)"/>
+                        <xsl:with-param name="classes" select="$classes"/>
+                        <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:for-each>
         </xsl:variable>
         <!-- avoid nesting lists without items (classes) -->
