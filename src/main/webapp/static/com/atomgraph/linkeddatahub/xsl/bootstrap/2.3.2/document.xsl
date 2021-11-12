@@ -489,7 +489,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
-        <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+        <xsl:param name="classes" as="element()*"/>
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
