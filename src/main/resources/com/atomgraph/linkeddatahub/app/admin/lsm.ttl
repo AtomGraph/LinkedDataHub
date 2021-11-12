@@ -40,8 +40,7 @@ CONSTRUCT {
             [ a lsm:Restriction ] ;
         rdfs:label [ a xsd:string ] ;
         rdfs:comment [ a xsd:string ] ;
-        ldt:path "{isPrimaryTopicOf.slug}/";
-        ldt:fragment "this" ;
+        ldt:fragment "id{slug}" ;
         spin:constructor [ a lsm:Construct ] ;
         spin:constraint [ a lsm:Constraint ] ;
         rdfs:isDefinedBy [ a lsm:Ontology ] .

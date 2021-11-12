@@ -89,6 +89,12 @@ exclude-result-prefixes="#all">
         </ul>
     </xsl:template>
     
+    <xsl:template match="rdf:RDF" mode="bs2:Form">
+        <xsl:next-match>
+            <xsl:with-param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:apply-imports>

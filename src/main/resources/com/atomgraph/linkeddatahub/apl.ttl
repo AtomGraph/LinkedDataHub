@@ -192,28 +192,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:label "Dydra service constructor" ;
     rdfs:isDefinedBy : .
 
-# dataset
-
-:Dataset a rdfs:Class, owl:Class ;
-    rdfs:subClassOf void:Dataset, sd:Graph ,
-        [ a owl:Restriction ;
-            owl:onProperty foaf:isPrimaryTopicOf ;
-            owl:allValuesFrom :GraphItem
-        ] ;
-    # ldt:path "{isPrimaryTopicOf.slug}/" ;
-    ldt:fragment "this" ;
-    rdfs:label "Dataset" ;
-    rdfs:isDefinedBy : .
-
-:NamedGraph a rdfs:Class, owl:Class ;
-    rdfs:subClassOf sd:NamedGraph ,
-        [ a owl:Restriction ;
-            owl:onProperty sd:graph ;
-            owl:allValuesFrom :Dataset
-        ] ;
-    rdfs:label "Named graph" ;
-    rdfs:isDefinedBy : .
-
 # queries
 
 :Query a rdfs:Class, owl:Class ;
