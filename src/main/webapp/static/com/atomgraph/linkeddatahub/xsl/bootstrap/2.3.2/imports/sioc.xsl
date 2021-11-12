@@ -100,6 +100,6 @@ exclude-result-prefixes="#all">
     <xsl:template match="sioc:content[@rdf:parseType = 'Literal']" mode="bs2:PropertyList"/>
 
     <!-- do not show the content input if its document is the topic of another document -->
-    <xsl:template match="sioc:content[@rdf:parseType = 'Literal'][key('resources', ../foaf:isPrimaryTopicOf/@rdf:nodeID)]" mode="bs2:FormControl"/>
+    <!-- <xsl:template match="sioc:content[@rdf:parseType = 'Literal'][key('resources', ../foaf:isPrimaryTopicOf/@rdf:nodeID)]" mode="bs2:FormControl"/> -->
     
 </xsl:stylesheet>

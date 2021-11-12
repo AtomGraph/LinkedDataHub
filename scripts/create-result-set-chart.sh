@@ -145,9 +145,9 @@ turtle+="_:chart spin:query <${query}> .\n"
 turtle+="_:chart apl:chartType <${chart_type}> .\n"
 turtle+="_:chart apl:categoryVarName \"${category_var_name}\" .\n"
 turtle+="_:chart apl:seriesVarName \"${series_var_name}\" .\n"
-turtle+="_:chart foaf:isPrimaryTopicOf _:item .\n"
 turtle+="_:item a def:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item foaf:primaryTopic _:chart .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 
 if [ -n "$description" ] ; then

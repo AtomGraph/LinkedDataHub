@@ -137,9 +137,9 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="${query} a adm:Select .\n"
 turtle+="${query} rdfs:label \"${label}\" .\n"
 turtle+="${query} sp:text \"\"\"${query_string}\"\"\" .\n"
-turtle+="${query} foaf:isPrimaryTopicOf _:item .\n"
 turtle+="${query} rdfs:isDefinedBy <model/ontologies/namespace/#> .\n" # make a parameter?
 turtle+="_:item a adm:Item .\n"
+turtle+="_:item foaf:primaryTopic ${query} .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 turtle+="_:item dct:title \"${label}\" .\n"
 

@@ -9,9 +9,9 @@ CONSTRUCT
 {
     GRAPH ?item
     {
-        ?concept foaf:isPrimaryTopicOf ?item ;
-            ?p ?o .
+        ?concept ?p ?o .
         ?item a def:Item ;
+            foaf:primaryTopic ?concept ;
             sioc:has_container ?this ;
             dh:slug ?id ;
             dct:title ?prefLabel .

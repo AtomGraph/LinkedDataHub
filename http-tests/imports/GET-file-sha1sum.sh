@@ -45,7 +45,7 @@ file_doc_ntriples=$(./get-document.sh \
 
 popd > /dev/null
 
-file=$(echo "$file_doc_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${file_doc//\//\\/}> \./\1/p")
+file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
 server_sha1sum=$(echo "$file" | cut -d "/" -f 5) # cut the last URL path segment
 

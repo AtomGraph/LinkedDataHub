@@ -52,9 +52,9 @@ CONSTRUCT
 WHERE
 { GRAPH ?authRequestGraph
   { ?authRequest  a                 $type ;
-              foaf:isPrimaryTopicOf  ?authRequestItem ;
               rdfs:label            ?label .
     ?authRequestItem
+              foaf:primaryTopic  ?authRequest ;
               sioc:has_container    $container
     FILTER NOT EXISTS { GRAPH ?authGraph
                           { ?auth  prov:wasDerivedFrom  ?authRequest }

@@ -118,9 +118,9 @@ turtle+="@prefix sioc:	<http://rdfs.org/sioc/ns#> .\n"
 turtle+="_:query a def:Select .\n"
 turtle+="_:query dct:title \"${title}\" .\n"
 turtle+="_:query sp:text \"\"\"${query}\"\"\" .\n"
-turtle+="_:query foaf:isPrimaryTopicOf _:item .\n"
 turtle+="_:item a def:Item .\n"
 turtle+="_:item dct:title \"${title}\" .\n"
+turtle+="_:item foaf:primaryTopic _:query .\n"
 turtle+="_:item sioc:has_container <${container}> .\n"
 
 if [ -n "$service" ] ; then

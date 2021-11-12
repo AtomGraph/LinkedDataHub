@@ -87,9 +87,6 @@ public class Item extends GraphStoreImpl
     @Override
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        // use indirection to load file (/uploads/{slug}) description from the file document graph (/files/{slug})
-//        return super.get(false, URI.create(getResource().getPropertyResourceValue(FOAF.isPrimaryTopicOf).getURI()));
-        
         return getResponseBuilder(getResource().getModel(), graphUri).build();
     }
     

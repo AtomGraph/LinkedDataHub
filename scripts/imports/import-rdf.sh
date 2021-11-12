@@ -158,7 +158,7 @@ if [ -n "$query_file" ] ; then
 
     popd > /dev/null
 
-    query=$(echo "$query_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${query_doc//\//\\/}> \./\1/p")
+    query=$(echo "$query_ntriples" | sed -rn "s/<${query_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 fi
 
 file_doc=$(./create-file.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$file_doc_slug" --file-slug "$file_slug" --file "$file" --file-content-type "$file_content_type") # TO-DO: "${request_base}uploads"
@@ -170,7 +170,7 @@ file_ntriples=$(./get-document.sh -f "$cert_pem_file" -p "$cert_password" --acce
 
 popd > /dev/null
 
-file=$(echo "$file_ntriples" | sed -rn "s/<(.*)> <http:\/\/xmlns.com\/foaf\/0.1\/isPrimaryTopicOf> <${file_doc//\//\\/}> \./\1/p")
+file=$(echo "$file_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xmlns.com\/foaf\/0.1\/primaryTopic> <(.*)> \./\1/p")
 
 if [ -n "$query" ] ; then
     ./create-rdf-import.sh -b "$base" -f "$cert_pem_file" -p "$cert_password" --title "$title" --slug "$import_slug" --action "$action" --query "$query" --file "$file" # TO-DO: "${request_base}imports"

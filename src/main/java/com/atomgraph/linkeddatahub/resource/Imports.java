@@ -45,6 +45,7 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -103,12 +104,12 @@ public class Imports extends GraphStoreImpl
             InfModel infModel = ModelFactory.createRDFSModel(getOntology().getOntModel(), model);
             Resource doc = infModel.createResource(importGraphUri.toString());
             
-            ResIterator it = infModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, doc);
+            NodeIterator it = infModel.listObjectsOfProperty(doc, FOAF.primaryTopic);
             try
             {
                 if (it.hasNext())
                 {
-                    Resource topic = it.next();
+                    Resource topic = it.next().asResource();
 
                     if (topic != null && topic.canAs(Import.class))
                     {
@@ -124,8 +125,8 @@ public class Imports extends GraphStoreImpl
                 }
                 else
                 {
-                    if (log.isErrorEnabled()) log.error("Import resource with foaf:isPrimaryTopicOf <{}> property not found in graph", doc);
-                    throw new BadRequestException("Import resource with foaf:isPrimaryTopicOf <" + doc + "> property not found in graph");
+                    if (log.isErrorEnabled()) log.error("Import resource for document <{}> not found in graph", doc);
+                    throw new BadRequestException("Import resource for document <" + doc + "> not found in graph");
                 }
             }
             finally

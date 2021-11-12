@@ -67,13 +67,6 @@ extension-element-prefixes="ixsl"
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-logo btn-item')"/>
     </xsl:template>
-
-    <!-- do not show text instead for logo icon for "things" -->
-<!--    <xsl:template match="*[foaf:isPrimaryTopicOf]" mode="apl:logo" priority="1">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="$class"/>
-    </xsl:template>-->
     
     <xsl:template match="*[@rdf:about = '&ac;ConstructMode']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
@@ -838,7 +831,7 @@ extension-element-prefixes="ixsl"
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
-            <xsl:apply-templates select="$template/*[1]" mode="bs2:PropertyControl"> <!-- [not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)] -->
+            <xsl:apply-templates select="$template/*[1]" mode="bs2:PropertyControl">
                 <xsl:with-param name="template" select="$template"/>
                 <xsl:with-param name="forClass" select="$forClass"/>
                 <xsl:with-param name="required" select="true()"/>

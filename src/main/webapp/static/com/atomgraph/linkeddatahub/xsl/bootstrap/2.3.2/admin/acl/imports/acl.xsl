@@ -112,16 +112,6 @@ exclude-result-prefixes="#all">
             </xsl:call-template>
             <xsl:call-template name="xhtml:Input">
                 <xsl:with-param name="name" select="'pu'"/>
-                <xsl:with-param name="value" select="'&foaf;isPrimaryTopicOf'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'ob'"/>
-                <xsl:with-param name="value" select="'auth-item'"/>
-                <xsl:with-param name="type" select="'hidden'"/>
-            </xsl:call-template>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'pu'"/>
                 <xsl:with-param name="value" select="'&rdfs;label'"/>
                 <xsl:with-param name="type" select="'hidden'"/>
             </xsl:call-template>
