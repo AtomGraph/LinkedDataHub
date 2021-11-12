@@ -105,7 +105,7 @@
     rdfs:isDefinedBy : .
 
 :Ontology a rdfs:Class ;
-    rdfs:subClassOf lsm:Ontology, :PrimaryTopicOfItem ;
+    rdfs:subClassOf lsm:Ontology ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Ontology" ;
     rdfs:isDefinedBy : .
@@ -117,7 +117,7 @@
 #    rdfs:isDefinedBy : .
 
 :Authorization a rdfs:Class ;
-    rdfs:subClassOf lacl:Authorization, :PrimaryTopicOfItem  ;
+    rdfs:subClassOf lacl:Authorization ;
     ldt:fragment "id{slug}" ;
     apl:template :AuthorizationAgents ;
     rdfs:label "Authorization" ;
@@ -166,50 +166,44 @@ WHERE
     rdfs:isDefinedBy : .
 
 :CreatorAuthorization a rdfs:Class ;
-    rdfs:subClassOf lacl:CreatorAuthorization, :PrimaryTopicOfItem  ;
+    rdfs:subClassOf lacl:CreatorAuthorization ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Creator authorization" ;
     rdfs:isDefinedBy : .
 
 :AuthorizationRequest a rdfs:Class ;
-    rdfs:subClassOf lacl:AuthorizationRequest, :PrimaryTopicOfItem ;
+    rdfs:subClassOf lacl:AuthorizationRequest ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Authorization request" ;
     rdfs:isDefinedBy : .
 
 :UserAccount a rdfs:Class ;
-    rdfs:subClassOf lacl:UserAccount, :PrimaryTopicOfItem  ;
+    rdfs:subClassOf lacl:UserAccount ;
     ldt:fragment "id{slug}" ;
     rdfs:label "User account" ;
     rdfs:isDefinedBy : .
 
 :Agent a rdfs:Class ;
-    rdfs:subClassOf lacl:Agent, :PrimaryTopicOfItem  ;
+    rdfs:subClassOf lacl:Agent ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Agent" ;
     rdfs:isDefinedBy : .
 
 :Person a rdfs:Class ;
-    rdfs:subClassOf lacl:Person, :Agent, :PrimaryTopicOfItem ;
+    rdfs:subClassOf lacl:Person, :Agent ;
     rdfs:label "Person" ;
     rdfs:isDefinedBy : .
 
 :PublicKey a rdfs:Class ;
-    rdfs:subClassOf lacl:PublicKey, :PrimaryTopicOfItem  ;
+    rdfs:subClassOf lacl:PublicKey ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Public key" ;
     rdfs:isDefinedBy : .
 
 :Group a rdfs:Class ;
-    rdfs:subClassOf lacl:Group, :PrimaryTopicOfItem  ;
+    rdfs:subClassOf lacl:Group ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Group" ;
-    rdfs:isDefinedBy : .
-
-:PrimaryTopicOfItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom :Item ;
-    rdfs:label "Primary topic of item" ;
     rdfs:isDefinedBy : .
 
 # INSTANCES

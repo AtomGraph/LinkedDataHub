@@ -28,7 +28,7 @@
 
 :Container a rdfs:Class ;
     rdfs:subClassOf dh:Container ;
-    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingParent, :MissingTitle ;
     apl:template :ContainerChildren ;
     rdfs:label "Container" ;
@@ -42,13 +42,13 @@
 
 :Item a rdfs:Class ;
     rdfs:subClassOf dh:Item ;
-    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
-    spin:constraint :MissingContainer ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
+    spin:constraint :MissingContainer, :MissingTitle ;
     rdfs:label "Item" ;
     rdfs:isDefinedBy : .
 
 :GenericService a rdfs:Class ;
-    rdfs:subClassOf apl:GenericService, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:GenericService ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Generic service" ;
@@ -56,7 +56,7 @@
     rdfs:isDefinedBy : .
 
 :DydraService a rdfs:Class ;
-    rdfs:subClassOf apl:DydraService, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:DydraService ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Dydra service" ;
@@ -64,63 +64,63 @@
     rdfs:isDefinedBy : .
 
 :File a rdfs:Class ;
-    rdfs:subClassOf apl:File, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:File ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "File" ;
     rdfs:isDefinedBy : .
 
 :Construct a rdfs:Class ;
-    rdfs:subClassOf apl:Construct, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:Construct ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "CONSTRUCT" ;
     rdfs:isDefinedBy : .
 
 :Describe a rdfs:Class ;
-    rdfs:subClassOf apl:Describe, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:Describe ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "DESCRIBE" ;
     rdfs:isDefinedBy : .
 
 :Select a rdfs:Class ;
-    rdfs:subClassOf apl:Select, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:Select ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "SELECT" ;
     rdfs:isDefinedBy : .
 
 :Ask a rdfs:Class ;
-    rdfs:subClassOf apl:Ask, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:Ask ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "ASK" ;
     rdfs:isDefinedBy : .
 
 :RDFImport a rdfs:Class ;
-    rdfs:subClassOf apl:RDFImport, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:RDFImport ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "RDF import" ;
     rdfs:isDefinedBy : .
 
 :CSVImport a rdfs:Class ;
-    rdfs:subClassOf apl:CSVImport, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:CSVImport ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "CSV import" ;
     rdfs:isDefinedBy : .
 
 :GraphChart a rdfs:Class ;
-    rdfs:subClassOf apl:GraphChart, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:GraphChart ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Graph chart" ;
     rdfs:isDefinedBy : .
 
 :ResultSetChart a rdfs:Class ;
-    rdfs:subClassOf apl:ResultSetChart, :PrimaryTopicOfItem ;
+    rdfs:subClassOf apl:ResultSetChart ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
     rdfs:label "Result set chart" ;
@@ -152,6 +152,18 @@
         WHERE {}""" ;
     rdfs:isDefinedBy : .
 
+:PrimaryTopicConstructor a sp:Construct ;
+    rdfs:label "Primary topic constructor" ;
+    sp:text """
+        PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+        PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+
+        CONSTRUCT {
+          ?this foaf:primaryTopic [ a rdfs:Resource ] .
+        }
+        WHERE {}""" ;
+    rdfs:isDefinedBy : .
+
 :ContentConstructor a sp:Construct ;
     rdfs:label "Content constructor" ;
     sp:text """
@@ -161,12 +173,6 @@
           ?this apl:content [ a apl:Content ] .
         }
         WHERE {}""" ;
-    rdfs:isDefinedBy : .
-
-:PrimaryTopicOfItem a owl:Restriction ;
-    owl:onProperty foaf:isPrimaryTopicOf ;
-    owl:allValuesFrom :Item ;
-    rdfs:label "Primary topic of item" ;
     rdfs:isDefinedBy : .
 
 :MissingParent a apl:MissingPropertyValue ;

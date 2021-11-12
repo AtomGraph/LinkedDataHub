@@ -106,6 +106,9 @@
     <rdf:Description rdf:nodeID="create-instance-title">
         <rdfs:label xml:lang="en-US">Create a new resource of selected type</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="add-data">
+        <rdfs:label xml:lang="en-US">Add data</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="add-data-title">
         <rdfs:label xml:lang="en-US">Import RDF data</rdfs:label>
     </rdf:Description>
