@@ -591,6 +591,36 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- CREATE -->
+
+    <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:CreateDocument" priority="1">
+        <xsl:param name="class" select="'btn-group'" as="xs:string?"/>
+        <xsl:param name="classes" as="element()*"/>
+
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <button type="button" title="{ac:label(key('resources', 'create-instance-title', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri))))}">
+                <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn btn-primary dropdown-toggle'"/>
+                </xsl:apply-templates>
+                <xsl:value-of>
+                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="ac:label"/>
+                </xsl:value-of>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu">
+                <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                    <xsl:sort select="ac:label(.)"/>
+                </xsl:apply-templates>
+            </ul>
+        </div>
+    </xsl:template>
+    
+    <xsl:template match="*" mode="bs2:CreateDocument"/>
     
     <xsl:template match="rdf:RDF[$acl:mode = '&acl;Append']" mode="bs2:Create" priority="1">
         <xsl:param name="class" select="'btn-group'" as="xs:string?"/>

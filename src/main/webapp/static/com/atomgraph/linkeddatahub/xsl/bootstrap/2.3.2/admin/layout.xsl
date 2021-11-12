@@ -37,7 +37,8 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        
+        <xsl:param name="classes" select="key('resources', ('&adm;Container', '&adm;Item'), document(ac:document-uri('&adm;')))" as="element()*"/>
+
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
@@ -46,10 +47,13 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Create">
-                <xsl:with-param name="class" select="'btn-group pull-left'"/>
-                <xsl:with-param name="classes" select="key('resources', ('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group'), document(ac:document-uri('&adm;')))"/>
-            </xsl:apply-templates>
+            <!-- show "Create" button if the current resource is a container -->
+            <xsl:if test="key('resources', ac:uri())/rdf:type/@rdf:resource = ('&adm;Container')">
+                <xsl:apply-templates select="." mode="bs2:CreateDocument">
+                    <xsl:with-param name="class" select="'btn-group pull-left'"/>
+                    <xsl:with-param name="classes" select="$classes"/>
+                </xsl:apply-templates>
+            </xsl:if>
         </div>
     </xsl:template>
     
