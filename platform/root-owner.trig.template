@@ -18,7 +18,6 @@
         dct:title "${OWNER_COMMON_NAME}" .
 
     <${OWNER_URI}> a adm:Agent ;
-        foaf:isPrimaryTopicOf <${OWNER_DOC_URI}> ;
         foaf:name "${OWNER_COMMON_NAME}" ;
         foaf:mbox <mailto:${OWNER_MBOX}> ;
         cert:key <acl/public-keys/${OWNER_KEY_UUID}/#this> .
@@ -40,7 +39,6 @@
         dct:title "${OWNER_COMMON_NAME}" .
 
     <acl/public-keys/${OWNER_KEY_UUID}/#this> a adm:PublicKey ;
-        foaf:isPrimaryTopicOf <acl/public-keys/${OWNER_KEY_UUID}/> ;
         rdfs:label "${OWNER_COMMON_NAME}" ;
         cert:modulus "${OWNER_CERT_MODULUS}"^^xsd:hexBinary;
         cert:exponent 65537 .
@@ -66,7 +64,6 @@
         dct:title "Public owner's WebID" .
 
     <acl/authorizations/${OWNER_KEY_UUID}/#auth> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/${OWNER_KEY_UUID}/> ;
         acl:accessTo <${OWNER_DOC_URI}>, <acl/public-keys/${OWNER_KEY_UUID}/> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent, acl:AuthenticatedAgent .

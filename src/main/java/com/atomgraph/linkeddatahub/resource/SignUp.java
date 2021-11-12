@@ -81,6 +81,7 @@ import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -249,10 +250,10 @@ public class SignUp extends GraphStoreImpl
                     throw new WebApplicationException("Cannot create PublicKey");
                 }
 
-                ResIterator publicKeyIt = publicKeyModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, ResourceFactory.createResource(publicKeyGraphUri.toString()));
+                NodeIterator publicKeyIt = publicKeyModel.listObjectsOfProperty(ResourceFactory.createResource(publicKeyGraphUri.toString()), FOAF.primaryTopic);
                 try
                 {
-                    Resource publicKey = publicKeyIt.next();
+                    Resource publicKey = publicKeyIt.next().asResource();
 
                     agent.addProperty(Cert.key, publicKey); // add public key
                     agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
@@ -359,12 +360,12 @@ public class SignUp extends GraphStoreImpl
     {
         Resource itemCls = model.createResource(namespace + "Item"); // TO-DO: get rid of base-relative class URIs
 
-        Resource agentItem = model.createResource(graphURI.toString()).
+        Resource item = model.createResource(graphURI.toString()).
             addProperty(RDF.type, itemCls).
             addProperty(SIOC.HAS_CONTAINER, container).
             addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: does not match the URI
 
-        agent.addProperty(FOAF.isPrimaryTopicOf, agentItem);
+        item.addProperty(FOAF.primaryTopic, agent);
 
         return agent;
     }
@@ -382,7 +383,7 @@ public class SignUp extends GraphStoreImpl
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
         
-        publicKeyRes.addProperty(FOAF.isPrimaryTopicOf, item);
+        item.addProperty(FOAF.primaryTopic, publicKeyRes);
         
         return publicKeyRes;
     }
@@ -403,7 +404,7 @@ public class SignUp extends GraphStoreImpl
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
 
-        auth.addProperty(FOAF.isPrimaryTopicOf, item);
+        item.addProperty(FOAF.primaryTopic, auth);
         
         return auth;
     }

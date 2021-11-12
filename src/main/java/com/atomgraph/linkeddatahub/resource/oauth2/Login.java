@@ -74,6 +74,7 @@ import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.NodeIterator;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -225,10 +226,10 @@ public class Login extends GraphStoreImpl
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
-                    ResIterator userAccountIt = accountModel.listResourcesWithProperty(FOAF.isPrimaryTopicOf, ResourceFactory.createResource(userAccountGraphUri.toString()));
+                    NodeIterator userAccountIt = accountModel.listObjectsOfProperty(ResourceFactory.createResource(userAccountGraphUri.toString()), FOAF.primaryTopic);
                     try
                     {
-                        userAccount = userAccountIt.next();
+                        userAccount = userAccountIt.next().asResource();
 
                         agent.addProperty(FOAF.account, userAccount);
                         agentModel.add(agentModel.createResource(getSystem().getSecretaryWebIDURI().toString()), ACL.delegates, agent); // make secretary delegate whis agent
@@ -310,11 +311,10 @@ public class Login extends GraphStoreImpl
             addLiteral(FOAF.givenName, givenName).
             addLiteral(FOAF.familyName, familyName).
             addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
-            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
-            addProperty(FOAF.isPrimaryTopicOf, item);
+            addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: get rid of slug properties!
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
             
-        agent.addProperty(FOAF.isPrimaryTopicOf, item);
+        item.addProperty(FOAF.primaryTopic, agent);
         
         return agent;
     }
@@ -333,10 +333,9 @@ public class Login extends GraphStoreImpl
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
             addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
-            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
-            addProperty(FOAF.isPrimaryTopicOf, item);
+            addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: get rid of slug properties!
         
-        account.addProperty(FOAF.isPrimaryTopicOf, item);
+        item.addProperty(FOAF.primaryTopic, account);
         
         return account;
     }
@@ -357,7 +356,7 @@ public class Login extends GraphStoreImpl
             addProperty(ACL.agentClass, FOAF.Agent).
             addProperty(ACL.agentClass, ACL.AuthenticatedAgent);
         
-        auth.addProperty(FOAF.isPrimaryTopicOf, item);
+        item.addProperty(FOAF.primaryTopic, auth);
         
         return auth;
     }

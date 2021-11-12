@@ -18,7 +18,6 @@
 @prefix dct:	<http://purl.org/dc/terms/> .
 
 : a owl:Ontology ;
-    # foaf:isPrimaryTopicOf <ns> ;
     owl:imports apl:, lacl:, lsm: ;
     owl:versionInfo "1.1.4" ;
     rdfs:label "Admin ontology" ;

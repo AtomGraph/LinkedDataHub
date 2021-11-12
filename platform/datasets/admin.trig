@@ -187,7 +187,6 @@
         foaf:primaryTopic <acl/authorizations/public/#this> .
 
     <acl/authorizations/public/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/public/> ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows unauthorized access" ;
         acl:accessTo <model/ontologies/namespace/> ; # end-user ontologies are public
@@ -207,7 +206,6 @@
         foaf:primaryTopic <acl/authorizations/sign-up/#this> .
 
     <acl/authorizations/sign-up/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/sign-up/> ;
         rdfs:label "Signup access" ;
         rdfs:comment "Required to enable public signup" ;
         acl:accessToClass adm:SignUp ;
@@ -227,7 +225,6 @@
         foaf:primaryTopic <acl/authorizations/request-access/#this> .
 
     <acl/authorizations/request-access/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/request-access/> ;
         rdfs:label "Request access" ;
         rdfs:comment "Required to enable authorization requests" ;
         acl:accessToClass adm:RequestAccess ;
@@ -247,7 +244,6 @@
         foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
 
     <acl/authorizations/oauth2-login/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/oauth2-login/> ;
         rdfs:label "OAuth2 login access" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
         acl:accessToClass adm:OAuth2Login ;
@@ -267,7 +263,6 @@
         foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
 
     <acl/authorizations/authorize-google/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/authorize-google/> ;
         rdfs:label "Google's OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
         acl:accessToClass adm:AuthorizeGoogle ;
@@ -287,7 +282,6 @@
         foaf:primaryTopic <acl/authorizations/append-request/#this> .
 
     <acl/authorizations/append-request/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/append-request/> ;
         rdfs:label "Append authorization request" ;
         rdfs:comment "Required to enable authorization requests" ;
         acl:accessTo <acl/authorization-requests/> ;
@@ -308,7 +302,6 @@
         foaf:primaryTopic <acl/authorizations/full-control/#this> .
 
     <acl/authorizations/full-control/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/full-control/> ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
@@ -329,7 +322,6 @@
         foaf:primaryTopic <acl/authorizations/write-append/#this> .
 
     <acl/authorizations/write-append/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/write-append/> ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
@@ -350,7 +342,6 @@
         foaf:primaryTopic <acl/authorizations/read/#this> .
 
     <acl/authorizations/read/#this> a adm:Authorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/read/> ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass def:Item, def:Container, def:Root, def:File ;
@@ -371,7 +362,6 @@
         foaf:primaryTopic <acl/authorizations/creator/#this> .
 
     <acl/authorizations/creator/#this> a adm:CreatorAuthorization ;
-        foaf:isPrimaryTopicOf <acl/authorizations/creator/> ;
         rdfs:label "Creator access" ;
         rdfs:comment "Creators have full control of their created resources" ;
         lacl:accessProperty foaf:maker ;
@@ -394,8 +384,7 @@
 
     <acl/groups/owners/#this> a adm:Group ;
         foaf:name "Owners" ;
-        dct:description "Group of agents that own the application" ;
-        foaf:isPrimaryTopicOf <acl/groups/owners/> .
+        dct:description "Group of agents that own the application" .
 
 }
 
@@ -411,8 +400,7 @@
 
     <acl/groups/writers/#this> a adm:Group ;
         foaf:name "Writers" ;
-        dct:description "Group of agents that have write access" ;
-        foaf:isPrimaryTopicOf <acl/groups/writers/> .
+        dct:description "Group of agents that have write access" .
 
 }
 
@@ -428,8 +416,7 @@
 
     <acl/groups/readers/#this> a adm:Group ;
         foaf:name "Readers" ;
-        dct:description "Group of agents that have read access" ;
-        foaf:isPrimaryTopicOf <acl/groups/readers/> .
+        dct:description "Group of agents that have read access" .
 
 }
 
@@ -470,7 +457,6 @@
         foaf:primaryTopic ns: .
 
     ns: a adm:Ontology ;
-        foaf:isPrimaryTopicOf <model/ontologies/namespace/> ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
         owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;

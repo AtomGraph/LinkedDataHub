@@ -14,6 +14,8 @@ curl -k -s \
   --data-urlencode "sb=agent" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
   --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin#Person" \
+  --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
+  --data-urlencode "ob=agent" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/based_near" \
   --data-urlencode "ou=http://www.wikidata.org/entity/Q35" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/mbox" \
@@ -32,8 +34,6 @@ curl -k -s \
   --data-urlencode "pu=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#password" \
   --data-urlencode "ol=${password}" \
   --data-urlencode "sb=agent" \
-  --data-urlencode "pu=http://xmlns.com/foaf/0.1/isPrimaryTopicOf" \
-  --data-urlencode "ob=doc" \
   --data-urlencode "sb=doc" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
   --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin#Item" \

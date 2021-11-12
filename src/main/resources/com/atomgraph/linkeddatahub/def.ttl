@@ -20,7 +20,7 @@
 
 :Root a rdfs:Class ;
     rdfs:subClassOf sioc:Space, dh:Container ;
-    spin:constructor :TitleConstructor, :DescriptionConstructor, :ContentConstructor ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingTitle ; # roots do not have parents, therefore no :MissingParent
     apl:template :ContainerChildren ;
     rdfs:label "Root" ;
@@ -210,7 +210,7 @@ WHERE
     OPTIONAL
       { ?child  dct:title  ?title }
     OPTIONAL
-      { ?thing  foaf:isPrimaryTopicOf  ?child }
+      { ?child  foaf:primaryTopic  ?thing }
   }
 }
 ORDER BY ?title

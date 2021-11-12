@@ -99,8 +99,8 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode              acl:Control ;
-               foaf:isPrimaryTopicOf  ?doc
+  {   { ?auth  acl:mode              acl:Control .
+        ?doc   foaf:primaryTopic  ?auth
           { ?auth  acl:agent  ?agent }
         UNION
           { ?auth   acl:agentGroup  ?Group .

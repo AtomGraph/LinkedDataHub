@@ -114,7 +114,6 @@
         foaf:primaryTopic <queries/default/select-geo-resources/#this> .
 
     <queries/default/select-geo-resources/#this> a def:Select ;
-        foaf:isPrimaryTopicOf <queries/default/select-geo-resources/> ;
         dct:title "Select geo resources" ;
         sp:text """
     PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
@@ -147,7 +146,6 @@
         foaf:primaryTopic <queries/default/select-latest/#this> .
 
     <queries/default/select-latest/#this> a def:Select ;
-        foaf:isPrimaryTopicOf <queries/default/select-latest/> ;
         dct:title "Select latest" ;
         sp:text """
     PREFIX  dct:  <http://purl.org/dc/terms/>
