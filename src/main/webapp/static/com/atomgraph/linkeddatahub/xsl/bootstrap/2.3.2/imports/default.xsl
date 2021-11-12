@@ -344,21 +344,6 @@ exclude-result-prefixes="#all"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-    <!-- hide foaf:primaryTopic/foaf:isPrimaryTopicOf if their object resources have properties other than rdf:type -->
-    <!--
-    <xsl:template match="foaf:primaryTopic[key('resources', (@rdf:resource, @rdf:nodeID))[* except rdf:type]] | foaf:isPrimaryTopicOf[key('resources', (@rdf:resource, @rdf:nodeID))[* except rdf:type]]" mode="bs2:FormControl" priority="1">
-        <xsl:apply-templates select="." mode="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="node() | @rdf:resource | @rdf:nodeID" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-        <xsl:apply-templates select="@xml:lang | @rdf:datatype" mode="#current">
-            <xsl:with-param name="type" select="'hidden'"/>
-        </xsl:apply-templates>
-    </xsl:template>
-    -->
 
     <!-- property -->
     <xsl:template match="*[@rdf:about or @rdf:nodeID]/*" mode="bs2:FormControl">

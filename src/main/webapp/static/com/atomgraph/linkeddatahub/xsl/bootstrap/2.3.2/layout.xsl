@@ -859,8 +859,6 @@ exclude-result-prefixes="#all">
         
     <xsl:template match="rdf:RDF[key('resources-by-type', '&http;Response')][not(key('resources-by-type', '&spin;ConstraintViolation'))]" mode="bs2:ModeList" priority="1"/>
 
-    <!--<xsl:template match="rdf:RDF[key('resources', key('resources', ac:uri())/foaf:primaryTopic/@rdf:resource)/rdf:type/@rdf:resource = '&apl;Dataset']" mode="bs2:ModeList"/>-->
-
     <xsl:template match="rdf:RDF[ac:uri()]" mode="bs2:ModeList">
         <div class="btn-group pull-right">
             <button type="button" title="{ac:label(key('resources', 'mode-list-title', document('translations.rdf')))}">
