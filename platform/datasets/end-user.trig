@@ -64,56 +64,10 @@
         apl:content <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> .
 
     <geo/#id31036be3-4fb4-493b-bc2d-3ab98693acc9> a apl:Content ;
-        rdf:first <queries/default/select-geo-resources/#this> ;
+        rdf:first <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> ;
         rdf:rest rdf:nil .
 
-}
-
-<latest/>
-{
-
-    <latest/> a def:Item ;
-        dct:title "Latest" ;
-        dct:description "Latest resources" ;
-        apl:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
-
-    <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> a apl:Content ;
-        rdf:first <queries/default/select-latest/#this> ;
-        rdf:rest rdf:nil .
-
-}
-
-<charts/>
-{
-
-    <charts/> a def:Container ;
-        dct:title "Charts" ;
-        dct:description "Saved charts" .
-
-}
-
-<services/>
-{
-
-    <services/> a def:Container ;
-        dct:title "Services" ;
-        dct:description "SPARQL services" .
-
-}
-
-# QUERIES
-
-# select geo resources
-
-<queries/default/select-geo-resources/>
-{
-
-    <queries/default/select-geo-resources/> a def:Item ;
-        sioc:has_container <queries/default/> ;
-        dct:title "Select geo resources" ;
-        foaf:primaryTopic <queries/default/select-geo-resources/#this> .
-
-    <queries/default/select-geo-resources/#this> a def:Select ;
+    <geo/#id3aa6c894-4412-11ec-81d3-0242ac130003> a def:Select ;
         dct:title "Select geo resources" ;
         sp:text """
     PREFIX  geo:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
@@ -135,17 +89,19 @@
 
 }
 
-# select latest
-
-<queries/default/select-latest/>
+<latest/>
 {
 
-    <queries/default/select-latest/> a def:Item ;
-        sioc:has_container <queries/default/> ;
-        dct:title "Select latest" ;
-        foaf:primaryTopic <queries/default/select-latest/#this> .
+    <latest/> a def:Item ;
+        dct:title "Latest" ;
+        dct:description "Latest resources" ;
+        apl:content <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> .
 
-    <queries/default/select-latest/#this> a def:Select ;
+    <latest/#id17e6a62e-d319-44e7-b4ac-f38e29d461e7> a apl:Content ;
+        rdf:first <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> ;
+        rdf:rest rdf:nil .
+
+    <latest/#idf3dfb452-4411-11ec-81d3-0242ac130003> a def:Select ;
         dct:title "Select latest" ;
         sp:text """
     PREFIX  dct:  <http://purl.org/dc/terms/>
@@ -157,5 +113,23 @@
     }
     ORDER BY DESC(?created)
     """ .
+
+}
+
+<charts/>
+{
+
+    <charts/> a def:Container ;
+        dct:title "Charts" ;
+        dct:description "Saved charts" .
+
+}
+
+<services/>
+{
+
+    <services/> a def:Container ;
+        dct:title "Services" ;
+        dct:description "SPARQL services" .
 
 }
