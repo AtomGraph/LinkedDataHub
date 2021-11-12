@@ -756,7 +756,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- hide documents that are paired with resources -->
-    <xsl:template match="[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:Grid"/>
+    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="bs2:Grid"/>
 
     <!-- table -->
 
@@ -778,7 +778,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- hide documents that are paired with resources -->
-    <xsl:template match="[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="xhtml:Table"/>
+    <xsl:template match="*[key('resources', foaf:primaryTopic/@rdf:resource)]" mode="xhtml:Table"/>
 
     <!-- graph -->
 
