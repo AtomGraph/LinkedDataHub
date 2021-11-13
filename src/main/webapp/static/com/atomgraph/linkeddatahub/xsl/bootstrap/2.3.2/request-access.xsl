@@ -67,6 +67,12 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
+    <xsl:template match="/" mode="apl:SetPrimaryTopic">
+        <xsl:copy>
+            <xsl:apply-templates mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF" mode="apl:SetPrimaryTopic">
         <xsl:copy>
             <xsl:apply-templates mode="#current"/>
