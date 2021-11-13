@@ -75,7 +75,7 @@ exclude-result-prefixes="#all">
             <xsl:choose>
                 <xsl:when test="@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
                     <!-- overwrite existing value with $topic-id -->
-                    <xsl:attribute name="rdf:nodeID" select="{$topic-id}"/>
+                    <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:copy-of select="@* | node()"/>
