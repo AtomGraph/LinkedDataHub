@@ -149,7 +149,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                 Source source = getSource(agent.getModel());
                 
                 URI agentURI = URI.create(agent.getURI());
-                URI agentDocUri = new URI(agentURI.getScheme(), agentURI.getSchemeSpecificPart(), null);
+                URI agentDocUri = new URI(agentURI.getScheme(), agentURI.getSchemeSpecificPart(), null); // strip the fragment identifier
                 source.setSystemId(agentDocUri.toString()); // URI accessible via document-uri($lacl:Agent)
 
                 params.put(new QName("acl", ACL.agent.getNameSpace(), ACL.agent.getLocalName()),

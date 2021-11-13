@@ -64,13 +64,26 @@ exclude-result-prefixes="#all">
 
     <!-- currently doesn't work because the client-side does not refresh the bs2:NavBarActions -->
     <!--<xsl:template match="rdf:RDF[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:NavBarActions" priority="2"/>-->
-    
-<!--    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Left" priority="2"/>
-
-    <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:Right" priority="2"/>-->
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
+    <xsl:template match="rdf:RDF" mode="apl:SetPrimaryTopic">
+        <xsl:apply-templates mode="#current"/>
+    </xsl:template>
+    
+    <xsl:template match="rdf:Description" mode="apl:SetPrimaryTopic">
+        <xsl:param name="topic-id" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:copy-of select="@* | node()"/>
+
+            <xsl:if test="@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
+                <foaf:primaryTopic rdf:nodeID="{$topic-id}"/>
+            </xsl:if>
+        </xsl:copy>
+    </xsl:template>
+    
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
@@ -84,7 +97,25 @@ exclude-result-prefixes="#all">
             </xsl:if>
         
             <div class="offset2 span7">
-                <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
+                <xsl:variable name="request-access-constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
+                <xsl:variable name="item-constructor" select="ac:construct-doc(xs:anyURI('&def;'), '&def;Item', $ldt:base)" as="document-node()"/>
+                <xsl:variable name="constructor" as="document-node()">
+                    <xsl:document>
+                        <rdf:RDF>
+                            <xsl:sequence select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*"/>
+                            <xsl:sequence select="ac:construct-doc(xs:anyURI('&def;'), '&def;Item', $ldt:base)/rdf:RDF/*"/>
+                        </rdf:RDF>
+                    </xsl:document>
+                </xsl:variable>
+                <xsl:variable name="constructor" as="document-node()">
+                    <xsl:apply-templates select="$constructor" mode="apl:SetPrimaryTopic">
+                        <xsl:with-param name="doc-id" select="key('resources-by-type', $ac:forClass, $item-constructor)/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass, $request-access-constructor)/@rdf:nodeID" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:variable>
+                XXX<xsl:copy-of select="$constructor"/>/XXX
+                
+                <xsl:apply-templates select="$constructor" mode="bs2:Form">
                     <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
                     <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
                     <xsl:with-param name="create-resource" select="false()"/>
