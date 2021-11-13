@@ -73,7 +73,8 @@ exclude-result-prefixes="#all">
 
         <xsl:copy>
             <xsl:choose>
-                <xsl:when test="@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
+                <!-- check ID of this resource -->
+                <xsl:when test="../@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
                     <!-- overwrite existing value with $topic-id -->
                     <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
                 </xsl:when>
@@ -108,7 +109,6 @@ exclude-result-prefixes="#all">
                     <xsl:document>
                         <rdf:RDF>
                             <xsl:sequence select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)/rdf:RDF/*"/>
-                            <!--<xsl:sequence select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $ldt:base)/rdf:RDF/*"/>-->
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
@@ -120,7 +120,6 @@ exclude-result-prefixes="#all">
                         </xsl:apply-templates>
                     </xsl:document>
                 </xsl:variable>
-                XXX<xsl:copy-of select="$constructor"/>/XXX
                 
                 <xsl:apply-templates select="$constructor" mode="bs2:Form">
                     <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
@@ -195,7 +194,7 @@ exclude-result-prefixes="#all">
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="lacl:requestMode/@rdf:*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="lacl:requestMode/@rdf:*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
@@ -219,7 +218,7 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
     
-    <xsl:template match="lacl:requestAgent[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
+    <xsl:template match="lacl:requestAgent[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:apply-templates select="." mode="xhtml:Input">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
