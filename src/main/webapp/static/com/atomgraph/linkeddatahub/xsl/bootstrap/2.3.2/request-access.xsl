@@ -98,12 +98,12 @@ exclude-result-prefixes="#all">
         
             <div class="offset2 span7">
                 <xsl:variable name="request-access-constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
-                <xsl:variable name="item-constructor" select="ac:construct-doc(xs:anyURI('&def;'), '&def;Item', $ldt:base)" as="document-node()"/>
+                <xsl:variable name="item-constructor" select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $ldt:base)" as="document-node()"/>
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:document>
                         <rdf:RDF>
                             <xsl:sequence select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*"/>
-                            <xsl:sequence select="ac:construct-doc(xs:anyURI('&def;'), '&def;Item', $ldt:base)/rdf:RDF/*"/>
+                            <xsl:sequence select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $ldt:base)/rdf:RDF/*"/>
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
