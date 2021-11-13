@@ -109,8 +109,8 @@ exclude-result-prefixes="#all">
                 </xsl:variable>
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:apply-templates select="$constructor" mode="apl:SetPrimaryTopic">
-                        <xsl:with-param name="doc-id" select="key('resources-by-type', $ac:forClass, $item-constructor)/@rdf:nodeID" tunnel="yes"/>
                         <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass, $request-access-constructor)/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item', $item-constructor)/@rdf:nodeID" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:variable>
                 XXX<xsl:copy-of select="$constructor"/>/XXX
