@@ -78,16 +78,16 @@ exclude-result-prefixes="#all">
                     <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:copy-of select="@* | node()"/>
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:copy>
     </xsl:template>
 
     <!-- identity transform -->
-    <xsl:template match="/ | rdf:RDF | rdf:Description | rdf:Description/*" mode="apl:SetPrimaryTopic">
+    <xsl:template match="@* | node()" mode="apl:SetPrimaryTopic">
         <xsl:copy>
-            <xsl:apply-templates mode="#current"/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
 
