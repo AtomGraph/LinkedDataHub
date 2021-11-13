@@ -67,31 +67,30 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="/" mode="apl:SetPrimaryTopic">
-        <xsl:copy>
-            <xsl:apply-templates mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF" mode="apl:SetPrimaryTopic">
-        <xsl:copy>
-            <xsl:apply-templates mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-    
-    <xsl:template match="rdf:Description" mode="apl:SetPrimaryTopic">
+    <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="apl:SetPrimaryTopic" priority="1">
         <xsl:param name="topic-id" as="xs:string" tunnel="yes"/>
         <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
 
         <xsl:copy>
-            <xsl:copy-of select="@* | node()"/>
-
-            <xsl:if test="@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
-                <foaf:primaryTopic rdf:nodeID="{$topic-id}"/>
-            </xsl:if>
+            <xsl:choose>
+                <xsl:when test="@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
+                    <!-- overwrite existing value with $topic-id -->
+                    <xsl:attribute name="rdf:nodeID" select="{$topic-id}"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy-of select="@* | node()"/>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:copy>
     </xsl:template>
-    
+
+    <!-- identity transform -->
+    <xsl:template match="/ | rdf:RDF | rdf:Description | rdf:Description/*" mode="apl:SetPrimaryTopic">
+        <xsl:copy>
+            <xsl:apply-templates mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
