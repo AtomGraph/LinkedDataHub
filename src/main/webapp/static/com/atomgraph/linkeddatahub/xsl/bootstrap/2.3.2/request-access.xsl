@@ -105,20 +105,18 @@ exclude-result-prefixes="#all">
             </xsl:if>
         
             <div class="offset2 span7">
-                <xsl:variable name="request-access-constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
-                <xsl:variable name="item-constructor" select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $ldt:base)" as="document-node()"/>
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:document>
                         <rdf:RDF>
-                            <xsl:sequence select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)/rdf:RDF/*"/>
-                            <xsl:sequence select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $ldt:base)/rdf:RDF/*"/>
+                            <xsl:sequence select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)/rdf:RDF/*"/>
+                            <!--<xsl:sequence select="ac:construct-doc(xs:anyURI('&def;'), xs:anyURI('&def;Item'), $ldt:base)/rdf:RDF/*"/>-->
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:apply-templates select="$constructor" mode="apl:SetPrimaryTopic">
-                        <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass, $request-access-constructor)/@rdf:nodeID" tunnel="yes"/>
-                        <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item', $item-constructor)/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass, $constructor)/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item', $constructor)/@rdf:nodeID" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:variable>
                 XXX<xsl:copy-of select="$constructor"/>/XXX
