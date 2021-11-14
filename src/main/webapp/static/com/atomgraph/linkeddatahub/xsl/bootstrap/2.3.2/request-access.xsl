@@ -108,7 +108,7 @@ exclude-result-prefixes="#all">
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:document>
                         <rdf:RDF>
-                            <xsl:sequence select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)/rdf:RDF/*"/>
+                            <xsl:sequence select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)/rdf:RDF/*"/>
                         </rdf:RDF>
                     </xsl:document>
                 </xsl:variable>
@@ -116,7 +116,7 @@ exclude-result-prefixes="#all">
                     <xsl:document>
                         <xsl:apply-templates select="$constructor" mode="apl:SetPrimaryTopic">
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass, $constructor)/@rdf:nodeID" tunnel="yes"/>
-                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item', $constructor)/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item', $constructor)/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:document>
                 </xsl:variable>
@@ -256,7 +256,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="lacl:requestAccessToClass/@rdf:*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
         <xsl:variable name="this" select="../concat(namespace-uri(), local-name())" as="xs:string"/>
-        <xsl:variable name="classes" select="key('resources', ('&def;Root', '&def;Container','&def;Item', '&def;File'), document(ac:document-uri('&def;')))" as="element()*"/>
+        <xsl:variable name="classes" select="key('resources', ('&def;Root', '&def;Container','&adm;Item', '&def;File'), document(ac:document-uri('&def;')))" as="element()*"/>
         <select name="ou" id="{generate-id()}" multiple="multiple" size="{count($classes)}">
             <xsl:for-each select="$classes">
                 <xsl:sort select="ac:label(.)" lang="{$ldt:lang}"/>
