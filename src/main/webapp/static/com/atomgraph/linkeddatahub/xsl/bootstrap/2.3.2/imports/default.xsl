@@ -216,6 +216,33 @@ exclude-result-prefixes="#all"
         </xsl:next-match>
     </xsl:template>
     
+    <!-- SET PRIMARY TOPIC -->
+
+    <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="apl:SetPrimaryTopic" priority="1">
+        <xsl:param name="topic-id" as="xs:string" tunnel="yes"/>
+        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
+
+        <xsl:copy>
+            <xsl:choose>
+                <!-- check ID of this resource -->
+                <xsl:when test="../@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
+                    <!-- overwrite existing value with $topic-id -->
+                    <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="@* | node()" mode="#current"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- identity transform -->
+    <xsl:template match="@* | node()" mode="apl:SetPrimaryTopic">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- DEFAULT -->
 
     <!-- resources with URIs not relative to app base -->

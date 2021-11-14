@@ -68,31 +68,6 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="rdf:Description/foaf:primaryTopic[@rdf:nodeID]" mode="apl:SetPrimaryTopic" priority="1">
-        <xsl:param name="topic-id" as="xs:string" tunnel="yes"/>
-        <xsl:param name="doc-id" as="xs:string" tunnel="yes"/>
-
-        <xsl:copy>
-            <xsl:choose>
-                <!-- check ID of this resource -->
-                <xsl:when test="../@rdf:nodeID = $doc-id"> <!-- TO-DO: support @rdf:about? -->
-                    <!-- overwrite existing value with $topic-id -->
-                    <xsl:attribute name="rdf:nodeID" select="$topic-id"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="@* | node()" mode="#current"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:copy>
-    </xsl:template>
-
-    <!-- identity transform -->
-    <xsl:template match="@* | node()" mode="apl:SetPrimaryTopic">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()" mode="#current"/>
-        </xsl:copy>
-    </xsl:template>
-
     <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:Block" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
@@ -108,14 +83,7 @@ exclude-result-prefixes="#all">
             <div class="offset2 span7">
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:document>
-                        <rdf:RDF>
-                            <xsl:sequence select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)/rdf:RDF/*"/>
-                        </rdf:RDF>
-                    </xsl:document>
-                </xsl:variable>
-                <xsl:variable name="constructor" as="document-node()">
-                    <xsl:document>
-                        <xsl:apply-templates select="$constructor" mode="apl:SetPrimaryTopic">
+                        <xsl:apply-templates select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)" mode="apl:SetPrimaryTopic">
                             <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass, $constructor)/@rdf:nodeID" tunnel="yes"/>
                             <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item', $constructor)/@rdf:nodeID" tunnel="yes"/>
                         </xsl:apply-templates>
