@@ -97,11 +97,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI(if (not(starts-with(ac:uri(), $ac:contextUri))) then ac:build-uri($apl:base, map { 'uri': string(ac:uri()) }) else ac:uri())" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
+        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
         <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
         
         <xsl:next-match>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
+            <xsl:with-param name="constructor" select="$constructor"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>

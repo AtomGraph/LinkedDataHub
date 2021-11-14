@@ -425,6 +425,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
 
         <div class="modal modal-constructor fade in">
             <form method="{$method}" action="{$action}">
@@ -460,7 +461,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:choose>
                         <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
+                            <xsl:apply-templates select="$constructor/rdf:RDF/*" mode="bs2:Form">
                                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:when>
@@ -489,6 +490,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
+        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
         <xsl:param name="classes" as="element()*"/>
 
         <form method="{$method}" action="{$action}">
@@ -517,7 +519,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:choose>
                 <xsl:when test="$ac:forClass and not(key('resources-by-type', '&spin;ConstraintViolation'))">
-                    <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)/rdf:RDF/*" mode="bs2:Form">
+                    <xsl:apply-templates select="$constructor/rdf:RDF/*" mode="bs2:Form">
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:when>

@@ -124,6 +124,7 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="$constructor" mode="bs2:Form">
                     <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
                     <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+                    <xsl:with-param name="constructor" select="$constructor"/>
                     <xsl:with-param name="create-resource" select="false()"/>
                 </xsl:apply-templates>
             </div>
@@ -287,8 +288,6 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="type" select="'hidden'"/>
         </xsl:apply-templates>
     </xsl:template>
-    
-    <xsl:template match="sioc:content[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1"/>
     
     <!-- turn off additional properties - it applies on the constructor document and not the $main-doc -->
     <xsl:template match="*[$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
