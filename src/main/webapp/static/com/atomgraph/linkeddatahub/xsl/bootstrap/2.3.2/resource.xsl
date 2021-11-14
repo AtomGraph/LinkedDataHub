@@ -275,12 +275,10 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
-
-            <!--<xsl:apply-templates mode="#current"/>-->
         </div>
     </xsl:template>
 
-    <!-- BLOCK -->
+    <!-- BLOCK ROW -->
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="bs2:BlockRow" priority="1">
@@ -366,7 +364,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="span7">
-                <xsl:apply-templates match="." select="bs2:Block"/>
+                <xsl:apply-templates select="." select="bs2:Block"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
