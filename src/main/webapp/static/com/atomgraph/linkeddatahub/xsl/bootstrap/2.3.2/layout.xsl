@@ -966,11 +966,13 @@ exclude-result-prefixes="#all">
         <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
+        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
         <xsl:next-match> <!-- TO-DO: account for external ac:uri() -->
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
+            <xsl:with-param name="constructor" select="$constructor"/>
             <xsl:with-param name="classes" select="$classes"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
         </xsl:next-match>
@@ -978,12 +980,13 @@ exclude-result-prefixes="#all">
     
     <!-- override form action in Client template -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
-        <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action" as="xs:anyURI"/>
+            <xsl:with-param name="constructor" select="$constructor"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
