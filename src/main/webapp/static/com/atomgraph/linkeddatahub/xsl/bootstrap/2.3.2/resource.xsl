@@ -364,7 +364,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="span7">
-                <xsl:apply-templates select="." select="bs2:Block"/>
+                <xsl:apply-templates select="." mode="bs2:Block"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
