@@ -246,39 +246,6 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
-    <!-- BODY -->
-    
-    <!-- hide Content instances content body as they will be rendered in rdf:List order by the client-side apl:ContentList mode -->
-<!--    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="xhtml:Body" priority="2"/>-->
-
-<!--    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="xhtml:Body">
-        <div class="row-fluid">
-            <xsl:apply-templates select="." mode="bs2:Left"/>
-
-            <xsl:apply-templates select="." mode="bs2:Main"/>
-
-            <xsl:apply-templates select="." mode="bs2:Right"/>
-        </div>
-    </xsl:template>-->
-    
-    <!-- MAIN -->
-    
-<!--    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Main">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span7'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-
-            <xsl:apply-templates select="." mode="bs2:Block"/>
-        </div>
-    </xsl:template>-->
-    
     <!-- LEFT NAV -->
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
@@ -315,9 +282,8 @@ extension-element-prefixes="ixsl"
 
     <!-- BLOCK -->
     
-
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="bs2:BlockRow" priority="1">
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:next-match>
@@ -326,7 +292,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- mark chart instances as .resource-content which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[@rdf:about][spin:query/@rdf:resource][apl:chartType/@rdf:resource]" mode="bs2:BlockRow" priority="1">
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:next-match>
@@ -335,7 +301,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- embed file content -->
-    <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:Block" priority="2">
+    <xsl:template match="*[@rdf:about][dct:format]" mode="bs2:BlockRow" priority="2">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
@@ -367,13 +333,13 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:Block" priority="1"/>
+    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:BlockRow" priority="1"/>
 
     <!-- hide Content resources -->
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:Block" priority="2"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:BlockRow" priority="2"/>
 
     <!-- hide inlined blank node resources from the main block flow -->
-    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[*][key('resources', @rdf:nodeID)][count(key('predicates-by-object', @rdf:nodeID)[not(self::foaf:primaryTopic)]) = 1]" mode="bs2:BlockRow" priority="1">
         <xsl:param name="display" select="false()" as="xs:boolean" tunnel="yes"/>
         
         <xsl:if test="$display">
@@ -381,7 +347,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Block">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:BlockRow">
         <xsl:param name="id" select="generate-id()" as="xs:string?"/>
         <xsl:param name="content-uri" as="xs:anyURI?"/>
         <xsl:param name="class" select="if ($content-uri) then 'row-fluid content resource-content' else 'row-fluid'" as="xs:string?"/>
@@ -400,7 +366,7 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Left"/>
 
             <div class="span7">
-                <xsl:next-match/>
+                <xsl:apply-templates match="." select="bs2:Block"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
