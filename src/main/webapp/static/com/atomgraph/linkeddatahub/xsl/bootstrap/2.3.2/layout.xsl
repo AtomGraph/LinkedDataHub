@@ -993,28 +993,6 @@ exclude-result-prefixes="#all">
     
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(* except rdf:type)]" mode="bs2:Form" priority="2"/>
-
-    <!-- TARGET CONTAINER -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:TargetContainer">
-        <fieldset class="action-container">
-            <div class="control-group">
-                <label class="control-label" for="input-container">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', '&dh;Container', document(ac:document-uri('&dh;')))" mode="ac:label"/>
-                    </xsl:value-of>
-                </label>
-                <div class="controls">
-                    <span>
-                        <xsl:apply-templates select="key('resources', ac:uri(), $main-doc)" mode="apl:Typeahead">
-                            <xsl:with-param name="disabled" select="true()"/>
-                        </xsl:apply-templates>
-                    </span>
-                    <span class="help-inline">Resource</span>
-                </div>
-            </div>
-        </fieldset>
-    </xsl:template>
     
     <!-- FORM CONTROL -->
     
