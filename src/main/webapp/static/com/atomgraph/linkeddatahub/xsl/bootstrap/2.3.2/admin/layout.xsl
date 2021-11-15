@@ -34,9 +34,35 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
-    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
         <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
-
+        <xsl:param name="constructor" as="document-node()">
+            <xsl:choose>
+                <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
+                <xsl:when test="not($ac:forClass = ('&adm;Container', '&adm;Item'))">
+                    <xsl:document>
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
+                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:for-each>
+                    </xsl:document>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy-of select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+        
+        <xsl:next-match>
+            <xsl:with-param name="classes" select="$classes"/>
+            <xsl:with-param name="constructor" select="$constructor"/>
+        </xsl:next-match>
+    </xsl:template>
+    
+    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+        <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
         <xsl:next-match>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
