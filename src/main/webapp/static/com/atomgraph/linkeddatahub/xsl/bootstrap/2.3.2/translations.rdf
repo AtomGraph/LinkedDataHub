@@ -58,6 +58,9 @@
     <rdf:Description rdf:nodeID="settings">
         <rdfs:label xml:lang="en-US">Settings</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="content">
+        <rdfs:label xml:lang="en-US">Content</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="latest">
         <rdfs:label xml:lang="en-US">Latest</rdfs:label>
     </rdf:Description>

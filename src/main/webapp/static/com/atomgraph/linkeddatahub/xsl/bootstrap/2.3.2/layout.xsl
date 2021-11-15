@@ -694,7 +694,11 @@ exclude-result-prefixes="#all">
         <ul class="nav nav-tabs offset2 span7">
             <xsl:if test="$has-content">
                 <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
-                    <a>Content</a>
+                    <a>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
+                        </xsl:value-of>
+                    </a>
                 </li>
             </xsl:if>
                 
@@ -715,7 +719,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
             <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                 <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or not($ac:mode) or"/>
                 </xsl:apply-templates>
             </xsl:for-each>
         </ul>

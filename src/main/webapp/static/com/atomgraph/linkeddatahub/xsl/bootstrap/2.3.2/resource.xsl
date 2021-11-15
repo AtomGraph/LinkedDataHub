@@ -369,6 +369,8 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
+        
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
     </xsl:template>
     
     <!-- TO-DO: override other modes -->
