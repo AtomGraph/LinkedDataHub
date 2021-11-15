@@ -75,7 +75,7 @@ extension-element-prefixes="ixsl"
     
     <!-- BLOCK ROW -->
     
-    <xsl:template match="rdf:RDF" mode="bs2:BlockRow">
+    <xsl:template match="rdf:RDF" mode="bs2:RowBlock">
         <xsl:apply-templates mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>

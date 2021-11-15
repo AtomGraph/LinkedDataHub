@@ -675,7 +675,7 @@ exclude-result-prefixes="#all">
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:apply-templates select="." mode="bs2:BlockRow">
+                        <xsl:apply-templates select="." mode="bs2:RowBlock">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:otherwise>

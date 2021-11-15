@@ -44,6 +44,7 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:Form">
             <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+            <xsl:with-param name="create-resource" select="false()"/>
         </xsl:apply-templates>
     </xsl:template>
     
@@ -56,7 +57,7 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="key('resources', apl:content/@rdf:*)" mode="apl:ContentList"/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="." mode="bs2:BlockRow"/>
+                <xsl:apply-templates select="." mode="bs2:RowBlock"/>
             </div>
 
             <xsl:apply-templates select="." mode="bs2:Footer"/>
@@ -68,7 +69,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
-    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:BlockRow" priority="2">
+    <xsl:template match="*[$ldt:base][@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
 
@@ -104,7 +105,7 @@ exclude-result-prefixes="#all">
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->
     <!-- match the first resource, whatever it is -->
-    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:BlockRow" priority="3">
+    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][1]" mode="bs2:RowBlock" priority="3">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
 
@@ -124,7 +125,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- suppress other resources -->
-    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:BlockRow" priority="2"/>
+    <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:RowBlock" priority="2"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][$ldt:base][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
