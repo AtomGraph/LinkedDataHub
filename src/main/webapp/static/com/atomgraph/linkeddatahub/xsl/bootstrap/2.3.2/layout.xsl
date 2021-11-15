@@ -581,10 +581,10 @@ exclude-result-prefixes="#all">
                 <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item'))">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
-                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item')/@rdf:nodeID" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:for-each>
                     </xsl:document>
@@ -743,7 +743,7 @@ exclude-result-prefixes="#all">
                 
             <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                 <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or not($ac:mode)"/>
+                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or (not($ac:mode) and not($has-content))"/>
                 </xsl:apply-templates>
             </xsl:for-each>
             <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
