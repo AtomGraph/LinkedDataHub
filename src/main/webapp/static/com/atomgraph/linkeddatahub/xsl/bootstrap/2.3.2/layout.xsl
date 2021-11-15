@@ -571,42 +571,61 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <!-- BODY -->
-    
-    <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
-        <body>
-            <xsl:choose>
-                <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                    <xsl:apply-templates select="." mode="bs2:ModalForm"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Form"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </body>
-    </xsl:template>
 
     <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:param name="constructor" as="document-node()">
+            <xsl:choose>
+                <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
+                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item'))">
+                    <xsl:document>
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
+                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:for-each>
+                    </xsl:document>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy-of select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
+        <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+
         <body>
             <xsl:choose>
                 <xsl:when test="$ac:method = 'GET'">
                     <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm"/>
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm">
+                                <xsl:with-param name="action" select="$action"/>
+                                <xsl:with-param name="classes" select="$classes"/>
+                            </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form"/>
+                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form">
+                                <xsl:with-param name="action" select="$action"/>
+                                <xsl:with-param name="classes" select="$classes"/>
+                            </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
                 <xsl:when test="$ac:method = 'POST' and key('resources-by-type', '&spin;ConstraintViolation')">
                     <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="." mode="bs2:ModalForm"/>
+                            <xsl:apply-templates select="." mode="bs2:ModalForm">
+                                <xsl:with-param name="action" select="$action"/>
+                                <xsl:with-param name="classes" select="$classes"/>
+                            </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:apply-templates select="." mode="bs2:Form"/>
+                            <xsl:apply-templates select="." mode="bs2:Form">
+                                <xsl:with-param name="action" select="$action"/>
+                                <xsl:with-param name="classes" select="$classes"/>
+                            </xsl:apply-templates>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:when>
@@ -616,7 +635,30 @@ exclude-result-prefixes="#all">
             </xsl:choose>
         </body>
     </xsl:template>
-    
+
+    <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
+    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+        <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+
+        <body>
+            <xsl:choose>
+                <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                    <xsl:apply-templates select="." mode="bs2:ModalForm">
+                        <xsl:with-param name="action" select="$action"/>
+                        <xsl:with-param name="classes" select="$classes"/>
+                    </xsl:apply-templates>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="bs2:Form">
+                        <xsl:with-param name="action" select="$action"/>
+                        <xsl:with-param name="classes" select="$classes"/>
+                    </xsl:apply-templates>
+                </xsl:otherwise>
+            </xsl:choose>
+        </body>
+    </xsl:template>
+
     <xsl:template match="rdf:RDF[key('resources', ac:uri())][$ac:mode = '&aplt;InfoWindowMode']" mode="xhtml:Body" priority="1">
         <body>
             <div> <!-- SPARQLMap renders the first child of <body> as InfoWindow -->
@@ -960,43 +1002,25 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- FORM -->
-
+<!--
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="bs2:Form" priority="2">
         <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
-        <xsl:param name="constructor" as="document-node()">
-            <xsl:choose>
-                <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
-                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item'))">
-                    <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
-                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
-                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
-                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </xsl:for-each>
-                    </xsl:document>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:copy-of select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:param>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
-        <xsl:next-match> <!-- TO-DO: account for external ac:uri() -->
+        <xsl:next-match>
             <xsl:with-param name="action" select="$action"/>
             <xsl:with-param name="enctype" select="$enctype"/>
             <xsl:with-param name="constructor" select="$constructor"/>
             <xsl:with-param name="classes" select="$classes"/>
             <xsl:with-param name="create-resource" select="$create-resource"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- override form action in Client template -->
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
+<!--    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
         <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
         <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
@@ -1006,7 +1030,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="constructor" select="$constructor"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
     <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(* except rdf:type)]" mode="bs2:Form" priority="2"/>

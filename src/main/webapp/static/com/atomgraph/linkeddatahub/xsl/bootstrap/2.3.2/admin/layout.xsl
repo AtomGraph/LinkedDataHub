@@ -34,6 +34,14 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
+    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+        <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="classes" select="$classes"/>
+        </xsl:next-match>
+    </xsl:template>
+    
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
@@ -90,7 +98,7 @@ exclude-result-prefixes="#all">
         </ul>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:Form">
+<!--    <xsl:template match="rdf:RDF" mode="bs2:Form">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI(if (not(starts-with(ac:uri(), $ac:contextUri))) then ac:build-uri($apl:base, map { 'uri': string(ac:uri()) }) else ac:uri())" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
@@ -103,7 +111,7 @@ exclude-result-prefixes="#all">
             <xsl:with-param name="constructor" select="$constructor"/>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
