@@ -967,7 +967,24 @@ exclude-result-prefixes="#all">
         <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
-        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
+        <xsl:param name="constructor" as="document-node()">
+            <xsl:choose>
+                <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
+                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item'))">
+                    <xsl:document>
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
+                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                            </xsl:apply-templates>
+                        </xsl:for-each>
+                    </xsl:document>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy-of select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:param>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
         <xsl:next-match> <!-- TO-DO: account for external ac:uri() -->
