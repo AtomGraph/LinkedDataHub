@@ -719,7 +719,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
             <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                 <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or not($ac:mode) or"/>
+                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or not($ac:mode)"/>
                 </xsl:apply-templates>
             </xsl:for-each>
         </ul>
