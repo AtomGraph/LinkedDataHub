@@ -680,42 +680,6 @@ extension-element-prefixes="ixsl"
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
-
-    <!-- LEGEND -->
-    
-<!--    <xsl:template match="*[rdf:type/@rdf:resource = $ac:forClass][*[not(self::rdf:type)]]" mode="bs2:Legend" priority="1">
-        <xsl:param name="forClass" select="$ac:forClass" as="xs:anyURI"/>
-
-        <xsl:choose>
-            <xsl:when test="key('resources', $forClass)">
-                <xsl:for-each select="key('resources', $forClass)">
-                    <legend title="{@rdf:about}">
-                        <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
-                        <xsl:text> </xsl:text>
-                        <xsl:value-of>
-                            <xsl:apply-templates select="." mode="ac:label"/>
-                        </xsl:value-of>
-                    </legend>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <legend title="{$forClass}">
-                    <xsl:apply-templates select="key('resources', '&ac;ConstructMode', document(ac:document-uri('&ac;')))" mode="apl:logo"/>
-                    <xsl:text> </xsl:text>
-                    <xsl:choose>
-                        <xsl:when test="doc-available(ac:document-uri($forClass))">
-                            <xsl:apply-templates select="key('resources', $forClass, document(ac:document-uri($forClass)))" mode="ac:label"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:value-of select="$forClass"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </legend>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Legend"/>-->
     
     <!-- FORM CONTROL -->
 
@@ -788,7 +752,7 @@ extension-element-prefixes="ixsl"
             <!-- create inputs for both resource description and constructor template properties -->
             <xsl:apply-templates select="* | $template/*[not(concat(namespace-uri(), local-name()) = current()/*/concat(namespace-uri(), local-name()))][not(self::rdf:type)][not(self::foaf:isPrimaryTopicOf)]" mode="#current">
                 <!-- move required properties up -->
-                <xsl:sort select="not(preceding-sibling::*[concat(namespace-uri(), local-name()) = current()/concat(namespace-uri(), local-name())]) and (if (../rdf:type/@rdf:resource and $apl:ontology) then (key('resources', key('resources', (../rdf:type/@rdf:resource, ../rdf:type/@rdf:resource/apl:listSuperClasses(.)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]) else true())" order="descending"/>
+                <xsl:sort select="key('resources', key('resources', (../rdf:type/@rdf:resource, ../rdf:type/@rdf:resource/apl:listSuperClasses(.)))/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())]" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
                 <xsl:with-param name="template-doc" select="$template-doc"/>
