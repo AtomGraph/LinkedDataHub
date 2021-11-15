@@ -601,13 +601,13 @@ exclude-result-prefixes="#all">
                 <xsl:when test="$ac:method = 'GET'">
                     <xsl:choose>
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:ModalForm">
+                            <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
                                 <xsl:with-param name="action" select="$action"/>
                                 <xsl:with-param name="classes" select="$classes"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
-                            <xsl:apply-templates select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" mode="bs2:Form">
+                            <xsl:apply-templates select="$constructor" mode="bs2:Form">
                                 <xsl:with-param name="action" select="$action"/>
                                 <xsl:with-param name="classes" select="$classes"/>
                             </xsl:apply-templates>
