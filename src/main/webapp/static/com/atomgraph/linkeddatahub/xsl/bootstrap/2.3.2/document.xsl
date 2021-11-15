@@ -466,7 +466,7 @@ extension-element-prefixes="ixsl"
                 <div class="modal-body">
                     <xsl:apply-templates mode="bs2:Exception"/>
 
-                    <xsl:apply-templates mode="bs2:Form">
+                    <xsl:apply-templates select="*" mode="bs2:Form">
                         <xsl:sort select="ac:label(.)"/>
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>
@@ -515,7 +515,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:apply-templates mode="bs2:Exception"/>
 
-            <xsl:apply-templates mode="#current">
+            <xsl:apply-templates select="*" mode="#current">
                 <xsl:sort select="ac:label(.)"/>
                 <xsl:with-param name="inline" select="false()" tunnel="yes"/>
             </xsl:apply-templates>
