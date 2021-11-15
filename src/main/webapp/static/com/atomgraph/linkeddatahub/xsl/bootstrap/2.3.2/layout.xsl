@@ -432,8 +432,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="key('resources', ('&def;Container', '&def;Item'), document(ac:document-uri('&def;')))" as="element()*"/>
-
+        <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
         <div>
             <xsl:if test="$id">
                 <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>

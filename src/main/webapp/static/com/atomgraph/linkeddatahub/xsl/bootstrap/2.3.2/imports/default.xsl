@@ -381,20 +381,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
-        <xsl:param name="required" as="xs:boolean">
-            <xsl:variable name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
-            <xsl:choose>
-                <xsl:when test="$apl:base and exists($types)">
-                    <!-- constraint (sub)classes are in the admin ontology -->
-                    <xsl:variable name="constraint-classes" select="(xs:anyURI('&apl;MissingPropertyValue'), apl:listSubClasses(xs:anyURI('&apl;MissingPropertyValue'), false(), ac:document-uri('&adm;')))" as="xs:anyURI*"/>
-                    <!-- required is true if there are subclasses that have constraints of type that equals constraint classes -->
-                    <xsl:sequence select="exists(for $class in ($types, for $type in $types return apl:listSuperClasses($type)[name() = 'rdf:about'])[doc-available(ac:document-uri(.))] return key('resources', $class, document(ac:document-uri($class)))/spin:constraint/@rdf:resource/(if (doc-available(ac:document-uri(.))) then key('resources', ., document(ac:document-uri(.))) else ())[rdf:type/@rdf:resource = $constraint-classes and sp:arg1/@rdf:resource = $this])"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:sequence select="false()"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:param>
+        <xsl:param name="types" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
+        <xsl:param name="required" select="exists(document(ac:document-uri($types))/key('resources', key('resources', $types)/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = $this])" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
