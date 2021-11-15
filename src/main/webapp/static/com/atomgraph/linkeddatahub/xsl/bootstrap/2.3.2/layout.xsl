@@ -442,13 +442,10 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <!-- show "Create" button if the current resource is a container -->
-            <xsl:if test="key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&def;Container')">
-                <xsl:apply-templates select="." mode="bs2:CreateDocument">
-                    <xsl:with-param name="class" select="'btn-group pull-left'"/>
-                    <xsl:with-param name="classes" select="$classes"/>
-                </xsl:apply-templates>
-            </xsl:if>
+            <xsl:apply-templates select="." mode="bs2:Create">
+                <xsl:with-param name="class" select="'btn-group pull-left'"/>
+                <xsl:with-param name="classes" select="$classes"/>
+            </xsl:apply-templates>
             
             <xsl:apply-templates select="." mode="bs2:AddData"/>
         </div>
@@ -704,7 +701,7 @@ exclude-result-prefixes="#all">
                 
             <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
                 <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or not($ac:mode)"/>
                 </xsl:apply-templates>
             </xsl:for-each>
             <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
@@ -719,7 +716,7 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
             <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                 <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or not($ac:mode)"/>
+                    <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
                 </xsl:apply-templates>
             </xsl:for-each>
         </ul>

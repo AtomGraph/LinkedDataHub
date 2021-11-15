@@ -128,7 +128,7 @@
 
 :AuthorizationAgents a apl:Content ;
     rdf:first :SelectAuthorizationAgents ;
-    rdf:rest :AuthorizationAccessTo ;
+    rdf:rest rdf:nil ;
     rdfs:isDefinedBy : .
 
 :SelectAuthorizationAgents a sp:Select ;
@@ -142,27 +142,6 @@ WHERE
 { GRAPH ?authGraph
   { ?this  foaf:primaryTopic  ?auth .
     ?auth  acl:agent          ?agent
-  }
-}
-""" ;
-    rdfs:isDefinedBy : .
-
-:AuthorizationAccessTo a apl:Content ;
-    rdf:first :SelectAuthorizationAccessTo ;
-    rdf:rest rdf:nil ;
-    rdfs:isDefinedBy : .
-
-:SelectAuthorizationAccessTo a sp:Select ;
-    dct:title "Select access resources" ;
-    sp:text """
-PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
-
-SELECT DISTINCT  ?accessTo
-WHERE
-{ GRAPH ?authGraph
-  { ?this  foaf:primaryTopic  ?auth .
-    ?auth  acl:accessTo       ?accessTo
   }
 }
 """ ;
