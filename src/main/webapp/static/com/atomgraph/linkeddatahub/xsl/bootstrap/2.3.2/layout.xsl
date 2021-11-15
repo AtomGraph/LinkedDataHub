@@ -574,6 +574,7 @@ exclude-result-prefixes="#all">
 
     <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
+        <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
