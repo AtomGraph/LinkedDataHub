@@ -490,6 +490,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
         <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
         <xsl:param name="classes" as="element()*"/>
+        <xsl:param name="default-classes" as="element()*"/>
 
         <form method="{$method}" action="{$action}">
             <xsl:if test="$id">
@@ -523,6 +524,7 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$create-resource">
                 <xsl:apply-templates select="." mode="bs2:Create">
                     <xsl:with-param name="classes" select="$classes"/>
+                    <xsl:with-param name="default-classes" select="$default-classes"/>
                     <xsl:with-param name="show-document-classes" select="false()"/>
                 </xsl:apply-templates>
             </xsl:if>

@@ -605,8 +605,6 @@ exclude-result-prefixes="#all">
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
                             <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
                                 <xsl:with-param name="action" select="$action"/>
-                                <xsl:with-param name="classes" select="$classes"/>
-                                <xsl:with-param name="default-classes" select="$default-classes"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
@@ -623,8 +621,6 @@ exclude-result-prefixes="#all">
                         <xsl:when test="$ac:mode = '&ac;ModalMode'">
                             <xsl:apply-templates select="." mode="bs2:ModalForm">
                                 <xsl:with-param name="action" select="$action"/>
-                                <xsl:with-param name="classes" select="$classes"/>
-                                <xsl:with-param name="default-classes" select="$default-classes"/>
                             </xsl:apply-templates>
                         </xsl:when>
                         <xsl:otherwise>
@@ -647,19 +643,20 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
         <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+        <xsl:param name="default-classes" select="(key('resources', '&apl;Content', document(ac:document-uri('&apl;'))), key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
 
         <body>
             <xsl:choose>
                 <xsl:when test="$ac:mode = '&ac;ModalMode'">
                     <xsl:apply-templates select="." mode="bs2:ModalForm">
                         <xsl:with-param name="action" select="$action"/>
-                        <xsl:with-param name="classes" select="$classes"/>
                     </xsl:apply-templates>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates select="." mode="bs2:Form">
                         <xsl:with-param name="action" select="$action"/>
                         <xsl:with-param name="classes" select="$classes"/>
+                        <xsl:with-param name="default-classes" select="$default-classes"/>
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
