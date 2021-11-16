@@ -579,8 +579,8 @@ exclude-result-prefixes="#all">
         <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
-                <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
-                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item'))">
+                <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
+                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
                     <xsl:document>
                         <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
