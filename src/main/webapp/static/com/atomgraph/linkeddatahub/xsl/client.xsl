@@ -1980,34 +1980,6 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
-    <!-- prompt for query title (also reused for its document) -->
-    
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-query']" mode="ixsl:onclick">
-        <xsl:variable name="textarea-id" select="ancestor::form/descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
-        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="query-type" select="apl:query-type($query-string)" as="xs:string"/>
-        <xsl:variable name="forClass" select="xs:anyURI('&def;' || upper-case(substring($query-type, 1, 1)) || lower-case(substring($query-type, 2)))" as="xs:anyURI"/>
-        <xsl:message>Query type: <xsl:value-of select="$query-type"/> forClass: <xsl:value-of select="$forClass"/></xsl:message>
-        <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
-        <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
-        <xsl:message>Form $href: <xsl:value-of select="$href"/> $service-uri: <xsl:value-of select="$service-uri"/></xsl:message>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddSaveQueryForm">
-                    <xsl:with-param name="query-string" select="$query-string"/>
-                    <xsl:with-param name="service-uri" select="$service-uri"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
-    
     <!-- open SPARQL editor -->
     
     <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
@@ -2043,64 +2015,6 @@ extension-element-prefixes="ixsl"
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
         </xsl:variable>
         <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
-
-    <!-- open SPARQL editor and pass a query string -->
-    
-    <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
-        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
-        <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
-        
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <!-- set textarea's value to the query string from the hidden input -->
-                <xsl:call-template name="bs2:QueryEditor">
-                    <xsl:with-param name="query" select="$query-string"/>
-                </xsl:call-template>
-            </xsl:result-document>
-        </xsl:for-each>
-        
-        <!-- initialize YASQE on the textarea -->
-        <xsl:variable name="js-statement" as="element()">
-            <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
-        </xsl:variable>
-        <ixsl:set-property name="{$textarea-id}" select="ixsl:eval(string($js-statement/@statement))" object="ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe')"/>
-    </xsl:template>
-    
-    <!-- run SPARQL query in editor -->
-    
-    <!-- TO-DO: change to 'query-form' @class? -->
-    <xsl:template match="form[@id = 'query-form']" mode="ixsl:onsubmit">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="textarea-id" select="descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
-        <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
-        <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
-        <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
-        <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
-
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-        
-        <!-- TO-DO: unify dydra: and dydra-urn: ? -->
-        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': $query })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
-        <xsl:variable name="request" select="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }" as="map(xs:string, item())"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate($results-uri, '.', '-'))" as="xs:anyURI"/> <!-- replace dots -->
-
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="$request">
-                <xsl:call-template name="onSPARQLResultsLoad">
-                    <xsl:with-param name="content-uri" select="$content-uri"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="query" select="$query"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
@@ -2389,53 +2303,6 @@ extension-element-prefixes="ixsl"
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/namespace/', $apl:base)"/>
         </xsl:next-match>
-    </xsl:template>
-    
-    <xsl:template name="onAddSaveQueryForm">
-        <xsl:param name="query-string" as="xs:string"/>
-        <xsl:param name="form-id" select="'id' || ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string?"/>
-        <xsl:param name="add-class" select="'form-save-query'" as="xs:string?"/>
-        <xsl:param name="target-id" as="xs:string?"/>
-        <xsl:param name="service-uri" as="xs:anyURI?"/>
-
-        <!-- override the form @id coming from the server with a value we can use for form lookup afterwards -->
-        <xsl:call-template name="onAddForm">
-            <xsl:with-param name="add-class" select="$add-class"/>
-            <xsl:with-param name="new-form-id" select="$form-id"/>
-            <xsl:with-param name="new-target-id" select="$target-id"/>
-        </xsl:call-template>
-        
-        <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
-        
-        <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()"/>
-        <ixsl:set-property name="value" select="$query-string" object="$query-string-control-group/descendant::textarea[@name = 'ol']"/>
-
-        <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
-        <xsl:variable name="container" select="resolve-uri('queries/', $apl:base)" as="xs:anyURI"/>
-        
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onTypeaheadResourceLoad">
-                    <xsl:with-param name="resource-uri" select="$container"/>
-                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            
-        <xsl:if test="$service-uri">
-            <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
-            
-            <xsl:variable name="request" as="item()*">
-                <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                    <xsl:call-template name="onTypeaheadResourceLoad">
-                        <xsl:with-param name="resource-uri" select="$service-uri"/>
-                        <xsl:with-param name="typeahead-span" select="$service-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
-                    </xsl:call-template>
-                </ixsl:schedule-action>
-            </xsl:variable>
-            <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:if>
     </xsl:template>
 
 </xsl:stylesheet>
