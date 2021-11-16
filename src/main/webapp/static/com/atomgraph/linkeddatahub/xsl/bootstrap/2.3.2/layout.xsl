@@ -584,7 +584,8 @@ exclude-result-prefixes="#all">
                     <xsl:document>
                         <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
-                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
+                                <!-- avoid selecting object blank nodes which only have rdf:type -->
+                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
                                 <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item')/@rdf:nodeID" tunnel="yes"/>
                             </xsl:apply-templates>
                         </xsl:for-each>
