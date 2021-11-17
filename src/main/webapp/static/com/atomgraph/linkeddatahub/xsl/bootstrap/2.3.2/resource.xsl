@@ -558,7 +558,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="*" mode="apl:ContentList"/>
 
-    <xsl:template match="**[*][@rdf:about]" mode="apl:ContentHeader" priority="2">
+    <xsl:template match="*[*][@rdf:about]" mode="apl:ContentHeader" priority="2">
         <h2>
             <xsl:apply-templates select="." mode="xhtml:Anchor">
                 <xsl:with-param name="class" as="xs:string?">
