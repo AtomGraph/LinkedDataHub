@@ -689,9 +689,7 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:NavBar"/>
 
             <div id="content-body" class="container-fluid">
-                <div class="row-fluid">
-                    <xsl:apply-templates select="." mode="bs2:ModeTabs"/>
-                </div>
+                <xsl:apply-templates select="." mode="bs2:ModeTabs"/>
             
                 <xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
                 <xsl:choose>
@@ -734,38 +732,40 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ModeTabs">
         <xsl:param name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
 
-        <ul class="nav nav-tabs offset2 span7">
-            <xsl:if test="$has-content">
-                <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
-                    <a>
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
-                        </xsl:value-of>
-                    </a>
-                </li>
-            </xsl:if>
-                
-            <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
-                <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode or (not($ac:mode) and not($has-content))"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-            <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
-                <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-            <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
-                <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-            <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
-                <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                    <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
-                </xsl:apply-templates>
-            </xsl:for-each>
-        </ul>
+        <div class="row-fluid">
+            <ul class="nav nav-tabs offset2 span7">
+                <xsl:if test="$has-content">
+                    <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
+                        <a>
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
+                            </xsl:value-of>
+                        </a>
+                    </li>
+                </xsl:if>
+
+                <xsl:for-each select="key('resources', '&ac;ReadMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $ac:mode or (not($ac:mode) and not($has-content))"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+                <xsl:for-each select="key('resources', '&ac;MapMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+                <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+                <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
+                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                        <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </ul>
+        </div>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about]" mode="bs2:ModeTabsItem">
