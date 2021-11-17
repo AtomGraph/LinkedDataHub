@@ -24,8 +24,6 @@ services:
     image: atomgraph/linkeddatahub:latest
     user: root # otherwise the ldh user does not have permissions to the mounted folder which is owner by root
     build: .
-    ports:
-      - 8001:8000 # debugger
     environment:
     #  - JPDA_ADDRESS=*:8000 # debugger host - performance hit when enabled
       - CATALINA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 # heap will use up to 75% of container's RAM
