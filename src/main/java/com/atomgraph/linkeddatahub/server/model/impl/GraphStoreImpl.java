@@ -111,6 +111,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service.get(), mediaTypes);
+        if (ontology.isEmpty()) throw new InternalServerErrorException("Ontology is empty");
+        if (service.isEmpty()) throw new InternalServerErrorException("Service is not specified");
         this.uriInfo = uriInfo;
         this.ontology = ontology.get();
         this.service = service.get();

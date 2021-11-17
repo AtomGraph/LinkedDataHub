@@ -53,6 +53,10 @@ public class HostnameRewriteFilter implements ClientRequestFilter
         try
         {
             Integer port = cr.getUri().getPort();
+            // map default ports which are not explicit in the request URI
+            if (port == -1 && cr.getUri().getScheme().equals("http")) port = 80;
+            if (port == -1 && cr.getUri().getScheme().equals("https")) port = 443;
+            
             if (getPortMapping().containsKey(port)) port = getPortMapping().get(port); // map port numbers
                 
             URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), port,

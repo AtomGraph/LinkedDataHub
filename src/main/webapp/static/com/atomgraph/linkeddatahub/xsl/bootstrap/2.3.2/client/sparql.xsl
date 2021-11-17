@@ -64,13 +64,6 @@ LIMIT 100</xsl:param>
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-run-query')"/>
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
-    
-<!--    <xsl:template match="*[@rdf:nodeID = 'save']" mode="apl:logo" priority="1">
-        <xsl:param name="class" as="xs:string?"/>
-        
-        <xsl:attribute name="class" select="$class"/>
-        <xsl:sequence select="ac:label(.)"/>
-    </xsl:template>-->
 
     <xsl:template name="bs2:QueryEditor" >
         <xsl:param name="id" as="xs:string?"/>

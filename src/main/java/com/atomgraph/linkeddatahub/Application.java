@@ -169,6 +169,7 @@ import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -502,10 +503,10 @@ public class Application extends ResourceConfig
             if (proxyHostname != null || proxyHttpPort != null || proxyHttpsPort != null)
             {
                 Map<Integer, Integer> portMapping = new HashMap<>();
-                // portMapping.put(???, proxyHttpPort);
-                portMapping.put(baseURI.getPort(), proxyHttpsPort);
+                portMapping.put(80, proxyHttpPort);
+                portMapping.put(443, proxyHttpsPort);
                 
-                ClientRequestFilter rewriteFilter = new HostnameRewriteFilter(baseURI, proxyHostname, portMapping);
+                ClientRequestFilter rewriteFilter = new HostnameRewriteFilter(baseURI, proxyHostname, Collections.unmodifiableMap(portMapping));
                 
                 client.register(rewriteFilter);
                 importClient.register(rewriteFilter);
