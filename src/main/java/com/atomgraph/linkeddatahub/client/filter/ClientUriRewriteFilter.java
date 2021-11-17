@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.client.filter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import org.slf4j.Logger;
@@ -29,20 +28,20 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class HostnameRewriteFilter implements ClientRequestFilter
+public class ClientUriRewriteFilter implements ClientRequestFilter
 {
 
-    private static final Logger log = LoggerFactory.getLogger(HostnameRewriteFilter.class);
+    private static final Logger log = LoggerFactory.getLogger(ClientUriRewriteFilter.class);
 
     private final URI baseURI;
     private final String hostname;
-    private final Map<Integer, Integer> portMapping;
+    private final Integer port;
 
-    public HostnameRewriteFilter(URI baseURI, String hostname, Map<Integer, Integer> portMapping)
+    public ClientUriRewriteFilter(URI baseURI, String hostname, Integer port)
     {
         this.baseURI = baseURI;
         this.hostname = hostname;
-        this.portMapping = portMapping;
+        this.port = port;
     }
     
     @Override
@@ -52,16 +51,8 @@ public class HostnameRewriteFilter implements ClientRequestFilter
 
         try
         {
-            Integer port = cr.getUri().getPort();
-            // map default ports which are not explicit in the request URI
-            if (port == -1 && cr.getUri().getScheme().equals("http")) port = 80;
-            if (port == -1 && cr.getUri().getScheme().equals("https")) port = 443;
-            
-            if (getPortMapping().containsKey(port)) port = getPortMapping().get(port); // map port numbers
-                
-            URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), port,
+            URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), getPort(),
                     cr.getUri().getPath(), cr.getUri().getQuery(), cr.getUri().getFragment());
-            
         
             if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
             cr.setUri(newUri);
@@ -82,9 +73,9 @@ public class HostnameRewriteFilter implements ClientRequestFilter
         return hostname;
     }
 
-    public Map<Integer, Integer> getPortMapping()
+    public Integer getPort()
     {
-        return portMapping;
+        return port;
     }
 
 }

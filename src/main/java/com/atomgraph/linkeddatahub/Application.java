@@ -68,7 +68,7 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
-import com.atomgraph.linkeddatahub.client.filter.HostnameRewriteFilter;
+import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
 import com.atomgraph.linkeddatahub.writer.ModelXSLTWriter;
@@ -169,7 +169,6 @@ import static com.atomgraph.spinrdf.vocabulary.SPIN.THIS_VAR_NAME;
 import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdOptions;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -498,12 +497,9 @@ public class Application extends ResourceConfig
             importClient = getClient(keyStore, clientKeyStorePassword, trustStore, maxConnPerRoute, maxTotalConn, importKeepAliveStrategy);
             noCertClient = getNoCertClient(trustStore, maxConnPerRoute, maxTotalConn);
             
-            if (proxyHostname != null || proxyPort != null)
+            if (proxyHostname != null)
             {
-                Map<Integer, Integer> portMapping = new HashMap<>();
-                portMapping.put(baseURI.getPort(), proxyPort);
-                
-                ClientRequestFilter rewriteFilter = new HostnameRewriteFilter(baseURI, proxyHostname, Collections.unmodifiableMap(portMapping));
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyHostname, proxyPort); // proxyPort can be null
                 
                 client.register(rewriteFilter);
                 importClient.register(rewriteFilter);
