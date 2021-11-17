@@ -52,9 +52,7 @@ public class APLC
     
     public static final DatatypeProperty proxyHost = m_model.createDatatypeProperty( NS + "proxyHost" );
 
-    public static final DatatypeProperty proxyHttpPort = m_model.createDatatypeProperty( NS + "proxyHttpPort" );
-
-    public static final DatatypeProperty proxyHttpsPort = m_model.createDatatypeProperty( NS + "proxyHttpsPort" );
+    public static final DatatypeProperty proxyPort = m_model.createDatatypeProperty( NS + "proxyPort" );
 
     public static final DatatypeProperty authQuery = m_model.createDatatypeProperty( NS + "authQuery" );
 

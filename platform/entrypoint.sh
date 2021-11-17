@@ -569,12 +569,8 @@ if [ -n "$PROXY_HOST" ] ; then
     PROXY_HOST_PARAM="--stringparam aplc:proxyHost '$PROXY_HOST' "
 fi
 
-if [ -n "$PROXY_HTTP_PORT" ] ; then
-    PROXY_HTTP_PORT_PARAM="--stringparam aplc:proxyHttpPort '$PROXY_HTTP_PORT' "
-fi
-
-if [ -n "$PROXY_HTTPS_PORT" ] ; then
-    PROXY_HTTPS_PORT_PARAM="--stringparam aplc:proxyHttpsPort '$PROXY_HTTPS_PORT' "
+if [ -n "$PROXY_PORT" ] ; then
+    PROXY_PORT_PARAM="--stringparam aplc:proxyPort '$PROXY_PORT' "
 fi
 
 if [ -n "$CACHE_MODEL_LOADS" ] ; then
@@ -638,8 +634,7 @@ transform="xsltproc \
   $RESOLVING_UNCACHED_PARAM \
   $BASE_URI_PARAM \
   $PROXY_HOST_PARAM \
-  $PROXY_HTTP_PORT_PARAM \
-  $PROXY_HTTPS_PORT_PARAM \
+  $PROXY_PORT_PARAM \
   $CLIENT_KEYSTORE_PARAM \
   $SECRETARY_CERT_ALIAS_PARAM \
   $CLIENT_TRUSTSTORE_PARAM \
