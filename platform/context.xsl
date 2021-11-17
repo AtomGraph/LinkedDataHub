@@ -21,8 +21,7 @@ xmlns:google="&google;"
     <xsl:param name="ac:resolvingUncached"/>
     <xsl:param name="aplc:baseUri"/>
     <xsl:param name="aplc:proxyHost"/>
-    <xsl:param name="aplc:proxyHttpPort"/>
-    <xsl:param name="aplc:proxyHttpsPort"/>
+    <xsl:param name="aplc:proxyPort"/>
     <xsl:param name="aplc:clientKeyStore"/>
     <xsl:param name="aplc:secretaryCertAlias"/>
     <xsl:param name="aplc:clientTrustStore"/>
@@ -72,11 +71,8 @@ xmlns:google="&google;"
             <xsl:if test="$aplc:proxyHost">
                 <Parameter name="&aplc;proxyHost" value="{$aplc:proxyHost}" override="false"/>
             </xsl:if>
-            <xsl:if test="$aplc:proxyHttpPort">
-                <Parameter name="&aplc;proxyHttpPort" value="{$aplc:proxyHttpPort}" override="false"/>
-            </xsl:if>
-            <xsl:if test="$aplc:proxyHttpsPort">
-                <Parameter name="&aplc;proxyHttpsPort" value="{$aplc:proxyHttpsPort}" override="false"/>
+            <xsl:if test="$aplc:proxyPort">
+                <Parameter name="&aplc;proxyPort" value="{$aplc:proxyPort}" override="false"/>
             </xsl:if>
             <xsl:if test="$aplc:clientKeyStore">
                 <Parameter name="&aplc;clientKeyStore" value="{$aplc:clientKeyStore}" override="false"/>

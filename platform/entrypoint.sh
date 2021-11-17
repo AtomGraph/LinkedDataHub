@@ -676,14 +676,6 @@ printf "\n### Waiting for %s...\n" "$root_admin_quad_store_url"
 
 wait_for_url "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" "$TIMEOUT" "application/n-quads"
 
-#if [ -n "$PROXY_HOST" ] ; then
-#    # wait for the proxy server
-#
-#    printf "\n### Waiting for %s...\n" "$PROXY_HOST"
-#
-#    wait_for_host "$PROXY_HOST" "$TIMEOUT"
-#fi
-
 # run Tomcat (in debug mode if $JPDA_ADDRESS is defined)
 
 if [ -z "$JPDA_ADDRESS" ] ; then
