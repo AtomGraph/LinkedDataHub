@@ -40,7 +40,7 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     public ClientUriRewriteFilter(URI baseURI, String scheme, String hostname, Integer port)
     {
         this.baseURI = baseURI;
-        this.scheme = hostname;
+        this.scheme = scheme;
         this.hostname = hostname;
         this.port = port;
     }
