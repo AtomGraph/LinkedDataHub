@@ -291,6 +291,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyPort.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.proxyPort.getURI())) : null,
             servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.uploadRoot.getURI()) : null,
@@ -328,7 +329,7 @@ public class Application extends ResourceConfig
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
             final String appQueryString,
             final String putUpdateString, final String deleteUpdateString,
-            final String baseURIString, final String proxyHostname, final Integer proxyPort,
+            final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
@@ -499,7 +500,7 @@ public class Application extends ResourceConfig
             
             if (proxyHostname != null)
             {
-                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyHostname, proxyPort); // proxyPort can be null
+                ClientRequestFilter rewriteFilter = new ClientUriRewriteFilter(baseURI, proxyScheme, proxyHostname, proxyPort); // proxyPort can be null
                 
                 client.register(rewriteFilter);
                 importClient.register(rewriteFilter);

@@ -20,6 +20,7 @@ xmlns:google="&google;"
     <xsl:param name="ac:cacheStylesheet"/>
     <xsl:param name="ac:resolvingUncached"/>
     <xsl:param name="aplc:baseUri"/>
+    <xsl:param name="aplc:proxyScheme"/>
     <xsl:param name="aplc:proxyHost"/>
     <xsl:param name="aplc:proxyPort"/>
     <xsl:param name="aplc:clientKeyStore"/>
@@ -67,6 +68,9 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$aplc:baseUri">
                 <Parameter name="&aplc;baseUri" value="{$aplc:baseUri}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$aplc:proxyScheme">
+                <Parameter name="&aplc;proxyScheme" value="{$aplc:proxyScheme}" override="false"/>
             </xsl:if>
             <xsl:if test="$aplc:proxyHost">
                 <Parameter name="&aplc;proxyHost" value="{$aplc:proxyHost}" override="false"/>

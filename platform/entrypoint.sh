@@ -565,6 +565,10 @@ MAIL_SMTP_HOST_PARAM="--stringparam mail.smtp.host '$MAIL_SMTP_HOST' "
 MAIL_SMTP_PORT_PARAM="--stringparam mail.smtp.port '$MAIL_SMTP_PORT' "
 MAIL_USER_PARAM="--stringparam mail.user '$MAIL_USER' "
 
+if [ -n "$PROXY_SCHEME" ] ; then
+    PROXY_SCHEME_PARAM="--stringparam aplc:proxyScheme '$PROXY_SCHEME' "
+fi
+
 if [ -n "$PROXY_HOST" ] ; then
     PROXY_HOST_PARAM="--stringparam aplc:proxyHost '$PROXY_HOST' "
 fi
@@ -633,6 +637,7 @@ transform="xsltproc \
   $CACHE_STYLESHEET_PARAM \
   $RESOLVING_UNCACHED_PARAM \
   $BASE_URI_PARAM \
+  $PROXY_SCHEME_PARAM \
   $PROXY_HOST_PARAM \
   $PROXY_PORT_PARAM \
   $CLIENT_KEYSTORE_PARAM \

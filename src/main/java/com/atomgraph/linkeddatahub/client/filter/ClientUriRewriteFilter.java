@@ -34,12 +34,13 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     private static final Logger log = LoggerFactory.getLogger(ClientUriRewriteFilter.class);
 
     private final URI baseURI;
-    private final String hostname;
+    private final String scheme, hostname;
     private final Integer port;
 
-    public ClientUriRewriteFilter(URI baseURI, String hostname, Integer port)
+    public ClientUriRewriteFilter(URI baseURI, String scheme, String hostname, Integer port)
     {
         this.baseURI = baseURI;
+        this.scheme = hostname;
         this.hostname = hostname;
         this.port = port;
     }
@@ -51,7 +52,10 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
 
         try
         {
-            URI newUri = new URI(cr.getUri().getScheme(), cr.getUri().getUserInfo(), getHostname(), getPort(),
+            String newScheme = cr.getUri().getScheme();
+            if (getScheme() != null) newScheme  = getScheme();
+            
+            URI newUri = new URI(newScheme, cr.getUri().getUserInfo(), getHostname(), getPort(),
                     cr.getUri().getPath(), cr.getUri().getQuery(), cr.getUri().getFragment());
         
             if (log.isDebugEnabled()) log.debug("Rewriting client request URI from '{}' to '{}'", cr.getUri(), newUri);
@@ -66,6 +70,11 @@ public class ClientUriRewriteFilter implements ClientRequestFilter
     public URI getBaseURI()
     {
         return baseURI;
+    }
+    
+    public String getScheme()
+    {
+        return scheme;
     }
     
     public String getHostname()
