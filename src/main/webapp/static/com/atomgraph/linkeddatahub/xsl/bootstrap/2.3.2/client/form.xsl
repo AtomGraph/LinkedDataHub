@@ -126,7 +126,7 @@ exclude-result-prefixes="#all"
     
     <!-- increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
     <xsl:template match="input[@name = ('sb', 'ob')]" mode="form" priority="1">
-        <xsl:param name="bnode-number" select="number(substring-after(ixsl:get(., 'value'), 'A'))"/>
+        <xsl:param name="bnode-number" select="number(substring-after(@value, 'A'))"/>
         <xsl:param name="bnode-count" as="xs:double?" tunnel="yes"/>
         
         <xsl:choose>
