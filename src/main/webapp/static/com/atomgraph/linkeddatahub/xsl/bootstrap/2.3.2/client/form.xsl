@@ -214,7 +214,7 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddValueCallback">
+                <xsl:call-template name="onAddValue">
                     <xsl:with-param name="forClass" select="$forClass"/>
                     <xsl:with-param name="control-group" select="$control-group"/>
                     <xsl:with-param name="property" select="$property"/>
@@ -227,6 +227,9 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
         <xsl:variable name="uri" select="apl:absolute-path()" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
+        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:variable name="bnode-ids" select="$form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')" as="xs:string*"/>
+        <xsl:message>Form's current bnode IDs: <xsl:value-of select="$bnode-ids"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
@@ -607,7 +610,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="onAddValueCallback">
+    <xsl:template name="onAddValue">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="forClass" as="xs:anyURI"/>
         <xsl:param name="control-group" as="element()"/>
