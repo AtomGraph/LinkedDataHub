@@ -56,12 +56,12 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template name="add-form-listeners">
+<!--    <xsl:template name="add-form-listeners">
         <xsl:param name="form" as="element()"/>
         <xsl:message>FORM ID: <xsl:value-of select="$form/@id"/></xsl:message>
 
         <xsl:apply-templates select="$form" mode="apl:PostConstructMode"/>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template match="*" mode="apl:PostConstructMode">
         <xsl:apply-templates mode="#current"/>
@@ -70,6 +70,18 @@ exclude-result-prefixes="#all"
     <!-- listener identity transform - binding event listeners to inputs -->
     
     <xsl:template match="text()" mode="apl:PostConstructMode"/>
+
+    <!-- increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
+    <xsl:template match="input[@name = ('sb', 'ob')]" mode="apl:PostConstructMode" priority="1">
+        <xsl:param name="bnode-number" select="number(substring-after(ixsl:get(., 'value'), 'A'))"/>
+        <xsl:param name="bnode-count" as="xs:integer?" tunnel="yes"/>
+        
+        <!--<ixsl:set-property name="value" select="'A' || ($bnode-number + $bnode-count)" object="."/>-->
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:attribute name="value" select="'A' || ($bnode-number + $bnode-count)"/>
+        </xsl:copy>
+    </xsl:template>
 
     <!-- subject type change -->
     <xsl:template match="select[tokenize(@class, ' ') = 'subject-type']" mode="apl:PostConstructMode" priority="1">
@@ -228,8 +240,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="uri" select="apl:absolute-path()" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
-        <xsl:variable name="bnode-ids" select="$form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')" as="xs:string*"/>
-        <xsl:message>Form's current bnode IDs: <xsl:value-of select="$bnode-ids"/></xsl:message>
+        <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
+         <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
+        <xsl:variable name="bnode-count" select="max(for $bnode-id in $bnode-ids return number(substring-after($bnode-id, 'A')))" as="xs:integer?"/>
+        <xsl:message>Form's last bnode IDs: <xsl:value-of select="$bnode-count"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
@@ -239,7 +253,9 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm"/>
+                <xsl:call-template name="onAddForm">
+                    <xsl:with-param name="bnode-count" select="$bnode-count"/>
+                </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
@@ -480,6 +496,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
         <xsl:param name="new-target-id" as="xs:string?"/>
+        <xsl:param name="bnode-count" as="xs:integer?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
@@ -513,9 +530,9 @@ exclude-result-prefixes="#all"
                             
                             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
                             <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:call-template name="add-form-listeners">
-                                    <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
-                                </xsl:call-template>
+                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="apl:PostConstructMode">
+                                    <xsl:with-param name="bnode-count" select="$bnode-count"/>
+                                </xsl:apply-templates>
                             </xsl:if>
                             
                             <xsl:if test="$new-target-id">
@@ -583,9 +600,7 @@ exclude-result-prefixes="#all"
                             
                             <!-- add event listeners to the descendants of the form. TO-DO: replace with XSLT -->
                             <xsl:if test="id($form-id, ixsl:page())">
-                                <xsl:call-template name="add-form-listeners">
-                                    <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
-                                </xsl:call-template>
+                                <xsl:apply-templates select="id($form-id, ixsl:page())" mode="apl:PostConstructMode"/>
                             </xsl:if>
                     
                             <xsl:if test="$new-target-id">
@@ -767,9 +782,7 @@ exclude-result-prefixes="#all"
                         <xsl:copy-of select="$form/*"/>
                     </xsl:result-document>
 
-                    <xsl:call-template name="add-form-listeners">
-                        <xsl:with-param name="form" select="id($form-id, ixsl:page())"/>
-                    </xsl:call-template>
+                    <xsl:apply-templates select="id($form-id, ixsl:page())" mode="apl:PostConstructMode"/>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
