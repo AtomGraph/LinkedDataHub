@@ -70,7 +70,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         if (resp.getMediaType() != null &&
             (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
-            URI stylesheet = URI.create(getClientApplication().get().getStylesheet().getURI());
+            URI stylesheet = getClientApplication().get().getStylesheet() != null ? URI.create(getClientApplication().get().getStylesheet().getURI()) : null;
 
             if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());

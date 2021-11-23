@@ -113,7 +113,7 @@ public class ApplicationFilter implements ContainerRequestFilter
             com.atomgraph.linkeddatahub.apps.model.Application serverApp = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
             if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a remote (server) Application <{}>", requestURI, serverApp.getURI());
             request.setProperty(LAPP.Application.getURI(), Optional.of(serverApp));
-            request.setRequestUri(requestURI); // serverApp.getBaseURI()
+            request.setRequestUri(clientApp.getBaseURI(), requestURI);
         }
         else
         {
