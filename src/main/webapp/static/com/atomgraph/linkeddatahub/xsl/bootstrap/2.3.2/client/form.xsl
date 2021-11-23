@@ -227,7 +227,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
         <xsl:variable name="uri" select="apl:absolute-path()" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
-        <xsl:variable name="form" select="ancestor::form" as="element()"/>
+        <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="$form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value')" as="xs:string*"/>
         <xsl:message>Form's current bnode IDs: <xsl:value-of select="$bnode-ids"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
