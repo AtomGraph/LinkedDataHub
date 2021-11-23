@@ -129,10 +129,17 @@ exclude-result-prefixes="#all"
         <xsl:param name="bnode-number" select="number(substring-after(ixsl:get(., 'value'), 'A'))"/>
         <xsl:param name="bnode-count" as="xs:double?" tunnel="yes"/>
         
-        <xsl:copy>
-            <xsl:copy-of select="@*"/>
-            <xsl:attribute name="value" select="'A' || ($bnode-number + $bnode-count)"/>
-        </xsl:copy>
+        <xsl:choose>
+            <xsl:when test="exists($bnode-count)">
+                <xsl:copy>
+                    <xsl:copy-of select="@*"/>
+                    <xsl:attribute name="value" select="'A' || ($bnode-number + $bnode-count)"/>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy-of select="."/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template match="input[@class = 'target-id']" mode="form" priority="1">
