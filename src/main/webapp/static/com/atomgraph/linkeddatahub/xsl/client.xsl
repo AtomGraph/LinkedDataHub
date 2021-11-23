@@ -170,7 +170,7 @@ extension-element-prefixes="ixsl"
             </xsl:result-document>
         </xsl:if>
         <!-- initialize wymeditor textareas -->
-        <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstructMode"/>
+        <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstruct"/>
         <!-- initialize breadcrumbs, chart etc. -->
         <xsl:call-template name="apl:LoadRDFDocument">
             <xsl:with-param name="uri" select="apl:absolute-path()"/>
