@@ -108,9 +108,11 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.processor.vocabulary.AP;
+import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.server.mapper.OntologyExceptionMapper;
 import com.atomgraph.server.mapper.ParameterExceptionMapper;
 import com.atomgraph.server.mapper.jena.DatatypeFormatExceptionMapper;
@@ -161,7 +163,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
-import com.atomgraph.processor.vocabulary.LDT;
 import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
 import com.atomgraph.spinrdf.vocabulary.SP;
@@ -174,6 +175,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -198,16 +200,14 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
 import org.apache.jena.query.QuerySolutionMap;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
 import org.apache.jena.vocabulary.LocationMappingVocab;
+import org.apache.jena.vocabulary.RDF;
 import org.glassfish.hk2.api.TypeLiteral;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
@@ -856,14 +856,14 @@ public class Application extends ResourceConfig
         getWebIDModelCache().remove(event.getSecretaryWebID()); // clear secretary WebID from cache to get new acl:delegates statements after new signup
     }
 
-    public Resource matchApp(URI absolutePath)
+    public Resource matchApp(Resource type, URI absolutePath)
     {
-        return matchApp(getAppModel(ResourceFactory.createResource(absolutePath.toString())), absolutePath);
+        return matchApp(getAppModel(type, ResourceFactory.createResource(absolutePath.toString())), type, absolutePath);
     }
     
-    public Resource matchApp(Model appModel, URI absolutePath)
+    public Resource matchApp(Model appModel, Resource type, URI absolutePath)
     {
-        return getLongestURIApp(getLengthMap(getRelativeBaseApps(appModel, absolutePath)));
+        return getLongestURIApp(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
     }
     
     public Resource getLongestURIApp(Map<Integer, Resource> lengthMap)
@@ -875,22 +875,28 @@ public class Application extends ResourceConfig
         return null;
     }
     
-    public Map<URI, Resource> getRelativeBaseApps(Model model, URI absolutePath)
+    public Map<URI, Resource> getRelativeBaseApps(Model model, Resource type, URI absolutePath)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
         Map<URI, Resource> appMap = new HashMap<>();
         
-        // an app can have multiple base URIs
-        StmtIterator it = model.listStatements(null, LDT.base, (RDFNode)null);
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
         try
         {
             while (it.hasNext())
             {
-                Statement stmt = it.next();
-                Resource app = stmt.getSubject();
-                URI base = URI.create(stmt.getResource().getURI());
+                Resource app = it.next();
+                
+                if (!app.hasProperty(LDT.base) && !app.hasProperty(LAPP.prefix))
+                    throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has neither ldt:base nor lapp:prefix"));
+                
+                final URI base;
+                if (app.hasProperty(LAPP.prefix)) base = URI.create(app.getPropertyResourceValue(LAPP.prefix).getURI());
+                else base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
+                
                 URI relative = base.relativize(absolutePath);
                 if (!relative.isAbsolute()) appMap.put(base, app);
             }
@@ -919,11 +925,12 @@ public class Application extends ResourceConfig
         return lengthMap;
     }
     
-    public Model getAppModel(Resource absolutePath)
+    public Model getAppModel(Resource type, Resource absolutePath)
     {
         if (absolutePath == null) throw new IllegalArgumentException("Absolute path Resource cannot be null");
 
         QuerySolutionMap qsm = new QuerySolutionMap();
+        if (type != null) qsm.add(RDF.type.getLocalName(), type);
         qsm.add(THIS_VAR_NAME, absolutePath);
         
         try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))

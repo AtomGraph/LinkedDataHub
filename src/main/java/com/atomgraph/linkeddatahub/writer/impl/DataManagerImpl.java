@@ -20,7 +20,6 @@ import org.apache.jena.util.LocationMapper;
 import java.net.URI;
 import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.util.Map;
@@ -42,21 +41,19 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     private static final Logger log = LoggerFactory.getLogger(DataManagerImpl.class);
     
     private final URI rootContextURI;
-    private final URI baseURI;
     private final String authScheme;
     private final Agent agent;
 
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache,
             Client client, MediaTypes mediaTypes,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
-            URI rootContextURI, Application app,
+            URI rootContextURI,
             SecurityContext securityContext)
     {
         this(mapper, modelCache,
             client, mediaTypes,
             cacheModelLoads, preemptiveAuth, resolvingUncached,
             rootContextURI,
-            app != null ? app.getBaseURI() : null,
             securityContext != null ? securityContext.getAuthenticationScheme() : null,
             (securityContext != null && securityContext.getUserPrincipal() instanceof Agent) ? (Agent)securityContext.getUserPrincipal() : null);
     }
@@ -64,12 +61,11 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     public DataManagerImpl(LocationMapper mapper, Map<String, Model> modelCache, 
             Client client, MediaTypes mediaTypes,
             boolean cacheModelLoads, boolean preemptiveAuth, boolean resolvingUncached,
-            URI rootContextURI, URI baseURI,
+            URI rootContextURI,
             String authScheme, Agent agent)
     {
         super(mapper, modelCache, client, mediaTypes, cacheModelLoads, preemptiveAuth, resolvingUncached);
         this.rootContextURI = rootContextURI;
-        this.baseURI = baseURI;
         this.authScheme = authScheme;
         this.agent = agent;
     }
@@ -121,12 +117,7 @@ public class DataManagerImpl extends com.atomgraph.client.util.DataManagerImpl
     {
         return rootContextURI;
     }
-    
-    public URI getBaseURI()
-    {
-        return baseURI;
-    }
-    
+
     public String getAuthScheme()
     {
         return authScheme;

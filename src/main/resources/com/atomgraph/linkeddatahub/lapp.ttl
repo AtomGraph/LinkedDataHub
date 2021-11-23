@@ -73,6 +73,10 @@
         [ a apl:MissingPropertyValue ;
             rdfs:label "Missing ontology" ;
             sp:arg1 ldt:ontology
+        ] ,
+        [ a apl:MissingPropertyValue ;
+            rdfs:label "Missing title" ;
+            sp:arg1 dct:title
         ] ;
     rdfs:label "Application" ;
     rdfs:comment "An application represents a data space identified by its base URI, in which application resource URIs are relative to the base URI. The only application interface (API) is read-write RESTful Linked data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Application structure is defined in an ontology, which can import other ontologies." ;
@@ -96,17 +100,22 @@
     rdfs:label "Application constructor" ;
     rdfs:isDefinedBy : .
 
+# client
+
+:ClientApplication a rdfs:Class, owl:Class ;
+    rdfs:subClassOf :Application ;
+    rdfs:label "Client application" ;
+    rdfs:comment "Application that acts as a Linked Data browser of itself and other LDT apps" ;
+    rdfs:isDefinedBy : .
+
 # end-user
 
 :EndUserApplication a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Application ;
+    rdfs:subClassOf :ClientApplication ;
     spin:constructor :EndUserApplicationConstructor ;
     spin:constraint [ a apl:MissingPropertyValue ;
             rdfs:label "Missing admin application" ;
             sp:arg1 :adminApplication
-        ] , [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing title" ;
-            sp:arg1 dct:title
         ] ;
     rdfs:label "End-user application" ;
     rdfs:comment "Application with a dynamic access control and sitemap" ;
@@ -135,14 +144,11 @@
 # admin
 
 :AdminApplication a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Application ;
+    rdfs:subClassOf :ClientApplication ;
     spin:constructor :AdminApplicationConstructor ;
     spin:constraint [ a apl:MissingPropertyValue ;
             rdfs:label "Missing end-user application" ;
             sp:arg1 :endUserApplication
-        ] , [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing title" ;
-            sp:arg1 dct:title
         ] ;
     rdfs:label "Admin application" ;
     rdfs:comment "Meta-application that manages the access control and sitemap of the main end-user application" ;

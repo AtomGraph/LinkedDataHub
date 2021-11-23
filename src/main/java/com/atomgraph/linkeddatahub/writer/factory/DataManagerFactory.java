@@ -89,7 +89,7 @@ public class DataManagerFactory implements Factory<DataManager>
         DataManager dataManager = new DataManagerImpl(mapper, new HashMap<>(((DataManager)OntDocumentManager.getInstance().getFileManager()).getModelCache()),
             client, mediaTypes,
             true, preemptiveAuth, resolvingUncached,
-            rootContextURI, application, securityContext);
+            rootContextURI, securityContext);
  
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
         return dataManager;

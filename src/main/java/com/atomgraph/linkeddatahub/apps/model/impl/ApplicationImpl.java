@@ -56,7 +56,9 @@ public class ApplicationImpl extends ResourceImpl implements Application
     @Override
     public URI getBaseURI()
     {
-        return URI.create(getBase().getURI());
+        if (getBase() != null) return URI.create(getBase().getURI());
+        
+        return null;
     }
 
     @Override

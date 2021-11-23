@@ -220,11 +220,14 @@ DESCRIBE ?app ?service ?adminApp ?adminService ?endUserApp ?endUserService
 WHERE
   { SELECT  *
     WHERE
-      { ?app  ldt:base     ?base .
-        OPTIONAL
-          {
-            ?app ldt:service  ?service
+      { ?app  a  ?type
+          { ?app  ldt:base  ?base }
+        UNION
+          { ?app  lapp:prefix  ?base
+            BIND(true AS ?prefix)
           }
+        OPTIONAL
+          { ?app  ldt:service  ?service }
         OPTIONAL
           { ?app      lapp:adminApplication  ?adminApp .
             ?adminApp  ldt:service          ?adminService
@@ -234,6 +237,7 @@ WHERE
             ?endUserApp  ldt:service        ?endUserService
           }
         FILTER strstarts(str(?this), str(?base))
+        FILTER if(bound(?prefix), ( str(?this) != str(?base) ), true) # if it's a prefix, $this has to be longer than ?base
         BIND(strlen(str(?base)) AS ?baseLength)
       }
     ORDER BY DESC(?baseLength)

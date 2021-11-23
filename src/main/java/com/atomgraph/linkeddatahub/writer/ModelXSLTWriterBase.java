@@ -135,7 +135,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             Optional<Application> app = getApplication().get();
             if (getApplication().get().isPresent())
             {
-                params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
+                if (app.get().getBaseURI() != null) params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
 
                 if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app.get());
                 params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),

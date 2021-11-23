@@ -302,7 +302,7 @@ exclude-result-prefixes="#all">
                         const servicesRequestUri = "]]><xsl:value-of select="$services-request-uri"/><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                            "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $ldt:base
+                            "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $apl:base
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ontology": ontologyUri,
                             "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
@@ -582,7 +582,7 @@ exclude-result-prefixes="#all">
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $apl:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <!-- avoid selecting object blank nodes which only have rdf:type -->
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>

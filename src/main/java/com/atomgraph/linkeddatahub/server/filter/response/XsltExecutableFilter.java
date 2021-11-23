@@ -17,18 +17,14 @@
 package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.core.util.Link;
 import com.atomgraph.linkeddatahub.MediaType;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -40,8 +36,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.Source;
@@ -50,7 +44,6 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XsltCompiler;
 import net.sf.saxon.s9api.XsltExecutable;
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.ontology.ObjectProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +58,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApplication;
     @Inject javax.inject.Provider<Optional<Application>> application;
     
     @Context UriInfo uriInfo;
@@ -76,41 +70,12 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         if (resp.getMediaType() != null &&
             (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
-            // Link rel=ac:stylesheet response header set by either ProxyResourceBase or ResponseHeaderFilter
-            URI stylesheet = getLinkURI(resp.getHeaders(), AC.stylesheet);
+            URI stylesheet = URI.create(getClientApplication().get().getStylesheet().getURI());
 
             if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
         }
     }
-
-    public URI getLinkURI(MultivaluedMap<String, Object> headerMap, ObjectProperty property)
-    {
-        if (headerMap.get(HttpHeaders.LINK) == null) return null;
-        
-        List<URI> baseLinks = headerMap.get(HttpHeaders.LINK).
-            stream().
-            map((Object header) ->
-            {
-                try
-                {
-                    return Link.valueOf(header.toString());
-                }
-                catch (URISyntaxException ex)
-                {
-                    if (log.isWarnEnabled()) log.warn("Could not parse Link URI", ex);
-                    return null;
-                }
-            }).
-            filter(link -> link != null && link.getRel().equals(property.getURI())).
-            map(link -> link.getHref()).
-            collect(Collectors.toList());
-
-        if (!baseLinks.isEmpty()) return baseLinks.get(0);
-
-        return null;
-    }
-    
         
     public XsltExecutable getXsltExecutable(URI stylesheet)
     {
@@ -230,6 +195,11 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     public com.atomgraph.linkeddatahub.Application getSystem()
     {
         return system;
+    }
+    
+    public com.atomgraph.linkeddatahub.apps.model.Client<Application> getClientApplication()
+    {
+        return clientApplication.get();
     }
     
     public Optional<Application> getApplication()

@@ -41,7 +41,7 @@ exclude-result-prefixes="#all">
                 <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&adm;Container', '&adm;Item'))">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $apl:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
                                 <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
