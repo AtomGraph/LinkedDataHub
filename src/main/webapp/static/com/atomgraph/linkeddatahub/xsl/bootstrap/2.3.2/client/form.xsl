@@ -146,7 +146,7 @@ exclude-result-prefixes="#all"
         
         <xsl:choose>
             <xsl:when test="exists($max-bnode-id)">
-                <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
+                <xsl:sequence select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy-of select="."/>
