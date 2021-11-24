@@ -128,7 +128,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(clientApp.get().getBaseURI()));
             params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(clientApp.get().getOntology().getURI())));
             params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get(), false))));
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get(), true))));
 
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
