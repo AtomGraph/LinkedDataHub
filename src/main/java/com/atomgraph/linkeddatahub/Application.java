@@ -39,7 +39,6 @@ import com.atomgraph.client.mapper.ClientErrorExceptionMapper;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.util.DataManagerImpl;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.client.writer.function.ConstructDocument;
 import com.atomgraph.client.writer.function.UUID;
 import com.atomgraph.core.exception.ConfigurationException;
 import com.atomgraph.core.io.DatasetProvider;
@@ -68,6 +67,8 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.writer.factory.xslt.XsltExecutableSupplier;
 import com.atomgraph.linkeddatahub.writer.factory.XsltExecutableSupplierFactory;
 import com.atomgraph.client.util.XsltResolver;
+import com.atomgraph.client.writer.function.Construct;
+import com.atomgraph.client.writer.function.ConstructForClass;
 import com.atomgraph.linkeddatahub.client.filter.ClientUriRewriteFilter;
 import com.atomgraph.linkeddatahub.io.HtmlJsonLDReaderFactory;
 import com.atomgraph.linkeddatahub.io.JsonLDReader;
@@ -566,7 +567,8 @@ public class Application extends ResourceConfig
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
             xsltProc.registerExtensionFunction(new UUID());
-            xsltProc.registerExtensionFunction(new ConstructDocument(xsltProc));
+            xsltProc.registerExtensionFunction(new Construct(xsltProc));
+            xsltProc.registerExtensionFunction(new ConstructForClass(xsltProc));
             
             Model mappingModel = locationMapper.toModel();
             ResIterator altLocationIt = mappingModel.listResourcesWithProperty(LocationMappingVocab.prefix);
