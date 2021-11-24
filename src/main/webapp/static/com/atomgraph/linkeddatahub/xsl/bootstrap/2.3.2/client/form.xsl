@@ -127,13 +127,13 @@ exclude-result-prefixes="#all"
     <!-- increase bnode ID counters to avoid clashes with existing IDs. Only works with Jena's A1, A2, ... naming scheme -->
     <xsl:template match="input[@name = ('sb', 'ob')]" mode="form" priority="1">
         <xsl:param name="bnode-number" select="number(substring-after(@value, 'A'))"/>
-        <xsl:param name="bnode-count" as="xs:double?" tunnel="yes"/>
+        <xsl:param name="max-bnode-id" as="xs:double?" tunnel="yes"/>
         
         <xsl:choose>
-            <xsl:when test="exists($bnode-count)">
+            <xsl:when test="exists($max-bnode-id)">
                 <xsl:copy>
                     <xsl:copy-of select="@*"/>
-                    <xsl:attribute name="value" select="'A' || ($bnode-number + $bnode-count)"/>
+                    <xsl:attribute name="value" select="'A' || ($bnode-number + $max-bnode-id + 1)"/> <!-- increase the counter -->
                 </xsl:copy>
             </xsl:when>
             <xsl:otherwise>
@@ -248,8 +248,8 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
          <!-- find the last bnode ID on the form so that we can change this resources ID to +1. Will only work with Jena's ID format A1, A2, ... -->
-        <xsl:variable name="bnode-count" select="max(for $bnode-id in $bnode-ids return number(substring-after($bnode-id, 'A')))" as="xs:double?"/>
-        <xsl:message>Form's last bnode ID: <xsl:value-of select="$bnode-count"/></xsl:message>
+        <xsl:variable name="max-bnode-id" select="max(for $bnode-id in $bnode-ids return number(substring-after($bnode-id, 'A')))" as="xs:double?"/>
+        <xsl:message>Form's last bnode ID: <xsl:value-of select="$max-bnode-id"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri($uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
@@ -260,7 +260,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="bnode-count" select="$bnode-count"/>
+                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -502,7 +502,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
         <xsl:param name="new-target-id" as="xs:string?"/>
-        <xsl:param name="bnode-count" as="xs:double?"/>
+        <xsl:param name="max-bnode-id" as="xs:double?"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
@@ -519,7 +519,7 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                                    <xsl:with-param name="bnode-count" select="$bnode-count" tunnel="yes"/>
+                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
                                 </xsl:apply-templates>
                             </xsl:variable>
                             <xsl:variable name="form-id" select="$modal-div//form/@id" as="xs:string"/>
@@ -556,7 +556,7 @@ exclude-result-prefixes="#all"
                                 <xsl:apply-templates select="//form" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
-                                    <xsl:with-param name="bnode-count" select="$bnode-count" tunnel="yes"/>
+                                    <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
                                 </xsl:apply-templates>
                             </xsl:variable>
                             <xsl:variable name="form-id" select="$form/@id" as="xs:string"/>
