@@ -587,8 +587,8 @@ exclude-result-prefixes="#all"
                                                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
                                             </xsl:message>
                                         </xsl:for-each>
-                                        <!-- remove this "Create" button -->
-                                        <xsl:for-each select="$target/ancestor::div[tokenize(@class, ' ') = 'btn-group'][button[tokenize(@class, ' ') = 'create-action']]">
+                                        <!-- remove the current "Create" buttons from the form -->
+                                        <xsl:for-each select="$target/ancestor::div[tokenize(@class, ' ') = 'btn-group'][button[tokenize(@class, ' ') = 'create-action']] | $target/self::button[tokenize(@class, ' ') = 'create-action']">
                                             <xsl:message>
                                                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
                                             </xsl:message>

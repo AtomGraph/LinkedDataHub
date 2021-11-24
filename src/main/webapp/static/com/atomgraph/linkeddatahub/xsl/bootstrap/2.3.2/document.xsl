@@ -529,7 +529,7 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
                 
                 <!-- separate "Create" button only for Content -->
-                <button class="btn btn-primary add-constructor">
+                <button class="btn btn-primary add-constructor create-action" type="button">
                     <xsl:value-of>
                         <xsl:apply-templates select="key('resources', '&apl;Content', document(ac:document-uri('&apl;')))" mode="ac:label"/>
                     </xsl:value-of>
