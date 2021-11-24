@@ -522,19 +522,21 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <xsl:if test="$create-resource">
-                <xsl:apply-templates select="." mode="bs2:Create">
-                    <xsl:with-param name="classes" select="$classes"/>
-                    <xsl:with-param name="default-classes" select="$default-classes"/>
-                    <xsl:with-param name="show-document-classes" select="false()"/>
-                </xsl:apply-templates>
-                
-                <!-- separate "Create" button only for Content -->
-                <button class="btn btn-primary add-constructor create-action" type="button">
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', '&apl;Content', document(ac:document-uri('&apl;')))" mode="ac:label"/>
-                    </xsl:value-of>
-                    <input type="hidden" class="forClass" value="&apl;Content"/>
-                </button>
+                <div class="create-resource">
+                    <xsl:apply-templates select="." mode="bs2:Create">
+                        <xsl:with-param name="classes" select="$classes"/>
+                        <xsl:with-param name="default-classes" select="$default-classes"/>
+                        <xsl:with-param name="show-document-classes" select="false()"/>
+                    </xsl:apply-templates>
+
+                    <!-- separate "Create" button only for Content -->
+                    <button class="btn btn-primary add-constructor create-action" type="button">
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', '&apl;Content', document(ac:document-uri('&apl;')))" mode="ac:label"/>
+                        </xsl:value-of>
+                        <input type="hidden" class="forClass" value="&apl;Content"/>
+                    </button>
+                </div>
             </xsl:if>
 
             <xsl:apply-templates select="." mode="bs2:FormActions">
