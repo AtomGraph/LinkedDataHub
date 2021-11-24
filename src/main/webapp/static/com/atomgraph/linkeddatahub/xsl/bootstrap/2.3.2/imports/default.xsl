@@ -118,7 +118,7 @@ exclude-result-prefixes="#all"
     </xsl:function>
     
     <!-- this is a different, not follow-your-nose Linked Data search as in apl:listSuperClasses() as we don't know the URIs of the documents containing subclasses -->
-    <!-- start with the $apl:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
+    <!-- start with the $ldt:ontology document and traverse imported RDF ontologies recursively looking for rdfs:subClassOf triples -->
     <xsl:function name="apl:listSubClassesInDocuments" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         <xsl:param name="direct" as="xs:boolean"/>
@@ -506,9 +506,9 @@ exclude-result-prefixes="#all"
                                 <!-- forClass input is required by typeahead's FILTER (?Type IN ()) in client.xsl -->
                                 <xsl:choose>
                                     <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
-                                        <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $apl:ontology)" as="attribute()*"/>
+                                        <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                                         <!-- add subclasses as forClass -->
-                                        <xsl:for-each select="distinct-values(apl:listSubClasses($forClass, false(), $apl:ontology))[not(. = $forClass)]">
+                                        <xsl:for-each select="distinct-values(apl:listSubClasses($forClass, false(), $ldt:ontology))[not(. = $forClass)]">
                                             <input type="hidden" class="forClass" value="{.}"/>
                                         </xsl:for-each>
                                         <!-- bs2:Constructor sets forClass -->
@@ -677,7 +677,7 @@ exclude-result-prefixes="#all"
         <!-- forClass input is used by typeahead's FILTER (?Type IN ()) in client.xsl -->
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
-                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $apl:ontology)" as="attribute()*"/>
+                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>

@@ -45,7 +45,7 @@ exclude-result-prefixes="#all">
         <xsl:variable name="forClass" select="../../rdf:type/@rdf:resource" as="xs:anyURI?"/>
         <xsl:choose>
             <xsl:when test="not($forClass = '&rdfs;Resource') and doc-available(ac:document-uri($forClass))">
-                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $apl:ontology)" as="attribute()*"/>
+                <xsl:variable name="subclasses" select="apl:listSubClasses($forClass, false(), $ldt:ontology)" as="attribute()*"/>
                 <!-- add subclasses as forClass -->
                 <xsl:for-each select="distinct-values($subclasses)[not(. = $forClass)]">
                     <input type="hidden" class="forClass" value="{.}"/>

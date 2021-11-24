@@ -91,8 +91,8 @@ extension-element-prefixes="ixsl"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
     <xsl:param name="ldt:base" as="xs:anyURI"/>
+    <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
-    <xsl:param name="apl:ontology" as="xs:anyURI"/>
     <xsl:param name="services-request-uri" as="xs:anyURI"/>
     <xsl:param name="apl:services" as="document-node()?">
         <xsl:document>
@@ -131,7 +131,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
         <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
-        <xsl:message>$apl:ontology: <xsl:value-of select="$apl:ontology"/></xsl:message>
+        <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
         <xsl:message>count($apl:services//*[@rdf:about]): <xsl:value-of select="count($apl:services//*[@rdf:about])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
@@ -156,7 +156,7 @@ extension-element-prefixes="ixsl"
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>
         <!-- load application's ontology RDF document -->
-<!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $apl:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+<!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <!-- disable SPARQL editor's server-side submission -->

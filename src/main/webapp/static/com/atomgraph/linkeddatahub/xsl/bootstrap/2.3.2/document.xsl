@@ -611,7 +611,7 @@ extension-element-prefixes="ixsl"
             <ul class="dropdown-menu">
                 <xsl:variable name="constructor-list" as="element()*">
                     <xsl:call-template name="bs2:ConstructorList">
-                        <xsl:with-param name="ontology" select="key('resources', $apl:ontology, document(ac:document-uri($apl:ontology)))"/>
+                        <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
                         <xsl:with-param name="classes" select="$classes"/>
                         <xsl:with-param name="visited-classes" select="($default-classes, $default-classes/apl:listSuperClasses(@rdf:about)/../..)"/>
                     </xsl:call-template>
