@@ -1642,7 +1642,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
 
         <!-- set document.title which history.pushState() does not do -->
-        <ixsl:set-property name="title" select="html/head/title" object="ixsl:page()"/>
+        <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
 
         <xsl:variable name="results" select="." as="document-node()"/>
         

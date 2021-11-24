@@ -56,7 +56,7 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="acl:mode[position() &gt; 1]" mode="bs2:FormControl" priority="2"/>
 
-    <xsl:template match="*[$ldt:base][lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
+    <xsl:template match="*[lacl:requestAccessTo/@rdf:resource]" mode="bs2:Block" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': '&adm;Authorization' })" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
