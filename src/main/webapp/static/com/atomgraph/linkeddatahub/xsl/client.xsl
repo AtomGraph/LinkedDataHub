@@ -151,7 +151,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="apl:href(ac:uri(), $apl:base)"/>
             <xsl:with-param name="title" select="ixsl:get(ixsl:window(), 'document.title')"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>
@@ -212,6 +212,21 @@ extension-element-prefixes="ixsl"
 
     <xsl:function name="ac:uri" as="xs:anyURI">
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))"/>
+    </xsl:function>
+
+    <xsl:function name="apl:href" as="xs:anyURI">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="base" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
+            <xsl:when test="starts-with($uri, $base)">
+                <xsl:sequence select="$uri"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ac:build-uri($base, map{ 'uri': string($uri) })"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:function>
 
     <xsl:function name="apl:query-type" as="xs:string">
@@ -1411,7 +1426,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:if test="$push-state">
                         <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($content-uri) })"/>
+                            <xsl:with-param name="href" select="apl:href($content-uri, $apl:base)"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="query" select="$query"/>
                             <xsl:with-param name="sparql" select="true()"/>
@@ -1619,7 +1634,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
-                    <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })"/>
+                    <xsl:with-param name="href" select="apl:href($uri, $apl:base)"/>
                     <xsl:with-param name="title" select="title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
