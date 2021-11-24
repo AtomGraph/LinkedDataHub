@@ -389,12 +389,12 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
         <a class="brand" href="{$ldt:base}">
-            <xsl:if test="$lapp:Application//rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+            <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                 <xsl:attribute name="class" select="'brand admin'"/>
             </xsl:if>
 
             <xsl:value-of>
-                <xsl:apply-templates select="$lapp:Application//rdf:Description" mode="ac:label"/>
+                <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
             </xsl:value-of>
         </a>
     </xsl:template>

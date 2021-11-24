@@ -106,7 +106,7 @@ exclude-result-prefixes="#all">
             </button>
 
             <xsl:call-template name="bs2:ConstructorList">
-                <xsl:with-param name="ontology" select="key('resources', $lapp:Application//ldt:ontology/@rdf:resource, document(ac:document-uri($lapp:Application//ldt:ontology/@rdf:resource)))"/>
+                <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <xsl:with-param name="visited-classes" select="()"/>
             </xsl:call-template>
