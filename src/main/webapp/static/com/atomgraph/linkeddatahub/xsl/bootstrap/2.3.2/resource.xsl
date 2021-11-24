@@ -331,7 +331,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[$apl:base][@rdf:about = ($apl:base, resolve-uri('latest/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('queries/', $apl:base), resolve-uri('charts/', $apl:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:RowBlock" priority="1"/>
+    <xsl:template match="*[$ldt:base][@rdf:about = ($ldt:base, resolve-uri('latest/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('queries/', $ldt:base), resolve-uri('charts/', $ldt:base))] | *[@rdf:about = ac:uri()][sioc:has_container/@rdf:resource or sioc:has_parent/@rdf:resource]" mode="bs2:RowBlock" priority="1"/>
 
     <!-- hide Content resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:RowBlock" priority="2"/>
@@ -699,7 +699,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="template-doc" select="ac:construct-doc($apl:ontology, $forClass, $apl:base)" as="document-node()?"/>
+        <xsl:param name="template-doc" select="ac:construct-doc($apl:ontology, $forClass, $ldt:base)" as="document-node()?"/>
         <xsl:param name="template" select="$template-doc/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>

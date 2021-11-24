@@ -246,7 +246,7 @@ exclude-result-prefixes="#all"
     <!-- DEFAULT -->
 
     <!-- resources with URIs not relative to app base -->
-    <xsl:template match="@rdf:resource[starts-with(., $apl:base)] | srx:uri[starts-with(., $apl:base)]" priority="2">
+    <xsl:template match="@rdf:resource[starts-with(., $ldt:base)] | srx:uri[starts-with(., $ldt:base)]" priority="2">
         <xsl:next-match>
             <xsl:with-param name="href" select="."/>
         </xsl:next-match>
@@ -292,7 +292,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'subject input-xxlarge'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $apl:base)" as="xs:boolean"/>
+        <xsl:param name="auto" select="local-name() = 'nodeID' or starts-with(., $ldt:base)" as="xs:boolean"/>
 
         <xsl:choose>
             <xsl:when test="not($type = 'hidden')">
@@ -468,7 +468,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="type-label" select="true()" as="xs:boolean"/>
         <xsl:param name="template-doc" as="document-node()?"/>
         <xsl:variable name="resource" select="key('resources', .)"/>
-        <xsl:variable name="doc-uri" select="if (starts-with($apl:base, .)) then xs:anyURI(.) else ac:build-uri($apl:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
+        <xsl:variable name="doc-uri" select="if (starts-with($ldt:base, .)) then xs:anyURI(.) else ac:build-uri($ldt:base, map{ 'uri': string(ac:document-uri(.)) })" as="xs:anyURI"/>
 
         <xsl:choose>
             <!-- loop if node not visited already -->
@@ -492,7 +492,7 @@ exclude-result-prefixes="#all"
                     <xsl:with-param name="disabled" select="$disabled"/>
                 </xsl:next-match>
             </xsl:when>
-            <xsl:when test="starts-with(., $apl:base) and doc-available($doc-uri)">
+            <xsl:when test="starts-with(., $ldt:base) and doc-available($doc-uri)">
                 <xsl:choose>
                     <xsl:when test="key('resources', ., document(ac:document-uri($doc-uri)))">
                         <span>

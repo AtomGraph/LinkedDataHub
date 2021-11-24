@@ -62,17 +62,9 @@ public class APL
     
     public static final OntClass RDFImport = m_model.createClass(NS + "RDFImport");
 
-//    public static final OntClass ImportRun = m_model.createClass(NS + "ImportRun");
-    
     public static final OntClass File = m_model.createClass(NS + "File");
     
     public static final OntClass Content = m_model.createClass(NS + "Content");
-
-//    public static final OntClass Counter = m_model.createClass(NS + "Counter");
-    
-//    public static final OntClass CountMode = m_model.createClass(NS + "CountMode");
-
-//    public static final OntClass ChartMode = m_model.createClass(NS + "ChartMode");
 
     public static final OntClass ConstructorMode = m_model.createClass(NS + "ConstructorMode");
 
@@ -96,6 +88,4 @@ public class APL
 
     public static final ObjectProperty absolutePath = m_model.createObjectProperty(NS + "absolutePath");
     
-    public static final ObjectProperty client = m_model.createObjectProperty(NS + "client");
-
 }

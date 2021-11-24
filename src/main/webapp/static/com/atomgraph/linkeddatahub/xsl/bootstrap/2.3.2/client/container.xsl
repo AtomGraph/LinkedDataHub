@@ -182,7 +182,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <!-- load result count -->
         <xsl:variable name="request" as="item()*">
@@ -303,7 +303,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
@@ -407,7 +407,7 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="$bgp-triples-map">
                     <xsl:variable name="id" select="generate-id()" as="xs:string"/>
                     <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
-                    <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+                    <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -457,7 +457,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="bgp-triples-map" select="$select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[json:string[@key = 'subject'] = '?' || $focus-var-name][not(starts-with(json:string[@key = 'predicate'], '?'))][starts-with(json:string[@key = 'object'], '?')] | $select-xml//json:map[json:string[@key = 'type'] = 'bgp']/json:array[@key = 'triples']/json:map[starts-with(json:string[@key = 'subject'], '?')][not(starts-with(json:string[@key = 'predicate'], '?'))][json:string[@key = 'object'] = '?' || $focus-var-name]" as="element()*"/>
             <xsl:variable name="graph-var-name" select="$bgp-triples-map/ancestor::json:map[json:string[@key = 'type'] = 'graph'][1]/json:string[@key = 'name']/substring-after(., '?')" as="xs:string?"/>
 
-            <ixsl:set-property name="geo" select="ac:create-geo-object($content-uri, ac:uri(), $apl:base, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+            <ixsl:set-property name="geo" select="ac:create-geo-object($content-uri, ac:uri(), $ldt:base, $endpoint, $select-string, $focus-var-name, $graph-var-name)" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
             <xsl:call-template name="ac:add-geo-listener">
                 <xsl:with-param name="content-uri" select="$content-uri"/>
@@ -651,7 +651,7 @@ exclude-result-prefixes="#all"
             <xsl:variable name="subject-var-name" select="json:string[@key = 'subject']/substring-after(., '?')" as="xs:string"/>
             <xsl:variable name="predicate" select="json:string[@key = 'predicate']" as="xs:anyURI"/>
             <xsl:variable name="object-var-name" select="json:string[@key = 'object']/substring-after(., '?')" as="xs:string"/>
-            <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+            <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($predicate), 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -793,7 +793,7 @@ exclude-result-prefixes="#all"
     <!-- map -->
 
     <!-- TO-DO: improve match pattern -->
-    <xsl:template match="rdf:RDF[resolve-uri('geo/', $apl:base) = ac:uri()]" mode="bs2:Map" priority="1">
+    <xsl:template match="rdf:RDF[resolve-uri('geo/', $ldt:base) = ac:uri()]" mode="bs2:Map" priority="1">
         <xsl:next-match>
             <xsl:with-param name="container-uri" select="()"/>
         </xsl:next-match>
@@ -839,7 +839,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
@@ -905,7 +905,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -951,7 +951,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -996,7 +996,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1040,7 +1040,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1116,7 +1116,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
                     <!-- TO-DO: unify dydra: and dydra-urn: ? -->
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
                     <!-- load facet values, their counts and optional labels -->
                     <xsl:variable name="request" as="item()*">
@@ -1182,7 +1182,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1225,7 +1225,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()) })"/>
+            <xsl:with-param name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()) })"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1380,7 +1380,7 @@ exclude-result-prefixes="#all"
 
                     <xsl:for-each-group select="$results/rdf:RDF/*[@rdf:about = $var-name-resources]/*[@rdf:resource or @rdf:nodeID]" group-by="concat(namespace-uri(), local-name())">
                         <xsl:variable name="predicate" select="xs:anyURI(namespace-uri() || local-name())" as="xs:anyURI"/>
-                        <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+                        <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $predicate, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $results-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                             <xsl:call-template name="onParallaxPropertyLoad">
@@ -1485,7 +1485,7 @@ exclude-result-prefixes="#all"
                                 <xsl:for-each select="$results//srx:result[srx:binding[@name = $object-var-name]]">
                                     <xsl:variable name="object-type" select="srx:binding[@name = $object-var-name]/srx:uri" as="xs:anyURI"/>
                                     <xsl:variable name="value-result" select="." as="element()"/>
-                                    <xsl:variable name="results-uri" select="ac:build-uri($apl:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
+                                    <xsl:variable name="results-uri" select="ac:build-uri($ldt:base, map{ 'uri': $object-type, 'accept': 'application/rdf+xml', 'mode': 'fragment' })" as="xs:anyURI"/>
 
                                     <!-- load the label of the object type -->
                                     <xsl:variable name="request" as="item()*">

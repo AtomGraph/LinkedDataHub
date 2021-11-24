@@ -26,7 +26,6 @@ import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
-import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.client.vocabulary.LDT;
@@ -124,24 +123,13 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
-            if (getOntology().get().isPresent())
-                params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(getOntology().get().get().getURI())));
-
             com.atomgraph.linkeddatahub.apps.model.Client<Application> clientApp = getClientApplication().get();
-            if (log.isDebugEnabled()) log.debug("Passing $apl:client to XSLT: <{}>", clientApp.get());
-            params.put(new QName("apl", APL.client.getNameSpace(), APL.client.getLocalName()),
+            if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", clientApp.get());
+            params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(clientApp.get().getBaseURI()));
+            params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(clientApp.get().getOntology().getURI())));
+            params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
                 getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get(), false))));
 
-            Optional<Application> app = getApplication().get();
-            if (getApplication().get().isPresent())
-            {
-                if (app.get().getBaseURI() != null) params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.get().getBaseURI()));
-
-                if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app.get());
-                params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
-                    getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app.get(), true)))); // TO-DO: change hash code?
-            }
-                
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
                 Agent agent = (Agent)getSecurityContext().getUserPrincipal();

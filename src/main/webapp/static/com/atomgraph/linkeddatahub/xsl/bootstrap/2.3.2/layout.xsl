@@ -94,12 +94,10 @@ exclude-result-prefixes="#all">
     <xsl:output method="xhtml" encoding="UTF-8" indent="yes" omit-xml-declaration="yes" doctype-system="http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" doctype-public="-//W3C//DTD XHTML 1.0 Strict//EN" media-type="application/xhtml+xml"/>
 
     <xsl:param name="apl:baseUri" as="xs:anyURI" static="yes"/>
-    <xsl:param name="apl:client" as="document-node()"/>
-    <xsl:param name="apl:base" select="$apl:client//ldt:base/@rdf:resource" as="xs:anyURI"/>
-    <xsl:param name="apl:ontology" select="$apl:client//ldt:ontology/@rdf:resource" as="xs:anyURI"/>
+    <xsl:param name="apl:ontology" select="$lapp:Application//ldt:ontology/@rdf:resource" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
-    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $apl:base)" as="xs:anyURI"/>
-    <xsl:param name="a:graphStore" select="resolve-uri('service', $apl:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
+    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
+    <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI"/> <!-- TO-DO: rename to ac:graphStore? -->
     <xsl:param name="lapp:Application" as="document-node()?"/>
     <xsl:param name="acl:Agent" as="document-node()?"/>
     <xsl:param name="force-exclude-all-namespaces" select="true()"/>
@@ -136,7 +134,7 @@ exclude-result-prefixes="#all">
         <title>
             <xsl:if test="$lapp:Application">
                 <xsl:value-of>
-                    <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $apl:base]" mode="ac:label"/>
+                    <xsl:apply-templates select="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]" mode="ac:label"/>
                 </xsl:value-of>
                 <xsl:text> - </xsl:text>
             </xsl:if>
@@ -193,8 +191,8 @@ exclude-result-prefixes="#all">
             </xsl:for-each>
         </xsl:for-each>
 
-        <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $apl:base]">
-            <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $apl:base])}"/>
+        <xsl:if test="$lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]">
+            <meta property="og:site_name" content="{ac:label($lapp:Application//*[ldt:base/@rdf:resource = $ldt:base])}"/>
         </xsl:if>
     </xsl:template>
 
@@ -222,10 +220,10 @@ exclude-result-prefixes="#all">
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not(ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
-        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not(ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
         <xsl:param name="service-query" as="xs:string">
             CONSTRUCT 
@@ -252,7 +250,7 @@ exclude-result-prefixes="#all">
         <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/jquery.js', $ac:contextUri)}" defer="defer"></script>
         <script type="text/javascript">
             <![CDATA[
-                var baseUri = ]]><xsl:value-of select="'&quot;' || $apl:base || '&quot;'"/><![CDATA[;
+                var baseUri = ]]><xsl:value-of select="'&quot;' || $ldt:base || '&quot;'"/><![CDATA[;
                 var absolutePath = ]]><xsl:value-of select="'&quot;' || $apl:absolutePath || '&quot;'"/><![CDATA[;
                 var ontologyUri = ]]><xsl:value-of select="'&quot;' || $apl:ontology || '&quot;'"/><![CDATA[;
                 var contextUri = ]]><xsl:value-of select="if ($ac:contextUri) then '&quot;' || $ac:contextUri || '&quot;'  else 'null'"/><![CDATA[;
@@ -275,12 +273,12 @@ exclude-result-prefixes="#all">
                         const locationMapping = [ 
                             // not using entities as we don't want the # in the end
                             { name: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf", altName: contextUri + "static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf" },
-                            { name: "https://w3id.org/atomgraph/client", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub/admin", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/admin") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub/domain", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/domain") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "https://w3id.org/atomgraph/linkeddatahub/default", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/default") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "http://spinrdf.org/sp", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://spinrdf.org/sp") + "&accept=" + encodeURIComponent("application/rdf+xml") },
-                            { name: "http://www.w3.org/1999/02/22-rdf-syntax-ns", altName: "]]><xsl:value-of select="$apl:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://www.w3.org/1999/02/22-rdf-syntax-ns") + "&accept=" + encodeURIComponent("application/rdf+xml") }
+                            { name: "https://w3id.org/atomgraph/client", altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/client") + "&accept=" + encodeURIComponent("application/rdf+xml") },
+                            { name: "https://w3id.org/atomgraph/linkeddatahub/admin", altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/admin") + "&accept=" + encodeURIComponent("application/rdf+xml") },
+                            { name: "https://w3id.org/atomgraph/linkeddatahub/domain", altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/domain") + "&accept=" + encodeURIComponent("application/rdf+xml") },
+                            { name: "https://w3id.org/atomgraph/linkeddatahub/default", altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("https://w3id.org/atomgraph/linkeddatahub/default") + "&accept=" + encodeURIComponent("application/rdf+xml") },
+                            { name: "http://spinrdf.org/sp", altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://spinrdf.org/sp") + "&accept=" + encodeURIComponent("application/rdf+xml") },
+                            { name: "http://www.w3.org/1999/02/22-rdf-syntax-ns", altName: "]]><xsl:value-of select="$ldt:base"/><![CDATA[" + "?uri=" + encodeURIComponent("http://www.w3.org/1999/02/22-rdf-syntax-ns") + "&accept=" + encodeURIComponent("application/rdf+xml") }
                             ]]>
                             <!--<xsl:variable name="ontology-imports" select="for $value in distinct-values(apl:ontologyImports($apl:ontology)) return xs:anyURI($value)" as="xs:anyURI*"/>
                             <xsl:if test="exists($ontology-imports)">
@@ -302,7 +300,7 @@ exclude-result-prefixes="#all">
                         const servicesRequestUri = "]]><xsl:value-of select="$services-request-uri"/><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
-                            "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri, // not $apl:base
+                            "Q{https://www.w3.org/ns/ldt#}base": baseUri,
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}ontology": ontologyUri,
                             "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
@@ -370,9 +368,9 @@ exclude-result-prefixes="#all">
                         <span class="icon-bar"></span>
                     </button>
 
-                    <xsl:if test="$apl:base">
-                        <xsl:if test="not($apl:base = $ac:contextUri)">
-                            <a class="brand context" href="{resolve-uri('..', $apl:base)}"/>
+                    <xsl:if test="$ldt:base">
+                        <xsl:if test="not($ldt:base = $ac:contextUri)">
+                            <a class="brand context" href="{resolve-uri('..', $ldt:base)}"/>
                         </xsl:if>
                     </xsl:if>
                         
@@ -391,19 +389,19 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF" mode="bs2:Brand">
-        <a class="brand" href="{$apl:base}">
-            <xsl:if test="$apl:client//rdf:type/@rdf:resource = '&lapp;AdminApplication'">
+        <a class="brand" href="{$ldt:base}">
+            <xsl:if test="$lapp:Application//rdf:type/@rdf:resource = '&lapp;AdminApplication'">
                 <xsl:attribute name="class" select="'brand admin'"/>
             </xsl:if>
 
             <xsl:value-of>
-                <xsl:apply-templates select="$apl:client//rdf:Description" mode="ac:label"/>
+                <xsl:apply-templates select="$lapp:Application//rdf:Description" mode="ac:label"/>
             </xsl:value-of>
         </a>
     </xsl:template>
     
     <!-- check if agent has access to the user endpoint by executing a dummy query ASK {} -->
-    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $apl:base))]" mode="bs2:SearchBar" priority="1">
+    <xsl:template match="rdf:RDF[doc-available(resolve-uri('sparql?query=ASK%20%7B%7D', $ldt:base))]" mode="bs2:SearchBar" priority="1">
         <form action="" method="get" class="navbar-form pull-left" accept-charset="UTF-8" title="{ac:label(key('resources', 'search-title', document('translations.rdf')))}">
             <div class="input-append">
                 <select id="search-service" name="service">
@@ -411,7 +409,7 @@ exclude-result-prefixes="#all">
                 </select>
                 
                 <input type="text" id="uri" name="uri" class="input-xxlarge typeahead">
-                    <xsl:if test="not(starts-with(ac:uri(), $apl:base))">
+                    <xsl:if test="not(starts-with(ac:uri(), $ldt:base))">
                         <xsl:attribute name="value">
                             <xsl:value-of select="ac:uri()"/>
                         </xsl:attribute>
@@ -528,8 +526,8 @@ exclude-result-prefixes="#all">
         <xsl:apply-templates select="." mode="bs2:SignUp"/>
     </xsl:template>
 
-    <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$apl:client//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
-        <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $apl:base), map{ 'forClass': string('&adm;Person') })" as="xs:anyURI"/>
+    <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
+        <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), map{ 'forClass': string('&adm;Person') })" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
         
@@ -543,7 +541,7 @@ exclude-result-prefixes="#all">
                     </a>
                 </xsl:if>
                 <xsl:if test="$webid-signup">
-                    <a class="btn btn-primary" href="{if (not(starts-with($apl:base, $apl:baseUri))) then ac:build-uri((), map{ 'uri': string($uri) }) else $uri}">
+                    <a class="btn btn-primary" href="{if (not(starts-with($ldt:base, $apl:baseUri))) then ac:build-uri((), map{ 'uri': string($uri) }) else $uri}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'sign-up', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
@@ -582,7 +580,7 @@ exclude-result-prefixes="#all">
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $apl:base)">
+                        <xsl:for-each select="ac:construct-doc($apl:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <!-- avoid selecting object blank nodes which only have rdf:type -->
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
@@ -592,7 +590,7 @@ exclude-result-prefixes="#all">
                     </xsl:document>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:copy-of select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)"/>
+                    <xsl:copy-of select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -642,7 +640,7 @@ exclude-result-prefixes="#all">
 
     <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
-        <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
         <xsl:param name="default-classes" select="(key('resources', '&apl;Content', document(ac:document-uri('&apl;'))), key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
 
@@ -981,7 +979,7 @@ exclude-result-prefixes="#all">
             <h2>
                 <xsl:apply-templates select="." mode="apl:logo"/>
                 
-                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string(ac:uri()) }) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri(ac:uri()))}" class="btn btn-primary pull-right">Request access</a>
+                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string(ac:uri()) }) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri(ac:uri()))}" class="btn btn-primary pull-right">Request access</a>
             </h2>
         </div>
     </xsl:template>
@@ -1026,8 +1024,8 @@ exclude-result-prefixes="#all">
     
     <!-- override form action in Client template -->
 <!--    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
-        <xsl:param name="action" select="if (empty($apl:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
-        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $apl:base)" as="document-node()"/>
+        <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="constructor" select="ac:construct-doc($apl:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
         <xsl:param name="classes" select="document(ac:document-uri($apl:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $apl:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
         <xsl:next-match>
@@ -1045,17 +1043,17 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
             <xsl:map>
-                <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $apl:base)"/>
-                <xsl:map-entry key="'&def;DydraService'" select="resolve-uri('services/', $apl:base)"/>
-                <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $apl:base)"/>
-                <xsl:map-entry key="'&def;Construct'" select="resolve-uri('queries/', $apl:base)"/>
-                <xsl:map-entry key="'&def;Describe'" select="resolve-uri('queries/', $apl:base)"/>
-                <xsl:map-entry key="'&def;Select'" select="resolve-uri('queries/', $apl:base)"/>
-                <xsl:map-entry key="'&def;Ask'" select="resolve-uri('queries/', $apl:base)"/>
-                <xsl:map-entry key="'&def;RDFImport'" select="resolve-uri('imports/', $apl:base)"/>
-                <xsl:map-entry key="'&def;CSVImport'" select="resolve-uri('imports/', $apl:base)"/>
-                <xsl:map-entry key="'&def;GraphChart'" select="resolve-uri('charts/', $apl:base)"/>
-                <xsl:map-entry key="'&def;ResultSetChart'" select="resolve-uri('charts/', $apl:base)"/>
+                <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;DydraService'" select="resolve-uri('services/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;Describe'" select="resolve-uri('queries/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;Select'" select="resolve-uri('queries/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;Ask'" select="resolve-uri('queries/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;RDFImport'" select="resolve-uri('imports/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;CSVImport'" select="resolve-uri('imports/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;GraphChart'" select="resolve-uri('charts/', $ldt:base)"/>
+                <xsl:map-entry key="'&def;ResultSetChart'" select="resolve-uri('charts/', $ldt:base)"/>
             </xsl:map>
         </xsl:param>
         <xsl:param name="container" select="if (map:contains($class-containers, $ac:forClass)) then map:get($class-containers, $ac:forClass) else ac:uri()" as="xs:anyURI"/>
@@ -1162,7 +1160,7 @@ exclude-result-prefixes="#all">
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Settings" priority="1">
-        <xsl:if test="$acl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $apl:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+        <xsl:if test="$acl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
             <div class="btn-group pull-right">
                 <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo">
@@ -1175,13 +1173,13 @@ exclude-result-prefixes="#all">
                 <ul class="dropdown-menu">
                     <li>
                         <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $apl:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
+                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
                                 Administration
                             </a>
                         </xsl:for-each>
                     </li>
                     <li>
-                        <a href="{resolve-uri('admin/model/ontologies/namespace/', $apl:base)}" target="_blank">Namespace</a>
+                        <a href="{resolve-uri('admin/model/ontologies/namespace/', $ldt:base)}" target="_blank">Namespace</a>
                     </li>
                     <li>
                         <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>

@@ -90,7 +90,7 @@ extension-element-prefixes="ixsl"
     <xsl:include href="bootstrap/2.3.2/client/sparql.xsl"/>
 
     <xsl:param name="ac:contextUri" as="xs:anyURI"/>
-    <xsl:param name="apl:base" as="xs:anyURI"/> <!-- not the same as $ldt:base -->
+    <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
     <xsl:param name="apl:ontology" as="xs:anyURI"/>
     <xsl:param name="services-request-uri" as="xs:anyURI"/>
@@ -104,8 +104,8 @@ extension-element-prefixes="ixsl"
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
     <xsl:param name="ac:forClass" select="if (ixsl:query-params()?forClass) then xs:anyURI(ixsl:query-params()?forClass) else ()" as="xs:anyURI?"/>
-    <xsl:param name="a:graphStore" select="resolve-uri('service', $apl:base)" as="xs:anyURI?"/>
-    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $apl:base)" as="xs:anyURI"/>
+    <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI?"/>
+    <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
     <xsl:param name="ac:limit" select="if (ixsl:query-params()?limit) then xs:integer(ixsl:query-params()?limit) else $page-size" as="xs:integer"/>
     <xsl:param name="ac:offset" select="if (ixsl:query-params()?offset) then xs:integer(ixsl:query-params()?offset) else 0" as="xs:integer"/>
     <xsl:param name="ac:order-by" select="ixsl:query-params()?order-by" as="xs:string?"/>
@@ -129,7 +129,7 @@ extension-element-prefixes="ixsl"
         <xsl:message>xsl:product-name: <xsl:value-of select="system-property('xsl:product-name')"/></xsl:message>
         <xsl:message>saxon:platform: <xsl:value-of select="system-property('saxon:platform')"/></xsl:message>
         <xsl:message>$ac:contextUri: <xsl:value-of select="$ac:contextUri"/></xsl:message>
-        <xsl:message>$apl:base: <xsl:value-of select="$apl:base"/></xsl:message>
+        <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
         <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
         <xsl:message>$apl:ontology: <xsl:value-of select="$apl:ontology"/></xsl:message>
         <xsl:message>count($apl:services//*[@rdf:about]): <xsl:value-of select="count($apl:services//*[@rdf:about])"/></xsl:message>
@@ -151,7 +151,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $apl:base)"/>
+            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
             <xsl:with-param name="title" select="ixsl:get(ixsl:window(), 'document.title')"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>
@@ -199,7 +199,7 @@ extension-element-prefixes="ixsl"
         <!-- update RDF download links to match the current URI -->
         <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
             <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-            <xsl:variable name="href" select="ac:build-uri($apl:base, map{ 'uri': string(ac:uri()), 'accept': string(@title) })" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()), 'accept': string(@title) })" as="xs:anyURI"/>
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
     </xsl:template>
@@ -677,7 +677,7 @@ extension-element-prefixes="ixsl"
                                 <xsl:with-param name="leaf" select="true()"/>
                             </xsl:apply-templates>
                         </ul>
-<!--                        <xsl:if test="not(starts-with($uri, $apl:base))">
+<!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
                             <span class="label label-info pull-left">External</span>
                         </xsl:if>-->
                     </xsl:result-document>
@@ -889,7 +889,7 @@ extension-element-prefixes="ixsl"
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($content-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($content-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContentLoad">
@@ -913,7 +913,7 @@ extension-element-prefixes="ixsl"
         <!-- indirect resource URI, dereferenced through a proxy -->
         <!-- add a bogus query parameter to give the RDF/XML document a different URL in the browser cache, otherwise it will clash with the HTML representation -->
         <!-- this is due to broken browser behavior re. Vary and conditional requests: https://stackoverflow.com/questions/60799116/firefox-if-none-match-headers-ignore-content-type-and-vary/60802443 -->
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($uri), 'param': 'dummy' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri), 'param': 'dummy' })" as="xs:anyURI"/>
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -973,7 +973,7 @@ extension-element-prefixes="ixsl"
                                     <div>
                                         <xsl:attribute name="class">tab-pane <xsl:if test="not($source)">active</xsl:if></xsl:attribute>
 
-                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $apl:base), map{ 'forClass': '&def;File' })}" enctype="multipart/form-data">
+                                        <form id="form-add-data" method="POST" action="{ac:build-uri(resolve-uri('add', $ldt:base), map{ 'forClass': '&def;File' })}" enctype="multipart/form-data">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>
@@ -1055,7 +1055,7 @@ extension-element-prefixes="ixsl"
                                     <div>
                                         <xsl:attribute name="class">tab-pane <xsl:if test="$source">active</xsl:if></xsl:attribute>
 
-                                        <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $apl:base)}">
+                                        <form id="form-clone-data" method="POST" action="{resolve-uri('clone', $ldt:base)}">
                                             <xsl:comment>This form uses RDF/POST encoding: http://www.lsrn.org/semweb/rdfpost.html</xsl:comment>
                                             <xsl:call-template name="xhtml:Input">
                                                 <xsl:with-param name="name" select="'rdf'"/>
@@ -1156,13 +1156,13 @@ extension-element-prefixes="ixsl"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="select-uri" select="key('resources', $apl:base)/dh:select/@rdf:resource" as="xs:anyURI?"/>
+                    <xsl:variable name="select-uri" select="key('resources', $ldt:base)/dh:select/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$select-uri">
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $select-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="apl:RootChildrenSelectLoad">
                                     <xsl:with-param name="id" select="$id"/>
-                                    <xsl:with-param name="this-uri" select="$apl:base"/>
+                                    <xsl:with-param name="this-uri" select="$ldt:base"/>
                                     <xsl:with-param name="select-uri" select="$select-uri"/>
                                     <xsl:with-param name="endpoint" select="$ac:endpoint"/>
                                 </xsl:call-template>
@@ -1225,7 +1225,7 @@ extension-element-prefixes="ixsl"
                 <xsl:for-each select="?body">
                     <xsl:variable name="results" select="." as="document-node()"/>
                         <xsl:variable name="container-list" as="element()*">
-                            <xsl:for-each select="key('resources-by-container', $apl:base, $results)">
+                            <xsl:for-each select="key('resources-by-container', $ldt:base, $results)">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:apply-templates select="." mode="bs2:List">
                                     <xsl:with-param name="active" select="starts-with(apl:absolute-path(), @rdf:about)"/>
@@ -1237,7 +1237,7 @@ extension-element-prefixes="ixsl"
                             <xsl:if test="$container-list">
                                 <div class="well well-small">
                                     <h2 class="nav-header">
-                                        <a href="{$apl:base}" title="{$apl:base}">
+                                        <a href="{$ldt:base}" title="{$ldt:base}">
                                             <xsl:value-of>
                                                 <xsl:apply-templates select="key('resources', 'root', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
                                             </xsl:value-of>
@@ -1261,7 +1261,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- render dropdown for root containers -->
-    <xsl:template match="*[@rdf:about = ($apl:base, resolve-uri('charts/', $apl:base), resolve-uri('files/', $apl:base), resolve-uri('geo/', $apl:base), resolve-uri('imports/', $apl:base), resolve-uri('latest/', $apl:base), resolve-uri('services/', $apl:base), resolve-uri('queries/', $apl:base))]" mode="bs2:BreadCrumbListItem" priority="1">
+    <xsl:template match="*[@rdf:about = ($ldt:base, resolve-uri('charts/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('latest/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('queries/', $ldt:base))]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
 
         <li>
@@ -1277,28 +1277,28 @@ extension-element-prefixes="ixsl"
                 <ul class="dropdown-menu">
                     <!-- TO-DO: replace with an RDF/XML document and apl:logo/xhtml:Anchor calls -->
                     <li>
-                        <a href="{$apl:base}" class="btn-logo btn-container">Root</a>
+                        <a href="{$ldt:base}" class="btn-logo btn-container">Root</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}charts/" class="btn-logo btn-chart">Charts</a>
+                        <a href="{$ldt:base}charts/" class="btn-logo btn-chart">Charts</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}files/" class="btn-logo btn-file">Files</a>
+                        <a href="{$ldt:base}files/" class="btn-logo btn-file">Files</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}geo/" class="btn-logo btn-geo">Geo</a>
+                        <a href="{$ldt:base}geo/" class="btn-logo btn-geo">Geo</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}imports/" class="btn-logo btn-import">Imports</a>
+                        <a href="{$ldt:base}imports/" class="btn-logo btn-import">Imports</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}latest/" class="btn-logo btn-latest">Latest</a>
+                        <a href="{$ldt:base}latest/" class="btn-logo btn-latest">Latest</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}services/" class="btn-logo btn-service">Services</a>
+                        <a href="{$ldt:base}services/" class="btn-logo btn-service">Services</a>
                     </li>
                     <li>
-                        <a href="{$apl:base}queries/" class="btn-logo btn-query">Queries</a>
+                        <a href="{$ldt:base}queries/" class="btn-logo btn-query">Queries</a>
                     </li>
                 </ul>
             </div>
@@ -1426,7 +1426,7 @@ extension-element-prefixes="ixsl"
 
                     <xsl:if test="$push-state">
                         <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="apl:href($content-uri, $apl:base)"/>
+                            <xsl:with-param name="href" select="apl:href($content-uri, $ldt:base)"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="query" select="$query"/>
                             <xsl:with-param name="sparql" select="true()"/>
@@ -1555,7 +1555,7 @@ extension-element-prefixes="ixsl"
                 <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
                 
@@ -1617,7 +1617,7 @@ extension-element-prefixes="ixsl"
         <xsl:if test="$uri">
             <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <xsl:choose>
-                <xsl:when test="starts-with($uri, $apl:base)">
+                <xsl:when test="starts-with($uri, $ldt:base)">
                     <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <!-- unset #uri value -->
                     <xsl:for-each select="id('uri', ixsl:page())">
@@ -1634,7 +1634,7 @@ extension-element-prefixes="ixsl"
 
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
-                    <xsl:with-param name="href" select="apl:href($uri, $apl:base)"/>
+                    <xsl:with-param name="href" select="apl:href($uri, $ldt:base)"/>
                     <xsl:with-param name="title" select="title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
@@ -1642,7 +1642,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
 
         <!-- set document.title which history.pushState() does not do -->
-        <ixsl:set-property name="title" select="substring-before(ixsl:page()/html/head/title, ' -') || ' - ' || html/head/title" object="ixsl:page()"/>
+        <ixsl:set-property name="title" select="html/head/title" object="ixsl:page()"/>
 
         <xsl:variable name="results" select="." as="document-node()"/>
         
@@ -1670,7 +1670,7 @@ extension-element-prefixes="ixsl"
         <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
             <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
             <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-            <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $apl:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
+            <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
             <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
 
@@ -1759,11 +1759,11 @@ extension-element-prefixes="ixsl"
     <xsl:template match="button[@id = 'export-rdf']/following-sibling::ul//a" mode="ixsl:onclick" priority="1"/>
     
     <!-- intercept all link HTTP(S) clicks except to /uploads/ and those in the navbar (except breadcrumb bar) and the footer -->
-    <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(starts-with(@href, resolve-uri('uploads/', $apl:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
+    <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(starts-with(@href, resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($uri) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1794,7 +1794,7 @@ extension-element-prefixes="ixsl"
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- indirect resource URI, dereferenced through a proxy -->
-            <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
             
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1825,7 +1825,7 @@ extension-element-prefixes="ixsl"
             <xsl:when test="?status = 204"> <!-- No Content -->
                 <xsl:variable name="resource-uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
                 <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$resource-uri"/></xsl:message>
-                <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1877,7 +1877,7 @@ extension-element-prefixes="ixsl"
             </xsl:message>
         </xsl:for-each>
         <!-- set a cookie to never show it again -->
-        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after($apl:base, $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
+        <ixsl:set-property name="cookie" select="concat('LinkedDataHub.first-time-message=true; path=/', substring-after($ldt:base, $ac:contextUri), '; expires=Fri, 31 Dec 9999 23:59:59 GMT')" object="ixsl:page()"/>
     </xsl:template>
     
     <!-- trigger typeahead in the search bar -->
@@ -1900,7 +1900,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
 
@@ -1915,7 +1915,7 @@ extension-element-prefixes="ixsl"
                     <!-- resource URI selected in the typeahead -->
                     <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- indirect resource URI, dereferenced through a proxy -->
-                    <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
                     
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1972,7 +1972,7 @@ extension-element-prefixes="ixsl"
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -2035,7 +2035,7 @@ extension-element-prefixes="ixsl"
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
     <xsl:template match="input[tokenize(@class, ' ') = 'type-typeahead']" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
-            <xsl:with-param name="results-uri" select="resolve-uri('admin/model/ontologies/namespace/', $apl:base)"/>
+            <xsl:with-param name="results-uri" select="resolve-uri('admin/model/ontologies/namespace/', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     
@@ -2059,7 +2059,7 @@ extension-element-prefixes="ixsl"
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
         
@@ -2155,7 +2155,7 @@ extension-element-prefixes="ixsl"
     <!-- open editing form (do nothing if the button is disabled) -->
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
         <!-- toggle .active class -->
@@ -2180,7 +2180,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="button[tokenize(@class, ' ') = 'btn-delete'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $apl:base))) then ac:build-uri($apl:base, map{ 'uri': string($uri) }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ 'Are you sure?' ])">
             <xsl:variable name="request" as="item()*">
@@ -2252,7 +2252,7 @@ extension-element-prefixes="ixsl"
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="mode" select="map:get($mode-classes, $active-class)" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
@@ -2316,7 +2316,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template name="ixsl:ontypeTypeaheadCallback">
         <xsl:next-match>
-            <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/namespace/', $apl:base)"/>
+            <xsl:with-param name="container-uri" select="resolve-uri('admin/model/ontologies/namespace/', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
 

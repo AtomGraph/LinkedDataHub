@@ -136,7 +136,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         
         <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
-        <xsl:variable name="container" select="resolve-uri('charts/', $apl:base)" as="xs:anyURI"/>
+        <xsl:variable name="container" select="resolve-uri('charts/', $ldt:base)" as="xs:anyURI"/>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
@@ -188,7 +188,7 @@ exclude-result-prefixes="#all"
             <ixsl:set-style name="width" select="'66%'" object="."/>
         </xsl:for-each>
 
-        <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($query-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onChartQueryLoad">
@@ -368,7 +368,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else $ac:endpoint))[1])" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="ac:build-uri($apl:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
                     <!-- update progress bar -->
                     <xsl:for-each select="$container//div[@class = 'bar']">

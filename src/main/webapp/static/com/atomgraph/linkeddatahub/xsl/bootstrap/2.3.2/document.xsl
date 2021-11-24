@@ -118,7 +118,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&def;GraphChart')" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -286,7 +286,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="doc-type" select="xs:anyURI('&def;Item')" as="xs:anyURI"/>
         <xsl:param name="type" select="xs:anyURI('&def;ResultSetChart')" as="xs:anyURI"/>
-        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $apl:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('charts/', $ldt:base), map{ 'forClass': string($type) })" as="xs:anyURI"/>
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'form-inline'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn'" as="xs:string?"/>
@@ -482,7 +482,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:Form" priority="1">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="xs:anyURI(if (not(starts-with(ac:uri(), $ac:contextUri))) then ac:build-uri($apl:base, map { 'uri': string(ac:uri()) }) else ac:uri())" as="xs:anyURI"/>
+        <xsl:param name="action" select="xs:anyURI(if (not(starts-with(ac:uri(), $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string(ac:uri()) }) else ac:uri())" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
