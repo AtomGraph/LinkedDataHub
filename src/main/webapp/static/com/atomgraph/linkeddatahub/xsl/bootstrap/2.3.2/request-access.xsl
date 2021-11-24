@@ -84,7 +84,7 @@ exclude-result-prefixes="#all">
             <div class="offset2 span7">
                 <xsl:variable name="constructor" as="document-node()">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                        <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
                                 <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>

@@ -43,7 +43,7 @@ exclude-result-prefixes="#all">
                 <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&adm;Container', '&adm;Item'))">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                        <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
                                 <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
@@ -52,7 +52,7 @@ exclude-result-prefixes="#all">
                     </xsl:document>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:copy-of select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)"/>
+                    <xsl:copy-of select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -130,7 +130,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI(if (not(starts-with(ac:uri(), $ac:contextUri))) then ac:build-uri($ldt:base, map { 'uri': string(ac:uri()) }) else ac:uri())" as="xs:anyURI"/>
         <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
-        <xsl:param name="constructor" select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
+        <xsl:param name="constructor" select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
         <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
         
         <xsl:next-match>

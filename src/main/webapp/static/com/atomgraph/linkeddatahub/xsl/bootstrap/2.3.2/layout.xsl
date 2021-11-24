@@ -579,7 +579,7 @@ exclude-result-prefixes="#all">
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
                     <xsl:document>
-                        <xsl:for-each select="ac:construct-doc($ldt:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
+                        <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                                 <!-- avoid selecting object blank nodes which only have rdf:type -->
                                 <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
@@ -589,7 +589,7 @@ exclude-result-prefixes="#all">
                     </xsl:document>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:copy-of select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)"/>
+                    <xsl:copy-of select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
@@ -1024,7 +1024,7 @@ exclude-result-prefixes="#all">
     <!-- override form action in Client template -->
 <!--    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
         <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
-        <xsl:param name="constructor" select="ac:construct-doc($ldt:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
+        <xsl:param name="constructor" select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
         <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
         <xsl:next-match>
