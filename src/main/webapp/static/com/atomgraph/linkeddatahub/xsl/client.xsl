@@ -146,6 +146,7 @@ extension-element-prefixes="ixsl"
 
         <!-- create a LinkedDataHub namespace -->
         <ixsl:set-property name="LinkedDataHub" select="apl:new-object()"/>
+        <ixsl:set-property name="typeahead" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="href" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else $apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -2039,14 +2040,6 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-<!--    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusin">
-        <xsl:message>.typeahead onfocusin</xsl:message>
-    </xsl:template>
-
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
-        <xsl:message>.typeahead onfocusout</xsl:message>
-    </xsl:template>-->
-
     <!-- lookup by ?label and optional ?Type using search SELECT -->
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
@@ -2124,7 +2117,7 @@ extension-element-prefixes="ixsl"
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
+
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         

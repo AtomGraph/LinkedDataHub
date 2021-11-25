@@ -94,22 +94,6 @@ exclude-result-prefixes="#all"
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])"/>
             </xsl:message>
         </xsl:if>
-        <!-- typeahead blur -->
-<!--        <xsl:if test="tokenize(@class, ' ') = 'resource-typeahead'">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur') ])"/>
-            </xsl:message>
-        </xsl:if>-->
-        <!-- prepended/appended input -->
-<!--        <xsl:if test="@type = 'text' and ../tokenize(@class, ' ') = ('input-prepend', 'input-append')">
-            <xsl:variable name="value" select="concat(preceding-sibling::*[@class = 'add-on']/text(), @value, following-sibling::*[@class = 'add-on']/text())" as="xs:string?"/>
-            <xsl:message>Concatenated @value: <xsl:value-of select="$value"/></xsl:message>
-            <ixsl:set-property object="../input[@type = 'hidden']" name="value" select="$value"/>
-
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onPrependedAppendedInputChange') ])"/>
-            </xsl:message>
-        </xsl:if>-->
         
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
@@ -411,6 +395,28 @@ exclude-result-prefixes="#all"
         </xsl:call-template>
     </xsl:template>
     
+    <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
+        <xsl:message>.typeahead onfocusin</xsl:message>
+        <!--<xsl:variable name="menu" select="following-sibling::ul" as="element()"/>-->
+        <xsl:param name="items" as="element()*">
+            <xsl:for-each select="ancestor::form//input[@name = 'sb']">
+                <rdf:Description rdf:nodeID="{@name}">
+                    <rdfs:label>
+                        <xsl:value-of select="@name"/>
+                    </rdfs:label>
+                </rdf:Description>
+            </xsl:for-each>
+        </xsl:param>
+
+        <xsl:call-template name="typeahead:process">
+            <!--<xsl:with-param name="menu" select="$menu"/>-->
+            <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
+            <xsl:with-param name="items" select="$items"/>
+            <xsl:with-param name="element" select="."/>
+            <xsl:with-param name="name" select="'ob'"/>
+        </xsl:call-template>
+    </xsl:template>
+
     <!-- simplified version of Bootstrap's tooltip() -->
     
     <xsl:template match="fieldset//input" mode="ixsl:onmouseover">

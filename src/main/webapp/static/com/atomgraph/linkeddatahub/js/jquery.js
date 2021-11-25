@@ -1,11 +1,5 @@
 /* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
-//var onTypeaheadInputBlur = function()
-//{
-//    // hide and empty the list with typeahead suggestions (otherwise it gets submitted with RDF/POST)
-//    $(this).nextAll("ul.typeahead").hide().empty();
-//};
-
 var fetchDispatchXML = function(url, method, headers, body, target, eventName)
 {
     let request = new Request(url, { "method": method, "headers": headers, "body": body });
@@ -114,17 +108,6 @@ var onSubjectValueChange = function(event)
     oldSubject.val(newValue); // store value in the hidden input
 };
 
-var onPrependedAppendedInputChange = function()
-{
-    // avoid selecting the tooltip <div> which gets inserted after the <input> (before the second <span>) during mouseover
-    var prepended = $(this).prevAll("span.add-on");
-    var appended = $(this).nextAll("span.add-on");
-    var value = $(this).val();
-    if (prepended.length) value = prepended.text() + value;
-    if (appended.length) value = value + appended.text();
-    $(this).siblings("input[type=hidden]").val(value); // set the concatenated value on the hidden input (which must exist)
-};
-
 var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
 {
     object.addListener(type, 
@@ -159,9 +142,4 @@ $(document).ready(function()
         if (!($(event.target).parent().is(dropdown))) dropdown.toggleClass("open");
     });
     
-//    $(".input-prepend.input-append input[type=text]").on("change", onPrependedAppendedInputChange).change();
-    
-//    $("input.typeahead").on("blur", onTypeaheadInputBlur);
-    
-    $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
 });

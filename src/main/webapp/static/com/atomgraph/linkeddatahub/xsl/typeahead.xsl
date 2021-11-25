@@ -77,7 +77,7 @@ version="3.0"
                 
                 <span class="pull-right" style="font-size: smaller;">
                     <xsl:for-each select="rdf:type/@rdf:resource">
-                        <xsl:apply-templates select="." mode="ac:ObjectLabelMode"/>
+                        <xsl:apply-templates select="." mode="ac:object-label"/>
                         <xsl:if test="position() != last()">
                             <xsl:text> </xsl:text>
                         </xsl:if>
@@ -117,10 +117,7 @@ version="3.0"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <!-- TO-DO: is this actually used? -->
-                    <xsl:if test="not(ixsl:contains(ixsl:window(), 'LinkedDataHub.typeahead'))">
-                        <ixsl:set-property name="LinkedDataHub.typeahead" select="[]"/> <!-- empty array -->
-                    </xsl:if>
+                    <!-- TO-DO: does not belong here -->
                     <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
 
                     <xsl:call-template name="typeahead:process">
@@ -180,6 +177,7 @@ version="3.0"
             <xsl:apply-templates select="$items" mode="ac:TypeaheadOptionMode">
                 <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
                 <xsl:with-param name="name" select="$name"/>
+                <!-- TO-DO: replace with ac:label()? -->
                 <xsl:sort select="rdfs:label[1]"/>
                 <xsl:sort select="dct:title[1]"/>
                 <xsl:sort select="foaf:name[1]"/>
