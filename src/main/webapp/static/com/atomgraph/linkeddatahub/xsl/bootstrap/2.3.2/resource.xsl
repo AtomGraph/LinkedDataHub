@@ -331,7 +331,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- hide the current document resource -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Container', '&def;Item')]" mode="bs2:RowBlock" priority="1"/>
+    <xsl:template match="*[rdf:type/@rdf:resource = ('&def;Root', '&def;Container', '&def;Item')]" mode="bs2:RowBlock" priority="1"/>
 
     <!-- hide Content resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']" mode="bs2:RowBlock" priority="2"/>
