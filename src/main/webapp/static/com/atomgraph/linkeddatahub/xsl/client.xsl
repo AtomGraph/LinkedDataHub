@@ -2040,11 +2040,11 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusin">
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onfocus' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:message>.typeahead onfocusin</xsl:message>
     </xsl:template>
 
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
-        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onblur' ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:message>.typeahead onfocusout</xsl:message>
     </xsl:template>
 
     <!-- lookup by ?label and optional ?Type using search SELECT -->
