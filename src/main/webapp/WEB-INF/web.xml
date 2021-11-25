@@ -23,15 +23,13 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode              ?Mode .
+  {   { ?auth  acl:mode  ?Mode
           { ?auth  acl:accessTo  ?this }
         UNION
           { SERVICE ?endpoint
-              {   { ?this  a                     ?Type }
-                UNION
-                  { GRAPH ?g
-                      { ?this  a                     ?Type }
-                  }
+              { { GRAPH ?g
+                    { ?this  a  ?Type }
+                }
               }
               { ?auth  acl:accessToClass  ?Type }
             UNION
@@ -50,37 +48,18 @@ WHERE
       { ?auth  acl:mode  ?Mode
           { ?auth  acl:agentClass  foaf:Agent }
         UNION
-          { ?auth  acl:agentClass  ?AuthenticatedAgentClass } # must be set to acl:AuthenticatedAgent/rdfs:Resource
+          { ?auth  acl:agentClass  ?AuthenticatedAgentClass }
           { ?auth  acl:accessTo  ?this }
         UNION
           { SERVICE ?endpoint
-              {   { ?this  a                     ?Type }
-                UNION
-                  { GRAPH ?g
-                      { ?this  a                     ?Type }
-                  }
+              { { GRAPH ?g
+                    { ?this  a  ?Type }
+                }
               }
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
-              }
-          }
-      }
-    UNION
-      { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization . 
-        ?auth  a                     ?CreatorAuthorizationSubClass ;
-               acl:agentClass        ?AuthenticatedAgentClass
-          { ?auth  acl:accessToClass  ?Type }
-        UNION
-          { ?auth  acl:accessToClass  ?Class .
-            ?Type (rdfs:subClassOf)* ?Class
-          }
-        SERVICE ?endpoint
-          { GRAPH ?g
-              { ?this  a                     ?Type
-                GRAPH ?metaG
-                  { ?this  foaf:maker  ?agent }
               }
           }
       }
@@ -99,7 +78,7 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode              acl:Control .
+  {   { ?auth  acl:mode           acl:Control .
         ?doc   foaf:primaryTopic  ?auth
           { ?auth  acl:agent  ?agent }
         UNION
@@ -108,7 +87,7 @@ WHERE
           }
       }
     UNION
-      { ?auth  acl:agentClass  ?AuthenticatedAgentClass ; # must be set to acl:AuthenticatedAgent/rdfs:Resource
+      { ?auth  acl:agentClass  ?AuthenticatedAgentClass ;
                acl:mode        ?Mode
           { ?auth  acl:accessTo  ?this
             OPTIONAL
@@ -138,21 +117,6 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
           }
-        # hardcoded list of types that can be public in admin app (regardless of what Authorizations allow)
-        # FILTER ( ?Type IN (uri(concat(str(?Ontology), "SignUp")), uri(concat(str(?Ontology), "AuthorizeGoogle")), uri(concat(str(?Ontology), "OAuth2Login")), uri(concat(str(?Ontology), "OntologyItem")), uri(concat(str(?Ontology), "AgentItem")), uri(concat(str(?Ontology), "PublicKeyItem"))) )
-      }
-    UNION
-      { ?CreatorAuthorizationSubClass (rdfs:subClassOf)* lacl:CreatorAuthorization .
-        ?auth  a               ?CreatorAuthorizationSubClass ;
-               acl:agentClass  ?AuthenticatedAgentClass
-          { ?auth  acl:accessToClass  ?Type }
-        UNION
-          { ?auth  acl:accessToClass  ?Class .
-            ?Type (rdfs:subClassOf)* ?Class
-          }
-        { ?this  a           ?Type ;
-                 foaf:maker  ?agent
-        }
       }
   }
 ]]></param-value>
