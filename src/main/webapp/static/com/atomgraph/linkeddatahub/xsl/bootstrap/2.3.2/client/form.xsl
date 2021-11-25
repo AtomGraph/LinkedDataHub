@@ -389,10 +389,10 @@ exclude-result-prefixes="#all"
         <xsl:message>.typeahead onfocusin</xsl:message>
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:variable name="items" as="element()*">
-            <xsl:for-each select="ancestor::form//input[@name = 'sb']">
-                <rdf:Description rdf:nodeID="{@name}">
+            <xsl:for-each select="ancestor::form//input[@name = 'sb'][@value]">
+                <rdf:Description rdf:nodeID="{@value}">
                     <dct:title>
-                        <xsl:value-of select="@name"/>
+                        <xsl:value-of select="@value"/>
                     </dct:title>
                 </rdf:Description>
             </xsl:for-each>
