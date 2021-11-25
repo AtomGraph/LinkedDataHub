@@ -1,10 +1,10 @@
 /* global contextUri, baseUri, requestUri, absolutePath, lang, xslt2proc, UriBuilder, SaxonJS, ontologyUri, contextUri */
 
-var onTypeaheadInputBlur = function()
-{
-    // hide and empty the list with typeahead suggestions (otherwise it gets submitted with RDF/POST)
-    $(this).nextAll("ul.typeahead").hide().empty();
-};
+//var onTypeaheadInputBlur = function()
+//{
+//    // hide and empty the list with typeahead suggestions (otherwise it gets submitted with RDF/POST)
+//    $(this).nextAll("ul.typeahead").hide().empty();
+//};
 
 var fetchDispatchXML = function(url, method, headers, body, target, eventName)
 {
@@ -125,11 +125,6 @@ var onPrependedAppendedInputChange = function()
     $(this).siblings("input[type=hidden]").val(value); // set the concatenated value on the hidden input (which must exist)
 };
 
-var onContentDisplayToggle = function()
-{
-    $('body').find(".content").toggle();
-};
-
 var addGoogleMapsListener = function(object, type, options, templateName, map, marker, uri)
 {
     object.addListener(type, 
@@ -164,9 +159,9 @@ $(document).ready(function()
         if (!($(event.target).parent().is(dropdown))) dropdown.toggleClass("open");
     });
     
-    $(".input-prepend.input-append input[type=text]").on("change", onPrependedAppendedInputChange).change();
+//    $(".input-prepend.input-append input[type=text]").on("change", onPrependedAppendedInputChange).change();
     
-    $("input.typeahead").on("blur", onTypeaheadInputBlur);
+//    $("input.typeahead").on("blur", onTypeaheadInputBlur);
     
     $(".btn.btn-toggle-content").on("click", onContentDisplayToggle);
 });

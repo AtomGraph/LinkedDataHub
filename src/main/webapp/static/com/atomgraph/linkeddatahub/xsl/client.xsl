@@ -2039,13 +2039,13 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusin">
+<!--    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusin">
         <xsl:message>.typeahead onfocusin</xsl:message>
     </xsl:template>
 
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
         <xsl:message>.typeahead onfocusout</xsl:message>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- lookup by ?label and optional ?Type using search SELECT -->
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
@@ -2125,7 +2125,7 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onblur">
+    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         
         <xsl:call-template name="typeahead:hide">

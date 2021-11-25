@@ -95,22 +95,21 @@ exclude-result-prefixes="#all"
             </xsl:message>
         </xsl:if>
         <!-- typeahead blur -->
-        <xsl:if test="tokenize(@class, ' ') = 'resource-typeahead'">
+<!--        <xsl:if test="tokenize(@class, ' ') = 'resource-typeahead'">
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur') ])"/>
             </xsl:message>
-        </xsl:if>
+        </xsl:if>-->
         <!-- prepended/appended input -->
-        <xsl:if test="@type = 'text' and ../tokenize(@class, ' ') = ('input-prepend', 'input-append')">
+<!--        <xsl:if test="@type = 'text' and ../tokenize(@class, ' ') = ('input-prepend', 'input-append')">
             <xsl:variable name="value" select="concat(preceding-sibling::*[@class = 'add-on']/text(), @value, following-sibling::*[@class = 'add-on']/text())" as="xs:string?"/>
             <xsl:message>Concatenated @value: <xsl:value-of select="$value"/></xsl:message>
-            <!-- set the initial value the same way as the event handler does -->
             <ixsl:set-property object="../input[@type = 'hidden']" name="value" select="$value"/>
 
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onPrependedAppendedInputChange') ])"/>
             </xsl:message>
-        </xsl:if>
+        </xsl:if>-->
         
         <!-- TO-DO: move to a better place. Does not take effect if typeahead is reset -->
         <ixsl:set-property object="." name="autocomplete" select="'off'"/>
