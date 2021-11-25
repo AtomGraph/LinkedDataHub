@@ -387,7 +387,7 @@ exclude-result-prefixes="#all"
     
     <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
         <xsl:message>.typeahead onfocusin</xsl:message>
-        <!--<xsl:variable name="menu" select="following-sibling::ul" as="element()"/>-->
+        <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:variable name="items" as="element()*">
             <xsl:for-each select="ancestor::form//input[@name = 'sb']">
                 <rdf:Description rdf:nodeID="{@name}">
@@ -399,7 +399,7 @@ exclude-result-prefixes="#all"
         </xsl:variable>
 
         <xsl:call-template name="typeahead:process">
-            <!--<xsl:with-param name="menu" select="$menu"/>-->
+            <xsl:with-param name="menu" select="$menu"/>
             <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
             <xsl:with-param name="items" select="$items"/>
             <xsl:with-param name="element" select="."/>
