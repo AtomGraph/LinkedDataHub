@@ -401,9 +401,9 @@ exclude-result-prefixes="#all"
         <xsl:param name="items" as="element()*">
             <xsl:for-each select="ancestor::form//input[@name = 'sb']">
                 <rdf:Description rdf:nodeID="{@name}">
-                    <rdfs:label>
+                    <dct:title>
                         <xsl:value-of select="@name"/>
-                    </rdfs:label>
+                    </dct:title>
                 </rdf:Description>
             </xsl:for-each>
         </xsl:param>
