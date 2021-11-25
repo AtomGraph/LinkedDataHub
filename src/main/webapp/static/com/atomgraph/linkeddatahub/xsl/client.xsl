@@ -2039,11 +2039,11 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocus">
+    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusin">
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onfocus' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onblur">
+    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
         <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onblur' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
