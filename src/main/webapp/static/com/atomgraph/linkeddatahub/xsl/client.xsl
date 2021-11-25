@@ -26,7 +26,7 @@
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY nfo        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
-    <!ENTITY gm     "https://developers.google.com/maps#">
+    <!ENTITY gm         "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xhtml="http://www.w3.org/1999/xhtml"
@@ -2039,6 +2039,14 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
     
+    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocus">
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onfocus' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
+    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onblur">
+        <xsl:sequence select="ixsl:call(ixsl:window(), 'alert', [ 'onblur' ])[current-date() lt xs:date('2000-01-01')]"/>
+    </xsl:template>
+
     <!-- lookup by ?label and optional ?Type using search SELECT -->
     <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
