@@ -388,7 +388,7 @@ exclude-result-prefixes="#all"
     <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
         <xsl:message>.typeahead onfocusin</xsl:message>
         <!--<xsl:variable name="menu" select="following-sibling::ul" as="element()"/>-->
-        <xsl:param name="items" as="element()*">
+        <xsl:variable name="items" as="element()*">
             <xsl:for-each select="ancestor::form//input[@name = 'sb']">
                 <rdf:Description rdf:nodeID="{@name}">
                     <dct:title>
@@ -396,7 +396,7 @@ exclude-result-prefixes="#all"
                     </dct:title>
                 </rdf:Description>
             </xsl:for-each>
-        </xsl:param>
+        </xsl:variable>
 
         <xsl:call-template name="typeahead:process">
             <!--<xsl:with-param name="menu" select="$menu"/>-->
