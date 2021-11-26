@@ -816,11 +816,11 @@ extension-element-prefixes="ixsl"
     
     <!-- TYPEAHEAD -->
     
-    <xsl:template match="*[*][@rdf:about]" mode="apl:Typeahead">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="apl:Typeahead">
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="class" select="'btn add-typeahead'" as="xs:string?"/>
         <xsl:param name="disabled" select="false()" as="xs:boolean"/>
-        <xsl:param name="title" select="@rdf:about" as="xs:string?"/>
+        <xsl:param name="title" select="(@rdf:about, @rdf:nodeID)[1]" as="xs:string?"/>
 
         <button type="button">
             <xsl:if test="$id">
@@ -842,7 +842,13 @@ extension-element-prefixes="ixsl"
                 </xsl:value-of>
             </span>
             <span class="caret pull-right"></span>
-            <input type="hidden" name="ou" value="{@rdf:about}"/>
+            
+            <xsl:if test="@rdf:about">
+                <input type="hidden" name="ou" value="{@rdf:about}"/>
+            </xsl:if>
+            <xsl:if test="@rdf:nodeID">
+                <input type="hidden" name="ob" value="{@rdf:nodeID}"/>
+            </xsl:if>
         </button>
     </xsl:template>
     

@@ -38,7 +38,7 @@ extension-element-prefixes="ixsl"
 version="3.0"
 >
         
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOptionMode">
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="ac:TypeaheadOption">
         <xsl:param name="class" as="xs:string?"/>
         <xsl:param name="query" as="xs:string"/>
         <xsl:param name="name" as="xs:string"/>
@@ -174,7 +174,7 @@ version="3.0"
         <xsl:param name="name" as="xs:string"/>
         
         <xsl:result-document href="#{$menu/@id}" method="ixsl:replace-content">
-            <xsl:apply-templates select="$items" mode="ac:TypeaheadOptionMode">
+            <xsl:apply-templates select="$items" mode="ac:TypeaheadOption">
                 <xsl:with-param name="query" select="$element/ixsl:get(., 'value')"/>
                 <xsl:with-param name="name" select="$name"/>
                 <!-- TO-DO: replace with ac:label()? -->
