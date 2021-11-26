@@ -2135,10 +2135,10 @@ extension-element-prefixes="ixsl"
     <!-- select typeahead item -->
     
     <xsl:template match="ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown">
-        <xsl:param name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')"/>
-        <xsl:param name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
+        <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')"/> <!-- can be URI resource or blank node ID -->
+        <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')"/>
-        <xsl:variable name="resource" select="key('resources', $resource-uri, $typeahead-doc)"/>
+        <xsl:variable name="resource" select="key('resources', $resource-id, $typeahead-doc)"/>
 
         <xsl:for-each select="../..">
             <xsl:result-document href="?." method="ixsl:replace-content">

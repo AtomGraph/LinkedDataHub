@@ -389,7 +389,6 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
-        <xsl:message>.typeahead onfocusin</xsl:message>
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
