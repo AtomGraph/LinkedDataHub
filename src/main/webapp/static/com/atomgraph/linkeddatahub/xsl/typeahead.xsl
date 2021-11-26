@@ -51,9 +51,9 @@ version="3.0"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <input type="hidden" name="{$name}" value="{@rdf:about}"/>
+            <input type="hidden" name="{$name}" value="{(@rdf:about, @rdf:nodeID)[1]}"/>
 
-            <a title="{@rdf:about}">
+            <a title="{(@rdf:about, @rdf:nodeID)[1]}">
                 <xsl:for-each select="$label">
                     <xsl:choose>
                         <xsl:when test="contains(lower-case(.), lower-case($query))">
