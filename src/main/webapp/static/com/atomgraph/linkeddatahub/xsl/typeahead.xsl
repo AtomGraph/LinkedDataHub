@@ -117,6 +117,9 @@ version="3.0"
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
+                    <!-- TO-DO: does not belong here -->
+                    <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="."/>
+
                     <xsl:call-template name="typeahead:process">
                         <xsl:with-param name="menu" select="$menu"/>
                         <!-- filter out the search container and the hypermedia arguments which are not the real search results -->

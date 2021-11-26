@@ -35,7 +35,7 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
-    <xsl:template name="typeahead:xml-loaded">
+<!--    <xsl:template name="typeahead:xml-loaded">
         <xsl:context-item as="map(*)" use="required"/>
 
         <xsl:call-template name="xsl:original"/>
@@ -43,7 +43,7 @@ exclude-result-prefixes="#all"
         <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
             <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="?body"/>
         </xsl:if>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- currently unused -->
     <xsl:template name="add-value-listeners">
