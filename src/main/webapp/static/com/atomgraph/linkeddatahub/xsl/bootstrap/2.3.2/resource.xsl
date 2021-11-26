@@ -679,6 +679,9 @@ extension-element-prefixes="ixsl"
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:Form" priority="2"/>
 
+    <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(* except rdf:type)]" mode="bs2:Form" priority="2"/>
+
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:Form">
         <xsl:apply-templates select="." mode="bs2:FormControl">
             <xsl:sort select="ac:label(.)"/>

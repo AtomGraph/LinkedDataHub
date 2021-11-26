@@ -460,8 +460,6 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:ContentToggle"/>
-
             <div id="result-counts">
                 <!-- placeholder for client.xsl callbacks -->
             </div>
@@ -924,21 +922,7 @@ exclude-result-prefixes="#all">
        
     <xsl:template match="*" mode="bs2:ModeListItem"/>
 
-    <!-- CONTENT TOGGLE  -->
-    
-    <xsl:template match="rdf:RDF[key('resources', ac:uri())/sioc:content]" mode="bs2:ContentToggle" priority="1">
-        <div class="pull-right">
-            <button class="btn" title="Collapse/expand document content">
-                <xsl:apply-templates select="key('resources', 'toggle-content', document('translations.rdf'))" mode="apl:logo">
-                    <xsl:with-param name="class" select="'btn'"/>
-                </xsl:apply-templates>
-            </button>
-        </div>
-    </xsl:template>
-
-    <xsl:template match="rdf:RDF" mode="bs2:ContentToggle"/>
-
-    <!-- HEADER  -->
+    <!-- MEDIA TYPE LIST  -->
         
     <xsl:template match="rdf:RDF" mode="bs2:MediaTypeList" priority="1">
         <div class="btn-group pull-right">
@@ -1003,40 +987,11 @@ exclude-result-prefixes="#all">
         </div>
     </xsl:template>
 
-    <!-- FORM -->
-<!--
-    <xsl:template match="rdf:RDF[$ac:forClass]" mode="bs2:Form" priority="2">
-        <xsl:param name="modal" select="false()" as="xs:boolean" tunnel="yes"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
-        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
-        <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
-        <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+    <!-- CONTENT HEADER -->
 
-        <xsl:next-match>
-            <xsl:with-param name="action" select="$action"/>
-            <xsl:with-param name="enctype" select="$enctype"/>
-            <xsl:with-param name="constructor" select="$constructor"/>
-            <xsl:with-param name="classes" select="$classes"/>
-            <xsl:with-param name="create-resource" select="$create-resource"/>
-        </xsl:next-match>
-    </xsl:template>-->
-    
-    <!-- override form action in Client template -->
-<!--    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:Form" priority="2">
-        <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
-        <xsl:param name="constructor" select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)" as="document-node()"/>
-        <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+    <!-- hide the header of def:SelectChildren content -->
+    <xsl:template match="*[*][@rdf:about = '&def;SelectChildren']" mode="apl:ContentHeader"/>
 
-        <xsl:next-match>
-            <xsl:with-param name="action" select="$action" as="xs:anyURI"/>
-            <xsl:with-param name="constructor" select="$constructor"/>
-            <xsl:with-param name="classes" select="$classes"/>
-        </xsl:next-match>
-    </xsl:template>-->
-    
-    <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(* except rdf:type)]" mode="bs2:Form" priority="2"/>
-    
     <!-- FORM CONTROL -->
     
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
