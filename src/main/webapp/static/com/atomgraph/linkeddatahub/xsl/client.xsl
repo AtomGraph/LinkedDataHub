@@ -1148,7 +1148,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
-    <!-- root children list -->
+    <!-- root children list (unused) -->
     
     <xsl:template name="apl:RootLoad">
         <xsl:context-item as="map(*)" use="required"/>

@@ -35,6 +35,16 @@ exclude-result-prefixes="#all"
 
     <!-- TEMPLATES -->
 
+    <xsl:template name="typeahead:xml-loaded">
+        <xsl:context-item as="map(*)" use="required"/>
+
+        <xsl:call-template name="xsl:original"/>
+
+        <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
+            <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="?body"/>
+        </xsl:if>
+    </xsl:template>
+    
     <!-- currently unused -->
     <xsl:template name="add-value-listeners">
         <xsl:param name="id" as="xs:string"/>
@@ -46,13 +56,6 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-<!--    <xsl:template name="add-form-listeners">
-        <xsl:param name="form" as="element()"/>
-        <xsl:message>FORM ID: <xsl:value-of select="$form/@id"/></xsl:message>
-
-        <xsl:apply-templates select="$form" mode="apl:PostConstruct"/>
-    </xsl:template>-->
-
     <xsl:template match="*" mode="apl:PostConstruct">
         <xsl:apply-templates mode="#current"/>
     </xsl:template>
@@ -388,20 +391,26 @@ exclude-result-prefixes="#all"
     <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
         <xsl:message>.typeahead onfocusin</xsl:message>
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
-        <xsl:variable name="items" as="element()*">
-            <xsl:for-each select="ancestor::form//input[@name = 'sb'][@value]">
-                <rdf:Description rdf:nodeID="{@value}">
-                    <dct:title>
-                        <xsl:value-of select="@value"/>
-                    </dct:title>
-                </rdf:Description>
-            </xsl:for-each>
+        <xsl:variable name="item-doc" as="document-node()">
+            <xsl:document>
+                <rdf:RDF>
+                    <xsl:for-each select="ancestor::form//input[@name = 'sb'][@value]">
+                        <rdf:Description rdf:nodeID="{@value}">
+                            <dct:title>
+                                <xsl:value-of select="@value"/>
+                            </dct:title>
+                        </rdf:Description>
+                    </xsl:for-each>
+                </rdf:RDF>
+            </xsl:document>
         </xsl:variable>
+
+        <ixsl:set-property name="LinkedDataHub.typeahead.rdfXml" select="$item-doc"/>
 
         <xsl:call-template name="typeahead:process">
             <xsl:with-param name="menu" select="$menu"/>
-            <!-- filter out the search container and the hypermedia arguments which are not the real search results -->
-            <xsl:with-param name="items" select="$items"/>
+            <!-- TO-DO: filter by type? -->
+            <xsl:with-param name="items" select="$item-doc/rdf:RDF/rdf:Description"/>
             <xsl:with-param name="element" select="."/>
             <xsl:with-param name="name" select="'ob'"/>
         </xsl:call-template>
