@@ -1045,6 +1045,16 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <div class="pull-right">
+                <form action="{resolve-uri('skolemize', $ldt:base)}" method="post">
+                    <button type="button" title="{ac:label(key('resources', 'skolemize-title', document('translations.rdf')))}">
+                        <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="pull-right">
                 <button type="button" title="{key('resources', 'save-as', document('translations.rdf'))}">
                     <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn'"/>

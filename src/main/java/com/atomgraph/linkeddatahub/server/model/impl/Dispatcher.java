@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.resource.Imports;
 import com.atomgraph.linkeddatahub.resource.Namespace;
 import com.atomgraph.linkeddatahub.resource.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.SignUp;
+import com.atomgraph.linkeddatahub.resource.Skolemize;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -135,6 +136,12 @@ public class Dispatcher
         return Clone.class;
     }
 
+    @Path("skolemize")
+    public Object getSkolemizeEndpoint()
+    {
+        return Skolemize.class;
+    }
+    
     @Path("oauth2/authorize/google")
     public Object getAuthorizeGoogle()
     {
