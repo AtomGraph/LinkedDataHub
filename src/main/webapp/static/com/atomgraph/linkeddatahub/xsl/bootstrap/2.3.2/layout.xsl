@@ -1043,13 +1043,11 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <div class="pull-right">
-                <form action="{ac:build-uri(resolve-uri('skolemize', $ldt:base), map{ 'graph': string(ac:uri()) })}" method="post">
-                    <button type="button" title=""> <!-- {ac:label(key('resources', 'skolemize-title', document('translations.rdf')))} -->
-                        <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="apl:logo">
-                            <xsl:with-param name="class" select="'btn'"/>
-                        </xsl:apply-templates>
-                    </button>
-                </form>
+                <button type="button" title="{ac:label(key('resources', 'skolemize-title', document('translations.rdf')))}">
+                    <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
+                </button>
             </div>
             
             <div class="pull-right">

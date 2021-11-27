@@ -43,6 +43,12 @@
     <rdf:Description rdf:nodeID="delete">
         <rdfs:label xml:lang="en-US">Delete</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="skolemize">
+        <rdfs:label xml:lang="en-US">Skolemize</rdfs:label>
+    </rdf:Description>
+    <rdf:Description rdf:nodeID="skolemize-title">
+        <rdfs:label xml:lang="en-US">Replace all blank node resource identifiers with URIs</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="export">
         <rdfs:label xml:lang="en-US">export</rdfs:label>
     </rdf:Description>

@@ -150,6 +150,13 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:nodeID = 'skolemize']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-skolemize')"/>
+        <xsl:sequence select="ac:label(.)"/>
+    </xsl:template>
+    
     <xsl:template match="*[@rdf:about = '&ac;Export']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
