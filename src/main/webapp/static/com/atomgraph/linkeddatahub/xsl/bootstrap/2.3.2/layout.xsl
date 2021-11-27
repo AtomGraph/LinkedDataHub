@@ -1046,7 +1046,7 @@ exclude-result-prefixes="#all">
             
             <div class="pull-right">
                 <form action="{resolve-uri('skolemize', $ldt:base)}" method="post">
-                    <button type="button" title="{ac:label(key('resources', 'skolemize-title', document('translations.rdf')))}">
+                    <button type="button" title=""> <!-- {ac:label(key('resources', 'skolemize-title', document('translations.rdf')))} -->
                         <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
