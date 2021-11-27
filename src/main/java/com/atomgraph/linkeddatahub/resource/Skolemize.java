@@ -19,7 +19,6 @@ package com.atomgraph.linkeddatahub.resource;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
-import com.atomgraph.processor.vocabulary.DH;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Optional;
@@ -38,6 +37,7 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,8 +83,10 @@ public class Skolemize extends GraphStoreImpl
             it.close();
         }
 
-        // add dh:slug literals which are used by the Skolemizer
-        bnodes.stream().forEach(bnode -> bnode.addLiteral(DH.slug, UUID.randomUUID().toString()));
+        bnodes.stream().forEach(bnode ->
+            ResourceUtils.renameResource(bnode, getUriInfo().getAbsolutePathBuilder().
+                fragment("id{uuid}").
+                build(UUID.randomUUID().toString()).toString())); // TO-DO: replace Skolemizer with this?
         
         // replace the existing graph with the skolemized graph
         return super.put(model, defaultGraph, graphUri);
