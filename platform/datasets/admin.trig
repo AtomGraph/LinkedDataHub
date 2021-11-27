@@ -305,7 +305,7 @@
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone> ;
+        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone>, <../skolemize> ;
         acl:mode acl:Read, acl:Append, acl:Write, acl:Control ;
         acl:agentGroup <acl/groups/owners/#this> .
 
@@ -325,7 +325,7 @@
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
-        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone> ;
+        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone>, <../skolemize> ;
         acl:mode acl:Write, acl:Append ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this> .
 
@@ -345,7 +345,7 @@
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass def:Item, def:Container, def:Root, def:File ;
-        acl:accessTo <../sparql>, <../service>, <../imports>, <../add>, <../clone> ;
+        acl:accessTo <../sparql>, <../service> ;
         acl:mode acl:Read ;
         acl:agentGroup <acl/groups/owners/#this>, <acl/groups/writers/#this>, <acl/groups/readers/#this> .
 
