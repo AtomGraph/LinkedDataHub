@@ -47,12 +47,8 @@ exclude-result-prefixes="#all"
     <xsl:param name="default-query" as="xs:string">SELECT DISTINCT *
 WHERE
 {
+    GRAPH ?g
     { ?s ?p ?o }
-    UNION
-    {
-        GRAPH ?g
-        { ?s ?p ?o }
-    }
 }
 LIMIT 100</xsl:param>
 
