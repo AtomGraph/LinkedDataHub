@@ -1043,7 +1043,7 @@ exclude-result-prefixes="#all">
             </xsl:if>
             
             <div class="pull-right">
-                <form action="{resolve-uri('skolemize', $ldt:base)}" method="post">
+                <form action="{ac:build-uri(resolve-uri('skolemize', $ldt:base), map{ 'graph': string(apl:absolute-path()) })}" method="post">
                     <button type="button" title=""> <!-- {ac:label(key('resources', 'skolemize-title', document('translations.rdf')))} -->
                         <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
