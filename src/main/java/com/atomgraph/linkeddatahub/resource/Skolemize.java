@@ -31,6 +31,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -84,7 +85,7 @@ public class Skolemize extends GraphStoreImpl
         }
 
         bnodes.stream().forEach(bnode ->
-            ResourceUtils.renameResource(bnode, getUriInfo().getAbsolutePathBuilder().
+            ResourceUtils.renameResource(bnode, UriBuilder.fromUri(graphUri).
                 fragment("id{uuid}").
                 build(UUID.randomUUID().toString()).toString())); // TO-DO: replace Skolemizer with this?
         
