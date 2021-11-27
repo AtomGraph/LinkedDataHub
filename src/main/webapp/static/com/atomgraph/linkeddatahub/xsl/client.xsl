@@ -26,6 +26,8 @@
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
     <!ENTITY nfo        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
+    <!ENTITY schema1    "http://schema.org/">
+    <!ENTITY schema2    "https://schema.org/">
     <!ENTITY gm         "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -61,6 +63,8 @@ xmlns:sioc="&sioc;"
 xmlns:skos="&skos;"
 xmlns:dydra="&dydra;"
 xmlns:gm="&gm;"
+xmlns:schema1="&schema1;"
+xmlns:schema2="&schema2;"
 xmlns:dydra-urn="urn:dydra:"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
@@ -385,6 +389,12 @@ extension-element-prefixes="ixsl"
             </xsl:when>
             <xsl:when test="sioc:name">
                 <xsl:sequence select="sioc:name/text()"/>
+            </xsl:when>
+            <xsl:when test="schema1:name">
+                <xsl:sequence select="schema1:name/text()"/>
+            </xsl:when>
+            <xsl:when test="schema2:name">
+                <xsl:sequence select="schema2:name/text()"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:next-match/>
