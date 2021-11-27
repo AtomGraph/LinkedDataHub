@@ -1051,7 +1051,7 @@ exclude-result-prefixes="#all">
             </div>
             
             <div class="pull-right">
-                <button type="button" title="{key('resources', 'save-as', document('translations.rdf'))}">
+                <button type="button" title="{key('resources', 'save-as-title', document('translations.rdf'))}">
                     <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn'"/>
                     </xsl:apply-templates>

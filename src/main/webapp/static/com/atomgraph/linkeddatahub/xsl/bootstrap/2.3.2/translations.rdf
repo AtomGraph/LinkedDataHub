@@ -145,6 +145,9 @@
     <rdf:Description rdf:nodeID="copy-uri">
         <rdfs:label xml:lang="en-US">Copy URI</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="save-as-title">
+        <rdfs:label xml:lang="en-US">Copy this RDF graph into the local graph store</rdfs:label>
+    </rdf:Description>
     <rdf:Description rdf:nodeID="save-as">
         <rdfs:label xml:lang="en-US">Save as</rdfs:label>
     </rdf:Description>
