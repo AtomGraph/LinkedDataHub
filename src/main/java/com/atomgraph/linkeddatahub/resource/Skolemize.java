@@ -21,7 +21,9 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.processor.vocabulary.DH;
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -34,6 +36,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.slf4j.Logger;
@@ -61,6 +64,7 @@ public class Skolemize extends GraphStoreImpl
     public Response post(Model unused, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         Model model = getDatasetAccessor().getModel(graphUri.toString());
+        Set<Resource> bnodes = new HashSet<>();
         
         ExtendedIterator<Statement> it = model.listStatements().
             filterKeep((Statement stmt) -> (stmt.getSubject().isAnon() || stmt.getObject().isAnon()));
@@ -70,14 +74,17 @@ public class Skolemize extends GraphStoreImpl
             {
                 Statement stmt = it.next();
                 
-                if (stmt.getSubject().isAnon()) model.add(stmt.getSubject().asResource(), DH.slug, UUID.randomUUID().toString());
-                if (stmt.getObject().isAnon()) model.add(stmt.getObject().asResource(), DH.slug, UUID.randomUUID().toString());
+                if (stmt.getSubject().isAnon()) bnodes.add(stmt.getSubject());
+                if (stmt.getObject().isAnon()) bnodes.add(stmt.getObject().asResource());
             }
         }
         finally
         {
             it.close();
         }
+
+        // add dh:slug literals which are used by the Skolemizer
+        bnodes.stream().forEach(bnode -> bnode.addLiteral(DH.slug, UUID.randomUUID().toString()));
         
         // replace the existing graph with the skolemized graph
         return super.put(model, defaultGraph, graphUri);
