@@ -1375,7 +1375,8 @@ extension-element-prefixes="ixsl"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:for-each select="id($results-container-id, ixsl:page())/preceding-sibling::input[@name = 'href']">
+                <!-- update @data-content-uri value -->
+                <xsl:for-each select="id($results-container-id, ixsl:page())">
                     <ixsl:set-property name="value" select="$content-uri" object="."/>
                 </xsl:for-each>
             </xsl:otherwise>
