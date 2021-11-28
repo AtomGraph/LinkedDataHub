@@ -2015,11 +2015,8 @@ extension-element-prefixes="ixsl"
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
 
-        <!-- disable .btn-save-as and .btn-edit, if present -->
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-save-as']">
+        <!-- disable action buttons -->
+        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = ('btn-edit', 'btn-save-as', 'btn-skolemize')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
