@@ -15,13 +15,11 @@
     <!ENTITY geo        "http://www.w3.org/2003/01/geo/wgs84_pos#">
     <!ENTITY skos       "http://www.w3.org/2004/02/skos/core#">
     <!ENTITY srx        "http://www.w3.org/2005/sparql-results#">
-    <!ENTITY http       "http://www.w3.org/2011/http#">
     <!ENTITY acl        "http://www.w3.org/ns/auth/acl#">
     <!ENTITY ldt        "https://www.w3.org/ns/ldt#">
     <!ENTITY dh         "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sd         "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sp         "http://spinrdf.org/sp#">
-    <!ENTITY spin       "http://spinrdf.org/spin#">
     <!ENTITY dct        "http://purl.org/dc/terms/">
     <!ENTITY foaf       "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc       "http://rdfs.org/sioc/ns#">
@@ -56,7 +54,6 @@ xmlns:dh="&dh;"
 xmlns:srx="&srx;"
 xmlns:sd="&sd;"
 xmlns:sp="&sp;"
-xmlns:spin="&spin;"
 xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"

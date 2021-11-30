@@ -3,18 +3,9 @@
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
-    <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
     <!ENTITY geo    "http://www.w3.org/2003/01/geo/wgs84_pos#">
-    <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY dct    "http://purl.org/dc/terms/">
-    <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
-    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
-    <!ENTITY sp     "http://spinrdf.org/sp#">
-    <!ENTITY spin   "http://spinrdf.org/spin#">
     <!ENTITY gm     "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -30,12 +21,7 @@ xmlns:ac="&ac;"
 xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
 xmlns:geo="&geo;"
-xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
-xmlns:sd="&sd;"
-xmlns:foaf="&foaf;"
-xmlns:sp="&sp;"
-xmlns:spin="&spin;"
 xmlns:gm="&gm;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"

@@ -9,8 +9,6 @@
     <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY dct    "http://purl.org/dc/terms/">
-    <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
-    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -25,9 +23,7 @@ xmlns:array="http://www.w3.org/2005/xpath-functions/array"
 xmlns:ac="&ac;"
 xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
-xmlns:sd="&sd;"
 xmlns:dct="&dct;"
-xmlns:foaf="&foaf;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
@@ -173,8 +169,6 @@ exclude-result-prefixes="#all"
             <ixsl:remove-attribute name="name"/>
         </xsl:for-each>
         
-        <!-- TO-DO: override $action with the sioc:has_container/sioc:has_parent typeahead value? -->
-
         <xsl:choose>
             <!-- we need to handle multipart requests specially because of Saxon-JS 2 limitations: https://saxonica.plan.io/issues/4732 -->
             <xsl:when test="$enctype = 'multipart/form-data'">

@@ -4,21 +4,12 @@
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac     "https://w3id.org/atomgraph/client#">
     <!ENTITY rdf    "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <!ENTITY rdfs   "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd    "http://www.w3.org/2001/XMLSchema#">
-    <!ENTITY owl    "http://www.w3.org/2002/07/owl#">
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
-    <!ENTITY http   "http://www.w3.org/2011/http#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
-    <!ENTITY c      "https://www.w3.org/ns/ldt/core/domain#">
-    <!ENTITY dh     "https://www.w3.org/ns/ldt/document-hierarchy/domain#">
     <!ENTITY sp     "http://spinrdf.org/sp#">
-    <!ENTITY spl    "http://spinrdf.org/spl#">
-    <!ENTITY void   "http://rdfs.org/ns/void#">
-    <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
-    <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -30,14 +21,9 @@ xmlns:map="http://www.w3.org/2005/xpath-functions/map"
 xmlns:ac="&ac;"
 xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
-xmlns:rdfs="&rdfs;"
-xmlns:owl="&owl;"
 xmlns:srx="&srx;"
 xmlns:sd="&sd;"
 xmlns:ldt="&ldt;"
-xmlns:core="&c;"
-xmlns:spl="&spl;"
-xmlns:void="&void;"
 xmlns:dydra="&dydra;"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 xmlns:saxon="http://saxon.sf.net/"

@@ -9,10 +9,7 @@
     <!ENTITY srx    "http://www.w3.org/2005/sparql-results#">
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
-    <!ENTITY dct    "http://purl.org/dc/terms/">
     <!ENTITY foaf   "http://xmlns.com/foaf/0.1/">
-    <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
-    <!ENTITY sp     "http://spinrdf.org/sp#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -30,7 +27,6 @@ xmlns:srx="&srx;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
 xmlns:foaf="&foaf;"
-xmlns:sp="&sp;"
 xmlns:dydra="&dydra;"
 xmlns:dydra-urn="urn:dydra:"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
