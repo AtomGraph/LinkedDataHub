@@ -189,6 +189,8 @@ else
     fi
 fi
 
+BASE_URI=$(echo "$BASE_URI" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+
 printf "\n### Base URI: %s\n" "$BASE_URI"
 
 # functions that wait for other services to start
