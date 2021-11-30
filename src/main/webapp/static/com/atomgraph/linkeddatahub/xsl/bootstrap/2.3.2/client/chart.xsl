@@ -10,6 +10,7 @@
     <!ENTITY ldt    "https://www.w3.org/ns/ldt#">
     <!ENTITY sd     "http://www.w3.org/ns/sparql-service-description#">
     <!ENTITY sioc   "http://rdfs.org/sioc/ns#">
+    <!ENTITY sp     "http://spinrdf.org/sp#">
     <!ENTITY spin   "http://spinrdf.org/spin#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -26,6 +27,7 @@ xmlns:apl="&apl;"
 xmlns:rdf="&rdf;"
 xmlns:ldt="&ldt;"
 xmlns:sd="&sd;"
+xmlns:sp="&sp;"
 xmlns:spin="&spin;"
 xmlns:dydra="&dydra;"
 xmlns:dydra-urn="urn:dydra:"
