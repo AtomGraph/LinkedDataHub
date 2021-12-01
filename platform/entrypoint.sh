@@ -25,7 +25,8 @@ if [ -n "$HTTP_PORT" ] ; then
 fi
 
 if [ -n "$HTTP_PROXY_NAME" ] ; then
-    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $HTTP_PROXY_NAME "
+    lc_proxy_name=$(echo "$HTTP_PROXY_NAME" | tr '[:upper:]' '[:lower:]') # make sure it's lower-case
+    HTTP_PROXY_NAME_PARAM="--stringparam http.proxyName $lc_proxy_name "
 fi
 
 if [ -n "$HTTP_PROXY_PORT" ] ; then
