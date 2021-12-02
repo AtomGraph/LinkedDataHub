@@ -663,17 +663,6 @@ exclude-result-prefixes="#all"
             <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
     </xsl:template>
-
-    <xsl:template name="add-typeahead">
-        <xsl:param name="id" as="xs:string"/>
-        
-        <xsl:for-each select="id($id, ixsl:page())">
-            <xsl:message>
-                <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'blur', ixsl:get(ixsl:window(), 'onTypeaheadInputBlur') ])"/>
-                <xsl:value-of select="ixsl:call(., 'focus', [])"/>
-            </xsl:message>
-        </xsl:for-each>
-    </xsl:template>
     
     <!-- block list -->
 

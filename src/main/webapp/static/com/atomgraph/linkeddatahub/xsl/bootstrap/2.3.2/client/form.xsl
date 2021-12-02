@@ -338,7 +338,7 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="bs2:Lookup">
                     <xsl:with-param name="class" select="$lookup-class"/>
-                    <xsl:with-param name="id" select="concat('input-', $uuid)"/>
+                    <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
             </xsl:result-document>
@@ -349,9 +349,9 @@ exclude-result-prefixes="#all"
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="add-typeahead">
-            <xsl:with-param name="id" select="concat('input-', $uuid)"/>
-        </xsl:call-template>
+        <xsl:for-each select="id('input-' || $uuid, ixsl:page())">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- special case for rdf:type lookups -->
@@ -371,15 +371,15 @@ exclude-result-prefixes="#all"
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <xsl:call-template name="bs2:Lookup">
                     <xsl:with-param name="class" select="$lookup-class"/>
-                    <xsl:with-param name="id" select="concat('input-', $uuid)"/>
+                    <xsl:with-param name="id" select="'input-' || $uuid"/>
                     <xsl:with-param name="list-class" select="$lookup-list-class"/>
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
 
-        <xsl:call-template name="add-typeahead">
-            <xsl:with-param name="id" select="concat('input-', $uuid)"/>
-        </xsl:call-template>
+        <xsl:for-each select="id('input-' || $uuid, ixsl:page())">
+            <xsl:sequence select="ixsl:call(., 'focus', [])[current-date() lt xs:date('2000-01-01')]"/>
+        </xsl:for-each>
     </xsl:template>
     
     <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
