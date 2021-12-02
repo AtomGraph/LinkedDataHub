@@ -482,8 +482,6 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <xsl:apply-templates select="." mode="bs2:Settings"/>
-
             <xsl:apply-templates select="." mode="bs2:MediaTypeList"/>
 
             <xsl:apply-templates select="." mode="bs2:NavBarActions"/>
@@ -501,11 +499,7 @@ exclude-result-prefixes="#all">
                     <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">SPARQL editor</a>
                 </li>
                 <li>
-                    <xsl:for-each select="$lapp:Application">
-                        <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
-                            Administration
-                        </a>
-                    </xsl:for-each>
+                    <xsl:apply-templates select="." mode="bs2:Settings"/>
                 </li>
                 <!-- overridden in acl/layout.xsl! TO-DO: extract into separate template -->
                 <li>
@@ -1127,26 +1121,33 @@ exclude-result-prefixes="#all">
     <!-- SETTINGS -->
     
     <xsl:template match="rdf:RDF" mode="bs2:Settings" priority="1">
-        <xsl:if test="$acl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
-            <div class="btn-group pull-right">
-                <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
-                    <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
-                    </xsl:apply-templates>
-                    <xsl:text> </xsl:text>
-                    <span class="caret"></span>
-                </button>
+        <div class="btn-group pull-right">
+            <button type="button" title="{ac:label(key('resources', 'nav-bar-action-settings-title', document('translations.rdf')))}">
+                <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                </xsl:apply-templates>
+                <xsl:text> </xsl:text>
+                <span class="caret"></span>
+            </button>
 
-                <ul class="dropdown-menu">
+            <ul class="dropdown-menu">
+                <xsl:if test="$acl:Agent//@rdf:about and $lapp:Application//*[ldt:base/@rdf:resource = $ldt:base]/rdf:type/@rdf:resource = '&lapp;EndUserApplication'">
+                    <li>
+                        <xsl:for-each select="$lapp:Application">
+                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
+                                Administration
+                            </a>
+                        </xsl:for-each>
+                    </li>
                     <li>
                         <a href="{resolve-uri('admin/model/ontologies/namespace/', $ldt:base)}" target="_blank">Namespace</a>
                     </li>
-                    <li>
-                        <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
-                    </li>
-                </ul>
-            </div>
-        </xsl:if>
+                </xsl:if>
+                <li>
+                    <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
+                </li>
+            </ul>
+        </div>
     </xsl:template>
 
     <!-- SPARQL QUERY -->
