@@ -1126,8 +1126,6 @@ exclude-result-prefixes="#all">
                 <xsl:apply-templates select="key('resources', 'settings', document('translations.rdf'))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
                 </xsl:apply-templates>
-                <xsl:text> </xsl:text>
-                <span class="caret"></span>
             </button>
 
             <ul class="dropdown-menu">
