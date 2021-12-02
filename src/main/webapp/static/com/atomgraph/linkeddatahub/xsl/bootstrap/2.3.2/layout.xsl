@@ -524,14 +524,14 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <xsl:template match="rdf:RDF[not($acl:Agent//@rdf:about)][$lapp:Application//rdf:type/@rdf:resource = '&lapp;EndUserApplication']" mode="bs2:SignUp" priority="1">
-        <xsl:param name="uri" select="ac:build-uri(resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base), map{ 'forClass': string('&adm;Person') })" as="xs:anyURI"/>
+        <xsl:param name="uri" select="ac:build-uri(resolve-uri(encode-for-uri('sign up'), $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldt:base/@rdf:resource), map{ 'forClass': string('&adm;Person') })" as="xs:anyURI"/>
         <xsl:param name="google-signup" select="exists($google:clientID)" as="xs:boolean"/>
         <xsl:param name="webid-signup" select="true()" as="xs:boolean"/>
         
         <xsl:if test="$google-signup or $webid-signup">
             <p class="pull-right">
                 <xsl:if test="$google-signup">
-                    <a class="btn btn-primary" href="{ac:build-uri(resolve-uri('admin/oauth2/authorize/google', $apl:base), map{ 'referer': string(ac:uri()) })}">
+                    <a class="btn btn-primary" href="{ac:build-uri(resolve-uri('oauth2/authorize/google', $lapp:Application//*[rdf:type/@rdf:resource = '&lapp;AdminApplication']/ldt:base/@rdf:resource), map{ 'referer': string(ac:uri()) })}">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', 'login-google', document('translations.rdf'))" mode="ac:label"/>
                         </xsl:value-of>
