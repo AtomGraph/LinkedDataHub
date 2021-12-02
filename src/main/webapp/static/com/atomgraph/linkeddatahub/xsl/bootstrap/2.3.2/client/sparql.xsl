@@ -159,14 +159,16 @@ LIMIT 100</xsl:param>
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
-        <xsl:variable name="query-string" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
+        <xsl:variable name="query" select="$form//input[@name = 'query']/ixsl:get(., 'value')" as="xs:string"/>
+        <xsl:variable name="service" select="$form//input[@name = 'service']/ixsl:get(., 'value')" as="xs:anyURI?"/>
         
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <!-- set textarea's value to the query string from the hidden input -->
                 <xsl:call-template name="bs2:QueryEditor">
-                    <xsl:with-param name="query" select="$query-string"/>
+                    <xsl:with-param name="query" select="$query"/>
+                    <xsl:with-param name="service" select="$service"/>
                 </xsl:call-template>
             </xsl:result-document>
         </xsl:for-each>
