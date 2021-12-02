@@ -168,7 +168,6 @@ extension-element-prefixes="ixsl"
         <xsl:param name="class" as="xs:string?"/>
         
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-settings')"/>
-        <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
     <xsl:template match="*[@rdf:nodeID = 'save']" mode="apl:logo">
