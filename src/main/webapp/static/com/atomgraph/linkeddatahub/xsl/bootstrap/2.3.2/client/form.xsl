@@ -410,13 +410,13 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- remove the dropdown with bnodes so they do not appear in the RDF/POST request body -->
-    <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusout">
+<!--    <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusout">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
 
         <xsl:for-each select="$menu">
             <xsl:result-document href="?." method="ixsl:replace-content"/>
         </xsl:for-each>
-    </xsl:template>
+    </xsl:template>-->
 
     <!-- simplified version of Bootstrap's tooltip() -->
     
