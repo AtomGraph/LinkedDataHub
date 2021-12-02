@@ -500,6 +500,13 @@ exclude-result-prefixes="#all">
 
                     <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">SPARQL editor</a>
                 </li>
+                <li>
+                    <xsl:for-each select="$lapp:Application">
+                        <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
+                            Administration
+                        </a>
+                    </xsl:for-each>
+                </li>
                 <!-- overridden in acl/layout.xsl! TO-DO: extract into separate template -->
                 <li>
                     <div class="btn-group">
@@ -1131,13 +1138,6 @@ exclude-result-prefixes="#all">
                 </button>
 
                 <ul class="dropdown-menu">
-                    <li>
-                        <xsl:for-each select="$lapp:Application">
-                            <a href="{key('resources', //*[ldt:base/@rdf:resource = $ldt:base]/lapp:adminApplication/(@rdf:resource, @rdf:nodeID))/ldt:base/@rdf:resource[starts-with(., $ac:contextUri)]}" target="_blank">
-                                Administration
-                            </a>
-                        </xsl:for-each>
-                    </li>
                     <li>
                         <a href="{resolve-uri('admin/model/ontologies/namespace/', $ldt:base)}" target="_blank">Namespace</a>
                     </li>
