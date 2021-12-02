@@ -173,6 +173,14 @@ LIMIT 100</xsl:param>
             </xsl:result-document>
         </xsl:for-each>
         
+        <!-- initialize SPARQL query service dropdown -->
+        <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
+        <xsl:call-template name="apl:RenderServices">
+            <xsl:with-param name="select" select="id('query-service', ixsl:page())"/>
+            <xsl:with-param name="services" select="ixsl:get(ixsl:window(), 'LinkedDataHub.services')"/>
+            <xsl:with-param name="selected-service" select="$service"/>
+        </xsl:call-template>
+        
         <!-- initialize YASQE on the textarea -->
         <xsl:variable name="js-statement" as="element()">
             <root statement="YASQE.fromTextArea(document.getElementById('{$textarea-id}'), {{ persistent: null }})"/>
