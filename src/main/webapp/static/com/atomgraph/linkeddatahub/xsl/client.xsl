@@ -2129,12 +2129,6 @@ extension-element-prefixes="ixsl"
         <xsl:call-template name="typeahead:hide">
             <xsl:with-param name="menu" select="$menu"/>
         </xsl:call-template>
-        
-        <!-- remove the dropdown with bnodes so they do not appear in the RDF/POST request body -->
-        <!-- TO-DO: integrate this into typeahead:hide? -->
-        <xsl:for-each select="$menu">
-            <xsl:result-document href="?." method="ixsl:replace-content"/>
-        </xsl:for-each>
     </xsl:template>
     
     <xsl:template match="ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'type-typeahead']/li" mode="ixsl:onmousedown" priority="1">

@@ -203,7 +203,8 @@ version="3.0"
         <xsl:param name="menu" as="element()"/>
 
         <xsl:for-each select="$menu">
-            <ixsl:set-style name="display" select="'none'"/>
+            <!--<ixsl:set-style name="display" select="'none'"/>-->
+            <xsl:result-document href="?." method="ixsl:replace-content"/>
         </xsl:for-each>
     </xsl:template>
     
