@@ -2123,11 +2123,15 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
 
-    <!-- remove the dropdown with bnodes so they do not appear in the RDF/POST request body -->
-    <xsl:template match="form//input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
-        <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
-
-        <!-- TO-DO: refactor typeahead:hide to do this instead of setting display: none? -->
+    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
+        <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
+        
+        <xsl:call-template name="typeahead:hide">
+            <xsl:with-param name="menu" select="$menu"/>
+        </xsl:call-template>
+        
+        <!-- remove the dropdown with bnodes so they do not appear in the RDF/POST request body -->
+        <!-- TO-DO: integrate this into typeahead:hide? -->
         <xsl:for-each select="$menu">
             <xsl:result-document href="?." method="ixsl:replace-content"/>
         </xsl:for-each>
