@@ -888,7 +888,7 @@ extension-element-prefixes="ixsl"
                 1. content is part of ContentList and is rendered as a .row-fluid (full row)
                 2. content is rendered after its resource (e.g. query or chart) in .span7 (middle column)
                 -->
-                <xsl:variable name="container" select="if (contains-token(@class, 'row-fluid')) then div[contains-token(@class, 'span7')] else ." as="element()"/>
+                <xsl:variable name="container" select="if (contains-token(@class, 'row-fluid')) then ./div[contains-token(@class, 'span7')] else ." as="element()"/>
                 <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
 
                 <!-- show progress bar in the middle column -->
