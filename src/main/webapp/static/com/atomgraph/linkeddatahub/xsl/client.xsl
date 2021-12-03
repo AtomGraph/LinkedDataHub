@@ -1856,6 +1856,33 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template name="onSkolemize">
+        <xsl:context-item as="map(*)" use="required"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = (200, 201)"> <!-- OK / Created -->
+                <xsl:variable name="resource-uri" select="ac:uri()" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+
+                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                        <xsl:call-template name="onDocumentLoad">
+                            <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
         <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
@@ -2205,7 +2232,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'POST', 'href': $request-uri, 'headers': map{ 'Content-Type': 'application/rdf+x-www-form-urlencoded' } }">
-                <xsl:call-template name="onDelete"/>
+                <xsl:call-template name="onSkolemize"/>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
