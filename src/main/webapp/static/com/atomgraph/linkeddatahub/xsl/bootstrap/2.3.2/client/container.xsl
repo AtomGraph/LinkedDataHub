@@ -1118,7 +1118,7 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- is the current facet hidden? -->
-                <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[contains-token(@class, = 'nav')])?display = 'none'" as="xs:boolean"/>
+                <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[contains-token(@class, 'nav')])?display = 'none'" as="xs:boolean"/>
 
                 <!-- toggle the caret direction -->
                 <xsl:for-each select="span[contains-token(@class, 'caret')]">
