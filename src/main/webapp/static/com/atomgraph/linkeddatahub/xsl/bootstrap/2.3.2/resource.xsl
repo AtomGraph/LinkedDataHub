@@ -377,7 +377,8 @@ extension-element-prefixes="ixsl"
             <xsl:apply-templates select="." mode="bs2:Right"/>
         </div>
         
-        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList"/>
+        <!-- use document() only server-side -->
+        <xsl:apply-templates select="rdf:type/@rdf:resource/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource/key('resources', ., document(ac:document-uri(.)))" mode="apl:ContentList" use-when="system-property('xsl:product-name') = 'SAXON'"/>
     </xsl:template>
     
     <!-- TO-DO: override other modes -->
