@@ -61,13 +61,13 @@ exclude-result-prefixes="#all"
     <xsl:template match="text()" mode="apl:PostConstruct"/>
 
     <!-- subject type change -->
-    <xsl:template match="select[tokenize(@class, ' ') = 'subject-type']" mode="apl:PostConstruct" priority="1">
+    <xsl:template match="select[contains-token(@class, 'subject-type')]" mode="apl:PostConstruct" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectTypeChange') ])"/>
         </xsl:message>
     </xsl:template>
     
-    <xsl:template match="textarea[tokenize(@class, ' ') = 'wymeditor']" mode="apl:PostConstruct" priority="1">
+    <xsl:template match="textarea[contains-token(@class, 'wymeditor')]" mode="apl:PostConstruct" priority="1">
         <!-- without wrapping into comment, we get: SEVERE: In delayed event: DOM error appending text node with value: '[object Object]' to node with name: #document -->
         <xsl:message>
             <!-- call .wymeditor() on textarea to show WYMEditor -->
@@ -78,7 +78,7 @@ exclude-result-prefixes="#all"
     <!-- TO-DO: phase out as regular ixsl: event templates -->
     <xsl:template match="fieldset//input" mode="apl:PostConstruct" priority="1">
         <!-- subject value change -->
-        <xsl:if test="tokenize(@class, ' ') = 'subject'">
+        <xsl:if test="contains-token(@class, 'subject')">
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'addEventListener', [ 'change', ixsl:get(ixsl:window(), 'onSubjectValueChange') ])"/>
             </xsl:message>
@@ -153,7 +153,7 @@ exclude-result-prefixes="#all"
     
     <!-- EVENT HANDLERS -->
     
-    <xsl:template match="form[tokenize(@class, ' ') = 'form-horizontal'] | form[ancestor::div[tokenize(@class, ' ') = 'modal']]" mode="ixsl:onsubmit">
+    <xsl:template match="form[contains-token(@class, 'form-horizontal')] | form[ancestor::div[contains-token(@class, 'modal')]]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="form" select="." as="element()"/>
         <xsl:variable name="id" select="ixsl:get(., 'id')" as="xs:string"/>
@@ -203,7 +203,7 @@ exclude-result-prefixes="#all"
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'add-value']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'add-value')]" mode="ixsl:onclick">
         <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
@@ -224,7 +224,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'add-constructor']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="apl:absolute-path()" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
@@ -250,7 +250,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
-    <xsl:template match="select[tokenize(@class, ' ') = 'content-type']" mode="ixsl:onchange">
+    <xsl:template match="select[contains-token(@class, 'content-type')]" mode="ixsl:onchange">
         <xsl:variable name="content-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="controls" select=".." as="element()"/>
 
@@ -303,33 +303,33 @@ exclude-result-prefixes="#all"
                 <!-- key() lookup doesn't work because of https://saxonica.plan.io/issues/5036 -->
                 <!--<xsl:apply-templates select="key('elements-by-class', 'wymeditor', .)" mode="apl:PostConstruct"/>-->
                 <!-- initialize wymeditor textarea -->
-                <xsl:apply-templates select="descendant::*[tokenize(@class, ' ') = 'wymeditor']" mode="apl:PostConstruct"/>
+                <xsl:apply-templates select="descendant::*[contains-token(@class, 'wymeditor')]" mode="apl:PostConstruct"/>
             </xsl:for-each>
         </xsl:if>
     </xsl:template>
 
     <!-- remove <fieldset> (button is within <legend>) -->
-    <xsl:template match="fieldset/legend/div/button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="fieldset/legend/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
         </xsl:message>
     </xsl:template>
 
     <!-- remove <fieldset> (button is within <fieldset>) -->
-    <xsl:template match="fieldset/div/button[tokenize(@class, ' ') = 'btn-remove-resource']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="fieldset/div/button[contains-token(@class, 'btn-remove-resource')]" mode="ixsl:onclick" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(../.., 'remove', [])"/>
         </xsl:message>
     </xsl:template>
 
     <!-- remove <div class="control-group"> -->
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-remove-property']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'btn-remove-property')]" mode="ixsl:onclick" priority="1">
         <xsl:message>
             <xsl:value-of select="ixsl:call(../../.., 'remove', [])"/>
         </xsl:message>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'add-type']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-type')]" mode="ixsl:onclick" priority="1">
         <xsl:param name="lookup-class" select="'type-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
@@ -355,14 +355,14 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <!-- special case for rdf:type lookups -->
-    <xsl:template match="button[tokenize(@class, ' ') = 'add-typetypeahead']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="button[contains-token(@class, 'add-typetypeahead')]" mode="ixsl:onclick" priority="1">
         <xsl:next-match>
             <xsl:with-param name="lookup-class" select="'type-typeahead typeahead'"/>
             <xsl:with-param name="lookup-list-class" select="'type-typeahead typeahead dropdown-menu'" as="xs:string"/>
         </xsl:next-match>
     </xsl:template>
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'add-typeahead']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'add-typeahead')]" mode="ixsl:onclick">
         <xsl:param name="lookup-class" select="'resource-typeahead typeahead'" as="xs:string"/>
         <xsl:param name="lookup-list-class" select="'resource-typeahead typeahead dropdown-menu'" as="xs:string"/>
         <xsl:variable name="uuid" select="ixsl:call(ixsl:window(), 'generateUUID', [])" as="xs:string"/>
@@ -382,7 +382,7 @@ exclude-result-prefixes="#all"
         </xsl:for-each>
     </xsl:template>
     
-    <xsl:template match="form//input[tokenize(@class, ' ') = 'resource-typeahead']" mode="ixsl:onfocusin">
+    <xsl:template match="form//input[contains-token(@class, 'resource-typeahead')]" mode="ixsl:onfocusin">
         <xsl:variable name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:variable name="item-doc" as="document-node()">
             <xsl:document>
@@ -414,12 +414,12 @@ exclude-result-prefixes="#all"
     <xsl:template match="fieldset//input" mode="ixsl:onmouseover">
         <xsl:choose>
             <!-- show existing tooltip -->
-            <xsl:when test="../div[tokenize(@class, ' ') = 'tooltip']">
-                <ixsl:set-style name="display" select="'block'" object="../div[tokenize(@class, ' ') = 'tooltip']"/>
+            <xsl:when test="../div[contains-token(@class, 'tooltip')]">
+                <ixsl:set-style name="display" select="'block'" object="../div[contains-token(@class, 'tooltip')]"/>
             </xsl:when>
             <!-- append new tooltip -->
             <xsl:otherwise>
-                <xsl:variable name="description-span" select="ancestor::*[tokenize(@class, ' ') = 'control-group']//*[tokenize(@class, ' ') = 'description']" as="element()?"/>
+                <xsl:variable name="description-span" select="ancestor::*[contains-token(@class, 'control-group')]//*[contains-token(@class, 'description')]" as="element()?"/>
                 <xsl:if test="$description-span">
                     <xsl:variable name="input-offset-width" select="ixsl:get(., 'offsetWidth')" as="xs:integer"/>
                     <xsl:variable name="input-offset-height" select="ixsl:get(., 'offsetHeight')" as="xs:integer"/>
@@ -440,7 +440,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="input-top" select="ixsl:get(., 'offsetTop')" as="xs:double"/>
         <xsl:variable name="input-left" select="ixsl:get(., 'offsetLeft')" as="xs:double"/>
         <xsl:variable name="input-width" select="ixsl:get(., 'offsetWidth')" as="xs:double"/>
-        <xsl:for-each select="../div[tokenize(@class, ' ') = 'tooltip']">
+        <xsl:for-each select="../div[contains-token(@class, 'tooltip')]">
             <xsl:variable name="tooltip-height" select="ixsl:get(., 'offsetHeight')" as="xs:double"/>
             <xsl:variable name="tooltip-width" select="ixsl:get(., 'offsetWidth')" as="xs:double"/>
             
@@ -450,15 +450,15 @@ exclude-result-prefixes="#all"
     </xsl:template>
     
     <xsl:template match="fieldset//input" mode="ixsl:onmouseout">
-        <xsl:for-each select="../div[tokenize(@class, ' ') = 'tooltip']">
+        <xsl:for-each select="../div[contains-token(@class, 'tooltip')]">
             <ixsl:set-style name="display" select="'none'"/>
         </xsl:for-each>
     </xsl:template>
     
     <!-- close modal form -->
     
-    <xsl:template match="div[tokenize(@class, ' ') = 'modal']//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
-        <xsl:for-each select="ancestor::div[tokenize(@class, ' ') = 'modal']">
+    <xsl:template match="div[contains-token(@class, 'modal')]//button[tokenize(@class, ' ') = ('close', 'btn-close')]" mode="ixsl:onclick">
+        <xsl:for-each select="ancestor::div[contains-token(@class, 'modal')]">
             <xsl:message>
                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
             </xsl:message>
@@ -518,14 +518,14 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
-                    <xsl:variable name="modal" select="exists(//div[tokenize(@class, ' ') = 'modal-constructor'])" as="xs:boolean"/>
+                    <xsl:variable name="modal" select="exists(//div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
                     <xsl:choose>
                         <xsl:when test="$modal">
                             <xsl:variable name="modal-div" as="element()">
-                                <xsl:apply-templates select="//div[tokenize(@class, ' ') = 'modal-constructor']" mode="form">
+                                <xsl:apply-templates select="//div[contains-token(@class, 'modal-constructor')]" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
@@ -576,16 +576,16 @@ exclude-result-prefixes="#all"
                             
                             <xsl:choose>
                                 <!-- if "Create" button is within the <form>, append elements to <form> -->
-                                <xsl:when test="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
-                                    <xsl:for-each select="$target/ancestor::form[tokenize(@class, ' ') = 'form-horizontal']">
+                                <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
+                                    <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
                                         <!-- remove the old form-actions <div> because we'll be appending a new one below -->
-                                        <xsl:for-each select="div[tokenize(@class, ' ') = 'form-actions']">
+                                        <xsl:for-each select="div[contains-token(@class, 'form-actions')]">
                                             <xsl:message>
                                                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
                                             </xsl:message>
                                         </xsl:for-each>
                                         <!-- remove the current "Create" buttons from the form -->
-                                        <xsl:for-each select="$target/ancestor::div[tokenize(@class, ' ') = 'create-resource']">
+                                        <xsl:for-each select="$target/ancestor::div[contains-token(@class, 'create-resource')]">
                                             <xsl:message>
                                                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
                                             </xsl:message>
@@ -655,7 +655,7 @@ exclude-result-prefixes="#all"
                             <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                         </xsl:apply-templates>
                     </xsl:variable>
-                    <xsl:variable name="new-control-group" select="$form//div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu']/@value = $property]" as="element()"/>
+                    <xsl:variable name="new-control-group" select="$form//div[contains-token(@class, 'control-group')][input[@name = 'pu']/@value = $property]" as="element()"/>
                     
                     <xsl:for-each select="$control-group">
                         <!-- move property creation control group down, by appending it to the parent fieldset -->
@@ -701,7 +701,7 @@ exclude-result-prefixes="#all"
         <xsl:choose>
             <!-- special case for add/clone data forms: redirect to the container -->
             <xsl:when test="ixsl:get($form, 'id') = ('form-add-data', 'form-clone-data')">
-                <xsl:variable name="control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
+                <xsl:variable name="control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sd;name']]" as="element()*"/>
                 <xsl:variable name="uri" select="$control-group/descendant::input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                 
                 <!-- load document -->
@@ -716,12 +716,12 @@ exclude-result-prefixes="#all"
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
                 
                 <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- special case for "Save query/chart" forms: simpy hide the modal form -->
             <xsl:when test="tokenize($form/@class, ' ') = ('form-save-query', 'form-save-chart')">
                 <!-- remove the modal div -->
-                <xsl:sequence select="ixsl:call($form/ancestor::div[tokenize(@class, ' ') = 'modal'], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
+                <xsl:sequence select="ixsl:call($form/ancestor::div[contains-token(@class, 'modal')], 'remove', [])[current-date() lt xs:date('2000-01-01')]"/>
                 <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
             </xsl:when>
             <xsl:when test="?status = 200">
