@@ -1629,9 +1629,9 @@ extension-element-prefixes="ixsl"
             <xsl:choose>
                 <!-- local URI -->
                 <xsl:when test="starts-with($uri, $ldt:base)">
-                    <!-- disable .btn-skolemize -->
+                    <!-- enable .btn-skolemize -->
                     <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
                     <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
@@ -1642,9 +1642,9 @@ extension-element-prefixes="ixsl"
                 </xsl:when>
                 <!-- external URI -->
                 <xsl:otherwise>
-                    <!-- enable .btn-skolemize -->
+                    <!-- disable .btn-skolemize -->
                     <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
-                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
                     <!-- set #uri value -->
