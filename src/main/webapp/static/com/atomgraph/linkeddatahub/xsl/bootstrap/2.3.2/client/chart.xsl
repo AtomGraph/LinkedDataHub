@@ -270,7 +270,7 @@ exclude-result-prefixes="#all"
     <!-- series onchange -->
 
     <xsl:template match="select[contains-token(@class, 'chart-series')]" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="../..//select[contains-tokene(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
             <xsl:variable name="select" select="." as="element()"/>
