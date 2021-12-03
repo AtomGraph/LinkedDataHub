@@ -1619,22 +1619,34 @@ extension-element-prefixes="ixsl"
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
-        <!-- enable .btn-save-as/.btn-skolemize if it's present -->
-        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
+        <!-- enable .btn-save-as if it's present -->
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
         <xsl:if test="$uri">
             <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <xsl:choose>
+                <!-- local URI -->
                 <xsl:when test="starts-with($uri, $ldt:base)">
+                    <!-- disable .btn-skolemize -->
+                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+
                     <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                     <!-- unset #uri value -->
                     <xsl:for-each select="id('uri', ixsl:page())">
                         <ixsl:set-property name="value" select="()" object="."/>
                     </xsl:for-each>
                 </xsl:when>
+                <!-- external URI -->
                 <xsl:otherwise>
+                    <!-- enable .btn-skolemize -->
+                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-skolemize')]">
+                        <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each>
+
                     <!-- set #uri value -->
                     <xsl:for-each select="id('uri', ixsl:page())">
                         <ixsl:set-property name="value" select="$uri" object="."/>
