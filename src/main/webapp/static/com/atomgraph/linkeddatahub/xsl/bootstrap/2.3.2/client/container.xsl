@@ -837,8 +837,8 @@ exclude-result-prefixes="#all"
 
     <!-- container mode tabs -->
     
-    <xsl:template match="*[tokenize(@class, ' ') = 'resource-content']//div/ul[@class = 'nav nav-tabs']/li[not(tokenize(@class, ' ') = 'active')]/a" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//div/ul[@class = 'nav nav-tabs']/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="results-container" select="$container/div[@class = 'span7']" as="element()"/> <!-- results in the middle column -->
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
@@ -863,9 +863,9 @@ exclude-result-prefixes="#all"
 
     <!-- pager prev links -->
 
-    <xsl:template match="*[tokenize(@class, ' ') = 'resource-content']//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[@class = 'pager']/li[@class = 'previous']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
@@ -909,9 +909,9 @@ exclude-result-prefixes="#all"
 
     <!-- pager next links -->
     
-    <xsl:template match="*[tokenize(@class, ' ') = 'resource-content']//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'resource-content')]//ul[@class = 'pager']/li[@class = 'next']/a[@class = 'active']" mode="ixsl:onclick">
         <xsl:variable name="event" select="ixsl:event()"/>
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
@@ -955,8 +955,8 @@ exclude-result-prefixes="#all"
     
     <!-- order by onchange -->
     
-    <xsl:template match="select[tokenize(@class, ' ') = 'container-order']" mode="ixsl:onchange">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+    <xsl:template match="select[contains-token(@class, 'container-order')]" mode="ixsl:onchange">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
@@ -1001,8 +1001,8 @@ exclude-result-prefixes="#all"
     <!-- ascending/descending onclick -->
     
     <!-- TO-DO: unify with container ORDER BY onchange -->
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-order-by']" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+    <xsl:template match="button[contains-token(@class, 'btn-order-by')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
@@ -1047,11 +1047,11 @@ exclude-result-prefixes="#all"
     
     <!-- facet header on click -->
     
-    <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//*[tokenize(@class, ' ') = 'nav-header']" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'faceted-nav')]//*[contains-token(@class, 'nav-header'))]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
-        <xsl:variable name="facet-container" select="ancestor::div[tokenize(@class, ' ') = 'faceted-nav']" as="element()"/>
+        <xsl:variable name="facet-container" select="ancestor::div[contains-token(@class, 'faceted-nav')]" as="element()"/>
         <xsl:variable name="subject-var-name" select="input[@name = 'subject']/@value" as="xs:string"/>
         <xsl:variable name="predicate" select="input[@name = 'predicate']/@value" as="xs:anyURI"/>
         <xsl:variable name="object-var-name" select="input[@name = 'object']/@value" as="xs:string"/>
@@ -1118,20 +1118,20 @@ exclude-result-prefixes="#all"
             </xsl:when>
             <xsl:otherwise>
                 <!-- is the current facet hidden? -->
-                <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[tokenize(@class, ' ') = 'nav'])?display = 'none'" as="xs:boolean"/>
+                <xsl:variable name="hidden" select="ixsl:style(following-sibling::*[contains-token(@class, = 'nav')])?display = 'none'" as="xs:boolean"/>
 
                 <!-- toggle the caret direction -->
-                <xsl:for-each select="span[tokenize(@class, ' ') = 'caret']">
+                <xsl:for-each select="span[contains-token(@class, 'caret')]">
                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                 </xsl:for-each>
 
                 <!-- toggle the value list visibility -->
                 <xsl:choose>
                     <xsl:when test="$hidden">
-                        <ixsl:set-style name="display" select="'block'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+                        <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <ixsl:set-style name="display" select="'none'" object="following-sibling::*[tokenize(@class, ' ') = 'nav']"/>
+                        <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:otherwise>
@@ -1140,8 +1140,8 @@ exclude-result-prefixes="#all"
     
     <!-- facet onchange -->
 
-    <xsl:template match="div[tokenize(@class, ' ') = 'faceted-nav']//input[@type = 'checkbox']" mode="ixsl:onchange">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'faceted-nav')]//input[@type = 'checkbox']" mode="ixsl:onchange">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
         <xsl:variable name="var-name" select="@name" as="xs:string"/>
@@ -1186,8 +1186,8 @@ exclude-result-prefixes="#all"
 
     <!-- parallax onclick -->
     
-    <xsl:template match="div[tokenize(@class, ' ') = 'parallax-nav']/ul/li/a" mode="ixsl:onclick">
-        <xsl:variable name="container" select="ancestor::div[tokenize(@class, ' ') = 'resource-content']" as="element()"/>
+    <xsl:template match="div[contains-token(@class, 'parallax-nav')]/ul/li/a" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="content" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'content')" as="element()"/>
@@ -1263,7 +1263,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="default-order-by-var-name" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:string[@key = 'expression']/substring-after(., '?')" as="xs:string?"/>
                     <xsl:variable name="default-order-by-predicate" select="$bgp-triples-map[json:string[@key = 'object'] = '?' || $default-order-by-var-name][1]/json:string[@key = 'predicate']" as="xs:anyURI?"/>
                     <xsl:variable name="default-desc" select="$select-xml/json:map/json:array[@key = 'order']/json:map[2]/json:boolean[@key = 'descending']" as="xs:boolean?"/>
-                    <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[tokenize(@class, ' ') = 'active']/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
+                    <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
 
                     <xsl:call-template name="render-container">
                         <xsl:with-param name="container" select="$container"/>
@@ -1281,10 +1281,10 @@ exclude-result-prefixes="#all"
                     </xsl:call-template>
 
                     <!-- only append facets if they are not already present -->
-                    <xsl:if test="not($container/div[tokenize(@class, ' ') = 'left-nav']/*)">
+                    <xsl:if test="not($container/div[contains-token(@class, 'left-nav')]/*)">
                         <xsl:variable name="facet-container-id" select="$container-id || '-left-nav'" as="xs:string"/>
                         
-                        <xsl:for-each select="$container/div[tokenize(@class, ' ') = 'left-nav']">
+                        <xsl:for-each select="$container/div[contains-token(@class, 'left-nav')]">
                             <xsl:result-document href="?." method="ixsl:append-content">
                                 <div id="{$facet-container-id}" class="well well-small"/>
                             </xsl:result-document>
@@ -1316,8 +1316,8 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="parallax-container-id" select="$container-id || '-right-nav'" as="xs:string"/>
 
                         <!-- create a container for parallax controls in the right-nav, if it doesn't exist yet -->
-                        <xsl:if test="not($container/div[tokenize(@class, ' ') = 'right-nav']/*)">
-                            <xsl:for-each select="$container/div[tokenize(@class, ' ') = 'right-nav']">
+                        <xsl:if test="not($container/div[contains-token(@class, 'right-nav')]/*)">
+                            <xsl:for-each select="$container/div[contains-token(@class, 'right-nav')]">
                                 <xsl:result-document href="?." method="ixsl:append-content">
                                     <div id="{$parallax-container-id}" class="well well-small sidebar-nav parallax-nav"/>
                                 </xsl:result-document>
@@ -1487,7 +1487,7 @@ exclude-result-prefixes="#all"
                             </xsl:when>
                             <xsl:otherwise>
                                 <!-- toggle the caret direction -->
-                                <xsl:for-each select="$container/h2/span[tokenize(@class, ' ') = 'caret']">
+                                <xsl:for-each select="$container/h2/span[contains-token(@class, 'caret')]">
                                     <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
                                 </xsl:for-each>
                 
