@@ -487,13 +487,11 @@ exclude-result-prefixes="#all"
 
         <xsl:for-each select="$container">
             <xsl:result-document href="?." method="ixsl:replace-content">
-                <div id="container-pane">
-                    <div class="alert alert-block">
-                        <strong>Error during query execution:</strong>
-                        <pre>
-                            <xsl:value-of select="$message"/>
-                        </pre>
-                    </div>
+                <div class="alert alert-block">
+                    <strong>Error during query execution:</strong>
+                    <pre>
+                        <xsl:value-of select="$message"/>
+                    </pre>
                 </div>
             </xsl:result-document>
         </xsl:for-each>

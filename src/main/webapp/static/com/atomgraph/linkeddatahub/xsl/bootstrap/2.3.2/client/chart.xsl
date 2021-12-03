@@ -375,6 +375,7 @@ exclude-result-prefixes="#all"
                             <xsl:call-template name="onSPARQLResultsLoad">
                                 <xsl:with-param name="content-uri" select="$content-uri"/>
                                 <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
+                                <xsl:with-param name="container-id" select="ixsl:get($container, 'id')"/>
                                 <xsl:with-param name="chart-type" select="$chart-type"/>
                                 <xsl:with-param name="category" select="$category"/>
                                 <xsl:with-param name="series" select="$series"/>
