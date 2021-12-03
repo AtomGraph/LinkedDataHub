@@ -1266,7 +1266,8 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[contains-token(@class, 'active')]/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
 
                     <xsl:call-template name="render-container">
-                        <xsl:with-param name="container" select="$container"/>
+                        <!-- if  the container is full-width row (.row-fluid), render results in the middle column (.span7) -->
+                        <xsl:with-param name="container" select="if (contains-token($container/@class, 'row-fluid')) then $container/div[contains-token(@class, 'span7')] else $container"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
