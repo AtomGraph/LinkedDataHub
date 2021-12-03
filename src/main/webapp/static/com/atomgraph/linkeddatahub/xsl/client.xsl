@@ -166,7 +166,7 @@ extension-element-prefixes="ixsl"
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
-        <xsl:if test="id('main-content', ixsl:page()) and not(ixsl:page()//div[tokenize(@class, ' ') = 'navbar']//a[tokenize(@class, ' ') = 'btn-primary'][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+        <xsl:if test="id('main-content', ixsl:page()) and not(ixsl:page()//div[contains-token(@class, 'navbar')]//a[contains-token(@class, 'btn-primary')][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:result-document href="#content-body" method="ixsl:append-content">
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
@@ -707,7 +707,7 @@ extension-element-prefixes="ixsl"
 
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
                 <xsl:variable name="is-item" select="exists(sioc:has_container/@rdf:resource)" as="xs:boolean"/>
-                <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'create-action']/..">
+                <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'create-action')]/..">
                     <xsl:choose>
                         <xsl:when test="$is-item">
                             <ixsl:set-style name="display" select="'none'"/>
@@ -1393,7 +1393,7 @@ extension-element-prefixes="ixsl"
                     <xsl:variable name="series" select="if (exists($series)) then $series else (if (rdf:RDF) then distinct-values(rdf:RDF/*/*/concat(namespace-uri(), local-name())) else srx:sparql/srx:head/srx:variable/@name)" as="xs:string*"/>
 
                     <!-- disable buttons if the result is not RDF (e.g. SPARQL XML results), enable otherwise -->
-                    <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
+                    <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', not($results/rdf:RDF) ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
@@ -1619,12 +1619,12 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         <!-- enable .btn-edit if it's present -->
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = 'btn-edit']">
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         <!-- enable .btn-save-as/.btn-skolemize if it's present -->
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-save-as', 'btn-skolemize')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
@@ -1800,7 +1800,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
-    <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']" mode="ixsl:onsubmit">
+    <xsl:template match="form[contains-token(@class, 'navbar-form')]" mode="ixsl:onsubmit">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri-string" select=".//input[@name = 'uri']/ixsl:get(., 'value')" as="xs:string?"/>
         
@@ -1862,7 +1862,7 @@ extension-element-prefixes="ixsl"
     
     <!-- validate form before submitting it and show errors on control-groups where input values are missing -->
     <xsl:template match="form[@id = 'form-add-data'] | form[@id = 'form-clone-data']" mode="ixsl:onsubmit" priority="1">
-        <xsl:variable name="control-groups" select="descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
+        <xsl:variable name="control-groups" select="descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&nfo;fileName', '&dct;source', '&sd;name')]]" as="element()*"/>
         <xsl:choose>
             <!-- values missing, throw an error -->
             <xsl:when test="some $input in $control-groups/descendant::input[@name = ('ol', 'ou')] satisfies not(ixsl:get($input, 'value'))">
@@ -1879,11 +1879,11 @@ extension-element-prefixes="ixsl"
 
     <!-- open drop-down by toggling its CSS class -->
 
-    <xsl:template match="*[tokenize(@class, ' ') = 'btn-group'][*[tokenize(@class, ' ') = 'dropdown-toggle']]" mode="ixsl:onclick">
+    <xsl:template match="*[contains-token(@class, 'btn-group')][*[contains-token(@class, 'dropdown-toggle')]]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'open' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <xsl:template match="div[tokenize(@class, ' ') = 'hero-unit']/button[tokenize(@class, ' ') = 'close']" mode="ixsl:onclick" priority="1">
+    <xsl:template match="div[contains-token(@class, 'hero-unit')]/button[contains-token(@class, 'close')]" mode="ixsl:onclick" priority="1">
         <!-- remove the hero-unit -->
         <xsl:for-each select="..">
             <xsl:message>
@@ -1925,9 +1925,9 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
-                <xsl:if test="$menu/li[tokenize(@class, ' ') = 'active']">
+                <xsl:if test="$menu/li[contains-token(@class, 'active')]">
                     <!-- resource URI selected in the typeahead -->
-                    <xsl:variable name="resource-uri" select="$menu/li[tokenize(@class, ' ') = 'active']/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                    <xsl:variable name="resource-uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- indirect resource URI, dereferenced through a proxy -->
                     <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
                     
@@ -1982,7 +1982,7 @@ extension-element-prefixes="ixsl"
     
     <!-- navbar search typeahead item selected -->
     
-    <xsl:template match="form[tokenize(@class, ' ') = 'navbar-form']//ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown" priority="1">
+    <xsl:template match="form[contains-token(@class, 'navbar-form')]//ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- indirect resource URI, dereferenced through a proxy -->
@@ -2011,14 +2011,14 @@ extension-element-prefixes="ixsl"
     
     <!-- open SPARQL editor -->
     
-    <xsl:template match="a[tokenize(@class, ' ') = 'query-editor']" mode="ixsl:onclick">
+    <xsl:template match="a[contains-token(@class, 'query-editor')]" mode="ixsl:onclick">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
 
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
 
         <!-- disable action buttons -->
-        <xsl:for-each select="ixsl:page()//div[tokenize(@class, ' ') = 'action-bar']//button[tokenize(@class, ' ') = ('btn-edit', 'btn-save-as', 'btn-skolemize')]">
+        <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[tokenize(@class, ' ') = ('btn-edit', 'btn-save-as', 'btn-skolemize')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', true() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
 
@@ -2044,14 +2044,14 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- types (Classes) are looked up on the NamespaceOntology rather on the SearchContainer -->
-    <xsl:template match="input[tokenize(@class, ' ') = 'type-typeahead']" mode="ixsl:onkeyup" priority="1">
+    <xsl:template match="input[contains-token(@class, 'type-typeahead')]" mode="ixsl:onkeyup" priority="1">
         <xsl:next-match>
             <xsl:with-param name="results-uri" select="resolve-uri('admin/model/ontologies/namespace/', $ldt:base)"/>
         </xsl:next-match>
     </xsl:template>
     
     <!-- lookup by ?label and optional ?Type using search SELECT -->
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onkeyup">
+    <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onkeyup">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         <xsl:param name="delay" select="400" as="xs:integer"/>
         <xsl:param name="endpoint" select="$ac:endpoint" as="xs:anyURI"/>
@@ -2081,7 +2081,7 @@ extension-element-prefixes="ixsl"
                 </xsl:call-template>
             </xsl:when>
             <xsl:when test="$key-code = 'Enter'">
-                <xsl:for-each select="$menu/li[tokenize(@class, ' ') = 'active']">
+                <xsl:for-each select="$menu/li[contains-token(@class, 'active')]">
                     <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/> <!-- prevent form submit -->
                 
                     <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
@@ -2128,7 +2128,7 @@ extension-element-prefixes="ixsl"
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="input[tokenize(@class, ' ') = 'typeahead']" mode="ixsl:onfocusout">
+    <xsl:template match="input[contains-token(@class, 'typeahead')]" mode="ixsl:onfocusout">
         <xsl:param name="menu" select="following-sibling::ul" as="element()"/>
         
         <xsl:call-template name="typeahead:hide">
@@ -2136,7 +2136,7 @@ extension-element-prefixes="ixsl"
         </xsl:call-template>
     </xsl:template>
     
-    <xsl:template match="ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'type-typeahead']/li" mode="ixsl:onmousedown" priority="1">
+    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'type-typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <xsl:next-match>
             <xsl:with-param name="typeahead-class" select="'btn add-typeahead add-typetypeahead'"/>
         </xsl:next-match>
@@ -2144,7 +2144,7 @@ extension-element-prefixes="ixsl"
     
     <!-- select typeahead item -->
     
-    <xsl:template match="ul[tokenize(@class, ' ') = 'dropdown-menu'][tokenize(@class, ' ') = 'typeahead']/li" mode="ixsl:onmousedown">
+    <xsl:template match="ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown">
         <xsl:variable name="resource-id" select="input[@name = ('ou', 'ob')]/ixsl:get(., 'value')" as="xs:string"/> <!-- can be URI resource or blank node ID -->
         <xsl:variable name="typeahead-class" select="'btn add-typeahead'" as="xs:string"/>
         <xsl:variable name="typeahead-doc" select="ixsl:get(ixsl:window(), 'LinkedDataHub.typeahead.rdfXml')" as="document-node()"/>
@@ -2159,12 +2159,12 @@ extension-element-prefixes="ixsl"
         </xsl:for-each>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-add-data']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-add-data')]" mode="ixsl:onclick">
         <xsl:call-template name="apl:ShowAddDataForm"/>
     </xsl:template>
 
     <!-- open editing form (do nothing if the button is disabled) -->
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-edit'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': '&ac;EditMode' }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
@@ -2189,7 +2189,7 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-delete'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else ac:build-uri($uri, map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
 
@@ -2203,7 +2203,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-skolemize'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-skolemize')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:build-uri(resolve-uri('skolemize', $ldt:base), map{ 'graph': string(ac:uri()) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="$uri" as="xs:anyURI"/>
 
@@ -2216,7 +2216,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
 
     <!-- content tabs (markup from Bootstrap) -->
-    <xsl:template match="div[tokenize(@class, ' ') = 'tabbable']/ul[tokenize(@class, ' ') = 'nav-tabs']/li/a" mode="ixsl:onclick">
+    <xsl:template match="div[contains-token(@class, 'tabbable')]/ul[contains-token(@class, 'nav-tabs')]/li/a" mode="ixsl:onclick">
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
             <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
@@ -2226,18 +2226,18 @@ extension-element-prefixes="ixsl"
             <ixsl:set-attribute name="class" select="'active'"/>
         </xsl:for-each>
         <!-- deactivate other tab panes -->
-        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane']">
+        <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'tab-content')]/*[contains-token(@class, 'tab-pane')]">
             <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
         </xsl:for-each>
         <!-- activate this tab -->
-        <xsl:for-each select="../../following-sibling::*[tokenize(@class, ' ') = 'tab-content']/*[tokenize(@class, ' ') = 'tab-pane'][count(preceding-sibling::*[tokenize(@class, ' ') = 'tab-pane']) = count(current()/../preceding-sibling::li)]">
+        <xsl:for-each select="../../following-sibling::*[contains-token(@class, 'tab-content')]/*[contains-token(@class, 'tab-pane')][count(preceding-sibling::*[contains-token(@class, 'tab-pane')]) = count(current()/../preceding-sibling::li)]">
             <ixsl:set-attribute name="class" select="concat(@class, ' ', 'active')"/>
         </xsl:for-each>
     </xsl:template>
     
     <!-- copy resource's URI into clipboard -->
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-copy-uri']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-copy-uri')]" mode="ixsl:onclick">
         <!-- get resource URI from its heading title attribute, both in bs2:Actions and bs2:FormControl mode -->
         <xsl:variable name="uri-or-bnode" select="../../h2/a/@title | ../following-sibling::input[@name = ('su', 'sb')]/@value" as="xs:string"/>
         <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'navigator.clipboard'), 'writeText', [ $uri-or-bnode ])"/>
@@ -2245,7 +2245,7 @@ extension-element-prefixes="ixsl"
 
     <!-- open a form to save RDF document (do nothing is the button is disabled) -->
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-as'][not(tokenize(@class, ' ') = 'disabled')]" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-save-as')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="query" select="if (id($textarea-id, ixsl:page())) then ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id), 'getValue', []) else ()" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($ac:endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/> <!-- TO-DO: get service endpoint from dropdown -->
@@ -2262,7 +2262,7 @@ extension-element-prefixes="ixsl"
 
     <!-- document mode tabs -->
     
-    <xsl:template match="div[@id = 'content-body']/div/ul[tokenize(@class, ' ') = 'nav-tabs']/li[not(tokenize(@class, ' ') = 'active')]/a" mode="ixsl:onclick">
+    <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
@@ -2279,7 +2279,7 @@ extension-element-prefixes="ixsl"
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
-        <xsl:sequence select="../../li[not(tokenize(@class, ' ') = $active-class)]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:sequence select="../../li[not(contains-token(@class, $active-class))]/ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         <!-- make this tab active -->
         <xsl:sequence select="../ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
 
