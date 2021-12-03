@@ -883,11 +883,16 @@ extension-element-prefixes="ixsl"
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:if test="exists($content-ids)">
             <xsl:for-each select="id($content-ids, ixsl:page())">
-                <xsl:variable name="container" select="." as="element()"/>
+                <!--
+                There are 2 cases here:
+                1. content is part of ContentList and is rendered as a .row-fluid (full row)
+                2. content is rendered after its resource (e.g. query or chart) in .span7 (middle column)
+                -->
+                <xsl:variable name="container" select="if (contains-token(@class, 'row-fluid')) then div[contains-token(@class, 'span7')] else ." as="element()"/>
                 <xsl:variable name="content-uri" select="ixsl:get($container, 'dataset.contentUri')" as="xs:anyURI"/> <!-- get the value of the @data-content-uri attribute -->
 
                 <!-- show progress bar in the middle column -->
-                <xsl:for-each select="div[@class = 'span7']">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <div class="progress-bar">
                             <div class="progress progress-striped active">

@@ -1266,7 +1266,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="active-class" select="$container//ul[@class = 'nav nav-tabs']/li[tokenize(@class, ' ') = 'active']/tokenize(@class, ' ')[not(. = 'active')][1]" as="xs:string?"/>
 
                     <xsl:call-template name="render-container">
-                        <xsl:with-param name="container" select="$container/div[@class = 'span7']"/> <!-- render results in the middle column -->
+                        <xsl:with-param name="container" select="$container"/>
                         <xsl:with-param name="content-uri" select="$content-uri"/>
                         <xsl:with-param name="content" select="$content"/>
                         <xsl:with-param name="results" select="$grouped-results"/>
