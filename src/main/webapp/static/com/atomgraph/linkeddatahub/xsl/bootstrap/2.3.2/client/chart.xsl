@@ -279,7 +279,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
+        <xsl:variable name="container" select="(ancestor::div[contains-token(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
