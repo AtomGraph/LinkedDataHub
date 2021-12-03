@@ -130,28 +130,28 @@ exclude-result-prefixes="#all"
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         
-        <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
+        <xsl:variable name="item-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
         <xsl:variable name="container" select="resolve-uri('charts/', $ldt:base)" as="xs:anyURI"/>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$container"/>
-                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[contains-token(@class, 'controls')]/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
         
         <!-- handle both ResultSetChart and GraphChart here -->
-        <xsl:variable name="chart-type-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()"/>
+        <xsl:variable name="chart-type-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&apl;chartType']]" as="element()"/>
         <ixsl:set-property name="value" select="$chart-type" object="$chart-type-group/descendant::select[@name = 'ou']"/>
-        <xsl:variable name="category-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()"/>
+        <xsl:variable name="category-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&apl;categoryVarName', '&apl;categoryProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$category" object="$category-control-group/descendant::input[@name = ('ou', 'ol')]"/>
         <!-- TO-DO: support more than one series variable -->
-        <xsl:variable name="series-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()"/>
+        <xsl:variable name="series-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = ('&apl;seriesVarName', '&apl;seriesProperty')]]" as="element()"/>
         <ixsl:set-property name="value" select="$series" object="$series-control-group/descendant::input[@name = ('ou', 'ol')]"/>
-        <xsl:variable name="query-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
+        <xsl:variable name="query-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&spin;query']]" as="element()*"/>
         <xsl:variable name="target-id" select="$query-control-group/descendant::input[@name = 'ou']/@id" as="xs:string"/>
         
         <xsl:variable name="request" as="item()*">
@@ -203,11 +203,11 @@ exclude-result-prefixes="#all"
     
     <!-- chart-type onchange -->
     
-    <xsl:template match="select[tokenize(@class, ' ') = 'chart-type']" mode="ixsl:onchange">
+    <xsl:template match="select[contains-token(@class, 'chart-type')]" mode="ixsl:onchange">
         <xsl:variable name="chart-type" select="ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
+            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -215,7 +215,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[tokenize(@class, ' ') = 'resource-content'], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
+        <xsl:variable name="container" select="(ancestor::div[contains-token(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -236,11 +236,11 @@ exclude-result-prefixes="#all"
 
     <!-- category onchange -->
 
-    <xsl:template match="select[tokenize(@class, ' ') = 'chart-category']" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI"/>
+    <xsl:template match="select[contains-token(@class, 'chart-category')]" mode="ixsl:onchange">
+        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="category" select="ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
+            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>
@@ -248,7 +248,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[tokenize(@class, ' ') = 'resource-content'], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
+        <xsl:variable name="container" select="(ancestor::div[contains-token(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -269,9 +269,9 @@ exclude-result-prefixes="#all"
     
     <!-- series onchange -->
 
-    <xsl:template match="select[tokenize(@class, ' ') = 'chart-series']" mode="ixsl:onchange">
-        <xsl:variable name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <xsl:variable name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
+    <xsl:template match="select[contains-token(@class, 'chart-series')]" mode="ixsl:onchange">
+        <xsl:variable name="chart-type" select="../..//select[contains-tokene(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
             <xsl:variable name="select" select="." as="element()"/>
             <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
@@ -279,7 +279,7 @@ exclude-result-prefixes="#all"
             </xsl:for-each>
         </xsl:variable>
         <!-- $content-uri value comes from the @data-content-uri -->
-        <xsl:variable name="container" select="(ancestor::div[tokenize(@class, ' ') = 'resource-content'], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
+        <xsl:variable name="container" select="(ancestor::div[(@class, 'resource-content')], ancestor::div[contains-token(@class, 'sparql-results')])[1]" as="element()?"/>
         <xsl:variable name="content-uri" select="xs:anyURI(translate(ixsl:get($container, 'dataset.contentUri'), '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="chart-canvas-id" select="ancestor::form/following-sibling::div/@id" as="xs:string"/>
         <xsl:variable name="results" select="ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'results')" as="document-node()"/>
@@ -300,7 +300,7 @@ exclude-result-prefixes="#all"
     
     <!-- save chart -->
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-chart']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-save-chart')]" mode="ixsl:onclick">
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
@@ -312,10 +312,10 @@ exclude-result-prefixes="#all"
         <xsl:variable name="modal-form" select="true()" as="xs:boolean"/>
         <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
-        <xsl:variable name="chart-type" select="../..//select[tokenize(@class, ' ') = 'chart-type']/ixsl:get(., 'value')" as="xs:anyURI?"/>
-        <xsl:variable name="category" select="../..//select[tokenize(@class, ' ') = 'chart-category']/ixsl:get(., 'value')" as="xs:string?"/>
+        <xsl:variable name="chart-type" select="../..//select[contains-token(@class, 'chart-type')]/ixsl:get(., 'value')" as="xs:anyURI?"/>
+        <xsl:variable name="category" select="../..//select[contains-token(@class, 'chart-category')]/ixsl:get(., 'value')" as="xs:string?"/>
         <xsl:variable name="series" as="xs:string*">
-            <xsl:for-each select="../..//select[tokenize(@class, ' ') = 'chart-series']">
+            <xsl:for-each select="../..//select[contains-token(@class, 'chart-series')]">
                 <xsl:variable name="select" select="." as="element()"/>
                 <xsl:for-each select="0 to xs:integer(ixsl:get(., 'selectedOptions.length')) - 1">
                     <xsl:sequence select="ixsl:get(ixsl:call(ixsl:get($select, 'selectedOptions'), 'item', [ . ]), 'value')"/>

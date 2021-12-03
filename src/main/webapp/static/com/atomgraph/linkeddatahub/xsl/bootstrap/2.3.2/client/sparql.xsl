@@ -155,7 +155,7 @@ LIMIT 100</xsl:param>
 
     <!-- open SPARQL editor and pass a query string -->
     
-    <xsl:template match="form[tokenize(@class, ' ') = 'form-open-query']" mode="ixsl:onsubmit" priority="1">
+    <xsl:template match="form[contains-token(@class, 'form-open-query')]" mode="ixsl:onsubmit" priority="1">
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:variable name="textarea-id" select="'query-string'" as="xs:string"/>
         <xsl:variable name="form" select="." as="element()"/>
@@ -223,7 +223,7 @@ LIMIT 100</xsl:param>
     
     <!-- save query -->
     
-    <xsl:template match="button[tokenize(@class, ' ') = 'btn-save-query']" mode="ixsl:onclick">
+    <xsl:template match="button[contains-token(@class, 'btn-save-query')]" mode="ixsl:onclick">
         <xsl:variable name="textarea-id" select="ancestor::form/descendant::textarea[@name = 'query']/ixsl:get(., 'id')" as="xs:string"/>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query-string" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
@@ -267,30 +267,30 @@ LIMIT 100</xsl:param>
         
         <xsl:variable name="form" select="id($form-id, ixsl:page())" as="element()"/>
         
-        <xsl:variable name="query-string-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sp;text']]" as="element()"/>
+        <xsl:variable name="query-string-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sp;text']]" as="element()"/>
         <ixsl:set-property name="value" select="$query-string" object="$query-string-control-group/descendant::textarea[@name = 'ol']"/>
 
-        <xsl:variable name="item-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
+        <xsl:variable name="item-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&sioc;has_container']]" as="element()"/>
         <xsl:variable name="container" select="resolve-uri('queries/', $ldt:base)" as="xs:anyURI"/>
         
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $container, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onTypeaheadResourceLoad">
                     <xsl:with-param name="resource-uri" select="$container"/>
-                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                    <xsl:with-param name="typeahead-span" select="$item-control-group/div[contains-token(@class, 'controls')]/span[1]"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             
         <xsl:if test="$service-uri">
-            <xsl:variable name="service-control-group" select="$form/descendant::div[tokenize(@class, ' ') = 'control-group'][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
+            <xsl:variable name="service-control-group" select="$form/descendant::div[contains-token(@class, 'control-group')][input[@name = 'pu'][@value = '&apl;service']]" as="element()"/>
             
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $service-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                     <xsl:call-template name="onTypeaheadResourceLoad">
                         <xsl:with-param name="resource-uri" select="$service-uri"/>
-                        <xsl:with-param name="typeahead-span" select="$service-control-group/div[tokenize(@class, ' ') = 'controls']/span[1]"/>
+                        <xsl:with-param name="typeahead-span" select="$service-control-group/div[contains-token(@class, 'controls')]/span[1]"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
