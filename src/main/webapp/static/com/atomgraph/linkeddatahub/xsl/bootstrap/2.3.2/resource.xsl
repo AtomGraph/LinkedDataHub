@@ -370,7 +370,7 @@ extension-element-prefixes="ixsl"
                 <xsl:apply-templates select="." mode="bs2:Block"/>
                 
                 <xsl:if test="$content-uri">
-                    <div id="{$id || '-content'}" data-content-uri="{$content-uri}"/>
+                    <div id="{$id || '-content'}" class="content resource-content" data-content-uri="{$content-uri}"/>
                 </xsl:if>
             </div>
 
