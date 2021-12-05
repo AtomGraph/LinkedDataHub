@@ -2375,9 +2375,9 @@ WHERE
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
             <!-- backlinks already rendered - hide the nav list -->
-            <xsl:othwerwise>
+            <xsl:otherwise>
                 <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
-            </xsl:othwerwise>
+            </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
