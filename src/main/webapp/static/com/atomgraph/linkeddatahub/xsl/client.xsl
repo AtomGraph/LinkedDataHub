@@ -2349,7 +2349,12 @@ WHERE
     <!-- backlinks -->
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
-        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', @rdf:about, '&gt;'))" as="xs:string"/>  
+        <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>  
+<xsl:message>
+Backlinks query string: <xsl:value-of select="$query-string"/>
+</xsl:message>
+
         <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 

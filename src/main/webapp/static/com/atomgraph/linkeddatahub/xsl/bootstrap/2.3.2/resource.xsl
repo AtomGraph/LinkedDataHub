@@ -287,6 +287,7 @@ extension-element-prefixes="ixsl"
                     <h2 class="nav-header btn">
                         <xsl:text>Backlinks</xsl:text>
                         <span class="caret caret-reversed pull-right"></span>
+                        <input type="hidden" name="uri" select="{@rdf:about}"/>
                     </h2>
                     <!-- will be hydrated by client.xsl -->
                 </div>
