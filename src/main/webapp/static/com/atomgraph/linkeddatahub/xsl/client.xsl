@@ -116,6 +116,15 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ac:container-mode" select="if (ixsl:query-params()?container-mode) then xs:anyURI(ixsl:query-params()?container-mode) else xs:anyURI('&ac;ListMode')" as="xs:anyURI?"/>
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="select-labelled-string" select="key('resources', '&def;SelectLabelled', document(ac:document-uri('&def;')))/sp:text" as="xs:string"/> <!-- def: ontology is location-mapped (pre-loaded) by Saxon-JS -->
+    <xsl:param name="backlinks-string" as="xs:string">DESCRIBE ?subject
+WHERE
+  { SELECT DISTINCT  ?subject
+    WHERE
+      { GRAPH ?g
+          { ?subject  ?p  ?this }
+      }
+    LIMIT   10
+  }</xsl:param>
 
     <xsl:key name="resources" match="*[*][@rdf:about] | *[*][@rdf:nodeID]" use="@rdf:about | @rdf:nodeID"/>
     <xsl:key name="elements-by-class" match="*" use="tokenize(@class, ' ')"/>
@@ -2337,6 +2346,22 @@ extension-element-prefixes="ixsl"
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
     </xsl:template>
 
+    <!-- backlinks -->
+    
+    <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', @rdf:about, '&gt;'))" as="xs:string"/>  
+        <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+
+        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+
+        <xsl:variable name="request" as="item()*">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                <xsl:call-template name="onBacklinksLoad"/>
+            </ixsl:schedule-action>
+        </xsl:variable>
+    </xsl:template>
+    
     <!-- CALLBACKS -->
     
     <xsl:template name="onTypeaheadResourceLoad">
@@ -2378,4 +2403,27 @@ extension-element-prefixes="ixsl"
         </xsl:next-match>
     </xsl:template>
 
+    <xsl:template name="onBacklinksLoad">
+        <xsl:context-item as="map(*)" use="required"/>
+        
+        <xsl:choose>
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+                <xsl:variable name="results" select="?body" as="docuiment-node()"/>
+                
+                <xsl:for-each select="div[contains-token(@class, 'backlinks-nav')]">
+                    <xsl:result-document href="?." method="ixsl:append-content">
+                        <ul class="well well-small nav nav-list">
+                            <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List"/>
+                        </ul>
+                    </xsl:result-document>
+                </xsl:for-each>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
+    </xsl:template>
+    
 </xsl:stylesheet>

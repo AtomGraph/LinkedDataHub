@@ -273,15 +273,6 @@ extension-element-prefixes="ixsl"
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'right-nav span3'" as="xs:string?"/>
-        <xsl:param name="query-string" as="xs:string">DESCRIBE ?subject
-WHERE
-  { SELECT DISTINCT  ?subject
-    WHERE
-      { GRAPH ?g
-          { ?subject  ?p  ?this }
-      }
-    LIMIT   10
-  }</xsl:param>
         
         <div>
             <xsl:if test="$id">
@@ -292,15 +283,13 @@ WHERE
             </xsl:if>
             
             <xsl:if test="@rdf:about">
-                <xsl:variable name="query-string" select="replace($query-string, '\?this', concat('&lt;', @rdf:about, '&gt;'))" as="xs:string"/>  
-                <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-
-                <xsl:if test="doc-available($results-uri)">
-                    <h2 class="nav-header btn">Backlinks</h2>
-                    <ul class="well well-small nav nav-list">
-                        <xsl:apply-templates select="document($results-uri)/rdf:RDF/rdf:Description" mode="bs2:List"/>
-                    </ul>
-                </xsl:if>
+                <div class="well well-small sidebar-nav backlinks-nav">
+                    <h2 class="nav-header btn">
+                        <xsl:text>Backlinks</xsl:text>
+                        <span class="caret caret-reversed pull-right"></span>
+                    </h2>
+                    <!-- will be hydrated by client.xsl -->
+                </div>
             </xsl:if>
         </div>
     </xsl:template>

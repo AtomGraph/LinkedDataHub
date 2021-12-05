@@ -1045,7 +1045,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'btn-order-by-desc' ])[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
-    <!-- facet header on click -->
+    <!-- facet header onclick -->
     
     <xsl:template match="div[contains-token(@class, 'faceted-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'resource-content')]" as="element()"/>
