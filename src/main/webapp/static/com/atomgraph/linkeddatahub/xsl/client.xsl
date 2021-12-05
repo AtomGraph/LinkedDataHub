@@ -2351,10 +2351,6 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>  
-<xsl:message>
-Backlinks query string: <xsl:value-of select="$query-string"/>
-</xsl:message>
-
         <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
 
@@ -2365,6 +2361,7 @@ Backlinks query string: <xsl:value-of select="$query-string"/>
                 <xsl:call-template name="onBacklinksLoad"/>
             </ixsl:schedule-action>
         </xsl:variable>
+        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
     
     <!-- CALLBACKS -->
