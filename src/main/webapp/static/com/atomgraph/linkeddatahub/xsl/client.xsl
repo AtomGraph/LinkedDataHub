@@ -2349,6 +2349,7 @@ WHERE
     <!-- backlinks -->
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
+        <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
         <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>  
         <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
@@ -2358,7 +2359,9 @@ WHERE
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onBacklinksLoad"/>
+                <xsl:call-template name="onBacklinksLoad">
+                    <xsl:xsl:with-param name="container" select="$container"/>
+                </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
@@ -2407,12 +2410,13 @@ WHERE
 
     <xsl:template name="onBacklinksLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        
+        <xsl:param name="container" as="element()"/>
+
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:variable name="results" select="?body" as="document-node()"/>
                 
-                <xsl:for-each select="div[contains-token(@class, 'backlinks-nav')]">
+                <xsl:for-each select="$container">
                     <xsl:result-document href="?." method="ixsl:append-content">
                         <ul class="well well-small nav nav-list">
                             <xsl:apply-templates select="$results/rdf:RDF/rdf:Description[not(@rdf:about = ac:uri())]" mode="bs2:List"/>
