@@ -2357,19 +2357,28 @@ WHERE
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <!-- toggle the caret direction -->
-        <xsl:for-each select="span[contains-token(@class, 'caret')]">
-            <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
-        </xsl:for-each>
-                
-        <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onBacklinksLoad">
-                    <xsl:with-param name="container" select="$container"/>
-                </xsl:call-template>
-            </ixsl:schedule-action>
-        </xsl:variable>
-        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+        <xsl:choose>
+            <!-- backlink nav list is not rendered yet - load it -->
+            <xsl:when test="not(following-sibling::*[contains-token(@class, 'nav')])">
+                <!-- toggle the caret direction -->
+                <xsl:for-each select="span[contains-token(@class, 'caret')]">
+                    <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'caret-reversed' ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:for-each>
+
+                <xsl:variable name="request" as="item()*">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                        <xsl:call-template name="onBacklinksLoad">
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
+                    </ixsl:schedule-action>
+                </xsl:variable>
+                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+            </xsl:when>
+            <!-- backlinks already rendered - hide the nav list -->
+            <xsl:othwerwise>
+                <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+            </xsl:othwerwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- CALLBACKS -->
