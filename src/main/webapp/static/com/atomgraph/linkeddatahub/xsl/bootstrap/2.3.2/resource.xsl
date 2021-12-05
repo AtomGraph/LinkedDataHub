@@ -265,17 +265,6 @@ extension-element-prefixes="ixsl"
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
-            
-            <xsl:if test="@rdf:about">
-                <div class="well well-small sidebar-nav backlinks-nav">
-                    <h2 class="nav-header btn">
-                        <xsl:text>Backlinks</xsl:text>
-                        <span class="caret caret-reversed pull-right"></span>
-                        <input type="hidden" name="uri" value="{@rdf:about}"/>
-                    </h2>
-                    <!-- will be hydrated by client.xsl -->
-                </div>
-            </xsl:if>
         </div>
     </xsl:template>
     
@@ -291,6 +280,17 @@ extension-element-prefixes="ixsl"
             </xsl:if>
             <xsl:if test="$class">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <xsl:if test="@rdf:about">
+                <div class="well well-small sidebar-nav backlinks-nav">
+                    <h2 class="nav-header btn">
+                        <xsl:text>Backlinks</xsl:text>
+                        <span class="caret caret-reversed pull-right"></span>
+                        <input type="hidden" name="uri" value="{@rdf:about}"/>
+                    </h2>
+                    <!-- will be hydrated by client.xsl -->
+                </div>
             </xsl:if>
         </div>
     </xsl:template>
