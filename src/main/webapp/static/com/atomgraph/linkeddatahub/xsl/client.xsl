@@ -2360,7 +2360,7 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                 <xsl:call-template name="onBacklinksLoad">
-                    <xsl:xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
