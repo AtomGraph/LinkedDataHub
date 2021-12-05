@@ -2408,7 +2408,7 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
-                <xsl:variable name="results" select="?body" as="docuiment-node()"/>
+                <xsl:variable name="results" select="?body" as="document-node()"/>
                 
                 <xsl:for-each select="div[contains-token(@class, 'backlinks-nav')]">
                     <xsl:result-document href="?." method="ixsl:append-content">
