@@ -2374,7 +2374,11 @@ WHERE
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
             </xsl:when>
-            <!-- backlinks already rendered - hide the nav list -->
+            <!-- show the nav list -->
+            <xsl:when test="ixsl:style(following-sibling::*[contains-token(@class, 'nav')])?display = 'none'">
+                <ixsl:set-style name="display" select="'block'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
+            </xsl:when>
+            <!-- hide the nav list -->
             <xsl:otherwise>
                 <ixsl:set-style name="display" select="'none'" object="following-sibling::*[contains-token(@class, 'nav')]"/>
             </xsl:otherwise>
