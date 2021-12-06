@@ -106,8 +106,6 @@ public class APLC
 
     public static final ObjectProperty contextDataset = m_model.createObjectProperty( NS + "contextDataset" );
 
-    public static final DatatypeProperty appQuery = m_model.createDatatypeProperty( NS + "appQuery" );
-    
     public static final DatatypeProperty maxConnPerRoute = m_model.createDatatypeProperty( NS + "maxConnPerRoute" );
     
     public static final DatatypeProperty maxTotalConn = m_model.createDatatypeProperty( NS + "maxTotalConn" );

@@ -239,7 +239,7 @@ public class Application extends ResourceConfig
     private final DataManager dataManager;
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
-    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery, appQuery; // no relative URIs
+    private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery; // no relative URIs
     private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
@@ -288,7 +288,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.appQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
@@ -328,7 +327,6 @@ public class Application extends ResourceConfig
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
-            final String appQueryString,
             final String putUpdateString, final String deleteUpdateString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
@@ -397,14 +395,6 @@ public class Application extends ResourceConfig
         }
         baseURI = URI.create(baseURIString);
         
-        if (appQueryString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Query property '{}' not configured", APLC.appQuery.getURI());
-            throw new ConfigurationException(APLC.appQuery);
-        }
-        appQuery = QueryFactory.create(appQueryString, baseURIString);
-        appQuery.setBaseURI(baseURIString); // for some reason the above is not enough
-                
         if (uploadRootString == null)
         {
             if (log.isErrorEnabled()) log.error("Upload root ({}) not configured", APLC.uploadRoot.getURI());
@@ -926,24 +916,7 @@ public class Application extends ResourceConfig
         
         return lengthMap;
     }
-    
-//    public Model getAppModel(Resource type, Resource absolutePath)
-//    {
-//        if (absolutePath == null) throw new IllegalArgumentException("Absolute path Resource cannot be null");
-//
-//        QuerySolutionMap qsm = new QuerySolutionMap();
-//        if (type != null) qsm.add(RDF.type.getLocalName(), type);
-//        qsm.add(THIS_VAR_NAME, absolutePath);
-//        
-//        try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))
-//        {
-//            if (getAppQuery().isConstructType()) return qex.execConstruct();
-//            if (getAppQuery().isDescribeType()) return qex.execDescribe();
-//        }
-//        
-//        throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
-//    }
-    
+
     public void submitImport(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
         ImportListener.submit(csvImport, provGraph, service, adminService, baseURI, dataManager);
@@ -1147,11 +1120,6 @@ public class Application extends ResourceConfig
         return userAccountQuery;
     }
     
-    public Query getAppQuery()
-    {
-        return appQuery;
-    }
-
     public UpdateRequest getPutUpdate(String baseURI)
     {
         return UpdateFactory.create(putUpdateString, baseURI);

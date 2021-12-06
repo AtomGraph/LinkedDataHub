@@ -175,41 +175,6 @@ SELECT *
 ]]></param-value>
     </context-param>
     <context-param>
-        <param-name>https://w3id.org/atomgraph/linkeddatahub/config#appQuery</param-name>
-        <param-value><![CDATA[
-PREFIX  ldt:  <https://www.w3.org/ns/ldt#>
-PREFIX  lapp: <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
-
-DESCRIBE ?app ?service ?adminApp ?adminService ?endUserApp ?endUserService
-WHERE
-  { SELECT  *
-    WHERE
-      { ?app  a  ?type
-          { ?app  ldt:base  ?base }
-        UNION
-          { ?app  lapp:prefix  ?base
-            BIND(true AS ?prefix)
-          }
-        OPTIONAL
-          { ?app  ldt:service  ?service }
-        OPTIONAL
-          { ?app      lapp:adminApplication  ?adminApp .
-            ?adminApp  ldt:service          ?adminService
-          }
-        OPTIONAL
-          { ?app      lapp:endUserApplication  ?endUserApp .
-            ?endUserApp  ldt:service        ?endUserService
-          }
-        FILTER strstarts(str(?this), str(?base))
-        FILTER if(bound(?prefix), ( str(?this) != str(?base) ), true) # if it's a prefix, $this has to be longer than ?base
-        BIND(strlen(str(?base)) AS ?baseLength)
-      }
-    ORDER BY DESC(?baseLength)
-    LIMIT   1
-  }
-]]></param-value>
-    </context-param>
-    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#putUpdate</param-name>
         <param-value><![CDATA[
 PREFIX  dct:  <http://purl.org/dc/terms/>
