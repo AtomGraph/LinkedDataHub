@@ -860,7 +860,7 @@ public class Application extends ResourceConfig
 
     public Resource matchApp(Resource type, URI absolutePath)
     {
-        return matchApp(getAppModel(type, ResourceFactory.createResource(absolutePath.toString())), type, absolutePath);
+        return matchApp(getContextDataset().getDefaultModel(), type, absolutePath);
     }
     
     public Resource matchApp(Model appModel, Resource type, URI absolutePath)
@@ -927,22 +927,22 @@ public class Application extends ResourceConfig
         return lengthMap;
     }
     
-    public Model getAppModel(Resource type, Resource absolutePath)
-    {
-        if (absolutePath == null) throw new IllegalArgumentException("Absolute path Resource cannot be null");
-
-        QuerySolutionMap qsm = new QuerySolutionMap();
-        if (type != null) qsm.add(RDF.type.getLocalName(), type);
-        qsm.add(THIS_VAR_NAME, absolutePath);
-        
-        try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))
-        {
-            if (getAppQuery().isConstructType()) return qex.execConstruct();
-            if (getAppQuery().isDescribeType()) return qex.execDescribe();
-        }
-        
-        throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
-    }
+//    public Model getAppModel(Resource type, Resource absolutePath)
+//    {
+//        if (absolutePath == null) throw new IllegalArgumentException("Absolute path Resource cannot be null");
+//
+//        QuerySolutionMap qsm = new QuerySolutionMap();
+//        if (type != null) qsm.add(RDF.type.getLocalName(), type);
+//        qsm.add(THIS_VAR_NAME, absolutePath);
+//        
+//        try (QueryExecution qex = QueryExecutionFactory.create(getAppQuery(), getContextDataset(), qsm))
+//        {
+//            if (getAppQuery().isConstructType()) return qex.execConstruct();
+//            if (getAppQuery().isDescribeType()) return qex.execDescribe();
+//        }
+//        
+//        throw new WebApplicationException(new IllegalStateException("Query is not a DESCRIBE or CONSTRUCT"));
+//    }
     
     public void submitImport(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
