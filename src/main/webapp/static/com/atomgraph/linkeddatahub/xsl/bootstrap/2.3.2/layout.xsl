@@ -76,7 +76,6 @@ exclude-result-prefixes="#all">
     <xsl:import href="imports/default.xsl"/>
     <xsl:import href="imports/apl.xsl"/>
     <xsl:import href="imports/dct.xsl"/>
-    <xsl:import href="imports/dh.xsl"/>
     <xsl:import href="imports/nfo.xsl"/>
     <xsl:import href="imports/rdf.xsl"/>
     <xsl:import href="imports/sioc.xsl"/>
