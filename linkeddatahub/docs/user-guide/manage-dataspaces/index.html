@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - Manage dataspaces</title>
+      <meta name="description" content="Create or change a dataspace, configure SPARQL services and XSLT stylesheets"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+   </head>
+   <body>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2"><a href="../../index.html" title="The Knowledge Graph management system">LinkedDataHub</a><ul class="nav nav-list">
+                  <li><a href="../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../../reference/index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../reference/administration/index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../reference/administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../reference/administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../reference/administration/sitemap/index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
+                                    <li><a href="../../reference/administration/sitemap/built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
+                                    <li><a href="../../reference/administration/sitemap/ldt-templates/index.html" title="Learn how to use Linked Data Templates">LDT templates</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../reference/dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../reference/dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../reference/documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../reference/http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../../reference/imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../../reference/imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../../reference/imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../reference/stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../reference/user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../administration/index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
+                              <li><a href="../administration/change-model/index.html" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
+                              <li><a href="../administration/change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li></li>
+                        <li><a href="../query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>Manage dataspaces</h1>
+                  <p class="lead">Step by step guide to creating a new dataspace backed by SPARQL services</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <div class="tabbable">
+                     
+                     <ul class="nav nav-tabs">
+                        
+                        <li class="active"><a>LinkedDataHub</a></li>
+                        
+                        <li><a>LinkedDataHub Cloud</a></li>
+                        </ul>
+                     
+                     <div class="tab-content">
+                        
+                        <div class="tab-pane active">
+                           
+                           <div>
+                              
+                              <h2 id="dataspaces">Manage dataspaces</h2>
+                              
+                              <p><a href="../../reference/dataspace/" target="_blank">Dataspaces</a> are configured in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/config/system.trig" target="_blank"><samp>config/system.trig</samp></a>. <a href="https://www.w3.org/TR/trig/" target="_blank">TriG</a> RDF syntax is used.</p>
+                              
+                              <p>The configuration uses the <a href="https://w3id.org/atomgraph/linkeddatahub/apps/domain" target="_blank">Application domain ontology</a>. A dataspace is comprised of an end-user
+                                 application and an administrative application, both of them are backed by each own
+                                 SPARQL service. Each application can also specify its own <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>.</p>
+                              
+                              <div class="alert alert-info">
+                                 
+                                 <p>Application base URIs need to be relative to the <a href="../change-system-base-uri/#base-uri" target="_blank">system base URI</a> configured in the <samp>.env</samp> file. A change of system base URI currently requires a change of application base
+                                    URIs, otherwise they will not be reachable.</p>
+                                 </div>
+                              
+                              <div>
+                                 
+                                 <h3 id="change-base-uri">Change base URI(s)</h3>
+                                 
+                                 <p>Lets say we want to use <samp>https://ec2-54-235-229-141.compute-1.amazonaws.com/linkeddatahub/</samp> as the new base URI of our dataspaces. The easiest way is to simple replace occurences
+                                    of the default <samp>https://localhost:4443/</samp> base URI with the new value. It can be done using the following shell command:</p>
+                                 
+                                 <pre>sed -i 's/https:\/\/localhost:4443\//https:\/\/ec2-54-235-229-141.compute-1.amazonaws.com\/linkeddatahub\//g' config/system.trig</pre>
+                                 
+                                 <p>Note that <samp>sed</samp> requires to escape forward slashes <samp>/</samp> with backslashes <samp>\</samp>.</p>
+                                 </div>
+                              
+                              <div>
+                                 
+                                 <h3 id="create-dataspace">Create a dataspace</h3>
+                                 
+                                 <p>Add instances of <code>lapp:EndUserApplication</code>, <code>lapp:AdminApplication</code> and their corresponding <code>apl:GenericService</code>s following the default dataspace in <samp>config/system.trig</samp>.</p>
+                                 
+                                 <div class="alert alert-info">
+                                    
+                                    <p>Make sure the file's syntax is valid <a href="https://www.w3.org/TR/turtle/" target="_blank">Turtle</a>, otherwise the setup will not work. You can use <a href="http://ttl.summerofcode.be/" target="_blank">Turtle Validator</a> to check the syntax.</p>
+                                    </div>
+                                 </div>
+                              
+                              <div>
+                                 
+                                 <h3 id="change-stylesheet">Change stylesheet</h3>
+                                 
+                                 <p>Change the value of <code>ac:stylesheet</code> to the URI of your <a href="../../reference/stylesheets/" target="_blank">XSLT stylesheet</a>. Add the property if it is absent.</p>
+                                 
+                                 <p>The stylesheet can either be <a href="../upload-file/" target="_blank">uploaded as a file</a> or <a href="https://docs.docker.com/storage/bind-mounts/" target="_blank">mounted</a> in <samp>docker-compose.yml</samp>, in the <samp>volumes</samp> section of the <samp>linkeddatahub</samp> service. Mounting is useful when developing, however if you want to make
+                                    sure your dataspace is compatible with <a href="../../linkeddatahub-cloud/" target="_blank">LinkedDataHub Cloud</a>, you should use file uploads as there is no way to mount local
+                                    files on to LinkedDataHub Cloud.</p>
+                                 
+                                 <p>You will need to restart LinkedDataHub's Docker service for the new stylesheet to
+                                    take effect.</p>
+                                 
+                                 <p>It is rarely necessary to change the stylesheet of an admin application.</p>
+                                 </div>
+                              </div>
+                           
+                           <div>
+                              
+                              <h2 id="manage-services">Manage services</h2>
+                              
+                              <p>LinkedDataHub service as well as the default SPARQL services <samp>fuseki-end-user</samp> and <samp>fuseki-admin</samp> are defined in <a href="https://github.com/AtomGraph/LinkedDataHub/blob/master/docker-compose.yml" target="_blank"><samp>docker-compose.yml</samp></a> and run as Docker containers.</p>
+                              </div>
+                           </div>
+                        
+                        <div class="tab-pane">
+                           
+                           <div>
+                              
+                              
+                              <div>
+                                 
+                                 <h3 id="create-context">Create a context</h3>
+                                 
+                                 <div class="tabbable">
+                                    
+                                    <ul class="nav nav-tabs">
+                                       
+                                       <li class="active"><a>User interface</a></li>
+                                       
+                                       <li><a>Command line interface</a></li>
+                                       </ul>
+                                    
+                                    <div class="tab-content">
+                                       
+                                       <div class="tab-pane active">
+                                          
+                                          <p>Follow these steps:</p>
+                                          
+                                          <ol>
+                                             
+                                             <li>Go to the <a href="https://linkeddatahub.com/" target="_blank"><samp>Root</samp> context</a></li>
+                                             
+                                             <li>Make sure you are <a href="../../get-started/get-an-account/#log-in" target="_blank">authenticated</a></li>
+                                             
+                                             <li>On the top left-hand side click on the <span class="btn btn-primary create-action">Context</span> button</li>
+                                             
+                                             <li>In the form that opens, fill out the following fields:
+                                                
+                                                <dl>
+                                                   
+                                                   <dt>Base URI</dt>
+                                                   
+                                                   <dd>Here you can change the relative path of your context. It may not have forward slashes
+                                                      (<samp>/</samp>) in it. Attempt to use an already existing path will result in an error. By default,
+                                                      a unique UUID will be assigned.</dd>
+                                                   
+                                                   <dt>Title</dt>
+                                                   
+                                                   <dd>The human-readable title of your context</dd>
+                                                   
+                                                   <dt>Description</dt>
+                                                   
+                                                   <dd>Optionally, enter a human-readable description of your context</dd>
+                                                   
+                                                   <dt>Public</dt>
+                                                   
+                                                   <dd>Choose whether your context should be publicly listed on LinkedDataHub Cloud</dd>
+                                                   </dl>
+                                                </li>
+                                             </ol>
+                                          
+                                          <p>The following video shows the creation of both a context and a dataspace:</p>
+                                          
+                                          <p>
+                                             <object data="../../uploads/4c86a3410134d090a7bb7e178a6f82874bc66fa1/" type="video/webm"></object>
+                                             </p>
+                                          </div>
+                                       
+                                       <div class="tab-pane">
+                                          
+                                          <div>
+                                             
+                                             <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT/apps"
+
+./create-context.sh \
+-b "${base}" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+--title "${title}" \
+--description "${description}" \
+--app-base "${base}${slug}/" \
+--public
+
+popd</pre>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    
+                                    <div>
+                                       
+                                       <h3 id="create-cloud-dataspace">Create a dataspace</h3>
+                                       
+                                       <div class="tabbable">
+                                          
+                                          <ul class="nav nav-tabs">
+                                             
+                                             <li class="active"><a>User interface</a></li>
+                                             
+                                             <li><a>Command line interface</a></li>
+                                             </ul>
+                                          
+                                          <div class="tab-content">
+                                             
+                                             <div class="tab-pane active">
+                                                
+                                                <p>Follow these steps:</p>
+                                                
+                                                <ol>
+                                                   
+                                                   <li>Go to your existing context or <a href="#create-context">create one</a></li>
+                                                   
+                                                   <li>Make sure you are <a href="../../get-started/get-an-account/#log-in" target="_blank">authenticated</a></li>
+                                                   
+                                                   <li>On the top left-hand side click on the <span class="btn btn-primary create-action">App</span> button</li>
+                                                   
+                                                   <li>In the form that opens, fill out the following fields:
+                                                      
+                                                      <dl>
+                                                         
+                                                         <dt>Base URI</dt>
+                                                         
+                                                         <dd>Here you can change the relative path of your context. It may not have forward slashes
+                                                            (<samp>/</samp>) in it. Attempt to use an already existing path will result in an error.</dd>
+                                                         
+                                                         <dt>Title</dt>
+                                                         
+                                                         <dd>The human-readable title of your context</dd>
+                                                         
+                                                         <dt>Description</dt>
+                                                         
+                                                         <dd>Optionally, enter a human-readable description of your context</dd>
+                                                         
+                                                         <dt>Public</dt>
+                                                         
+                                                         <dd>Choose whether your dataspace should be publicly listed on LinkedDataHub Cloud. This
+                                                            does <em>not</em> mean that the documents in the dataspace will be public — they are subject to <a href="../../reference/administration/acl/" target="_blank">access control</a>.</dd>
+                                                         </dl>
+                                                      </li>
+                                                   </ol>
+                                                
+                                                <p>The following video shows the creation of both a context and a dataspace:</p>
+                                                
+                                                <p>
+                                                   <object data="../../uploads/4c86a3410134d090a7bb7e178a6f82874bc66fa1/" type="video/webm"></object>
+                                                   </p>
+                                                </div>
+                                             
+                                             <div class="tab-pane">
+                                                
+                                                <div>
+                                                   
+                                                   <pre>pushd . &amp;&amp; cd "$SCRIPT_ROOT/apps"
+
+./create-app.sh \
+-b "${base}" \
+-f "${cert_pem_file}" \
+-p "${cert_password}" \
+--title "${title}" \
+--description "${description}" \
+--app-base "${base}${slug}/" \
+--public
+
+popd</pre>
+                                                   </div>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+   </body>
+</html>

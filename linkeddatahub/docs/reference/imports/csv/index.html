@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - CSV imports</title>
+      <meta name="description" content="CSV imports and mapping to RDF using SPARQL CONSTRUCT"/>
+      <link rel="up" href="../index.html"/>
+      <link rel="http://www.w3.org/2000/01/rdf-schema#seeAlso" href="https://www.w3.org/TR/2015/REC-csv2rdf-20151217/" title="Generating RDF from Tabular Data on the Web"/>
+      <link rel="http://www.w3.org/2000/01/rdf-schema#seeAlso" href="https://www.w3.org/TR/sparql11-query/#construct" title="SPARQL 1.1 Query Language: CONSTRUCT"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+   </head>
+   <body>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2"><a href="../../../index.html" title="The Knowledge Graph management system">LinkedDataHub</a><ul class="nav nav-list">
+                  <li><a href="../../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../administration/index.html" title="Access control, domain model, and sitemap management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../../administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                              <li><a href="../../administration/sitemap/index.html" title="Linked Data templates, queries, parameters etc.">Sitemap</a><ul class="nav nav-list">
+                                    <li><a href="../../administration/sitemap/built-ins/index.html" title="Learn to create and manage Linked Data templates, queries, parameters etc.">Built-in sitemap terms</a></li>
+                                    <li><a href="../../administration/sitemap/ldt-templates/index.html" title="Learn how to use Linked Data Templates">LDT templates</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li></li>
+                              <li><a href="../rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../../user-guide/administration/index.html" title="Tutorials that apply to the administration application and require owner access to the dataspace">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../../user-guide/administration/change-model/index.html" title="Change the model: create constructors, classes, and restrictions">Change the model</a></li>
+                              <li><a href="../../../user-guide/administration/change-sitemap/index.html" title="Change the sitemap: create queries and LDT templates">Change the sitemap</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>CSV imports</h1>
+                  <p class="lead">CSV imports and mapping to RDF using SPARQL CONSTRUCT</p>
+                  <p class="lead">If you are ready to import some CSV, see our step-by-step tutorial on <a href="../../../user-guide/import-data/import-csv-data/">creating an CSV import</a>.</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <p>A data import is a combination of 3 resources:</p>
+                  
+                  <dl>
+                     
+                     <dt>File</dt>
+                     
+                     <dd>An uploaded file holding the data to be converted to RDF and imported, such as CSV
+                        or RDF file</dd>
+                     
+                     <dt>Mapping</dt>
+                     
+                     <dd>The <code>CONSTRUCT</code> query that produces RDF</dd>
+                     
+                     <dt>Target container</dt>
+                     
+                     <dd>The container to which converted items will be <a href="../../http-api/#ld-post">POST</a>ed, skolemized against,
+                        and become its children</dd>
+                     </dl>
+                  
+                  <p>The import process runs in the background, i.e. the import item is created before
+                     the process completes.
+                     Currently the only way to determine when it completes is to refresh the import item
+                     and check the import
+                     status (completed/failed). Upon successful report, metadata such as the number of
+                     imported RDF triples is attached
+                     to the import.</p>
+                  
+                  <p>The converted RDF is validated against <a href="../../administration/model/#constraints">constraints</a>
+                     before import. Constraint violations, if any, are attached to the import item.</p>
+                  
+                  <div>
+                     
+                     <h2 id="import-csv">Import CSV</h2>
+                     
+                     <p><a href="https://en.wikipedia.org/wiki/Comma-separated_values" target="_blank">CSV</a> is a plain-text format for
+                        tabular data. CSV import in LinkedDataHub consists of 2 steps:</p>
+                     
+                     <ol>
+                        
+                        <li>
+                           <a href="#generic-conversion">generic conversion</a>
+                           </li>
+                        
+                        <li>
+                           <a href="#vocabulary-conversion">vocabulary conversion</a>
+                           </li>
+                        </ol>
+                     
+                     <p>We provide an running example of CSV data that will be shown as RDF conversion in
+                        the following
+                        sections:</p>
+                     
+                     <pre>countryCode,latitude,longitude,name
+AD,42.5,1.6,Andorra
+AE,23.4,53.8,"United Arab Emirates"
+AF,33.9,67.7,Afghanistan</pre>
+                     
+                     <div>
+                        
+                        <h3 id="generic-conversion">Generic conversion</h3>
+                        
+                        <p>The data table is converted to a graph by treating rows as resources, columns as predicates,
+                           and
+                           cells as <code>xsd:string</code> literals. The approach is the same as CSV on the Web
+                           <a href="https://www.w3.org/TR/2015/REC-csv2rdf-20151217/#dfn-minimal-mode" target="_blank">minimal mode</a>.</p>
+                        
+                        <pre>@base &lt;https://linkeddatahub.com/demo/city-graph/&gt; .
+
+_:8228a149-8efe-448d-b15f-8abf92e7bd17
+  &lt;#countryCode&gt; "AD" ;
+  &lt;#latitude&gt; "42.5" ;
+  &lt;#longitude&gt; "1.6" ;
+  &lt;#name&gt; "Andorra" .
+
+_:ec59dcfc-872a-4144-822b-9ad5e2c6149c
+  &lt;#countryCode&gt; "AE" ;
+  &lt;#latitude&gt; "23.4" ;
+  &lt;#longitude&gt; "53.8" ;
+  &lt;#name&gt; "United Arab Emirates" .
+
+_:e8f2e8e9-3d02-4bf5-b4f1-4794ba5b52c9
+  &lt;#countryCode&gt; "AF" ;
+  &lt;#latitude&gt; "33.9" ;
+  &lt;#longitude&gt; "67.7" ;
+  &lt;#name&gt; "Afghanistan" .</pre>
+                        </div>
+                     
+                     <div>
+                        
+                        <h3 id="vocabulary-conversion">Vocabulary conversion</h3>
+                        
+                        <p>This step provides a semantic "lift" for the generic RDF output of the previous step
+                           by mapping it
+                           to classes and properties from specific vocabularies. It also connects instances in
+                           the imported data to the documents in LinkedDataHub's <a href="../../dataset-structure/" target="_blank">dataset</a>.</p>
+                        
+                        <p>The mapping is a user-defined SPARQL
+                           <code>CONSTRUCT</code> query which transforms <em>one row at a time</em>. In this case we produce a SKOS concept paired with its item (document) for each
+                           country:</p>
+                        
+                        <pre><code>PREFIX  nsdd:  &lt;ns/domain/default#&gt;
+PREFIX  ns:   &lt;ns#&gt;
+PREFIX  apl:  &lt;https://w3id.org/atomgraph/linkeddatahub/domain#&gt;
+PREFIX  geo:  &lt;http://www.w3.org/2003/01/geo/wgs84_pos#&gt;
+PREFIX  dh:   &lt;https://www.w3.org/ns/ldt/document-hierarchy/domain#&gt;
+PREFIX  dct:  &lt;http://purl.org/dc/terms/&gt;
+PREFIX  rdf:  &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt;
+PREFIX  xsd:  &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX  foaf: &lt;http://xmlns.com/foaf/0.1/&gt;
+PREFIX  sioc: &lt;http://rdfs.org/sioc/ns#&gt;
+
+CONSTRUCT
+  {
+    ?item a nsdd:Item ;
+        sioc:has_container ?this ;
+        dct:title ?name ;
+        dh:slug ?countryCode ;
+        foaf:primaryTopic ?country .
+    ?country a ns:Country ;
+        foaf:isPrimaryTopicOf ?item ;
+        dct:identifier ?countryCode ;
+        geo:lat ?lat ;
+        geo:long ?long ;
+        dct:title ?name .
+  }
+WHERE
+  { 
+    BIND(bnode() AS ?item)
+    ?country  &lt;#countryCode&gt;  ?countryCode ;
+              &lt;#latitude&gt;     ?latString ;
+              &lt;#longitude&gt;    ?longString ;
+              &lt;#name&gt;         ?name
+    BIND(xsd:float(?latString) AS ?lat)
+    BIND(xsd:float(?longString) AS ?long)
+  }</code></pre>
+                        
+                        <p>These are the rules that hold for mapping queries:</p>
+                        
+                        <ul>
+                           
+                           <li><code>BASE</code> value is set to the application's base URI</li>
+                           
+                           <li><code>?this</code> binding is set to the value of the target container</li>
+                           
+                           <li>produce items (documents) and pair them with topic resources using
+                              <code>foaf:primaryTopic</code>/<code>foaf:isPrimaryTopicOf</code> properties</li>
+                           
+                           <li>use<code>OPTIONAL</code> for optional cell values</li>
+                           
+                           <li>use <code>BIND()</code> to introduce new values and/or cast literals to the appropriate result
+                              datatype or URI</li>
+                           </ul>
+                        
+                        <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
+                        
+                        <p>We are planning to provide a UI-based mapping tool in the future.</p>
+                        
+                        <p>The result of our mapping  (only the first resource is shown):</p>
+                        
+                        <pre>_:item a &lt;https://linkeddatahub.com/demo/city-graph/ns/domain/default#Item&gt; ;
+    dct:title "Andorra" ;
+    dh:slug "AD" ;
+    foaf:primaryTopic _:country .
+
+_:country a &lt;https://linkeddatahub.com/demo/city-graph/ns#Country&gt; ;
+    foaf:isPrimaryTopicOf _:item ;
+    dct:identifier "AD" ;
+    geo:lat 42.5 ;
+    geo:long 1.6 ;
+    dct:title "Andorra" .</pre>
+                        </div>
+                     </div>
+                  
+                  </div>
+            </main>
+         </div>
+      </div>
+   </body>
+</html>

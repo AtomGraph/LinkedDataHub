@@ -3,3 +3,6 @@
 /uploads
 /data
 /.env
+/.node
+/.node_modules
+/node/node
