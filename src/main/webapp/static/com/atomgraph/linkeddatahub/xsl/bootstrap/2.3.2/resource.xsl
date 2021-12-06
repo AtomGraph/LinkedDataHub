@@ -285,7 +285,10 @@ extension-element-prefixes="ixsl"
             <xsl:if test="@rdf:about">
                 <div class="well well-small sidebar-nav backlinks-nav">
                     <h2 class="nav-header btn">
-                        <xsl:text>Backlinks</xsl:text>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'backlinks', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="ac:label"/>
+                        </xsl:value-of>
+
                         <span class="caret caret-reversed pull-right"></span>
                         <input type="hidden" name="uri" value="{@rdf:about}"/>
                     </h2>

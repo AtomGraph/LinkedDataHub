@@ -160,4 +160,7 @@
     <rdf:Description rdf:nodeID="common">
         <rdfs:label xml:lang="en-US">Common</rdfs:label>
     </rdf:Description>
+    <rdf:Description rdf:nodeID="backlinks">
+        <rdfs:label xml:lang="en-US">Backlinks</rdfs:label>
+    </rdf:Description>
 </rdf:RDF>
