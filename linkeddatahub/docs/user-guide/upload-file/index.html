@@ -18,7 +18,7 @@
 						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
 						$(this).closest("li").toggleClass("active", true); // activate this tab
 						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
-						$(this).closest("ul").next().children().eq($(this).index()).toggleClass("active", true); // activate this tab pane
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
 					});
 
 				});
