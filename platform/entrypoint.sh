@@ -428,10 +428,30 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
             -trustcacerts
     fi
 
-    printf "\n### Importing default CA certificates into the client truststore\n\n"
- 
     export CACERTS="${JAVA_HOME}/lib/security/cacerts"
 
+    if [ "$LETSENCRYPT_STAGING_CERT" = true ] ; then
+        printf "\n### Importing LetsEncrypt staging root certificates into the CA truststore\n\n"
+    
+        for cert in 'letsencrypt-stg-int-e1.der' \
+                'letsencrypt-stg-int-e2.der' \
+                'letsencrypt-stg-int-r3-cross-signed.der' \
+                'letsencrypt-stg-int-r3.der' \
+                'letsencrypt-stg-int-r4-cross-signed.der' \
+                'letsencrypt-stg-int-r4.der' \
+                'letsencrypt-stg-root-dst.der' \
+                'letsencrypt-stg-root-x1-signed-by-dst.der' \
+                'letsencrypt-stg-root-x1.der' \
+                'letsencrypt-stg-root-x2-signed-by-x1.der' \
+                'letsencrypt-stg-root-x2.der'; do
+            echo "LetsEncrypt staging cert: ${cert}\n"
+            # curl "$cert" -O
+            # keytool -import -keystore "$CACERTS" -storepass changeit -noprompt -trustcacerts -alias letsencryptauthorityx1 -file PATH_TO_DOWNLOADS\letsencryptauthorityx1.der
+        done
+    fi
+
+    printf "\n### Importing default CA certificates into the client truststore\n\n"
+ 
     keytool -importkeystore \
         -destkeystore "$CLIENT_TRUSTSTORE" \
         -deststorepass "$CLIENT_TRUSTSTORE_PASSWORD" \
