@@ -13,7 +13,7 @@ We are building LinkedDataHub for:
 
 What makes LinkedDataHub unique is its completely _data-driven architecture_: applications and documents are defined as data, managed using a single generic HTTP API and presented using declarative technologies. The default application structure and user interface are provided, but they can be completely overridden and customized. Unless a custom server-side processing is required, no imperative code such as Java or JavaScript needs to be involved at all.
 
-**Follow the [Get started](https://linkeddatahub.com/linkeddatahub/docs/get-started/) guide to build your first application on LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
+**Follow the [Get started](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/) guide to build your first application on LinkedDataHub.** The setup and basic configuration sections are provided below and should get you running.
 
 ## Setup
 
@@ -150,13 +150,13 @@ _:warning: Do not use blank nodes to identify applications or services. We recom
 _:warning: This will **remove the persisted data and files** as well as Docker volumes._
 </details>
 
-## [Documentation](https://linkeddatahub.com/linkeddatahub/docs/)
+## [Documentation](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/)
 
-* [Get started](https://linkeddatahub.com/linkeddatahub/docs/get-started/)
-* [Reference](https://linkeddatahub.com/linkeddatahub/docs/reference/)
-* [User guide](https://linkeddatahub.com/linkeddatahub/docs/user-guide/)
+* [Get started](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/)
+* [Reference](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/)
+* [User guide](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/user-guide/)
 
-## [Command line interface](https://linkeddatahub.com/linkeddatahub/docs/reference/command-line-interface/)
+## [Command line interface](https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/command-line-interface/)
 
 LinkedDataHub CLI wraps the HTTP API into a set of shell scripts with convenient parameters. The scripts can be used for testing, automation, scheduled execution and such. It is usually much quicker to perform actions using CLI rather than the user interface, as well as easier to reproduce.
 
@@ -170,8 +170,6 @@ An environment variable `JENA_HOME` is used by all the command line tools to con
 
     export JENA_HOME=the directory you downloaded Jena to
     export PATH="$PATH:$JENA_HOME/bin"
-
-## [Demo applications](https://linkeddatahub.com/demo/)
 
 **Get the [source code](https://github.com/AtomGraph/LinkedDataHub-Apps)**
 
