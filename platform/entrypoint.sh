@@ -448,7 +448,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
             echo "LetsEncrypt staging cert: ${cert}"
             
-            curl "$cert" -O
+            curl "https://github.com/letsencrypt/website/raw/master/static/certs/staging/${cert}" -O
             
             keytool -import \
                 -keystore "$CACERTS" \
