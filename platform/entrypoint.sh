@@ -433,6 +433,7 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
     if [ "$LETSENCRYPT_STAGING_CERT" = true ] ; then
         printf "\n### Importing LetsEncrypt staging root certificates into the CA truststore\n\n"
     
+        # from https://github.com/letsencrypt/website/tree/master/static/certs/staging
         for cert in 'letsencrypt-stg-int-e1.der' \
                 'letsencrypt-stg-int-e2.der' \
                 'letsencrypt-stg-int-r3-cross-signed.der' \
@@ -444,9 +445,18 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
                 'letsencrypt-stg-root-x1.der' \
                 'letsencrypt-stg-root-x2-signed-by-x1.der' \
                 'letsencrypt-stg-root-x2.der'; do
-            echo "LetsEncrypt staging cert: ${cert}\n"
-            # curl "$cert" -O
-            # keytool -import -keystore "$CACERTS" -storepass changeit -noprompt -trustcacerts -alias letsencryptauthorityx1 -file PATH_TO_DOWNLOADS\letsencryptauthorityx1.der
+
+            echo "LetsEncrypt staging cert: ${cert}"
+            
+            curl "$cert" -O
+            
+            keytool -import \
+                -keystore "$CACERTS" \
+                -storepass changeit \
+                -noprompt \
+                -trustcacerts \
+                -alias "$cert" \
+                -file "$cert"
         done
     fi
 
