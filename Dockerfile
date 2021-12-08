@@ -50,6 +50,8 @@ ENV CACHE_STYLESHEET=true
 
 ENV UPLOAD_ROOT=$UPLOAD_ROOT
 
+ENV LETSENCRYPT_STAGING_CERT=false
+
 ENV PROXY_HOST=
 
 ENV PROXY_HTTP_PORT=
@@ -166,7 +168,9 @@ RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh . && \
     chown -R ldh:ldh /var/linkeddatahub && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
-    chown -R ldh:ldh "$UPLOAD_ROOT"
+    chown -R ldh:ldh "$UPLOAD_ROOT" && \
+    mkdir -p /etc/letsencrypt/staging && \
+    chown -R ldh:ldh /etc/letsencrypt/staging
 
 USER ldh
 
