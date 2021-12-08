@@ -448,15 +448,15 @@ if [ ! -f "$CLIENT_TRUSTSTORE" ]; then
 
             echo "LetsEncrypt staging cert: ${cert}"
             
-            curl "https://github.com/letsencrypt/website/raw/master/static/certs/staging/${cert}" -O
-            
+            curl "https://raw.githubusercontent.com/letsencrypt/website/master/static/certs/staging/${cert}" -o "/etc/letsencrypt/staging/${cert}"
+
             keytool -import \
                 -keystore "$CACERTS" \
                 -storepass changeit \
                 -noprompt \
                 -trustcacerts \
                 -alias "$cert" \
-                -file "$cert"
+                -file "/etc/letsencrypt/staging/${cert}"
         done
     fi
 
