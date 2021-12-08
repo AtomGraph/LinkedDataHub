@@ -1,7 +1,7 @@
 version: "2.3"
 services:
   nginx:
-    image: atomgraph/nginx
+    image: atomgraph/nginx:5790f76e417376ca06bac580d2643748166877be
     mem_limit: 128m
     command: /bin/bash -c "envsubst '$$UPSTREAM_SERVER $$UPSTREAM_HTTPS_PORT $$UPSTREAM_HTTP_PORT $$SERVER_NAME $$SERVER_HTTPS_PORT $$SERVER_HTTP_PORT $$SERVER_CERT_FILE $$SERVER_KEY_FILE $$MAX_BODY_SIZE' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     ports:
@@ -21,7 +21,7 @@ services:
       - ./platform/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
       - ./ssl/server:/etc/nginx/ssl:ro
   linkeddatahub:
-    image: atomgraph/linkeddatahub:latest
+    image: atomgraph/linkeddatahub:97afdc068c7f036a9a89affa089969725122d680
     ports:
       - 8001:8000 # debugger
     environment:
@@ -64,7 +64,7 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
-    image: atomgraph/fuseki
+    image: atomgraph/fuseki:9367c0556b4cfebdd7f608ec7a2406d79f65d0f1
     ports:
       - 3030:3030
     volumes:
@@ -72,7 +72,7 @@ services:
       - ./data/admin:/var/fuseki/data
     command: [ "--config", "/var/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki
+    image: atomgraph/fuseki:9367c0556b4cfebdd7f608ec7a2406d79f65d0f1
     ports:
       - 3031:3030
     volumes:
@@ -80,7 +80,7 @@ services:
       - ./data/end-user:/var/fuseki/data
     command: [ "--config", "/var/fuseki/config.ttl" ]
   varnish-admin:
-    image: atomgraph/varnish
+    image: atomgraph/varnish:3ea8ac5698b8426494173093e3823435a6dec51e
     depends_on:
       - linkeddatahub
     environment:
@@ -93,7 +93,7 @@ services:
     volumes:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
-    image: atomgraph/varnish
+    image: atomgraph/varnish:3ea8ac5698b8426494173093e3823435a6dec51e
     depends_on:
       - linkeddatahub
     environment:
