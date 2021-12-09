@@ -12,7 +12,8 @@ for cert in 'letsencrypt-stg-int-e1.der' \
         'letsencrypt-stg-root-x1-signed-by-dst.der' \
         'letsencrypt-stg-root-x1.der' \
         'letsencrypt-stg-root-x2-signed-by-x1.der' \
-        'letsencrypt-stg-root-x2.der'; do \
+        'letsencrypt-stg-root-x2.der'; \
+do \
     curl "https://raw.githubusercontent.com/letsencrypt/website/master/static/certs/staging/${cert}" -o "/etc/letsencrypt/staging/${cert}" \
 
     echo "LetsEncrypt staging cert: ${cert}"
@@ -25,5 +26,5 @@ for cert in 'letsencrypt-stg-int-e1.der' \
         -noprompt \
         -trustcacerts \
         -alias "$cert_alias" \
-        -file "/etc/letsencrypt/staging/${cert}" \
-    done
+        -file "/etc/letsencrypt/staging/${cert}"
+done
