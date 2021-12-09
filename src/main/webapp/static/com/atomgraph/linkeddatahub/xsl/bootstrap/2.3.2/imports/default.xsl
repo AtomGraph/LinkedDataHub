@@ -832,6 +832,10 @@ exclude-result-prefixes="#all"
         </select>
     </xsl:template>
 
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:rest/@rdf:resource[ . = '&rdf;nil']" mode="bs2:FormControlTypeLabel" priority="1">
+        <xsl:apply-templates select="key('resources', '&rdf;nil', document(ac:document-uri('&rdf;')))" mode="apl:Typeahead"/>
+    </xsl:template>
+    
     <!-- real numbers -->
     
     <xsl:template match="text()[../@rdf:datatype = '&xsd;float'] | text()[../@rdf:datatype = '&xsd;double']" priority="1" mode="xhtml:Input">

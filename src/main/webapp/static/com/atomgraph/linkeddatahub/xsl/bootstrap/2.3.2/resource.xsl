@@ -824,7 +824,7 @@ extension-element-prefixes="ixsl"
 
     <!-- TYPE CONTROL -->
     
-    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ContentControl">
+<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ContentControl">
         <div class="control-group">
             <span class="control-label">
                 <select class="input-medium">
@@ -837,7 +837,7 @@ extension-element-prefixes="ixsl"
                 <button type="button">[+]</button>
             </div>
         </div>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- TYPEAHEAD -->
     
