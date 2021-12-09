@@ -167,6 +167,7 @@ ENV PATH="${PATH}:${JENA_HOME}/bin"
 RUN useradd --no-log-init -U ldh && \
     chown -R ldh:ldh . && \
     chown -R ldh:ldh /var/linkeddatahub && \
+    chown -R ldh:ldh /usr/local/openjdk-11/lib/security/cacerts && \
     mkdir -p "${UPLOAD_ROOT}/${UPLOAD_CONTAINER_PATH}" && \
     chown -R ldh:ldh "$UPLOAD_ROOT" && \
     mkdir -p /etc/letsencrypt/staging && \
