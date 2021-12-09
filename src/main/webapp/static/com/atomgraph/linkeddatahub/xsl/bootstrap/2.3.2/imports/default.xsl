@@ -699,6 +699,54 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="forClass" select="$forClass"/>
         </xsl:apply-templates>
     </xsl:template>
+
+    <!-- typeahead for rdf:nil -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:rest/@rdf:resource[ . = '&rdf;nil']" mode="bs2:FormControl" priority="1">
+        <xsl:apply-templates select="key('resources', '&rdf;nil', document(ac:document-uri('&rdf;')))" mode="apl:Typeahead"/>
+    </xsl:template>
+    
+    <!-- WYSIWYG editor for XMLLiteral objects -->
+
+    <xsl:template match="*[@rdf:parseType = 'Literal']/xhtml:*" mode="bs2:FormControl">
+        <xsl:param name="id" select="generate-id()" as="xs:string"/>
+        <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
+        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
+
+        <textarea name="ol" id="{$id}" class="wymeditor">
+            <xsl:apply-templates select="xhtml:*" mode="xml-to-string"/>
+        </textarea>
+        <xsl:call-template name="xhtml:Input">
+            <xsl:with-param name="type" select="'hidden'"/>
+            <xsl:with-param name="name" select="'lt'"/>
+            <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
+        </xsl:call-template>
+        
+        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
+            <xsl:with-param name="type" select="$type"/>
+            <xsl:with-param name="type-label" select="$type-label"/>
+        </xsl:apply-templates>
+    </xsl:template>
+    
+    <!-- FORM CONTROL TYPE LABEL -->
+
+    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
+        <select class="help-inline content-type">
+            <option value="&rdfs;Resource">
+                <xsl:if test="self::attribute()">
+                    <xsl:attribute name="selected">selected</xsl:attribute>
+                </xsl:if>
+                
+                <xsl:text>Resource</xsl:text>
+            </option>
+            <option value="&rdf;XMLLiteral">
+                <xsl:if test="self::xhtml:*">
+                    <xsl:attribute name="selected">selected</xsl:attribute>
+                </xsl:if>
+                
+                <xsl:text>HTML</xsl:text>
+            </option>
+        </select>
+    </xsl:template>
     
     <xsl:template match="*[@rdf:nodeID]/*/@rdf:nodeID[key('resources', .)[not(* except rdf:type[not(starts-with(@rdf:resource, '&xsd;'))])]]" mode="bs2:FormControlTypeLabel">
         <xsl:param name="type" as="xs:string?"/>
@@ -787,53 +835,6 @@ exclude-result-prefixes="#all"
                 </button>
             </div>
         </div>
-    </xsl:template>
-
-    <!-- WYSIWYG editor for XMLLiteral objects -->
-
-    <xsl:template match="*[@rdf:parseType = 'Literal']/xhtml:*" mode="bs2:FormControl">
-        <xsl:param name="id" select="generate-id()" as="xs:string"/>
-        <xsl:param name="type" select="'textarea'" as="xs:string?"/> <!-- 'textarea' is not a valid <input> type -->
-        <xsl:param name="type-label" select="true()" as="xs:boolean"/>
-
-        <textarea name="ol" id="{$id}" class="wymeditor">
-            <xsl:apply-templates select="xhtml:*" mode="xml-to-string"/>
-        </textarea>
-        <xsl:call-template name="xhtml:Input">
-            <xsl:with-param name="type" select="'hidden'"/>
-            <xsl:with-param name="name" select="'lt'"/>
-            <xsl:with-param name="value" select="'&rdf;XMLLiteral'"/>
-        </xsl:call-template>
-        
-        <xsl:apply-templates select="." mode="bs2:FormControlTypeLabel">
-            <xsl:with-param name="type" select="$type"/>
-            <xsl:with-param name="type-label" select="$type-label"/>
-        </xsl:apply-templates>
-    </xsl:template>
-
-    <!-- FORM CONTROL TYPE LABEL -->
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/@rdf:* | *[rdf:type/@rdf:resource = '&apl;Content']/rdf:first/xhtml:*" mode="bs2:FormControlTypeLabel" priority="1">
-        <select class="help-inline content-type">
-            <option value="&rdfs;Resource">
-                <xsl:if test="self::attribute()">
-                    <xsl:attribute name="selected">selected</xsl:attribute>
-                </xsl:if>
-                
-                <xsl:text>Resource</xsl:text>
-            </option>
-            <option value="&rdf;XMLLiteral">
-                <xsl:if test="self::xhtml:*">
-                    <xsl:attribute name="selected">selected</xsl:attribute>
-                </xsl:if>
-                
-                <xsl:text>HTML</xsl:text>
-            </option>
-        </select>
-    </xsl:template>
-
-    <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/rdf:rest/@rdf:resource[ . = '&rdf;nil']" mode="bs2:FormControlTypeLabel" priority="1">
-        <xsl:apply-templates select="key('resources', '&rdf;nil', document(ac:document-uri('&rdf;')))" mode="apl:Typeahead"/>
     </xsl:template>
     
     <!-- real numbers -->
