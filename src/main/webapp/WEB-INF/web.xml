@@ -26,15 +26,15 @@ WHERE
   {   { ?auth  acl:mode  ?Mode
           { ?auth  acl:accessTo  ?this }
         UNION
-          { SERVICE ?endpoint
-              { { GRAPH ?g
-                    { ?this  a  ?Type }
-                }
-              }
-              { ?auth  acl:accessToClass  ?Type }
+          {   { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
+              }
+            SERVICE ?endpoint
+              { { GRAPH ?g
+                    { ?this  a  ?Type }
+                }
               }
           }
         {   { ?auth  acl:agent  ?agent }
@@ -51,15 +51,15 @@ WHERE
           { ?auth  acl:agentClass  ?AuthenticatedAgentClass }
           { ?auth  acl:accessTo  ?this }
         UNION
-          { SERVICE ?endpoint
-              { { GRAPH ?g
-                    { ?this  a  ?Type }
-                }
-              }
-              { ?auth  acl:accessToClass  ?Type }
+          {   { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
                 ?Type (rdfs:subClassOf)* ?Class
+              }
+            SERVICE ?endpoint
+              { { GRAPH ?g
+                    { ?this  a  ?Type }
+                }
               }
           }
       }
