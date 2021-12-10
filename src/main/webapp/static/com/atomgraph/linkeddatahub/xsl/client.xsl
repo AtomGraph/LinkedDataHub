@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
-    <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
     <!ENTITY dydra      "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
@@ -8,6 +7,7 @@
     <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
     <!ENTITY a          "https://w3id.org/atomgraph/core#">
+    <!ENTITY typeahead  "http://graphity.org/typeahead#">
     <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
     <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
     <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
