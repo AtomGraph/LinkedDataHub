@@ -633,18 +633,15 @@ WHERE
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
-        <!-- inject content into the container's middle column, unless it already has content (except .progress-bar or h2). TO-DO: better condition -->
-        <xsl:if test="not($container/div[@class = 'span7']/*[not(@class = 'progress-bar' or self::h2)])">
-            <xsl:variable name="block" as="element()">
-                <xsl:apply-templates select="." mode="bs2:RowBlock"/>
-            </xsl:variable>
-            
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="$block/*"/>
-                </xsl:result-document>
-            </xsl:for-each>
-        </xsl:if>
+        <xsl:variable name="row-block" as="element()">
+            <xsl:apply-templates select="." mode="bs2:RowBlock"/>
+        </xsl:variable>
+
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="$row-block/*"/>
+            </xsl:result-document>
+        </xsl:for-each>
     </xsl:template>
     
     <xsl:template name="first-time-message">
