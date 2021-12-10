@@ -948,7 +948,7 @@ public class Application extends ResourceConfig
         ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
-            register("https", new SSLConnectionSocketFactory(ctx)).
+            register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
             register("http", new PlainConnectionSocketFactory()).
             build();
 
@@ -990,7 +990,7 @@ public class Application extends ResourceConfig
         return ClientBuilder.newBuilder().
             withConfig(config).
             sslContext(ctx).
-            hostnameVerifier(NoopHostnameVerifier.INSTANCE).
+            hostnameVerifier(NoopHostnameVerifier.INSTANCE). // has no effect due to the custom SSLContext
             build();
     }
     
@@ -1006,7 +1006,7 @@ public class Application extends ResourceConfig
             ctx.init(null, tmf.getTrustManagers(), null);
 
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().
-                register("https", new SSLConnectionSocketFactory(ctx)).
+                register("https", new SSLConnectionSocketFactory(ctx, NoopHostnameVerifier.INSTANCE)).
                 register("http", new PlainConnectionSocketFactory()).
                 build();
         
@@ -1046,7 +1046,7 @@ public class Application extends ResourceConfig
             return ClientBuilder.newBuilder().
                 withConfig(config).
                 sslContext(ctx).
-                hostnameVerifier(NoopHostnameVerifier.INSTANCE).
+                hostnameVerifier(NoopHostnameVerifier.INSTANCE). // has no effect due to the custom SSLContext
                 build();
         }
         catch (NoSuchAlgorithmException ex)
