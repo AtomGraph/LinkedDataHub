@@ -497,44 +497,6 @@ WHERE
         <xsl:apply-templates select="key('resources', foaf:primaryTopic/@rdf:resource)" mode="#current"/>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:Right">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'span4'" as="xs:string?"/>
-        
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
-            </xsl:if>
-
-            <xsl:apply-templates mode="#current"/>
-        </div>
-    </xsl:template>
-    
-    <!-- suppress most properties of the current document in the right nav, except some basic metadata -->
-    <xsl:template match="*[@rdf:about = ac:uri()][dct:created or dct:modified or foaf:maker or acl:owner or foaf:primaryTopic or dh:select]" mode="bs2:Right" priority="1">
-        <xsl:variable name="definitions" as="document-node()">
-            <xsl:document>
-                <dl class="dl-horizontal">
-                    <xsl:apply-templates select="dct:created | dct:modified | foaf:maker | acl:owner | foaf:primaryTopic | dh:select" mode="bs2:PropertyList">
-                        <xsl:sort select="ac:property-label(.)" order="ascending" lang="{$ldt:lang}"/>
-                        <xsl:sort select="if (exists((text(), @rdf:resource, @rdf:nodeID))) then ac:object-label((text(), @rdf:resource, @rdf:nodeID)[1]) else()" order="ascending" lang="{$ldt:lang}"/>
-                    </xsl:apply-templates>
-                </dl>
-            </xsl:document>
-        </xsl:variable>
-
-        <xsl:if test="$definitions/*/*">
-            <div class="well well-small">
-                <xsl:apply-templates select="$definitions" mode="bs2:PropertyListIdentity"/>
-            </div>
-        </xsl:if>
-    </xsl:template>
-    
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
-
     <!-- assuming SELECT query here. what do we do about DESCRIBE/CONSTRUCT? -->
     <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="apl:Content" priority="1">
         <xsl:param name="uri" as="xs:anyURI"/>
