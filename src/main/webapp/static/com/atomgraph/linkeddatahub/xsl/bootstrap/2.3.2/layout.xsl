@@ -1141,7 +1141,7 @@ exclude-result-prefixes="#all">
                     </li>
                 </xsl:if>
                 <li>
-                    <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
+                    <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>
                 </li>
             </ul>
         </div>
@@ -1196,7 +1196,7 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">About</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="https://linkeddatahub.com/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a>
+                                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/about/" target="_blank">LinkedDataHub</a>
                             </li>
                             <li>
                                 <a href="https://atomgraph.com" target="_blank">AtomGraph</a>
@@ -1207,13 +1207,10 @@ exclude-result-prefixes="#all">
                         <h2 class="nav-header">Resources</h2>
                         <ul class="nav nav-list">
                             <li>
-                                <a href="https://linkeddatahub.com/linkeddatahub/docs/" target="_blank">Documentation</a>
+                                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" target="_blank">Documentation</a>
                             </li>
                             <li>
                                 <a href="https://www.youtube.com/channel/UCtrdvnVjM99u9hrjESwfCeg" target="_blank">Screencasts</a>
-                            </li>
-                            <li>
-                                <a href="https://linkeddatahub.com/demo/" target="_blank">Demo apps</a> <!-- built-in Context -->
                             </li>
                         </ul>
                     </div>

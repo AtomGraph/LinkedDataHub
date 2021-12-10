@@ -651,8 +651,7 @@ WHERE
             <h2>Deploy structured data, <em>without coding</em></h2>
             <p>Manage and publish RDF graph data, import CSV, create custom views and visualizations within minutes. Change app structure and API logic without writing code.</p>
             <p class="">
-                <a href="https://linkeddatahub.com/demo/" class="float-left btn btn-primary btn-large" target="_blank">Check out demo apps</a>
-                <a href="https://linkeddatahub.com/linkeddatahub/docs/" class="float-left btn btn-primary btn-large" target="_blank">Learn more</a>
+                <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/" class="float-left btn btn-primary btn-large" target="_blank">Learn more</a>
             </p>
         </div>
     </xsl:template>
@@ -1138,7 +1137,7 @@ WHERE
                             </div>
 
                             <div class="alert alert-info">
-                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://linkeddatahub.com/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
+                                <p>Adding data this way will cause a blocking request, so use it for small amounts of data only (e.g. a few thousands of RDF triples). For larger data, use asynchronous <a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/reference/imports/rdf/" target="_blank">RDF imports</a>.</p>
                             </div>
                         </div>
                     </div>
