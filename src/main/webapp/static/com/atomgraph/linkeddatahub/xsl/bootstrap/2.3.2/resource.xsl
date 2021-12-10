@@ -821,23 +821,6 @@ extension-element-prefixes="ixsl"
     
     <!-- hide property dropdown -->
     <xsl:template match="*[rdf:type/@rdf:resource = '&apl;Content']/*" mode="bs2:PropertyControl" priority="1"/>
-
-    <!-- TYPE CONTROL -->
-    
-<!--    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ContentControl">
-        <div class="control-group">
-            <span class="control-label">
-                <select class="input-medium">
-                    <option>Resource content</option>
-                    <option>HTML content</option>
-                </select>
-            </span>
-
-            <div class="controls">
-                <button type="button">[+]</button>
-            </div>
-        </div>
-    </xsl:template>-->
     
     <!-- TYPEAHEAD -->
     

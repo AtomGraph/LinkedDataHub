@@ -259,6 +259,7 @@ exclude-result-prefixes="#all"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
+                            <rdf:type rdf:resource="&apl;Content"/>
                             <rdf:first rdf:nodeID="A2"/>
                         </rdf:Description>
                         <rdf:Description rdf:nodeID="A2">
@@ -283,6 +284,7 @@ exclude-result-prefixes="#all"
                 <xsl:document>
                     <rdf:RDF>
                         <rdf:Description rdf:nodeID="A1">
+                            <rdf:type rdf:resource="&apl;Content"/>
                             <rdf:first rdf:parseType="Literal">
                                 <xhtml:div/>
                             </rdf:first>
