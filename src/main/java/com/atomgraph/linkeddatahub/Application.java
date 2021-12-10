@@ -882,12 +882,18 @@ public class Application extends ResourceConfig
                 if (!app.hasProperty(LDT.base) && !app.hasProperty(LAPP.prefix))
                     throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has neither ldt:base nor lapp:prefix"));
                 
-                final URI base;
-                if (app.hasProperty(LAPP.prefix)) base = URI.create(app.getPropertyResourceValue(LAPP.prefix).getURI());
-                else base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
-                
-                URI relative = base.relativize(absolutePath);
-                if (!relative.isAbsolute()) appMap.put(base, app);
+                if (app.hasProperty(LDT.base)) // ldt:base
+                {
+                    URI base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
+                    URI relative = base.relativize(absolutePath);
+                    if (!relative.isAbsolute()) appMap.put(base, app);
+                }
+                else // lapp:prefix
+                {
+                    URI prefix = URI.create(app.getPropertyResourceValue(LAPP.prefix).getURI());
+                    URI relative = prefix.relativize(absolutePath);
+                    if (!relative.isAbsolute() && !relative.toString().equals("")) appMap.put(prefix, app);
+                }
             }
         }
         finally
