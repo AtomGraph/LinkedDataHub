@@ -26,6 +26,7 @@
     <!ENTITY nfo        "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
     <!ENTITY schema1    "http://schema.org/">
     <!ENTITY schema2    "https://schema.org/">
+    <!ENTITY dbpo       "http://dbpedia.org/ontology/">
     <!ENTITY gm         "https://developers.google.com/maps#">
 ]>
 <xsl:stylesheet version="3.0"
@@ -62,6 +63,7 @@ xmlns:dydra="&dydra;"
 xmlns:gm="&gm;"
 xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
+xmlns:dbpo="&dbpo;"
 xmlns:dydra-urn="urn:dydra:"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
@@ -78,13 +80,6 @@ extension-element-prefixes="ixsl"
     <xsl:import href="bootstrap/2.3.2/imports/default.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="../../../../com/atomgraph/client/xsl/bootstrap/2.3.2/container.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/apl.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/dct.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/nfo.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/rdf.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/sioc.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/sp.xsl"/>
-    <xsl:import href="bootstrap/2.3.2/imports/void.xsl"/>
     <xsl:import href="bootstrap/2.3.2/resource.xsl"/>
     <xsl:import href="bootstrap/2.3.2/document.xsl"/>
     <xsl:import href="query-transforms.xsl"/>
@@ -437,10 +432,46 @@ WHERE
             <xsl:when test="foaf:img/@rdf:resource">
                 <xsl:sequence select="foaf:img/@rdf:resource"/>
             </xsl:when>
+            <xsl:when test="foaf:logo/@rdf:resource">
+                <xsl:sequence select="foaf:logo/@rdf:resource"/>
+            </xsl:when>
             <xsl:when test="foaf:depiction/@rdf:resource">
                 <xsl:sequence select="foaf:depiction/@rdf:resource"/>
             </xsl:when>
+            <xsl:when test="schema1:image/@rdf:resource">
+                <xsl:sequence select="schema1:image/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="schema1:logo/@rdf:resource">
+                <xsl:sequence select="schema1:logo/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="schema2:image/@rdf:resource">
+                <xsl:sequence select="schema2:image/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="schema2:logo/@rdf:resource">
+                <xsl:sequence select="schema2:logo/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="schema1:thumbnailUrl/@rdf:resource">
+                <xsl:sequence select="schema1:thumbnailUrl/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="schema2:thumbnailUrl/@rdf:resource">
+                <xsl:sequence select="schema2:thumbnailUrl/@rdf:resource"/>
+            </xsl:when>
+            <xsl:when test="dbpo:thumbnail/@rdf:resource">
+                <xsl:sequence select="dbpo:thumbnail/@rdf:resource"/>
+            </xsl:when>
         </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="foaf:img/@rdf:resource | foaf:logo/@rdf:resource | foaf:depiction/@rdf:resource | schema1:image/@rdf:resource | schema2:image/@rdf:resource | schema1:logo/@rdf:resource | schema2:logo/@rdf:resource | schema1:thumbnailUrl/@rdf:resource | schema2:thumbnailUrl/@rdf:resource | dbpo:thumbnail/@rdf:resource">
+        <a href="{.}">
+            <img src="{.}">
+                <xsl:attribute name="alt">
+                    <xsl:value-of>
+                        <xsl:apply-templates select="." mode="ac:object-label"/>
+                    </xsl:value-of>
+                </xsl:attribute>
+            </img>
+        </a>
     </xsl:template>
     
     <xsl:template match="*[@rdf:about = '&ac;ReadMode']" mode="apl:logo">
