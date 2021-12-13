@@ -88,7 +88,7 @@ services:
     command: [ "--config", "/fuseki/config.ttl" ]
   varnish-admin:
     image: atomgraph/varnish:446f28a3cfedc276b2c27a971455659be98d7351
-    user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
+    user: root # otherwise the varnish user does not have permissions to the mounted folder which is owner by root
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish:exec
@@ -103,7 +103,7 @@ services:
       - ./platform/varnish.vcl.template:/etc/varnish/default.vcl.template:ro
   varnish-end-user:
     image: atomgraph/varnish:446f28a3cfedc276b2c27a971455659be98d7351
-    user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
+    user: root # otherwise varnish user does not have permissions to the mounted folder which is owner by root
     depends_on:
       - linkeddatahub
     tmpfs: /var/lib/varnish:exec
