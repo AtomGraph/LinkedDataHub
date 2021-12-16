@@ -58,7 +58,7 @@ What makes LinkedDataHub unique is its completely _data-driven architecture_: ap
      The script will create an `ssl` sub-folder where the SSL certificates and/or public keys will be placed.
   4. Launch the application services by running this from command line:
      ```
-     docker-compose up
+     docker-compose up --build
      ```
      LinkedDataHub will start and mount the following sub-folders:
      - `data` where the triplestore(s) will persist RDF data
