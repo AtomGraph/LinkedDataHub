@@ -65,7 +65,7 @@ services:
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2:ro
       - ./src/main/webapp/static/com/atomgraph/linkeddatahub/css/bootstrap.css:/usr/local/tomcat/webapps/ROOT/static/com/atomgraph/linkeddatahub/css/bootstrap.css
   fuseki-admin:
-    image: atomgraph/fuseki:61eb41c33b2f9ee4bf4ab0156818145806215738
+    image: atomgraph/fuseki:9d331f984dcffcb9d0ba2ac6f12c9c2a77b5d5fe
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
     environment:
       - JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75
@@ -76,7 +76,7 @@ services:
       - ./data/admin:/fuseki/databases
     command: [ "--config", "/fuseki/config.ttl" ]
   fuseki-end-user:
-    image: atomgraph/fuseki:61eb41c33b2f9ee4bf4ab0156818145806215738
+    image: atomgraph/fuseki:9d331f984dcffcb9d0ba2ac6f12c9c2a77b5d5fe
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
     environment:
       - JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75
