@@ -67,8 +67,6 @@ services:
   fuseki-admin:
     image: atomgraph/fuseki:9d331f984dcffcb9d0ba2ac6f12c9c2a77b5d5fe
     user: root # otherwise fuseki user does not have permissions to the mounted folder which is owner by root
-    environment:
-      - JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75
     ports:
       - 3030:3030
     volumes:
@@ -78,8 +76,6 @@ services:
   fuseki-end-user:
     image: atomgraph/fuseki:9d331f984dcffcb9d0ba2ac6f12c9c2a77b5d5fe
     user: root # otherwise the fuseki user does not have permissions to the mounted folder which is owner by root
-    environment:
-      - JAVA_OPTIONS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75
     ports:
       - 3031:3030
     volumes:
