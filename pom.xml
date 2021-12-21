@@ -129,7 +129,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
-            <version>3.11.1-SNAPSHOT</version>
+            <version>3.11.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
