@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # access is unauthorized
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Accept: application/n-triples" \
   -X DELETE \

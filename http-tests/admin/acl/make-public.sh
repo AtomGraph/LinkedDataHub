@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # public access is forbidden
 
-curl -k -w "%{http_code}\n" -f -v \
+curl -k -w "%{http_code}\n" -v \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
