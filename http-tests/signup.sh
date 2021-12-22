@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 email="john@doe.com"
 given_name="John"

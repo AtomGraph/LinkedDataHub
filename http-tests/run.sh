@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [ "$#" -ne 4 ]; then
   echo "Usage:   $0" '$owner_pem_file $owner_cert_password $secretary_pem_file $secretary_cert_password' >&2
