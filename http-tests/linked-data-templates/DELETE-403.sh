@@ -20,7 +20,7 @@ popd > /dev/null
 
 # check that non-existing graph is forbidden
 
-curl -k -w "%{http_code}\n" -f -s -G \
+curl -k -w "%{http_code}\n" -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
   -H "Accept: application/n-triples" \

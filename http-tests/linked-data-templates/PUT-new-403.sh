@@ -21,7 +21,7 @@ popd > /dev/null
 # attempt to create a new named graph using direct identification fails due to missing authorizations
 # the current W3C ACL ontology-based model does not support "unknown" URIs that are not attached to any acl:Authorization using acl:accessTo or acl:accessToClass
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -s \
   -X PUT \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: application/n-triples" \

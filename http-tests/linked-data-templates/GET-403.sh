@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # check that non-existing graph is forbidden
 
-curl -k -w "%{http_code}\n" -f -s -G \
+curl -k -w "%{http_code}\n" -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   "${END_USER_BASE_URL}non-existing/" \
 | grep -q "$STATUS_FORBIDDEN"
