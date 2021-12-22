@@ -170,8 +170,16 @@ public class Executor
 //            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
-            if (service.getProxy() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
-            if (adminService != null && adminService.getProxy() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
+            if (service.getProxy() != null)
+            {
+                if (rdfImport.getContainer() != null) ban(dataManager, service.getProxy(), rdfImport.getContainer().getURI());
+                if (rdfImport.getGraphName() != null) ban(dataManager, service.getProxy(), rdfImport.getGraphName().getURI());
+            }
+            if (adminService != null && adminService.getProxy() != null)
+            {
+                if (rdfImport.getContainer() != null) ban(dataManager, adminService.getProxy(), rdfImport.getContainer().getURI());
+                if (rdfImport.getGraphName() != null) ban(dataManager, adminService.getProxy(), rdfImport.getGraphName().getURI());
+            }
         };
     }
 
