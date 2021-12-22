@@ -51,19 +51,20 @@ popd > /dev/null
 
 counter=20
 i=0
+test_triples=""
 
-while [ "$i" -lt "$counter" ] && ! curl -G -k -s -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "$container" -H "Accept: application/n-triples" >/dev/null 2>&1
+while [ "$i" -lt "$counter" ] && [ -z "$test_triples" ]
 do
+    # check item properties
+
+    test_triples=$(curl -G -k -f -s -N \
+      -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+      -H "Accept: application/n-triples" \
+      "$container" \
+    | grep -q "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>")
+
     sleep 1 ;
     i=$(( i+1 ))
 
     echo "Waited ${i}s..."
 done
-
-# check item properties
-
-curl -G -k -f -s -N \
-  -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
-  -H "Accept: application/n-triples" \
-  "$container" \
-| grep -q "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>"
