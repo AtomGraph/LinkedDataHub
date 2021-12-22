@@ -161,8 +161,6 @@ import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.update.UpdateFactory;
-import org.apache.jena.update.UpdateRequest;
 import org.slf4j.LoggerFactory;
 import com.atomgraph.server.mapper.SHACLConstraintViolationExceptionMapper;
 import com.atomgraph.server.mapper.SPINConstraintViolationExceptionMapper;
@@ -237,7 +235,7 @@ public class Application extends ResourceConfig
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery; // no relative URIs
-    private final String putUpdateString, deleteUpdateString;
+//    private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -285,8 +283,8 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
-            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
+//            servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
+//            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) : null,
@@ -324,7 +322,7 @@ public class Application extends ResourceConfig
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
-            final String putUpdateString, final String deleteUpdateString,
+//            final String putUpdateString, final String deleteUpdateString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
@@ -398,20 +396,20 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(APLC.uploadRoot);
         }
         
-        if (putUpdateString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.putUpdate);
-            throw new ConfigurationException(APLC.putUpdate);
-        }
-        this.putUpdateString = putUpdateString;
-        
-        if (deleteUpdateString == null)
-        {
-            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.deleteUpdate);
-            throw new ConfigurationException(APLC.deleteUpdate);
-        }
-        this.deleteUpdateString = deleteUpdateString;
-        
+//        if (putUpdateString == null)
+//        {
+//            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.putUpdate);
+//            throw new ConfigurationException(APLC.putUpdate);
+//        }
+//        this.putUpdateString = putUpdateString;
+//        
+//        if (deleteUpdateString == null)
+//        {
+//            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.deleteUpdate);
+//            throw new ConfigurationException(APLC.deleteUpdate);
+//        }
+//        this.deleteUpdateString = deleteUpdateString;
+//        
         if (cookieMaxAge == null)
         {
             if (log.isErrorEnabled()) log.error("JWT cookie max age property '{}' not configured", APLC.cookieMaxAge.getURI());
@@ -1123,15 +1121,15 @@ public class Application extends ResourceConfig
         return userAccountQuery;
     }
     
-    public UpdateRequest getPutUpdate(String baseURI)
-    {
-        return UpdateFactory.create(putUpdateString, baseURI);
-    }
-    
-    public UpdateRequest getDeleteUpdate(String baseURI)
-    {
-        return UpdateFactory.create(deleteUpdateString, baseURI);
-    }
+//    public UpdateRequest getPutUpdate(String baseURI)
+//    {
+//        return UpdateFactory.create(putUpdateString, baseURI);
+//    }
+//    
+//    public UpdateRequest getDeleteUpdate(String baseURI)
+//    {
+//        return UpdateFactory.create(deleteUpdateString, baseURI);
+//    }
     
     public Integer getMaxGetRequestSize()
     {

@@ -32,7 +32,7 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              { { GRAPH ?g
+              { { GRAPH ?this
                     { ?this  a  ?Type }
                 }
               }
@@ -57,7 +57,7 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              { { GRAPH ?g
+              { { GRAPH ?this
                     { ?this  a  ?Type }
                 }
               }
@@ -174,7 +174,7 @@ SELECT *
 }
 ]]></param-value>
     </context-param>
-    <context-param>
+<!--    <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#putUpdate</param-name>
         <param-value><![CDATA[
 PREFIX  dct:  <http://purl.org/dc/terms/>
@@ -207,7 +207,7 @@ DELETE WHERE
   }
 }
 ]]></param-value>
-    </context-param>
+    </context-param>-->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpAddress</param-name>
         <param-value><![CDATA[LinkedDataHub <signup@linkeddatahub.com>]]></param-value>

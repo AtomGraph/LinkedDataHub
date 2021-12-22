@@ -68,9 +68,9 @@ public class APLC
 
     public static final DatatypeProperty authCacheControl = m_model.createDatatypeProperty( NS + "authCacheControl" );
 
-    public static final DatatypeProperty putUpdate = m_model.createDatatypeProperty( NS + "putUpdate" );
-    
-    public static final DatatypeProperty deleteUpdate = m_model.createDatatypeProperty( NS + "deleteUpdate" );
+//    public static final DatatypeProperty putUpdate = m_model.createDatatypeProperty( NS + "putUpdate" );
+//    
+//    public static final DatatypeProperty deleteUpdate = m_model.createDatatypeProperty( NS + "deleteUpdate" );
     
     public static final ObjectProperty uploadRoot = m_model.createObjectProperty( NS + "uploadRoot" );
 
