@@ -11,10 +11,9 @@ file=$(./create-file.sh)
 pushd . > /dev/null && cd "$SCRIPT_ROOT"
 
 etag=$(
-./get-document.sh \
-  -f "$AGENT_CERT_FILE" \
-  -p "$AGENT_CERT_PWD" \
-  --accept "text/csv" \
+  curl -k -i -f -s -G \
+    -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
+    -H "Accept: text/csv" \
   "$file" \
 | grep 'ETag' \
 | sed -En 's/^ETag: (.*)/\1/p')
