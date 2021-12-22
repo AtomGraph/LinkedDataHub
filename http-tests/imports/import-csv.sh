@@ -55,7 +55,7 @@ csv_value="42"
 counter=20
 i=0
 
-while [ "$i" -lt "$counter" ] && ! curl -k -s -f -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "${container}${csv_id}/" -H "Accept: application/n-triples" >/dev/null 2>&1
+while [ "$i" -lt "$counter" ] && ! curl -k -s -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" "${container}${csv_id}/" -H "Accept: application/n-triples" >/dev/null 2>&1
 do
     sleep 1 ;
     i=$(( i+1 ))
