@@ -61,10 +61,14 @@ do
       -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
       -H "Accept: application/n-triples" \
       "$container" \
-    | grep -q "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>")
+    | grep "<http://vocabularies.unesco.org/thesaurus/concept7367> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept>" || [[ $? == 1 ]])
 
     sleep 1 ;
     i=$(( i+1 ))
 
     echo "Waited ${i}s..."
 done
+
+if [ "$i" = "$counter" ]; then
+  exit 1
+fi
