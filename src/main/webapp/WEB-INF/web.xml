@@ -32,7 +32,7 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              { { GRAPH ?this
+              { { GRAPH ?g
                     { ?this  a  ?Type }
                 }
               }
@@ -57,7 +57,7 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              { { GRAPH ?this
+              { { GRAPH ?g
                     { ?this  a  ?Type }
                 }
               }
