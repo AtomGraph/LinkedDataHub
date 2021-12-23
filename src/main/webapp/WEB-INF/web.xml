@@ -14,6 +14,7 @@
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#authQuery</param-name>
         <param-value><![CDATA[
+PREFIX  def:  <https://w3id.org/atomgraph/linkeddatahub/default#>
 PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
 PREFIX  lacl: <https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#>
@@ -32,9 +33,15 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              { { GRAPH ?g
-                    { ?this  a  ?Type }
-                }
+              {   { GRAPH ?this
+                      { ?this  a  ?Type }
+                  }
+                UNION
+                  { FILTER ( ?Type = def:File )
+                    { GRAPH ?g
+                        { ?this  a  ?Type }
+                    }
+                  }
               }
           }
         {   { ?auth  acl:agent  ?agent }
@@ -57,9 +64,15 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              { { GRAPH ?g
-                    { ?this  a  ?Type }
-                }
+              {   { GRAPH ?this
+                      { ?this  a  ?Type }
+                  }
+                UNION
+                  { FILTER ( ?Type = def:File )
+                    { GRAPH ?g
+                        { ?this  a  ?Type }
+                    }
+                  }
               }
           }
       }
