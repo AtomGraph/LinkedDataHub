@@ -648,7 +648,7 @@ public class Application extends ResourceConfig
         register(new QueryParamProvider());
         register(new UpdateRequestProvider());
 
-        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
+        //register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
         register(new AbstractBinder()
