@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.model.dydra.impl;
 
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.model.DatasetAccessor;
 import com.atomgraph.core.model.DatasetQuadAccessor;
 import com.atomgraph.linkeddatahub.vocabulary.Dydra;
 import org.apache.jena.enhanced.EnhGraph;
@@ -33,7 +34,6 @@ import java.net.URI;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.WebTarget;
-import org.apache.jena.query.DatasetAccessor;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import com.atomgraph.linkeddatahub.model.DydraService;
 
