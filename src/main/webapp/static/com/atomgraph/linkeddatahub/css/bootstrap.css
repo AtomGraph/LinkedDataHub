@@ -107,7 +107,7 @@ button.add-typeahead { width: 219px; }
 .form-horizontal span.control-label { padding-top: 1px; }
 .control-group.required .control-label { font-weight: bold; }
 .description { display: none; }
-.dl-horizontal { max-height: 35em; overflow: auto; }
+.content .dl-horizontal { max-height: 35em; overflow: auto; }
 object { display: block; margin: auto; max-height: 400px; overflow: hidden; }
 #chart-canvas { width: 100%; height: 400px; }
 #chart-canvas .google-visualization-table { width: 100%; }

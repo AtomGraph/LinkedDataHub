@@ -25,16 +25,15 @@ jobs:
             JENA_HOME: "${{runner.temp}}/apache-jena-${{env.JENA_VERSION}}"
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Build Docker image
-        run: docker build -t atomgraph/linkeddatahub .
       - name: Generate owner's and secretary's certificates/public keys
         run: ../scripts/setup.sh .env ssl "${{env.OWNER_CERT_PWD}}" "${{env.SECRETARY_CERT_PWD}}" 3650
         shell: bash
         working-directory: http-tests
-      - name: Run Docker containers
-        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up -d
+      - name: Build Docker image & Run Docker containers
+        run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
-        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" | grep "200" ; do sleep 1 ; done # wait for the webapp to start
+        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" -o /dev/null | grep "200" ; do curl -k -v -E "$PWD/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}" && sleep 1 ; done # wait for the webapp to start
+        working-directory: http-tests
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash

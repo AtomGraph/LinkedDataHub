@@ -2,7 +2,7 @@ FROM maven:3.6.3-jdk-11 as maven
 
 # download and extract Jena
 
-ARG JENA_VERSION=3.16.0
+ARG JENA_VERSION=4.3.2
 
 ARG JENA_TAR_URL="https://archive.apache.org/dist/jena/binaries/apache-jena-${JENA_VERSION}.tar.gz"
 

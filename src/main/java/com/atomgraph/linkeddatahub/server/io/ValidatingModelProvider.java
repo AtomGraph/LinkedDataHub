@@ -33,7 +33,6 @@ import java.util.List;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
-import org.apache.jena.rdf.model.RDFWriter;
 import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
@@ -47,6 +46,7 @@ import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import com.atomgraph.spinrdf.vocabulary.SP;
 import java.util.UUID;
 import javax.ws.rs.core.MediaType;
+import org.apache.jena.rdf.model.RDFWriterI;
 import org.apache.jena.vocabulary.DCTerms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +91,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
         if (lang.equals(Lang.RDFXML)) // round-tripping RDF/XML with user input may contain invalid URIs
         {
             //RDFWriter writer = model.getWriter(RDFLanguages.RDFXML.getName());
-            RDFWriter writer = new Basic(); // workaround for Jena 3.0.1 bug: https://issues.apache.org/jira/browse/JENA-1168
+            RDFWriterI writer = new Basic(); // workaround for Jena 3.0.1 bug: https://issues.apache.org/jira/browse/JENA-1168
             writer.setProperty("allowBadURIs", true);
             writer.write(model, os, null);
 
