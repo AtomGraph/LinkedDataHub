@@ -634,20 +634,20 @@ public class Application extends ResourceConfig
     @PostConstruct
     public void init()
     {
-        register(MultiPartFeature.class);
-
-        registerResourceClasses();
-        registerContainerRequestFilters();
-        registerContainerResponseFilters();
-        registerExceptionMappers();
-        
-        eventBus.register(this); // this system application will be receiving events about context changes
-        
-        register(new ValidatingModelProvider());
-        register(new ResultSetProvider());
-        register(new QueryParamProvider());
-        register(new UpdateRequestProvider());
-        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
+//        register(MultiPartFeature.class);
+//
+//        registerResourceClasses();
+//        registerContainerRequestFilters();
+//        registerContainerResponseFilters();
+//        registerExceptionMappers();
+//        
+//        eventBus.register(this); // this system application will be receiving events about context changes
+//        
+//        register(new ValidatingModelProvider());
+//        register(new ResultSetProvider());
+//        register(new QueryParamProvider());
+//        register(new UpdateRequestProvider());
+//        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
 
         final com.atomgraph.linkeddatahub.Application system = this;
 //        register(new AbstractBinder()
