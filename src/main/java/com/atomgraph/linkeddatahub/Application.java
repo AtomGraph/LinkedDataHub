@@ -629,117 +629,121 @@ public class Application extends ResourceConfig
         OntDocumentManager.getInstance().setFileManager((FileManager)dataManager);
         OntDocumentManager.getInstance().setCacheModels(cacheSitemap); // need to re-set after changing FileManager
         this.ontModelSpec.setDocumentManager(OntDocumentManager.getInstance());
-    }
-    
-    @PostConstruct
-    public void init()
-    {
-        register(MultiPartFeature.class);
+        
+                register(Dispatcher.class);
+                register(new ValidatingModelProvider());
 
-        registerResourceClasses();
-        registerContainerRequestFilters();
-        registerContainerResponseFilters();
-        registerExceptionMappers();
-        
-        eventBus.register(this); // this system application will be receiving events about context changes
-        
-        register(new ValidatingModelProvider());
-        register(new ResultSetProvider());
-        register(new QueryParamProvider());
-        register(new UpdateRequestProvider());
-        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
-
-        final com.atomgraph.linkeddatahub.Application system = this;
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bind(system).to(com.atomgraph.linkeddatahub.Application.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class).to(com.atomgraph.core.MediaTypes.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(ServiceFactory.class).to(new TypeLiteral<Optional<Service>>() {}).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(ClientApplicationFactory.class).to(new TypeLiteral<com.atomgraph.linkeddatahub.apps.model.Client<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(new com.atomgraph.core.factory.DataManagerFactory(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
-                in(RequestScoped.class);
-            }
-        });
-        register(new AbstractBinder()
-        {
-            @Override
-            protected void configure()
-            {
-                bindFactory(ModeFactory.class).to(new TypeLiteral<List<Mode>>() {}).
-                in(RequestScoped.class);
-            }
-        });
-        
-//        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
     }
+//    
+//    @PostConstruct
+//    public void init()
+//    {
+//        register(MultiPartFeature.class);
+//
+//        registerResourceClasses();
+//        registerContainerRequestFilters();
+//        registerContainerResponseFilters();
+//        registerExceptionMappers();
+//        
+//        eventBus.register(this); // this system application will be receiving events about context changes
+//        
+//        register(new ValidatingModelProvider());
+//        register(new ResultSetProvider());
+//        register(new QueryParamProvider());
+//        register(new UpdateRequestProvider());
+//        register(new ModelXSLTWriter(getXsltExecutable(), getOntModelSpec(), getDataManager())); // writes (X)HTML responses
+//
+//        final com.atomgraph.linkeddatahub.Application system = this;
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bind(system).to(com.atomgraph.linkeddatahub.Application.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class).to(com.atomgraph.core.MediaTypes.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(ServiceFactory.class).to(new TypeLiteral<Optional<Service>>() {}).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(ClientApplicationFactory.class).to(new TypeLiteral<com.atomgraph.linkeddatahub.apps.model.Client<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(OntologyFactory.class).to(new TypeLiteral<Optional<Ontology>>() {}).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(new com.atomgraph.core.factory.DataManagerFactory(getDataManager())).to(com.atomgraph.core.util.jena.DataManager.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(DataManagerFactory.class).to(com.atomgraph.client.util.DataManager.class).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(XsltExecutableSupplierFactory.class).to(XsltExecutableSupplier.class).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        register(new AbstractBinder()
+//        {
+//            @Override
+//            protected void configure()
+//            {
+//                bindFactory(ModeFactory.class).to(new TypeLiteral<List<Mode>>() {}).
+//                in(RequestScoped.class);
+//            }
+//        });
+//        
+////        if (log.isTraceEnabled()) log.trace("Application.init() with Classes: {} and Singletons: {}", getClasses(), getSingletons());
+//    }
     
     protected void registerResourceClasses()
     {
