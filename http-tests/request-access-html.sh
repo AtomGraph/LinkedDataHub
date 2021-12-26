@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # test the "Request access" HTML form
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: text/html' \

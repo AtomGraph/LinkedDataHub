@@ -21,7 +21,7 @@ popd > /dev/null
 # append new triples to the graph
 
 (
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   -H "Content-Type: application/n-triples" \

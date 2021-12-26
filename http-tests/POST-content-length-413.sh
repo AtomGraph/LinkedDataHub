@@ -24,7 +24,7 @@ file="$(mktemp)"
 truncate -s 3M "${file}" # assuming MAX_CONTENT_LENGTH is set to 2MB
 file_content_type="text/plain" # content type doesn't matter -- only Content-Length
 
-curl -w "%{http_code}\n" -k -s \
+curl -w "%{http_code}\n" -o /dev/null -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: ${file_content_type}" \
   -H "Accept: text/turtle" \

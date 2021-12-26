@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # access is unauthorized
 
-curl -k -w "%{http_code}\n" -s \
+curl -k -w "%{http_code}\n" -o /dev/null -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \
@@ -49,7 +49,7 @@ popd > /dev/null
 
 # access is allowed after authorization is created
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "${AGENT_CERT_FILE}":"${AGENT_CERT_PWD}" \
   -H "Content-Type: application/n-triples" \
   -H "Accept: application/n-triples" \

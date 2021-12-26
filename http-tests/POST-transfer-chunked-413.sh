@@ -33,7 +33,7 @@ file_content_type="application/n-triples" # content type doesn't matter -- only 
 
 # stream data - use chunked encoding
 
-curl -w "%{http_code}\n" -k -s \
+curl -w "%{http_code}\n" -o /dev/null -k -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Content-Type: ${file_content_type}" \
   -H "Accept: text/turtle" \

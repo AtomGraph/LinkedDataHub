@@ -20,7 +20,7 @@ popd > /dev/null
 
 # GET the graph (use Chrome's default Accept value)
 
-curl -k -w "%{http_code}\n" -f -s -G \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}" \

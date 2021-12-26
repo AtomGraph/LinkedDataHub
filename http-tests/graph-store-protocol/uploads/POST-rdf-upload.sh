@@ -59,7 +59,7 @@ rdf_post+="-F \"ou=${graph}\"\n"
 
 # POST RDF/POST multipart form from stdin to the server
 echo -e "$rdf_post" \
-| curl -w "%{http_code}\n" -v -k -D - --config - \
+| curl -w "%{http_code}\n" -o /dev/null -v -k -D - --config - \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   "${END_USER_BASE_URL}add" \

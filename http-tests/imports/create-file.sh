@@ -50,7 +50,7 @@ file=$(echo "$file_doc_ntriples" | sed -rn "s/<${file_doc//\//\\/}> <http:\/\/xm
 
 echo "$file" # file URL used in other tests
 
-curl --head -k -w "%{http_code}\n" -f -s \
+curl --head -k -w "%{http_code}\n" -o /dev/null -f -s \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: ${file_content_type}" \
   "$file" \

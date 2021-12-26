@@ -38,7 +38,7 @@ source="http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf"
 
 echo "Importing RDF from source: $source"
 
-curl -w "%{http_code}\n" -v -k \
+curl -w "%{http_code}\n" -o /dev/null -v -k \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: text/turtle" \
   -H "Content-Type: application/x-www-form-urlencoded" \

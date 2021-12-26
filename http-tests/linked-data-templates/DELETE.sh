@@ -24,7 +24,7 @@ popd > /dev/null
 
 # delete graph (of the Root document)
 
-curl -k -w "%{http_code}\n" -f -s -G \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -X DELETE \
   "$END_USER_BASE_URL" \
@@ -32,7 +32,7 @@ curl -k -w "%{http_code}\n" -f -s -G \
 
 # check that the graph is gone
 
-curl -k -w "%{http_code}\n" -s -G \
+curl -k -w "%{http_code}\n" -o /dev/null -s -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H "Accept: application/n-triples" \
   "$END_USER_BASE_URL" \

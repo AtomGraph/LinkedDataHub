@@ -8,7 +8,7 @@ purge_backend_cache "$ADMIN_VARNISH_SERVICE"
 
 # public access is forbidden
 
-curl -k -w "%{http_code}\n" -v \
+curl -k -w "%{http_code}\n" -o /dev/null -v \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_FORBIDDEN}"
@@ -30,7 +30,7 @@ popd > /dev/null
 
 # public access is allowed after authorization is created
 
-curl -k -w "%{http_code}\n" -f -v \
+curl -k -w "%{http_code}\n" -o /dev/null -f -v \
   -H "Accept: application/n-triples" \
   "${END_USER_BASE_URL}" \
 | grep -q "${STATUS_OK}"

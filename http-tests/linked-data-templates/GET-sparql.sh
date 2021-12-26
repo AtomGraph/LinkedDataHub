@@ -20,7 +20,7 @@ popd > /dev/null
 
 # check that SPARQL endpoint works
 
-curl -k -w "%{http_code}\n" -f -s \
+curl -k -w "%{http_code}\n" -o /dev/null -f -s \
   -G \
   -E "$AGENT_CERT_FILE":"$AGENT_CERT_PWD" \
   -H 'Accept: application/sparql-results+xml' \
