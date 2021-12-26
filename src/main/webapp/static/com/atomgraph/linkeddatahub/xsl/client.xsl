@@ -1294,6 +1294,9 @@ WHERE
                         <a href="{$ldt:base}" class="btn-logo btn-container">Root</a>
                     </li>
                     <li>
+                        <a href="{$ldt:base}apps/" class="btn-logo btn-app">Applications</a>
+                    </li>
+                    <li>
                         <a href="{$ldt:base}charts/" class="btn-logo btn-chart">Charts</a>
                     </li>
                     <li>
@@ -1307,9 +1310,6 @@ WHERE
                     </li>
                     <li>
                         <a href="{$ldt:base}latest/" class="btn-logo btn-latest">Latest</a>
-                    </li>
-                    <li>
-                        <a href="{$ldt:base}services/" class="btn-logo btn-service">Services</a>
                     </li>
                     <li>
                         <a href="{$ldt:base}queries/" class="btn-logo btn-query">Queries</a>
