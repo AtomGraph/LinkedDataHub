@@ -32,7 +32,7 @@ jobs:
       - name: Build Docker image & Run Docker containers
         run: docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env up --build -d
       - name: Wait for the server to start...
-        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" -o /dev/null | grep "200" ; do curl -k -v -E "$PWD/http-tests/ssl/owner/cert.pem":"${{env.OWNER_CERT_PWD}}" "${{env.BASE_URI}}"; docker-compose -f docker-compose.yml -f ./http-tests/docker-compose.http-tests.yml --env-file ./http-tests/.env logs --tail 200 linkeddatahub ; sleep 1 ; done # wait for the webapp to start
+        run: while ! curl -w "%{http_code}\n" -k -v "${{env.BASE_URI}}" -o /dev/null | grep "200" ; do sleep 1 ; done # wait for the webapp to start
       - name: Run HTTP test scripts
         run: ./run.sh "$PWD/ssl/owner/cert.pem" "${{env.OWNER_CERT_PWD}}" "$PWD/ssl/secretary/cert.pem" "${{env.SECRETARY_CERT_PWD}}"
         shell: bash
