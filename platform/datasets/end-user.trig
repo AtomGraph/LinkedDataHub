@@ -125,6 +125,16 @@
 
 }
 
+
+<apps/>
+{
+
+    <apps/> a def:Container ;
+        dct:title "Apps" ;
+        dct:description "Linked Data applications" .
+
+}
+
 <services/>
 {
 

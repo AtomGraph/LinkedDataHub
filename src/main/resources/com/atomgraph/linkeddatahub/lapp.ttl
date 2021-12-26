@@ -70,10 +70,10 @@
             rdfs:label "Missing SPARQL service" ;
             sp:arg1 ldt:service
         ] ,
-        [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing ontology" ;
-            sp:arg1 ldt:ontology
-        ] ,
+        #[ a apl:MissingPropertyValue ;
+        #    rdfs:label "Missing ontology" ;
+        #    sp:arg1 ldt:ontology
+        #] ,
         [ a apl:MissingPropertyValue ;
             rdfs:label "Missing title" ;
             sp:arg1 dct:title
@@ -89,7 +89,7 @@
 
       CONSTRUCT {
           ?this ldt:base ?base ;
-            ldt:ontology ?ontology ;
+            # ldt:ontology ?ontology ;
             ldt:service [ a apl:Service ] .
       }
       WHERE {

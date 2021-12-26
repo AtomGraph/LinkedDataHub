@@ -1,6 +1,7 @@
 @base		<https://w3id.org/atomgraph/linkeddatahub/domain> .
 
 @prefix :	<#> .
+@prefix lapp:   <https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
 @prefix ac:	<https://w3id.org/atomgraph/client#> .
 @prefix a:	<https://w3id.org/atomgraph/core#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -21,8 +22,8 @@
 @prefix sioc:	<http://rdfs.org/sioc/ns#> .
 
 : a owl:Ontology ;
-    owl:imports dh:, ac:, spin:, foaf:, void:, sd:, prov:, nfo: ;
-    rdfs:label "AtomGraph Platform ontology" ;
+    owl:imports dh:, ac:, spin:, foaf:, void:, sd:, prov:, nfo:, lapp: ;
+    rdfs:label "LinkedDataHub ontology" ;
     rdfs:comment "Should be imported and reused by all extending applications" ;
     owl:versionInfo "1.1.5" .
 
@@ -107,6 +108,15 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:isDefinedBy : .
 
 # CLASSES
+
+# application
+
+:Application a rdfs:Class, owl:Class ;
+    rdfs:subClassOf lapp:Application ;
+    ldt:fragment "id{slug}" ;
+    rdfs:label "Application" ;
+    rdfs:comment "Linked Data application" ;
+    rdfs:isDefinedBy : .
 
 # service
 
