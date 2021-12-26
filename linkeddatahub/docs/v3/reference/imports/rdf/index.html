@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - RDF imports</title>
+      <meta name="description" content="RDF imports and transforming RDF using SPARQL CONSTRUCT"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+				body { padding-top: 60px; }
+				object { width: 100%; min-height: 640px; }
+			</style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript">
+				$(document).ready(function()
+				{
+
+					$("ul.nav-tabs a").on("click", function()
+					{
+						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+						$(this).closest("li").toggleClass("active", true); // activate this tab
+						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+					});
+
+				});
+			</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+				
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
+
+					gtag('config', 'UA-38402002-6');
+				
+			</script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../../administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li class="active"><a href="" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li><a href="../../user-interface/index.html" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>RDF imports</h1>
+                  <p class="lead">RDF imports and transforming RDF using SPARQL CONSTRUCT</p>
+                  <p class="lead">If you are ready to import some RDF, see our step-by-step tutorial on <a href="../../../user-guide/import-data/import-rdf-data/">creating an RDF import</a>.</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <p>A data import is a combination of 3 resources:</p>
+                  
+                  <dl>
+                     
+                     <dt>File</dt>
+                     
+                     <dd>An uploaded file holding the data to be converted to RDF and imported, such as CSV
+                        or RDF file</dd>
+                     
+                     <dt>Mapping</dt>
+                     
+                     <dd>The <code>CONSTRUCT</code> query that produces RDF</dd>
+                     
+                     <dt>Target container</dt>
+                     
+                     <dd>The container to which converted items will be <a href="../../http-api/#ld-post">POST</a>ed, skolemized against,
+                        and become its children</dd>
+                     </dl>
+                  
+                  <p>The import process runs in the background, i.e. the import item is created before
+                     the process completes.
+                     Currently the only way to determine when it completes is to refresh the import item
+                     and check the import
+                     status (completed/failed). Upon successful report, metadata such as the number of
+                     imported RDF triples is attached
+                     to the import.</p>
+                  
+                  <p>The converted RDF is validated against <a href="../../administration/model/#constraints">constraints</a>
+                     before import. Constraint violations, if any, are attached to the import item.</p>
+                  
+                  <div>
+                     
+                     <h2 id="import-rdf">Import RDF</h2>
+                     
+                     <p>Lets assume we want to import SKOS concept data:</p>
+                     
+                     <pre>@prefix : &lt;http://vocabularies.unesco.org/thesaurus/&gt; .
+@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
+@prefix dcterms: &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+:concept10 a skos:Concept ;
+    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    skos:narrower :concept4938 , :concept7597 ;
+    skos:prefLabel "Right to education"@en , "Droit à l'éducation"@fr , "Derecho a la educación"@es , "Право на образование"@ru ;
+    skos:related :concept9 , :concept556 , :concept557 , :concept1519 , :concept5052 ;
+    skos:topConceptOf &lt;http://vocabularies.unesco.org/thesaurus&gt; .
+
+:concept1000 a skos:Concept ;
+    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+    skos:broader :concept389 ;
+    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    skos:prefLabel "Talent"@en , "Talent"@fr , "Talento"@es , "Талант"@ru ;
+    skos:related :concept993 , :concept996 , :concept3086 .
+
+:concept10003 a skos:Concept ;
+    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+    skos:altLabel "Entrevue"@fr ;
+    skos:broader :concept4725 ;
+    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    skos:prefLabel "Interviews"@en , "Entretien"@fr , "Entrevista"@es , "Интервью"@ru .</pre>
+                     
+                     <div>
+                        
+                        <h3 id="transformation">Transformation</h3>
+                        
+                        <p>This step is used to transform the RDF data that is being imported, if necessary (to
+                           a different vocabulary, for example). It also connects instances in the imported data
+                           to the documents in LinkedDataHub's <a href="../../dataset-structure/" target="_blank">dataset</a>.</p>
+                        
+                        <p>The mapping is a user-defined SPARQL <code>CONSTRUCT</code>. In this case we give each SKOS concept from the imported dataset an additional RDF
+                           type and pair the concept with its item (document):</p>
+                        
+                        <pre><code>PREFIX dom:   &lt;ns/domain#&gt;
+PREFIX dh:    &lt;https://www.w3.org/ns/ldt/document-hierarchy/domain#&gt;
+PREFIX sioc:  &lt;http://rdfs.org/sioc/ns#&gt;
+PREFIX foaf:  &lt;http://xmlns.com/foaf/0.1/&gt;
+PREFIX skos:  &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dct:   &lt;http://purl.org/dc/terms/&gt;
+
+CONSTRUCT
+{
+    ?thing ?p ?o ;
+        a ?type ;
+        foaf:isPrimaryTopicOf ?item ;
+        ?p ?o .
+    ?item a ?itemType ;
+        sioc:has_container ?container ;
+        dh:slug ?id ;
+        dct:title ?prefLabel ;
+        foaf:primaryTopic ?thing .
+}
+WHERE
+{
+    SELECT *
+    {
+        {
+            ?thing a skos:Concept
+            BIND (dom:Concept AS ?type)
+            BIND (dom:ConceptItem AS ?itemType)
+            BIND (&lt;concepts/&gt; AS ?container)
+        }
+        UNION
+        {
+            ?thing a skos:ConceptScheme
+            BIND (dom:ConceptScheme AS ?type)
+            BIND (dom:ConceptSchemeItem AS ?itemType)
+            BIND (&lt;concept-schemes/&gt; AS ?container)
+        }
+        BIND(struuid() AS ?id)
+        BIND(BNODE() AS ?item)
+        ?thing ?p ?o
+        OPTIONAL
+        {
+            ?thing skos:prefLabel ?prefLabel
+            FILTER (langMatches(lang(?prefLabel), "en"))
+        }
+    }
+}</code></pre>
+                        
+                        <p>These are the rules that hold for mapping queries:</p>
+                        
+                        <ul>
+                           
+                           <li><code>BASE</code> value is set to the application's base URI</li>
+                           
+                           <li><code>?this</code> binding is set to the value of the target container</li>
+                           
+                           <li>produce items (documents) and pair them with topic resources using
+                              <code>foaf:primaryTopic</code>/<code>foaf:isPrimaryTopicOf</code> properties</li>
+                           
+                           <li>use<code>OPTIONAL</code> for optional cell values</li>
+                           
+                           <li>use <code>BIND()</code> to introduce new values and/or cast literals to the appropriate result
+                              datatype or URI</li>
+                           </ul>
+                        
+                        <p>Blank node resources in the output will be skolemized depending on their RDF types.</p>
+                        
+                        <p>We are planning to provide a UI-based mapping tool in the future.</p>
+                        
+                        <p>The result of our mapping using:</p>
+                        
+                        <pre>@prefix : &lt;http://vocabularies.unesco.org/thesaurus/&gt; .
+@prefix skos: &lt;http://www.w3.org/2004/02/skos/core#&gt; .
+@prefix dcterms: &lt;http://purl.org/dc/terms/&gt; .
+@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+@prefix foaf: &lt;http://xmlns.com/foaf/0.1/&gt; .
+@prefix sioc: &lt;http://rdfs.org/sioc/ns#&gt; .
+@prefix dh: &lt;https://www.w3.org/ns/ldt/document-hierarchy/domain#&gt; .
+@prefix dom: &lt;ns/domain#&gt; .
+
+:concept10 a skos:Concept, dom:Concept ;
+    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    skos:narrower :concept4938 , :concept7597 ;
+    skos:prefLabel "Right to education"@en , "Droit à l'éducation"@fr , "Derecho a la educación"@es , "Право на образование"@ru ;
+    skos:related :concept9 , :concept556 , :concept557 , :concept1519 , :concept5052 ;
+    skos:topConceptOf &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    foaf:isPrimaryTopicOf &lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; .
+
+&lt;concepts/c499e66a-8036-4637-929d-0d809177883e/&gt; a dom:ConceptItem ;
+    sioc:has_container &lt;concepts/&gt; ;
+    dh:slug "c499e66a-8036-4637-929d-0d809177883e" ;
+    dcterms:title "Right to education"@en ;
+    foaf:primaryTopic :concept10 .
+
+:concept1000 a skos:Concept, dom:Concept ;
+    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+    skos:broader :concept389 ;
+    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    skos:prefLabel "Talent"@en , "Talent"@fr , "Talento"@es , "Талант"@ru ;
+    skos:related :concept993 , :concept996 , :concept3086 ;
+    foaf:isPrimaryTopicOf &lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; .
+
+&lt;concepts/f41910fa-9077-4656-8f73-752fd923a79b/&gt; a dom:ConceptItem ;
+    sioc:has_container &lt;concepts/&gt; ;
+    dh:slug "f41910fa-9077-4656-8f73-752fd923a79b" ;
+    dcterms:title "Talent"@en ;
+    foaf:primaryTopic :concept1000 .
+
+:concept10003 a skos:Concept, dom:Concept ;
+    dcterms:modified "2006-05-23T00:00:00"^^xsd:dateTime ;
+    skos:altLabel "Entrevue"@fr ;
+    skos:broader :concept4725 ;
+    skos:inScheme &lt;http://vocabularies.unesco.org/thesaurus&gt; ;
+    skos:prefLabel "Interviews"@en , "Entretien"@fr , "Entrevista"@es , "Интервью"@ru ;
+    foaf:isPrimaryTopicOf &lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; .
+
+&lt;concepts/2afb2e06-5081-4db1-9255-660fcd1b3ec8/&gt; a dom:ConceptItem ;
+    sioc:has_container &lt;concepts/&gt; ;
+    dh:slug "2afb2e06-5081-4db1-9255-660fcd1b3ec8" ;
+    dcterms:title "Interviews"@en ;
+    foaf:primaryTopic :concept10003 .</pre>
+                        </div>
+                     </div>
+                  
+                  </div>
+            </main>
+         </div>
+      </div>
+   </body>
+</html>

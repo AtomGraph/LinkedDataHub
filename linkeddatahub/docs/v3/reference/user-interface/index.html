@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>LinkedDataHub - User interface</title>
+      <meta name="description" content="A walk through the main features of application user interface"/>
+      <link rel="up" href="../index.html"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+      <link href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/css/bootstrap-responsive.css" rel="stylesheet" type="text/css"/>
+      <style type="text/css">
+				body { padding-top: 60px; }
+				object { width: 100%; min-height: 640px; }
+			</style><script type="text/javascript" src="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/js/jquery.min.js"></script><script type="text/javascript">
+				$(document).ready(function()
+				{
+
+					$("ul.nav-tabs a").on("click", function()
+					{
+						$(this).closest("ul").children().toggleClass("active", false); // deactivate other tabs
+						$(this).closest("li").toggleClass("active", true); // activate this tab
+						$(this).closest("ul").next().children().toggleClass("active", false); // deactivate other tab panes
+						$(this).closest("ul").next().children().eq($(this).closest("li").index()).toggleClass("active", true); // activate this tab pane
+					});
+
+				});
+			</script><script async="async" src="https://www.googletagmanager.com/gtag/js?id=UA-38402002-6"></script><script>
+				
+					window.dataLayer = window.dataLayer || [];
+					function gtag(){dataLayer.push(arguments);}
+					gtag('js', new Date());
+
+					gtag('config', 'UA-38402002-6');
+				
+			</script></head>
+   <body>
+      <div class="navbar navbar-fixed-top">
+         <div class="navbar-inner">
+            <div class="container-fluid"><a class="brand" href="https://atomgraph.github.io/LinkedDataHub/">LinkedDataHub</a><div class="nav-collapse collapse">
+                  <ul class="nav">
+                     <li class="active"><a href="https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/">Documentation</a></li>
+                     <li><a href="https://github.com/AtomGraph/LinkedDataHub" target="_blank">Code</a></li>
+                  </ul>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="container-fluid">
+         <div class="row-fluid">
+            <nav class="span2">
+               <ul class="nav nav-list">
+                  <li><a href="../../about/index.html" title="A UI-based cloud platform for data integration, management, and application building">About LinkedDataHub</a></li>
+                  <li><a href="../../get-started/index.html" title="All the basics of LinkedDataHub. From installation to extending the model and user interface.">Get started</a><ul class="nav nav-list">
+                        <li><a href="../../get-started/get-an-account/index.html" title="How to get access">Get an account</a></li>
+                        <li><a href="../../get-started/setup/index.html" title="Setup LinkedDataHub on your local machine or access it in the cloud">Setup</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../linkeddatahub-cloud/index.html" title="LinkedDataHub Cloud is a managed service for LinkedDataHub applications">LinkedDataHub Cloud</a></li>
+                  <li><a href="../index.html" title="A list of LinkedDataHub's features and their functions, split into general and administration parts">Reference</a><ul class="nav nav-list">
+                        <li><a href="../administration/index.html" title="Access control and domain model management">Administration</a><ul class="nav nav-list">
+                              <li><a href="../administration/acl/index.html" title="Agents, groups, and authorizations">Access control</a></li>
+                              <li><a href="../administration/model/index.html" title="Ontology classes, constraints, properties etc.">Model</a><ul class="nav nav-list">
+                                    <li><a href="../administration/model/built-ins/index.html" title="Classes, constraints, properties available to all LinkedDataHub apps">Built-in model terms</a></li>
+                                 </ul>
+                              </li>
+                           </ul>
+                        </li>
+                        <li><a href="../command-line-interface/index.html" title="CLI scripts can be used perform all actions available in the UI">Command line interface</a></li>
+                        <li><a href="../dataset-structure/index.html" title="The default RDF dataset structure used by LinkedDataHub">Dataset structure</a></li>
+                        <li><a href="../dataspace/index.html" title="LinkedDataHub dataspaces, applications, and services">Dataspace</a></li>
+                        <li><a href="../documents/index.html" title="Document hierarchy and the basic data management actions">Document management</a></li>
+                        <li><a href="../http-api/index.html" title="Learn how to access and manage RDF data over generic HTTP API">HTTP API</a></li>
+                        <li><a href="../imports/index.html" title="Types of data imports supported by LinkedDataHub">Imports</a><ul class="nav nav-list">
+                              <li><a href="../imports/csv/index.html" title="CSV imports and mapping to RDF using SPARQL CONSTRUCT">CSV imports</a></li>
+                              <li><a href="../imports/rdf/index.html" title="RDF imports and transforming RDF using SPARQL CONSTRUCT">RDF imports</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../stylesheets/index.html" title="Built-in XSLT and CSS stylesheets">Stylesheets</a></li>
+                        <li class="active"><a href="" title="A walk through the main features of application user interface">User interface</a></li>
+                     </ul>
+                  </li>
+                  <li><a href="../../user-guide/index.html" title="Step-by-step tutorials for everyday tasks with LinkedDataHub">User guide</a><ul class="nav nav-list">
+                        <li><a href="../../user-guide/browse-data/index.html" title="Use LinkedDataHub's built-in Linked Data browser to explore remote datasources">Browse data</a></li>
+                        <li><a href="../../user-guide/change-layout/index.html" title="How to customize the layout of an application and the UI of the resources">Change layout</a></li>
+                        <li><a href="../../user-guide/change-model/index.html" title="Change the model: create constructors, classes, and constraints">Change the model</a></li>
+                        <li><a href="../../user-guide/change-system-base-uri/index.html" title="How to change host, port, or the path LinkedDataHub service runs on">Change system base URI</a></li>
+                        <li><a href="../../user-guide/create-document/index.html" title="Learn how to create container and item documents">Create document</a></li>
+                        <li><a href="../../user-guide/import-data/index.html" title="How to import data into LinkedDataHub">Import data</a><ul class="nav nav-list">
+                              <li><a href="../../user-guide/import-data/import-csv-data/index.html" title="Step by step guide to converting CSV data to RDF and importing into end-user application">Import CSV data</a></li>
+                              <li><a href="../../user-guide/import-data/import-rdf-data/index.html" title="Step by step guide to importing RDF data">Import RDF data</a></li>
+                           </ul>
+                        </li>
+                        <li><a href="../../user-guide/manage-dataspaces/index.html" title="Create or change a dataspace, configure SPARQL services and XSLT stylesheets">Manage dataspaces</a></li>
+                        <li><a href="../../user-guide/query-data/index.html" title="Learn how to query application data with SPARQL and store queries">Query data</a></li>
+                        <li><a href="../../user-guide/search-data/index.html" title="Search for resources using text keywords">Search data</a></li>
+                        <li><a href="../../user-guide/upload-file/index.html" title="Learn how to upload files to LinkedDataHub">Upload file</a></li>
+                     </ul>
+                  </li>
+               </ul>
+            </nav>
+            <main class="span7">
+               <header>
+                  <h1>User interface</h1>
+                  <p class="lead">This guide walks through the main features of LinkedDataHub user interface.
+                     See <a href="../documents/">Document management</a> guide for basic definitions such as application and document.</p>
+               </header>
+               <nav></nav>
+               <div>
+                  
+                  
+                  <div class="alert alert-info">
+                     
+                     <p>User interface is only one of the interfaces LinkedDataHub provides. The other one
+                        is the <a href="../command-line-interface/">
+                           Command line interface</a>, which supports most of the UI actions.</p>
+                     </div>
+                  
+                  <div class="alert alert-info">
+                     
+                     <p><em>Note that user interface features are subject to <a href="../administration/acl/">access control</a>. For example,
+                           the search box will not be visible if the user is not authorized to access the search
+                           container.</em></p>
+                     </div>
+                  
+                  <p>
+                     <img alt="User interface" src="../../files/images/layout.png"/>
+                     </p>
+                  
+                  <div>
+                     
+                     <h2 id="nav-bar">Navigation bar</h2>
+                     
+                     <p>
+                        <img alt="Navigation bar" src="../../files/images/navigation bar.png"/>
+                        </p>
+                     
+                     <p>The application title or logo in the top-left always links to the root container of
+                        the current application.</p>
+                     
+                     <p><dfn>Search box</dfn> lets users <a href="../documents/#search" title="Search action">search for resources</a>
+                        within the current application that have the specified keyword in their titles, descriptions
+                        etc. Results are shown in a dropdown list.</p>
+                     
+                     <p>Application's <dfn>SPARQL endpoint</dfn> is accessible on the right. It offers a query editor and a result
+                        view. Learn more about query possibilities in the <a href="../../user-guide/query-data/">Query data</a> section.</p>
+                     
+                     <p>Current application can be switched using a dropdown on the right. Different users
+                        have access to
+                        different applications, depending on their authorizations.</p>
+                     
+                     <p>Currently <a href="../../get-started/get-an-account/#log-in" title="Log in">logged-in user's</a> account is accessible via the icon on
+                        the right, which opens a drop-down. You can log out by clicking the <span class="btn">Logout</span> button.</p>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p><em>Due to current web browser limitations, it is not possible to logout using client
+                              certificate authentication.
+                              As a workaround, you can close the browser, and click <span class="btn">Cancel</span> when asked to select a
+                              certificate the next time.</em></p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="action-bar">Action bar</h2>
+                     
+                     <p>
+                        <img alt="Action bar" src="../../files/images/action.png"/>
+                        </p>
+                     
+                     <p>The <span class="btn btn-primary">Create</span> button invokes <a href="#create-edit">create dialog</a> through which
+                        resources can be <a href="../documents/#create">created</a> as instances of the
+                        <a href="../administration/model/#classes">classes</a> defined in the model.</p>
+                     
+                     <p>The path leading from the current document up the parent/child hierarchy to the root
+                        container is shown in
+                        the <dfn>breadcrumb bar</dfn>, where the current document is always the last breadcrumb. The user can always
+                        open any of the ascendant containers by clicking breadcrumbs left from the current
+                        one. The icon shows the
+                        type of the current document (container or item).</p>
+                     
+                     <p>Further to the left, the action bar displays a number of buttons for toggling the
+                        available
+                        <a href="#layout-modes">layout modes</a> as well as <a href="../documents/#manage">performing actions</a> on the
+                        current document.</p>
+                     
+                     <p>Last but not least, the settings button provides a link to the <a href="../administration/">administration</a>
+                        application.</p>
+                     
+                     <div class="alert alert-info">
+                        
+                        <p><em>Only administration users have access to the administration application.</em></p>
+                        </div>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="layout-modes">Layout modes</h2>
+                     
+                     <p>A list of possible <dfn>layout modes</dfn> is displayed, and can be switched using, the mode dropdown in
+                        the action bar. Containers and items are available in different modes.</p>
+                     
+                     <p>Container (page) layout modes:</p>
+                     
+                     <dl>
+                        
+                        <dt>Properties</dt>
+                        
+                        <dd>The most detailed view showing every property/value of children resources.</dd>
+                        
+                        <dt>List</dt>
+                        
+                        <dd>List of children resources with titles and descriptions.</dd>
+                        
+                        <dt>Table</dt>
+                        
+                        <dd>Table with children resources as rows, properties as columns, and values as cells</dd>
+                        
+                        <dt>Grid</dt>
+                        
+                        <dd>A grid of children resources with titles, descriptions, and depiction thumbnails,
+                           if any.</dd>
+                        
+                        <dt>Map</dt>
+                        
+                        <dd>Shows all topic resources of the children of the current container that have coordinates</dd>
+                        
+                        <dt>Graph</dt>
+                        
+                        <dd>Displays the current document and related resources graphically as nodes in a network
+                           using
+                           force-directed layout.</dd>
+                        </dl>
+                     
+                     <p>Item layout modes:</p>
+                     
+                     <dl>
+                        
+                        <dt>Properties</dt>
+                        
+                        <dd>The most detailed view showing every property/value of the current document and its
+                           topic resource,
+                           if any.</dd>
+                        
+                        <dt>Map</dt>
+                        
+                        <dd>Shows all topic resources of the children of the current container that have coordinates.</dd>
+                        
+                        <dd>If the topic of current document is on the map, its description will be displayed
+                           in an info
+                           window.</dd>
+                        
+                        <dt>Graph</dt>
+                        
+                        <dd>Displays the current document and related resources graphically as nodes in a network
+                           using
+                           force-directed layout.</dd>
+                        </dl>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="pagination">Pagination</h2>
+                     
+                     <p>Pagination is only available for container resources. <span class="btn">Prev</span>/<span class="btn">Next</span>
+                        pager buttons, located above and below the <a href="#main-content">main content</a>, link to the page before
+                        the current one and after the current one, respectively.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="main-content">Main content</h2>
+                     
+                     <p>The main content section is located in the center of the screen. Its contents depend
+                        on the current document
+                        and the current layout mode. Layout modes can be switched in the <a href="#action-bar">action bar</a>.</p>
+                     
+                     <p>For containers, its children resources (normally a page of them) are shown. The default
+                        layout is
+                        <a href="#layout-modes">list</a>.</p>
+                     
+                     <p>For items, its XHTML content and properties/values of its topic resource (if any)
+                        are shown. The default
+                        layout is <a href="#layout-modes">properties</a>.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="left-nav">Left navigation</h2>
+                     
+                     <p>The left-side navigation provides access to the first-level children of the
+                        <a href="../documents/#hierarchy">root container</a>.</p>
+                     
+                     <p>Depending on the type of the current container, a faceted search that filters its
+                        children using combinations
+                        of subclass types can also be shown.</p>
+                     
+                     <p>At the bottom of this section you will find quick access links to the following system
+                        containers:</p>
+                     
+                     <dl>
+                        
+                        <dt>Latest</dt>
+                        
+                        <dd>A container with the latest resources in the application's dataset by creation/modification
+                           date</dd>
+                        
+                        <dt>Files</dt>
+                        
+                        <dd>A container for <a href="../documents/#files">file uploads</a></dd>
+                        
+                        <dt>Imports</dt>
+                        
+                        <dd>A container for <a href="../imports/">data imports</a></dd>
+                        
+                        <dt>Queries</dt>
+                        
+                        <dd>A container for end-user SPARQL queries (including <a href="../imports/csv/#vocabulary-conversion">vocabulary
+                              mappings</a>)</dd>
+                        
+                        <dt>Geo</dt>
+                        
+                        <dd>A container with all resources in the application's dataset that have geographic coordinates</dd>
+                        
+                        <dt>Charts</dt>
+                        
+                        <dd>A container with charts that visualize SPARQL query results</dd>
+                        </dl>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="right-nav">Right navigation</h2>
+                     
+                     <p>The right-side navigation shows details of the current document, such as creator and
+                        creation/modification
+                        date. Additionally, it can show contextual links depending on the type of current
+                        document.</p>
+                     </div>
+                  
+                  <div>
+                     
+                     <h2 id="create-edit">Create/Edit dialog</h2>
+                     
+                     <p>
+                        <img alt="Create/Edit dialog" src="../../files/images/create edit.png"/>
+                        </p>
+                     
+                     <p>Resources are <a href="../documents/#create">created</a> and <a href="../documents/#update">updated</a> using
+                        the same form-based dialog. The form can display either a document alone, or a document
+                        paired with its topic resource.
+                        Each resource is displayed in a separate fieldset; fieldsets are nested for related
+                        resources.</p>
+                     
+                     <p>Properties are listed inside fieldsets and their values shown as user inputs. When
+                        creating or updating a
+                        resource which type is a class defined in the <a href="../administration/model/">model</a>, resource
+                        properties are specified by the <a href="../administration/model/#constructors">class constructor</a>.</p>
+                     
+                     <p>Values of object properties are displayed as typeahead input allowing users to type
+                        keywords and select
+                        matching resources from a dropdown list. The list is filtered by resource type specified
+                        in the constructor.
+                        Typeahead inputs also allow absolute URI values.</p>
+                     
+                     <p>Mandatory properties are those for which there exists a <a href="../administration/model/#constraints">constraint</a>
+                        on a class that is being created or edited. Mandatory properties do not have a remove
+                        button. New property with a value
+                        can be added using the property dropdown (at the bottom of fieldset).</p>
+                     
+                     <p>If any of the resources are invalid (because of URI syntax errors or constraint violations)
+                        when attempting
+                        to save the data, you will see error messages and highlighted inputs for the properties
+                        which have invalid values. Resource creation or
+                        update cannot be performed until these errors are fixed.</p>
+                     </div>
+                  </div>
+            </main>
+         </div>
+      </div>
+   </body>
+</html>
