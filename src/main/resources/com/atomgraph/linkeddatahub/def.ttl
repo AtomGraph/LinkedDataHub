@@ -51,6 +51,8 @@
 
 :Application a rdfs:Class, owl:Class ;
     rdfs:subClassOf lapp:Application ;
+    spin:constructor :TitleConstructor, :DescriptionConstructor ;
+    spin:constraint :MissingTitle ;
     ldt:fragment "id{slug}" ;
     rdfs:label "Application" ;
     rdfs:comment "Linked Data application" ;

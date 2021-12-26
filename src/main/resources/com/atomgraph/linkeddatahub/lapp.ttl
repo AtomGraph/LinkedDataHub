@@ -69,14 +69,6 @@
         [ a apl:MissingPropertyValue ;
             rdfs:label "Missing SPARQL service" ;
             sp:arg1 ldt:service
-        ] ,
-        #[ a apl:MissingPropertyValue ;
-        #    rdfs:label "Missing ontology" ;
-        #    sp:arg1 ldt:ontology
-        #] ,
-        [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing title" ;
-            sp:arg1 dct:title
         ] ;
     rdfs:label "Application" ;
     rdfs:comment "An application represents a data space identified by its base URI, in which application resource URIs are relative to the base URI. The only application interface (API) is read-write RESTful Linked data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Application structure is defined in an ontology, which can import other ontologies." ;
