@@ -1275,7 +1275,7 @@ WHERE
     </xsl:template>
     
     <!-- render dropdown for root containers -->
-    <xsl:template match="*[@rdf:about = ($ldt:base, resolve-uri('charts/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('latest/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('queries/', $ldt:base))]" mode="bs2:BreadCrumbListItem" priority="1">
+    <xsl:template match="*[@rdf:about = ($ldt:base, resolve-uri('charts/', $ldt:base), resolve-uri('files/', $ldt:base), resolve-uri('geo/', $ldt:base), resolve-uri('imports/', $ldt:base), resolve-uri('latest/', $ldt:base), resolve-uri('apps/', $ldt:base), resolve-uri('services/', $ldt:base), resolve-uri('queries/', $ldt:base))]" mode="bs2:BreadCrumbListItem" priority="1">
         <xsl:param name="leaf" select="true()" as="xs:boolean"/>
 
         <li>
