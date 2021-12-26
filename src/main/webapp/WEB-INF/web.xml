@@ -37,9 +37,10 @@ WHERE
                       { ?this  a  ?Type }
                   }
                 UNION
-                  { FILTER ( ?Type = def:File )
-                    { GRAPH ?g
-                        { ?this  a  ?Type }
+                  { { GRAPH ?g
+                        { ?this  a  def:File ;
+                                 a  ?Type
+                        }
                     }
                   }
               }
@@ -68,9 +69,10 @@ WHERE
                       { ?this  a  ?Type }
                   }
                 UNION
-                  { FILTER ( ?Type = def:File )
-                    { GRAPH ?g
-                        { ?this  a  ?Type }
+                  { { GRAPH ?g
+                        { ?this  a  def:File ;
+                                 a  ?Type
+                        }
                     }
                   }
               }

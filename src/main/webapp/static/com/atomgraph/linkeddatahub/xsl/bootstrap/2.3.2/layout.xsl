@@ -1237,9 +1237,9 @@ exclude-result-prefixes="#all">
                             <li>
                                 <a href="https://github.com/AtomGraph" target="_blank">github.com/AtomGraph</a>
                             </li>
-                            <li>
+<!--                            <li>
                                 <a href="https://www.facebook.com/AtomGraph" target="_blank">facebook.com/AtomGraph</a>
-                            </li>
+                            </li>-->
                         </ul>
                     </div>
                 </div>
