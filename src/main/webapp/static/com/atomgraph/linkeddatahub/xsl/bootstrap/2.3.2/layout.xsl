@@ -997,6 +997,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
             <xsl:map>
+                <xsl:map-entry key="'&def;Application'" select="resolve-uri('apps/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;DydraService'" select="resolve-uri('services/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $ldt:base)"/>

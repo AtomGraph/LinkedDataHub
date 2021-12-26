@@ -1,10 +1,12 @@
 @base		<https://w3id.org/atomgraph/linkeddatahub/default> .
 
 @prefix :	<#> .
+@prefix lapp:   <https://w3id.org/atomgraph/linkeddatahub/apps/domain#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
+@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -15,7 +17,7 @@
 : a owl:Ontology ;
     rdfs:label "Default" ;
     rdfs:comment "Default document model" ;
-    owl:imports apl: ;
+    owl:imports apl:, lapp: ;
     owl:versionInfo "1.0-SNAPSHOT" .
 
 :Root a rdfs:Class ;
@@ -45,6 +47,13 @@
     spin:constructor :TitleConstructor, :DescriptionConstructor, :PrimaryTopicConstructor, :ContentConstructor ;
     spin:constraint :MissingContainer, :MissingTitle ;
     rdfs:label "Item" ;
+    rdfs:isDefinedBy : .
+
+:Application a rdfs:Class, owl:Class ;
+    rdfs:subClassOf lapp:Application ;
+    ldt:fragment "id{slug}" ;
+    rdfs:label "Application" ;
+    rdfs:comment "Linked Data application" ;
     rdfs:isDefinedBy : .
 
 :GenericService a rdfs:Class ;
