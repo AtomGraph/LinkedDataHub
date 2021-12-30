@@ -79,7 +79,7 @@ public class EMailListener implements ServletContextListener
                 if (log.isErrorEnabled())
                 {
                     log.error("Could not Message properties: {}", message);
-                    log.error("Could not send Message", t);
+                    log.error("Could not send Message", ex);
                 }
                 throw new RuntimeException(ex);
             }
