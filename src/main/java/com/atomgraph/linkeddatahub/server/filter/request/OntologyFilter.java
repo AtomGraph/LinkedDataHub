@@ -185,16 +185,20 @@ public class OntologyFilter implements ContainerRequestFilter
         if (uri == null) throw new IllegalArgumentException("Ontology URI string cannot be null");
         if (ontModelSpec == null) throw new IllegalArgumentException("OntModelSpec cannot be null");
 
-        ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
-        Model model = modelGetter.getModel(uri);
+        // only create InfModel if ontology is not already cached
+        if (!ontModelSpec.getDocumentManager().getFileManager().hasCachedModel(uri))
+        {
+            ModelGetter modelGetter = new ModelGetter(app, ontModelSpec);
+            Model model = modelGetter.getModel(uri);
 
-        final InfModel infModel;
-        if (schema != null) infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), schema, model);
-        else infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
+            final InfModel infModel;
+            if (schema != null) infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), schema, model);
+            else infModel = ModelFactory.createInfModel(ontModelSpec.getReasoner(), model);
 
-        ontModelSpec.getDocumentManager().addModel(uri, infModel);
-        ontModelSpec.setImportModelGetter(modelGetter);
-
+            ontModelSpec.getDocumentManager().addModel(uri, infModel);
+            ontModelSpec.setImportModelGetter(modelGetter);
+        }
+        
         try
         {
             // construct system provider to materialize inferenced model

@@ -63,24 +63,18 @@ public class EMailListener implements ServletContextListener
     
     public static Function<Throwable, Void> failure(final Message message)
     {
-        return new Function<Throwable, Void>()
+        return (Throwable t) ->
         {
-
-            @Override
-            public Void apply(Throwable t)
+            try
             {
-                try
-                {
-                    if (log.isErrorEnabled()) log.error("Could not send Message with subject: {} to addresses: {}", message.getSubject(), message.getAllRecipients());
-                    throw new RuntimeException(t);
-                }
-                catch (MessagingException ex)
-                {
-                    if (log.isErrorEnabled()) log.error("Could not Message properties: {}", message);
-                    throw new RuntimeException(ex);
-                }
+                if (log.isErrorEnabled()) log.error("Could not send Message with subject: {} to addresses: {}", message.getSubject(), message.getAllRecipients());
+                throw new RuntimeException(t);
             }
-        
+            catch (MessagingException ex)
+            {
+                if (log.isErrorEnabled()) log.error("Could not Message properties: {}", message);
+                throw new RuntimeException(ex);
+            }
         };
 
     }
