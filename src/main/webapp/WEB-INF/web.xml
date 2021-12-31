@@ -225,7 +225,7 @@ DELETE WHERE
     </context-param>-->
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpAddress</param-name>
-        <param-value><![CDATA[LinkedDataHub <signup@linkeddatahub.com>]]></param-value>
+        <param-value><![CDATA[LinkedDataHub <signup@kgdev.net>]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#signUpEMailSubject</param-name>
@@ -262,7 +262,7 @@ support@linkeddatahub.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#notificationAddress</param-name>
-        <param-value><![CDATA[LinkedDataHub <notifications@linkeddatahub.com>]]></param-value>
+        <param-value><![CDATA[LinkedDataHub <notifications@kgdev.net>]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#requestAccessEMailSubject</param-name>
