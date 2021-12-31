@@ -149,7 +149,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.ServletContext;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
 import org.apache.jena.ontology.Ontology;
@@ -173,6 +172,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import javax.mail.Address;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -235,7 +237,6 @@ public class Application extends ResourceConfig
     private final MediaTypes mediaTypes;
     private final Client client, importClient, noCertClient;
     private final Query authQuery, ownerAuthQuery, webIDQuery, agentQuery, userAccountQuery; // no relative URIs
-//    private final String putUpdateString, deleteUpdateString;
     private final Integer maxGetRequestSize;
     private final boolean preemptiveAuth;
     private final Processor xsltProc = new Processor(false);
@@ -250,6 +251,7 @@ public class Application extends ResourceConfig
     private final Integer cookieMaxAge;
     private final CacheControl authCacheControl;
     private final Integer maxContentLength;
+    private final Address notificationAddress;
     private final Authenticator authenticator;
     private final Properties emailProperties = new Properties();
     private final KeyStore keyStore, trustStore;
@@ -283,8 +285,6 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.webIDQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.agentQuery.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.userAccountQuery.getURI()) : null,
-//            servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.putUpdate.getURI()) : null,
-//            servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.deleteUpdate.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.baseUri.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyScheme.getURI()) : null,
             servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.proxyHost.getURI()) : null,
@@ -298,6 +298,7 @@ public class Application extends ResourceConfig
             servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI()) != null ? Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.maxTotalConn.getURI())) : null,
             // TO-DO: respect "timeout" header param in the ConnectionKeepAliveStrategy?
             servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI()) != null ? (HttpResponse response, HttpContext context) -> Integer.valueOf(servletConfig.getServletContext().getInitParameter(APLC.importKeepAlive.getURI())) : null,
+            servletConfig.getServletContext().getInitParameter(APLC.notificationAddress.getURI()) != null ? servletConfig.getServletContext().getInitParameter(APLC.notificationAddress.getURI()) : null,
             servletConfig.getServletContext().getInitParameter("mail.user") != null ? servletConfig.getServletContext().getInitParameter("mail.user") : null,
             servletConfig.getServletContext().getInitParameter("mail.password") != null ? servletConfig.getServletContext().getInitParameter("mail.password") : null,
             servletConfig.getServletContext().getInitParameter("mail.smtp.host") != null ? servletConfig.getServletContext().getInitParameter("mail.smtp.host") : null,
@@ -327,7 +328,7 @@ public class Application extends ResourceConfig
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
             final Integer maxConnPerRoute, final Integer maxTotalConn, final ConnectionKeepAliveStrategy importKeepAliveStrategy,
-            final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
+            final String notificationAddressString, final String mailUser, final String mailPassword, final String smtpHost, final String smtpPort,
             final String googleClientID, final String googleClientSecret)
     {
         if (clientKeyStoreURIString == null)
@@ -396,27 +397,12 @@ public class Application extends ResourceConfig
             throw new ConfigurationException(APLC.uploadRoot);
         }
         
-//        if (putUpdateString == null)
-//        {
-//            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.putUpdate);
-//            throw new ConfigurationException(APLC.putUpdate);
-//        }
-//        this.putUpdateString = putUpdateString;
-//        
-//        if (deleteUpdateString == null)
-//        {
-//            if (log.isErrorEnabled()) log.error("Update property '{}' not configured", APLC.deleteUpdate);
-//            throw new ConfigurationException(APLC.deleteUpdate);
-//        }
-//        this.deleteUpdateString = deleteUpdateString;
-//        
         if (cookieMaxAge == null)
         {
             if (log.isErrorEnabled()) log.error("JWT cookie max age property '{}' not configured", APLC.cookieMaxAge.getURI());
             throw new ConfigurationException(APLC.cookieMaxAge);
         }
         this.cookieMaxAge = cookieMaxAge;
-
 
         this.mediaTypes = mediaTypes;
         this.maxGetRequestSize = maxGetRequestSize;
@@ -425,6 +411,8 @@ public class Application extends ResourceConfig
         this.cacheStylesheet = cacheStylesheet;
         this.resolvingUncached = resolvingUncached;
         this.maxContentLength = maxPostSize;
+        this.invalidateCache = invalidateCache;
+        this.authCacheControl = authCacheControl;
         this.property(Google.clientID.getURI(), googleClientID);
         this.property(Google.clientSecret.getURI(), googleClientSecret);
         
@@ -435,11 +423,23 @@ public class Application extends ResourceConfig
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Upload root URI syntax error: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
-        
-        this.invalidateCache = invalidateCache;
-        this.authCacheControl = authCacheControl;
+
+        if (notificationAddressString != null)
+        {
+            try
+            {
+                InternetAddress[] notificationAddresses = InternetAddress.parse(notificationAddressString);
+                // if (notificationAddresses.size() == 0) throw Exception...
+                notificationAddress = notificationAddresses[0];
+            }
+            catch (AddressException ex)
+            {
+                throw new IllegalStateException(ex);
+            }
+        }
+        else notificationAddress = null;
 
         // add RDF/POST reader
         RDFLanguages.register(RDFLanguages.RDFPOST);
@@ -497,12 +497,12 @@ public class Application extends ResourceConfig
             if (secretaryCert == null)
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} does not exist in client keystore {}", secretaryCertAlias, clientKeyStoreURIString);
-                throw new WebApplicationException(new CertificateException("Secretary certificate with alias '" + secretaryCertAlias + "' does not exist in client keystore '" + clientKeyStoreURIString + "'"));
+                throw new IllegalStateException(new CertificateException("Secretary certificate with alias '" + secretaryCertAlias + "' does not exist in client keystore '" + clientKeyStoreURIString + "'"));
             }
             if (!(secretaryCert instanceof X509Certificate))
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} is not a X509Certificate", secretaryCertAlias);
-                throw new WebApplicationException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " is not a X509Certificate"));
+                throw new IllegalStateException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " is not a X509Certificate"));
             }
             X509Certificate secretaryX509Cert = (X509Certificate)secretaryCert;
             secretaryX509Cert.checkValidity();// check if secretary WebID client certificate is valid
@@ -510,12 +510,10 @@ public class Application extends ResourceConfig
             if (secretaryWebIDURI == null)
             {
                 if (log.isErrorEnabled()) log.error("Secretary certificate with alias {} is not a valid WebID sertificate (SNA URI is missing)", secretaryCertAlias);
-                throw new WebApplicationException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
+                throw new IllegalStateException(new CertificateException("Secretary certificate with alias " + secretaryCertAlias + " not a valid WebID sertificate (SNA URI is missing)"));
             }
             
             SP.init(BuiltinPersonalities.model);
-//            BuiltinPersonalities.model.add(Parameter.class, ParameterImpl.factory);
-//            BuiltinPersonalities.model.add(Template.class, TemplateImpl.factory);
             BuiltinPersonalities.model.add(Agent.class, AgentImpl.factory);
             BuiltinPersonalities.model.add(UserAccount.class, UserAccountImpl.factory);
             BuiltinPersonalities.model.add(AdminApplication.class, new com.atomgraph.linkeddatahub.apps.model.admin.impl.ApplicationImplementation());
@@ -546,8 +544,8 @@ public class Application extends ResourceConfig
             }
             else authenticator = null;
 
-            if (smtpHost == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP host not configured"));
-            if (smtpPort == null) throw new WebApplicationException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
+            if (smtpHost == null) throw new IllegalStateException(new IllegalStateException("Cannot initialize email service: SMTP host not configured"));
+            if (smtpPort == null) throw new IllegalStateException(new IllegalStateException("Cannot initialize email service: SMTP port not configured"));
             emailProperties.put("mail.smtp.host", smtpHost);
             emailProperties.put("mail.smtp.port", Integer.valueOf(smtpPort));
             
@@ -571,7 +569,7 @@ public class Application extends ResourceConfig
             catch (XPathException | TransformerException ex)
             {
                 if (log.isErrorEnabled()) log.error("Error reading mapped RDF document: {}", ex);
-                throw new WebApplicationException(ex);
+                throw new IllegalStateException(ex);
             }
             finally
             {
@@ -586,42 +584,42 @@ public class Application extends ResourceConfig
         catch (FileNotFoundException ex)
         {
             if (log.isErrorEnabled()) log.error("File not found", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not load file", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyStoreException ex)
         {
             if (log.isErrorEnabled()) log.error("Key store error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (NoSuchAlgorithmException ex)
         {
             if (log.isErrorEnabled()) log.error("No such algorithm", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (CertificateException ex)
         {
             if (log.isErrorEnabled()) log.error("Certificate error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyManagementException | UnrecoverableKeyException ex)
         {
             if (log.isErrorEnabled()) log.error("Key management error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("URI syntax error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (SaxonApiException ex)
         {
             if (log.isErrorEnabled()) log.error("System XSLT stylesheet error", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         
         this.ontModelSpec = OntModelSpec.OWL_MEM_RDFS_INF;
@@ -1049,17 +1047,17 @@ public class Application extends ResourceConfig
         catch (NoSuchAlgorithmException ex)
         {
             if ( log.isErrorEnabled()) log.error("No such algorithm: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyStoreException ex)
         {
             if ( log.isErrorEnabled()) log.error("Key store error: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         catch (KeyManagementException ex)
         {
             if ( log.isErrorEnabled()) log.error("Key management error: {}", ex);
-            throw new WebApplicationException(ex);
+            throw new IllegalStateException(ex);
         }
         
         //if (log.isDebugEnabled()) client.addFilter(new LoggingFilter(System.out));
@@ -1119,16 +1117,6 @@ public class Application extends ResourceConfig
     {
         return userAccountQuery;
     }
-    
-//    public UpdateRequest getPutUpdate(String baseURI)
-//    {
-//        return UpdateFactory.create(putUpdateString, baseURI);
-//    }
-//    
-//    public UpdateRequest getDeleteUpdate(String baseURI)
-//    {
-//        return UpdateFactory.create(deleteUpdateString, baseURI);
-//    }
     
     public Integer getMaxGetRequestSize()
     {
@@ -1218,6 +1206,11 @@ public class Application extends ResourceConfig
     public Client getNoCertClient()
     {
         return noCertClient;
+    }
+    
+    public Address getNotificationAddress()
+    {
+        return notificationAddress;
     }
     
     public final MessageBuilder getMessageBuilder()

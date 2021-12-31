@@ -37,6 +37,7 @@ xmlns:google="&google;"
     <xsl:param name="aplc:maxConnPerRoute"/>
     <xsl:param name="aplc:maxTotalConn"/>
     <xsl:param name="aplc:importKeepAlive"/>
+    <xsl:param name="aplc:notificationAddress"/>
     <xsl:param name="mail.smtp.host"/>
     <xsl:param name="mail.smtp.port"/>
     <xsl:param name="mail.user"/>
@@ -119,6 +120,9 @@ xmlns:google="&google;"
             </xsl:if>
             <xsl:if test="$aplc:importKeepAlive">
                 <Parameter name="&aplc;importKeepAlive" value="{$aplc:importKeepAlive}" override="false"/>
+            </xsl:if>
+            <xsl:if test="$aplc:notificationAddress">
+                <Parameter name="&aplc;notificationAddress" value="{$aplc:notificationAddress}" override="false"/>
             </xsl:if>
             <xsl:if test="$mail.smtp.host">
                 <Parameter name="mail.smtp.host" value="{$mail.smtp.host}" override="false"/>

@@ -24,6 +24,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
@@ -33,10 +34,7 @@ import java.net.URI;
 import java.util.GregorianCalendar;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.mail.Address;
 import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
@@ -77,7 +75,6 @@ public class RequestAccess extends GraphStoreImpl
     private final URI uri;
     private final Application application;
     private final Agent agent;
-    private final Address notificationAddress;
     private final String emailSubject;
     private final String emailText;
     private final UriBuilder authRequestContainerUriBuilder;
@@ -100,19 +97,6 @@ public class RequestAccess extends GraphStoreImpl
 
         // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
-        
-        try
-        {
-            String notificationAddressParam = servletConfig.getServletContext().getInitParameter(APLC.notificationAddress.getURI());
-            if (notificationAddressParam == null) throw new WebApplicationException(new ConfigurationException(APLC.notificationAddress));
-            InternetAddress[] notificationAddresses = InternetAddress.parse(notificationAddressParam);
-            // if (notificationAddresses.size() == 0) throw Exception...
-            notificationAddress = notificationAddresses[0];
-        }
-        catch (AddressException ex)
-        {
-            throw new WebApplicationException(ex);
-        }
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailSubject.getURI());
         if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.requestAccessEMailSubject));
@@ -209,13 +193,15 @@ public class RequestAccess extends GraphStoreImpl
         Resource requestAgent = accessRequest.getPropertyResourceValue(LACL.requestAgent);
         Resource accessTo = accessRequest.getPropertyResourceValue(LACL.requestAccessTo);
 
-        EMailListener.submit(getSystem().getMessageBuilder().
+        MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
                 getApplication().getProperty(DCTerms.title).getString())).
-            from(getNotificationAddress()).
             to(mbox, name).
-            textBodyPart(String.format(getEmailText(), requestAgent.getURI(), accessTo.getURI(), accessRequest.getURI())).
-            build());
+            textBodyPart(String.format(getEmailText(), requestAgent.getURI(), accessTo.getURI(), accessRequest.getURI()));
+        
+        if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
+
+        EMailListener.submit(builder.build());
     }
     
     protected Service getAgentService()
@@ -238,11 +224,6 @@ public class RequestAccess extends GraphStoreImpl
     public Agent getAgent()
     {
         return agent;
-    }
-    
-    private Address getNotificationAddress()
-    {
-        return notificationAddress;
     }
     
     public String getEmailSubject()

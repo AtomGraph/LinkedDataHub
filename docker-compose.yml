@@ -47,6 +47,7 @@ services:
       - SIGN_UP_CERT_VALIDITY=180
       - IMPORT_KEEPALIVE=300000
       - MAX_CONTENT_LENGTH=2097152
+      - NOTIFICATION_ADDRESS=LinkedDataHub <notifications@localhost>
       - MAIL_SMTP_HOST=email-server
       - MAIL_SMTP_PORT=25
       - MAIL_USER=linkeddatahub@localhost

@@ -28,6 +28,7 @@ import static com.atomgraph.linkeddatahub.resource.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -47,10 +48,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.json.JsonObject;
-import javax.mail.Address;
 import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
@@ -100,7 +98,6 @@ public class Login extends GraphStoreImpl
 
     private final HttpHeaders httpHeaders;
     private final Application application;
-    private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
     private final Query userAccountQuery;
@@ -114,19 +111,6 @@ public class Login extends GraphStoreImpl
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.httpHeaders = httpHeaders;
         this.application = application.get();
-
-        try
-        {
-            String signUpAddressParam = servletConfig.getServletContext().getInitParameter(APLC.signUpAddress.getURI());
-            if (signUpAddressParam == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpAddress));
-            InternetAddress[] signUpAddresses = InternetAddress.parse(signUpAddressParam);
-            // if (signUpAddresses.size() == 0) throw Exception...
-            signUpAddress = signUpAddresses[0];
-        }
-        catch (AddressException ex)
-        {
-            throw new WebApplicationException(ex);
-        }
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
@@ -370,17 +354,19 @@ public class Login extends GraphStoreImpl
         String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
         // labels and links need to come from the end-user app
-        EMailListener.submit(getSystem().getMessageBuilder().
+        MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
                 getEndUserApplication().getProperty(DCTerms.title).getString(),
                 fullName)).
-            from(getSignUpAddress()).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
                 getEndUserApplication().getProperty(DCTerms.title).getString(),
                 getEndUserApplication().getBase(),
-                agent.getURI())).
-            build());
+                agent.getURI()));
+        
+        if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
+
+        EMailListener.submit(builder.build());
     }
 
     public EndUserApplication getEndUserApplication()
@@ -404,11 +390,6 @@ public class Login extends GraphStoreImpl
     public Service getAgentService()
     {
         return getApplication().getService();
-    }
-
-    public Address getSignUpAddress()
-    {
-        return signUpAddress;
     }
     
     public String getEmailSubject()

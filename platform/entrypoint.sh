@@ -621,6 +621,10 @@ if [ -n "$IMPORT_KEEPALIVE" ] ; then
     IMPORT_KEEPALIVE_PARAM="--stringparam aplc:importKeepAlive '$IMPORT_KEEPALIVE' "
 fi
 
+if [ -n "$NOTIFICATION_ADDRESS" ] ; then
+    NOTIFICATION_ADDRESS_PARAM="--stringparam aplc:notificationAddress '$NOTIFICATION_ADDRESS' "
+fi
+
 if [ -n "$MAIL_PASSWORD" ] ; then
     MAIL_PASSWORD_PARAM="--stringparam mail.password '$MAIL_PASSWORD' "
 fi
@@ -657,6 +661,7 @@ transform="xsltproc \
   $MAX_CONN_PER_ROUTE_PARAM \
   $MAX_TOTAL_CONN_PARAM \
   $IMPORT_KEEPALIVE_PARAM \
+  $NOTIFICATION_ADDRESS_PARAM \
   $MAIL_SMTP_HOST_PARAM \
   $MAIL_SMTP_PORT_PARAM \
   $MAIL_USER_PARAM \

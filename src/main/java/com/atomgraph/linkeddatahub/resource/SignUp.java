@@ -27,6 +27,7 @@ import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.ADM;
@@ -61,10 +62,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.inject.Inject;
-import javax.mail.Address;
 import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
@@ -117,9 +115,7 @@ public class SignUp extends GraphStoreImpl
 
     private final URI uri;
     private final Application application;
-    private final Ontology ontology;
     private final Model countryModel;
-    private final Address signUpAddress;
     private final String emailSubject;
     private final String emailText;
     private final int validityDays;
@@ -139,7 +135,6 @@ public class SignUp extends GraphStoreImpl
         
         this.uri = uriInfo.getAbsolutePath();
         this.application = application.get();
-        this.ontology = ontology.get();
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {
@@ -147,19 +142,6 @@ public class SignUp extends GraphStoreImpl
             RDFDataMgr.read(countryModel, countries, null, Lang.RDFXML);
         }
         catch (IOException ex)
-        {
-            throw new WebApplicationException(ex);
-        }
-       
-        try
-        {
-            String signUpAddressParam = servletConfig.getServletContext().getInitParameter(APLC.signUpAddress.getURI());
-            if (signUpAddressParam == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpAddress));
-            InternetAddress[] signUpAddresses = InternetAddress.parse(signUpAddressParam);
-            // if (signUpAddresses.size() == 0) throw Exception...
-            signUpAddress = signUpAddresses[0];
-        }
-        catch (AddressException ex)
         {
             throw new WebApplicationException(ex);
         }
@@ -419,19 +401,21 @@ public class SignUp extends GraphStoreImpl
         String mbox = agent.getRequiredProperty(FOAF.mbox).getResource().getURI().substring("mailto:".length());
 
         // labels and links need to come from the end-user app
-        EMailListener.submit(getSystem().getMessageBuilder().
+        MessageBuilder builder = getSystem().getMessageBuilder().
             subject(String.format(getEmailSubject(),
                 getEndUserApplication().getProperty(DCTerms.title).getString(),
                 fullName)).
-            from(getSignUpAddress()).
             to(mbox, fullName).
             textBodyPart(String.format(getEmailText(),
                 getEndUserApplication().getProperty(DCTerms.title).getString(),
                 getEndUserApplication().getBase(),
                 agent.getURI(),
                 certExpires.format(DateTimeFormatter.ISO_LOCAL_DATE))).
-            byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName).
-            build());
+            byteArrayBodyPart(keyStoreBytes, PKCS12_MEDIA_TYPE.toString(), keyStoreFileName);
+        
+        if (getSystem().getNotificationAddress() != null) builder = builder.from(getSystem().getNotificationAddress());
+
+        EMailListener.submit(builder.build());
     }
     
     public EndUserApplication getEndUserApplication()
@@ -451,27 +435,17 @@ public class SignUp extends GraphStoreImpl
     {
         return application;
     }
-    
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
 
     public int getValidityDays()
     {
         return validityDays;
     }
-      
+
     public Model getCountryModel()
     {
         return countryModel;
     }
-    
-    public Address getSignUpAddress()
-    {
-        return signUpAddress;
-    }
-    
+
     public String getEmailSubject()
     {
         return emailSubject;

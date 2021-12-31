@@ -88,7 +88,7 @@ public class APLC
     
     public static final DatatypeProperty clientTrustStorePassword = m_model.createDatatypeProperty( NS + "clientTrustStorePassword" );
 
-    public static final DatatypeProperty signUpAddress = m_model.createDatatypeProperty( NS + "signUpAddress" );
+//    public static final DatatypeProperty signUpAddress = m_model.createDatatypeProperty( NS + "signUpAddress" );
 
     public static final DatatypeProperty signUpEMailSubject = m_model.createDatatypeProperty( NS + "signUpEMailSubject" );
     
