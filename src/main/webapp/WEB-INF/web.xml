@@ -233,7 +233,7 @@ DELETE WHERE
 
 A PKCS12 client certificate for your WebID is attached to this message. Download the file, install it into your web browser and restart the browser afterwards.
 
-Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
+Get started with your LinkedDataHub application by following this guide: https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
@@ -247,7 +247,7 @@ support@linkeddatahub.com]]></param-value>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#oAuthSignUpEMailText</param-name>
         <param-value><![CDATA[Congratulations! You have successfully completed the signup on LinkedDataHub's "%s" application.
 
-Get started with your LinkedDataHub application by following this guide: https://linkeddatahub.com/linkeddatahub/docs/get-started/
+Get started with your LinkedDataHub application by following this guide: https://atomgraph.github.io/LinkedDataHub/linkeddatahub/docs/get-started/
 
 Application's base URI: %s
 Your WebID profile: %s
