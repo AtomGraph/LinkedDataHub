@@ -303,7 +303,7 @@ exclude-result-prefixes="#all">
                         
                         SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).
                             then(resource => {
-                                stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub/domain#}services"] = resource;
+                                stylesheetParams["Q{https://w3id.org/atomgraph/linkeddatahub/domain#}apps"] = resource;
                                 return Promise.all(docPromises);
                             }, error => {
                                 return Promise.all(docPromises);
@@ -496,7 +496,9 @@ exclude-result-prefixes="#all">
                     <li>
                         <div class="btn-group">
                             <button class="btn dropdown-toggle" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
-                                <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo"/>
+                                <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo">
+                                    <xsl:with-param name="class" select="'btn dropdown-toggle'"/>
+                                </xsl:apply-templates>
                             </button>
                             <ul class="dropdown-menu pull-right">
                                 <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
