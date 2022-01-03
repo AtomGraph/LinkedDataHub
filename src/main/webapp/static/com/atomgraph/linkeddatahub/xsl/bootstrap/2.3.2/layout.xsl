@@ -111,10 +111,12 @@ exclude-result-prefixes="#all">
         DESCRIBE  ?app ?service
         WHERE
           { GRAPH ?appGraph
-              { ?app  &lt;&ldt;base&gt;     ?base ;
-                      &lt;&ldt;service&gt;  ?service
-                GRAPH ?serviceGraph
-                  { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
+              { ?app  &lt;&ldt;base&gt;     ?base
+                OPTIONAL
+                  { ?app &lt;&ldt;service&gt;  ?service
+                    GRAPH ?serviceGraph
+                      { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
+                  }
               }
           }
     </xsl:variable>
