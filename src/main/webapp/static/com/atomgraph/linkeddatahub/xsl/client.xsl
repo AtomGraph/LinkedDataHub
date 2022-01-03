@@ -1599,10 +1599,13 @@ WHERE
                 <!-- error response - could not load query results -->
                 <xsl:result-document href="#content-body" method="ixsl:replace-content">
                     <div class="alert alert-block">
-                        <strong>Error loading RDF document:</strong>
-                        <pre>
-                            <xsl:value-of select="$response?message"/>
-                        </pre>
+                        <strong>Error loading RDF document</strong>
+                        <xsl:if test="$response?message">
+                            <pre>
+                                <xsl:value-of select="$response?message"/>
+                            </pre>
+                        </xsl:if>
+                        <xsl:copy-of select="id('content-body', ?body)/*"/>
                     </div>
                 </xsl:result-document>
             </xsl:otherwise>
