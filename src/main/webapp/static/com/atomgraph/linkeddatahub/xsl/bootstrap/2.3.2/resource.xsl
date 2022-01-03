@@ -197,6 +197,12 @@ extension-element-prefixes="ixsl"
         <xsl:attribute name="class" select="concat($class, ' ', 'btn-search')"/>
     </xsl:template>
 
+    <xsl:template match="*[@rdf:nodeID = 'applications']" mode="apl:logo">
+        <xsl:param name="class" as="xs:string?"/>
+        
+        <xsl:attribute name="class" select="concat($class, ' ', 'btn-apps')"/>
+    </xsl:template>
+    
     <xsl:template match="*[@rdf:nodeID = 'notifications']" mode="apl:logo">
         <xsl:param name="class" as="xs:string?"/>
         
