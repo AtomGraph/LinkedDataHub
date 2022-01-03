@@ -6,7 +6,7 @@ body.embed { padding-top: 0; }
 .brand.admin { background-image: url('../icons/ic_settings_white_24px.svg'); background-repeat: no-repeat; background-position: right center; padding-right: 30px; }
 .btn.dropdown-toggle.btn-context { background-image: url('../icons/ic_apps_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-notifications { background-image: url('../icons/notifications-white-24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
-.btn.dropdown-toggle.btn-apps { background-image: url('../icons/ic_apps_white_24px.svg.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
+.btn.dropdown-toggle.btn-apps { background-image: url('../icons/ic_apps_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-settings { background-image: url('../icons/settings_white_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .btn.dropdown-toggle.btn-agent { background-image: url('../icons/ic_account_circle_white_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 34px; height: 34px; }
 .navbar-form .input-append { margin-top: 10px; }
