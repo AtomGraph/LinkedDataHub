@@ -65,11 +65,11 @@
         [ a apl:MissingPropertyValue ;
             rdfs:label "Missing base URI" ;
             sp:arg1 ldt:base
-        ] ,
-        [ a apl:MissingPropertyValue ;
-            rdfs:label "Missing SPARQL service" ;
-            sp:arg1 ldt:service
         ] ;
+        #[ a apl:MissingPropertyValue ;
+        #    rdfs:label "Missing SPARQL service" ;
+        #    sp:arg1 ldt:service
+        #] ;
     rdfs:label "Application" ;
     rdfs:comment "An application represents a data space identified by its base URI, in which application resource URIs are relative to the base URI. The only application interface (API) is read-write RESTful Linked data, backed by an RDF dataset accessible as a SPARQL 1.1 service. Application structure is defined in an ontology, which can import other ontologies." ;
     rdfs:isDefinedBy : .
@@ -78,16 +78,13 @@
     sp:text """
       PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
       PREFIX ldt:     <https://www.w3.org/ns/ldt#>
+      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 
       CONSTRUCT {
-          ?this ldt:base ?base ;
-            # ldt:ontology ?ontology ;
+          ?this ldt:base [ a rdfs:Resource ] ;
             ldt:service [ a apl:Service ] .
       }
       WHERE {
-          BIND (STRUUID() AS ?uuid)
-          BIND (URI(CONCAT(?uuid, "/")) AS ?base)
-          BIND (<https://w3id.org/atomgraph/linkeddatahub/admin#> AS ?ontology)
     }""" ;
     rdfs:label "Application constructor" ;
     rdfs:isDefinedBy : .
