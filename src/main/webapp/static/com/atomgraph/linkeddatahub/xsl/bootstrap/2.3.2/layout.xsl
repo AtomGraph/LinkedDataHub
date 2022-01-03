@@ -107,6 +107,18 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$acl:Agent[doc-available($apl:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
+    <xsl:variable name="app-query" as="xs:string">
+        DESCRIBE  ?app ?service
+        WHERE
+          { GRAPH ?appGraph
+              { ?app  &lt;&ldt;base&gt;     ?base ;
+                      &lt;&ldt;service&gt;  ?service
+                GRAPH ?serviceGraph
+                  { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
+              }
+          }
+    </xsl:variable>
+    <xsl:variable name="app-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $app-query })" as="xs:anyURI"/>
 
     <xsl:key name="resources-by-primary-topic" match="*[@rdf:about] | *[@rdf:nodeID]" use="foaf:primaryTopic/@rdf:resource"/>
     <xsl:key name="resources-by-dataset" match="*[@rdf:about]" use="void:inDataset/@rdf:resource"/>
@@ -223,18 +235,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
-        <xsl:param name="app-query" as="xs:string">
-            DESCRIBE  ?app ?service
-            WHERE
-              { GRAPH ?appGraph
-                  { ?app  &lt;&ldt;base&gt;     ?base ;
-                          &lt;&ldt;service&gt;  ?service
-                    GRAPH ?serviceGraph
-                      { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
-                  }
-              }
-        </xsl:param>
-    
+
         <!-- Web-Client scripts -->
         <script type="text/javascript" src="{resolve-uri('static/js/jquery.min.js', $ac:contextUri)}" defer="defer"></script>
         <script type="text/javascript" src="{resolve-uri('static/js/bootstrap.js', $ac:contextUri)}" defer="defer"></script>
@@ -258,7 +259,6 @@ exclude-result-prefixes="#all">
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <xsl:variable name="app-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $app-query })" as="xs:anyURI"/>
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
                 <![CDATA[
