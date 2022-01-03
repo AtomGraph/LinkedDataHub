@@ -71,6 +71,7 @@ import org.apache.jena.sparql.util.Symbol;
  * using a {@link org.apache.jena.sparql.util.Context}, and setting the {@link JsonLDReader#JSONLD_CONTEXT} Symbol's value
  * to the data expected by JSON-LD java API (a {@link Map}).
  */
+@Deprecated
 public class JsonLDReader implements ReaderRIOT
 {
     private static final String SYMBOLS_NS = "http://jena.apache.org/riot/jsonld#" ;

@@ -85,7 +85,6 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 exRes.addProperty(LACL.requestAccess, exRes.getModel().createResource(requestAccessURI.toString()));
             }
         }
-        
 
         return getResponseBuilder(exRes.getModel()).
             status(Response.Status.FORBIDDEN).

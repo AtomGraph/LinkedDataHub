@@ -39,6 +39,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Priorities;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
@@ -138,12 +139,20 @@ public class WebIDFilter extends AuthenticationFilter
         catch (CertificateException ex)
         {
             if (log.isErrorEnabled()) log.error("WebID certificate error (could not parse, expired or not yet valid)", ex);
-            throw new WebIDCertificateException(ex);
+            //throw new WebIDCertificateException(ex);
+            return null;
         }
         catch (URISyntaxException ex)
         {
             if (log.isErrorEnabled()) log.error("Could not parse WebID URI: {}", ex.getInput(), ex);
-            throw new InvalidWebIDURIException(ex.getInput());
+            //throw new InvalidWebIDURIException(ex.getInput());
+            return null;
+        }
+        catch (ProcessingException ex)
+        {
+            if (log.isErrorEnabled()) log.error("Could not load WebID URI: {}", ex);
+//            throw new WebIDLoadingException(ex, null);
+            return null;
         }
     }
 

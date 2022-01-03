@@ -17,7 +17,7 @@
 package com.atomgraph.linkeddatahub.server.exception.auth.webid;
 
 import java.net.URI;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.ProcessingException;
 
 /**
  * 
@@ -29,9 +29,9 @@ import javax.ws.rs.core.Response;
 public class WebIDLoadingException extends RuntimeException
 {
     
-    public WebIDLoadingException(URI webID, Response cr)
+    public WebIDLoadingException(ProcessingException ex, URI webID)
     {
-        super("WebID profile could not be loaded: " + webID);
+        super("WebID profile could not be loaded: " + webID, ex);
     }
     
 }
