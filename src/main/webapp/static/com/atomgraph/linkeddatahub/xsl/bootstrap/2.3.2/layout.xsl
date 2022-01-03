@@ -492,15 +492,14 @@ exclude-result-prefixes="#all">
 
                     <a href="{ac:build-uri((), map{ 'mode': '&ac;QueryEditorMode' })}" class="query-editor">SPARQL editor</a>
                 </li>
-                <xsl:variable name="apps-uri" select="resolve-uri('apps/', $ldt:base)" as="xs:anyURI"/>
-                <xsl:if test="doc-available($apps-uri)">
+                <xsl:if test="doc-available($app-request-uri)">
                     <li>
                         <div class="btn-group">
                             <button class="btn dropdown-toggle" title="{ac:label(key('resources', 'application-list-title', document('translations.rdf')))}">
                                 <xsl:apply-templates select="key('resources', 'applications', document('translations.rdf'))" mode="apl:logo"/>
                             </button>
                             <ul class="dropdown-menu pull-right">
-                                <xsl:variable name="apps" select="document($apps-uri)" as="document-node()"/>
+                                <xsl:variable name="apps" select="document($app-request-uri)" as="document-node()"/>
                                 <xsl:for-each select="$apps//*[ldt:base/@rdf:resource]">
                                     <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                     <li>
