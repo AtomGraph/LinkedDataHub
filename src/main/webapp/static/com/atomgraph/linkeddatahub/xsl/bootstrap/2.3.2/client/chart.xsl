@@ -360,7 +360,7 @@ exclude-result-prefixes="#all"
                     <!-- TO-DO: use SPARQLBuilder to set LIMIT -->
                     <!--<xsl:variable name="query-string" select="concat($query-string, ' LIMIT 100')" as="xs:string"/>-->
                     <xsl:variable name="service-uri" select="xs:anyURI(key('resources', $query-uri)/apl:service/@rdf:resource)" as="xs:anyURI?"/>
-                    <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+                    <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
                     <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else $ac:endpoint))[1])" as="xs:anyURI"/>
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
                     <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->

@@ -177,7 +177,7 @@ LIMIT 100</xsl:param>
         <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:call-template name="apl:RenderServices">
             <xsl:with-param name="select" select="id('query-service', ixsl:page())"/>
-            <xsl:with-param name="services" select="ixsl:get(ixsl:window(), 'LinkedDataHub.services')"/>
+            <xsl:with-param name="apps" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')"/>
             <xsl:with-param name="selected-service" select="$service"/>
         </xsl:call-template>
         
@@ -197,7 +197,7 @@ LIMIT 100</xsl:param>
         <xsl:variable name="yasqe" select="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.yasqe'), $textarea-id)"/>
         <xsl:variable name="query" select="ixsl:call($yasqe, 'getValue', [])" as="xs:string"/> <!-- get query string from YASQE -->
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('query-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
         <xsl:variable name="container" select="id('content-body', ixsl:page())" as="element()"/>
 

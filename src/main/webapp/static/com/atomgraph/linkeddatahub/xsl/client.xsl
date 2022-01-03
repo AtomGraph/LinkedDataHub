@@ -96,8 +96,8 @@ extension-element-prefixes="ixsl"
     <xsl:param name="ldt:base" as="xs:anyURI"/>
     <xsl:param name="ldt:ontology" as="xs:anyURI"/>
     <xsl:param name="apl:absolutePath" as="xs:anyURI"/>
-    <xsl:param name="services-request-uri" as="xs:anyURI"/>
-    <xsl:param name="apl:services" as="document-node()?">
+    <xsl:param name="app-request-uri" as="xs:anyURI"/>
+    <xsl:param name="apl:apps" as="document-node()?">
         <xsl:document>
             <rdf:RDF></rdf:RDF>
         </xsl:document>
@@ -144,7 +144,7 @@ WHERE
         <xsl:message>$ldt:base: <xsl:value-of select="$ldt:base"/></xsl:message>
         <xsl:message>$apl:absolutePath: <xsl:value-of select="$apl:absolutePath"/></xsl:message>
         <xsl:message>$ldt:ontology: <xsl:value-of select="$ldt:ontology"/></xsl:message>
-        <xsl:message>count($apl:services//*[@rdf:about]): <xsl:value-of select="count($apl:services//*[@rdf:about])"/></xsl:message>
+        <xsl:message>count($apl:apps//*[rdf:type/@rdf:resource = '&def;GenericService']): <xsl:value-of select="count($apl:apps//*[rdf:type/@rdf:resource = '&def;GenericService'])"/></xsl:message>
         <xsl:message>$ac:lang: <xsl:value-of select="$ac:lang"/></xsl:message>
         <xsl:message>$ac:endpoint: <xsl:value-of select="$ac:endpoint"/></xsl:message>
         <xsl:message>$ac:forClass: <xsl:value-of select="$ac:forClass"/></xsl:message>
@@ -194,13 +194,13 @@ WHERE
                 <ul id="{generate-id()}" class="search-typeahead typeahead dropdown-menu"></ul>
             </xsl:result-document>
         </xsl:for-each>
-        <!-- initialize LinkedDataHub.services (and the search dropdown, if it's shown) -->
-        <ixsl:set-property name="services" select="$apl:services" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!-- initialize LinkedDataHub.apps (and the search dropdown, if it's shown) -->
+        <ixsl:set-property name="apps" select="$apl:apps" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- #search-service may be missing (e.g. suppressed by extending stylesheet) -->
         <xsl:for-each select="id('search-service', ixsl:page())">
             <xsl:call-template name="apl:RenderServices">
                 <xsl:with-param name="select" select="."/>
-                <xsl:with-param name="services" select="$apl:services"/>
+                <xsl:with-param name="apps" select="$apl:apps"/>
             </xsl:call-template>
         </xsl:for-each>
         <!-- load contents -->
@@ -560,7 +560,7 @@ WHERE
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <xsl:variable name="service-uri" select="if ($state?content-uri = $content-uri) then xs:anyURI(map:get($state, 'service-uri')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
 
         <xsl:message>
             apl:Content $service-uri: <xsl:value-of select="$service-uri"/> exists($service): <xsl:value-of select="exists($service)"/>
@@ -724,10 +724,10 @@ WHERE
                 </xsl:for-each>
             </xsl:for-each>
 
-            <!-- is a new instance of Service was created, reload the LinkedDataHub.services data and re-render the service dropdown -->
-            <xsl:if test="//sd:endpoint or //dydra:repository">
+            <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
+            <xsl:if test="//ldt:base or //sd:endpoint or //dydra:repository">
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $services-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
+                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $app-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onServiceLoad"/>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -780,12 +780,12 @@ WHERE
 
         <xsl:if test="?status = 200 and ?media-type = 'application/rdf+xml'">
             <xsl:for-each select="?body">
-                <ixsl:set-property name="services" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <ixsl:set-property name="apps" select="." object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 
                 <xsl:variable name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
                 <xsl:call-template name="apl:RenderServices">
                     <xsl:with-param name="select" select="id('search-service', ixsl:page())"/>
-                    <xsl:with-param name="services" select="."/>
+                    <xsl:with-param name="apps" select="."/>
                     <xsl:with-param name="selected-service" select="$service-uri"/>
                 </xsl:call-template>
             </xsl:for-each>
@@ -1332,14 +1332,14 @@ WHERE
     
     <xsl:template name="apl:RenderServices">
         <xsl:param name="select" as="element()"/>
-        <xsl:param name="services" as="document-node()"/>
+        <xsl:param name="apps" as="document-node()"/>
         <xsl:param name="selected-service" as="xs:anyURI?"/>
         
         <xsl:for-each select="$select">
             <xsl:result-document href="?." method="ixsl:replace-content">
                 <option value="">[SPARQL service]</option>
                 
-                <xsl:for-each select="$services//*[@rdf:about]">
+                <xsl:for-each select="$apps//*[rdf:type/@rdf:resource = '&def;GenericService']">
                     <xsl:sort select="ac:label(.)"/>
 
                     <xsl:apply-templates select="." mode="xhtml:Option">
@@ -1542,7 +1542,7 @@ WHERE
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
-        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+        <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
@@ -1951,7 +1951,7 @@ WHERE
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string"/>
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
-        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.services'))" as="element()?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
@@ -2072,7 +2072,7 @@ WHERE
         <xsl:variable name="service" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:call-template name="apl:RenderServices">
             <xsl:with-param name="select" select="id('query-service', ixsl:page())"/>
-            <xsl:with-param name="services" select="ixsl:get(ixsl:window(), 'LinkedDataHub.services')"/>
+            <xsl:with-param name="apps" select="ixsl:get(ixsl:window(), 'LinkedDataHub.apps')"/>
             <xsl:with-param name="selected-service" select="$service"/>
         </xsl:call-template>
 

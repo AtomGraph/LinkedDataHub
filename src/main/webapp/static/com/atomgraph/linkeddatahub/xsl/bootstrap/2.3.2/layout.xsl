@@ -223,19 +223,14 @@ exclude-result-prefixes="#all">
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
         <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
-        <xsl:param name="service-query" as="xs:string">
-            CONSTRUCT 
-              { 
-                ?service &lt;&dct;title&gt; ?title .
-                ?service &lt;&sd;endpoint&gt; ?endpoint .
-                ?service &lt;&dydra;repository&gt; ?repository .
-              }
+        <xsl:param name="app-query" as="xs:string">
+            DESCRIBE  ?app ?service
             WHERE
-              { GRAPH ?g
-                  { ?service  &lt;&dct;title&gt;  ?title
+              { GRAPH ?appGraph
+                  { ?app  &lt;&ldt;base&gt;     ?base ;
+                          &lt;&ldt;service&gt;  ?service
+                    GRAPH ?serviceGraph
                       { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
-                    UNION
-                      { ?service  &lt;&dydra;repository&gt;  ?repository }
                   }
               }
         </xsl:param>
@@ -263,7 +258,7 @@ exclude-result-prefixes="#all">
             <script src="{resolve-uri('static/js/yasqe.js', $ac:contextUri)}" type="text/javascript"></script>
         </xsl:if>
         <xsl:if test="$load-saxon-js">
-            <xsl:variable name="services-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $service-query })" as="xs:anyURI"/>
+            <xsl:variable name="app-request-uri" select="ac:build-uri($ac:endpoint, map{ 'query': $app-query })" as="xs:anyURI"/>
             <script type="text/javascript" src="{resolve-uri('static/com/atomgraph/linkeddatahub/js/saxon-js/SaxonJS2.rt.js', $ac:contextUri)}" defer="defer"></script>
             <script type="text/javascript">
                 <![CDATA[
@@ -295,7 +290,7 @@ exclude-result-prefixes="#all">
                             <![CDATA[
                         ];
                         const docPromises = locationMapping.map(mapping => SaxonJS.getResource({location: mapping.altName, type: "xml"}));
-                        const servicesRequestUri = "]]><xsl:value-of select="$services-request-uri"/><![CDATA[";
+                        const servicesRequestUri = "]]><xsl:value-of select="$app-request-uri"/><![CDATA[";
                         const stylesheetParams = {
                             "Q{https://w3id.org/atomgraph/client#}contextUri": contextUri, // servlet context URI
                             "Q{https://www.w3.org/ns/ldt#}base": baseUri,
@@ -303,7 +298,7 @@ exclude-result-prefixes="#all">
                             "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}absolutePath": absolutePath,
                             "Q{http://www.w3.org/ns/auth/acl#}agent": agentUri,
                             "Q{http://www.w3.org/ns/auth/acl#}mode": accessModeUri,
-                            "Q{}services-request-uri": servicesRequestUri
+                            "Q{}app-request-uri": servicesRequestUri
                             };
                         
                         SaxonJS.getResource({location: servicesRequestUri, type: "xml", headers: { "Accept": "application/rdf+xml" } }).
