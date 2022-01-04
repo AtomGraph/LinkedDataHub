@@ -46,7 +46,7 @@ public class ProxyResourceBase extends ExternalProxyResourceBase
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
-            DataManager dataManager, AgentContext agentContext)
+            DataManager dataManager, Optional<AgentContext> agentContext)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, securityContext,
                 application.get().getProxiedURI(uriInfo.getAbsolutePath()), null, accept, mode,
