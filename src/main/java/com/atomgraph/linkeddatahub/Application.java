@@ -106,6 +106,7 @@ import com.atomgraph.linkeddatahub.server.filter.response.XsltExecutableFilter;
 import com.atomgraph.linkeddatahub.server.interceptor.RDFPostCleanupInterceptor;
 import com.atomgraph.linkeddatahub.server.mapper.auth.oauth2.TokenExpiredExceptionMapper;
 import com.atomgraph.linkeddatahub.server.model.impl.Dispatcher;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
@@ -669,7 +670,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(AgentContextFactory.class).to(new TypeLiteral<Optional<AgentContextFactory>>() {}).
+                bindFactory(AgentContextFactory.class).to(new TypeLiteral<Optional<AgentContext>>() {}).
                 in(RequestScoped.class);
             }
         });
