@@ -24,7 +24,7 @@ import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.AgentSecurityContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.LDT;
@@ -122,7 +122,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         }
         else // authorization successful
             if (request.getSecurityContext().getUserPrincipal() instanceof Agent)
-                ((AgentContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
+                ((AgentSecurityContext)request.getSecurityContext()).getAgent().getModel().add(authorization.getModel()); // append authorization metadata to Agent's model
     }
     
     public QuerySolutionMap getAuthorizationParams(Resource absolutePath, Resource agent, Resource accessMode)

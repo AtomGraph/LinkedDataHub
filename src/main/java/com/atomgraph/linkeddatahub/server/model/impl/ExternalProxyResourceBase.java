@@ -22,8 +22,8 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
-import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
-import com.atomgraph.linkeddatahub.server.security.IDTokenContext;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
+import com.atomgraph.linkeddatahub.server.security.IDTokenSecurityContext;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,19 +60,19 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
 
     @Inject
     public ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
-            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager)
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, AgentContext agentContext)
     {
         this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
                 uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
-                system, httpServletRequest, dataManager);
+                system, httpServletRequest, dataManager, agentContext);
     }
     
     protected ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager)
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, AgentContext agentContext)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
@@ -88,8 +88,9 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
             if (securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
                 super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
             
-//            if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
-//                super.getWebTarget().register(new IDTokenDelegationFilter(((IDTokenContext)securityContext).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
+            //if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
+            if (agentContext instanceof IDTokenSecurityContext)
+                super.getWebTarget().register(new IDTokenDelegationFilter(((IDTokenSecurityContext)agentContext).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
         }
     }
     

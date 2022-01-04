@@ -85,6 +85,7 @@ import com.atomgraph.linkeddatahub.model.impl.ImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.RDFImportImpl;
 import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
+import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
 import com.atomgraph.linkeddatahub.server.factory.ClientApplicationFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
@@ -323,7 +324,6 @@ public class Application extends ResourceConfig
             final String secretaryCertAlias,
             final String clientTrustStoreURIString, final String clientTrustStorePassword,
             final String authQueryString, final String ownerAuthQueryString, final String webIDQueryString, final String agentQueryString, final String userAccountQueryString,
-//            final String putUpdateString, final String deleteUpdateString,
             final String baseURIString, final String proxyScheme, final String proxyHostname, final Integer proxyPort,
             final String uploadRootString, final boolean invalidateCache,
             final Integer cookieMaxAge, final CacheControl authCacheControl, final Integer maxPostSize,
@@ -662,6 +662,15 @@ public class Application extends ResourceConfig
             protected void configure()
             {
                 bind(new com.atomgraph.client.MediaTypes()).to(com.atomgraph.client.MediaTypes.class).to(com.atomgraph.core.MediaTypes.class);
+            }
+        });
+        register(new AbstractBinder()
+        {
+            @Override
+            protected void configure()
+            {
+                bindFactory(AgentContextFactory.class).to(new TypeLiteral<Optional<AgentContextFactory>>() {}).
+                in(RequestScoped.class);
             }
         });
         register(new AbstractBinder()

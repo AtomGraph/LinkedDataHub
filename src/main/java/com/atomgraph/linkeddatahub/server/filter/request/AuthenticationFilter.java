@@ -22,6 +22,7 @@ import com.atomgraph.linkeddatahub.apps.model.Client;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import java.io.IOException;
 import java.util.Optional;
@@ -77,6 +78,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (securityContext == null) return; // skip to the next filter if agent could not be retrieved with this one
 
         request.setSecurityContext(securityContext);
+        request.setProperty(AgentContext.class.getCanonicalName(), securityContext); // used by AgentContextFactory
     }
     
     protected Service getAgentService()

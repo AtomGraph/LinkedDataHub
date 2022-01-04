@@ -22,12 +22,12 @@ import com.atomgraph.linkeddatahub.model.Agent;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class IDTokenContext extends AgentContext
+public class IDTokenSecurityContext extends AgentSecurityContext
 {
 
     private final String jwtToken;
     
-    public IDTokenContext(String authScheme, Agent account, String jwtToken)
+    public IDTokenSecurityContext(String authScheme, Agent account, String jwtToken)
     {
         super(authScheme, account);
         this.jwtToken = jwtToken;
