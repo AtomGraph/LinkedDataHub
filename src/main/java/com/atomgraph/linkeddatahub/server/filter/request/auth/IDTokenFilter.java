@@ -103,9 +103,9 @@ public class IDTokenFilter extends AuthenticationFilter
         ParameterizedSparqlString pss = getUserAccountQuery();
         
         String jwtString = getJWTToken(request);
+        if (jwtString == null) return null;
+        
         DecodedJWT idToken = JWT.decode(jwtString);
-        if (idToken == null) return null;
-
         if (!verify(idToken)) return null;
         
         String cacheKey = idToken.getIssuer() + idToken.getSubject();
