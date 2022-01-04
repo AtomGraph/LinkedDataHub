@@ -163,6 +163,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
+        <xsl:variable name="request-uri" select="if (not(starts-with($action, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($action) }) else $action" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -183,7 +184,7 @@ exclude-result-prefixes="#all"
                 </xsl:variable>
                 <xsl:variable name="headers" select="ixsl:eval(string($js-statement/@statement))"/>
                 
-                <xsl:sequence select="js:fetchDispatchXML($action, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
+                <xsl:sequence select="js:fetchDispatchXML($request-uri, $method, $headers, $form-data, ., 'multipartFormLoad')"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="js-statement" as="element()">
@@ -192,7 +193,7 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="form-data" select="ixsl:eval(string($js-statement/@statement))"/>
 
                 <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $action, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
+                    <ixsl:schedule-action http-request="map{ 'method': $method, 'href': $request-uri, 'media-type': $enctype, 'body': $form-data, 'headers': map{ 'Accept': $accept } }">
                         <xsl:call-template name="onFormLoad">
                             <xsl:with-param name="action" select="$action"/>
                             <xsl:with-param name="form" select="$form"/>
