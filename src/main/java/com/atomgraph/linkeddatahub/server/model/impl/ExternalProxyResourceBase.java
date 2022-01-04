@@ -19,8 +19,11 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.security.IDTokenContext;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,9 +85,14 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
         readableMediaTypesList.addAll(mediaTypes.getReadable(ResultSet.class)); // not in the superclass
         this.readableMediaTypes = readableMediaTypesList.toArray(new MediaType[readableMediaTypesList.size()]);
         
-        if (securityContext.getUserPrincipal() instanceof Agent &&
-            securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
-            super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+        if (securityContext.getUserPrincipal() instanceof Agent)
+        {
+            if (securityContext.getAuthenticationScheme().equals(SecurityContext.CLIENT_CERT_AUTH))
+                super.getWebTarget().register(new WebIDDelegationFilter((Agent)securityContext.getUserPrincipal()));
+            
+            if (securityContext.getAuthenticationScheme().equals(IDTokenFilter.AUTH_SCHEME))
+                super.getWebTarget().register(new IDTokenDelegationFilter(((IDTokenContext)securityContext).getJWTToken(), uriInfo.getBaseUri().getPath(), null));
+        }
     }
     
     /**

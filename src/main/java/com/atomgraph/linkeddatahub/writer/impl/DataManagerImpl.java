@@ -20,7 +20,7 @@ import org.apache.jena.util.LocationMapper;
 import java.net.URI;
 import javax.ws.rs.core.SecurityContext;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.client.filter.WebIDDelegationFilter;
+import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
 import java.util.Map;
 import javax.ws.rs.client.Client;

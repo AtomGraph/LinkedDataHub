@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.atomgraph.linkeddatahub.client.filter;
+package com.atomgraph.linkeddatahub.client.filter.auth;
 
 import java.io.IOException;
 import javax.ws.rs.client.ClientRequestContext;

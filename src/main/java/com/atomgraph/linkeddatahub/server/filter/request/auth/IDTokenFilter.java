@@ -20,6 +20,8 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
+import com.atomgraph.linkeddatahub.model.Agent;
+import com.atomgraph.linkeddatahub.server.security.IDTokenContext;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.auth0.jwt.JWT;
@@ -42,6 +44,7 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.ext.com.google.common.net.HttpHeaders;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
@@ -49,6 +52,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,11 +98,12 @@ public class IDTokenFilter extends AuthenticationFilter
     }
     
     @Override
-    public Resource authenticate(ContainerRequestContext request)
+    public SecurityContext authenticate(ContainerRequestContext request)
     {
         ParameterizedSparqlString pss = getUserAccountQuery();
         
-        DecodedJWT idToken = getJWTToken(request);
+        String jwtString = getJWTToken(request);
+        DecodedJWT idToken = JWT.decode(jwtString);
         if (idToken == null) return null;
 
         if (!verify(idToken)) return null;
@@ -127,15 +132,16 @@ public class IDTokenFilter extends AuthenticationFilter
         long expiration = ChronoUnit.SECONDS.between(Instant.now(), idToken.getExpiresAt().toInstant());
         getSystem().getOIDCModelCache().put(cacheKey, agentModel, expiration, TimeUnit.SECONDS);
         
-        return agent;
+        // imitate type inference, otherwise we'll get Jena's polymorphism exception
+        return new IDTokenContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class), jwtString);
     }
     
-    protected DecodedJWT getJWTToken(ContainerRequestContext request)
+    protected String getJWTToken(ContainerRequestContext request)
     {
         if (request == null) throw new IllegalArgumentException("ContainerRequest cannot be null");
 
         Cookie jwtCookie = request.getCookies().get(COOKIE_NAME);
-        if (jwtCookie != null) return JWT.decode(jwtCookie.getValue());
+        if (jwtCookie != null) return jwtCookie.getValue();
 
         return null;
     }

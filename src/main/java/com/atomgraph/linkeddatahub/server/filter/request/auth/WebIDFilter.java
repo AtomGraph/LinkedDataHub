@@ -20,13 +20,14 @@ import com.atomgraph.linkeddatahub.server.filter.request.AuthenticationFilter;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.io.ModelProvider;
 import com.atomgraph.linkeddatahub.apps.model.Application;
+import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDPublicKeyException;
-import com.atomgraph.linkeddatahub.server.exception.auth.webid.InvalidWebIDURIException;
-import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDCertificateException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDLoadingException;
 import com.atomgraph.linkeddatahub.server.exception.auth.webid.WebIDDelegationException;
+import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
+import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.CertificateException;
@@ -55,6 +56,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +104,7 @@ public class WebIDFilter extends AuthenticationFilter
     }
     
     @Override
-    public Resource authenticate(ContainerRequestContext request)
+    public SecurityContext authenticate(ContainerRequestContext request)
     {
         try
         {
@@ -134,7 +136,8 @@ public class WebIDFilter extends AuthenticationFilter
                 else throw new WebIDDelegationException(agent, principal);
             }
 
-            return agent;
+            // imitate type inference, otherwise we'll get Jena's polymorphism exception
+            return new AgentContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class));
         }
         catch (CertificateException ex)
         {

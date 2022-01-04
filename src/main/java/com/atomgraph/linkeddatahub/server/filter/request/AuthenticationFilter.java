@@ -17,21 +17,19 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.server.security.AgentContext;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.Client;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
-import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.APLT;
-import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.io.IOException;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Model;
@@ -39,7 +37,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +60,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
 
     public abstract void logout(com.atomgraph.linkeddatahub.apps.model.Application app, ContainerRequestContext request);
     
-    public abstract Resource authenticate(ContainerRequestContext request);
+    public abstract SecurityContext authenticate(ContainerRequestContext request);
 
     @Override
     public void filter(ContainerRequestContext request) throws IOException
@@ -73,15 +70,13 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
 
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
         if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
-        //if (getApplication().isEmpty() || (getApplication().isPresent() && !getClientApplication().get().equals(getApplication().get()))) return; // skip authentication if target app is not the client app
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
         
-        final Resource agent = authenticate(request);
-        if (agent == null) return; // skip to the next filter if agent could not be retrieved with this one
+        final SecurityContext securityContext = authenticate(request);
+        if (securityContext == null) return; // skip to the next filter if agent could not be retrieved with this one
 
-        // imitate type inference, otherwise we'll get Jena's polymorphism exception
-        request.setSecurityContext(new AgentContext(getScheme(), agent.addProperty(RDF.type, LACL.Agent).as(Agent.class)));
+        request.setSecurityContext(securityContext);
     }
     
     protected Service getAgentService()
