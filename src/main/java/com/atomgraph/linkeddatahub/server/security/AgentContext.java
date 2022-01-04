@@ -37,9 +37,9 @@ public class AgentContext implements SecurityContext
     private final Agent agent;
     private final String authScheme;
     
-    public AgentContext(String authScheme, Agent account)
+    public AgentContext(String authScheme, Agent agent)
     {
-        this.agent = account;
+        this.agent = agent;
         this.authScheme = authScheme;
     }
     
@@ -54,9 +54,6 @@ public class AgentContext implements SecurityContext
         return getAgent();
     }
 
-    // http://docs.oracle.com/javaee/5/tutorial/doc/bncbe.html
-    // http://docs.oracle.com/javaee/6/tutorial/doc/gijrp.html
-    // http://docs.oracle.com/javaee/6/tutorial/doc/gmmku.html
     @Override
     public boolean isUserInRole(String groupURI)
     {
