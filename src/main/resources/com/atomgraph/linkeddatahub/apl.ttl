@@ -169,29 +169,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
     rdfs:label "Generic service constructor" ;
     rdfs:isDefinedBy : .
 
-:DydraService a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Service ;
-    spin:constructor :DydraServiceConstructor ;
-    spin:constraint [ a :MissingPropertyValue ;
-            rdfs:label "Dydra repository" ;
-            sp:arg1 <https://w3id.org/atomgraph/linkeddatahub/services/dydra#repository>
-        ] ;
-    rdfs:label "Dydra service" ;
-    rdfs:comment "Dydra cloud repository" ;
-    rdfs:isDefinedBy : .
-
-:DydraServiceConstructor a sp:Construct ;
-    sp:text """
-      PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX dydra:   <https://w3id.org/atomgraph/linkeddatahub/services/dydra#>
-
-      CONSTRUCT {
-          ?this dydra:repository [ a rdfs:Resource ] .
-      }
-      WHERE {}""" ;
-    rdfs:label "Dydra service constructor" ;
-    rdfs:isDefinedBy : .
-
 # queries
 
 :Query a rdfs:Class, owl:Class ;

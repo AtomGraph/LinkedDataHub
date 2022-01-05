@@ -66,14 +66,6 @@
     rdfs:comment "A service is a SPARQL 1.1 service providing queries and updates over an RDF dataset. It is accessible as HTTP Protocol and Graph Store Protocol endpoints." ;
     rdfs:isDefinedBy : .
 
-:DydraService a rdfs:Class ;
-    rdfs:subClassOf apl:DydraService ;
-    spin:constructor :TitleConstructor, :DescriptionConstructor ;
-    spin:constraint :MissingTitle ;
-    rdfs:label "Dydra service" ;
-    rdfs:comment "Dydra cloud repository" ;
-    rdfs:isDefinedBy : .
-
 :File a rdfs:Class ;
     rdfs:subClassOf apl:File ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
