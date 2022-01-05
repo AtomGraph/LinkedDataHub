@@ -30,7 +30,12 @@ import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -39,10 +44,12 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Providers;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,26 +65,30 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     private final UriInfo uriInfo;
     private final DataManager dataManager;
     private final MediaType[] readableMediaTypes;
+    private final Providers providers;
 
     @Inject
     public ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
-            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext)
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
+            @Context Providers providers)
     {
         this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
                 uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),
-                system, httpServletRequest, dataManager, agentContext);
+                system, httpServletRequest, dataManager, agentContext, providers);
     }
     
     protected ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
-            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext)
+            com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
+            @Context Providers providers)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, uri, endpoint, accept, mode, system.getClient(), httpServletRequest);
         this.uriInfo = uriInfo;
         this.dataManager = dataManager;
+        this.providers = providers;
         
         List<javax.ws.rs.core.MediaType> readableMediaTypesList = new ArrayList<>();
         readableMediaTypesList.addAll(mediaTypes.getReadable(Model.class));
@@ -128,6 +139,42 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
         return super.get(target);
     }
     
+    /**
+     * Forwards a multipart POST request returns RDF response from remote resource.
+     * 
+     * @param multiPart form data
+     * @return response
+     */
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response postMultipart(FormDataMultiPart multiPart)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
+        
+        if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
+        return getWebTarget().request().
+            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            post(Entity.entity(multiPart, multiPart.getMediaType()));
+    }
+    
+    /**
+     * Forwards a multipart PUT request returns RDF response from remote resource.
+     * 
+     * @param multiPart form data
+     * @return response
+     */
+    @PUT
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response putMultipart(FormDataMultiPart multiPart)
+    {
+        if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
+        
+        if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
+        return getWebTarget().request().
+            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            put(Entity.entity(multiPart, multiPart.getMediaType()));
+    }
+    
     public UriInfo getUriInfo()
     {
         return uriInfo;
@@ -142,6 +189,11 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     public MediaType[] getReadableMediaTypes()
     {
         return readableMediaTypes;
+    }
+    
+    public Providers getProviders()
+    {
+        return providers;
     }
     
 }

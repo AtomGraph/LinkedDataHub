@@ -30,6 +30,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.ext.Providers;
 
 /**
  * Linked Data proxy resource.
@@ -46,11 +47,11 @@ public class ProxyResourceBase extends ExternalProxyResourceBase
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             Optional<com.atomgraph.linkeddatahub.apps.model.Application> application,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest,
-            DataManager dataManager, Optional<AgentContext> agentContext)
+            DataManager dataManager, Optional<AgentContext> agentContext, Providers providers)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, securityContext,
                 application.get().getProxiedURI(uriInfo.getAbsolutePath()), null, accept, mode,
-                system, httpServletRequest, dataManager, agentContext);
+                system, httpServletRequest, dataManager, agentContext, providers);
     }
     
 }
