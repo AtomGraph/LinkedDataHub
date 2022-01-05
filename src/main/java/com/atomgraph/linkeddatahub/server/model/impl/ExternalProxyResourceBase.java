@@ -151,10 +151,13 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         
-        if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
-        return getWebTarget().request().
-            accept(getHttpHeaders().getAcceptableMediaTypes().toArray(new javax.ws.rs.core.MediaType[0])).
-            post(Entity.entity(multiPart, multiPart.getMediaType()));
+        try (Response cr = getWebTarget().request().
+            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            post(Entity.entity(multiPart, multiPart.getMediaType())))
+        {
+            if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
+            return getResponse(cr);
+        }
     }
     
     /**
@@ -169,10 +172,13 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     {
         if (getWebTarget() == null) throw new NotFoundException("Resource URI not supplied"); // cannot throw Exception in constructor: https://github.com/eclipse-ee4j/jersey/issues/4436
         
-        if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
-        return getWebTarget().request().
-            accept(getHttpHeaders().getAcceptableMediaTypes().toArray(new javax.ws.rs.core.MediaType[0])).
-            put(Entity.entity(multiPart, multiPart.getMediaType()));
+        try (Response cr = getWebTarget().request().
+                accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+                put(Entity.entity(multiPart, multiPart.getMediaType())))
+        {
+            if (log.isDebugEnabled()) log.debug("PUTing multipart data to URI: {}", getWebTarget().getUri());
+            return getResponse(cr);
+        }
     }
     
     public UriInfo getUriInfo()
