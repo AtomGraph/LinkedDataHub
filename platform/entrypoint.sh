@@ -348,11 +348,6 @@ if [ -z "$root_admin_quad_store_url" ] ; then
     exit 1
 fi
 
-# append ownership metadata to apps (have to be URI resources!)
-
-echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-
 printf "\n### Quad store URL of the root end-user service: %s\n" "$root_end_user_quad_store_url"
 printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
 
@@ -486,6 +481,11 @@ fi
 # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
 if [ "$LOAD_DATASETS" = "true" ]; then
     mkdir -p /var/linkeddatahub/based-datasets
+
+    # append ownership metadata to apps (have to be URI resources!)
+
+    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
     # create query file by injecting environmental variables into the template
 
