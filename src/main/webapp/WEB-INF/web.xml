@@ -288,7 +288,7 @@ support@linkeddatahub.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/client#prefixMapping</param-name>
-        <param-value>prefix-mapping.n3</param-value>
+        <param-value>prefix-mapping.ttl</param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#cookieMaxAge</param-name>
