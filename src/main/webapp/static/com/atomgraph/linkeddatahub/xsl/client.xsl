@@ -1546,13 +1546,14 @@ WHERE
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
-<!--        <xsl:message>
+        <xsl:message>
             onDocumentLoad
             $uri: <xsl:value-of select="$uri"/>
             $container-id: <xsl:value-of select="$container-id"/>
             $push-state: <xsl:value-of select="$push-state"/>
-            ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>
-        </xsl:message>-->
+            ?status: <xsl:value-of select="?status"/>
+            <!--ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>-->
+        </xsl:message>
         
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
