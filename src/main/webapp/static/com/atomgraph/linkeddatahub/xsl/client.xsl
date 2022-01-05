@@ -1549,7 +1549,7 @@ WHERE
         <xsl:message>
             onDocumentLoad
             $uri: <xsl:value-of select="$uri"/>
-            $container-id: <xsl:value-of select="$container-id"/>
+            $container: <xsl:value-of select="$container"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ?status: <xsl:value-of select="?status"/>
             <!--ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>-->
