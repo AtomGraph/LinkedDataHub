@@ -153,7 +153,7 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
         
         if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
         return getWebTarget().request().
-            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            accept(getHttpHeaders().getAcceptableMediaTypes().toArray(new javax.ws.rs.core.MediaType[0])).
             post(Entity.entity(multiPart, multiPart.getMediaType()));
     }
     
@@ -171,7 +171,7 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
         
         if (log.isDebugEnabled()) log.debug("POSTing multipart data to URI: {}", getWebTarget().getUri());
         return getWebTarget().request().
-            accept(getMediaTypes().getReadable(Model.class).toArray(new javax.ws.rs.core.MediaType[0])).
+            accept(getHttpHeaders().getAcceptableMediaTypes().toArray(new javax.ws.rs.core.MediaType[0])).
             put(Entity.entity(multiPart, multiPart.getMediaType()));
     }
     
