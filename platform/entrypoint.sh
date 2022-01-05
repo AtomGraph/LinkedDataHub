@@ -99,6 +99,11 @@ if [ -z "$ABS_PATH" ] ; then
     exit 1
 fi
 
+if [ -z "$OWNER_MBOX" ] ; then
+    echo '$OWNER_MBOX not set'
+    exit 1
+fi
+
 if [ -z "$OWNER_PUBLIC_KEY" ] ; then
     echo '$OWNER_PUBLIC_KEY not set'
     exit 1
@@ -307,22 +312,27 @@ esac
 
 trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
 
+# append ownership metadata to apps (have to be URI resources!)
+
+echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+
 sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
 
 root_end_user_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserApp']" -n)
-root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
+root_end_user_graph_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
 root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
 root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
 
 root_admin_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminApp']" -n)
 root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
-root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
+root_admin_graph_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
 root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
 root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
 
 rm -f root_service_metadata.xml select-root-services.rq
 
-if [ -z "$root_end_user_quad_store_url" ] ; then
+if [ -z "$root_end_user_graph_store_url" ] ; then
     printf "\nEnd-user quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
     exit 1
 fi
@@ -330,19 +340,13 @@ if [ -z "$root_admin_base_uri" ] ; then
     printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
     exit 1
 fi
-if [ -z "$root_admin_quad_store_url" ] ; then
+if [ -z "$root_admin_graph_store_url" ] ; then
     printf "\nAdmin quad store could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
     exit 1
 fi
 
-printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
-
-# append root owner's metadata to the root admin dataset
-
-if [ -z "$OWNER_MBOX" ] ; then
-    echo '$OWNER_MBOX not set'
-    exit 1
-fi
+printf "\n### Graph Store endpoint URL of the root end-user service: %s\n" "$root_end_user_graph_store_url"
+printf "\n### Graph Store endpoint URL of the root admin service: %s\n" "$root_admin_graph_store_url"
 
 get_modulus()
 {
@@ -534,11 +538,6 @@ if [ "$LOAD_DATASETS" = "true" ]; then
     append_quads "$root_admin_quad_store_url" "$root_admin_service_auth_user" "$root_admin_service_auth_pwd" root-owner.nq "application/n-quads"
 
     rm -f root-owner.trig root-owner.nq
-
-    # append ownership metadata to apps (have to be URI resources!)
-
-    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
     # append secretary metadata to the root admin dataset
 
