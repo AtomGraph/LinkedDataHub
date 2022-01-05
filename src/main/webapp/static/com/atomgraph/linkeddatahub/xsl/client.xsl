@@ -2312,7 +2312,7 @@ WHERE
 
     <!-- document mode tabs -->
     
-    <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+    <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick" priority="1">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
