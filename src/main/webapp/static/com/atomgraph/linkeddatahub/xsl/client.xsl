@@ -1549,7 +1549,7 @@ WHERE
         <xsl:message>
             onDocumentLoad
             $uri: <xsl:value-of select="$uri"/>
-            $container: <xsl:value-of select="$container"/>
+            $container/@id: <xsl:value-of select="$container/@id"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ?status: <xsl:value-of select="?status"/>
             <!--ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>-->
@@ -1570,8 +1570,9 @@ WHERE
             <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
                 <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
-                <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($results-uri) })" as="xs:anyURI"/> <!-- proxy the results -->
+                <xsl:variable name="uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
+                <!-- dereference external resources through a proxy -->
+                <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
                 
@@ -1799,8 +1800,8 @@ WHERE
     <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(starts-with(@href, resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
-        <!-- indirect resource URI, dereferenced through a proxy -->
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri) })" as="xs:anyURI"/>
+        <!-- dereference external resources through a proxy -->
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1830,9 +1831,8 @@ WHERE
         <!-- ignore form submission if the input value is not a valid http(s):// URI -->
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
-            <!-- indirect resource URI, dereferenced through a proxy -->
-            <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($uri) })" as="xs:anyURI"/>
-            
+            <!-- dereferenced external resources through a proxy -->
+            <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
             <!-- abort the previous request, if any -->
@@ -1860,17 +1860,17 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
-                <xsl:variable name="resource-uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
-                <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$resource-uri"/></xsl:message>
-                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
+                <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$uri"/></xsl:message>
+                <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                            <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1888,16 +1888,16 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="?status = (200, 201)"> <!-- OK / Created -->
-                <xsl:variable name="resource-uri" select="ac:uri()" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+                <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                            <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1977,9 +1977,9 @@ WHERE
             <xsl:when test="$key-code = 'Enter'">
                 <xsl:if test="$menu/li[contains-token(@class, 'active')]">
                     <!-- resource URI selected in the typeahead -->
-                    <xsl:variable name="resource-uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-                    <!-- indirect resource URI, dereferenced through a proxy -->
-                    <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+                    <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+                    <!-- dereference external resources through a proxy -->
+                    <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
                     
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1992,8 +1992,8 @@ WHERE
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
@@ -2034,9 +2034,9 @@ WHERE
     
     <xsl:template match="form[contains-token(@class, 'navbar-form')]//ul[contains-token(@class, 'dropdown-menu')][contains-token(@class, 'typeahead')]/li" mode="ixsl:onmousedown" priority="1">
         <!-- redirect to the resource URI selected in the typeahead -->
-        <xsl:variable name="resource-uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
-        <!-- indirect resource URI, dereferenced through a proxy -->
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map { 'uri': string($resource-uri) })" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
+        <!-- dereference external resources through a proxy -->
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -2049,8 +2049,8 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
-                    <xsl:with-param name="uri" select="ac:document-uri($resource-uri)"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri($resource-uri)"/>
+                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -2325,7 +2325,8 @@ WHERE
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="mode" select="map:get($mode-classes, $active-class)" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
+        <!-- dereference external resources through a proxy -->
+        <xsl:variable name="request-uri" select="if (not(starts-with($uri, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string($uri) }) else $uri" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
