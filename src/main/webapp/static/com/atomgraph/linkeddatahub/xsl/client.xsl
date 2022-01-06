@@ -164,7 +164,7 @@ WHERE
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="title" select="ixsl:get(ixsl:window(), 'document.title')"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
         </xsl:call-template>
@@ -228,16 +228,17 @@ WHERE
     </xsl:function>
 
     <xsl:function name="apl:href" as="xs:anyURI">
-        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
-                <xsl:sequence select="$uri"/>
+                <xsl:sequence select="if ($mode) then ac:build-uri($uri, map{ 'mode': string($mode) }) else $uri"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="ac:build-uri($base, map{ 'uri': string($uri) })"/>
+                <xsl:sequence select="if ($mode) then ac:build-uri($base, map{ 'uri': string($uri), 'mode': string($mode) }) else ac:build-uri($base, map{ 'uri': string($uri) })"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
@@ -903,7 +904,7 @@ WHERE
                     </xsl:result-document>
                 </xsl:for-each>
 
-                <xsl:variable name="request-uri" select="apl:href($content-uri, $ldt:base)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="apl:href($ldt:base, $content-uri)" as="xs:anyURI"/>
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': ac:document-uri($request-uri), 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onContentLoad">
@@ -1441,7 +1442,7 @@ WHERE
 
                     <xsl:if test="$push-state">
                         <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="apl:href($content-uri, $ldt:base)"/>
+                            <xsl:with-param name="href" select="apl:href($ldt:base, $content-uri)"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="query" select="$query"/>
                             <xsl:with-param name="sparql" select="true()"/>
@@ -1572,7 +1573,7 @@ WHERE
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
                 <!-- dereference external resources through a proxy -->
-                <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
                 
@@ -1672,7 +1673,7 @@ WHERE
 
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
-                    <xsl:with-param name="href" select="apl:href($uri, $ldt:base)"/>
+                    <xsl:with-param name="href" select="apl:href($ldt:base, $uri)"/>
                     <xsl:with-param name="title" select="title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
@@ -1801,7 +1802,7 @@ WHERE
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
         <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1832,7 +1833,7 @@ WHERE
         <xsl:if test="$uri-string castable as xs:anyURI and (starts-with($uri-string, 'http://') or starts-with($uri-string, 'https://'))">
             <xsl:variable name="uri" select="xs:anyURI($uri-string)" as="xs:anyURI"/>
             <!-- dereferenced external resources through a proxy -->
-            <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+            <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
             <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
             <!-- abort the previous request, if any -->
@@ -1862,7 +1863,7 @@ WHERE
             <xsl:when test="?status = 204"> <!-- No Content -->
                 <xsl:variable name="uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
                 <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$uri"/></xsl:message>
-                <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1889,7 +1890,7 @@ WHERE
         <xsl:choose>
             <xsl:when test="?status = (200, 201)"> <!-- OK / Created -->
                 <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -1964,7 +1965,7 @@ WHERE
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($results-uri, $ldt:base)" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
 
@@ -1979,7 +1980,7 @@ WHERE
                     <!-- resource URI selected in the typeahead -->
                     <xsl:variable name="uri" select="$menu/li[contains-token(@class, 'active')]/input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
                     <!-- dereference external resources through a proxy -->
-                    <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
                     
                     <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
@@ -2036,7 +2037,7 @@ WHERE
         <!-- redirect to the resource URI selected in the typeahead -->
         <xsl:variable name="uri" select="input[@name = 'ou']/ixsl:get(., 'value')" as="xs:anyURI"/>
         <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="apl:href($uri, $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -2120,7 +2121,7 @@ WHERE
         <xsl:variable name="select-string" select="ixsl:call($select-builder, 'toString', [])" as="xs:string?"/>
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string?"/>
         <xsl:variable name="results-uri" select="if ($results-uri) then $results-uri else ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($results-uri, $ldt:base)" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/> <!-- proxy the results -->
         <!-- TO-DO: use <ixsl:schedule-action> instead of document() -->
         <xsl:variable name="results" select="document($request-uri)" as="document-node()"/>
         
@@ -2216,7 +2217,7 @@ WHERE
     <!-- open editing form (do nothing if the button is disabled) -->
     <xsl:template match="button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href(ac:build-uri($uri, map{ 'mode': '&ac;EditMode' }), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
         <!-- toggle .active class -->
@@ -2241,7 +2242,7 @@ WHERE
     
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href(ac:build-uri($uri, map{ 'mode': '&ac;EditMode' }), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
 
         <xsl:if test="ixsl:call(ixsl:window(), 'confirm', [ 'Are you sure?' ])">
             <xsl:variable name="request" as="item()*">
@@ -2325,8 +2326,7 @@ WHERE
             </xsl:map>
         </xsl:variable>
         <xsl:variable name="mode" select="map:get($mode-classes, $active-class)" as="xs:string"/>
-        <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="apl:href(ac:build-uri($uri, map{ 'mode': $mode }), $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri, xs:anyURI($mode))" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
@@ -2360,7 +2360,7 @@ WHERE
         <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>  
         <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href(ac:build-uri($results-uri, map{ 'mode': '&ac;EditMode' }), $ldt:base)" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 

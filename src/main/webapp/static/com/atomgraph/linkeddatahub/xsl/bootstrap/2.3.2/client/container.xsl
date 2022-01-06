@@ -178,7 +178,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($results-uri, $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
         <!-- load result count -->
         <xsl:variable name="request" as="item()*">
@@ -299,7 +299,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($results-uri, $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onContainerResultsLoad">
@@ -822,7 +822,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), $ac:endpoint)[1])" as="xs:anyURI"/>
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($results-uri, $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/sparql-results+xml' } }">
             <xsl:call-template name="onParallaxSelectLoad">
@@ -888,7 +888,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -934,7 +934,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -979,7 +979,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1023,7 +1023,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1099,7 +1099,7 @@ exclude-result-prefixes="#all"
                     <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $select-json ]), 'toString', [])" as="xs:string"/>
                     <!-- TO-DO: unify dydra: and dydra-urn: ? -->
                     <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                    <xsl:variable name="request-uri" select="apl:href($results-uri, $ldt:base)" as="xs:anyURI"/>
+                    <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
 
                     <!-- load facet values, their counts and optional labels -->
                     <xsl:variable name="request" as="item()*">
@@ -1165,7 +1165,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
@@ -1208,7 +1208,7 @@ exclude-result-prefixes="#all"
             </xsl:document>
         </xsl:variable>
         <xsl:call-template name="apl:PushContentState">
-            <xsl:with-param name="href" select="apl:href(ac:uri(), $ldt:base)"/>
+            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>

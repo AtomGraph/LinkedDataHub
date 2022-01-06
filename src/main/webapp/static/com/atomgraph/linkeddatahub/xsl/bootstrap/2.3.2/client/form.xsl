@@ -165,7 +165,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="action" select="ixsl:get(., 'action')" as="xs:anyURI"/>
         <xsl:variable name="enctype" select="ixsl:get(., 'enctype')" as="xs:string"/>
         <xsl:variable name="accept" select="'application/xhtml+xml'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="apl:href($action, $ldt:base)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $action)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
