@@ -2387,6 +2387,8 @@ WHERE
         <xsl:variable name="endpoint" select="if ($app) then key('resources', $app/ldt:service/@rdf:resource, root($app))/sd:endpoint/@rdf:resource/xs:anyURI(.) else $ac:endpoint" as="xs:anyURI?"/>
 <xsl:message>
     Backlinks onclick
+    exists($app): <xsl:value-of select="exists($app)"/>
+    $app/local-name(): <xsl:value-of select="$app/local-name()"/>
     $app/@rdf:about: <xsl:value-of select="$app/@rdf:about"/>
     $endpoint: <xsl:value-of select="$endpoint"/>
 </xsl:message>
