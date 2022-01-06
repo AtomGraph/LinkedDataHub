@@ -288,69 +288,6 @@ append_quads()
     fi
 }
 
-# extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
-
-envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
-
-# base the $CONTEXT_DATASET
-
-webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
-based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
-
-case "$CONTEXT_DATASET_URL" in
-    "file://"*)
-        CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
-
-        printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
-    *)  
-        CONTEXT_DATASET=$(mktemp)
-
-        printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
-
-        curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
-esac
-
-trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
-
-sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
-
-root_end_user_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserApp']" -n)
-root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
-root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
-root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
-
-root_admin_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminApp']" -n)
-root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
-root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
-root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
-root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
-
-rm -f root_service_metadata.xml select-root-services.rq
-
-if [ -z "$root_end_user_app" ] ; then
-    printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
-    exit 1
-fi
-if [ -z "$root_end_user_quad_store_url" ] ; then
-    printf "\nEnd-user quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-if [ -z "$root_admin_app" ] ; then
-    printf "\nAdmin app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
-    exit 1
-fi
-if [ -z "$root_admin_base_uri" ] ; then
-    printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-if [ -z "$root_admin_quad_store_url" ] ; then
-    printf "\nAdmin quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
-    exit 1
-fi
-
-printf "\n### Quad store URL of the root end-user service: %s\n" "$root_end_user_quad_store_url"
-printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
-
 get_modulus()
 {
     local key_pem="$1"
@@ -405,6 +342,80 @@ printf "\n### Root owner WebID certificate's modulus: %s\n" "$OWNER_CERT_MODULUS
 
 OWNER_KEY_UUID=$(uuidgen | tr '[:upper:]' '[:lower:]') # lowercase
 export OWNER_COMMON_NAME OWNER_URI OWNER_DOC_URI OWNER_CERT_MODULUS OWNER_KEY_UUID
+
+# extract the quad store endpoint (and auth credentials) of the root app from the system dataset using SPARQL and XPath queries
+
+envsubst '$BASE_URI' < select-root-services.rq.template > select-root-services.rq
+
+# base the $CONTEXT_DATASET
+
+webapp_context_dataset="/WEB-INF/classes/com/atomgraph/linkeddatahub/system.nq"
+based_context_dataset="${PWD}/webapps/ROOT${webapp_context_dataset}"
+
+case "$CONTEXT_DATASET_URL" in
+    "file://"*)
+        CONTEXT_DATASET=$(echo "$CONTEXT_DATASET_URL" | cut -c 8-) # strip leading file://
+
+        printf "\n### Reading context dataset from a local file: %s\n" "$CONTEXT_DATASET" ;;
+    *)  
+        CONTEXT_DATASET=$(mktemp)
+
+        printf "\n### Downloading context dataset from a URL: %s\n" "$CONTEXT_DATASET_URL"
+
+        curl "$CONTEXT_DATASET_URL" > "$CONTEXT_DATASET" ;;
+esac
+
+trig --base="$BASE_URI" "$CONTEXT_DATASET" > "$based_context_dataset"
+
+sparql --data="$based_context_dataset" --query="select-root-services.rq" --results=XML > root_service_metadata.xml
+
+root_end_user_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserApp']" -n)
+root_end_user_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserQuadStore']" -n)
+root_end_user_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthUser']" -n)
+root_end_user_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserAuthPwd']" -n)
+root_end_user_owner=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'endUserMaker']" -n)
+
+root_admin_app=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminApp']" -n)
+root_admin_base_uri=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminBaseUri']" -n)
+root_admin_quad_store_url=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminQuadStore']" -n)
+root_admin_service_auth_user=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthUser']" -n)
+root_admin_service_auth_pwd=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminAuthPwd']" -n)
+root_admin_owner=$(cat root_service_metadata.xml | xmlstarlet sel -B -N srx="http://www.w3.org/2005/sparql-results#" -T -t -v "/srx:sparql/srx:results/srx:result/srx:binding[@name = 'adminMaker']" -n)
+
+rm -f root_service_metadata.xml select-root-services.rq
+
+if [ -z "$root_end_user_app" ] ; then
+    printf "\nEnd-user app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+    exit 1
+fi
+if [ -z "$root_end_user_quad_store_url" ] ; then
+    printf "\nEnd-user quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+if [ -z "$root_admin_app" ] ; then
+    printf "\nAdmin app URI could not be extracted from %s. Exiting...\n" "$CONTEXT_DATASET"
+    exit 1
+fi
+if [ -z "$root_admin_base_uri" ] ; then
+    printf "\nAdmin base URI extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+if [ -z "$root_admin_quad_store_url" ] ; then
+    printf "\nAdmin quad store URL could not be extracted from %s for root app with base URI %s. Exiting...\n" "$CONTEXT_DATASET" "$BASE_URI"
+    exit 1
+fi
+
+# append ownership metadata to apps if it's not present (apps have to be URI resources!)
+
+if [ -z "$root_end_user_owner" ] ; then
+    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+fi
+if [ -z "$root_admin_owner" ] ; then
+    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
+fi
+
+printf "\n### Quad store URL of the root end-user service: %s\n" "$root_end_user_quad_store_url"
+printf "\n### Quad store URL of the root admin service: %s\n" "$root_admin_quad_store_url"
 
 # copy mounted client keystore to a location where the webapp can access it
 
@@ -481,11 +492,6 @@ fi
 # load default admin/end-user datasets if we haven't yet created a folder with re-based versions of them (and then create it)
 if [ "$LOAD_DATASETS" = "true" ]; then
     mkdir -p /var/linkeddatahub/based-datasets
-
-    # append ownership metadata to apps (have to be URI resources!)
-
-    echo "<${root_admin_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
-    echo "<${root_end_user_app}> <http://xmlns.com/foaf/0.1/maker> <${OWNER_URI}> ." >> "$based_context_dataset"
 
     # create query file by injecting environmental variables into the template
 
