@@ -18,6 +18,7 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.util.Link;
+import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
@@ -76,6 +77,9 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
             // add Link rel=ldt:base
             if (getApplication().get().getBaseURI() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
+            // add Link rel=sd:endpoint
+            if (getApplication().get().getBaseURI() != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
             // add Link rel=ldt:ontology, if the ontology URI is specified
             if (getApplication().get().getOntology() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getOntology().getURI()), LDT.ontology.getURI(), null));

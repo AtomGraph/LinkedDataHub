@@ -2381,14 +2381,6 @@ WHERE
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="app" select="apl:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="if ($app) then key('resources', $app/ldt:service/@rdf:resource, root($app))/sd:endpoint/@rdf:resource/xs:anyURI(.) else $ac:endpoint" as="xs:anyURI?"/>
-<xsl:message>
-    Backlinks onclick
-    exists($app): <xsl:value-of select="exists($app)"/>
-    $app/local-name(): <xsl:value-of select="$app/local-name()"/>
-    $app/@rdf:about: <xsl:value-of select="$app/@rdf:about"/>
-    $endpoint: <xsl:value-of select="$endpoint"/>
-</xsl:message>
-        
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         
