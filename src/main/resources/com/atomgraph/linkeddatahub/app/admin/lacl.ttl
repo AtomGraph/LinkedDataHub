@@ -253,12 +253,14 @@
         PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
         PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+        PREFIX vivo:    <http://vivoweb.org/ontology/core#>
 
         CONSTRUCT {
             ?this foaf:givenName [ a xsd:string ] ;
                 foaf:familyName [ a xsd:string ] ;
                 foaf:mbox [ a rdfs:Resource ] ;
-                foaf:based_near [ a rdfs:Resource ] .
+                foaf:based_near [ a rdfs:Resource ] ;
+                vivo:orcidId [ a rdfs:Resource ] .
         }
         WHERE {}""" ;
     rdfs:isDefinedBy : .
