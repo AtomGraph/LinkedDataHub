@@ -257,8 +257,9 @@ WHERE
 
         <xsl:message>
             apl:match-app
-            $apps//*/@rdf:resource: <xsl:value-of select="$apps//*/@rdf:resource"/>
-            $apps//*/@rdf:resource[starts-with($uri, .)]: <xsl:value-of select="$apps//*/@rdf:resource[starts-with($uri, .)]"/>
+            $uri: <xsl:value-of select="$uri"/>
+            $apps//*/ldt:base/@rdf:resource: <xsl:value-of select="$apps//*/ldt:base/@rdf:resource"/>
+            $apps//*/ldt:base/@rdf:resource[starts-with($uri, .)]: <xsl:value-of select="$apps//*/ldt:base/@rdf:resource[starts-with($uri, .)]"/>
         </xsl:message>
         
         <xsl:for-each select="$apps//*[starts-with($uri, ldt:base/@rdf:resource)]">
