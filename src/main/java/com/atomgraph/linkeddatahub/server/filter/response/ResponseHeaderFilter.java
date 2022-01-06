@@ -78,7 +78,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
             if (getApplication().get().getBaseURI() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
             // add Link rel=sd:endpoint
-            if (getApplication().get().getBaseURI() != null)
+            if (getApplication().get().getService() != null)
                 response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
             // add Link rel=ldt:ontology, if the ontology URI is specified
             if (getApplication().get().getOntology() != null)
