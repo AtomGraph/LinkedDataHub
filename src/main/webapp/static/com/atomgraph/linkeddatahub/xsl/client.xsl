@@ -254,6 +254,12 @@ WHERE
     <xsl:function name="apl:match-app" as="element()?">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="apps" as="document-node()"/>
+
+        <xsl:message>
+            apl:match-app
+            $apps//*/@rdf:resource: <xsl:value-of select="$apps//*/@rdf:resource"/>
+            $apps//*/@rdf:resource[starts-with($uri, .)]: <xsl:value-of select="$apps//*/@rdf:resource[starts-with($uri, .)]"/>
+        </xsl:message>
         
         <xsl:for-each select="$apps//*[starts-with($uri, ldt:base/@rdf:resource)]">
             <xsl:sort select="string-length(ldt:base/@rdf:resource)" order="ascending"/>
