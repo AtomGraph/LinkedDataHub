@@ -250,6 +250,16 @@ WHERE
         </xsl:choose>
     </xsl:function>
 
+    <!-- finds the app with the longest matching base URI -->
+    <xsl:function name="match-app" as="element()?">
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="apps" as="document-node()"/>
+        
+        <xsl:for-each select="$apps//*[starts-with($uri, ldt:base/@rdf:resource)]">
+            <xsl:sort select="string-length(ldt:base/@rdf:resource)" order="ascending"/>
+        </xsl:for-each>
+    </xsl:function>
+    
     <xsl:function name="apl:query-type" as="xs:string">
         <xsl:param name="query-string" as="xs:string"/>
         
@@ -2365,8 +2375,16 @@ WHERE
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
         <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>  
-        <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="app" select="match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="if ($app) then key('resources, $app/ldt:service/@rdf:resource, root($app))/sd:endpoint/@rdf:resource/xs:anyURI(.) else $ac:endpoint" as="xs:anyURI?"/>
+<xsl:message>
+    Backlinks onclick
+    $app/@rdf:about: <xsl:value-of select="$app/@rdf:about"/>
+    $endpoint: <xsl:value-of select="$endpoint"/>
+</xsl:message>
+        
+        <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
