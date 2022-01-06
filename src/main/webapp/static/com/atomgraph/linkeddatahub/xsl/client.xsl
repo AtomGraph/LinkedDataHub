@@ -230,6 +230,13 @@ WHERE
     <xsl:function name="apl:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="apl:href($base, $uri, ())"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="mode" as="xs:anyURI?"/>
 
         <xsl:choose>
