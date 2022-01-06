@@ -2377,7 +2377,7 @@ WHERE
         <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="app" select="apl:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="if ($app) then key('resources, $app/ldt:service/@rdf:resource, root($app))/sd:endpoint/@rdf:resource/xs:anyURI(.) else $ac:endpoint" as="xs:anyURI?"/>
+        <xsl:variable name="endpoint" select="if ($app) then key('resources', $app/ldt:service/@rdf:resource, root($app))/sd:endpoint/@rdf:resource/xs:anyURI(.) else $ac:endpoint" as="xs:anyURI?"/>
 <xsl:message>
     Backlinks onclick
     $app/@rdf:about: <xsl:value-of select="$app/@rdf:about"/>
