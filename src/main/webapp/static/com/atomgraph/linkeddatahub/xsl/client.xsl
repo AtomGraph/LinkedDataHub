@@ -2367,8 +2367,8 @@ WHERE
         <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>  
         <xsl:variable name="results-uri" select="ac:build-uri($ac:endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
-
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
+        
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
         <xsl:choose>
