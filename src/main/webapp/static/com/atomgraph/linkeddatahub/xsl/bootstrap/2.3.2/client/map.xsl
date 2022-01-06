@@ -113,7 +113,8 @@ exclude-result-prefixes="#all"
         
         <!-- InfoWindowMode is handled as a special case in layout.xsl -->
         <xsl:variable name="mode" select="'https://w3id.org/atomgraph/linkeddatahub/templates#InfoWindowMode'" as="xs:string"/>
-        <xsl:variable name="request-uri" select="ac:build-uri($ldt:base, map{ 'uri': string($uri), 'mode': $mode })" as="xs:anyURI"/> <!-- proxy the results -->
+        <xsl:variable name="marker-uri" select="ac:build-uri($uri, map{ 'mode': $mode })" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($marker-uri, $ldt:base)" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 

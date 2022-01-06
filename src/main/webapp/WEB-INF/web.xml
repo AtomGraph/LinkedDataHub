@@ -241,7 +241,7 @@ Certificate expires on: %s
 
 
 LinkedDataHub by AtomGraph
-support@linkeddatahub.com]]></param-value>
+support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#oAuthSignUpEMailText</param-name>
@@ -254,7 +254,7 @@ Your WebID profile: %s
 
 
 LinkedDataHub by AtomGraph
-support@linkeddatahub.com]]></param-value>
+support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#requestAccessEMailSubject</param-name>
@@ -268,7 +268,7 @@ Manage it here: %s
 
 
 LinkedDataHub by AtomGraph
-support@linkeddatahub.com]]></param-value>
+support@atomgraph.com]]></param-value>
     </context-param>
     <context-param>
         <param-name>https://w3id.org/atomgraph/client#resolvingUncached</param-name>
