@@ -18,9 +18,7 @@ package com.atomgraph.linkeddatahub.resource.graph;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.model.EndpointAccessor;
-import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
@@ -35,7 +33,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -44,12 +41,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateRequest;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
@@ -61,16 +56,14 @@ public class Item extends GraphStoreImpl implements Patchable
 {
 
     private final URI uri;
-    private final Optional<Dataset> dataset;
     private final EndpointAccessor endpointAccessor;
     
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-        Optional<Ontology> ontology, Optional<Service> service, Optional<Dataset> dataset, @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
+        Optional<Ontology> ontology, Optional<Service> service, @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.dataset = dataset;
         this.endpointAccessor = service.get().getEndpointAccessor();
     }
 
@@ -78,16 +71,6 @@ public class Item extends GraphStoreImpl implements Patchable
     @GET
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        // if there are datasets in the system context model what match the request URI, return data from their proxied URI
-        if (getDataset().isPresent())
-        {
-            Resource proxy = getDataset().get().getProxy();
-            if (proxy == null) throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + getDataset().get().getURI() + "> has no lapp:prefix value"));
-            
-            URI proxiedURI = getProxiedURI(URI.create(proxy.getURI()), getURI());
-            return getResponse(LinkedDataClient.create(getSystem().getClient().target(proxiedURI), getMediaTypes()).get(), getURI());
-        }
-        
         return super.get(false, getURI());
     }
     
@@ -158,15 +141,6 @@ public class Item extends GraphStoreImpl implements Patchable
 
         return super.getWritableMediaTypes(clazz);
     }
-
-    public URI getProxiedURI(URI proxy, URI uri)
-    {
-        return UriBuilder.fromUri(uri).
-            scheme(proxy.getScheme()).
-            host(proxy.getHost()).
-            port(proxy.getPort()).
-            build();
-    }
     
     public URI getURI()
     {
@@ -176,11 +150,6 @@ public class Item extends GraphStoreImpl implements Patchable
     public EndpointAccessor getEndpointAccessor()
     {
         return endpointAccessor;
-    }
-    
-    public Optional<Dataset> getDataset()
-    {
-        return dataset;
     }
     
 }

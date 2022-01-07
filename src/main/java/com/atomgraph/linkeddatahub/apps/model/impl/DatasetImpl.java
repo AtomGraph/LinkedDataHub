@@ -20,6 +20,7 @@ import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.net.URI;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -61,6 +62,23 @@ public class DatasetImpl extends ResourceImpl implements Dataset
     public Resource getProxy()
     {
         return getPropertyResourceValue(LAPP.proxy);
+    }
+
+    public URI getProxyURI()
+    {
+        if (getProxy() != null) return URI.create(getProxy().getURI());
+        
+        return null;
+    }
+    
+    @Override
+    public URI getProxied(URI uri)
+    {
+        return UriBuilder.fromUri(uri).
+            scheme(getProxyURI().getScheme()).
+            host(getProxyURI().getHost()).
+            port(getProxyURI().getPort()).
+            build();
     }
     
 }

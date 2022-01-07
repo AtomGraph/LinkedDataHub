@@ -37,4 +37,7 @@ public interface Dataset extends Resource
     
     Resource getProxy();
     
+    URI getProxyURI();
+    
+    URI getProxied(URI uri);
 }

@@ -19,6 +19,7 @@ package com.atomgraph.linkeddatahub.server.model.impl;
 import com.atomgraph.client.MediaTypes;
 import com.atomgraph.client.util.DataManager;
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.client.filter.auth.IDTokenDelegationFilter;
 import com.atomgraph.linkeddatahub.client.filter.auth.WebIDDelegationFilter;
 import com.atomgraph.linkeddatahub.model.Agent;
@@ -70,10 +71,13 @@ public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyReso
     @Inject
     public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
-            @Context Providers providers)
+            @Context Providers providers, Optional<Dataset> dataset)
     {
         this(uriInfo, request, httpHeaders, mediaTypes, securityContext,
-                uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
+                uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName()) == null ? 
+                    dataset.isEmpty() ? null : dataset.get().getProxied(uriInfo.getAbsolutePath())
+                    :
+                    URI.create(uriInfo.getQueryParameters().getFirst(AC.uri.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.endpoint.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName()) == null ? null : MediaType.valueOf(uriInfo.getQueryParameters().getFirst(AC.accept.getLocalName())),
                 uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName()) == null ? null : URI.create(uriInfo.getQueryParameters().getFirst(AC.mode.getLocalName())),

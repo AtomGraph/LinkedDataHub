@@ -17,6 +17,7 @@
 package com.atomgraph.linkeddatahub.server.model.impl;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Clone;
 import com.atomgraph.linkeddatahub.resource.Imports;
@@ -25,6 +26,7 @@ import com.atomgraph.linkeddatahub.resource.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.SignUp;
 import com.atomgraph.linkeddatahub.resource.Skolemize;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -43,17 +45,28 @@ public class Dispatcher
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
     private final UriInfo uriInfo;
+    private final Optional<Dataset> dataset;
     
     @Inject
-    public Dispatcher(@Context UriInfo uriInfo)
+    public Dispatcher(@Context UriInfo uriInfo, Optional<Dataset> dataset)
     {
         this.uriInfo = uriInfo;
+        this.dataset = dataset;
     }
     
+    /**
+     * Returns JAX-RS resource that will handle this request.
+     * The request is proxied in two cases:
+     * - externally (URI specified by the <code>?uri</code> query param)
+     * - internally if it matches a <code>lapp:Dataset</code> specified in the system app config
+     * Otherwise, fall back to SPARQL Graph Store backed by the app's service.
+     * 
+     * @return resource
+     */
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()) || getDataset().isPresent())
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getURI()));
             return ProxyResourceBase.class;
@@ -156,4 +169,9 @@ public class Dispatcher
         return uriInfo;
     }
 
+    public Optional<Dataset> getDataset()
+    {
+        return dataset;
+    }
+    
 }
