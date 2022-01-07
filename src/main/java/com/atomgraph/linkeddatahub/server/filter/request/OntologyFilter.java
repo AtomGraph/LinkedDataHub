@@ -149,12 +149,11 @@ public class OntologyFilter implements ContainerRequestFilter
     
     public Optional<Ontology> getOntology(ContainerRequestContext crc)
     {
-        Optional<Application> app = getApplication(crc);
-        if (app.isEmpty()) return Optional.empty();
+        Application app = getApplication(crc);
         
         try
         {
-            return Optional.ofNullable(getOntology(app.get()));
+            return Optional.ofNullable(getOntology(app));
         }
         catch (OntologyException ex)
         {
@@ -214,9 +213,9 @@ public class OntologyFilter implements ContainerRequestFilter
         throw new OntologyException("Ontology resource '" + uri + "' not found");
     }
 
-    public Optional<Application> getApplication(ContainerRequestContext crc)
+    public Application getApplication(ContainerRequestContext crc)
     {
-        return ((Optional<Application>)crc.getProperty(LAPP.Application.getURI()));
+        return ((Application)crc.getProperty(LAPP.Application.getURI()));
     }
     
     public Client getClient()

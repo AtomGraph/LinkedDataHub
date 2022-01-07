@@ -30,7 +30,6 @@ import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
 import java.net.URI;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
@@ -49,10 +48,10 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     private final SecurityContext securityContext;
-    private final Optional<Application> application;
+    private final Application application;
 
     @Inject
-    public AuthorizationExceptionMapper(MediaTypes mediaTypes, @Context SecurityContext securityContext, Optional<Application> application)
+    public AuthorizationExceptionMapper(MediaTypes mediaTypes, @Context SecurityContext securityContext, Application application)
     {
         super(mediaTypes);
         this.securityContext = securityContext;
@@ -67,11 +66,11 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
                 addLiteral(HTTP.absoluteURI, ex.getAbsolutePath().toString());
         
         // add link to the endpoint for access requests. TO-DO: make the URIs configurable or best - retrieve from sitemap/dataset
-        if (getApplication().isPresent() && getSecurityContext().getUserPrincipal() != null)
+        if (getSecurityContext().getUserPrincipal() != null)
         {
-            if (getApplication().get().canAs(EndUserApplication.class))
+            if (getApplication().canAs(EndUserApplication.class))
             {
-                Resource adminBase = getApplication().get().as(EndUserApplication.class).getAdminApplication().getBase();
+                Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
 
                 // we URI-encode values ourselves because Jersey 1.x UriBuilder fails to do so: https://java.net/jira/browse/JERSEY-1717
                 String encodedRequestClassURI = UriComponent.encode(ADM.AuthorizationRequest.getURI(), UriComponent.Type.UNRESERVED);
@@ -97,7 +96,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
         return securityContext;
     }
     
-    public Optional<Application> getApplication()
+    public Application getApplication()
     {
         return application;
     }

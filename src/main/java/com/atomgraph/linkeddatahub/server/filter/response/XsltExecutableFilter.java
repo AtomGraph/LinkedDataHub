@@ -18,7 +18,6 @@ package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.MediaType;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +56,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     private static final Logger log = LoggerFactory.getLogger(XsltExecutableFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApplication;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
     
     @Context UriInfo uriInfo;
     
@@ -68,7 +67,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         if (resp.getMediaType() != null &&
             (resp.getMediaType().isCompatible(MediaType.TEXT_HTML_TYPE) || resp.getMediaType().isCompatible(MediaType.APPLICATION_XHTML_XML_TYPE)))
         {
-            URI stylesheet = getClientApplication().get().getStylesheet() != null ? URI.create(getClientApplication().get().getStylesheet().getURI()) : null;
+            URI stylesheet = getApplication().getStylesheet() != null ? URI.create(getApplication().getStylesheet().getURI()) : null;
 
             if (stylesheet != null) req.setProperty(AC.stylesheet.getURI(), getXsltExecutable(stylesheet));
             else req.setProperty(AC.stylesheet.getURI(), getSystem().getXsltExecutable());
@@ -189,9 +188,9 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         return system;
     }
     
-    public com.atomgraph.linkeddatahub.apps.model.Client<Application> getClientApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
-        return clientApplication.get();
+        return application.get();
     }
 
     public UriInfo getUriInfo()

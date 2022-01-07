@@ -48,9 +48,9 @@ public class LAPP
 
     // DOMAIN
 
+    public static final OntClass Dataset = m_model.createClass( NS + "Dataset" );
+    
     public static final OntClass Application = m_model.createClass( NS + "Application" );
-
-    public static final OntClass ClientApplication = m_model.createClass( NS + "ClientApplication" );
 
     public static final OntClass AdminApplication = m_model.createClass( NS + "AdminApplication" );
 

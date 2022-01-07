@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import java.net.URI;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.NewCookie;
@@ -44,10 +43,10 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
 {
 
     private final UriInfo uriInfo;
-    private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    private final Application app;
 
     @Inject
-    public TokenExpiredExceptionMapper(MediaTypes mediaTypes, @Context UriInfo uriInfo, Optional<Application> app)
+    public TokenExpiredExceptionMapper(MediaTypes mediaTypes, @Context UriInfo uriInfo, Application app)
     {
         super(mediaTypes);
         this.uriInfo = uriInfo;
@@ -57,7 +56,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     @Override
     public Response toResponse(TokenExpiredException ex)
     {
-        String path = getApplication().get().getBaseURI().getPath();
+        String path = getApplication().getBaseURI().getPath();
         NewCookie expiredCookie = new NewCookie(IDTokenFilter.COOKIE_NAME, "", path, null, NewCookie.DEFAULT_VERSION, null, 0, false);
 
         ResponseBuilder builder = getResponseBuilder(toResource(ex, Response.Status.BAD_REQUEST,
@@ -79,13 +78,13 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     
     public URI getAdminBaseURI()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class).getAdminApplication().getBaseURI();
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class).getAdminApplication().getBaseURI();
         else
-            return getApplication().get().getBaseURI();
+            return getApplication().getBaseURI();
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app;
     }

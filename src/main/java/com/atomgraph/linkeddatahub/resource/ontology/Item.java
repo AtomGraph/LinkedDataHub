@@ -25,6 +25,7 @@ import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.client.util.DataManager;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.vocabulary.LSMT;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
@@ -56,11 +57,11 @@ public class Item extends com.atomgraph.linkeddatahub.resource.graph.Item
     
     @Inject
     public Item(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<Ontology> ontology, Optional<Service> service,
+            Optional<Ontology> ontology, Optional<Service> service, Optional<Dataset> dataset,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
+        super(request, uriInfo, mediaTypes, ontology, service, dataset, providers, system);
         this.resource = ModelFactory.createDefaultModel().createResource(uriInfo.getAbsolutePath().toString());
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }

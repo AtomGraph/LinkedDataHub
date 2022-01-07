@@ -84,7 +84,7 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     @Context SecurityContext securityContext;
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApplication;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
@@ -122,12 +122,12 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
             if (getURI() != null) params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getURI()));
             else params.put(new QName("ac", AC.uri.getNameSpace(), AC.uri.getLocalName()), new XdmAtomicValue(getAbsolutePath()));
 
-            com.atomgraph.linkeddatahub.apps.model.Client<Application> clientApp = getClientApplication().get();
-            if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", clientApp.get());
-            params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(clientApp.get().getBaseURI()));
-            params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(clientApp.get().getOntology().getURI())));
+            com.atomgraph.linkeddatahub.apps.model.Application app = getApplication().get();
+            if (log.isDebugEnabled()) log.debug("Passing $lapp:Application to XSLT: <{}>", app);
+            params.put(new QName("ldt", LDT.base.getNameSpace(), LDT.base.getLocalName()), new XdmAtomicValue(app.getBaseURI()));
+            params.put(new QName("ldt", LDT.ontology.getNameSpace(), LDT.ontology.getLocalName()), new XdmAtomicValue(URI.create(app.getOntology().getURI())));
             params.put(new QName("lapp", LAPP.Application.getNameSpace(), LAPP.Application.getLocalName()),
-                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(clientApp.get(), true))));
+                getXsltExecutable().getProcessor().newDocumentBuilder().build(getSource(getAppModel(app, true))));
 
             if (getSecurityContext() != null && getSecurityContext().getUserPrincipal() instanceof Agent)
             {
@@ -275,9 +275,9 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     }
     
 
-    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> getClientApplication()
+    public javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
     {
-        return clientApplication;
+        return application;
     }
 
 }

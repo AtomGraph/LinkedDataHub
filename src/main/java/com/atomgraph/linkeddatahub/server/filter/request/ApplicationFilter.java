@@ -17,11 +17,8 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.client.vocabulary.AC;
-import com.atomgraph.linkeddatahub.apps.model.Client;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
-import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
@@ -56,18 +53,18 @@ public class ApplicationFilter implements ContainerRequestFilter
     @Override
     public void filter(ContainerRequestContext request) throws IOException
     {
-        // there always have to be a client app
-        Resource clientAppResource = getSystem().matchApp(LAPP.ClientApplication, request.getUriInfo().getAbsolutePath());
-        if (clientAppResource == null) throw new IllegalStateException("Request URI '" + request.getUriInfo().getAbsolutePath() + "' has not matched any Application");
+        // there always have to be an app
+        Resource appResource = getSystem().matchApp(LAPP.Application, request.getUriInfo().getAbsolutePath());
+        if (appResource == null) throw new IllegalStateException("Request URI '" + request.getUriInfo().getAbsolutePath() + "' has not matched any lapp:Application");
 
         // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
-        if (!clientAppResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
-                !clientAppResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
-                !clientAppResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
-            throw new IllegalStateException("Resource with ldt:base <" + clientAppResource.getPropertyResourceValue(LDT.base) + "> cannot be cast to lapp:Application");
+        if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
+                !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
+                !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
+            throw new IllegalStateException("Resource <" + appResource + "> cannot be cast to lapp:Application");
 
-        com.atomgraph.linkeddatahub.apps.model.Application clientApp = clientAppResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-        request.setProperty(APL.client.getURI(), new Client(clientApp)); // wrap into a helper class so it doesn't interfere with injection of Application
+        com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
+        request.setProperty(LAPP.Application.getURI(), app); // wrap into a helper class so it doesn't interfere with injection of Application
 
         // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
         // has to go before ?uri logic because that will change the UriInfo
@@ -96,25 +93,24 @@ public class ApplicationFilter implements ContainerRequestFilter
             requestURI = request.getUriInfo().getRequestUri();
             matchURI = requestURI;
         }
+        request.setRequestUri(app.getBaseURI(), requestURI); // there's always ldt:base
 
-        Resource appResource = getSystem().matchApp(LAPP.Application, matchURI);
-        if (appResource != null)
+        // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
+        Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, matchURI);
+        if (datasetResource != null)
         {
             // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
-            if (!appResource.canAs(com.atomgraph.linkeddatahub.apps.model.Application.class) &&
-                    !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
-                    !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
-                throw new IllegalStateException("Resource with ldt:base <" + appResource.getPropertyResourceValue(LDT.base) + "> cannot be cast to lapp:Application");
+            if (!datasetResource.canAs(com.atomgraph.linkeddatahub.apps.model.Dataset.class))
+                throw new IllegalStateException("Resource <" + datasetResource + "> cannot be cast to lapp:Dataset");
 
-            com.atomgraph.linkeddatahub.apps.model.Application serverApp = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
-            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a remote (server) Application <{}>", requestURI, serverApp.getURI());
-            request.setProperty(LAPP.Application.getURI(), Optional.of(serverApp));
-            request.setRequestUri(clientApp.getBaseURI(), requestURI);
+            com.atomgraph.linkeddatahub.apps.model.Dataset dataset = datasetResource.as(com.atomgraph.linkeddatahub.apps.model.Dataset.class);
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a Dataset <{}>", requestURI, dataset.getURI());
+            request.setProperty(LAPP.Dataset.getURI(), Optional.of(dataset));
         }
         else
         {
-            if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any Application", requestURI);
-            request.setProperty(LAPP.Application.getURI(), Optional.empty());
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any lapp:Dataset", requestURI);
+            request.setProperty(LAPP.Dataset.getURI(), Optional.empty());
         }
     }
 

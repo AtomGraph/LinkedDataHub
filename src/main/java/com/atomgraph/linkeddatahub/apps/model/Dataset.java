@@ -1,5 +1,5 @@
 /**
- *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2022 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,30 +16,25 @@
  */
 package com.atomgraph.linkeddatahub.apps.model;
 
-/**
- * Helper class we can wrap instance in to avoid interfering with injection.
- * 
- * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
- */
-public class Client<T>
-{
+import java.net.URI;
+import org.apache.jena.rdf.model.Resource;
 
-    private final T t;
+/**
+ * A dataspace that returns Linked Data.
+ * Can either have a base or a prefix URI. Does not have a service unlike applications.
+ * Used for proxying third party Linked Data services.
+ * 
+ * @author Martynas Jusevičius <martynas@atomgraph.com>
+ */
+public interface Dataset extends Resource
+{
     
-    public Client(T t)
-    {
-        this.t = t;
-    }
+    Resource getBase();
     
-    public T get()
-    {
-        return t;
-    }
+    URI getBaseURI();
     
-    @Override
-    public String toString()
-    {
-        return get().toString();
-    }
+    Resource getPrefix();
+    
+    Resource getProxy();
     
 }

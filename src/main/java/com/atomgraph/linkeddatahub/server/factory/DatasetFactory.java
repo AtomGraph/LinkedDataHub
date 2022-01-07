@@ -1,5 +1,5 @@
 /**
- *  Copyright 2021 Martynas Jusevičius <martynas@atomgraph.com>
+ *  Copyright 2019 Martynas Jusevičius <martynas@atomgraph.com>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,48 +16,50 @@
  */
 package com.atomgraph.linkeddatahub.server.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.vocabulary.APL;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import java.util.Optional;
+import javax.ws.rs.container.ContainerRequestContext;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
+ * JAX-RS provider of LinkedDataHub application.
+ * 
+ * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  * @see com.atomgraph.linkeddatahub.server.model.impl.Dispatcher
  */
 @Provider
-public class ClientApplicationFactory implements Factory<com.atomgraph.linkeddatahub.apps.model.Client<Application>>
+public class DatasetFactory implements Factory<Optional<Dataset>>
 {
-
-    private static final Logger log = LoggerFactory.getLogger(ClientApplicationFactory.class);
+    
+    private static final Logger log = LoggerFactory.getLogger(DatasetFactory.class);
     
     @Context private ServiceLocator serviceLocator;
     
     @Override
-    public com.atomgraph.linkeddatahub.apps.model.Client<Application> provide()
+    public Optional<Dataset> provide()
     {
         return getApplication(getContainerRequestContext());
     }
 
     @Override
-    public void dispose(com.atomgraph.linkeddatahub.apps.model.Client<Application> t)
+    public void dispose(Optional<Dataset> t)
     {
     }
     
-    public com.atomgraph.linkeddatahub.apps.model.Client<Application> getApplication(ContainerRequestContext crc)
+    public Optional<Dataset> getApplication(ContainerRequestContext crc)
     {
-        return (com.atomgraph.linkeddatahub.apps.model.Client<Application>)crc.getProperty(APL.client.getURI());
+        return (Optional<Dataset>)crc.getProperty(LAPP.Dataset.getURI());
     }
     
     public ContainerRequestContext getContainerRequestContext()
     {
         return serviceLocator.getService(ContainerRequestContext.class);
     }
-
+    
 }

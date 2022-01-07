@@ -17,8 +17,6 @@
 package com.atomgraph.linkeddatahub.server.filter.request;
 
 import com.atomgraph.core.vocabulary.SD;
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
-import com.atomgraph.linkeddatahub.apps.model.Client;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
@@ -81,8 +79,8 @@ public class AuthorizationFilter implements ContainerRequestFilter
     }
     
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Client<com.atomgraph.linkeddatahub.apps.model.Application>> clientApp;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
     
     private ParameterizedSparqlString authQuery, ownerAuthQuery;
 
@@ -99,8 +97,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
-        if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
-        if (getApplication().isEmpty() || (getApplication().isPresent() && !getClientApplication().get().equals(getApplication().get()))) return; // skip authorization if target app is not the client app
+        if (getDataset().isPresent()) return; // skip proxied dataspaces
         
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
         if (log.isDebugEnabled()) log.debug("Request method: {} ACL access mode: {}", request.getMethod(), accessMode);
@@ -130,7 +127,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
         QuerySolutionMap qsm = new QuerySolutionMap();
         qsm.add(SPIN.THIS_VAR_NAME, absolutePath);
         qsm.add("Mode", accessMode);
-        qsm.add(LDT.Ontology.getLocalName(), getClientApplication().get().getOntology());
+        qsm.add(LDT.Ontology.getLocalName(), getApplication().getOntology());
         
         if (agent != null)
         {
@@ -166,10 +163,10 @@ public class AuthorizationFilter implements ContainerRequestFilter
     {
         if (qsm == null) throw new IllegalArgumentException("QuerySolutionMap cannot be null");
 
-        final ParameterizedSparqlString pss = getClientApplication().get().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
+        final ParameterizedSparqlString pss = getApplication().canAs(EndUserApplication.class) ? getAuthQuery() : getOwnerAuthQuery();
         
-        if (getClientApplication().get().canAs(EndUserApplication.class))
-            pss.setIri(SD.endpoint.getLocalName(), getClientApplication().get().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
+        if (getApplication().canAs(EndUserApplication.class))
+            pss.setIri(SD.endpoint.getLocalName(), getApplication().getService().getSPARQLEndpoint().toString()); // needed for federation with the end-user endpoint
 
         return loadModel(getAdminService(), pss, qsm);
     }
@@ -228,19 +225,19 @@ public class AuthorizationFilter implements ContainerRequestFilter
     
     protected Service getAdminService()
     {
-        return getClientApplication().get().canAs(EndUserApplication.class) ?
-            getClientApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getClientApplication().get().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
-    public Client<com.atomgraph.linkeddatahub.apps.model.Application> getClientApplication()
-    {
-        return clientApp.get();
-    }
-
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
+    }
+
+    public Optional<com.atomgraph.linkeddatahub.apps.model.Dataset> getDataset()
+    {
+        return dataset.get();
     }
 
     public com.atomgraph.linkeddatahub.Application getSystem()

@@ -16,9 +16,8 @@
  */
 package com.atomgraph.linkeddatahub.server.filter.request;
 
-import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.Application;
-import com.atomgraph.linkeddatahub.apps.model.Client;
+import com.atomgraph.linkeddatahub.apps.model.Dataset;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import com.atomgraph.linkeddatahub.client.SesameProtocolClient;
 import com.atomgraph.linkeddatahub.model.Service;
@@ -52,8 +51,8 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Client<com.atomgraph.linkeddatahub.apps.model.Application>> clientApp;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>> dataset;
 
     public abstract String getScheme();
     
@@ -70,7 +69,7 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         if (log.isDebugEnabled()) log.debug("Authenticating request URI: {}", request.getUriInfo().getRequestUri());
 
         if (request.getSecurityContext().getUserPrincipal() != null) return; // skip filter if agent already authorized
-        if (!getClientApplication().get().canAs(EndUserApplication.class) && !getClientApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
+        if (getDataset().isPresent()) return; // skip proxied dataspaces
 
         //if (isLogoutForced(request, getScheme())) logout(getApplication(), request);
         
@@ -83,9 +82,9 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
     
     protected Service getAgentService()
     {
-        return getClientApplication().get().canAs(EndUserApplication.class) ?
-            getClientApplication().get().as(EndUserApplication.class).getAdminApplication().getService() :
-            getClientApplication().get().getService();
+        return getApplication().canAs(EndUserApplication.class) ?
+            getApplication().as(EndUserApplication.class).getAdminApplication().getService() :
+            getApplication().getService();
     }
     
     /**
@@ -160,14 +159,14 @@ public abstract class AuthenticationFilter implements ContainerRequestFilter
         return false;
     }
     
-    public Client<Application> getClientApplication()
-    {
-        return clientApp.get();
-    }
-    
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public Application getApplication()
     {
         return app.get();
+    }
+    
+    public Optional<Dataset> getDataset()
+    {
+        return dataset.get();
     }
     
     public com.atomgraph.linkeddatahub.Application getSystem()

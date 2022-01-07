@@ -87,7 +87,6 @@ import com.atomgraph.linkeddatahub.model.impl.UserAccountImpl;
 import com.atomgraph.linkeddatahub.server.event.SignUp;
 import com.atomgraph.linkeddatahub.server.factory.AgentContextFactory;
 import com.atomgraph.linkeddatahub.server.factory.ApplicationFactory;
-import com.atomgraph.linkeddatahub.server.factory.ClientApplicationFactory;
 import com.atomgraph.linkeddatahub.server.filter.request.ApplicationFilter;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.WebIDFilter;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
@@ -111,6 +110,7 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.processor.vocabulary.AP;
@@ -154,7 +154,6 @@ import javax.ws.rs.core.CacheControl;
 import javax.xml.transform.Source;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -200,6 +199,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
@@ -689,7 +689,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ClientApplicationFactory.class).to(new TypeLiteral<com.atomgraph.linkeddatahub.apps.model.Client<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                bindFactory(ApplicationFactory.class).to(com.atomgraph.linkeddatahub.apps.model.Application.class).
                 in(RequestScoped.class);
             }
         });
@@ -698,7 +698,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(ApplicationFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.DatasetFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
                 in(RequestScoped.class);
             }
         });
@@ -858,10 +858,10 @@ public class Application extends ResourceConfig
     
     public Resource matchApp(Model appModel, Resource type, URI absolutePath)
     {
-        return getLongestURIApp(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
+        return getLongestURIResource(getLengthMap(getRelativeBaseApps(appModel, type, absolutePath)));
     }
     
-    public Resource getLongestURIApp(Map<Integer, Resource> lengthMap)
+    public Resource getLongestURIResource(Map<Integer, Resource> lengthMap)
     {
         // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
         TreeMap<Integer, Resource> apps = new TreeMap(lengthMap);
@@ -899,6 +899,47 @@ public class Application extends ResourceConfig
         }
 
         return apps;
+    }
+    
+    public Resource matchDataset(Resource type, URI absolutePath)
+    {
+        return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
+    }
+    
+    public Resource matchDataset(Model appModel, Resource type, URI absolutePath)
+    {
+        return getLongestURIResource(getLengthMap(getRelativeDatasets(appModel, type, absolutePath)));
+    }
+    
+    public Map<URI, Resource> getRelativeDatasets(Model model, Resource type, URI absolutePath)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
+
+        Map<URI, Resource> datasets = new HashMap<>();
+        
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource dataset = it.next();
+                
+                if (!dataset.hasProperty(LAPP.prefix))
+                    throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + dataset.getURI() + "> has no lapp:prefix value"));
+                
+                URI prefix = URI.create(dataset.getPropertyResourceValue(LAPP.prefix).getURI());
+                URI relative = prefix.relativize(absolutePath);
+                if (!relative.isAbsolute() && !relative.toString().equals("")) datasets.put(prefix, dataset);
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return datasets;
     }
     
     public Map<Integer, Resource> getLengthMap(Map<URI, Resource> apps)

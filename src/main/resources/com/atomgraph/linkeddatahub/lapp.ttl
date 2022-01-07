@@ -41,7 +41,7 @@
     rdfs:isDefinedBy : .
 
 :proxy a owl:ObjectProperty ;
-    # rdfs:domain :Application ;
+    rdfs:domain :Dataset ;
     rdfs:range rdfs:Resource ;
     rdfs:label "Proxy" ;
     rdfs:comment "An intermediary server (such as cache) that proxies requests to service" ;
@@ -55,6 +55,14 @@
     rdfs:isDefinedBy : .
 
 # CLASSES
+
+# dataset
+
+:Dataset a rdfs:Class, owl:Class ;
+    rdfs:subClassOf void:Dataset ;
+    rdfs:label "Linked Data dataset" ;
+    rdfs:comment "A dataspace that returns RDF Linked Data" ;
+    rdfs:isDefinedBy : .
 
 # application
 

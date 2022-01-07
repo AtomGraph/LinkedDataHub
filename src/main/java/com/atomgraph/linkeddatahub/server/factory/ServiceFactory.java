@@ -54,19 +54,13 @@ public class ServiceFactory implements Factory<Optional<Service>>
     
     public Optional<Service> getService(ContainerRequestContext crc)
     {
-        Optional<Application> app = (Optional<Application>)crc.getProperty(LAPP.Application.getURI());
-        
-        if (app.isPresent() && app.get().getService() != null)
-        {
-            Service service = app.get().getService();
+        Application app = (Application)crc.getProperty(LAPP.Application.getURI());
+        Service service = app.getService();
 
-            // cast to specific implementations
-            if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) service = service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
-            
-            return Optional.of(service);
-        }
-        
-        return Optional.empty();
+        // cast to specific implementations
+        if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) service = service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
+
+        return Optional.of(service);
     }
     
     public ContainerRequestContext getContainerRequestContext()

@@ -26,7 +26,6 @@ import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -52,7 +51,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
 
     private static final Logger log = LoggerFactory.getLogger(ResponseHeaderFilter.class);
 
-    @Inject javax.inject.Provider<Optional<Application>> app;
+    @Inject javax.inject.Provider<Application> app;
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response)throws IOException
@@ -72,21 +71,20 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
                 if (log.isWarnEnabled()) log.warn("Authorization is null, cannot write response header. Is {} registered?", AuthorizationFilter.class);
         }
         
-        if (getApplication().isPresent()) // if it's not present, Link headers might be forwarded by ProxyResourceBase
-        {
-            // add Link rel=ldt:base
-            if (getApplication().get().getBaseURI() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().get().getBaseURI(), LDT.base.getURI(), null));
-            // add Link rel=sd:endpoint
-            if (getApplication().get().getService() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
-            // add Link rel=ldt:ontology, if the ontology URI is specified
-            if (getApplication().get().getOntology() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getOntology().getURI()), LDT.ontology.getURI(), null));
-            // add Link rel=ac:stylesheet, if the stylesheet URI is specified
-            if (getApplication().get().getStylesheet() != null)
-                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().get().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
-        }
+        // Link headers might be forwarded by ProxyResourceBase
+
+        // add Link rel=ldt:base
+        if (getApplication().getBaseURI() != null)
+            response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().getBaseURI(), LDT.base.getURI(), null));
+        // add Link rel=sd:endpoint
+        if (getApplication().getService() != null)
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
+        // add Link rel=ldt:ontology, if the ontology URI is specified
+        if (getApplication().getOntology() != null)
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
+        // add Link rel=ac:stylesheet, if the stylesheet URI is specified
+        if (getApplication().getStylesheet() != null)
+            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
     }
 
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
@@ -108,7 +106,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         return null;
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
     }
