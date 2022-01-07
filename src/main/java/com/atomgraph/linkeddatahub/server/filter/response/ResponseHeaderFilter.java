@@ -17,15 +17,18 @@
 package com.atomgraph.linkeddatahub.server.filter.response;
 
 import com.atomgraph.client.vocabulary.AC;
+import com.atomgraph.client.vocabulary.LDT;
 import com.atomgraph.core.util.Link;
 import com.atomgraph.core.vocabulary.SD;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.filter.request.AuthorizationFilter;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
-import com.atomgraph.processor.vocabulary.LDT;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -71,22 +74,43 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
                 if (log.isWarnEnabled()) log.warn("Authorization is null, cannot write response header. Is {} registered?", AuthorizationFilter.class);
         }
         
-        // Link headers might be forwarded by ProxyResourceBase
-
-        // add Link rel=ldt:base
-        if (getApplication().getBaseURI() != null)
+        List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
+        // check whether Link rel=ldt:base is not already set. Link headers might be forwarded by ProxyResourceBase
+        if (getLinksByRel(linkValues, URI.create(LDT.base.getURI())).isEmpty())
+        {
+            // add Link rel=ldt:base
             response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().getBaseURI(), LDT.base.getURI(), null));
-        // add Link rel=sd:endpoint
-        if (getApplication().getService() != null)
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getService().getSPARQLEndpoint().getURI()), SD.endpoint.getURI(), null));
-        // add Link rel=ldt:ontology, if the ontology URI is specified
-        if (getApplication().getOntology() != null)
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
-        // add Link rel=ac:stylesheet, if the stylesheet URI is specified
-        if (getApplication().getStylesheet() != null)
-            response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+            // add Link rel=sd:endpoint.
+            // TO-DO: The external SPARQL endpoint URL is different from the internal one currently specified as sd:endpoint in the context dataset
+            response.getHeaders().add(HttpHeaders.LINK, new Link(request.getUriInfo().getBaseUriBuilder().path("sparql").build(), SD.endpoint.getURI(), null));
+            // add Link rel=ldt:ontology, if the ontology URI is specified
+            if (getApplication().getOntology() != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getOntology().getURI()), LDT.ontology.getURI(), null));
+            // add Link rel=ac:stylesheet, if the stylesheet URI is specified
+            if (getApplication().getStylesheet() != null)
+                response.getHeaders().add(HttpHeaders.LINK, new Link(URI.create(getApplication().getStylesheet().getURI()), AC.stylesheet.getURI(), null));
+        }
     }
 
+    protected List<Link> getLinksByRel(List<Object> linkValues, URI rel)
+    {
+        List relLinks = new ArrayList<>();
+        
+        if (linkValues != null) linkValues.forEach(linkValue -> {
+            try
+            {
+                Link link = Link.valueOf(linkValue.toString());
+                if (link.getHref().equals(rel)) relLinks.add(link);
+            }
+            catch (URISyntaxException ex)
+            {
+                // ignore invalid Link headers
+            }
+        });
+        
+        return relLinks;
+    }
+    
     protected Resource getResourceByPropertyValue(Model model, Property property, RDFNode value)
     {
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
