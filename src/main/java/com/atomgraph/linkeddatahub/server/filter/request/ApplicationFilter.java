@@ -79,13 +79,6 @@ public class ApplicationFilter implements ContainerRequestFilter
         }
         else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
-        // store the proxied URI in the request context
-//        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
-//        {
-//            URI requestURI = URI.create(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-//            request.setProperty(AC.uri.getURI(), requestURI);
-//        }
-
         // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
         Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getRequestUri());
         if (datasetResource != null)
