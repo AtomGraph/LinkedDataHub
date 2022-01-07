@@ -17,7 +17,7 @@
 
 # root admin
 
-<urn:linkeddatahub:apps/admin> a lapp:Application, lapp:ClientApplication, lapp:AdminApplication ;
+<urn:linkeddatahub:apps/admin> a lapp:Application, lapp:AdminApplication ;
     dct:title "LinkedDataHub admin" ;
     ldt:base <admin/> ;
     ldt:ontology <https://w3id.org/atomgraph/linkeddatahub/admin#> ;
@@ -27,7 +27,7 @@
 
 # root end-user
 
-<urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:ClientApplication, lapp:EndUserApplication ;
+<urn:linkeddatahub:apps/end-user> a lapp:Application, lapp:EndUserApplication ;
     dct:title "LinkedDataHub" ;
     ldt:base <> ;
     ldt:ontology <admin/model/ontologies/namespace/#> ;

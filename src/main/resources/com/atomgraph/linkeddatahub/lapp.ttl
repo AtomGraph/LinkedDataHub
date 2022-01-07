@@ -97,14 +97,6 @@
     rdfs:label "Application constructor" ;
     rdfs:isDefinedBy : .
 
-# client
-
-:ClientApplication a rdfs:Class, owl:Class ;
-    rdfs:subClassOf :Application ;
-    rdfs:label "Client application" ;
-    rdfs:comment "Application that acts as a Linked Data browser of itself and other LDT apps" ;
-    rdfs:isDefinedBy : .
-
 # end-user
 
 :EndUserApplication a rdfs:Class, owl:Class ;
