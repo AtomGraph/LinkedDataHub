@@ -27,7 +27,7 @@ content_type=$(curl -G --head -k -w "%{content_type}\n" -f -s -o /dev/null \
   --data-urlencode "accept=text/turtle" \
   "$END_USER_BASE_URL")
 
-[ "$content_type" = 'text/turtle;charset=UTF-8' ] || exit 1
+[ "$content_type" = 'text/turtle' ] || exit 1
 
 # check that ?accept URL param overrides Accept header and returns RDF/XML (use Chrome's default Accept value)
 
@@ -38,6 +38,6 @@ content_type=$(curl -G --head -k -w "%{content_type}\n" -f -s -o /dev/null \
   --data-urlencode "accept=application/rdf+xml" \
   "$END_USER_BASE_URL")
 
-[ "$content_type" = 'application/rdf+xml;charset=UTF-8' ] || exit 1
+[ "$content_type" = 'application/rdf+xml' ] || exit 1
 
 # TO-DO: try to actually parse the response as Turtle and RDF/XML?
