@@ -903,7 +903,7 @@ public class Application extends ResourceConfig
     
     public Resource matchDataset(Resource type, URI absolutePath)
     {
-        return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
+        return matchDataset(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
     public Resource matchDataset(Model appModel, Resource type, URI absolutePath)
