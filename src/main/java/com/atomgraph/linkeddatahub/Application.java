@@ -698,7 +698,7 @@ public class Application extends ResourceConfig
             @Override
             protected void configure()
             {
-                bindFactory(com.atomgraph.linkeddatahub.server.factory.DatasetFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Application>>() {}).
+                bindFactory(com.atomgraph.linkeddatahub.server.factory.DatasetFactory.class).to(new TypeLiteral<Optional<com.atomgraph.linkeddatahub.apps.model.Dataset>>() {}).
                 in(RequestScoped.class);
             }
         });
