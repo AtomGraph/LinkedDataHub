@@ -107,16 +107,15 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$acl:Agent[doc-available($apl:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
+    <!-- the query has to support services that do not belong to any app -->
     <xsl:variable name="app-query" as="xs:string">
-        DESCRIBE  ?app ?service
+        DESCRIBE  ?resource
         WHERE
-          { GRAPH ?appGraph
-              { ?app  &lt;&ldt;base&gt;     ?base
-                OPTIONAL
-                  { ?app &lt;&ldt;service&gt;  ?service
-                    GRAPH ?serviceGraph
-                      { ?service  &lt;&sd;endpoint&gt;  ?endpoint }
-                  }
+          { GRAPH ?graph
+              {
+                  { ?resource  &lt;&ldt;base&gt;     ?base }
+                  UNION
+                  { ?resource  &lt;&sd;endpoint&gt;  ?endpoint }
               }
           }
     </xsl:variable>
