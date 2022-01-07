@@ -124,17 +124,17 @@ public class SignUp extends GraphStoreImpl
     // TO-DO: move to AuthenticationExceptionMapper and handle as state instead of URI resource?
     @Inject
     public SignUp(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         
-        if (application.isEmpty() || !application.get().canAs(AdminApplication.class)) // we are supposed to be in the admin app
+        if (!application.canAs(AdminApplication.class)) // we are supposed to be in the admin app
             throw new IllegalStateException("Application cannot be cast to apl:AdminApplication");
         
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application.get();
+        this.application = application;
         
         try (InputStream countries = servletConfig.getServletContext().getResourceAsStream(COUNTRY_DATASET_PATH))
         {

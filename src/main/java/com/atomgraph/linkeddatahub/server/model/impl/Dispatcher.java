@@ -24,7 +24,6 @@ import com.atomgraph.linkeddatahub.resource.RequestAccess;
 import com.atomgraph.linkeddatahub.resource.SignUp;
 import com.atomgraph.linkeddatahub.resource.Skolemize;
 import com.atomgraph.linkeddatahub.resource.graph.Item;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
@@ -42,24 +41,22 @@ public class Dispatcher
     
     private static final Logger log = LoggerFactory.getLogger(Dispatcher.class);
 
-    private final Optional<com.atomgraph.linkeddatahub.apps.model.Application> application;
     private final UriInfo uriInfo;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, @Context UriInfo uriInfo)
+    public Dispatcher(@Context UriInfo uriInfo)
     {
-        this.application = application;
         this.uriInfo = uriInfo;
     }
     
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getApplication().isEmpty())
-        {
-            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getUriInfo().getRequestUri());
-            return ExternalProxyResourceBase.class;
-        }
+//        if (getApplication().isEmpty())
+//        {
+//            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getUriInfo().getRequestUri());
+//            return ExternalProxyResourceBase.class;
+//        }
 
         return getResourceClass();
     }
@@ -151,11 +148,6 @@ public class Dispatcher
     public Class getResourceClass()
     {
         return Item.class;
-    }
-    
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
-    {
-        return application;
     }
     
     public UriInfo getUriInfo()

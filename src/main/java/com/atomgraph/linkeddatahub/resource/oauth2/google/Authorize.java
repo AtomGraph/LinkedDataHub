@@ -62,11 +62,11 @@ public class Authorize // extends ResourceBase
     
     @Inject
     public Authorize(@Context UriInfo uriInfo, 
-            Optional<Service> service, Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology,
+            Optional<Service> service, com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology,
                 com.atomgraph.linkeddatahub.Application system)
     {
         this.uriInfo = uriInfo;
-        this.application = application.get();
+        this.application = application;
         this.ontology = ontology.get();
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
         clientID = (String)system.getProperty(Google.clientID.getURI());

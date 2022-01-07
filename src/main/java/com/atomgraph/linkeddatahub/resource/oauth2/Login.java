@@ -105,12 +105,12 @@ public class Login extends GraphStoreImpl
     
     @Inject
     public Login(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes, @Context HttpHeaders httpHeaders,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.httpHeaders = httpHeaders;
-        this.application = application.get();
+        this.application = application;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
         if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));

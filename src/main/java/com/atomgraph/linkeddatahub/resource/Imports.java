@@ -46,7 +46,6 @@ import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.NodeIterator;
-import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.slf4j.Logger;
@@ -67,13 +66,13 @@ public class Imports extends GraphStoreImpl
 
     @Inject
     public Imports(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<Service> service,
+            com.atomgraph.linkeddatahub.apps.model.Application application, Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
         super(request, uriInfo, mediaTypes, ontology, service, providers, system);
         this.uri = uriInfo.getAbsolutePath();
-        this.application = application.get();
+        this.application = application;
         this.dataManager = dataManager;
         if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
     }

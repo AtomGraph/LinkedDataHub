@@ -52,7 +52,7 @@ public class Namespace extends GraphStoreImpl
     
     @Inject
     public Namespace(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, Optional<Ontology> ontology, Optional<Service> service,
+            Optional<Ontology> ontology, Optional<Service> service,
             DataManager dataManager,
             @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
     {
@@ -74,7 +74,6 @@ public class Namespace extends GraphStoreImpl
         
         return getResponse(model, getURI());
     }
-    
     
     public URI getURI()
     {

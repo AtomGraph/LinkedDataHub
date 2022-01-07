@@ -81,7 +81,6 @@ public class ApplicationFilter implements ContainerRequestFilter
         else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
         final URI requestURI, matchURI;
-        // there might also be a server app (which might be equal to the client app)
         if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             // override request URI using ?uri query param
@@ -104,7 +103,7 @@ public class ApplicationFilter implements ContainerRequestFilter
                 throw new IllegalStateException("Resource <" + datasetResource + "> cannot be cast to lapp:Dataset");
 
             com.atomgraph.linkeddatahub.apps.model.Dataset dataset = datasetResource.as(com.atomgraph.linkeddatahub.apps.model.Dataset.class);
-            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a Dataset <{}>", requestURI, dataset.getURI());
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a lapp:Dataset <{}>", requestURI, dataset.getURI());
             request.setProperty(LAPP.Dataset.getURI(), Optional.of(dataset));
         }
         else

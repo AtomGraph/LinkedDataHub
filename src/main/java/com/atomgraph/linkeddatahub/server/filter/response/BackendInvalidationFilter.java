@@ -20,7 +20,6 @@ import com.atomgraph.linkeddatahub.apps.model.AdminApplication;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
@@ -44,13 +43,11 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 {
 
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<com.atomgraph.linkeddatahub.apps.model.Application>> app;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext resp) throws IOException
     {
-        if (getApplication().isEmpty()) return;
-        if (!getApplication().get().canAs(EndUserApplication.class) && !getApplication().get().canAs(AdminApplication.class)) return; // skip "primitive" apps
         if (getAdminApplication().getService().getProxy() == null) return;
         
         if (req.getMethod().equals(HttpMethod.POST) || req.getMethod().equals(HttpMethod.PUT) || req.getMethod().equals(HttpMethod.DELETE) || req.getMethod().equals(HttpMethod.PATCH))
@@ -68,11 +65,11 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
             // Varnish VCL BANs req.url after 200/201/204 responses
             
             // ban parent resource URIs in order to avoid stale children data in containers
-            if (!req.getUriInfo().getAbsolutePath().equals(getApplication().get().getBaseURI()))
+            if (!req.getUriInfo().getAbsolutePath().equals(getApplication().getBaseURI()))
             {
                 URI parentURI = req.getUriInfo().getAbsolutePath().relativize(URI.create(".."));
-                ban(getApplication().get().getService().getProxy(), parentURI.toString()).close();
-                ban(getApplication().get().getService().getProxy(), getApplication().get().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
+                ban(getApplication().getService().getProxy(), parentURI.toString()).close();
+                ban(getApplication().getService().getProxy(), getApplication().getBaseURI().relativize(parentURI).toString()).close(); // URIs can be relative in queries
             }
         }
     }
@@ -89,13 +86,13 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
 
     public AdminApplication getAdminApplication()
     {
-        if (getApplication().get().canAs(EndUserApplication.class))
-            return getApplication().get().as(EndUserApplication.class).getAdminApplication();
+        if (getApplication().canAs(EndUserApplication.class))
+            return getApplication().as(EndUserApplication.class).getAdminApplication();
         else
-            return getApplication().get().as(AdminApplication.class);
+            return getApplication().as(AdminApplication.class);
     }
     
-    public Optional<com.atomgraph.linkeddatahub.apps.model.Application> getApplication()
+    public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
         return app.get();
     }
