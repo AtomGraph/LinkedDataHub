@@ -36,7 +36,6 @@ import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +66,6 @@ public class ApplicationFilter implements ContainerRequestFilter
                 !clientAppResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
             throw new IllegalStateException("Resource with ldt:base <" + clientAppResource.getPropertyResourceValue(LDT.base) + "> cannot be cast to lapp:Application");
 
-        clientAppResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
         com.atomgraph.linkeddatahub.apps.model.Application clientApp = clientAppResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
         request.setProperty(APL.client.getURI(), new Client(clientApp)); // wrap into a helper class so it doesn't interfere with injection of Application
 
@@ -107,8 +105,6 @@ public class ApplicationFilter implements ContainerRequestFilter
                     !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.EndUserApplication.class) &&
                     !appResource.canAs(com.atomgraph.linkeddatahub.apps.model.AdminApplication.class))
                 throw new IllegalStateException("Resource with ldt:base <" + appResource.getPropertyResourceValue(LDT.base) + "> cannot be cast to lapp:Application");
-
-            appResource.addProperty(RDF.type, LAPP.Application); // without rdf:type, cannot cast to Application
 
             com.atomgraph.linkeddatahub.apps.model.Application serverApp = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
             if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a remote (server) Application <{}>", requestURI, serverApp.getURI());
