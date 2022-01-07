@@ -76,7 +76,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         
         List<Object> linkValues = response.getHeaders().get(HttpHeaders.LINK);
         // check whether Link rel=ldt:base is not already set. Link headers might be forwarded by ProxyResourceBase
-        if (getLinksByRel(linkValues, URI.create(LDT.base.getURI())).isEmpty())
+        if (getLinksByRel(linkValues, LDT.base.getURI()).isEmpty())
         {
             // add Link rel=ldt:base
             response.getHeaders().add(HttpHeaders.LINK, new Link(getApplication().getBaseURI(), LDT.base.getURI(), null));
@@ -92,7 +92,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
         }
     }
 
-    protected List<Link> getLinksByRel(List<Object> linkValues, URI rel)
+    protected List<Link> getLinksByRel(List<Object> linkValues, String rel)
     {
         List relLinks = new ArrayList<>();
         
@@ -100,7 +100,7 @@ public class ResponseHeaderFilter implements ContainerResponseFilter
             try
             {
                 Link link = Link.valueOf(linkValue.toString());
-                if (link.getHref().equals(rel)) relLinks.add(link);
+                if (link.getRel().equals(rel)) relLinks.add(link);
             }
             catch (URISyntaxException ex)
             {
