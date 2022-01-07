@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -59,7 +58,6 @@ public class XsltExecutableFilter implements ContainerResponseFilter
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApplication;
-    @Inject javax.inject.Provider<Optional<Application>> application;
     
     @Context UriInfo uriInfo;
     
@@ -149,12 +147,6 @@ public class XsltExecutableFilter implements ContainerResponseFilter
             WebTarget webResource = getClient().target(uri);
             Invocation.Builder builder = webResource.request();
 
-            /*
-            List<String> authHeaders = getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION);
-            if (authHeaders != null && !authHeaders.isEmpty())
-                builder = webResource.header(HttpHeaders.AUTHORIZATION, authHeaders.get(0));
-            */
-
             try (Response cr = builder.accept(MediaType.TEXT_XSL_TYPE).get())
             {
                 if (!cr.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL))
@@ -201,12 +193,7 @@ public class XsltExecutableFilter implements ContainerResponseFilter
     {
         return clientApplication.get();
     }
-    
-    public Optional<Application> getApplication()
-    {
-        return application.get();
-    }
-    
+
     public UriInfo getUriInfo()
     {
         return uriInfo;

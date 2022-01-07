@@ -28,7 +28,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class Dispatcher
     private final UriInfo uriInfo;
     
     @Inject
-    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, @Context UriInfo uriInfo, @Context SecurityContext securityContext)
+    public Dispatcher(Optional<com.atomgraph.linkeddatahub.apps.model.Application> application, @Context UriInfo uriInfo)
     {
         this.application = application;
         this.uriInfo = uriInfo;
@@ -60,12 +59,6 @@ public class Dispatcher
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getUriInfo().getRequestUri());
             return ExternalProxyResourceBase.class;
-        }
-        
-        if (getApplication().get().getService() == null)
-        {
-            if (log.isDebugEnabled()) log.debug("Application has no Service, returning Linked Data");
-            return ProxyResourceBase.class;
         }
 
         return getResourceClass();

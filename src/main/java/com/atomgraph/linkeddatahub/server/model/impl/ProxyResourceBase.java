@@ -39,6 +39,7 @@ import javax.ws.rs.ext.Providers;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
+@Deprecated
 public class ProxyResourceBase extends ExternalProxyResourceBase
 {
 
@@ -50,7 +51,7 @@ public class ProxyResourceBase extends ExternalProxyResourceBase
             DataManager dataManager, Optional<AgentContext> agentContext, Providers providers)
     {
         super(uriInfo, request, httpHeaders, mediaTypes, securityContext,
-                application.get().getProxiedURI(uriInfo.getAbsolutePath()), null, accept, mode,
+                uriInfo.getAbsolutePath(), null, accept, mode,
                 system, httpServletRequest, dataManager, agentContext, providers);
     }
     

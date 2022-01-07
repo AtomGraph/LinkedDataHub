@@ -18,21 +18,29 @@ package com.atomgraph.linkeddatahub.resource.graph;
 
 import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
+import com.atomgraph.core.client.LinkedDataClient;
 import com.atomgraph.core.model.EndpointAccessor;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.Patchable;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
+import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -41,11 +49,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ResIterator;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 
 /**
@@ -71,6 +83,17 @@ public class Item extends GraphStoreImpl implements Patchable
     @GET
     public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        // if there are datasets in the system context model what match the request URI, return data from their proxied URI
+        Resource dataset = getLongestURIDataset(getLengthMap(getRelativeDatasets(getSystem().getContextModel(), VoID.Dataset, getURI())));
+        if (dataset != null)
+        {
+            Resource proxy = dataset.getPropertyResourceValue(LAPP.proxy);
+            if (proxy == null) throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + dataset.getURI() + "> has no lapp:prefix value"));
+            
+            URI proxiedURI = getProxiedURI(URI.create(proxy.getURI()), getURI());
+            return getResponse(LinkedDataClient.create(getSystem().getClient().target(proxiedURI), getMediaTypes()).get(), getURI());
+        }
+        
         return super.get(false, getURI());
     }
     
@@ -140,6 +163,71 @@ public class Item extends GraphStoreImpl implements Patchable
         }
 
         return super.getWritableMediaTypes(clazz);
+    }
+    
+    public Resource getLongestURIDataset(Map<Integer, Resource> lengthMap)
+    {
+        // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
+        TreeMap<Integer, Resource> datasets = new TreeMap(lengthMap);
+        if (!datasets.isEmpty()) return datasets.lastEntry().getValue();
+        
+        return null;
+    }
+
+    public Map<URI, Resource> getRelativeDatasets(Model model, Resource type, URI absolutePath)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+        if (type == null) throw new IllegalArgumentException("Resource cannot be null");
+        if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
+
+        Map<URI, Resource> datasets = new HashMap<>();
+        
+        ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
+        try
+        {
+            while (it.hasNext())
+            {
+                Resource dataset = it.next();
+                
+                if (!dataset.hasProperty(LAPP.prefix))
+                    throw new InternalServerErrorException(new IllegalStateException("Dataset resource <" + dataset.getURI() + "> has no lapp:prefix value"));
+                
+                URI prefix = URI.create(dataset.getPropertyResourceValue(LAPP.prefix).getURI());
+                URI relative = prefix.relativize(absolutePath);
+                if (!relative.isAbsolute() && !relative.toString().equals("")) datasets.put(prefix, dataset);
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        return datasets;
+    }
+    
+    public Map<Integer, Resource> getLengthMap(Map<URI, Resource> apps)
+    {
+        if (apps == null) throw new IllegalArgumentException("Map cannot be null");
+
+        Map<Integer, Resource> lengthMap = new HashMap<>();
+        
+        Iterator<Map.Entry<URI, Resource>> it = apps.entrySet().iterator();
+        while (it.hasNext())
+        {
+            Map.Entry<URI, Resource> entry = it.next();
+            lengthMap.put(entry.getKey().toString().length(), entry.getValue());
+        }
+        
+        return lengthMap;
+    }
+    
+    public URI getProxiedURI(URI proxy, URI uri)
+    {
+        return UriBuilder.fromUri(uri).
+            scheme(proxy.getScheme()).
+            host(proxy.getHost()).
+            port(proxy.getPort()).
+            build();
     }
     
     public URI getURI()

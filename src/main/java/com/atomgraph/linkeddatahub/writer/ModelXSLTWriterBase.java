@@ -85,7 +85,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
 
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Client<Application>> clientApplication;
-    @Inject javax.inject.Provider<Optional<Application>> application;
     @Inject javax.inject.Provider<Optional<Ontology>> ontology;
     @Inject javax.inject.Provider<DataManager> dataManager;
     @Inject javax.inject.Provider<XsltExecutableSupplier> xsltExecSupplier;
@@ -213,11 +212,6 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
     public SecurityContext getSecurityContext()
     {
         return securityContext;
-    }
-    
-    public javax.inject.Provider<Optional<Application>> getApplication()
-    {
-        return application;
     }
     
     public javax.inject.Provider<Optional<Ontology>> getOntology()

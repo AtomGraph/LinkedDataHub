@@ -20,7 +20,6 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
@@ -29,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 /**
@@ -94,29 +92,5 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         return getPropertyResourceValue(AC.stylesheet);
     }
-    
-    @Override
-    public Resource getProxy()
-    {
-        return getPropertyResourceValue(LAPP.proxy);
-    }
-    
-    @Override
-    public URI getProxiedURI(final URI uri)
-    {
-        // if service proxyURI is set, change the URI host/port to proxyURI host/port
-        if (getProxy() != null)
-        {
-            final URI proxyURI = URI.create(getProxy().getURI());
-            
-            return UriBuilder.fromUri(uri).
-                    scheme(proxyURI.getScheme()).
-                    host(proxyURI.getHost()).
-                    port(proxyURI.getPort()).
-                    build();
-        }
-        
-        return uri;
-    }
-    
+
 }

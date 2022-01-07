@@ -40,8 +40,4 @@ public interface Application extends Resource, com.atomgraph.processor.model.App
 
     Resource getStylesheet();
     
-    Resource getProxy();
-    
-    URI getProxiedURI(URI uri);
-    
 }

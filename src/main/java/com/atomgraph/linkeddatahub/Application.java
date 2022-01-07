@@ -111,7 +111,6 @@ import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.APL;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.Google;
-import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import com.atomgraph.linkeddatahub.writer.factory.ModeFactory;
 import com.atomgraph.processor.vocabulary.AP;
@@ -201,11 +200,13 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpContext;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.apache.jena.riot.system.ParserProfile;
 import org.apache.jena.riot.system.RiotLib;
+import org.apache.jena.sparql.graph.GraphReadOnly;
 import org.apache.jena.vocabulary.LocationMappingVocab;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.hk2.api.TypeLiteral;
@@ -852,7 +853,7 @@ public class Application extends ResourceConfig
 
     public Resource matchApp(Resource type, URI absolutePath)
     {
-        return matchApp(getContextDataset().getDefaultModel(), type, absolutePath);
+        return matchApp(getContextModel(), type, absolutePath); // make sure we return an immutable model
     }
     
     public Resource matchApp(Model appModel, Resource type, URI absolutePath)
@@ -863,8 +864,8 @@ public class Application extends ResourceConfig
     public Resource getLongestURIApp(Map<Integer, Resource> lengthMap)
     {
         // select the app with the longest URI match, as the model contains a pair of EndUserApplication/AdminApplication
-        TreeMap<Integer, Resource> appMap = new TreeMap(lengthMap);
-        if (!appMap.isEmpty()) return appMap.lastEntry().getValue();
+        TreeMap<Integer, Resource> apps = new TreeMap(lengthMap);
+        if (!apps.isEmpty()) return apps.lastEntry().getValue();
         
         return null;
     }
@@ -875,7 +876,7 @@ public class Application extends ResourceConfig
         if (type == null) throw new IllegalArgumentException("Resource cannot be null");
         if (absolutePath == null) throw new IllegalArgumentException("URI cannot be null");
 
-        Map<URI, Resource> appMap = new HashMap<>();
+        Map<URI, Resource> apps = new HashMap<>();
         
         ResIterator it = model.listSubjectsWithProperty(RDF.type, type);
         try
@@ -884,21 +885,12 @@ public class Application extends ResourceConfig
             {
                 Resource app = it.next();
                 
-                if (!app.hasProperty(LDT.base) && !app.hasProperty(LAPP.prefix))
-                    throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has neither ldt:base nor lapp:prefix"));
+                if (!app.hasProperty(LDT.base))
+                    throw new InternalServerErrorException(new IllegalStateException("Application resource <" + app.getURI() + "> has no ldt:base value"));
                 
-                if (app.hasProperty(LDT.base)) // ldt:base
-                {
-                    URI base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
-                    URI relative = base.relativize(absolutePath);
-                    if (!relative.isAbsolute()) appMap.put(base, app);
-                }
-                else // lapp:prefix
-                {
-                    URI prefix = URI.create(app.getPropertyResourceValue(LAPP.prefix).getURI());
-                    URI relative = prefix.relativize(absolutePath);
-                    if (!relative.isAbsolute() && !relative.toString().equals("")) appMap.put(prefix, app);
-                }
+                URI base = URI.create(app.getPropertyResourceValue(LDT.base).getURI());
+                URI relative = base.relativize(absolutePath);
+                if (!relative.isAbsolute()) apps.put(base, app);
             }
         }
         finally
@@ -906,7 +898,7 @@ public class Application extends ResourceConfig
             it.close();
         }
 
-        return appMap;
+        return apps;
     }
     
     public Map<Integer, Resource> getLengthMap(Map<URI, Resource> apps)
@@ -1173,9 +1165,14 @@ public class Application extends ResourceConfig
         return uploadRoot;
     }
     
-    public Dataset getContextDataset()
+    protected Dataset getContextDataset()
     {
         return contextDataset;
+    }
+
+    public Model getContextModel()
+    {
+        return ModelFactory.createModelForGraph(new GraphReadOnly(getContextDataset().getDefaultModel().getGraph()));
     }
 
     public boolean isInvalidateCache()

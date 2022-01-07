@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.writer.factory;
 
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.util.LocationMapper;
 import javax.ws.rs.core.Context;
@@ -27,7 +26,6 @@ import com.atomgraph.client.util.DataManager;
 import com.atomgraph.linkeddatahub.writer.impl.DataManagerImpl;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.client.Client;
@@ -58,7 +56,6 @@ public class DataManagerFactory implements Factory<DataManager>
     
     @Inject MediaTypes mediaTypes;
     @Inject com.atomgraph.linkeddatahub.Application system;
-    @Inject javax.inject.Provider<Optional<Application>> application;
     
     @Override
     public DataManager provide()
@@ -74,14 +71,12 @@ public class DataManagerFactory implements Factory<DataManager>
     public DataManager getDataManager()
     {
         return getDataManager(LocationMapper.get(), getClient(), getMediaTypes(),
-                isPreemptiveAuth(), isResolvingUncached(),
-                getApplication().get().orElse(null), getSecurityContext(),
+                isPreemptiveAuth(), isResolvingUncached(), getSecurityContext(),
                 URI.create(getHttpServletRequest().getRequestURL().toString()).resolve(getHttpServletRequest().getContextPath() + "/"));
     }
     
     public DataManager getDataManager(LocationMapper mapper, Client client, MediaTypes mediaTypes,
             boolean preemptiveAuth, boolean resolvingUncached,
-            Application application,
             SecurityContext securityContext,
             URI rootContextURI)
     {
@@ -93,11 +88,6 @@ public class DataManagerFactory implements Factory<DataManager>
  
         if (log.isTraceEnabled()) log.trace("DataManager LocationMapper: {}", ((FileManager)dataManager).getLocationMapper());
         return dataManager;
-    }
-    
-    public javax.inject.Provider<Optional<Application>> getApplication()
-    {
-        return application;
     }
     
     public MediaTypes getMediaTypes()
