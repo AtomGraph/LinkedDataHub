@@ -20,7 +20,6 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.linkeddatahub.writer.Mode;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +30,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +63,7 @@ public class ApplicationFilter implements ContainerRequestFilter
 
         com.atomgraph.linkeddatahub.apps.model.Application app = appResource.as(com.atomgraph.linkeddatahub.apps.model.Application.class);
         request.setProperty(LAPP.Application.getURI(), app); // wrap into a helper class so it doesn't interfere with injection of Application
+        request.setRequestUri(app.getBaseURI(), request.getUriInfo().getRequestUri()); // there's always ldt:base
 
         // override "Accept" header using then ?accept= param value. TO-DO: move to a separate ContainerRequestFilter?
         // has to go before ?uri logic because that will change the UriInfo
@@ -80,22 +79,15 @@ public class ApplicationFilter implements ContainerRequestFilter
         }
         else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
-        final URI requestURI, matchURI;
-        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
-        {
-            // override request URI using ?uri query param
-            requestURI = URI.create(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
-            matchURI = UriBuilder.fromUri(requestURI).replaceQuery(null).fragment(null).build(); // strip query parameters and fragment
-        }
-        else
-        {
-            requestURI = request.getUriInfo().getRequestUri();
-            matchURI = requestURI;
-        }
-        request.setRequestUri(app.getBaseURI(), requestURI); // there's always ldt:base
+        // store the proxied URI in the request context
+//        if (request.getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+//        {
+//            URI requestURI = URI.create(request.getUriInfo().getQueryParameters().getFirst(AC.uri.getLocalName()));
+//            request.setProperty(AC.uri.getURI(), requestURI);
+//        }
 
         // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
-        Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, matchURI);
+        Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getRequestUri());
         if (datasetResource != null)
         {
             // instead of InfModel, do faster explicit checks for subclasses and add rdf:type
@@ -103,12 +95,12 @@ public class ApplicationFilter implements ContainerRequestFilter
                 throw new IllegalStateException("Resource <" + datasetResource + "> cannot be cast to lapp:Dataset");
 
             com.atomgraph.linkeddatahub.apps.model.Dataset dataset = datasetResource.as(com.atomgraph.linkeddatahub.apps.model.Dataset.class);
-            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a lapp:Dataset <{}>", requestURI, dataset.getURI());
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has matched a lapp:Dataset <{}>", request.getUriInfo().getRequestUri(), dataset.getURI());
             request.setProperty(LAPP.Dataset.getURI(), Optional.of(dataset));
         }
         else
         {
-            if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any lapp:Dataset", requestURI);
+            if (log.isDebugEnabled()) log.debug("Request URI <{}> has not matched any lapp:Dataset", request.getUriInfo().getRequestUri());
             request.setProperty(LAPP.Dataset.getURI(), Optional.empty());
         }
     }

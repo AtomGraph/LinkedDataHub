@@ -57,10 +57,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
+public class ProxyResourceBase extends com.atomgraph.client.model.impl.ProxyResourceBase
 {
 
-    private static final Logger log = LoggerFactory.getLogger(ExternalProxyResourceBase.class);
+    private static final Logger log = LoggerFactory.getLogger(ProxyResourceBase.class);
 
     private final UriInfo uriInfo;
     private final DataManager dataManager;
@@ -68,7 +68,7 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
     private final Providers providers;
 
     @Inject
-    public ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    public ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)
     {
@@ -80,7 +80,7 @@ public class ExternalProxyResourceBase extends com.atomgraph.client.model.impl.P
                 system, httpServletRequest, dataManager, agentContext, providers);
     }
     
-    protected ExternalProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
+    protected ProxyResourceBase(@Context UriInfo uriInfo, @Context Request request, @Context HttpHeaders httpHeaders, MediaTypes mediaTypes, @Context SecurityContext securityContext,
             @QueryParam("uri") URI uri, @QueryParam("endpoint") URI endpoint, @QueryParam("accept") MediaType accept, @QueryParam("mode") URI mode,
             com.atomgraph.linkeddatahub.Application system, @Context HttpServletRequest httpServletRequest, DataManager dataManager, Optional<AgentContext> agentContext,
             @Context Providers providers)

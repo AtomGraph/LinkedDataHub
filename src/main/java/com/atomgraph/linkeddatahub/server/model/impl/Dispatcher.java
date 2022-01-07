@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.model.impl;
 
+import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.resource.Add;
 import com.atomgraph.linkeddatahub.resource.Clone;
 import com.atomgraph.linkeddatahub.resource.Imports;
@@ -52,11 +53,11 @@ public class Dispatcher
     @Path("{path: .*}")
     public Object getSubResource()
     {
-//        if (getApplication().isEmpty())
-//        {
-//            if (log.isDebugEnabled()) log.debug("No Application matched request URI '{}', dispatching to ExternalProxyResourceBase", getUriInfo().getRequestUri());
-//            return ExternalProxyResourceBase.class;
-//        }
+        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
+        {
+            if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getURI()));
+            return ProxyResourceBase.class;
+        }
 
         return getResourceClass();
     }
