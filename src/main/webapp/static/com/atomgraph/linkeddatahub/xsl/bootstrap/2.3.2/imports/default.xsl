@@ -382,7 +382,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="template" as="element()*"/>
         <xsl:param name="cloneable" select="false()" as="xs:boolean"/>
         <xsl:param name="types" select="../rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="required" select="exists(document(ac:document-uri($types))/key('resources', key('resources', $types)/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = $this])" as="xs:boolean"/>
+        <xsl:param name="required" select="exists(for $type in $types return (if (doc-available(ac:document-uri($type))) then document(ac:document-uri($type))/key('resources', key('resources', $types)/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = $this] else ()))" as="xs:boolean"/>
         <xsl:param name="id" select="generate-id()" as="xs:string"/>
         <xsl:param name="for" select="generate-id((node() | @rdf:resource | @rdf:nodeID)[1])" as="xs:string"/>
         <xsl:param name="class" select="concat('control-group', if ($error) then ' error' else (), if ($required) then ' required' else ())" as="xs:string?"/>
