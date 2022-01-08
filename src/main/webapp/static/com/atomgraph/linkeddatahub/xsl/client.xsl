@@ -1503,7 +1503,9 @@ WHERE
         <xsl:param name="state" as="item()?"/>
 
         <xsl:message>
-            onContentLoad $uri: <xsl:value-of select="$uri"/> $content-uri: <xsl:value-of select="$content-uri"/> $container-id: <xsl:value-of select="$container-id"/>
+            onContentLoad
+            $uri: <xsl:value-of select="$uri"/> $content-uri: <xsl:value-of select="$content-uri"/> $container-id: <xsl:value-of select="$container-id"/>
+            ?status: <xsl:value-of select="?status"/> exists(key('resources', $content-uri, ?body)): <xsl:value-of select="exists(key('resources', $content-uri, ?body))"/>
         </xsl:message>
         
         <xsl:choose>
