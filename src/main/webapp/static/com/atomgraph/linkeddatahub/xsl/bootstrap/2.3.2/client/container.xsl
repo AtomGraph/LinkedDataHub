@@ -286,7 +286,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="content" as="element()?"/>
         <xsl:param name="select-string" as="xs:string"/>
         <xsl:param name="select-xml" as="document-node()"/>
-        <xsl:param name="service" as="element()?"/>
+        <!--<xsl:param name="service" as="element()?"/>-->
+        <xsl:param name="endpoint" select="xs:anyURI"/>
         <xsl:param name="focus-var-name" as="xs:string"/>
         
         <!-- wrap SELECT into a DESCRIBE -->
@@ -296,7 +297,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="query-json-string" select="xml-to-json($query-xml)" as="xs:string"/>
         <xsl:variable name="query-json" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'parse', [ $query-json-string ])"/>
         <xsl:variable name="query-string" select="ixsl:call(ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromQuery', [ $query-json ]), 'toString', [])" as="xs:string"/>
-        <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), ac:endpoint(), $ac:endpoint)[1])" as="xs:anyURI"/>
+        <!--<xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()), ac:endpoint(), $ac:endpoint)[1])" as="xs:anyURI"/>-->
         <!-- TO-DO: unify dydra: and dydra-urn: ? -->
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
@@ -903,7 +904,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="service" select="$service"/>
+            <!--<xsl:with-param name="service" select="$service"/>-->
+            <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -949,7 +951,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="service" select="$service"/>
+            <!--<xsl:with-param name="service" select="$service"/>-->
+            <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -994,7 +997,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="service" select="$service"/>
+            <!--<xsl:with-param name="service" select="$service"/>-->
+            <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
         </xsl:call-template>
     </xsl:template>
     
@@ -1038,7 +1042,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="service" select="$service"/>
+            <!--<xsl:with-param name="service" select="$service"/>-->
+            <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
         </xsl:call-template>
         
         <!-- toggle the arrow direction -->
@@ -1180,7 +1185,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="service" select="$service"/>
+            <!--<xsl:with-param name="service" select="$service"/>-->
+            <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
         </xsl:call-template>
     </xsl:template>
 
@@ -1223,7 +1229,8 @@ exclude-result-prefixes="#all"
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
             <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
-            <xsl:with-param name="service" select="$service"/>
+            <!--<xsl:with-param name="service" select="$service"/>-->
+            <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
         </xsl:call-template>
     </xsl:template>
 
