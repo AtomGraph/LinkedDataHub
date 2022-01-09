@@ -706,26 +706,25 @@ WHERE
             <!-- store document under window.LinkedDataHub[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
+            <!-- load breadcrumbs -->
+            <xsl:if test="id('breadcrumb-nav', ixsl:page())">
+                <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                    <ul class="breadcrumb pull-left">
+                        <!-- list items will be injected by apl:BreadCrumbResourceLoad -->
+                    </ul>
+<!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
+                        <span class="label label-info pull-left">External</span>
+                    </xsl:if>-->
+                </xsl:result-document>
+
+                <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                    <xsl:with-param name="uri" select="$uri"/>
+                </xsl:call-template>
+            </xsl:if>
+                
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
-                <!-- breadcrumbs -->
-                <xsl:if test="id('breadcrumb-nav', ixsl:page())">
-                    <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                        <ul class="breadcrumb pull-left">
-                            <!-- list items will be injected by apl:BreadCrumbResourceLoad -->
-                        </ul>
-<!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
-                            <span class="label label-info pull-left">External</span>
-                        </xsl:if>-->
-                    </xsl:result-document>
-
-                    <xsl:call-template name="apl:BreadCrumbResourceLoad">
-                        <xsl:with-param name="id" select="'breadcrumb-nav'"/>
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <!--<xsl:with-param name="leaf" select="false()"/>-->
-                    </xsl:call-template>
-                </xsl:if>
-
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->
                 <xsl:variable name="is-item" select="exists(sioc:has_container/@rdf:resource)" as="xs:boolean"/>
                 <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'create-action')]/..">
