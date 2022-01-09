@@ -699,29 +699,29 @@ WHERE
 
         <xsl:message>apl:LoadedRDFDocument $uri: <xsl:value-of select="$uri"/></xsl:message>
 
+        <!-- load breadcrumbs -->
+        <xsl:if test="id('breadcrumb-nav', ixsl:page())">
+            <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                <ul class="breadcrumb pull-left">
+                    <!-- list items will be injected by apl:BreadCrumbResourceLoad -->
+                </ul>
+<!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
+                    <span class="label label-info pull-left">External</span>
+                </xsl:if>-->
+            </xsl:result-document>
+
+            <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                <xsl:with-param name="uri" select="$uri"/>
+            </xsl:call-template>
+        </xsl:if>
+
         <xsl:for-each select="?body">
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
             <xsl:variable name="content-uri" select="xs:anyURI(translate($uri, '.', '-'))" as="xs:anyURI"/>
             <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <!-- store document under window.LinkedDataHub[$content-uri].results -->
             <ixsl:set-property name="results" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-
-            <!-- load breadcrumbs -->
-            <xsl:if test="id('breadcrumb-nav', ixsl:page())">
-                <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
-                    <ul class="breadcrumb pull-left">
-                        <!-- list items will be injected by apl:BreadCrumbResourceLoad -->
-                    </ul>
-<!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
-                        <span class="label label-info pull-left">External</span>
-                    </xsl:if>-->
-                </xsl:result-document>
-
-                <xsl:call-template name="apl:BreadCrumbResourceLoad">
-                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
-                    <xsl:with-param name="uri" select="$uri"/>
-                </xsl:call-template>
-            </xsl:if>
                 
             <!-- focus on current resource -->
             <xsl:for-each select="key('resources', $uri)">
