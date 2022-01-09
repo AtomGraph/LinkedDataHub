@@ -1694,7 +1694,7 @@ WHERE
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
                     <xsl:with-param name="href" select="apl:href($ldt:base, $uri)"/>
-                    <xsl:with-param name="title" select="title"/>
+                    <xsl:with-param name="title" select="?body/html/title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:if>
