@@ -227,6 +227,10 @@ WHERE
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))"/>
     </xsl:function>
 
+    <xsl:function name="ac:endpoint" as="xs:anyURI">
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.endpoint')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint')) else ()"/>
+    </xsl:function>
+
     <xsl:function name="apl:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -688,11 +692,11 @@ WHERE
         </xsl:for-each>
     </xsl:template>-->
         
-    <xsl:template name="onRDFDocumentLoad">
+    <xsl:template name="apl:LoadedRDFDocument">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
 
-        <xsl:message>onRDFDocumentLoad $uri: <xsl:value-of select="$uri"/></xsl:message>
+        <xsl:message>apl:LoadedRDFDocument $uri: <xsl:value-of select="$uri"/></xsl:message>
 
         <xsl:for-each select="?body">
             <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
@@ -952,7 +956,7 @@ WHERE
 
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                <xsl:call-template name="onRDFDocumentLoad">
+                <xsl:call-template name="apl:LoadedRDFDocument">
                     <xsl:with-param name="uri" select="$uri"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -1554,8 +1558,6 @@ WHERE
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:param name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
-        <xsl:param name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
@@ -1565,26 +1567,19 @@ WHERE
             $container/@id: <xsl:value-of select="$container/@id"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ?status: <xsl:value-of select="?status"/>
-            $endpoint: <xsl:value-of select="$endpoint"/>
             <!--ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>-->
         </xsl:message>
-
-        <xsl:if test="$endpoint">
-            <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        </xsl:if>
 
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
-                <xsl:for-each select="?body">
-                    <xsl:call-template name="apl:LoadHTMLDocument">
-                        <xsl:with-param name="uri" select="$uri"/>
-                        <xsl:with-param name="fragment" select="$fragment"/>
-                        <xsl:with-param name="container" select="$container"/>
-                        <xsl:with-param name="state" select="$state"/>
-                        <xsl:with-param name="push-state" select="$push-state"/>
-                    </xsl:call-template>
-                </xsl:for-each>
+                <xsl:call-template name="apl:LoadedHTMLDocument">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="state" select="$state"/>
+                    <xsl:with-param name="push-state" select="$push-state"/>
+                </xsl:call-template>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
 <!--            <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
@@ -1639,13 +1634,15 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="apl:LoadHTMLDocument">
-        <xsl:context-item as="document-node()" use="required"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
+    <xsl:template name="apl:LoadedHTMLDocument">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
+        <xsl:param name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
+        <xsl:param name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
 
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
@@ -1659,8 +1656,12 @@ WHERE
         <xsl:for-each select="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-save-as')]">
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
+
+        <xsl:if test="$endpoint">
+            <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        </xsl:if>
         
-        <!--<xsl:if test="$uri">-->
+        <xsl:if test="$uri">
             <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <xsl:choose>
                 <!-- local URI -->
@@ -1697,12 +1698,12 @@ WHERE
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:if>
-        <!--</xsl:if>-->
+        </xsl:if>
 
         <!-- set document.title which history.pushState() does not do -->
         <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
 
-        <xsl:variable name="results" select="." as="document-node()"/>
+        <xsl:variable name="results" select="?body" as="document-node()"/>
         
         <!-- replace content body with the loaded XHTML -->
         <xsl:for-each select="$container">
