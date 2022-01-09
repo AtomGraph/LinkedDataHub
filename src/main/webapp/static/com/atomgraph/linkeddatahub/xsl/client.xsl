@@ -1500,41 +1500,29 @@ WHERE
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
+        <xsl:param name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
+        <xsl:param name="endpoint" select="substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')" as="xs:anyURI?"/>
         <xsl:param name="state" as="item()?"/>
 
         <xsl:message>
             onContentLoad
             $uri: <xsl:value-of select="$uri"/> $content-uri: <xsl:value-of select="$content-uri"/> $container-id: <xsl:value-of select="$container-id"/>
             ?status: <xsl:value-of select="?status"/> exists(key('resources', $content-uri, ?body)): <xsl:value-of select="exists(key('resources', $content-uri, ?body))"/>
+            $endpoint: <xsl:value-of select="$endpoint"/>
         </xsl:message>
         
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and key('resources', $content-uri, ?body)">
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
             
-                <xsl:choose>
-                    <xsl:when test="key('resources', $content-uri, ?body)">
-                        <xsl:for-each select="key('resources', $content-uri, ?body)">
-                            <xsl:apply-templates select="." mode="apl:Content">
-                                <xsl:with-param name="uri" select="$uri"/>
-                                <xsl:with-param name="container" select="$container"/>
-                                <xsl:with-param name="state" select="$state"/>
-                            </xsl:apply-templates>
-                        </xsl:for-each>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:for-each select="$container">
-                            <xsl:result-document href="?." method="ixsl:replace-content">
-                                <div class="alert alert-block">
-                                    <strong>Could not load content resource: <a href="{$content-uri}"><xsl:value-of select="$content-uri"/></a></strong>
-                                </div>
-                            </xsl:result-document>
-                        </xsl:for-each>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="state" select="$state"/>
+                </xsl:apply-templates>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
             <xsl:when test="?status = 406">
