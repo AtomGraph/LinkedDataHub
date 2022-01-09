@@ -33,7 +33,6 @@
     <!ENTITY spl    "http://spinrdf.org/spl#">
     <!ENTITY void   "http://rdfs.org/ns/void#">
     <!ENTITY nfo    "http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#">
-    <!ENTITY dydra  "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
 ]>
 <xsl:stylesheet version="3.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -1021,7 +1020,6 @@ exclude-result-prefixes="#all">
             <xsl:map>
                 <xsl:map-entry key="'&def;Application'" select="resolve-uri('apps/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;GenericService'" select="resolve-uri('services/', $ldt:base)"/>
-                <xsl:map-entry key="'&def;DydraService'" select="resolve-uri('services/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;File'" select="resolve-uri('files/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;Construct'" select="resolve-uri('queries/', $ldt:base)"/>
                 <xsl:map-entry key="'&def;Describe'" select="resolve-uri('queries/', $ldt:base)"/>

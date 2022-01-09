@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
-    <!ENTITY dydra      "https://w3id.org/atomgraph/linkeddatahub/services/dydra#">
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY adm        "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
@@ -59,12 +58,10 @@ xmlns:dct="&dct;"
 xmlns:foaf="&foaf;"
 xmlns:sioc="&sioc;"
 xmlns:skos="&skos;"
-xmlns:dydra="&dydra;"
 xmlns:gm="&gm;"
 xmlns:schema1="&schema1;"
 xmlns:schema2="&schema2;"
 xmlns:dbpo="&dbpo;"
-xmlns:dydra-urn="urn:dydra:"
 xmlns:bs2="http://graphity.org/xsl/bootstrap/2.3.2"
 exclude-result-prefixes="#all"
 extension-element-prefixes="ixsl"
@@ -741,7 +738,7 @@ WHERE
             </xsl:for-each>
 
             <!-- is a new instance of Service was created, reload the LinkedDataHub.apps data and re-render the service dropdown -->
-            <xsl:if test="//ldt:base or //sd:endpoint or //dydra:repository">
+            <xsl:if test="//ldt:base or //sd:endpoint">
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $app-request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                         <xsl:call-template name="onServiceLoad"/>
@@ -1569,31 +1566,6 @@ WHERE
                     <xsl:with-param name="push-state" select="$push-state"/>
                 </xsl:call-template>
             </xsl:when>
-            <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
-<!--            <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
-                <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
-                <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
-                <xsl:variable name="uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
-
-                <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
-                
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="$uri"/>
-                            <xsl:with-param name="fragment" select="$fragment"/>
-                            <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="fallback" select="true()"/>
-                            <xsl:with-param name="service-uri" select="$service-uri"/>
-                            <xsl:with-param name="service" select="$service"/>
-                            <xsl:with-param name="state" select="$state"/>
-                            <xsl:with-param name="push-state" select="$push-state"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>-->
             <xsl:when test="?status = 0">
                 <!-- HTTP request was terminated - do nothing -->
             </xsl:when>
@@ -1973,7 +1945,7 @@ WHERE
         <xsl:variable name="query-string" select="ac:build-describe($select-string, $limit, (), (), true())" as="xs:string"/>
         <xsl:variable name="service-uri" select="xs:anyURI(ixsl:get(id('search-service'), 'value'))" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="if ($service) then xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1]) else $ac:endpoint" as="xs:anyURI"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         <!-- TO-DO: use <ixsl:schedule-action> instead -->
