@@ -1737,7 +1737,7 @@ WHERE
 
         <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
         <xsl:if test="$uri">
-            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', $results)/@id" as="xs:string*"/>
+            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ?body)/@id" as="xs:string*"/>
             <xsl:call-template name="apl:LoadContents">
                 <xsl:with-param name="uri" select="$uri"/>
                 <xsl:with-param name="content-ids" select="$content-ids"/>
