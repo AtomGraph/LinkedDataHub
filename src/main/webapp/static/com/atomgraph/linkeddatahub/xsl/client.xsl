@@ -228,7 +228,7 @@ WHERE
     </xsl:function>
 
     <xsl:function name="ac:endpoint" as="xs:anyURI">
-        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.endpoint')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint')) else ()"/>
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.endpoint')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint')) else $ac:endpoint"/>
     </xsl:function>
 
     <xsl:function name="apl:href" as="xs:anyURI">
@@ -584,6 +584,7 @@ WHERE
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
+        <!-- service can be explicitly specified on content using apl:service -->
         <xsl:variable name="service-uri" select="if ($state?content-uri = $content-uri) then xs:anyURI(map:get($state, 'service-uri')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
 
@@ -1504,15 +1505,12 @@ WHERE
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
-        <xsl:param name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
         <xsl:param name="state" as="item()?"/>
 
         <xsl:message>
             onContentLoad
             $uri: <xsl:value-of select="$uri"/> $content-uri: <xsl:value-of select="$content-uri"/> $container-id: <xsl:value-of select="$container-id"/>
             ?status: <xsl:value-of select="?status"/> exists(key('resources', $content-uri, ?body)): <xsl:value-of select="exists(key('resources', $content-uri, ?body))"/>
-            $endpoint: <xsl:value-of select="$endpoint"/>
         </xsl:message>
         
         <xsl:choose>
