@@ -126,9 +126,6 @@ exclude-result-prefixes="#all">
         </ul>
     </xsl:template>
 
-    <!-- hide the current document resource -->
-    <xsl:template match="*[rdf:type/@rdf:resource = ('&adm;Container', '&adm;Item')]" mode="bs2:RowBlock" priority="1"/>
-
     <!-- allow subject editing in admin EditMode -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:FormControl">
         <xsl:apply-imports>

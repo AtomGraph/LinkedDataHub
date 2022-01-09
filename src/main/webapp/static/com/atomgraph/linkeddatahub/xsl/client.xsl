@@ -654,7 +654,7 @@ WHERE
         <!-- hide progress bar -->
         <ixsl:set-style name="display" select="'none'" object="$container//div[@class = 'progress-bar']"/>
         
-        <xsl:variable name="row-block" as="element()">
+        <xsl:variable name="row-block" as="element()?">
             <xsl:apply-templates select="." mode="bs2:RowBlock"/>
         </xsl:variable>
 
@@ -1554,6 +1554,8 @@ WHERE
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:param name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
+        <xsl:param name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
@@ -1563,26 +1565,30 @@ WHERE
             $container/@id: <xsl:value-of select="$container/@id"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ?status: <xsl:value-of select="?status"/>
+            $endpoint: <xsl:value-of select="$endpoint"/>
             <!--ixsl:get(ixsl:window(), 'history.state.href'): <xsl:value-of select="ixsl:get(ixsl:window(), 'history.state.href')"/>-->
         </xsl:message>
-        
+
+        <xsl:if test="$endpoint">
+            <ixsl:set-property name="endpoint" select="$endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        </xsl:if>
+
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
-                <xsl:apply-templates select="?body" mode="apl:Document">
+                <xsl:call-template name="apl:LoadHTMLDocument">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="state" select="$state"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
-                </xsl:apply-templates>
+                </xsl:call-template>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
-            <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
+<!--            <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
                 <xsl:variable name="endpoint" select="xs:anyURI(($service/sd:endpoint/@rdf:resource, (if ($service/dydra:repository/@rdf:resource) then ($service/dydra:repository/@rdf:resource || 'sparql') else ()))[1])" as="xs:anyURI"/>
                 <xsl:variable name="query-string" select="'DESCRIBE &lt;' || $uri || '&gt;'" as="xs:string"/>
                 <xsl:variable name="uri" select="ac:build-uri($endpoint, let $params := map{ 'query': $query-string } return if ($service/dydra-urn:accessToken) then map:merge(($params, map{ 'auth_token': $service/dydra-urn:accessToken })) else $params)" as="xs:anyURI"/>
-                <!-- dereference external resources through a proxy -->
                 <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -1602,7 +1608,7 @@ WHERE
                     </ixsl:schedule-action>
                 </xsl:variable>
                 <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
+            </xsl:when>-->
             <xsl:when test="?status = 0">
                 <!-- HTTP request was terminated - do nothing -->
             </xsl:when>
@@ -1631,8 +1637,9 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="/" mode="apl:Document">
-        <xsl:param name="uri" as="xs:anyURI?"/>
+    <xsl:template name="apl:LoadHTMLDocument">
+        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="state" as="item()?"/>
@@ -1651,7 +1658,7 @@ WHERE
             <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
         </xsl:for-each>
         
-        <xsl:if test="$uri">
+        <!--<xsl:if test="$uri">-->
             <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <xsl:choose>
                 <!-- local URI -->
@@ -1688,12 +1695,12 @@ WHERE
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:if>
-        </xsl:if>
+        <!--</xsl:if>-->
 
         <!-- set document.title which history.pushState() does not do -->
         <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
 
-        <xsl:variable name="results" select="." as="document-node()"/>
+        <xsl:variable name="results" select="?body" as="document-node()"/>
         
         <!-- replace content body with the loaded XHTML -->
         <xsl:for-each select="$container">
