@@ -702,7 +702,8 @@ exclude-result-prefixes="#all"
         <xsl:param name="typeahead-span" select="if ($target-id) then id($target-id, ixsl:page())/ancestor::div[@class = 'controls']//span[descendant::input[@name = 'ou']] else ()" as="element()?"/>
 
         <xsl:message>
-            Form loaded with ?status: <xsl:value-of select="?status"/> ?media-type: <xsl:value-of select="?media-type"/> $target-id: <xsl:value-of select="$target-id"/> exists($typeahead-span): <xsl:value-of select="exists($typeahead-span)"/>
+            Form loaded with ?action: <xsl:value-of select="$action"/> ?status: <xsl:value-of select="?status"/> ?media-type: <xsl:value-of select="?media-type"/>
+            $target-id: <xsl:value-of select="$target-id"/> exists($typeahead-span): <xsl:value-of select="exists($typeahead-span)"/>
         </xsl:message>
         
         <xsl:choose>
@@ -734,10 +735,12 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200">
                 <xsl:choose>
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
-                        <xsl:call-template name="apl:LoadHTMLDocument">
-                            <xsl:with-param name="uri" select="$action"/>
-                            <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
+                        <xsl:for-each select="?body">
+                            <xsl:call-template name="apl:LoadHTMLDocument">
+                                <xsl:with-param name="uri" select="$action"/>
+                                <xsl:with-param name="container" select="$container"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 

@@ -1576,13 +1576,15 @@ WHERE
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
-                <xsl:call-template name="apl:LoadHTMLDocument">
-                    <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="fragment" select="$fragment"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="state" select="$state"/>
-                    <xsl:with-param name="push-state" select="$push-state"/>
-                </xsl:call-template>
+                <xsl:for-each select="?body">
+                    <xsl:call-template name="apl:LoadHTMLDocument">
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <xsl:with-param name="fragment" select="$fragment"/>
+                        <xsl:with-param name="container" select="$container"/>
+                        <xsl:with-param name="state" select="$state"/>
+                        <xsl:with-param name="push-state" select="$push-state"/>
+                    </xsl:call-template>
+                </xsl:for-each>
             </xsl:when>
             <!-- we want to fall back from unsuccessful Linked Data request to SPARQL DESCRIBE query but prevent it from looping forever -->
 <!--            <xsl:when test="(?status = (500, 502)) and $service and not($fallback)">
@@ -1638,7 +1640,7 @@ WHERE
     </xsl:template>
     
     <xsl:template name="apl:LoadHTMLDocument">
-        <xsl:context-item as="map(*)" use="required"/>
+        <xsl:context-item as="document-node()" use="required"/>
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
@@ -1700,7 +1702,7 @@ WHERE
         <!-- set document.title which history.pushState() does not do -->
         <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
 
-        <xsl:variable name="results" select="?body" as="document-node()"/>
+        <xsl:variable name="results" select="." as="document-node()"/>
         
         <!-- replace content body with the loaded XHTML -->
         <xsl:for-each select="$container">
