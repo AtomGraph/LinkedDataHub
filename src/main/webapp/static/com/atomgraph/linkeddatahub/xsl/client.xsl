@@ -1700,18 +1700,20 @@ WHERE
             </xsl:if>
         </xsl:if>
 
-        <!-- set document.title which history.pushState() does not do -->
-        <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
+        <xsl:for-each select="?body">
+            <!-- set document.title which history.pushState() does not do -->
+            <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
 
-        <xsl:variable name="results" select="?body" as="document-node()"/>
-        
-        <!-- replace content body with the loaded XHTML -->
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="id($container/@id, $results)/*"/>
-            </xsl:result-document>
+            <xsl:variable name="results" select="." as="document-node()"/>
+
+            <!-- replace content body with the loaded XHTML -->
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:copy-of select="id($container/@id, $results)/*"/>
+                </xsl:result-document>
+            </xsl:for-each>
         </xsl:for-each>
-        
+
         <xsl:choose>
             <!-- scroll fragment-identified element into view if fragment is provided-->
             <xsl:when test="id($fragment, ixsl:page())">
