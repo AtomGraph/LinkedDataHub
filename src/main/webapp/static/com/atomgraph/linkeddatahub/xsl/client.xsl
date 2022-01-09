@@ -592,10 +592,7 @@ WHERE
         <xsl:choose>
             <!-- service URI is not specified or specified and can be loaded -->
             <xsl:when test="not($service-uri) or ($service-uri and exists($service))">
-                <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- store this content element -->
-                <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+                <!-- window.LinkedDataHub[{$content-uri}] object is already created -->
                 <!-- store the initial SELECT query (without modifiers) -->
                 <ixsl:set-property name="select-query" select="$select-string" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
                 <!-- store the first var name of the initial SELECT query -->
@@ -1507,6 +1504,11 @@ WHERE
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
             
+                <!-- create new cache entry using content URI as key -->
+                <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <!-- store this content element -->
+                <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
+
                 <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -2339,10 +2341,12 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
-        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
-        <xsl:variable name="app" select="apl:match-app($uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:variable name="endpoint" select="if ($app) then key('resources', $app/ldt:service/@rdf:resource, root($app))/sd:endpoint/@rdf:resource/xs:anyURI(.) else $ac:endpoint" as="xs:anyURI?"/>
+        <xsl:variable name="content-uri" select="input[@name = 'uri']/@value" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri') else ()" as="xs:anyURI?"/>
+        <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
+
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         
