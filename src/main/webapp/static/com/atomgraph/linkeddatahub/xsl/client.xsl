@@ -712,28 +712,18 @@ WHERE
                 <xsl:if test="id('breadcrumb-nav', ixsl:page())">
                     <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
                         <ul class="breadcrumb pull-left">
-                            <xsl:apply-templates select="." mode="bs2:BreadCrumbListItem">
-                                <xsl:with-param name="leaf" select="true()"/>
-                            </xsl:apply-templates>
+                            <!-- list items will be injected by apl:BreadCrumbResourceLoad -->
                         </ul>
 <!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
                             <span class="label label-info pull-left">External</span>
                         </xsl:if>-->
                     </xsl:result-document>
 
-                    <xsl:variable name="parent-uri" select="sioc:has_container/@rdf:resource | sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
-                    <xsl:if test="$parent-uri">
-                        <xsl:variable name="request" as="item()*">
-                            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $parent-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
-                                <xsl:call-template name="apl:BreadCrumbResourceLoad">
-                                    <xsl:with-param name="id" select="'breadcrumb-nav'"/>
-                                    <xsl:with-param name="this-uri" select="$parent-uri"/>
-                                    <xsl:with-param name="leaf" select="false()"/>
-                                </xsl:call-template>
-                            </ixsl:schedule-action>
-                        </xsl:variable>
-                        <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-                    </xsl:if>
+                    <xsl:call-template name="apl:BreadCrumbResourceLoad">
+                        <xsl:with-param name="id" select="'breadcrumb-nav'"/>
+                        <xsl:with-param name="uri" select="$uri"/>
+                        <!--<xsl:with-param name="leaf" select="false()"/>-->
+                    </xsl:call-template>
                 </xsl:if>
 
                 <!-- if the current resource is an Item, hide the <div> with the top/left "Create" dropdown as Items cannot have child documents -->

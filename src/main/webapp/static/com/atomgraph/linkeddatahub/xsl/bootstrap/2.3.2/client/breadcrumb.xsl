@@ -52,13 +52,13 @@ exclude-result-prefixes="#all"
     <xsl:template name="apl:BreadCrumbResourceLoad">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="id" as="xs:string"/>
-        <xsl:param name="this-uri" as="xs:anyURI"/>
-        <xsl:param name="leaf" as="xs:boolean"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
 
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml'">
                 <xsl:for-each select="?body">
-                    <xsl:variable name="resource" select="key('resources', $this-uri)" as="element()?"/>
+                    <xsl:variable name="resource" select="key('resources', $uri)" as="element()?"/>
                     <xsl:variable name="parent-uri" select="$resource/sioc:has_container/@rdf:resource | $resource/sioc:has_parent/@rdf:resource" as="xs:anyURI?"/>
                     <xsl:if test="$parent-uri">
                         <xsl:variable name="request-uri" select="apl:href($ldt:base, $parent-uri)" as="xs:anyURI"/>
@@ -66,8 +66,8 @@ exclude-result-prefixes="#all"
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
                                 <xsl:call-template name="apl:BreadCrumbResourceLoad">
                                     <xsl:with-param name="id" select="$id"/>
-                                    <xsl:with-param name="this-uri" select="$parent-uri"/>
-                                    <xsl:with-param name="leaf" select="$leaf"/>
+                                    <xsl:with-param name="uri" select="$parent-uri"/>
+                                    <xsl:with-param name="leaf" select="false()"/> <!-- parent resources cannot be leaves -->
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
