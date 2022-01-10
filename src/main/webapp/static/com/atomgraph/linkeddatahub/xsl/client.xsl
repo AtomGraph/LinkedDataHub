@@ -226,7 +226,7 @@ WHERE
     </xsl:function>
 
     <xsl:function name="ac:endpoint" as="xs:anyURI">
-        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.endpoint')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
 
     <xsl:function name="apl:href" as="xs:anyURI">
