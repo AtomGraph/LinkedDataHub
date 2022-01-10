@@ -704,8 +704,8 @@ WHERE
                     <xsl:choose>
                         <!-- if a known app matches $uri, show link to its ldt:base -->
                         <xsl:when test="$app">
-                            <a href="{$base}" class="label label-info pull-left">
-                                <xsl:value-of select="{$app/ldt:base/@rdf:resource}"/>
+                            <a href="{$app/ldt:base/@rdf:resource}" class="label label-info pull-left">
+                                <xsl:apply-templates select="$app" mode="ac:label"/>
                             </a>
                         </xsl:when>
                         <!-- otherwise show just a label with the hostname -->
