@@ -158,6 +158,7 @@ WHERE
         <ixsl:set-property name="typeahead" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="href" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else $apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <ixsl:set-property name="endpoint" select="$ac:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- push initial state -->
         <xsl:call-template name="apl:PushState">
@@ -224,8 +225,8 @@ WHERE
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.href'))"/>
     </xsl:function>
 
-    <xsl:function name="ac:endpoint" as="xs:anyURI?">
-        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.endpoint')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint')) else ()"/>
+    <xsl:function name="ac:endpoint" as="xs:anyURI">
+        <xsl:sequence select="if (ixsl:contains(ixsl:window(), 'LinkedDataHub.endpoint')) then xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
 
     <xsl:function name="apl:href" as="xs:anyURI">
