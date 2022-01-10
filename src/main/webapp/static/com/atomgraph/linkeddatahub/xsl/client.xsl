@@ -584,7 +584,8 @@ WHERE
         <!-- service can be explicitly specified on content using apl:service -->
         <xsl:variable name="service-uri" select="if ($state?content-uri = $content-uri) then xs:anyURI(map:get($state, 'service-uri')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-
+        <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
+        
         <xsl:message>
             apl:Content $service-uri: <xsl:value-of select="$service-uri"/> exists($service): <xsl:value-of select="exists($service)"/>
         </xsl:message>
@@ -631,8 +632,7 @@ WHERE
                     <xsl:with-param name="content" select="."/>
                     <xsl:with-param name="select-string" select="$select-string"/>
                     <xsl:with-param name="select-xml" select="$select-xml"/>
-                    <!--<xsl:with-param name="service" select="$service"/>-->
-                    <xsl:with-param name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="focus-var-name" select="$focus-var-name"/>
                 </xsl:call-template>
             </xsl:when>
@@ -1499,6 +1499,13 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and key('resources', $content-uri, ?body)">
+                <!-- replace dots which have a special meaning in Saxon-JS -->
+                <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
+                <!-- create new cache entry using content URI as key -->
+                <ixsl:set-property name="{$escaped-content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <!-- store this content element -->
+                <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $escaped-content-uri)"/>
+
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
@@ -1509,13 +1516,6 @@ WHERE
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="state" select="$state"/>
                 </xsl:apply-templates>
-            
-                <!-- replace dots which have a special meaning in Saxon-JS -->
-                <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
-                <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-                <!-- store this content element -->
-                <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
             <xsl:when test="?status = 406">
