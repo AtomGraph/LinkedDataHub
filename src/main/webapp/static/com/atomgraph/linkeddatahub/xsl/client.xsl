@@ -1503,6 +1503,12 @@ WHERE
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
+
+                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
+                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="container" select="$container"/>
+                    <xsl:with-param name="state" select="$state"/>
+                </xsl:apply-templates>
             
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
@@ -1510,12 +1516,6 @@ WHERE
                 <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- store this content element -->
                 <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
-
-                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
-                    <xsl:with-param name="uri" select="$uri"/>
-                    <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="state" select="$state"/>
-                </xsl:apply-templates>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
             <xsl:when test="?status = 406">
