@@ -1498,21 +1498,22 @@ WHERE
             ?status: <xsl:value-of select="?status"/> exists(key('resources', $content-uri, ?body)): <xsl:value-of select="exists(key('resources', $content-uri, ?body))"/>
         </xsl:message>
         
+        <xsl:variable name="content" select="key('resources', $content-uri, ?body)" as="element()?"/>
         <xsl:choose>
-            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and key('resources', $content-uri, ?body)">
+            <xsl:when test="?status = 200 and ?media-type = 'application/rdf+xml' and $content">
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{$escaped-content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="." object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $escaped-content-uri)"/>
+                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $escaped-content-uri)"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
 
-                <xsl:apply-templates select="key('resources', $content-uri, ?body)" mode="apl:Content">
+                <xsl:apply-templates select="$content" mode="apl:Content">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="state" select="$state"/>
