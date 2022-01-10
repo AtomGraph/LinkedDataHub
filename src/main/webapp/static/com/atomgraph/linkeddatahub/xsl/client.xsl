@@ -1504,6 +1504,8 @@ WHERE
                     <ixsl:set-style name="width" select="'50%'" object="."/>
                 </xsl:for-each>
             
+                <!-- replace dots which have a special meaning in Saxon-JS -->
+                <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
                 <ixsl:set-property name="{$content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
                 <!-- store this content element -->
