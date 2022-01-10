@@ -257,12 +257,7 @@ WHERE
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="apps" as="document-node()"/>
         
-        <xsl:variable name="sorted-apps" as="element()*">
-            <xsl:perform-sort select="$apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]">
-                <xsl:sort select="string-length(ldt:base/@rdf:resource)" order="descending"/>
-            </xsl:perform-sort>
-        </xsl:variable>
-        <xsl:sequence select="$sorted-apps[1]"/>
+        <xsl:sequence select="let $max := max($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]/string-length(ldt:base/@rdf:resource)) return ($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]][string-length(ldt:base/@rdf:resource) eq $max])[1]"/>
     </xsl:function>
     
     <xsl:function name="apl:query-type" as="xs:string">
