@@ -258,7 +258,7 @@ WHERE
         <xsl:param name="apps" as="document-node()"/>
         
         <xsl:variable name="sorted-apps" as="element()*">
-            <xsl:perform-sort select="$apps//rdf:Description[starts-with($uri, ldt:base/@rdf:resource)]">
+            <xsl:perform-sort select="$apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]">
                 <xsl:sort select="string-length(ldt:base/@rdf:resource)" order="descending"/>
             </xsl:perform-sort>
         </xsl:variable>
