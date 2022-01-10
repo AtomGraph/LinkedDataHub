@@ -16,11 +16,11 @@ body.embed { padding-top: 0; }
 .action-bar form { margin-bottom: 0; }
 .action-bar .add-constructor, .dropdown-menu .add-constructor { background-color: inherit; display: block; text-align: left; width: 100%; }
 .action-bar .add-constructor:hover { color: #ffffff; background-color: #007af5; }
-.action-bar .breadcrumb { background-color: inherit; margin-top: 10px; margin-bottom: 0; padding-left: 0; }
+.action-bar .breadcrumb { background-color: inherit; margin-top: 10px; margin-bottom: 0; padding-left: 0; padding-top: 5px; }
 .action-bar .breadcrumb .container-logo { background-image: url('../icons/folder.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .item-logo { background-image: url('../icons/file.svg'); background-position: left center; background-repeat: no-repeat; padding-left: 28px; }
 .action-bar .breadcrumb .btn-group { margin-top: -4px; }
-.action-bar #breadcrumb-nav .label { margin-top: 18px; }
+.action-bar #breadcrumb-nav > a { margin-top: 10px; padding: 8px 15px; margin-right: 8px; font-size: inherit; }
 .action-bar #result-counts p { font-weight: bold; margin-top: 10px; padding-top: 8px; float: right; }
 .action-bar p.alert { margin-bottom: 0; }
 .nav-header.btn { color: inherit; }

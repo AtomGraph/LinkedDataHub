@@ -698,12 +698,17 @@ WHERE
         <!-- load breadcrumbs -->
         <xsl:if test="id('breadcrumb-nav', ixsl:page())">
             <xsl:result-document href="#breadcrumb-nav" method="ixsl:replace-content">
+                <!-- show label if the resource is external -->
+                <xsl:if test="not(starts-with($uri, $ldt:base))">
+                    <xsl:variable name="base" select="substring-before($uri, '://') || '://' || tokenize(substring-after($uri, '://'), '/')[1]" as="xs:string"/>
+                    <a href="{$base}" class="label label-info pull-left">
+                        <xsl:value-of select="tokenize(substring-after($uri, '://'), '/')[1]"/>
+                    </a>
+                </xsl:if>
+
                 <ul class="breadcrumb pull-left">
                     <!-- list items will be injected by apl:BreadCrumbResourceLoad -->
                 </ul>
-<!--                        <xsl:if test="not(starts-with($uri, $ldt:base))">
-                    <span class="label label-info pull-left">External</span>
-                </xsl:if>-->
             </xsl:result-document>
 
             <xsl:call-template name="apl:BreadCrumbResourceLoad">
