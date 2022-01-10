@@ -257,7 +257,7 @@ WHERE
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="apps" as="document-node()"/>
         
-        <xsl:sequence select="let $max := max($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]/string-length(ldt:base/@rdf:resource)) return ($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]][string-length(ldt:base/@rdf:resource) eq $max])[1]"/>
+        <xsl:sequence select="let $max-length := max($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]]/string-length(ldt:base/@rdf:resource)) return ($apps//rdf:Description[ldt:base/@rdf:resource[starts-with($uri, .)]][string-length(ldt:base/@rdf:resource) eq $max-length])[1]"/>
     </xsl:function>
     
     <xsl:function name="apl:query-type" as="xs:string">
@@ -2357,12 +2357,14 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="content-uri" select="xs:anyURI(translate(input[@name = 'uri']/@value, '.', '-'))" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="translate(input[@name = 'uri']/@value, '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
+        <!-- replace dots with dashes from this point (not before using in the query string!) -->
+        <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="service-uri" select="if (ixsl:contains(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri')) then ixsl:get(ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri), 'service-uri') else ()" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]"/>
-
         <xsl:variable name="results-uri" select="ac:build-uri($endpoint, map{ 'query': string($query-string) })" as="xs:anyURI"/>
         <xsl:variable name="request-uri" select="apl:href($ldt:base, $results-uri)" as="xs:anyURI"/>
         
