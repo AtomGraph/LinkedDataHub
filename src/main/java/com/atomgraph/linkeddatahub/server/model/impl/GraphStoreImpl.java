@@ -137,15 +137,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
         
         // neither default graph nor named graph specified -- obtain named graph URI from the document
-        if (!defaultGraph && graphUri == null)
-        {
-            Resource graph = createGraph(model);
-            if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
-            graphUri = URI.create(graph.getURI());
-            
+        if (!defaultGraph && graphUri == null) throw new BadRequestException("Neither default graph nor named graph specified");
+
+        if (!getDatasetAccessor().containsModel(graphUri.toString()))
             model.createResource(graphUri.toString()).
                 addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-        }
         
         // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
         getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
@@ -153,18 +149,18 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return super.post(model, false, graphUri);
     }
 
-    public Resource createGraph(Model model)
-    {
-        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-
-        Resource doc = getDocument(model);
-        Resource parent = doc != null ? getParent(doc) : null;
-        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
-
-        URI graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
-        if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
-        else return null;
-    }
+//    public Resource createGraph(Model model)
+//    {
+//        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+//
+//        Resource doc = getDocument(model);
+//        Resource parent = doc != null ? getParent(doc) : null;
+//        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
+//
+//        URI graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
+//        if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
+//        else return null;
+//    }
     
     @PUT
     @Override
@@ -237,15 +233,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             
             // neither default graph nor named graph specified -- obtain named graph URI from the document
-            if (!defaultGraph && graphUri == null)
-            {
-                Resource graph = createGraph(model);
-                if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
-                graphUri = URI.create(graph.getURI());
-                
-                model.createResource(graphUri.toString()).
-                    addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
-            }
+            if (!defaultGraph && graphUri == null) throw new BadRequestException("Neither default graph nor named graph specified");
 
             // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
             getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
