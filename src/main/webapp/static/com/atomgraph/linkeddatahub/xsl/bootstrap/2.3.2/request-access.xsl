@@ -214,16 +214,11 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="lacl:requestAccessTo/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$apl:access-to]" mode="bs2:FormControl" priority="2">
-        <label>
-            <xsl:call-template name="xhtml:Input">
-                <xsl:with-param name="name" select="'ou'"/>
-                <xsl:with-param name="value" select="resolve-uri('../sparql', $ldt:base)"/> <!-- end-user endpoint -->
-                <xsl:with-param name="type" select="'checkbox'"/>
-                <xsl:with-param name="checked" select="true()"/>
-            </xsl:call-template>
-            
-            SPARQL endpoint
-        </label>
+        <select name="ou" id="{generate-id()}" multiple="multiple" size="3">
+            <option value="{resolve-uri('../service', $ldt:base)}">Graph Store</option>
+            <option value="{resolve-uri('../sparql', $ldt:base)}">SPARQL endpoint</option>
+            <option value="{resolve-uri('../add', $ldt:base)}">Add RDF endpoint</option>
+        </select>
     </xsl:template>
 
     <xsl:template match="lacl:requestAccessToClass/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="2">
