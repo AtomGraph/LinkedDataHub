@@ -97,6 +97,15 @@ public class AuthorizationFilter implements ContainerRequestFilter
         if (request == null) throw new IllegalArgumentException("ContainerRequestContext cannot be null");
         if (log.isDebugEnabled()) log.debug("Authorizing request URI: {}", request.getUriInfo().getRequestUri());
 
+        if (getApplication().isReadOnly())
+        {
+            if (request.getMethod().equals(HttpMethod.GET) || request.getMethod().equals(HttpMethod.GET)) return; // allow read-only methods
+                    
+            // throw 403 exception otherwise
+            if (log.isTraceEnabled()) log.trace("Write access not authorized (app is read-only) for request URI: {}", request.getUriInfo().getAbsolutePath());
+            throw new AuthorizationException("Write access not authorized (app is read-only)", request.getUriInfo().getAbsolutePath());
+        }
+
         if (getDataset().isPresent()) return; // skip proxied dataspaces
         
         Resource accessMode = ACCESS_MODES.get(request.getMethod());
@@ -107,7 +116,7 @@ public class AuthorizationFilter implements ContainerRequestFilter
             return;
         }
 
-        final Resource agent;
+        final Agent agent;
         if (request.getSecurityContext().getUserPrincipal() instanceof Agent) agent = ((Agent)(request.getSecurityContext().getUserPrincipal()));
         else agent = null; // public access
 

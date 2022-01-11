@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.vocabulary;
 
+import org.apache.jena.ontology.DatatypeProperty;
 import org.apache.jena.ontology.ObjectProperty;
 import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
@@ -63,5 +64,7 @@ public class LAPP
     public static final ObjectProperty proxy = m_model.createObjectProperty( NS + "proxy" );
 
     public static final ObjectProperty prefix = m_model.createObjectProperty( NS + "prefix" );
+    
+    public static final DatatypeProperty readOnly = m_model.createDatatypeProperty( NS + "readOnly" );
 
 }

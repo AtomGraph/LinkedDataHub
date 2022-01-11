@@ -20,14 +20,15 @@ import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
+import com.atomgraph.linkeddatahub.vocabulary.LAPP;
 import com.atomgraph.processor.vocabulary.LDT;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.net.URI;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
 /**
@@ -76,13 +77,7 @@ public class ApplicationImpl extends ResourceImpl implements Application
     {
         Resource service = getPropertyResourceValue(LDT.service);
         
-        if (service != null)
-        {
-            // cast to specific implementations
-            if (service.canAs(com.atomgraph.linkeddatahub.model.DydraService.class)) return service.as(com.atomgraph.linkeddatahub.model.DydraService.class);
-
-            return service.as(Service.class);
-        }
+        if (service != null) return service.as(Service.class);
         
         return null;
     }
@@ -91,6 +86,16 @@ public class ApplicationImpl extends ResourceImpl implements Application
     public Resource getStylesheet()
     {
         return getPropertyResourceValue(AC.stylesheet);
+    }
+
+    @Override
+    public boolean isReadOnly()
+    {
+        Statement stmt = getProperty(LAPP.readOnly);
+        
+        if (stmt != null) return stmt.getBoolean();
+        
+        return false;
     }
 
 }

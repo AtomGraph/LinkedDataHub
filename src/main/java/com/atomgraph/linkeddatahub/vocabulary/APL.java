@@ -88,6 +88,5 @@ public class APL
 
     public static final ObjectProperty absolutePath = m_model.createObjectProperty(NS + "absolutePath");
     
-    //public static final ObjectProperty client = m_model.createObjectProperty(NS + "client");
 
 }

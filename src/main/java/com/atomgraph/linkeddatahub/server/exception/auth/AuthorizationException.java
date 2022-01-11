@@ -16,6 +16,7 @@
  */
 package com.atomgraph.linkeddatahub.server.exception.auth;
 
+import com.atomgraph.linkeddatahub.model.Agent;
 import org.apache.jena.rdf.model.Resource;
 import java.net.URI;
 
@@ -31,7 +32,7 @@ public class AuthorizationException extends RuntimeException
     private final URI absolutePath;
     private final Resource mode, agent;
 
-    public AuthorizationException(String message, URI absolutePath, Resource mode, Resource agent)
+    public AuthorizationException(String message, URI absolutePath, Resource mode, Agent agent)
     {
         super(message);
     
@@ -46,7 +47,17 @@ public class AuthorizationException extends RuntimeException
     {
         this(message, absolutePath, mode, null);
     }
+
+    public AuthorizationException(String message, URI absolutePath, Agent agent)
+    {
+        this(message, absolutePath, null, agent);
+    }
     
+    public AuthorizationException(String message, URI absolutePath)
+    {
+        this(message, absolutePath, null, null);
+    }
+
     public URI getAbsolutePath()
     {
     return absolutePath;

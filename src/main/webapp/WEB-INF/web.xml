@@ -24,8 +24,8 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?auth
 FROM <urn:x-arq:UnionGraph>
 WHERE
-  {   { ?auth  acl:mode  ?Mode
-          { ?auth  acl:accessTo  ?this }
+  {   { ?auth  acl:mode  $Mode
+          { ?auth  acl:accessTo  $this }
         UNION
           {   { ?auth  acl:accessToClass  ?Type }
             UNION
@@ -33,31 +33,31 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              {   { GRAPH ?this
-                      { ?this  a  ?Type }
+              {   { GRAPH $this
+                      { $this  a  ?Type }
                   }
                 UNION
                   { { GRAPH ?g
-                        { ?this  a  def:File ;
+                        { $this  a  def:File ;
                                  a  ?Type
                         }
                     }
                   }
               }
           }
-        {   { ?auth  acl:agent  ?agent }
+        {   { ?auth  acl:agent  $agent}
           UNION
             { ?auth   acl:agentGroup  ?Group .
-              ?Group  foaf:member     ?agent
+              ?Group  foaf:member     $agent
             }
         }
       }
     UNION
-      { ?auth  acl:mode  ?Mode
+      { ?auth  acl:mode  $Mode
           { ?auth  acl:agentClass  foaf:Agent }
         UNION
-          { ?auth  acl:agentClass  ?AuthenticatedAgentClass }
-          { ?auth  acl:accessTo  ?this }
+          { ?auth  acl:agentClass  $AuthenticatedAgentClass }
+          { ?auth  acl:accessTo  $this }
         UNION
           {   { ?auth  acl:accessToClass  ?Type }
             UNION
@@ -65,12 +65,12 @@ WHERE
                 ?Type (rdfs:subClassOf)* ?Class
               }
             SERVICE ?endpoint
-              {   { GRAPH ?this
-                      { ?this  a  ?Type }
+              {   { GRAPH $this
+                      { $this  a  ?Type }
                   }
                 UNION
                   { { GRAPH ?g
-                        { ?this  a  def:File ;
+                        { $this  a  def:File ;
                                  a  ?Type
                         }
                     }
@@ -95,21 +95,21 @@ FROM <urn:x-arq:UnionGraph>
 WHERE
   {   { ?auth  acl:mode           acl:Control .
         ?doc   foaf:primaryTopic  ?auth
-          { ?auth  acl:agent  ?agent }
+          { ?auth  acl:agent  $agent }
         UNION
           { ?auth   acl:agentGroup  ?Group .
-            ?Group  foaf:member     ?agent
+            ?Group  foaf:member     $agent
           }
       }
     UNION
-      { ?auth  acl:agentClass  ?AuthenticatedAgentClass ;
-               acl:mode        ?Mode
-          { ?auth  acl:accessTo  ?this
+      { ?auth  acl:agentClass  $AuthenticatedAgentClass ;
+               acl:mode        $Mode
+          { ?auth  acl:accessTo  $this
             OPTIONAL
-              { ?this  a  ?Type }
+              { $this  a  ?Type }
           }
         UNION
-          { ?this  a  ?Type
+          { $this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
@@ -120,12 +120,12 @@ WHERE
     UNION
       { ?auth  acl:agentClass  foaf:Agent ;
                acl:mode        acl:Read
-          { ?auth  acl:accessTo  ?this
+          { ?auth  acl:accessTo  $this
             OPTIONAL
-              { ?this  a  ?Type }
+              { $this  a  ?Type }
           }
         UNION
-          { ?this  a  ?Type
+          { $this  a  ?Type
               { ?auth  acl:accessToClass  ?Type }
             UNION
               { ?auth  acl:accessToClass  ?Class .
@@ -139,10 +139,10 @@ WHERE
     <context-param>
         <param-name>https://w3id.org/atomgraph/linkeddatahub/config#agentQuery</param-name>
         <param-value><![CDATA[
-DESCRIBE ?Agent
+DESCRIBE $Agent
 WHERE
   { GRAPH ?g
-      { ?Agent  ?p  ?o }
+      { $Agent  ?p  ?o }
   }
 ]]></param-value>
     </context-param>
@@ -155,7 +155,7 @@ PREFIX  sioc: <http://rdfs.org/sioc/ns#>
 DESCRIBE ?account ?agent
 WHERE
   { GRAPH ?g
-      { ?account  sioc:id          ?id ;
+      { ?account  sioc:id          $id ;
                   lacl:issuer      ?issuer ;
                   sioc:account_of  ?agent
       }
@@ -197,12 +197,12 @@ PREFIX  void: <http://rdfs.org/ns/void#>
 
 INSERT {
   GRAPH ?graphGraphDoc {
-    ?this dct:modified ?modified .
+    $this dct:modified ?modified .
   }
 }
 WHERE
   { GRAPH ?graphGraphDoc
-      { ?this  void:inDataset  ?graph ;
+      { $this  void:inDataset  ?graph ;
                dct:created     ?created
       }
     BIND(now() AS ?modified)
@@ -217,7 +217,7 @@ PREFIX  void: <http://rdfs.org/ns/void#>
 DELETE WHERE
 {
   GRAPH ?graphGraphDoc {
-    ?this void:inDataset ?graph .
+    $this void:inDataset ?graph .
     ?s ?p ?o .
   }
 }
