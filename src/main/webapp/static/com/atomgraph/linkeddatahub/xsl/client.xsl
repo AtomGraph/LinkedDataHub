@@ -2193,7 +2193,7 @@ WHERE
 
     <!-- open editing form (do nothing if the button is disabled) -->
     <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="request-uri" select="@href" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="@href" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
         <!-- toggle .active class -->
@@ -2207,7 +2207,7 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm"/>
             </ixsl:schedule-action>
         </xsl:variable>
