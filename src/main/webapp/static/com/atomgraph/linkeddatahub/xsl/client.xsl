@@ -1553,13 +1553,17 @@ WHERE
         <xsl:variable name="response" select="." as="map(*)"/>
         <xsl:choose>
             <xsl:when test="?status = 200 and starts-with(?media-type, 'application/xhtml+xml')">
-                <xsl:call-template name="apl:LoadedHTMLDocument">
+                <xsl:variable name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
+                <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+
+                <xsl:apply-templates select="?body" mode="apl:LoadedHTMLDocument">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="fragment" select="$fragment"/>
+                    <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
                     <xsl:with-param name="state" select="$state"/>
                     <xsl:with-param name="push-state" select="$push-state"/>
-                </xsl:call-template>
+                </xsl:apply-templates>
             </xsl:when>
             <xsl:when test="?status = 0">
                 <!-- HTTP request was terminated - do nothing -->
@@ -1589,15 +1593,14 @@ WHERE
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template name="apl:LoadedHTMLDocument">
-        <xsl:context-item as="map(*)" use="required"/>
+    <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
+    <xsl:template match="/" mode="apl:LoadedHTMLDocument">
         <xsl:param name="uri" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
-        <xsl:param name="endpoint-link" select="tokenize(?headers?link, ',')[contains(., '&sd;endpoint')]" as="xs:string?"/>
-        <xsl:param name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
+        <xsl:param name="endpoint" as="xs:anyURI?"/>
 
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
@@ -1649,7 +1652,7 @@ WHERE
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
                     <xsl:with-param name="href" select="apl:href($ldt:base, $uri)"/>
-                    <xsl:with-param name="title" select="?body/html/title"/>
+                    <xsl:with-param name="title" select="?body/html/head/title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:if>

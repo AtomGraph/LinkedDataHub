@@ -735,10 +735,10 @@ exclude-result-prefixes="#all"
             <xsl:when test="?status = 200">
                 <xsl:choose>
                     <xsl:when test="starts-with(?media-type, 'application/xhtml+xml')"> <!-- allow 'application/xhtml+xml;charset=UTF-8' as well -->
-                        <xsl:call-template name="apl:LoadedHTMLDocument">
+                        <xsl:apply-templates select="?body" mode="apl:LoadedHTMLDocument">
                             <!-- $uri does not change at this point -->
                             <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
+                        </xsl:apply-templates>
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 
