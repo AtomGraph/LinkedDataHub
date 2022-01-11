@@ -2245,6 +2245,7 @@ WHERE
 
     <!-- content tabs (markup from Bootstrap) -->
     <xsl:template match="div[contains-token(@class, 'tabbable')]/ul[contains-token(@class, 'nav-tabs')]/li/a" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
             <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
