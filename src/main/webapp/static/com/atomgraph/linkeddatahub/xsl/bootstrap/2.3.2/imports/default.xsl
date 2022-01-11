@@ -49,6 +49,29 @@ exclude-result-prefixes="#all"
 
     <xsl:param name="ac:contextUri" as="xs:anyURI?"/>
 
+    <xsl:function name="apl:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+
+        <xsl:sequence select="apl:href($base, $uri, ())"/>
+    </xsl:function>
+    
+    <xsl:function name="apl:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI?"/>
+
+        <xsl:choose>
+            <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
+            <xsl:when test="starts-with($uri, $base)">
+                <xsl:sequence select="if ($mode) then ac:build-uri($uri, map{ 'mode': string($mode) }) else $uri"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="if ($mode) then ac:build-uri($base, map{ 'uri': string($uri), 'mode': string($mode) }) else ac:build-uri($base, map{ 'uri': string($uri) })"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+
     <xsl:function name="apl:listSuperClasses" as="attribute()*" cache="yes">
         <xsl:param name="class" as="xs:anyURI"/>
         

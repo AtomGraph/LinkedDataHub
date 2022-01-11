@@ -229,29 +229,6 @@ WHERE
         <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.endpoint'))"/>
     </xsl:function>
 
-    <xsl:function name="apl:href" as="xs:anyURI">
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-
-        <xsl:sequence select="apl:href($base, $uri, ())"/>
-    </xsl:function>
-    
-    <xsl:function name="apl:href" as="xs:anyURI">
-        <xsl:param name="base" as="xs:anyURI"/>
-        <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
-
-        <xsl:choose>
-            <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
-            <xsl:when test="starts-with($uri, $base)">
-                <xsl:sequence select="if ($mode) then ac:build-uri($uri, map{ 'mode': string($mode) }) else $uri"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:sequence select="if ($mode) then ac:build-uri($base, map{ 'uri': string($uri), 'mode': string($mode) }) else ac:build-uri($base, map{ 'uri': string($uri) })"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:function>
-
     <!-- finds the app with the longest matching base URI -->
     <xsl:function name="apl:match-app" as="element()?">
         <xsl:param name="uri" as="xs:anyURI"/>
@@ -2215,9 +2192,8 @@ WHERE
     </xsl:template>
 
     <!-- open editing form (do nothing if the button is disabled) -->
-    <xsl:template match="button[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
+    <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
+        <xsl:variable name="request-uri" select="@href" as="xs:anyURI"/>
         <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
 
         <!-- toggle .active class -->
@@ -2357,7 +2333,7 @@ WHERE
     
     <xsl:template match="div[contains-token(@class, 'backlinks-nav')]//*[contains-token(@class, 'nav-header')]" mode="ixsl:onclick">
         <xsl:variable name="container" select="ancestor::div[contains-token(@class, 'backlinks-nav')]" as="element()"/>
-        <xsl:variable name="content-uri" select="translate(input[@name = 'uri']/@value, '.', '-')" as="xs:anyURI"/>
+        <xsl:variable name="content-uri" select="xs:anyURI(translate(input[@name = 'uri']/@value, '.', '-'))" as="xs:anyURI"/>
         <xsl:variable name="query-string" select="replace($backlinks-string, '\?this', concat('&lt;', $content-uri, '&gt;'))" as="xs:string"/>
         <!-- replace dots with dashes from this point (not before using in the query string!) -->
         <xsl:variable name="content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>

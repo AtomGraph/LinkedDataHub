@@ -752,7 +752,7 @@ exclude-result-prefixes="#all">
             <ul class="nav nav-tabs offset2 span7">
                 <xsl:if test="$has-content">
                     <li class="content-mode{if (not($ac:mode) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
-                        <a>
+                        <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&apl;ContentMode' })}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
                             </xsl:value-of>
@@ -802,7 +802,7 @@ exclude-result-prefixes="#all">
                 <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
             </xsl:if>
 
-            <a>
+            <a href="{ac:build-uri(ac:uri(), map{ 'mode': string(@rdf:about) })}">
                 <xsl:value-of>
                     <xsl:apply-templates select="." mode="ac:label"/>
                 </xsl:value-of>
@@ -1052,14 +1052,11 @@ exclude-result-prefixes="#all">
 
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <div class="pull-right">
-                    <xsl:variable name="graph-uri" select="ac:build-uri(ac:uri(), map{ 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-                    <button type="button" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                    <a href="{apl:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
-
-                        <input type="hidden" value="{$graph-uri}"/>
-                    </button>
+                    </a>
                 </div>
             </xsl:if>
             

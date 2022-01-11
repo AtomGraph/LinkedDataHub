@@ -32,6 +32,7 @@ ul.dropdown-menu ul { margin: 0; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
 .btn-container { background-image: url('../icons/folder.svg'); }
 .btn-item { background-image: url('../icons/file.svg'); }
+.btn-app { background-image: url('../icons/apps_black_24dp.svg'); }
 .btn-service { background-image: url('../icons/baseline-cloud-24px.svg'); }
 .btn-query { background-image: url('../icons/ic_code_black_24px.svg'); }
 .btn-file { background-image: url('../icons/ic_file_upload_black_24px.svg'); }
@@ -50,7 +51,7 @@ ul.dropdown-menu ul { margin: 0; }
 .btn.btn-copy-uri { font-size: 0; color: transparent; background-image: url('../icons/content_copy-24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-save-as { font-size: 0; color: transparent; background-image: url('../icons/save_black_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
 .btn.btn-skolemize { font-size: 0; color: transparent; background-image: url('../icons/link_black_24dp.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
-.btn.btn-edit { font-size: 0; color: transparent; background-image: url('../icons/ic_create_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; }
+.btn.btn-edit { font-size: 0; color: transparent; background-image: url('../icons/ic_create_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 48px; padding-left: 0; padding-right: 0; }
 .btn.dropdown-toggle.btn-map { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_map_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-graph { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_blur_on_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
 .btn.dropdown-toggle.btn-query { text-align: right; font-size: 0; color: transparent; background-image: url('../icons/ic_code_black_24px.svg'); background-position: center center; background-repeat: no-repeat; width: 64px; }
