@@ -1652,24 +1652,22 @@ WHERE
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
                     <xsl:with-param name="href" select="apl:href($ldt:base, $uri)"/>
-                    <xsl:with-param name="title" select="?body/html/head/title"/>
+                    <xsl:with-param name="title" select="/html/head/title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
             </xsl:if>
         </xsl:if>
 
-        <xsl:for-each select="?body">
-            <!-- set document.title which history.pushState() does not do -->
-            <ixsl:set-property name="title" select="string(html/head/title)" object="ixsl:page()"/>
+        <!-- set document.title which history.pushState() does not do -->
+        <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
 
-            <xsl:variable name="results" select="." as="document-node()"/>
+        <xsl:variable name="results" select="." as="document-node()"/>
 
-            <!-- replace content body with the loaded XHTML -->
-            <xsl:for-each select="$container">
-                <xsl:result-document href="?." method="ixsl:replace-content">
-                    <xsl:copy-of select="id($container/@id, $results)/*"/>
-                </xsl:result-document>
-            </xsl:for-each>
+        <!-- replace content body with the loaded XHTML -->
+        <xsl:for-each select="$container">
+            <xsl:result-document href="?." method="ixsl:replace-content">
+                <xsl:copy-of select="id($container/@id, $results)/*"/>
+            </xsl:result-document>
         </xsl:for-each>
 
         <xsl:choose>
@@ -1695,7 +1693,7 @@ WHERE
 
         <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
         <xsl:if test="$uri">
-            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ?body)/@id" as="xs:string*"/>
+            <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content')/@id" as="xs:string*"/>
             <xsl:call-template name="apl:LoadContents">
                 <xsl:with-param name="uri" select="$uri"/>
                 <xsl:with-param name="content-ids" select="$content-ids"/>
