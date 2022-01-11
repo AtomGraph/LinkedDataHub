@@ -1052,7 +1052,7 @@ exclude-result-prefixes="#all">
 
             <xsl:if test="not($ac:mode = '&ac;EditMode')">
                 <div class="pull-right">
-                    <a href="{apl:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                    <a href="{apl:href($ldt:base, ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
                         <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
                             <xsl:with-param name="class" select="'btn'"/>
                         </xsl:apply-templates>
