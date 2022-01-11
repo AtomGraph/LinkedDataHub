@@ -2245,7 +2245,6 @@ WHERE
 
     <!-- content tabs (markup from Bootstrap) -->
     <xsl:template match="div[contains-token(@class, 'tabbable')]/ul[contains-token(@class, 'nav-tabs')]/li/a" mode="ixsl:onclick">
-        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!-- deactivate other tabs -->
         <xsl:for-each select="../../li">
             <ixsl:set-attribute name="class" select="string-join(tokenize(@class, ' ')[not(. = 'active')], ' ')"/>
@@ -2292,6 +2291,7 @@ WHERE
     <!-- document mode tabs -->
     
     <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
         <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
         <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
