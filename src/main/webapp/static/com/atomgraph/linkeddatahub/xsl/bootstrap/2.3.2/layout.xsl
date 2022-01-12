@@ -956,11 +956,11 @@ exclude-result-prefixes="#all">
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri($apl:absolutePath, let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': ac:uri() })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri($apl:absolutePath, let $params := map{ 'accept': 'application/rdf+xml' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="application/rdf+xml">RDF/XML</a>
                 </li>
                 <li>
-                    <xsl:variable name="href" select="ac:build-uri($apl:absolutePath, let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': ac:uri() })) else $params)" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri($apl:absolutePath, let $params := map{ 'accept': 'text/turtle' } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="text/turtle">Turtle</a>
                 </li>
             </ul>
