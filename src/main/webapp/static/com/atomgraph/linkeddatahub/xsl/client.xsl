@@ -165,12 +165,10 @@ WHERE
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <xsl:apply-templates select="ixsl:page()" mode="apl:LoadedHTMLDocument">
-            <xsl:with-param name="uri" select="$uri"/>
-            <xsl:with-param name="fragment" select="$fragment"/>
-            <xsl:with-param name="endpoint" select="$endpoint"/>
-            <xsl:with-param name="container" select="$container"/>
-            <xsl:with-param name="state" select="$state"/>
-            <xsl:with-param name="push-state" select="$push-state"/>
+            <xsl:with-param name="uri" select="$apl:absolutePath"/>
+            <!--<xsl:with-param name="fragment" select="$fragment"/>-->
+            <xsl:with-param name="endpoint" select="$ac:endpoint"/>
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
         </xsl:apply-templates>
         <!-- disable SPARQL editor's server-side submission -->
