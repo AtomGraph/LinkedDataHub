@@ -160,16 +160,19 @@ WHERE
         <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="endpoint" select="$ac:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <!-- push initial state -->
-        <xsl:call-template name="apl:PushState">
-            <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
-            <xsl:with-param name="title" select="ixsl:get(ixsl:window(), 'document.title')"/>
-            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
-        </xsl:call-template>
         <!-- load application's ontology RDF document -->
 <!--        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $ldt:ontology, 'headers': map{ 'Accept': 'application/rdf+xml' } }">
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
+        <xsl:apply-templates select="ixsl:page()" mode="apl:LoadedHTMLDocument">
+            <xsl:with-param name="uri" select="$uri"/>
+            <xsl:with-param name="fragment" select="$fragment"/>
+            <xsl:with-param name="endpoint" select="$endpoint"/>
+            <xsl:with-param name="container" select="$container"/>
+            <xsl:with-param name="state" select="$state"/>
+            <xsl:with-param name="push-state" select="$push-state"/>
+            <xsl:with-param name="replace-content" select="false()"/>
+        </xsl:apply-templates>
         <!-- disable SPARQL editor's server-side submission -->
         <xsl:for-each select="ixsl:page()//button[contains(@class, 'btn-run-query')]"> <!-- TO-DO: use the 'elements-by-class' key -->
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
@@ -182,10 +185,6 @@ WHERE
         </xsl:if>
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstruct"/>
-        <!-- initialize breadcrumbs, chart etc. -->
-        <xsl:call-template name="apl:LoadRDFDocument">
-            <xsl:with-param name="uri" select="apl:absolute-path()"/>
-        </xsl:call-template>
         <!-- append typeahead list after the search/URI input -->
         <xsl:for-each select="id('uri', ixsl:page())/..">
             <xsl:result-document href="?." method="ixsl:append-content">
@@ -200,18 +199,6 @@ WHERE
                 <xsl:with-param name="select" select="."/>
                 <xsl:with-param name="apps" select="$apl:apps"/>
             </xsl:call-template>
-        </xsl:for-each>
-        <!-- load contents -->
-        <xsl:variable name="content-ids" select="key('elements-by-class', 'resource-content', ixsl:page())/@id" as="xs:string*"/>
-        <xsl:call-template name="apl:LoadContents">
-            <xsl:with-param name="uri" select="ac:uri()"/>
-            <xsl:with-param name="content-ids" select="$content-ids"/>
-        </xsl:call-template>
-        <!-- update RDF download links to match the current URI -->
-        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-            <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-            <xsl:variable name="href" select="ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()), 'accept': string(@title) })" as="xs:anyURI"/>
-            <ixsl:set-property name="href" select="$href" object="."/>
         </xsl:for-each>
     </xsl:template>
 
@@ -1601,7 +1588,8 @@ WHERE
         <xsl:param name="state" as="item()?"/>
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
-
+        <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
+        
         <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
@@ -1658,38 +1646,40 @@ WHERE
             </xsl:if>
         </xsl:if>
 
-        <!-- set document.title which history.pushState() does not do -->
-        <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
+        <xsl:if test="$replace-content">
+            <!-- set document.title which history.pushState() does not do -->
+            <ixsl:set-property name="title" select="string(/html/head/title)" object="ixsl:page()"/>
 
-        <xsl:variable name="results" select="." as="document-node()"/>
+            <xsl:variable name="results" select="." as="document-node()"/>
 
-        <!-- replace content body with the loaded XHTML -->
-        <xsl:for-each select="$container">
-            <xsl:result-document href="?." method="ixsl:replace-content">
-                <xsl:copy-of select="id($container/@id, $results)/*"/>
-            </xsl:result-document>
-        </xsl:for-each>
+            <!-- replace content body with the loaded XHTML -->
+            <xsl:for-each select="$container">
+                <xsl:result-document href="?." method="ixsl:replace-content">
+                    <xsl:copy-of select="id($container/@id, $results)/*"/>
+                </xsl:result-document>
+            </xsl:for-each>
 
-        <xsl:choose>
-            <!-- scroll fragment-identified element into view if fragment is provided-->
-            <xsl:when test="id($fragment, ixsl:page())">
-                <xsl:for-each select="id($fragment, ixsl:page())">
-                    <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
-                </xsl:for-each >
-            </xsl:when>
-            <!-- otherwise, scroll to the top of the window -->
-            <xsl:otherwise>
-                <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>
+            <xsl:choose>
+                <!-- scroll fragment-identified element into view if fragment is provided-->
+                <xsl:when test="id($fragment, ixsl:page())">
+                    <xsl:for-each select="id($fragment, ixsl:page())">
+                        <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
+                    </xsl:for-each >
+                </xsl:when>
+                <!-- otherwise, scroll to the top of the window -->
+                <xsl:otherwise>
+                    <xsl:sequence select="ixsl:call(ixsl:window(), 'scrollTo', [ 0, 0 ])[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:otherwise>
+            </xsl:choose>
 
-        <!-- update RDF download links to match the current URI -->
-        <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-            <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
-            <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-            <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
-            <ixsl:set-property name="href" select="$href" object="."/>
-        </xsl:for-each>
+            <!-- update RDF download links to match the current URI -->
+            <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
+                <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
+                <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
+                <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
+                <ixsl:set-property name="href" select="$href" object="."/>
+            </xsl:for-each>
+        </xsl:if>
 
         <!-- this has to go after <xsl:result-document href="#{$container-id}"> because otherwise new elements will be injected and the $content-ids lookup will not work anymore -->
         <xsl:if test="$uri">

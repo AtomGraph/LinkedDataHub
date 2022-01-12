@@ -66,9 +66,14 @@ public class Dispatcher
     @Path("{path: .*}")
     public Object getSubResource()
     {
-        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()) || getDataset().isPresent())
+        if (getUriInfo().getQueryParameters().containsKey(AC.uri.getLocalName()))
         {
             if (log.isDebugEnabled()) log.debug("No Application matched request URI <{}>, dispatching to ProxyResourceBase", getUriInfo().getQueryParameters().getFirst(AC.uri.getURI()));
+            return ProxyResourceBase.class;
+        }
+        if (getDataset().isPresent())
+        {
+            if (log.isDebugEnabled()) log.debug("Serving request URI <{}> from Dataset <{}>, dispatching to ProxyResourceBase", getUriInfo().getAbsolutePath(), getDataset().get());
             return ProxyResourceBase.class;
         }
 
