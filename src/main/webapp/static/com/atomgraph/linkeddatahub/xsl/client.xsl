@@ -2282,7 +2282,7 @@ WHERE
     <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="request-uri" select="@href" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="@href" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
@@ -2297,7 +2297,7 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
                     <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
                     <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
