@@ -98,16 +98,6 @@
             <artifactId>jersey-media-json-processing</artifactId>
             <version>2.30.1</version>
         </dependency>
-<!--        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
-            <version>1.1.4</version>
-        </dependency>-->
-<!--        <dependency>
-            <groupId>jakarta.json</groupId>
-            <artifactId>jakarta.json-api</artifactId>
-            <version>1.1.5</version>
-        </dependency>-->
         <dependency>
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
@@ -133,6 +123,11 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-simple</artifactId>
                 </exclusion>
+                <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
+                <exclusion>
+                    <groupId>com.apicatalog</groupId>
+                    <artifactId>titanium-json-ld</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- TO-DO: replace with AtomGraph Core -->
@@ -140,18 +135,39 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>processor</artifactId>
             <version>3.13.2-SNAPSHOT</version>
+            <exclusions>
+                <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
+                <exclusion>
+                    <groupId>com.apicatalog</groupId>
+                    <artifactId>titanium-json-ld</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
             <version>3.1.5-SNAPSHOT</version>
             <classifier>classes</classifier>
+            <exclusions>
+                <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
+                <exclusion>
+                    <groupId>com.apicatalog</groupId>
+                    <artifactId>titanium-json-ld</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>client</artifactId>
             <version>3.1.5-SNAPSHOT</version>
             <type>war</type>
+            <exclusions>
+                <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
+                <exclusion>
+                    <groupId>com.apicatalog</groupId>
+                    <artifactId>titanium-json-ld</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.auth0</groupId>
