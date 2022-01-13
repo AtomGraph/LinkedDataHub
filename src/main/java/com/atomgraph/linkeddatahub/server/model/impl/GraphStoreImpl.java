@@ -135,9 +135,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
-        
-        // neither default graph nor named graph specified -- obtain named graph URI from the document
-        if (!defaultGraph && graphUri == null) throw new BadRequestException("Neither default graph nor named graph specified");
+        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
 
         if (!getDatasetAccessor().containsModel(graphUri.toString()))
             model.createResource(graphUri.toString()).
@@ -166,6 +164,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
+        
         getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
         
         model.createResource(graphUri.toString()).
@@ -225,6 +225,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
+        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
 
         try
         {
@@ -232,9 +233,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             
-            // neither default graph nor named graph specified -- obtain named graph URI from the document
-            if (!defaultGraph && graphUri == null) throw new BadRequestException("Neither default graph nor named graph specified");
-
             // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
             getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             
@@ -269,6 +267,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
+        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
