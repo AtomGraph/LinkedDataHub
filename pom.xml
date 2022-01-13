@@ -125,8 +125,8 @@
                 </exclusion>
                 <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
                 <exclusion>
-                    <groupId>com.apicatalog</groupId>
-                    <artifactId>titanium-json-ld</artifactId>
+                    <groupId>org.glassfish</groupId>
+                    <artifactId>jakarta.json</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -138,8 +138,8 @@
             <exclusions>
                 <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
                 <exclusion>
-                    <groupId>com.apicatalog</groupId>
-                    <artifactId>titanium-json-ld</artifactId>
+                    <groupId>org.glassfish</groupId>
+                    <artifactId>jakarta.json</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -151,8 +151,8 @@
             <exclusions>
                 <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
                 <exclusion>
-                    <groupId>com.apicatalog</groupId>
-                    <artifactId>titanium-json-ld</artifactId>
+                    <groupId>org.glassfish</groupId>
+                    <artifactId>jakarta.json</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -164,8 +164,8 @@
             <exclusions>
                 <!-- exclude Titanium as it comes with a version of jakarta.json that clashes with Jersey's -->
                 <exclusion>
-                    <groupId>com.apicatalog</groupId>
-                    <artifactId>titanium-json-ld</artifactId>
+                    <groupId>org.glassfish</groupId>
+                    <artifactId>jakarta.json</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
