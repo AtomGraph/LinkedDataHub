@@ -1608,7 +1608,7 @@ WHERE
         <xsl:if test="$uri">
             <ixsl:set-property name="href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
             <xsl:variable name="edit-uri" select="apl:href($ldt:base, $uri, xs:anyURI('&ac;EditMode'))" as="xs:anyURI"/>
-            <ixsl:set-property name="href" select="$edit-uri" object="ixsl:page()//div[contains-token(@class, 'action-bar')]//button[contains-token(@class, 'btn-edit')]"/>
+            <ixsl:set-attribute name="href" select="$edit-uri" object="ixsl:page()//div[contains-token(@class, 'action-bar')]//a[contains-token(@class, 'btn-edit')]"/>
 
             <xsl:choose>
                 <!-- local URI -->
