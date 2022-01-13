@@ -437,9 +437,11 @@ extension-element-prefixes="ixsl"
                 </xsl:apply-templates>
             </h2>
 
-            <p>
-                <xsl:apply-templates select="." mode="ac:description"/>
-            </p>
+            <xsl:where-populated>
+                <p>
+                    <xsl:apply-templates select="." mode="ac:description"/>
+                </p>
+            </xsl:where-populated>
 
             <xsl:apply-templates select="." mode="bs2:TypeList"/>
         </div>

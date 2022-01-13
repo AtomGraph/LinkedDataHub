@@ -2281,19 +2281,7 @@ WHERE
     
     <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="mode-classes" as="map(xs:string, xs:string)">
-            <xsl:map>
-                <xsl:map-entry key="'content-mode'" select="'&apl;ContentMode'"/>
-                <xsl:map-entry key="'read-mode'" select="'&ac;ReadMode'"/>
-                <xsl:map-entry key="'map-mode'" select="'&ac;MapMode'"/>
-                <xsl:map-entry key="'chart-mode'" select="'&ac;ChartMode'"/>
-                <xsl:map-entry key="'graph-mode'" select="'&ac;GraphMode'"/>
-            </xsl:map>
-        </xsl:variable>
-        <xsl:variable name="mode" select="map:get($mode-classes, $active-class)" as="xs:string"/>
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri, xs:anyURI($mode))" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="@href" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
