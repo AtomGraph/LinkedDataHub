@@ -94,8 +94,6 @@ public class RequestAccess extends GraphStoreImpl
         this.agent = (Agent)securityContext.getUserPrincipal();
 
         agentQuery = system.getAgentQuery();
-
-        // TO-DO: extract AuthorizationRequest container URI from ontology Restrictions
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailSubject.getURI());
@@ -230,7 +228,7 @@ public class RequestAccess extends GraphStoreImpl
     
     public UriBuilder getAuthRequestContainerUriBuilder()
     {
-        return authRequestContainerUriBuilder;
+        return authRequestContainerUriBuilder.clone();
     }
     
     public Query getAgentQuery()

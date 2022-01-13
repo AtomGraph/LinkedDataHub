@@ -234,6 +234,7 @@ public class Application extends ResourceConfig
 
     public static final String REQUEST_ACCESS_PATH = "request access";
     public static final String AUTHORIZATION_REQUEST_PATH = "acl/authorization-requests/";
+    public static final String UPLOADS_PATH = "uploads";
     
     private final EventBus eventBus = new EventBus();
     private final DataManager dataManager;

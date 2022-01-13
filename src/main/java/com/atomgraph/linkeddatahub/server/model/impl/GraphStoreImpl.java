@@ -20,7 +20,6 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
-import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
 import com.atomgraph.processor.vocabulary.SIOC;
 import java.io.File;
@@ -106,6 +105,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     private final Service service;
     private final Providers providers;
     private final com.atomgraph.linkeddatahub.Application system;
+    private final UriBuilder uploadsUriBuilder;
     private final MessageDigest messageDigest;
 
     @Inject
@@ -121,6 +121,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         this.service = service.get();
         this.providers = providers;
         this.system = system;
+        uploadsUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.UPLOADS_PATH);
         
         try
         {
@@ -498,13 +499,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
                 resource.addLiteral(FOAF.sha1, sha1Hash);
-                
                 // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
                 if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
                 
-                URI sha1Uri = new Skolemizer(getOntology(),
-                        getUriInfo().getBaseUriBuilder(), getUriInfo().getAbsolutePathBuilder()).
-                        build(resource);
+                URI sha1Uri = getUploadsUriBuilder().path("{sha1}").build(sha1Hash);
                 if (log.isDebugEnabled()) log.debug("Renaming resource: {} to SHA1 based URI: {}", resource, sha1Uri);
                 ResourceUtils.renameResource(resource, sha1Uri.toString());
 
@@ -542,7 +540,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         bnodes.stream().forEach(bnode ->
             ResourceUtils.renameResource(bnode, UriBuilder.fromUri(graphUri).
                 fragment("id{uuid}").
-                build(UUID.randomUUID().toString()).toString())); // TO-DO: replace Skolemizer with this?
+                build(UUID.randomUUID().toString()).toString()));
         
         return model;
     }
@@ -645,6 +643,11 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (!dates.isEmpty()) return Collections.max(dates);
         
         return null;
+    }
+    
+    public UriBuilder getUploadsUriBuilder()
+    {
+        return uploadsUriBuilder.clone();
     }
     
     public MessageDigest getMessageDigest()
