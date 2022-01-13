@@ -72,7 +72,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import static org.apache.jena.datatypes.xsd.XSDDatatype.XSDhexBinary;
@@ -173,7 +172,7 @@ public class SignUp extends GraphStoreImpl
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(agentGraphUri)).build(agentModel);
+        skolemize(agentModel, agentGraphUri);
         
         Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
@@ -224,7 +223,8 @@ public class SignUp extends GraphStoreImpl
                     publicKeyGraphUri,
                     publicKeyModel.createResource(getUriInfo().getBaseUri().resolve(PUBLIC_KEY_PATH).toString()),
                     certPublicKey);
-                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(publicKeyGraphUri)).build(publicKeyModel);
+                skolemize(publicKeyModel, publicKeyGraphUri);
+                
                 Response publicKeyResponse = super.post(publicKeyModel, false, publicKeyGraphUri);
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
@@ -254,7 +254,8 @@ public class SignUp extends GraphStoreImpl
                         authModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
                         agentGraphUri,
                         publicKeyGraphUri);
-                    getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
+                    skolemize(authModel, authGraphUri);
+                    
                     Response authResponse = super.post(authModel, false, authGraphUri);
                     if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {

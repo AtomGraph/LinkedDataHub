@@ -37,14 +37,12 @@ import org.apache.jena.rdfxml.xmloutput.impl.Basic;
 import org.apache.jena.riot.Lang;
 import com.atomgraph.linkeddatahub.server.exception.RDFSyntaxException;
 import com.atomgraph.linkeddatahub.vocabulary.LSM;
-import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import com.atomgraph.server.exception.SPINConstraintViolationException;
 import com.atomgraph.spinrdf.constraints.ConstraintViolation;
 import com.atomgraph.spinrdf.constraints.ObjectPropertyPath;
 import com.atomgraph.spinrdf.constraints.SimplePropertyPath;
 import com.atomgraph.spinrdf.vocabulary.SP;
-import java.util.UUID;
 import javax.ws.rs.core.MediaType;
 import org.apache.jena.rdf.model.RDFWriterI;
 import org.apache.jena.vocabulary.DCTerms;
@@ -123,7 +121,7 @@ public class ValidatingModelProvider extends com.atomgraph.server.io.ValidatingM
     
     public Resource process(Resource resource) // this logic really belongs in a ContainerRequestFilter but we don't want to buffer and re-serialize the Model
     {
-        if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
+//        if (!resource.hasProperty(DH.slug)) resource.addLiteral(DH.slug, UUID.randomUUID().toString()); // all resources get slugs
 
         if (resource.hasProperty(DCTerms.format) && resource.getProperty(DCTerms.format).getObject().isLiteral())
         {

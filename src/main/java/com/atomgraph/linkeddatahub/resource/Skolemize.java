@@ -20,26 +20,19 @@ import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.util.ResourceUtils;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,33 +57,14 @@ public class Skolemize extends GraphStoreImpl
     @Override
     public Response post(Model unused, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        Model model = getDatasetAccessor().getModel(graphUri.toString());
-        Set<Resource> bnodes = new HashSet<>();
+        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
         
-        ExtendedIterator<Statement> it = model.listStatements().
-            filterKeep((Statement stmt) -> (stmt.getSubject().isAnon() || stmt.getObject().isAnon()));
-        try
-        {
-            while (it.hasNext())
-            {
-                Statement stmt = it.next();
-                
-                if (stmt.getSubject().isAnon()) bnodes.add(stmt.getSubject());
-                if (stmt.getObject().isAnon()) bnodes.add(stmt.getObject().asResource());
-            }
-        }
-        finally
-        {
-            it.close();
-        }
-
-        bnodes.stream().forEach(bnode ->
-            ResourceUtils.renameResource(bnode, UriBuilder.fromUri(graphUri).
-                fragment("id{uuid}").
-                build(UUID.randomUUID().toString()).toString())); // TO-DO: replace Skolemizer with this?
+        Model model = getDatasetAccessor().getModel(graphUri.toString());
+        skolemize(model, graphUri);
         
         // replace the existing graph with the skolemized graph
         return super.put(model, defaultGraph, graphUri);
     }
+    
     
 }

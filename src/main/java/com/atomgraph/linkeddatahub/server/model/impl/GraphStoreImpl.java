@@ -22,7 +22,6 @@ import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.server.util.Skolemizer;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
-import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,10 +40,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -80,6 +82,7 @@ import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.ResourceUtils;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.DCTerms;
 import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -135,38 +138,45 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response post(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isTraceEnabled()) log.trace("POST Graph Store request with RDF payload: {} payload size(): {}", model, model.size());
-        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
-
-        if (!getDatasetAccessor().containsModel(graphUri.toString()))
+        
+        // neither default graph nor named graph specified -- obtain named graph URI from the document
+        if (!defaultGraph && graphUri == null)
+        {
+            Resource graph = createGraph(model);
+            if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
+            graphUri = URI.create(graph.getURI());
+            
             model.createResource(graphUri.toString()).
                 addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+        }
         
-        // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+        // container/item (graph) resource is already skolemized, skolemize the rest of the model
+        skolemize(model, graphUri);
         
         return super.post(model, false, graphUri);
     }
 
-//    public Resource createGraph(Model model)
-//    {
-//        if (model == null) throw new IllegalArgumentException("Model cannot be null");
-//
-//        Resource doc = getDocument(model);
-//        Resource parent = doc != null ? getParent(doc) : null;
-//        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
-//
-//        URI graphUri = getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(parent.getURI())).build(doc);
-//        if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
-//        else return null;
-//    }
+    public Resource createGraph(Model model)
+    {
+        if (model == null) throw new IllegalArgumentException("Model cannot be null");
+
+        Resource doc = getDocument(model);
+        Resource parent = doc != null ? getParent(doc) : null;
+        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
+
+        URI graphUri = URI.create(parent.getURI()).resolve(UUID.randomUUID().toString() + "/");
+        
+        if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
+        else return null;
+    }
     
     @PUT
     @Override
     public Response put(Model model, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
-        
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+        if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
+
+//        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
         
         model.createResource(graphUri.toString()).
             removeAll(DCTerms.modified).
@@ -175,10 +185,10 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         return super.put(model, defaultGraph, graphUri);
     }
     
-    public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
-    {
-        return new Skolemizer(getOntology(), baseUriBuilder, absolutePathBuilder);
-    }
+//    public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
+//    {
+//        return new Skolemizer(getOntology(), baseUriBuilder, absolutePathBuilder);
+//    }
     
     @PATCH
     public Response patch(UpdateRequest updateRequest)
@@ -225,7 +235,6 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     public Response postMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
-        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
 
         try
         {
@@ -233,8 +242,19 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
             
-            // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+            // neither default graph nor named graph specified -- obtain named graph URI from the document
+            if (!defaultGraph && graphUri == null)
+            {
+                Resource graph = createGraph(model);
+                if (graph == null) throw new InternalServerErrorException("Named graph skolemization failed");
+                graphUri = URI.create(graph.getURI());
+                
+                model.createResource(graphUri.toString()).
+                    addLiteral(DCTerms.created, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
+            }
+
+            // container/item (graph) resource is already skolemized, skolemize the rest of the model
+            skolemize(model, graphUri);
             
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
@@ -267,7 +287,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putMultipart(FormDataMultiPart multiPart, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (graphUri == null) throw new BadRequestException("Named graph URI not specified");
+        if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
         if (log.isDebugEnabled()) log.debug("MultiPart fields: {} body parts: {}", multiPart.getFields(), multiPart.getBodyParts());
 
         try
@@ -275,7 +295,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
-            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
+            
+//            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
@@ -476,9 +497,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
                 String sha1Hash = Hex.encodeHexString(dis.getMessageDigest().digest()); // BigInteger seems to have an issue when the leading hex digit is 0
                 if (log.isDebugEnabled()) log.debug("Wrote file: {} with SHA1 hash: {}", tempFile, sha1Hash);
 
-                resource.removeAll(DH.slug).
-                    addLiteral(DH.slug, sha1Hash).
-                    addLiteral(FOAF.sha1, sha1Hash);
+                resource.addLiteral(FOAF.sha1, sha1Hash);
                 
                 // user could have specified an explicit media type; otherwise - use the media type that the browser has sent
                 if (!resource.hasProperty(DCTerms.format)) resource.addProperty(DCTerms.format, com.atomgraph.linkeddatahub.MediaType.toResource(bodyPart.getMediaType()));
@@ -497,6 +516,35 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
             throw new WebApplicationException(ex);
         }
+    }
+    
+    public Model skolemize(Model model, URI graphUri)
+    {
+        Set<Resource> bnodes = new HashSet<>();
+        
+        ExtendedIterator<Statement> it = model.listStatements().
+            filterKeep((Statement stmt) -> (stmt.getSubject().isAnon() || stmt.getObject().isAnon()));
+        try
+        {
+            while (it.hasNext())
+            {
+                Statement stmt = it.next();
+                
+                if (stmt.getSubject().isAnon()) bnodes.add(stmt.getSubject());
+                if (stmt.getObject().isAnon()) bnodes.add(stmt.getObject().asResource());
+            }
+        }
+        finally
+        {
+            it.close();
+        }
+
+        bnodes.stream().forEach(bnode ->
+            ResourceUtils.renameResource(bnode, UriBuilder.fromUri(graphUri).
+                fragment("id{uuid}").
+                build(UUID.randomUUID().toString()).toString())); // TO-DO: replace Skolemizer with this?
+        
+        return model;
     }
     
     /**

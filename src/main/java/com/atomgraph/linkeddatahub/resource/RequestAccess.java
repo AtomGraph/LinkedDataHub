@@ -119,8 +119,7 @@ public class RequestAccess extends GraphStoreImpl
         if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
 
         graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build();
-        // bnodes skolemized into URIs based on ldt:path annotations on ontology classes
-        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(requestModel);
+        skolemize(requestModel, graphUri);
             
         Resource forClass = requestModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
         ResIterator it = requestModel.listResourcesWithProperty(RDF.type, forClass);
