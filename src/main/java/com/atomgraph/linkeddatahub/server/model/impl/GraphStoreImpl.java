@@ -21,6 +21,7 @@ import com.atomgraph.core.riot.lang.RDFPostReader;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.io.ValidatingModelProvider;
 import com.atomgraph.linkeddatahub.vocabulary.NFO;
+import com.atomgraph.processor.vocabulary.DH;
 import com.atomgraph.processor.vocabulary.SIOC;
 import java.io.File;
 import java.io.FileInputStream;
@@ -162,10 +163,16 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         if (model == null) throw new IllegalArgumentException("Model cannot be null");
 
         Resource doc = getDocument(model);
-        Resource parent = doc != null ? getParent(doc) : null;
-        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body.");
+        if (doc == null) throw new BadRequestException("Cannot create a new named graph, no Container or Item instance found in request body");
+        
+        Resource parent = getParent(doc);
+        if (parent == null) throw new BadRequestException("Graph URI is not specified and no document (with sioc:has_parent or sioc:has_container) found in request body");
 
-        URI graphUri = URI.create(parent.getURI()).resolve(UUID.randomUUID().toString() + "/");
+        // hardcoded hierarchical URL building logic
+        final String slug;
+        if (doc.hasProperty(DH.slug)) slug = doc.getProperty(DH.slug).getString();
+        else slug = UUID.randomUUID().toString() + "/";
+        URI graphUri = URI.create(parent.getURI()).resolve(slug);
         
         if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
         else return null;
