@@ -64,7 +64,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import org.apache.jena.ontology.Ontology;
@@ -182,7 +181,7 @@ public class Login extends GraphStoreImpl
                     email,
                     jwt.getClaim("picture") != null ? jwt.getClaim("picture").asString() : null);
                 // skolemize here because this Model will not go through SkolemizingModelProvider
-                getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(agentGraphUri)).build(agentModel);
+                skolemize(agentModel, agentGraphUri);
                 
                 ResIterator it = agentModel.listResourcesWithProperty(FOAF.mbox);
                 try
@@ -200,8 +199,8 @@ public class Login extends GraphStoreImpl
                         jwt.getClaim("name").asString(),
                         email);
                     userAccount.addProperty(SIOC.ACCOUNT_OF, agent);
-                        
-                    getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(userAccountGraphUri)).build(accountModel);
+                    skolemize(accountModel, userAccountGraphUri);
+                    
                     Response userAccountResponse = super.post(accountModel, false, userAccountGraphUri);
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
@@ -233,7 +232,8 @@ public class Login extends GraphStoreImpl
                             accountModel.createResource(getUriInfo().getBaseUri().resolve(AUTHORIZATION_PATH).toString()),
                             agentGraphUri,
                             userAccountGraphUri);
-                        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(authGraphUri)).build(authModel);
+                        skolemize(authModel, authGraphUri);
+                        
                         Response authResponse = super.post(authModel, false, authGraphUri);
                         if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {

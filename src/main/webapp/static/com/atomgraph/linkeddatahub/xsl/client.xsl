@@ -157,7 +157,7 @@ WHERE
         <ixsl:set-property name="LinkedDataHub" select="apl:new-object()"/>
         <ixsl:set-property name="typeahead" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/> <!-- used by typeahead.xsl -->
         <ixsl:set-property name="href" select="if (ixsl:query-params()?uri) then xs:anyURI(ixsl:query-params()?uri) else $apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-        <ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+        <!--<ixsl:set-property name="local-href" select="$apl:absolutePath" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
         <ixsl:set-property name="endpoint" select="$ac:endpoint" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <ixsl:set-property name="yasqe" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
         <!-- load application's ontology RDF document -->
@@ -203,7 +203,8 @@ WHERE
     <!-- FUNCTIONS -->
     
     <xsl:function name="apl:absolute-path" as="xs:anyURI">
-        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'LinkedDataHub.local-href'))"/>
+        <xsl:variable name="href" select="ixsl:get(ixsl:window(), 'location.href')" as="xs:string"/>
+        <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else $href)"/>
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI">
@@ -1618,7 +1619,7 @@ WHERE
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
-                    <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+<!--                    <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
                     <!-- unset #uri value -->
                     <xsl:for-each select="id('uri', ixsl:page())">
                         <ixsl:set-property name="value" select="()" object="."/>
