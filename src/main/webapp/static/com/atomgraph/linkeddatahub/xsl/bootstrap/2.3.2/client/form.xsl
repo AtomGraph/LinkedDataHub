@@ -247,6 +247,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm">
+                    <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
@@ -514,6 +515,7 @@ exclude-result-prefixes="#all"
     <xsl:template name="onAddForm">
         <xsl:context-item as="map(*)" use="required"/>
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
+        <xsl:param name="href" as="xs:anyURI?"/>
         <xsl:param name="add-class" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
@@ -638,6 +640,14 @@ exclude-result-prefixes="#all"
                         </xsl:otherwise>
                     </xsl:choose>
 
+                    <xsl:if test="$href">
+                        <xsl:call-template name="apl:PushState">
+                            <xsl:with-param name="href" select="apl:href($ldt:base, $href)"/>
+                            <xsl:with-param name="title" select="/html/head/title"/>
+                            <xsl:with-param name="container" select="$container"/>
+                        </xsl:call-template>
+                    </xsl:if>
+                    
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>
             </xsl:when>
