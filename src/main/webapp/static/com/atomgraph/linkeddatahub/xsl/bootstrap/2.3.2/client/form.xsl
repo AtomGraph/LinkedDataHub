@@ -229,7 +229,7 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
+    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick" priority="1">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <!--<xsl:variable name="uri" select="apl:absolute-path(apl:href())" as="xs:anyURI"/>-->
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
@@ -249,11 +249,18 @@ exclude-result-prefixes="#all"
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm">
                     <xsl:with-param name="href" select="$href"/>
+                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+
+        <xsl:call-template name="apl:PushState">
+            <xsl:with-param name="href" select="apl:href($ldt:base, $href)"/>
+            <!--<xsl:with-param name="title" select="/html/head/title"/>-->
+            <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+        </xsl:call-template>
     </xsl:template>
     
     <!-- toggle between Content as URI resource and HTML (rdf:XMLLiteral) -->
@@ -515,8 +522,8 @@ exclude-result-prefixes="#all"
     <!-- after "Create" or "Edit" buttons are clicked" -->
     <xsl:template name="onAddForm">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
-        <xsl:param name="href" as="xs:anyURI?"/>
+        <xsl:param name="container" as="element()"/>
+        <!--<xsl:param name="href" as="xs:anyURI?"/>-->
         <xsl:param name="add-class" as="xs:string?"/>
         <xsl:param name="target-id" as="xs:string?"/>
         <xsl:param name="new-form-id" as="xs:string?"/>
@@ -640,14 +647,6 @@ exclude-result-prefixes="#all"
                             </xsl:if>
                         </xsl:otherwise>
                     </xsl:choose>
-
-                    <xsl:if test="$href">
-                        <xsl:call-template name="apl:PushState">
-                            <xsl:with-param name="href" select="apl:href($ldt:base, $href)"/>
-                            <xsl:with-param name="title" select="/html/head/title"/>
-                            <xsl:with-param name="container" select="$container"/>
-                        </xsl:call-template>
-                    </xsl:if>
                     
                     <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
                 </xsl:for-each>

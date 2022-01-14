@@ -2169,8 +2169,8 @@ WHERE
     <!-- open editing form (do nothing if the button is disabled) -->
     <xsl:template match="a[contains-token(@class, 'btn-edit')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="uri" select="@href" as="xs:anyURI"/>
-        <xsl:message>GRAPH URI: <xsl:value-of select="$uri"/></xsl:message>
+        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
+        <xsl:message>GRAPH URI: <xsl:value-of select="$href"/></xsl:message>
 
         <!-- toggle .active class -->
         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'active', true() ])[current-date() lt xs:date('2000-01-01')]"/>
@@ -2183,13 +2183,23 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                <xsl:call-template name="onAddForm"/>
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                <xsl:call-template name="onAddForm">
+                    <xsl:with-param name="href" select="$href"/>
+                    <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+                </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
-        
         <!-- store the new request object -->
         <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+
+        <xsl:if test="$href">
+            <xsl:call-template name="apl:PushState">
+                <xsl:with-param name="href" select="apl:href($ldt:base, $href)"/>
+                <!--<xsl:with-param name="title" select="/html/head/title"/>-->
+                <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
     
     <xsl:template match="button[contains-token(@class, 'btn-delete')][not(contains-token(@class, 'disabled'))]" mode="ixsl:onclick">
