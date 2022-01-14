@@ -202,8 +202,13 @@ WHERE
 
     <!-- FUNCTIONS -->
     
+    <xsl:function name="apl:href" as="xs:anyURI">
+        <xsl:sequence select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
+    </xsl:function>
+
     <xsl:function name="apl:absolute-path" as="xs:anyURI">
-        <xsl:variable name="href" select="ixsl:get(ixsl:window(), 'location.href')" as="xs:string"/>
+        <xsl:param name="href" as="xs:anyURI"/>
+        
         <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else $href)"/>
     </xsl:function>
 
@@ -1202,7 +1207,7 @@ WHERE
                             <xsl:for-each select="key('resources-by-container', $ldt:base, $results)">
                                 <xsl:sort select="ac:label(.)" order="ascending" lang="{$ldt:lang}"/>
                                 <xsl:apply-templates select="." mode="bs2:List">
-                                    <xsl:with-param name="active" select="starts-with(apl:absolute-path(), @rdf:about)"/>
+                                    <xsl:with-param name="active" select="starts-with(apl:absolute-path(apl:href()), @rdf:about)"/>
                                 </xsl:apply-templates>
                             </xsl:for-each>
                         </xsl:variable>
@@ -1492,7 +1497,7 @@ WHERE
     
     <xsl:template name="onDocumentLoad">
         <xsl:context-item as="map(*)" use="required"/>
-        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="href" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" select="id('content-body', ixsl:page())" as="element()"/>
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
@@ -1503,7 +1508,7 @@ WHERE
         
         <xsl:message>
             onDocumentLoad
-            $uri: <xsl:value-of select="$uri"/>
+            $href: <xsl:value-of select="$href"/>
             $container/@id: <xsl:value-of select="$container/@id"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ?status: <xsl:value-of select="?status"/>
@@ -1517,7 +1522,8 @@ WHERE
                 <xsl:variable name="endpoint" select="if ($endpoint-link) then xs:anyURI(substring-before(substring-after(substring-before($endpoint-link, ';'), '&lt;'), '&gt;')) else ()" as="xs:anyURI?"/>
 
                 <xsl:apply-templates select="?body" mode="apl:LoadedHTMLDocument">
-                    <xsl:with-param name="uri" select="$uri"/>
+                    <xsl:with-param name="href" select="$href"/>
+                    <!--<xsl:with-param name="uri" select="$href"/>-->
                     <xsl:with-param name="fragment" select="$fragment"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
@@ -1654,7 +1660,7 @@ WHERE
             <!-- update RDF download links to match the current URI -->
             <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'accept': string(@title) } return if (not(starts-with(apl:absolute-path(), $ldt:base))) then map:merge(($params, map{ 'uri': apl:absolute-path()})) else $params)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), let $params := map{ 'accept': string(@title) } return if (not(starts-with(apl:absolute-path(apl:href()), $ldt:base))) then map:merge(($params, map{ 'uri': apl:absolute-path(apl:href())})) else $params)" as="xs:anyURI"/>
                 <ixsl:set-property name="href" select="$href" object="."/>
             </xsl:for-each>
         </xsl:if>
@@ -1724,8 +1730,8 @@ WHERE
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="$uri"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                                <xsl:with-param name="href" select="$href"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
                                 <xsl:with-param name="state" select="$state"/>
                                 <!-- we don't want to push the same state we just popped back to -->
                                 <xsl:with-param name="push-state" select="false()"/>
@@ -1746,9 +1752,9 @@ WHERE
     <!-- intercept all link HTTP(S) clicks except to /uploads/ and those in the navbar (except breadcrumb bar, .brand and app list) and the footer -->
     <xsl:template match="a[not(@target)][starts-with(@href, 'http://') or starts-with(@href, 'https://')][not(starts-with(@href, resolve-uri('uploads/', $ldt:base)))][ancestor::div[@id = 'breadcrumb-nav'] or not(ancestor::div[tokenize(@class, ' ') = ('navbar', 'footer')])] | a[contains-token(@class, 'brand')] | div[button[contains-token(@class, 'btn-apps')]]/ul//a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
-        <xsl:variable name="uri" select="xs:anyURI(@href)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
         <!-- dereference external resources through a proxy -->
-        <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
+        <xsl:variable name="request-uri" select="apl:href($ldt:base, $href)" as="xs:anyURI"/>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         
@@ -1761,8 +1767,8 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
-                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                    <xsl:with-param name="href" select="$href"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1791,8 +1797,8 @@ WHERE
             <xsl:variable name="request" as="item()*">
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
-                        <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                        <xsl:with-param name="href" select="ac:document-uri($uri)"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
@@ -1807,17 +1813,17 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="?status = 204"> <!-- No Content -->
-                <xsl:variable name="uri" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
-                <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$uri"/></xsl:message>
-                <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="resolve-uri('..', ac:uri())" as="xs:anyURI"/>
+                <xsl:message>Resource deleted. Redirect to parent URI: <xsl:value-of select="$href"/></xsl:message>
+                <xsl:variable name="request-uri" select="apl:href($ldt:base, $href)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                            <xsl:with-param name="href" select="$href"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1835,16 +1841,16 @@ WHERE
         
         <xsl:choose>
             <xsl:when test="?status = (200, 201)"> <!-- OK / Created -->
-                <xsl:variable name="uri" select="ac:uri()" as="xs:anyURI"/>
-                <xsl:variable name="request-uri" select="apl:href($ldt:base, $uri)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:uri()" as="xs:anyURI"/>
+                <xsl:variable name="request-uri" select="apl:href($ldt:base, $href)" as="xs:anyURI"/>
 
                 <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                            <xsl:with-param name="href" select="$href"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1939,8 +1945,8 @@ WHERE
                     <xsl:variable name="request" as="item()*">
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
-                                <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                                <xsl:with-param name="href" select="ac:document-uri($uri)"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
@@ -1996,8 +2002,8 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
-                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                    <xsl:with-param name="href" select="ac:document-uri($uri)"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -2248,7 +2254,7 @@ WHERE
         <xsl:variable name="results-uri" select="if ($query) then ac:build-uri($ac:endpoint, map{ 'query': $query }) else ()" as="xs:anyURI?"/> <!-- TO-DO: get service endpoint from dropdown -->
         <!-- if SPARQL editor is shown, use the SPARQL protocol URI; otherwise use the Linked Data resource URI -->
         <xsl:variable name="uri" select="if ($results-uri) then $results-uri else ac:uri()" as="xs:anyURI"/>
-        <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
+        <xsl:variable name="local-uri" select="apl:absolute-path(apl:href())" as="xs:anyURI"/>
 
         <xsl:call-template name="apl:ShowAddDataForm">
             <xsl:with-param name="source" select="$uri"/>
@@ -2262,7 +2268,7 @@ WHERE
     <xsl:template match="div[@id = 'content-body']/div/ul[contains-token(@class, 'nav-tabs')]/li[not(contains-token(@class, 'active'))]/a" mode="ixsl:onclick">
         <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
         <xsl:variable name="active-class" select="tokenize(../@class, ' ')[not(. = 'active')]" as="xs:string"/>
-        <xsl:variable name="uri" select="@href" as="xs:anyURI"/>
+        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
         <!-- make other tabs inactive -->
@@ -2277,10 +2283,10 @@ WHERE
         </xsl:if>
 
         <xsl:variable name="request" as="item()*">
-            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+            <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
-                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                    <xsl:with-param name="href" select="$href"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>

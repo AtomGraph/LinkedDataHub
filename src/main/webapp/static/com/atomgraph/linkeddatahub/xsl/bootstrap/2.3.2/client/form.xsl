@@ -212,7 +212,7 @@ exclude-result-prefixes="#all"
         <xsl:variable name="control-group" select="../.." as="element()"/> <!-- ../../copy-of() -->
         <xsl:variable name="property" select="../preceding-sibling::*/select/option[ixsl:get(., 'selected') = true()]/ixsl:get(., 'value')" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="preceding-sibling::input/@value" as="xs:anyURI*"/>
-        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+        <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(apl:href()), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
         
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
@@ -230,7 +230,7 @@ exclude-result-prefixes="#all"
     </xsl:template>
 
     <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="apl:absolute-path()" as="xs:anyURI"/>
+        <xsl:variable name="uri" select="apl:absolute-path(apl:href())" as="xs:anyURI"/>
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
@@ -716,8 +716,8 @@ exclude-result-prefixes="#all"
                 <xsl:variable name="request" as="item()*">
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                            <xsl:with-param name="href" select="apl:absolute-path($uri)"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -742,13 +742,13 @@ exclude-result-prefixes="#all"
                     </xsl:when>
                     <xsl:otherwise>
                         <!-- trim the query string if it's present --> 
-                        <xsl:variable name="uri" select="if (contains($action, '?')) then xs:anyURI(substring-before($action, '?')) else $action" as="xs:anyURI"/>
+                        <xsl:variable name="uri" select="apl:absolute-path($action)" as="xs:anyURI"/>
                         
                         <!--reload resource--> 
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
-                                    <xsl:with-param name="uri" select="ac:document-uri($uri)"/>
+                                    <xsl:with-param name="uri" select="$uri"/>
                                     <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
@@ -779,8 +779,8 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
-                                    <xsl:with-param name="uri" select="ac:document-uri($created-uri)"/>
-                                    <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
+                                    <xsl:with-param name="href" select="apl:absolute-path($created-uri)"/>
+                                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($created-uri))"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
