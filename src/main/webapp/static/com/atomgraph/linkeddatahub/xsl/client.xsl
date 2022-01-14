@@ -1680,7 +1680,7 @@ WHERE
     
     <xsl:template match="." mode="ixsl:onpopstate">
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
-        <xsl:if test="$state">
+        <xsl:if test="not(empty($state))">
             <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
             <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
             <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
