@@ -683,7 +683,8 @@ WHERE
 
             <xsl:call-template name="apl:BreadCrumbResourceLoad">
                 <xsl:with-param name="id" select="'breadcrumb-nav'"/>
-                <xsl:with-param name="uri" select="$uri"/>
+                <!-- strip the query string if it's present -->
+                <xsl:with-param name="uri" select="xs:anyURI(if (contains($uri, '?')) then substring-before($uri, '?') else $uri)"/>
             </xsl:call-template>
         </xsl:if>
 
@@ -1690,13 +1691,13 @@ WHERE
 
             <!-- decode URI from the ?uri query param if the URI was proxied -->
             <xsl:variable name="uri" select="if (contains($href, '?uri=')) then xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ])) else $href" as="xs:anyURI"/>
-            <xsl:message>
+<!--            <xsl:message>
                 onpopstate
                 $href: <xsl:value-of select="$href"/>
                 $uri: <xsl:value-of select="$uri"/>
                 $query-string: <xsl:value-of select="$query-string"/>
                 $sparql: <xsl:value-of select="$sparql"/>
-            </xsl:message>
+            </xsl:message>-->
 
             <!-- TO-DO: do we need to proxy the $uri here? -->
             <xsl:choose>
