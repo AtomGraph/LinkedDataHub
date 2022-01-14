@@ -1798,7 +1798,7 @@ WHERE
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="href" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
