@@ -616,43 +616,45 @@ exclude-result-prefixes="#all">
         <xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
 
         <body>
-            <xsl:choose>
-                <xsl:when test="$ac:method = 'GET'">
-                    <xsl:choose>
-                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
-                                <xsl:with-param name="action" select="$action"/>
-                            </xsl:apply-templates>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="$constructor" mode="bs2:Form">
-                                <xsl:with-param name="action" select="$action"/>
-                                <xsl:with-param name="classes" select="$classes"/>
-                                <xsl:with-param name="default-classes" select="$default-classes"/>
-                            </xsl:apply-templates>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:when test="$ac:method = 'POST' and key('resources-by-type', '&spin;ConstraintViolation')">
-                    <xsl:choose>
-                        <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                            <xsl:apply-templates select="." mode="bs2:ModalForm">
-                                <xsl:with-param name="action" select="$action"/>
-                            </xsl:apply-templates>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates select="." mode="bs2:Form">
-                                <xsl:with-param name="action" select="$action"/>
-                                <xsl:with-param name="classes" select="$classes"/>
-                                <xsl:with-param name="default-classes" select="$default-classes"/>
-                            </xsl:apply-templates>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:next-match/>
-                </xsl:otherwise>
-            </xsl:choose>
+            <div id="content-body">
+                <xsl:choose>
+                    <xsl:when test="$ac:method = 'GET'">
+                        <xsl:choose>
+                            <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                                <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
+                                    <xsl:with-param name="action" select="$action"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates select="$constructor" mode="bs2:Form">
+                                    <xsl:with-param name="action" select="$action"/>
+                                    <xsl:with-param name="classes" select="$classes"/>
+                                    <xsl:with-param name="default-classes" select="$default-classes"/>
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:when test="$ac:method = 'POST' and key('resources-by-type', '&spin;ConstraintViolation')">
+                        <xsl:choose>
+                            <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                                <xsl:apply-templates select="." mode="bs2:ModalForm">
+                                    <xsl:with-param name="action" select="$action"/>
+                                </xsl:apply-templates>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:apply-templates select="." mode="bs2:Form">
+                                    <xsl:with-param name="action" select="$action"/>
+                                    <xsl:with-param name="classes" select="$classes"/>
+                                    <xsl:with-param name="default-classes" select="$default-classes"/>
+                                </xsl:apply-templates>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:next-match/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
         </body>
     </xsl:template>
 
@@ -663,20 +665,22 @@ exclude-result-prefixes="#all">
         <xsl:param name="default-classes" select="(key('resources', '&apl;Content', document(ac:document-uri('&apl;'))), key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
 
         <body>
-            <xsl:choose>
-                <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                    <xsl:apply-templates select="." mode="bs2:ModalForm">
-                        <xsl:with-param name="action" select="$action"/>
-                    </xsl:apply-templates>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="bs2:Form">
-                        <xsl:with-param name="action" select="$action"/>
-                        <xsl:with-param name="classes" select="$classes"/>
-                        <xsl:with-param name="default-classes" select="$default-classes"/>
-                    </xsl:apply-templates>
-                </xsl:otherwise>
-            </xsl:choose>
+            <div id="content-body">
+                <xsl:choose>
+                    <xsl:when test="$ac:mode = '&ac;ModalMode'">
+                        <xsl:apply-templates select="." mode="bs2:ModalForm">
+                            <xsl:with-param name="action" select="$action"/>
+                        </xsl:apply-templates>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:apply-templates select="." mode="bs2:Form">
+                            <xsl:with-param name="action" select="$action"/>
+                            <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="default-classes" select="$default-classes"/>
+                        </xsl:apply-templates>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </div>
         </body>
     </xsl:template>
 
