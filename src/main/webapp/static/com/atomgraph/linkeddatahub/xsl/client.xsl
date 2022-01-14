@@ -165,8 +165,8 @@ WHERE
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <xsl:apply-templates select="ixsl:page()" mode="apl:LoadedHTMLDocument">
-            <xsl:with-param name="uri" select="xsl:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
-            <!--<xsl:with-param name="fragment" select="$fragment"/>-->
+            <xsl:with-param name="href" select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
+            <xsl:with-param name="fragment" select="substring-after(ixsl:get(ixsl:window(), 'location.hash'), '#')"/>
             <xsl:with-param name="endpoint" select="$ac:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
@@ -1555,7 +1555,8 @@ WHERE
     
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="apl:LoadedHTMLDocument">
-        <xsl:param name="uri" as="xs:anyURI?"/>
+        <xsl:param name="href" as="xs:anyURI?"/>
+        <xsl:param name="uri" select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else $href)" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="state" as="item()?"/>
@@ -1563,7 +1564,7 @@ WHERE
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
         
-        <xsl:message>Loaded document with URI: <xsl:value-of select="$uri"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
+        <xsl:message>Loaded document with URI: <xsl:value-of select="$href"/> fragment: <xsl:value-of select="$fragment"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'default'" object="ixsl:page()//body"/>
         <!-- enable .btn-edit if it's present -->
@@ -1596,7 +1597,6 @@ WHERE
                         <xsl:sequence select="ixsl:call(ixsl:get(., 'classList'), 'toggle', [ 'disabled', false() ])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each>
 
-<!--                    <ixsl:set-property name="local-href" select="$uri" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>-->
                     <!-- unset #uri value -->
                     <xsl:for-each select="id('uri', ixsl:page())">
                         <ixsl:set-property name="value" select="()" object="."/>
@@ -1618,7 +1618,7 @@ WHERE
 
             <xsl:if test="$push-state">
                 <xsl:call-template name="apl:PushState">
-                    <xsl:with-param name="href" select="apl:href($ldt:base, $uri)"/>
+                    <xsl:with-param name="href" select="apl:href($ldt:base, $href)"/>
                     <xsl:with-param name="title" select="/html/head/title"/>
                     <xsl:with-param name="container" select="$container"/>
                 </xsl:call-template>
@@ -1653,9 +1653,8 @@ WHERE
 
             <!-- update RDF download links to match the current URI -->
             <xsl:for-each select="id('export-rdf', ixsl:page())/following-sibling::ul/li/a">
-                <xsl:variable name="local-uri" select="apl:absolute-path()" as="xs:anyURI"/>
                 <!-- use @title attribute for the media type TO-DO: find a better way, a hidden input or smth -->
-                <xsl:variable name="href" select="ac:build-uri($local-uri, let $params := map{ 'accept': string(@title) } return if (not(starts-with($local-uri, $ldt:base))) then map:merge(($params, map{ 'uri': $local-uri})) else $params)" as="xs:anyURI"/>
+                <xsl:variable name="href" select="ac:build-uri(apl:absolute-path(), let $params := map{ 'accept': string(@title) } return if (not(starts-with(apl:absolute-path(), $ldt:base))) then map:merge(($params, map{ 'uri': apl:absolute-path()})) else $params)" as="xs:anyURI"/>
                 <ixsl:set-property name="href" select="$href" object="."/>
             </xsl:for-each>
         </xsl:if>
