@@ -171,8 +171,8 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         // hardcoded hierarchical URL building logic
         final String slug;
         if (doc.hasProperty(DH.slug)) slug = doc.getProperty(DH.slug).getString();
-        else slug = UUID.randomUUID().toString() + "/";
-        URI graphUri = URI.create(parent.getURI()).resolve(slug);
+        else slug = UUID.randomUUID().toString();
+        URI graphUri = URI.create(parent.getURI()).resolve(slug + "/");
         
         if (graphUri != null) return ResourceUtils.renameResource(doc, graphUri.toString());
         else return null;
