@@ -780,8 +780,7 @@ WHERE
     
     <!-- push states -->
     
-    <xsl:template name="apl:PushContentState">
-         <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
+<!--    <xsl:template name="apl:PushContentState">
         <xsl:param name="href" as="xs:anyURI"/>
         <xsl:param name="title" as="xs:string?"/>
         <xsl:param name="select-string" as="xs:string"/>
@@ -789,16 +788,6 @@ WHERE
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="sparql" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" as="xs:anyURI?"/>
-
-<!--        <xsl:message>
-            $select-xml: <xsl:copy-of select="$select-xml"/>
-        </xsl:message>
-        <xsl:message>
-            xml-to-json($select-xml): <xsl:value-of select="xml-to-json($select-xml)"/>
-        </xsl:message>
-        <xsl:message>
-            apl:PushContentState $href: <xsl:value-of select="$href"/> $content-uri: <xsl:value-of select="$content-uri"/>
-        </xsl:message>-->
 
         <xsl:variable name="state" as="map(xs:string, item())">
             <xsl:map>
@@ -814,9 +803,8 @@ WHERE
         <xsl:variable name="state-obj" select="ixsl:call(ixsl:window(), 'JSON.parse', [ $state => serialize(map{ 'method': 'json' }) ])"/>
         <ixsl:set-property name="query" select="ixsl:call(ixsl:window(), 'JSON.parse', [ xml-to-json($select-xml) ])" object="$state-obj"/>
         
-        <!-- push the latest state into history-->
         <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title ])[current-date() lt xs:date('2000-01-01')]"/>
-    </xsl:template>
+    </xsl:template>-->
 
     <xsl:template name="apl:PushState">
          <!-- has to be a proxied URI with the actual URI encoded as ?uri, otherwise we get a "DOMException: The operation is insecure" -->
@@ -847,21 +835,6 @@ WHERE
 
         <!-- push the latest state into history -->
         <xsl:sequence select="ixsl:call(ixsl:window(), 'history.pushState', [ $state-obj, $title, $href ])[current-date() lt xs:date('2000-01-01')]"/>
-
-<!--        <xsl:choose>
-            <xsl:when test="$sparql">
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'sparql': true, 'query': '{ac:escape-json($query)}', 'href': '{$href}', 'container-id': '{ixsl:get($container, 'id')}' }}, '{$title}', '{$href}')"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:variable name="js-statement" as="element()">
-                    <root statement="history.pushState({{ 'href': '{$href}', 'container-id': '{ixsl:get($container, 'id')}' }}, '{$title}', '{$href}')"/>
-                </xsl:variable>
-                <xsl:sequence select="ixsl:eval(string($js-statement/@statement))[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:otherwise>
-        </xsl:choose>-->
     </xsl:template>
     
     <!-- load contents -->
@@ -1425,14 +1398,14 @@ WHERE
                         <xsl:with-param name="series" select="$series"/>
                     </xsl:call-template>
 
-                    <xsl:if test="$push-state">
+<!--                    <xsl:if test="$push-state">
                         <xsl:call-template name="apl:PushState">
                             <xsl:with-param name="href" select="apl:href($ldt:base, $content-uri)"/>
                             <xsl:with-param name="container" select="$container"/>
                             <xsl:with-param name="query" select="$query"/>
                             <xsl:with-param name="sparql" select="true()"/>
                         </xsl:call-template>
-                    </xsl:if>
+                    </xsl:if>-->
                     
                     <xsl:for-each select="$container//div[@class = 'progress-bar']">
                         <ixsl:set-style name="display" select="'none'" object="."/>
@@ -1704,19 +1677,19 @@ WHERE
     
     <xsl:template match="." mode="ixsl:onpopstate">
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
-        <xsl:variable name="content-uri" select="if (map:contains($state, 'content-uri')) then map:get($state, 'content-uri') else ()" as="xs:anyURI?"/>
+        <!--<xsl:variable name="content-uri" select="if (map:contains($state, 'content-uri')) then map:get($state, 'content-uri') else ()" as="xs:anyURI?"/>-->
         <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
         <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
         <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
-        <xsl:variable name="sparql" select="map:get($state, 'sparql')" as="xs:boolean"/>
+        <xsl:variable name="sparql" select="false()" as="xs:boolean"/>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <!-- decode URI from the ?uri query param which is used in apl:PushState -->
-        <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
+        <!-- decode URI from the ?uri query param if the URI was proxied -->
+        <xsl:variable name="uri" select="if (contains($href, '?uri=')) then xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ])) else $href" as="xs:anyURI"/>
         <xsl:message>
             onpopstate
-            $content-uri: <xsl:value-of select="$content-uri"/>
+            <!--$content-uri: <xsl:value-of select="$content-uri"/>-->
             $href: <xsl:value-of select="$href"/>
             $uri: <xsl:value-of select="$uri"/>
             $query-string: <xsl:value-of select="$query-string"/>

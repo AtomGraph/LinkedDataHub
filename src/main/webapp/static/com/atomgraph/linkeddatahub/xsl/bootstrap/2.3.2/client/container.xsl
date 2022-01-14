@@ -885,12 +885,12 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         
@@ -932,12 +932,12 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
         
@@ -978,12 +978,12 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
@@ -1023,12 +1023,12 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
@@ -1168,12 +1168,12 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
@@ -1212,12 +1212,12 @@ exclude-result-prefixes="#all"
                 </xsl:apply-templates>
             </xsl:document>
         </xsl:variable>
-        <xsl:call-template name="apl:PushContentState">
+<!--        <xsl:call-template name="apl:PushContentState">
             <xsl:with-param name="href" select="apl:href($ldt:base, ac:uri())"/>
             <xsl:with-param name="content-uri" select="$content-uri"/>
             <xsl:with-param name="select-string" select="$select-string"/>
             <xsl:with-param name="select-xml" select="$select-xml"/>
-        </xsl:call-template>
+        </xsl:call-template>-->
         <!-- store the transformed query XML -->
         <ixsl:set-property name="select-xml" select="$select-xml" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $content-uri)"/>
 
