@@ -738,7 +738,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="template-doc" select="ac:construct($ldt:ontology, $forClass, $ldt:base)" as="document-node()?">
+        <xsl:param name="template-doc" as="document-node()?">
             <xsl:choose>
                 <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
                 <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
