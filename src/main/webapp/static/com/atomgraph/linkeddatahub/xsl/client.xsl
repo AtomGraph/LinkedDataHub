@@ -1714,14 +1714,14 @@ WHERE
 
         <!-- decode URI from the ?uri query param which is used in apl:PushState -->
         <xsl:variable name="uri" select="xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ]))" as="xs:anyURI"/>
-<!--        <xsl:message>
+        <xsl:message>
             onpopstate
             $content-uri: <xsl:value-of select="$content-uri"/>
             $href: <xsl:value-of select="$href"/>
             $uri: <xsl:value-of select="$uri"/>
             $query-string: <xsl:value-of select="$query-string"/>
             $sparql: <xsl:value-of select="$sparql"/>
-        </xsl:message>-->
+        </xsl:message>
         
         <!-- TO-DO: do we need to proxy the $uri here? -->
         <xsl:choose>
