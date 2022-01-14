@@ -248,7 +248,6 @@ exclude-result-prefixes="#all"
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id"/>
                 </xsl:call-template>

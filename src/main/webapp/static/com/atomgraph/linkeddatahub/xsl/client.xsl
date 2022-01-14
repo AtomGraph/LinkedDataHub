@@ -2185,7 +2185,6 @@ WHERE
         <xsl:variable name="request" as="item()*">
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onAddForm">
-                    <xsl:with-param name="href" select="$href"/>
                     <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
