@@ -741,7 +741,10 @@ extension-element-prefixes="ixsl"
         <xsl:param name="template-doc" as="document-node()?">
             <xsl:choose>
                 <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
-                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
+                <xsl:when test="not($forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
+                    <xsl:message>WTF: <xsl:value-of select="key('resources-by-type', $forClass, ac:construct($ldt:ontology, ($forClass, xs:anyURI('&def;Item')), $ldt:base))[* except rdf:type]/@rdf:nodeID"/></xsl:message>
+                    <xsl:message select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&def;Item')), $ldt:base)"/>
+                    
                     <xsl:document>
                         <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&def;Item')), $ldt:base)">
                             <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
