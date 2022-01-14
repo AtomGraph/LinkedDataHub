@@ -664,7 +664,7 @@ extension-element-prefixes="ixsl"
 
         <xsl:variable name="constructor-list" as="element()*">
             <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
-            <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem"> <!-- [not((@rdf:about, apl:listSuperClasses(@rdf:about)) = ('&dh;Document', '&ldt;Parameter'))] -->
+            <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem">
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
 

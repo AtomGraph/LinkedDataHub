@@ -663,13 +663,13 @@ extension-element-prefixes="ixsl"
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>
-                                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+                                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'forClass': string(current-grouping-key()) })" as="xs:anyURI"/>
                                     <a href="{$href}" class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
                                         <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
-                                        <input type="hidden" class="forClass" value="{@rdf:about}"/>
+                                        <input type="hidden" class="forClass" value="{current-grouping-key()}"/>
                                         
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
@@ -681,7 +681,8 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <button type="button" title="{@rdf:about}">
+                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'forClass': string(@rdf:about) })" as="xs:anyURI"/>
+                    <a href="{$href}" title="{@rdf:about}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id" select="$id"/>
                         </xsl:if>
@@ -705,7 +706,7 @@ extension-element-prefixes="ixsl"
 
                         <!-- we don't want to give a name to this input as it would be included in the RDF/POST payload -->
                         <input type="hidden" class="forClass" value="{@rdf:about}"/>
-                    </button>
+                    </a>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:if>
