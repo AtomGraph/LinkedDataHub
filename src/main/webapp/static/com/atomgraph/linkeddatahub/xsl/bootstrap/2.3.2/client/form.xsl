@@ -748,8 +748,8 @@ exclude-result-prefixes="#all"
                         <xsl:variable name="request" as="item()*">
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
-                                    <xsl:with-param name="uri" select="$uri"/>
-                                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                                    <xsl:with-param name="href" select="$uri"/>
+                                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
