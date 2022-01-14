@@ -1008,14 +1008,14 @@ WHERE
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="&def;Container" id="{generate-id()}-upload-rdf-container">
+                                                                    <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&def;Container' })}" class="btn add-constructor" title="&def;Container" id="{generate-id()}-upload-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
                                                                         <input type="hidden" class="forClass" value="&def;Container"/>
-                                                                    </button>
-                                                                    <button type="button" class="btn add-constructor" title="&def;Item" id="{generate-id()}-upload-rdf-item">
+                                                                    </a>
+                                                                    <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&def;Item' })}" class="btn add-constructor" title="&def;Item" id="{generate-id()}-upload-rdf-item">
                                                                         <xsl:text>Item</xsl:text>
                                                                         <input type="hidden" class="forClass" value="&def;Item"/>
-                                                                    </button>
+                                                                    </a>
                                                                 </li>
                                                             </ul>
                                                         </div>
@@ -1073,16 +1073,16 @@ WHERE
                                                             <button type="button" class="btn dropdown-toggle create-action"></button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="&def;Container" id="{generate-id()}-remote-rdf-container">
+                                                                    <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&def;Container' })}" class="btn add-constructor" title="&def;Container" id="{generate-id()}-remote-rdf-container">
                                                                         <xsl:text>Container</xsl:text>
                                                                         <input type="hidden" class="forClass" value="&def;Container"/>
-                                                                    </button>
+                                                                    </a>
                                                                 </li>
                                                                 <li>
-                                                                    <button type="button" class="btn add-constructor" title="&def;Item" id="{generate-id()}-remote-rdf-item">
+                                                                    <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&def;Item' })}" type="button" class="btn add-constructor" title="&def;Item" id="{generate-id()}-remote-rdf-item">
                                                                         <xsl:text>Item</xsl:text>
                                                                         <input type="hidden" class="forClass" value="&def;Item"/>
-                                                                    </button>
+                                                                    </a>
                                                                 </li>
                                                             </ul>
                                                         </div>

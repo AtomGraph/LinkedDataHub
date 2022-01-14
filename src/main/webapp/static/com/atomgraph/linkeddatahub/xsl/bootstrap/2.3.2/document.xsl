@@ -530,12 +530,12 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
 
                     <!-- separate "Create" button only for Content -->
-                    <button class="btn btn-primary add-constructor create-action" type="button">
+                    <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&apl;Content' })}" class="btn btn-primary add-constructor create-action">
                         <xsl:value-of>
                             <xsl:apply-templates select="key('resources', '&apl;Content', document(ac:document-uri('&apl;')))" mode="ac:label"/>
                         </xsl:value-of>
                         <input type="hidden" class="forClass" value="&apl;Content"/>
-                    </button>
+                    </a>
                 </div>
             </xsl:if>
 

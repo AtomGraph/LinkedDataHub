@@ -663,7 +663,8 @@ extension-element-prefixes="ixsl"
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>
-                                    <button type="button" class="btn add-constructor" title="{current-grouping-key()}">
+                                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'forClass': string($forClass) })" as="xs:anyURI"/>
+                                    <a href="{$href}" class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
                                         </xsl:if>
@@ -673,7 +674,7 @@ extension-element-prefixes="ixsl"
                                         <xsl:value-of>
                                             <xsl:apply-templates select="." mode="ac:label"/>
                                         </xsl:value-of>
-                                    </button>
+                                    </a>
                                 </li>
                             </xsl:for-each-group>
                         </ul>

@@ -229,8 +229,9 @@ exclude-result-prefixes="#all"
         <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
     </xsl:template>
 
-    <xsl:template match="button[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
-        <xsl:variable name="uri" select="apl:absolute-path(apl:href())" as="xs:anyURI"/>
+    <xsl:template match="a[contains-token(@class, 'add-constructor')]" mode="ixsl:onclick">
+        <xsl:sequence select="ixsl:call(ixsl:event(), 'preventDefault', [])"/>
+        <!--<xsl:variable name="uri" select="apl:absolute-path(apl:href())" as="xs:anyURI"/>-->
         <xsl:variable name="forClass" select="input[@class = 'forClass']/@value" as="xs:anyURI"/>
         <xsl:variable name="form" select="ancestor::form" as="element()?"/>
         <xsl:variable name="bnode-ids" select="distinct-values($form//input[@name = ('sb', 'ob')]/ixsl:get(., 'value'))" as="xs:string*"/>
@@ -239,7 +240,7 @@ exclude-result-prefixes="#all"
         <xsl:message>Form's last bnode ID: <xsl:value-of select="$max-bnode-id"/></xsl:message>
         <!--- show a modal form if this button is in a <fieldset>, meaning on a resource-level and not form level. Otherwise (e.g. for the "Create" button) show normal form -->
         <xsl:variable name="modal-form" select="exists(ancestor::fieldset)" as="xs:boolean"/>
-        <xsl:variable name="href" select="ac:build-uri($uri, let $params := map{ 'forClass': string($forClass) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:variable name="href" select="@href" as="xs:anyURI"/>
         <xsl:message>Form URI: <xsl:value-of select="$href"/></xsl:message>
 
         <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
