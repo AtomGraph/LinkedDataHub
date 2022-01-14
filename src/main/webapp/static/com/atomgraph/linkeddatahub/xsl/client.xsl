@@ -1680,64 +1680,64 @@ WHERE
     
     <xsl:template match="." mode="ixsl:onpopstate">
         <xsl:variable name="state" select="ixsl:get(ixsl:event(), 'state')"/>
-        <!--<xsl:variable name="content-uri" select="if (map:contains($state, 'content-uri')) then map:get($state, 'content-uri') else ()" as="xs:anyURI?"/>-->
-        <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
-        <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
-        <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
-        <xsl:variable name="sparql" select="false()" as="xs:boolean"/>
+        <xsl:if test="$state">
+            <xsl:variable name="href" select="map:get($state, 'href')" as="xs:anyURI?"/>
+            <xsl:variable name="container-id" select="if (map:contains($state, 'container-id')) then map:get($state, 'container-id') else ()" as="xs:anyURI?"/>
+            <xsl:variable name="query-string" select="map:get($state, 'query-string')" as="xs:string?"/>
+            <xsl:variable name="sparql" select="false()" as="xs:boolean"/>
 
-        <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
+            <ixsl:set-style name="cursor" select="'progress'" object="ixsl:page()//body"/>
 
-        <!-- decode URI from the ?uri query param if the URI was proxied -->
-        <xsl:variable name="uri" select="if (contains($href, '?uri=')) then xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ])) else $href" as="xs:anyURI"/>
-        <xsl:message>
-            onpopstate
-            <!--$content-uri: <xsl:value-of select="$content-uri"/>-->
-            $href: <xsl:value-of select="$href"/>
-            $uri: <xsl:value-of select="$uri"/>
-            $query-string: <xsl:value-of select="$query-string"/>
-            $sparql: <xsl:value-of select="$sparql"/>
-        </xsl:message>
-        
-        <!-- TO-DO: do we need to proxy the $uri here? -->
-        <xsl:choose>
-            <xsl:when test="$sparql">
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
-                        <xsl:call-template name="onSPARQLResultsLoad">
-                            <xsl:with-param name="content-uri" select="$uri"/>
-                            <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
-                            <!-- we don't want to push a state that was just popped -->
-                            <xsl:with-param name="push-state" select="false()"/>
-                            <xsl:with-param name="query" select="$query-string"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
-                <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- abort the previous request, if any -->
-                <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
-                    <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
-                    <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
-                </xsl:if>
+            <!-- decode URI from the ?uri query param if the URI was proxied -->
+            <xsl:variable name="uri" select="if (contains($href, '?uri=')) then xs:anyURI(ixsl:call(ixsl:window(), 'decodeURIComponent', [ substring-after($href, '?uri=') ])) else $href" as="xs:anyURI"/>
+            <xsl:message>
+                onpopstate
+                $href: <xsl:value-of select="$href"/>
+                $uri: <xsl:value-of select="$uri"/>
+                $query-string: <xsl:value-of select="$query-string"/>
+                $sparql: <xsl:value-of select="$sparql"/>
+            </xsl:message>
 
-                <xsl:variable name="request" as="item()*">
-                    <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
-                        <xsl:call-template name="onDocumentLoad">
-                            <xsl:with-param name="uri" select="$uri"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
-                            <xsl:with-param name="state" select="$state"/>
-                            <!-- we don't want to push the same state we just popped back to -->
-                            <xsl:with-param name="push-state" select="false()"/>
-                        </xsl:call-template>
-                    </ixsl:schedule-action>
-                </xsl:variable>
+            <!-- TO-DO: do we need to proxy the $uri here? -->
+            <xsl:choose>
+                <xsl:when test="$sparql">
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/sparql-results+xml,application/rdf+xml;q=0.9' } }">
+                            <xsl:call-template name="onSPARQLResultsLoad">
+                                <xsl:with-param name="content-uri" select="$uri"/>
+                                <xsl:with-param name="container" select="id($container-id, ixsl:page())"/>
+                                <!-- we don't want to push a state that was just popped -->
+                                <xsl:with-param name="push-state" select="false()"/>
+                                <xsl:with-param name="query" select="$query-string"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+                    <xsl:sequence select="$request[current-date() lt xs:date('2000-01-01')]"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- abort the previous request, if any -->
+                    <xsl:if test="ixsl:contains(ixsl:get(ixsl:window(), 'LinkedDataHub'), 'request')">
+                        <xsl:message>Aborting HTTP request that has already been sent</xsl:message>
+                        <xsl:sequence select="ixsl:call(ixsl:get(ixsl:window(), 'LinkedDataHub.request'), 'abort', [])"/>
+                    </xsl:if>
 
-                <!-- store the new request object -->
-                <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
-            </xsl:otherwise>
-        </xsl:choose>
+                    <xsl:variable name="request" as="item()*">
+                        <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
+                            <xsl:call-template name="onDocumentLoad">
+                                <xsl:with-param name="uri" select="$uri"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
+                                <xsl:with-param name="state" select="$state"/>
+                                <!-- we don't want to push the same state we just popped back to -->
+                                <xsl:with-param name="push-state" select="false()"/>
+                            </xsl:call-template>
+                        </ixsl:schedule-action>
+                    </xsl:variable>
+
+                    <!-- store the new request object -->
+                    <ixsl:set-property name="request" select="$request" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:if>
     </xsl:template>
     
     <!-- do not intercept RDF download links -->
