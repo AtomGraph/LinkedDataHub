@@ -165,7 +165,7 @@ WHERE
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <xsl:apply-templates select="ixsl:page()" mode="apl:LoadedHTMLDocument">
-            <xsl:with-param name="uri" select="$apl:absolutePath"/>
+            <xsl:with-param name="uri" select="xsl:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
             <!--<xsl:with-param name="fragment" select="$fragment"/>-->
             <xsl:with-param name="endpoint" select="$ac:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
