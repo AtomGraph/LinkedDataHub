@@ -640,12 +640,12 @@ exclude-result-prefixes="#all">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;EditMode' and $ac:mode = '&ac;ModalMode'">
+                    <xsl:when test="($ac:forClass or $ac:mode = '&ac;EditMode') and $ac:mode = '&ac;ModalMode'">
                         <xsl:apply-templates select="." mode="bs2:ModalForm">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
-                    <xsl:when test="$ac:mode = '&ac;EditMode'">
+                    <xsl:when test="$ac:forClass or $ac:mode = '&ac;EditMode'">
                         <xsl:apply-templates select="." mode="bs2:Form">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>

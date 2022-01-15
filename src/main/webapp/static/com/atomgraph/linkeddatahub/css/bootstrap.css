@@ -28,7 +28,7 @@ ul.dropdown-menu { max-height: 26em; overflow-x: hidden; overflow-y: auto; }
 ul.dropdown-menu ul { margin: 0; }
 .btn.btn-primary.create-action { background-image: url('../icons/ic_note_add_white_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
 .btn.create-action, a.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); background-position: 12px center; background-repeat: no-repeat; padding-left: 40px; /* height: 30px; */ }
-/*.btn.create-action { height: 30px; }*/
+button.btn.create-action { height: 30px; }
 .btn-group.open .btn.dropdown-toggle.create-action { background-image: url('../icons/ic_note_add_black_24px.svg'); }
 .btn-container { background-image: url('../icons/folder.svg'); }
 .btn-item { background-image: url('../icons/file.svg'); }
