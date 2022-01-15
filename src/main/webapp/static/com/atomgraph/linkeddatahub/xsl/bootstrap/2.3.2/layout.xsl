@@ -591,7 +591,7 @@ exclude-result-prefixes="#all">
 
     <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:mode = '&ac;ModalMode']" mode="xhtml:Body" priority="2">
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;ModalMode' }" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;ModalMode' })" as="xs:anyURI"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
@@ -634,7 +634,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass) }" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass) })" as="xs:anyURI"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
