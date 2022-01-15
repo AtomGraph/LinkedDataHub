@@ -591,7 +591,7 @@ exclude-result-prefixes="#all">
 
     <!-- show only form when ac:ModalMode combined with ac:forClass (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:mode = '&ac;ModalMode']" mode="xhtml:Body" priority="2">
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;ModalMode' }" as="xs:anyURI"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
@@ -634,7 +634,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'offset2 span7'" as="xs:string?"/>
-        <xsl:param name="action" select="ac:build-uri($a:graphStore, let $params := map{ 'forClass': string($ac:forClass) } return if ($modal) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass) }" as="xs:anyURI"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
@@ -696,7 +696,7 @@ exclude-result-prefixes="#all">
 
     <!-- show only form when ac:ModalMode combined with ac:Edit (used by client.xsl) -->
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode'][$ac:mode = '&ac;ModalMode']" mode="xhtml:Body" priority="2">
-        <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="if (not(starts-with(ac:uri(), $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
         <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
         <xsl:param name="default-classes" select="(key('resources', '&apl;Content', document(ac:document-uri('&apl;'))), key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
 
@@ -710,7 +710,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
         <xsl:param name="id" select="'content-body'" as="xs:string?"/>
         <xsl:param name="class" select="'container-fluid'" as="xs:string?"/>
-        <xsl:param name="action" select="if (empty($ldt:base)) then ac:build-uri($ac:contextUri, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
+        <xsl:param name="action" select="if (not(starts-with(ac:uri(), $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string(ac:uri()), '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) }) else ac:build-uri(ac:uri(), map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) })" as="xs:anyURI"/>
         <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
         <xsl:param name="default-classes" select="(key('resources', '&apl;Content', document(ac:document-uri('&apl;'))), key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
 
