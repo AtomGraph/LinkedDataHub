@@ -713,6 +713,31 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
+    <!-- ROW FORM -->
+    
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:RowForm">
+        <xsl:param name="id" select="generate-id()" as="xs:string?"/>
+        <xsl:param name="content-uri" as="xs:anyURI?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+
+        <div>
+            <xsl:if test="$id">
+                <xsl:attribute name="id"><xsl:sequence select="$id"/></xsl:attribute>
+            </xsl:if>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:sequence select="$class"/></xsl:attribute>
+            </xsl:if>
+
+            <!--<xsl:apply-templates select="." mode="bs2:Left"/>-->
+
+            <div class="span7 offset2">
+                <xsl:apply-templates select="." mode="bs2:Form"/>
+            </div>
+
+            <!--<xsl:apply-templates select="." mode="bs2:Right"/>-->
+        </div>
+    </xsl:template>
+    
     <!-- FORM -->
 
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->

@@ -73,7 +73,7 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <!-- BLOCK ROW -->
+    <!-- ROW BLOCK -->
     
     <xsl:template match="rdf:RDF" mode="bs2:RowBlock">
         <xsl:apply-templates mode="#current">
@@ -423,6 +423,14 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
+    <!-- ROW FORM -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:RowForm">
+        <xsl:apply-templates mode="#current">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+    </xsl:template>
+
     <!-- FORM -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ModalForm">

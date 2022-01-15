@@ -653,7 +653,7 @@ exclude-result-prefixes="#all">
                                 </xsl:apply-templates>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:apply-templates select="$constructor" mode="bs2:Form">
+                                <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
                                     <xsl:with-param name="action" select="$action"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
@@ -688,7 +688,7 @@ exclude-result-prefixes="#all">
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$ac:mode = '&ac;EditMode'">
-                        <xsl:apply-templates select="." mode="bs2:Form">
+                        <xsl:apply-templates select="." mode="bs2:RowForm">
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
                     </xsl:when>
