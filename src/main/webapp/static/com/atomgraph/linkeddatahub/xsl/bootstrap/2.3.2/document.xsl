@@ -422,14 +422,6 @@ extension-element-prefixes="ixsl"
             </form>
         </xsl:if>
     </xsl:template>
-    
-    <!-- ROW FORM -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:RowForm">
-        <xsl:apply-templates select="*" mode="#current">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-    </xsl:template>
 
     <!-- FORM -->
 
@@ -488,7 +480,9 @@ extension-element-prefixes="ixsl"
         </div>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF" mode="bs2:Form">
+    <!-- ROW FORM -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:RowForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
         <xsl:param name="action" select="xs:anyURI(if (not(starts-with(ac:uri(), $ldt:base))) then ac:build-uri($ldt:base, map { 'uri': string(ac:uri()) }) else ac:uri())" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
