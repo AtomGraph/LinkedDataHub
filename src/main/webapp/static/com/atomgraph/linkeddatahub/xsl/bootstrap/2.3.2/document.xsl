@@ -426,7 +426,7 @@ extension-element-prefixes="ixsl"
     <!-- ROW FORM -->
     
     <xsl:template match="rdf:RDF" mode="bs2:RowForm">
-        <xsl:apply-templates mode="#current">
+        <xsl:apply-templates select="*" mode="#current">
             <xsl:sort select="ac:label(.)"/>
         </xsl:apply-templates>
     </xsl:template>
