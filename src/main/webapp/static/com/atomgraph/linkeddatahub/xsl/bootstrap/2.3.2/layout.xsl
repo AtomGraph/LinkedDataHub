@@ -624,7 +624,7 @@ exclude-result-prefixes="#all">
                         </xsl:apply-templates>
                     </xsl:when>
                     <xsl:when test="$ac:forClass and $ac:method = 'GET'">
-                        <xsl:variable name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass) })" as="xs:anyURI"/>
+                        <xsl:variable name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:choose>
                                 <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
