@@ -663,7 +663,7 @@ extension-element-prefixes="ixsl"
 
                                 <!-- won't traverse blank nodes, only URI resources -->
                                 <li>
-                                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'forClass': string(current-grouping-key()) })" as="xs:anyURI"/>
+                                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), let $params := map{ 'forClass': string(current-grouping-key()) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
                                     <a href="{$href}" class="btn add-constructor" title="{current-grouping-key()}">
                                         <xsl:if test="$id">
                                             <xsl:attribute name="id" select="$id"/>
@@ -681,7 +681,7 @@ extension-element-prefixes="ixsl"
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), map{ 'forClass': string(@rdf:about) })" as="xs:anyURI"/>
+                    <xsl:variable name="href" select="ac:build-uri(ac:uri(), let $params := map{ 'forClass': string(@rdf:about) } return if ($modal-form) then map:merge(($params, map{ 'mode': '&ac;ModalMode' })) else $params)" as="xs:anyURI"/>
                     <a href="{$href}" title="{@rdf:about}">
                         <xsl:if test="$id">
                             <xsl:attribute name="id" select="$id"/>
