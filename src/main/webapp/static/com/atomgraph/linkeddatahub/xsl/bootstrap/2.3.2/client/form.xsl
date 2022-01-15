@@ -534,14 +534,14 @@ exclude-result-prefixes="#all"
                 <xsl:for-each select="?body">
                     <xsl:variable name="event" select="ixsl:event()"/>
                     <xsl:variable name="target" select="ixsl:get($event, 'target')"/>
-                    <xsl:variable name="modal" select="exists(//div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
+                    <xsl:variable name="modal" select="exists(id($container/@id)//div[contains-token(@class, 'modal-constructor')])" as="xs:boolean"/>
                     <xsl:variable name="target-id" select="$target/@id" as="xs:string?"/>
                     <xsl:variable name="doc-id" select="concat('id', ixsl:call(ixsl:window(), 'generateUUID', []))" as="xs:string"/>
                     
                     <xsl:choose>
                         <xsl:when test="$modal">
                             <xsl:variable name="modal-div" as="element()">
-                                <xsl:apply-templates select="//div[contains-token(@class, 'modal-constructor')]" mode="form">
+                                <xsl:apply-templates select="id($container/@id)//div[contains-token(@class, 'modal-constructor')]" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
@@ -578,7 +578,7 @@ exclude-result-prefixes="#all"
                         </xsl:when>
                         <xsl:otherwise>
                             <xsl:variable name="form" as="element()">
-                                <xsl:apply-templates select="//form" mode="form">
+                                <xsl:apply-templates select="id($container/@id)//form" mode="form">
                                     <xsl:with-param name="target-id" select="$target-id" tunnel="yes"/>
                                     <xsl:with-param name="doc-id" select="$doc-id" tunnel="yes"/>
                                     <xsl:with-param name="max-bnode-id" select="$max-bnode-id" tunnel="yes"/>
@@ -616,14 +616,7 @@ exclude-result-prefixes="#all"
                                 <xsl:otherwise>
                                     <xsl:for-each select="$container">
                                         <xsl:result-document href="?." method="ixsl:replace-content">
-                                            <!-- TO-DO: move to server-side as a separate template that extends bs2:Form? -->
-                                            <div class="row-fluid">
-                                                <div class="left-nav span2"></div>
-
-                                                <div class="span7">
-                                                    <xsl:copy-of select="$form"/>
-                                                </div>
-                                            </div>
+                                            <xsl:copy-of select="$form"/>
                                         </xsl:result-document>
                                     </xsl:for-each>
                                 </xsl:otherwise>
