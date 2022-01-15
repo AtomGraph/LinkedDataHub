@@ -103,6 +103,7 @@ extension-element-prefixes="ixsl"
     <xsl:param name="page-size" select="20" as="xs:integer"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" as="xs:anyURI*"/>
+    <xsl:param name="ac:method" as="xs:string"/>
     <xsl:param name="ac:forClass" select="if (ixsl:query-params()?forClass) then xs:anyURI(ixsl:query-params()?forClass) else ()" as="xs:anyURI?"/>
     <xsl:param name="a:graphStore" select="resolve-uri('service', $ldt:base)" as="xs:anyURI?"/>
     <xsl:param name="ac:endpoint" select="resolve-uri('sparql', $ldt:base)" as="xs:anyURI"/>
