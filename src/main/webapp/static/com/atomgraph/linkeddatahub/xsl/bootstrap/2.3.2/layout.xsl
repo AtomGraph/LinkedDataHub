@@ -1014,15 +1014,13 @@ exclude-result-prefixes="#all">
                 </button>
             </div>
 
-            <xsl:if test="not($ac:mode = '&ac;EditMode')">
-                <div class="pull-right">
-                    <a href="{apl:href($ldt:base, ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
-                        <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
-                            <xsl:with-param name="class" select="'btn'"/>
-                        </xsl:apply-templates>
-                    </a>
-                </div>
-            </xsl:if>
+            <div class="pull-right">
+                <a href="{apl:href($ldt:base, ac:uri(), xs:anyURI('&ac;EditMode'))}" title="{ac:label(key('resources', 'nav-bar-action-edit-graph-title', document('translations.rdf')))}">
+                    <xsl:apply-templates select="key('resources', '&ac;EditMode', document(ac:document-uri('&ac;')))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn' || (if ($ac:mode = '&ac;EditMode') then ' active' else ())"/>
+                    </xsl:apply-templates>
+                </a>
+            </div>
             
             <div class="pull-right">
                 <button type="button" title="{ac:label(key('resources', 'skolemize-title', document('translations.rdf')))}">
