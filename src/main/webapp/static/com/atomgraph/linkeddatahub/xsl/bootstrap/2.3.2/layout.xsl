@@ -712,7 +712,7 @@ exclude-result-prefixes="#all">
         <div class="row-fluid">
             <ul class="nav nav-tabs offset2 span7">
                 <xsl:if test="$has-content">
-                    <li class="content-mode{if ((not($ac:mode) not($ac:forClass)) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
+                    <li class="content-mode{if ((not($ac:mode) and not($ac:forClass)) or $ac:mode = '&apl;ContentMode') then ' active' else() }">
                         <a href="{ac:build-uri(ac:uri(), map{ 'mode': '&apl;ContentMode' })}">
                             <xsl:value-of>
                                 <xsl:apply-templates select="key('resources', 'content', document('translations.rdf'))" mode="ac:label"/>
