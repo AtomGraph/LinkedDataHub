@@ -595,7 +595,7 @@ exclude-result-prefixes="#all"
                                 <xsl:when test="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
                                     <xsl:for-each select="$target/ancestor::form[contains-token(@class, 'form-horizontal')]">
                                         <!-- remove the old form-actions <div> because we'll be appending a new one below -->
-                                        <xsl:for-each select="div[contains-token(@class, 'form-actions')]">
+                                        <xsl:for-each select="div[div[contains-token(@class, 'form-actions')]]">
                                             <xsl:message>
                                                 <xsl:value-of select="ixsl:call(., 'remove', [])"/>
                                             </xsl:message>
