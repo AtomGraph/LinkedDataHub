@@ -41,7 +41,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="apl:access-to" as="xs:anyURI?"/>
 
     <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="xhtml:Body" priority="3">
-        <xsl:apply-templates select="." mode="bs2:Form">
+        <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
