@@ -70,37 +70,23 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
+        <xsl:variable name="constructor" as="document-node()">
+            <xsl:document>
+                <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                    <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                        <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                    </xsl:apply-templates>
+                </xsl:for-each>
+            </xsl:document>
+        </xsl:variable>
 
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-        
-            <div class="offset2 span7">
-                <xsl:variable name="constructor" as="document-node()">
-                    <xsl:document>
-                        <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
-                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
-                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
-                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </xsl:for-each>
-                    </xsl:document>
-                </xsl:variable>
-                
-                <xsl:apply-templates select="$constructor" mode="bs2:Form">
-                    <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
-                    <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
-                    <xsl:with-param name="constructor" select="$constructor"/>
-                    <xsl:with-param name="create-resource" select="false()"/>
-                </xsl:apply-templates>
-            </div>
-        </div>
+        <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+            <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+            <xsl:with-param name="constructor" select="$constructor"/>
+            <xsl:with-param name="create-resource" select="false()"/>
+        </xsl:apply-templates>
     </xsl:template>
 
     <!-- display stored AuthorizationRequest data after successful POST (without ConstraintViolations) -->

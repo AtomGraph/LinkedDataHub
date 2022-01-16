@@ -102,6 +102,9 @@ exclude-result-prefixes="#all">
     <!-- suppress resources other than adm:Person and adm:PublicKey -->
     <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&adm;Person', '&adm;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
 
+    <!-- disable the right nav (backlinks etc.) -->
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
+
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
             <xsl:with-param name="show-subject" select="false()" tunnel="yes"/>
