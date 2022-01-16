@@ -472,8 +472,7 @@ extension-element-prefixes="ixsl"
                     </xsl:apply-templates>
                 </div>
 
-                <xsl:apply-templates select="." mode="bs2:FormActions">
-                    <xsl:with-param name="modal" select="true()"/>
+                <xsl:apply-templates select="." mode="bs2:ModalFormActions">
                     <xsl:with-param name="button-class" select="$button-class"/>
                 </xsl:apply-templates>
             </form>
@@ -546,33 +545,62 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
         </form>
     </xsl:template>
+
+    <!-- MODAL FORM ACTIONS -->
     
-    <!-- FORM ACTIONS -->
-    
-    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
-        <xsl:param name="modal" select="false()" as="xs:boolean"/>
+    <xsl:template match="rdf:RDF" mode="bs2:ModalFormActions">
+        <xsl:param name="class" select="'form-actions modal-footer'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
-        <div class="form-actions {if ($modal) then 'modal-footer' else ''}">
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
             <button type="submit" class="{$button-class}">
                 <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="$button-class"/>
                 </xsl:apply-templates>
             </button>
 
-            <xsl:if test="$modal">
-                <button type="button" class="btn">
-                    <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
-                </button>
-            </xsl:if>
+            <button type="button" class="btn">
+                <xsl:apply-templates select="key('resources', 'close', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                    <xsl:with-param name="class" select="'btn'"/>
+                </xsl:apply-templates>
+            </button>
 
             <button type="reset" class="btn">
                 <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                     <xsl:with-param name="class" select="'btn'"/>
                 </xsl:apply-templates>
             </button>
+        </div>
+    </xsl:template>
+
+    <!-- FORM ACTIONS -->
+    
+    <xsl:template match="rdf:RDF" mode="bs2:FormActions">
+        <xsl:param name="class" select="'form-actions row-fluid'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
+        
+        <div>
+            <xsl:if test="$class">
+                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
+            </xsl:if>
+            
+            <div class="offset2">
+                <button type="submit" class="{$button-class}">
+                    <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:with-param name="class" select="$button-class"/>
+                    </xsl:apply-templates>
+                </button>
+
+                <button type="reset" class="btn">
+                    <xsl:apply-templates select="key('resources', 'reset', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
+                        <xsl:with-param name="class" select="'btn'"/>
+                    </xsl:apply-templates>
+                </button>
+            </div>
         </div>
     </xsl:template>
 
