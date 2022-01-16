@@ -778,7 +778,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="legend" select="true()" as="xs:boolean"/>
         <xsl:param name="violations" select="key('violations-by-value', */@rdf:resource) | key('violations-by-root', (@rdf:about, @rdf:nodeID))" as="element()*"/>
         <xsl:param name="forClass" select="rdf:type/@rdf:resource" as="xs:anyURI*"/>
-        <xsl:param name="template-doc" as="document-node()?">
+        <xsl:param name="constructor" as="document-node()?">
             <xsl:choose>
                 <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
                 <xsl:when test="not($forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
@@ -797,7 +797,7 @@ extension-element-prefixes="ixsl"
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
-        <xsl:param name="template" select="$template-doc/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type]" as="element()*"/>
+        <xsl:param name="template" select="$constructor/rdf:RDF/*[@rdf:nodeID][every $type in rdf:type/@rdf:resource satisfies current()/rdf:type/@rdf:resource = $type]" as="element()*"/>
         <xsl:param name="template-properties" select="true()" as="xs:boolean" tunnel="yes"/>
         <xsl:param name="traversed-ids" select="@rdf:*" as="xs:string*" tunnel="yes"/>
         <xsl:param name="show-subject" select="false()" as="xs:boolean" tunnel="yes"/>
@@ -857,7 +857,7 @@ extension-element-prefixes="ixsl"
                 <xsl:sort select="exists(for $type in $types return (if (doc-available(ac:document-uri($type))) then document(ac:document-uri($type))/key('resources', key('resources', $types)/spin:constraint/(@rdf:resource|@rdf:nodeID))[rdf:type/@rdf:resource = '&apl;MissingPropertyValue'][sp:arg1/@rdf:resource = current()/concat(namespace-uri(), local-name())] else ()))" order="descending"/>
                 <xsl:sort select="ac:property-label(.)"/>
                 <xsl:with-param name="violations" select="$violations"/>
-                <xsl:with-param name="template-doc" select="$template-doc"/>
+                <xsl:with-param name="constructor" select="$constructor"/>
                 <xsl:with-param name="traversed-ids" select="$traversed-ids" tunnel="yes"/>
             </xsl:apply-templates>
 
