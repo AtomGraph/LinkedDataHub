@@ -618,11 +618,6 @@ exclude-result-prefixes="#all">
             
                 <xsl:variable name="has-content" select="key('resources', key('resources', ac:uri())/apl:content/@rdf:resource) or key('resources', ac:uri())/rdf:type/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))/apl:template/@rdf:resource[doc-available(ac:document-uri(.))]/key('resources', ., document(ac:document-uri(.)))" as="xs:boolean"/>
                 <xsl:choose>
-                    <xsl:when test="$ac:forClass and $ac:mode = '&ac;ModalMode'">
-                        <xsl:apply-templates select="." mode="bs2:ModalForm">
-                            <xsl:sort select="ac:label(.)"/>
-                        </xsl:apply-templates>
-                    </xsl:when>
                     <xsl:when test="$ac:forClass and $ac:method = 'GET'">
                         <xsl:variable name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
                         <xsl:variable name="constructor" as="document-node()">
