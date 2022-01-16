@@ -423,7 +423,7 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
-    <!-- FORM -->
+    <!-- MODAL FORM -->
 
     <xsl:template match="rdf:RDF" mode="bs2:ModalForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
@@ -466,7 +466,7 @@ extension-element-prefixes="ixsl"
                 <div class="modal-body">
                     <xsl:apply-templates mode="bs2:Exception"/>
 
-                    <xsl:apply-templates select="*" mode="bs2:Form">
+                    <xsl:apply-templates select="*" mode="#current">
                         <xsl:sort select="ac:label(.)"/>
                         <xsl:with-param name="inline" select="false()" tunnel="yes"/>
                     </xsl:apply-templates>

@@ -713,6 +713,18 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
     
+    <!-- MODAL FORM -->
+
+    <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
+    <xsl:template match="*[rdf:type/@rdf:resource = '&spin;ConstraintViolation'] | *[rdf:type/@rdf:resource = '&http;Response']" mode="bs2:ModalForm" priority="3"/>
+
+    <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
+    <xsl:template match="*[@rdf:nodeID][$ac:forClass][not(rdf:type/@rdf:resource = ($ac:forClass, '&def;Item'))]" mode="bs2:ModalForm" priority="2"/>
+
+    <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:ModalForm">
+        <xsl:apply-templates select="." mode="bs2:Form"/>
+    </xsl:template>
+
     <!-- ROW FORM -->
 
     <!-- hide constraint violations and HTTP responses in the form - they are displayed as errors on the edited resources -->
