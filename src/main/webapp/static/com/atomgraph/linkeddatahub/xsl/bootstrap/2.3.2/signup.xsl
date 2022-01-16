@@ -63,29 +63,15 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
-        <xsl:param name="id" as="xs:string?"/>
-        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
-
-        <div>
-            <xsl:if test="$id">
-                <xsl:attribute name="id"><xsl:value-of select="$id"/></xsl:attribute>
-            </xsl:if>
-            <xsl:if test="$class">
-                <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
-            </xsl:if>
-        
-            <div class="offset2 span7">
-                <xsl:apply-templates select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:Form">
-                    <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
-                    <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
-                    <xsl:with-param name="create-resource" select="false()"/>
-                </xsl:apply-templates>
-            </div>
-        </div>
+        <xsl:apply-templates select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:RowForm">
+           <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+           <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
+           <xsl:with-param name="create-resource" select="false()"/>
+        </xsl:apply-templates>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:forClass][ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:RowBlock" priority="3">
-        <xsl:apply-templates select="." mode="bs2:Form">
+        <xsl:apply-templates select="." mode="bs2:RowForm">
             <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
             <xsl:with-param name="enctype" select="()"/>
             <xsl:with-param name="create-resource" select="false()"/>
@@ -363,7 +349,11 @@ exclude-result-prefixes="#all">
         </xsl:apply-templates>
     </xsl:template>
 
-    <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="ac:label" priority="1">E-mail</xsl:template>
+    <xsl:template match="*[@rdf:about = '&foaf;mbox'][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="ac:label" priority="1">
+        <xsl:value-of>
+            <xsl:apply-templates select="key('resources', 'email', document('translations.rdf'))" mode="ac:label"/>
+        </xsl:value-of>
+    </xsl:template>
 
     <!-- turn off additional properties -->
     <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:PropertyControl" priority="1"/>
