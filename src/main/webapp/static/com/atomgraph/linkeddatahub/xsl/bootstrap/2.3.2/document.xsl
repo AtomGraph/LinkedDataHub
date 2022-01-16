@@ -484,7 +484,7 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="bs2:RowForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
-        <xsl:param name="action" select="ac:build-uri($ldt:base, let $params := map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
+        <xsl:param name="action" select="ac:build-uri(ac:uri(), let $params := map{ '_method': 'PUT', 'mode': for $mode in $ac:mode return string($mode) } return if (not(starts-with(ac:uri(), $ldt:base))) then map:merge(($params, map{ 'uri': string(ac:uri()) })) else $params)" as="xs:anyURI"/>
         <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
         <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
         <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
