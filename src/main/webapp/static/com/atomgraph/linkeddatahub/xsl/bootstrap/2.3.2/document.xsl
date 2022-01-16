@@ -524,20 +524,22 @@ extension-element-prefixes="ixsl"
             </xsl:apply-templates>
 
             <xsl:if test="$create-resource">
-                <div class="create-resource">
-                    <xsl:apply-templates select="." mode="bs2:Create">
-                        <xsl:with-param name="classes" select="$classes"/>
-                        <xsl:with-param name="default-classes" select="$default-classes"/>
-                        <xsl:with-param name="show-document-classes" select="false()"/>
-                    </xsl:apply-templates>
+                <div class="create-resource row-fluid">
+                    <div class="offset2 span7">
+                        <xsl:apply-templates select="." mode="bs2:Create">
+                            <xsl:with-param name="classes" select="$classes"/>
+                            <xsl:with-param name="default-classes" select="$default-classes"/>
+                            <xsl:with-param name="show-document-classes" select="false()"/>
+                        </xsl:apply-templates>
 
-                    <!-- separate "Create" button only for Content -->
-                    <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&apl;Content' })}" class="btn btn-primary add-constructor create-action">
-                        <xsl:value-of>
-                            <xsl:apply-templates select="key('resources', '&apl;Content', document(ac:document-uri('&apl;')))" mode="ac:label"/>
-                        </xsl:value-of>
-                        <input type="hidden" class="forClass" value="&apl;Content"/>
-                    </a>
+                        <!-- separate "Create" button only for Content -->
+                        <a href="{ac:build-uri(ac:uri(), map{ 'forClass': '&apl;Content' })}" class="btn btn-primary add-constructor create-action">
+                            <xsl:value-of>
+                                <xsl:apply-templates select="key('resources', '&apl;Content', document(ac:document-uri('&apl;')))" mode="ac:label"/>
+                            </xsl:value-of>
+                            <input type="hidden" class="forClass" value="&apl;Content"/>
+                        </a>
+                    </div>
                 </div>
             </xsl:if>
 
@@ -581,7 +583,7 @@ extension-element-prefixes="ixsl"
     <!-- FORM ACTIONS -->
     
     <xsl:template match="rdf:RDF" mode="bs2:FormActions">
-        <xsl:param name="class" select="'form-actions row-fluid'" as="xs:string?"/>
+        <xsl:param name="class" select="'row-fluid'" as="xs:string?"/>
         <xsl:param name="button-class" select="'btn btn-primary'" as="xs:string?"/>
         
         <div>
@@ -589,7 +591,7 @@ extension-element-prefixes="ixsl"
                 <xsl:attribute name="class"><xsl:value-of select="$class"/></xsl:attribute>
             </xsl:if>
             
-            <div class="offset2">
+            <div class="form-actions offset2 span7">
                 <button type="submit" class="{$button-class}">
                     <xsl:apply-templates select="key('resources', 'save', document(resolve-uri('static/com/atomgraph/linkeddatahub/xsl/bootstrap/2.3.2/translations.rdf', $ac:contextUri)))" mode="apl:logo">
                         <xsl:with-param name="class" select="$button-class"/>
