@@ -62,8 +62,8 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
-        <xsl:apply-templates select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)" mode="bs2:RowForm">
-           <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+        <xsl:apply-templates select="ac:construct($ldt:ontology, '&adm;Person', $ldt:base)" mode="bs2:RowForm">
+           <xsl:with-param name="action" select="ac:uri()"/>
            <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
            <xsl:with-param name="create-resource" select="false()"/>
         </xsl:apply-templates>
@@ -71,7 +71,7 @@ exclude-result-prefixes="#all">
     
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][key('resources-by-type', '&spin;ConstraintViolation')]" mode="bs2:RowBlock" priority="3">
         <xsl:apply-templates select="." mode="bs2:RowForm">
-            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($ac:forClass) })"/>
+            <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/>
             <xsl:with-param name="create-resource" select="false()"/>
         </xsl:apply-templates>
