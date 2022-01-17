@@ -44,15 +44,13 @@ import org.apache.jena.rdf.model.Resource;
 public class AuthorizationExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<AuthorizationException>
 {
     
-    private final SecurityContext securityContext;
-    private final Application application;
+    @Context SecurityContext securityContext;
+    @Inject Application application;
 
     @Inject
-    public AuthorizationExceptionMapper(MediaTypes mediaTypes, @Context SecurityContext securityContext, Application application)
+    public AuthorizationExceptionMapper(MediaTypes mediaTypes)
     {
         super(mediaTypes);
-        this.securityContext = securityContext;
-        this.application = application;
     }
     
     @Override
