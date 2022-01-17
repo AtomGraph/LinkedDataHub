@@ -27,6 +27,7 @@ import static com.atomgraph.linkeddatahub.resource.SignUp.AGENT_PATH;
 import static com.atomgraph.linkeddatahub.resource.SignUp.AUTHORIZATION_PATH;
 import com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
+import com.atomgraph.linkeddatahub.server.filter.response.BackendInvalidationFilter;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
@@ -78,6 +79,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.glassfish.jersey.server.internal.process.MappableException;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,6 +242,9 @@ public class Login extends GraphStoreImpl
                             throw new InternalServerErrorException("Cannot create Authorization");
                         }
 
+                        // purge agent lookup from proxy cache
+                        if (getApplication().getService().getProxy() == null) ban(getApplication().getService().getProxy(), jwt.getSubject());
+                        
                         // remove secretary WebID from cache
                         getSystem().getEventBus().post(new com.atomgraph.linkeddatahub.server.event.SignUp(getSystem().getSecretaryWebIDURI()));
 
@@ -314,8 +319,7 @@ public class Login extends GraphStoreImpl
             addLiteral(SIOC.ID, id).
             addLiteral(LACL.issuer, issuer).
             addLiteral(SIOC.NAME, name).
-            addProperty(SIOC.EMAIL, model.createResource("mailto:" + email)).
-            addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: get rid of slug properties!
+            addProperty(SIOC.EMAIL, model.createResource("mailto:" + email));
         
         item.addProperty(FOAF.primaryTopic, account);
         
@@ -367,6 +371,15 @@ public class Login extends GraphStoreImpl
         EMailListener.submit(builder.build());
     }
 
+    public Response ban(Resource proxy, String url)
+    {
+        if (url == null) throw new IllegalArgumentException("Resource cannot be null");
+        
+        return getSystem().getClient().target(proxy.getURI()).request().
+            header(BackendInvalidationFilter.HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            method("BAN", Response.class);
+    }
+    
     public EndUserApplication getEndUserApplication()
     {
         if (getApplication().canAs(EndUserApplication.class))

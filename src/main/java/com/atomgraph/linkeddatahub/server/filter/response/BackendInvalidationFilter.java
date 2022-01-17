@@ -41,7 +41,9 @@ import org.glassfish.jersey.uri.UriComponent;
 @Priority(Priorities.USER + 400)
 public class BackendInvalidationFilter implements ContainerResponseFilter
 {
-
+    
+    public static final String HEADER_NAME = "X-Escaped-Request-URI";
+    
     @Inject com.atomgraph.linkeddatahub.Application system;
     @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
     
@@ -78,9 +80,8 @@ public class BackendInvalidationFilter implements ContainerResponseFilter
     {
         if (url == null) throw new IllegalArgumentException("Resource cannot be null");
         
-        // create new Client instance, otherwise ApacheHttpClient reuses connection and Varnish ignores BAN request
         return getClient().target(proxy.getURI()).request().
-            header("X-Escaped-Request-URI", UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
+            header(HEADER_NAME, UriComponent.encode(url, UriComponent.Type.UNRESERVED)). // the value has to be URL-encoded in order to match request URLs in Varnish
             method("BAN", Response.class);
     }
 
