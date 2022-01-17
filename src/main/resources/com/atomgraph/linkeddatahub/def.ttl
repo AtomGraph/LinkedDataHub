@@ -6,7 +6,6 @@
 @prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
-@prefix ldt:	<https://www.w3.org/ns/ldt#> .
 @prefix dh:	<https://www.w3.org/ns/ldt/document-hierarchy/domain#> .
 @prefix sp:	<http://spinrdf.org/sp#> .
 @prefix spin:	<http://spinrdf.org/spin#> .
@@ -53,7 +52,6 @@
     rdfs:subClassOf lapp:Application ;
     spin:constructor :TitleConstructor, :DescriptionConstructor ;
     spin:constraint :MissingTitle ;
-    ldt:fragment "id{slug}" ;
     rdfs:label "Application" ;
     rdfs:comment "Linked Data application" ;
     rdfs:isDefinedBy : .

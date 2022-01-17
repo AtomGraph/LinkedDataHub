@@ -112,7 +112,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Service a rdfs:Class, owl:Class ;
     rdfs:subClassOf sd:Service ;
-    # ldt:fragment "id{slug}" ;
     spin:constructor :ServiceConstructor ;
     spin:constraint [ a :MissingPropertyValue ;
             rdfs:label "Missing supported language" ;
@@ -173,7 +172,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Query a rdfs:Class, owl:Class ;
     rdfs:subClassOf ldt:Query ;
-    # ldt:fragment "id{slug}" ;
     spin:constructor :QueryConstructor ;
     spin:constraint [ a :MissingPropertyValue ;
             rdfs:label "Missing sp:text" ;
@@ -221,7 +219,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :File a rdfs:Class, owl:Class ;
     rdfs:subClassOf nfo:FileDataObject ;
-    # ldt:path "/uploads/{slug}" ;
     spin:constructor :FileConstructor ;
     spin:constraint :MissingFileName ;
     rdfs:label "File" ;
@@ -245,7 +242,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Import a rdfs:Class, owl:Class ;
     rdfs:subClassOf prov:Activity ;
-    # ldt:fragment "id{slug}" ;
     spin:constructor :ImportConstructor ;
     spin:constraint :MissingFile ;
     rdfs:label "Import" ;
@@ -312,7 +308,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Chart a rdfs:Class, owl:Class ;
     rdfs:label "Chart" ;
-    # ldt:fragment "id{slug}" ;
     spin:constructor :ChartConstructor ;
     spin:constraint :MissingQuery, :MissingChartType ;
     rdfs:isDefinedBy : .
@@ -375,7 +370,6 @@ sd:name a owl:ObjectProperty . # otherwise causes com.hp.hpl.jena.ontology.Conve
 
 :Content a rdfs:Class, owl:Class ;
     rdfs:subClassOf rdf:List ;
-    # ldt:fragment "id{slug}" ;
     rdfs:label "Content" ;
     spin:constructor :ContentConstructor ;
     # spin:constraint :MissingFirst, :MissingNext ;

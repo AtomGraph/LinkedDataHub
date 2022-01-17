@@ -208,7 +208,7 @@
     <acl/authorizations/sign-up/#this> a lacl:Authorization ;
         rdfs:label "Signup access" ;
         rdfs:comment "Required to enable public signup" ;
-        acl:accessToClass <sign%20up> ;
+        acl:accessTo <sign%20up> ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass foaf:Agent .
 
@@ -227,7 +227,7 @@
     <acl/authorizations/request-access/#this> a lacl:Authorization ;
         rdfs:label "Request access" ;
         rdfs:comment "Required to enable authorization requests" ;
-        acl:accessToClass <request%20access> ;
+        acl:accessTo <request%20access> ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
 
@@ -246,7 +246,7 @@
     <acl/authorizations/oauth2-login/#this> a lacl:Authorization ;
         rdfs:label "OAuth2 login access" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessToClass <oauth2/login> ;
+        acl:accessTo <oauth2/login> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
@@ -265,7 +265,7 @@
     <acl/authorizations/authorize-google/#this> a lacl:Authorization ;
         rdfs:label "Google's OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessToClass <oauth2/authorize/google> ;
+        acl:accessTo <oauth2/authorize/google> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
