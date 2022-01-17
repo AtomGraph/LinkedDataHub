@@ -122,7 +122,9 @@ WHERE
   { SELECT DISTINCT  ?subject
     WHERE
       { GRAPH ?g
-          { ?subject  ?p  ?this }
+          { ?subject  ?p  ?this
+            FILTER (isURI(?subject))
+          }
       }
     LIMIT   10
   }</xsl:param>
