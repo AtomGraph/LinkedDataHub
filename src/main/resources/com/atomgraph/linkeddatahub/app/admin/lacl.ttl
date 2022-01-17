@@ -2,6 +2,7 @@
 
 @prefix :	<#> .
 @prefix apl:	<https://w3id.org/atomgraph/linkeddatahub/domain#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:	<http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:	<http://www.w3.org/2002/07/owl#> .
@@ -113,6 +114,28 @@
     spin:constructor :AuthorizationConstructor ;
     spin:constraint :MissingACLMode, :MissingRDFSLabel ;
     rdfs:label "Authorization" ;
+    apl:template :AuthorizationAgents ;
+    rdfs:isDefinedBy : .
+
+:AuthorizationAgents a apl:Content ;
+    rdf:first :SelectAuthorizationAgents ;
+    rdf:rest rdf:nil ;
+    rdfs:isDefinedBy : .
+
+:SelectAuthorizationAgents a sp:Select ;
+    dct:title "Select agents" ;
+    sp:text """
+PREFIX  foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX  acl:  <http://www.w3.org/ns/auth/acl#>
+
+SELECT DISTINCT  ?agent
+WHERE
+{ GRAPH ?authGraph
+  { ?this  foaf:primaryTopic  ?auth .
+    ?auth  acl:agent          ?agent
+  }
+}
+""" ;
     rdfs:isDefinedBy : .
 
 :CreatorAuthorization a rdfs:Class ;

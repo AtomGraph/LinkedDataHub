@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lmod   "https://w3id.org/atomgraph/linkeddatahub/admin/modules/domain#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
+    <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY lapp   "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
@@ -37,7 +39,7 @@ exclude-result-prefixes="#all">
     <xsl:include href="sitemap/layout.xsl"/>
 
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
-        <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
+        <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
                 <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
@@ -64,7 +66,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
-        <xsl:param name="classes" select="key('resources', ('&adm;Construct', '&adm;Class', '&adm;Select', '&adm;MissingPropertyValue', '&adm;Property'), document(ac:document-uri('&adm;')))" as="element()*"/>
+        <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
         <xsl:next-match>
             <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
@@ -73,7 +75,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="key('resources', ('&adm;Ontology', '&adm;Authorization', '&adm;Person', '&adm;PublicKey', '&adm;UserAccount', '&adm;Group'), document(ac:document-uri('&adm;')))" as="element()*"/>
+        <xsl:param name="classes" select="key('resources', ('&lsm;Ontology', '&lacl;Authorization', '&lacl;Person', '&lacl;PublicKey', '&lacl;UserAccount', '&lacl;Group'), document(ac:document-uri('&lsm;'), ac:document-uri('&lacl;')))" as="element()*"/>
 
         <div>
             <xsl:if test="$id">
@@ -138,12 +140,12 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_parent/@rdf:nodeID | *[@rdf:about or @rdf:nodeID][$ac:forClass]/sioc:has_container/@rdf:nodeID" mode="bs2:FormControl">
         <xsl:param name="class-containers" as="map(xs:string, xs:anyURI)">
             <xsl:map>
-                <xsl:map-entry key="'&adm;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
-                <xsl:map-entry key="'&adm;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
-                <xsl:map-entry key="'&adm;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
-                <xsl:map-entry key="'&adm;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>
-                <xsl:map-entry key="'&adm;UserAccount'" select="resolve-uri('acl/users/', $ldt:base)"/>
-                <xsl:map-entry key="'&adm;Group'" select="resolve-uri('acl/groups/', $ldt:base)"/>
+                <xsl:map-entry key="'&lsm;Ontology'" select="resolve-uri('model/ontologies/', $ldt:base)"/>
+                <xsl:map-entry key="'&lacl;Authorization'" select="resolve-uri('acl/authorizations/', $ldt:base)"/>
+                <xsl:map-entry key="'&lacl;Person'" select="resolve-uri('acl/agents/', $ldt:base)"/>
+                <xsl:map-entry key="'&lacl;PublicKey'" select="resolve-uri('acl/public-keys/', $ldt:base)"/>
+                <xsl:map-entry key="'&lacl;UserAccount'" select="resolve-uri('acl/users/', $ldt:base)"/>
+                <xsl:map-entry key="'&lacl;Group'" select="resolve-uri('acl/groups/', $ldt:base)"/>
             </xsl:map>
         </xsl:param>
         

@@ -72,9 +72,9 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
-                <xsl:for-each select="ac:construct($ldt:ontology, (xs:anyURI('&adm;AuthorizationRequest'), xs:anyURI('&adm;Item')), $ldt:base)">
+                <xsl:for-each select="ac:construct($ldt:ontology, (xs:anyURI('&lacl;AuthorizationRequest'), xs:anyURI('&adm;Item')), $ldt:base)">
                     <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
-                        <xsl:with-param name="topic-id" select="key('resources-by-type', '&adm;AuthorizationRequest')/@rdf:nodeID" tunnel="yes"/>
+                        <xsl:with-param name="topic-id" select="key('resources-by-type', '&lacl;AuthorizationRequest')/@rdf:nodeID" tunnel="yes"/>
                         <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
@@ -113,7 +113,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&adm;AuthorizationRequest', '&adm;Item'))][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;AuthorizationRequest', '&adm;Item'))][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>

@@ -49,16 +49,16 @@ public class ADM
 
     public static final OntClass Item = m_model.createClass( NS + "Item" );
 
-    public static final OntClass Authorization = m_model.createClass( NS + "Authorization" );
-
-    public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
-
-    public static final OntClass Agent = m_model.createClass( NS + "Agent" );
-
-    public static final OntClass Person = m_model.createClass( NS + "Person" );
-
-    public static final OntClass UserAccount = m_model.createClass( NS + "UserAccount" );
-
-    public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
+//    public static final OntClass Authorization = m_model.createClass( NS + "Authorization" );
+//
+//    public static final OntClass AuthorizationRequest = m_model.createClass( NS + "AuthorizationRequest" );
+//
+//    public static final OntClass Agent = m_model.createClass( NS + "Agent" );
+//
+//    public static final OntClass Person = m_model.createClass( NS + "Person" );
+//
+//    public static final OntClass UserAccount = m_model.createClass( NS + "UserAccount" );
+//
+//    public static final OntClass PublicKey = m_model.createClass(NS + "PublicKey");
     
 }

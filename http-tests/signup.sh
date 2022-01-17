@@ -14,7 +14,7 @@ curl -k -s \
   --data-urlencode "rdf=" \
   --data-urlencode "sb=agent" \
   --data-urlencode "pu=http://www.w3.org/1999/02/22-rdf-syntax-ns#type" \
-  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin#Person" \
+  --data-urlencode "ou=https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#Person" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/based_near" \
@@ -49,10 +49,8 @@ curl -k -s \
   --data-urlencode "ol=${uuid}" \
   --data-urlencode "pu=http://xmlns.com/foaf/0.1/primaryTopic" \
   --data-urlencode "ob=agent" \
-  "${ADMIN_BASE_URL}sign%20up?forClass=https%3A%2F%2Fw3id.org%2Fatomgraph%2Flinkeddatahub%2Fadmin%23Person&download=true" \
+  "${ADMIN_BASE_URL}sign%20up?download=true" \
 > "$agent_p12_cert"
-
-# https://w3id.org/atomgraph/linkeddatahub/admin#Person - include this here so we get a match when replacing namespace URIs
 
 # convert PKCS12 to PEM
 

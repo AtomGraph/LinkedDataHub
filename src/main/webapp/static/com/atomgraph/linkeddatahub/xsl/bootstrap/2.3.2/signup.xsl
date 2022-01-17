@@ -62,7 +62,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
     <xsl:template match="*[@rdf:about = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
-        <xsl:apply-templates select="ac:construct($ldt:ontology, xs:anyURI('&adm;Person'), $ldt:base)" mode="bs2:RowForm">
+        <xsl:apply-templates select="ac:construct($ldt:ontology, xs:anyURI('&lacl;Person'), $ldt:base)" mode="bs2:RowForm">
            <xsl:with-param name="action" select="ac:uri()"/>
            <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
            <xsl:with-param name="create-resource" select="false()"/>
@@ -95,18 +95,18 @@ exclude-result-prefixes="#all">
             </div>
         </div>
         
-        <xsl:apply-templates select="key('resources-by-type', '&adm;Person')[@rdf:about]" mode="#current"/>
-        <xsl:apply-templates select="key('resources-by-type', '&adm;PublicKey')[@rdf:about]" mode="#current"/>
+        <xsl:apply-templates select="key('resources-by-type', '&lacl;Person')[@rdf:about]" mode="#current"/>
+        <xsl:apply-templates select="key('resources-by-type', '&lacl;PublicKey')[@rdf:about]" mode="#current"/>
     </xsl:template>
     
     <!-- suppress resources other than adm:Person and adm:PublicKey -->
-    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&adm;Person', '&adm;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
+    <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&lacl;Person', '&lacl;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&adm;Person', '&adm;Item'))][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;Person', '&adm;Item'))][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>

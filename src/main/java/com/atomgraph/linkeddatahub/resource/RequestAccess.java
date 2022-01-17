@@ -25,7 +25,6 @@ import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
-import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -116,7 +115,7 @@ public class RequestAccess extends GraphStoreImpl
         graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build();
         skolemize(requestModel, graphUri);
             
-        ResIterator it = requestModel.listResourcesWithProperty(RDF.type, ADM.AuthorizationRequest);
+        ResIterator it = requestModel.listResourcesWithProperty(RDF.type, LACL.AuthorizationRequest);
         try
         {
             Resource accessRequest = it.next();

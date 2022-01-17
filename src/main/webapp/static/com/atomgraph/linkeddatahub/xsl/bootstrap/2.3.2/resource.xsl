@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY adm    "https://w3id.org/atomgraph/linkeddatahub/admin#">
+    <!ENTITY lsm    "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
     <!ENTITY lacl   "https://w3id.org/atomgraph/linkeddatahub/admin/acl/domain#">
     <!ENTITY def    "https://w3id.org/atomgraph/linkeddatahub/default#">
     <!ENTITY apl    "https://w3id.org/atomgraph/linkeddatahub/domain#">
@@ -314,7 +315,7 @@ extension-element-prefixes="ixsl"
     <!-- BLOCK ROW -->
     
     <!-- mark query instances as .resource-content which is then rendered by client.xsl -->
-    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&adm;Select', '&sp;Select')][sp:text]" mode="bs2:RowBlock" priority="1">
+    <xsl:template match="*[@rdf:about][rdf:type/@rdf:resource = ('&def;Select', '&lsm;Select', '&sp;Select')][sp:text]" mode="bs2:RowBlock" priority="1">
         <xsl:param name="content-uri" select="@rdf:about" as="xs:anyURI"/>
 
         <xsl:next-match>
@@ -861,7 +862,7 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <xsl:template match="*[*][@rdf:about] | *[*][@rdf:nodeID]" mode="bs2:TypeControl">
-        <xsl:param name="forClass" select="xs:anyURI('&adm;Class')" as="xs:anyURI?"/> <!-- allow subclasses of lsm:Class? -->
+        <xsl:param name="forClass" select="xs:anyURI('&lsm;Class')" as="xs:anyURI?"/> <!-- allow subclasses of lsm:Class? -->
         <xsl:param name="hidden" select="false()" as="xs:boolean"/>
 
         <xsl:apply-templates mode="#current">

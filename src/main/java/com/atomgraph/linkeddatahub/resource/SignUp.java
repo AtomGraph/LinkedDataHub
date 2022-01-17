@@ -170,7 +170,7 @@ public class SignUp extends GraphStoreImpl
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
         skolemize(agentModel, agentGraphUri);
         
-        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, ADM.Person);
+        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, LACL.Person);
         try
         {
             Resource agent = it.next();
@@ -190,7 +190,7 @@ public class SignUp extends GraphStoreImpl
                     getRequiredProperty(DCTerms.title).getString();
             agent = appendAgent(agentModel,
                 agentGraphUri,
-                ADM.Person.getNameSpace(),
+                LACL.Person.getNameSpace(),
                 agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                 agent); // append Item data
             
@@ -356,7 +356,7 @@ public class SignUp extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource publicKeyRes = model.createResource().
-            addProperty(RDF.type, ADM.PublicKey).
+            addProperty(RDF.type, LACL.PublicKey).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
@@ -374,7 +374,7 @@ public class SignUp extends GraphStoreImpl
             addLiteral(DH.slug, UUID.randomUUID().toString());
         
         Resource auth = model.createResource().
-            addProperty(RDF.type, ADM.Authorization).
+            addProperty(RDF.type, LACL.Authorization).
             addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addProperty(ACL.accessTo, ResourceFactory.createResource(agentGraphURI.toString())).
             addProperty(ACL.accessTo, ResourceFactory.createResource(publicKeyURI.toString())).
