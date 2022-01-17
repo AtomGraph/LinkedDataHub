@@ -75,7 +75,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="bs2:ActionBarLeft">
         <xsl:param name="id" as="xs:string?"/>
         <xsl:param name="class" select="'span2'" as="xs:string?"/>
-        <xsl:param name="classes" select="key('resources', ('&lsm;Ontology', '&lacl;Authorization', '&lacl;Person', '&lacl;PublicKey', '&lacl;UserAccount', '&lacl;Group'), document(ac:document-uri('&lsm;'), ac:document-uri('&lacl;')))" as="element()*"/>
+        <xsl:param name="classes" select="(key('resources', ('&lacl;Authorization', '&lacl;Person', '&lacl;PublicKey', '&lacl;UserAccount', '&lacl;Group'), document(ac:document-uri('&lacl;'))), key('resources', ('&lsm;Ontology'), document(ac:document-uri('&lsm;'))))" as="element()*"/>
 
         <div>
             <xsl:if test="$id">
