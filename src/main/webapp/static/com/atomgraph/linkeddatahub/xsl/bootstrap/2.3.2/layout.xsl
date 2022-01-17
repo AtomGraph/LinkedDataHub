@@ -947,7 +947,7 @@ exclude-result-prefixes="#all">
             <h2>
                 <xsl:apply-templates select="." mode="apl:logo"/>
                 
-                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string(ac:uri()) }) else concat(lacl:requestAccess/@rdf:resource, '&amp;access-to=', encode-for-uri(ac:uri()))}" class="btn btn-primary pull-right">Request access</a>
+                <a href="{if (not(starts-with(lacl:requestAccess/@rdf:resource, $ldt:base))) then ac:build-uri($ldt:base, map{ 'uri': string(lacl:requestAccess/@rdf:resource), 'access-to': string(ac:uri()) }) else ac:build-uri(lacl:requestAccess/@rdf:resource, map{ 'access-to', string(ac:uri()) } )}" class="btn btn-primary pull-right">Request access</a>
             </h2>
         </div>
     </xsl:template>
