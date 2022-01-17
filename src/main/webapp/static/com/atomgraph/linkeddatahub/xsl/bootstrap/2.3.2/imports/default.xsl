@@ -70,7 +70,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="mode" as="xs:anyURI*"/>
         <xsl:param name="forClass" as="xs:anyURI?"/>
 
-        <xsl:variable name="query-params" select="map:merge((if (exists($mode)) then map{ 'mode': $mode/string(.) } else (), if ($forClass) then map{ 'forClass': string($forClass) else ()))" as="map(xs:string, xs:string*)"/>
+        <xsl:variable name="query-params" select="map:merge((if (exists($mode)) then map{ 'mode': $mode/string(.) } else (), if ($forClass) then map{ 'forClass': string($forClass) } else ()))" as="map(xs:string, xs:string*)"/>
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
