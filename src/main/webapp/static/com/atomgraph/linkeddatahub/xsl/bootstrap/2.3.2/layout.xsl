@@ -228,12 +228,12 @@ exclude-result-prefixes="#all">
     <xsl:template match="rdf:RDF" mode="xhtml:Script">
         <xsl:param name="client-stylesheet" select="resolve-uri('static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json', $ac:contextUri)" as="xs:anyURI"/>
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
-        <xsl:param name="load-wymeditor" select="exists($acl:Agent//@rdf:about)" as="xs:boolean"/>
-        <xsl:param name="load-yasqe" select="true()" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not(ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
-        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
-        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode')) and (not(key('resources-by-type', '&http;Response')) or ac:uri() = resolve-uri(concat('admin/', encode-for-uri('sign up')), $ldt:base))" as="xs:boolean"/>
+        <xsl:param name="load-wymeditor" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-yasqe" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="output-json-ld" select="false()" as="xs:boolean"/>
 
         <!-- Web-Client scripts -->

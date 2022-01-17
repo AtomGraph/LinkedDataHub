@@ -55,19 +55,29 @@ exclude-result-prefixes="#all"
 
         <xsl:sequence select="apl:href($base, $uri, ())"/>
     </xsl:function>
-    
+
     <xsl:function name="apl:href" as="xs:anyURI">
         <xsl:param name="base" as="xs:anyURI"/>
         <xsl:param name="uri" as="xs:anyURI"/>
-        <xsl:param name="mode" as="xs:anyURI?"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
 
+        <xsl:sequence select="apl:href($base, $uri, $mode, ())"/>
+    </xsl:function>
+
+    <xsl:function name="apl:href" as="xs:anyURI">
+        <xsl:param name="base" as="xs:anyURI"/>
+        <xsl:param name="uri" as="xs:anyURI"/>
+        <xsl:param name="mode" as="xs:anyURI*"/>
+        <xsl:param name="forClass" as="xs:anyURI?"/>
+
+        <xsl:variable name="query-params" select="map:merge((if (exists($mode)) then map{ 'mode': $mode/string(.) } else (), if ($forClass) then map{ 'forClass': string($forClass) else ()))" as="map(xs:string, xs:string*)"/>
         <xsl:choose>
             <!-- do not proxy $uri via ?uri= if it is relative to the $base -->
             <xsl:when test="starts-with($uri, $base)">
-                <xsl:sequence select="if ($mode) then ac:build-uri($uri, map{ 'mode': string($mode) }) else $uri"/>
+                <xsl:sequence select="ac:build-uri($uri, $query-params)"/>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:sequence select="if ($mode) then ac:build-uri($base, map{ 'uri': string($uri), 'mode': string($mode) }) else ac:build-uri($base, map{ 'uri': string($uri) })"/>
+                <xsl:sequence select="ac:build-uri($base, map:merge((map{ 'uri': string($uri) }, $query-params)))"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
