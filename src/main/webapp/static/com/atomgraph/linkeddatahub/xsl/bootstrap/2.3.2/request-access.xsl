@@ -113,7 +113,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="*[@rdf:nodeID][not(rdf:type/@rdf:resource = ('&adm;AuthorizationRequest', '&def;Item'))]" mode="bs2:RowForm" priority="3"/>
+    <xsl:template match="*[@rdf:nodeID][not(rdf:type/@rdf:resource = ('&adm;AuthorizationRequest', '&def;Item'))][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
@@ -224,7 +224,7 @@ exclude-result-prefixes="#all">
     </xsl:template>
 
     <!-- hide following properties -->
-    <xsl:template match="lacl:requestAccessToClass[1]/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1"/>
+    <xsl:template match="lacl:requestAccessToClass/@rdf:*[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1"/>
     
     <!-- hide type control -->
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:TypeControl" priority="2">

@@ -25,8 +25,8 @@ import com.atomgraph.linkeddatahub.listener.EMailListener;
 import com.atomgraph.linkeddatahub.model.Agent;
 import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.server.util.MessageBuilder;
+import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import java.io.UnsupportedEncodingException;
@@ -37,7 +37,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 import javax.servlet.ServletConfig;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -114,13 +113,10 @@ public class RequestAccess extends GraphStoreImpl
     @Override
     public Response post(Model requestModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
-
         graphUri = getAuthRequestContainerUriBuilder().path(UUID.randomUUID().toString() + "/").build();
         skolemize(requestModel, graphUri);
             
-        Resource forClass = requestModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-        ResIterator it = requestModel.listResourcesWithProperty(RDF.type, forClass);
+        ResIterator it = requestModel.listResourcesWithProperty(RDF.type, ADM.AuthorizationRequest);
         try
         {
             Resource accessRequest = it.next();
