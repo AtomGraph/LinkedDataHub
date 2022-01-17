@@ -71,8 +71,8 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:variable name="forClass" select="xs:anyURI('&adm;AuthorizationRequest')" as="xs:anyURI"/>
+        <xsl:variable name="doc" select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)" as="document-node()"/>
         <xsl:variable name="constructor" as="document-node()">
-            <xsl:variable name="doc" select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)" as="document-node()"/>
             <xsl:document>
                 <xsl:for-each select="$doc">
                     <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
