@@ -32,7 +32,6 @@ import com.atomgraph.linkeddatahub.server.util.WebIDCertGen;
 import com.atomgraph.linkeddatahub.vocabulary.ACL;
 import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.APLC;
-import com.atomgraph.linkeddatahub.vocabulary.APLT;
 import com.atomgraph.linkeddatahub.vocabulary.Cert;
 import com.atomgraph.linkeddatahub.vocabulary.FOAF;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
@@ -64,7 +63,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 import javax.servlet.ServletConfig;
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -169,13 +167,10 @@ public class SignUp extends GraphStoreImpl
     @Override
     public Response post(Model agentModel, @QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
     {
-        if (!getUriInfo().getQueryParameters().containsKey(APLT.forClass.getLocalName())) throw new BadRequestException("aplt:forClass argument is mandatory for aplt:SignUp template");
-
         URI agentGraphUri = getUriInfo().getBaseUriBuilder().path(AGENT_PATH).path("{slug}/").build(UUID.randomUUID().toString());
         skolemize(agentModel, agentGraphUri);
         
-        Resource forClass = agentModel.createResource(getUriInfo().getQueryParameters().getFirst(APLT.forClass.getLocalName()));
-        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, forClass);
+        ResIterator it = agentModel.listResourcesWithProperty(RDF.type, ADM.Person);
         try
         {
             Resource agent = it.next();
@@ -195,7 +190,7 @@ public class SignUp extends GraphStoreImpl
                     getRequiredProperty(DCTerms.title).getString();
             agent = appendAgent(agentModel,
                 agentGraphUri,
-                forClass.getNameSpace(),
+                ADM.Person.getNameSpace(),
                 agentModel.createResource(getUriInfo().getBaseUri().resolve(AGENT_PATH).toString()),
                 agent); // append Item data
             
