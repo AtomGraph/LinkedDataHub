@@ -103,7 +103,7 @@ exclude-result-prefixes="#all">
     <xsl:template match="*[ac:uri() = resolve-uri('sign%20up', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))][not(rdf:type/@rdf:resource = ('&lacl;Person', '&lacl;PublicKey'))]" mode="bs2:RowBlock" priority="2"/>
 
     <!-- disable the right nav (backlinks etc.) -->
-    <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Right"/>
+    <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:Right"/>
 
     <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
     <xsl:template match="rdf:Description[$ac:method = 'GET'][@rdf:nodeID][not(rdf:type/@rdf:resource = ('&lacl;Person', '&adm;Item'))][ac:uri() = resolve-uri('sign%20up', $ldt:base)]" mode="bs2:RowForm" priority="3"/>
