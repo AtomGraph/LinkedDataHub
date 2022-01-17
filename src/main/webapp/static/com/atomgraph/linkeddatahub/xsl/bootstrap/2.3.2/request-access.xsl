@@ -71,10 +71,9 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:variable name="forClass" select="xs:anyURI('&adm;AuthorizationRequest')" as="xs:anyURI"/>
-        <xsl:variable name="doc" select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)" as="document-node()"/>
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
-                <xsl:for-each select="$doc">
+                <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
                     <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
                         <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)/@rdf:nodeID" tunnel="yes"/>
                         <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
@@ -83,14 +82,8 @@ exclude-result-prefixes="#all">
             </xsl:document>
         </xsl:variable>
         
-        <xsl:message>
-            $doc: <xsl:copy-of select="$doc"/>
-            $constructor: <xsl:copy-of select="$constructor"/>
-            key('resources-by-type', '&adm;Item'): <xsl:copy-of select="key('resources-by-type', '&adm;Item', $doc)"/>
-        </xsl:message>
-        
         <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-            <xsl:with-param name="action" select="ac:build-uri(ac:uri(), map{ 'forClass': string($forClass) })"/>
+            <xsl:with-param name="action" select="ac:uri()"/>
             <xsl:with-param name="enctype" select="()"/> <!-- don't use 'multipart/form-data' which is the default -->
             <xsl:with-param name="create-resource" select="false()"/>
         </xsl:apply-templates>
