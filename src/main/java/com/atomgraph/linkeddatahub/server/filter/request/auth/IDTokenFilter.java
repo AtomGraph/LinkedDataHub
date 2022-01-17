@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 import javax.json.JsonObject;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -45,7 +46,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import org.apache.jena.ext.com.google.common.net.HttpHeaders;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.Literal;
@@ -197,13 +197,12 @@ public class IDTokenFilter extends AuthenticationFilter
             // https://stackoverflow.com/questions/7346919/chrome-localhost-cookie-not-being-set
             NewCookie deleteCookie = new NewCookie(cookie.getName(), null,
                 app.getBase().getURI(), null,
-                    NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, false);
+                    NewCookie.DEFAULT_VERSION, null, NewCookie.DEFAULT_MAX_AGE, new Date(0), true, true);
             
             Response response = Response.seeOther(request.getUriInfo().getAbsolutePath()).
-                // Jersey 1.x NewCookie does not support Expires, we need to write the header explicitly
-                header(HttpHeaders.SET_COOKIE, deleteCookie.toString() + ";Expires=Thu, 01 Jan 1970 00:00:00 GMT").
+                cookie(deleteCookie).
                 build();
-            throw new WebApplicationException(response);
+            throw new NotAuthorizedException(response);
         }
     }
 

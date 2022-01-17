@@ -25,8 +25,8 @@ import java.net.URI;
 import java.util.Map;
 import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.Priorities;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -83,12 +83,12 @@ public class XsltExecutableFilter implements ContainerResponseFilter
         catch (SaxonApiException ex)
         {
             if (log.isErrorEnabled()) log.error("XSLT transformer not configured property", ex);
-            throw new WebApplicationException(ex); // TO-DO: throw new XSLTException(ex);
+            throw new InternalServerErrorException(ex); // TO-DO: throw new XSLTException(ex);
         }
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("XSLT stylesheet not found or error reading it", ex);
-            throw new WebApplicationException(ex); // TO-DO: throw new XSLTException(ex);
+            throw new InternalServerErrorException(ex); // TO-DO: throw new XSLTException(ex);
         }
     }
     

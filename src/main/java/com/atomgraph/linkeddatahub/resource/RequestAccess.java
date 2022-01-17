@@ -40,7 +40,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -95,10 +95,10 @@ public class RequestAccess extends GraphStoreImpl
         authRequestContainerUriBuilder = uriInfo.getBaseUriBuilder().path(com.atomgraph.linkeddatahub.Application.AUTHORIZATION_REQUEST_PATH);
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailSubject.getURI());
-        if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.requestAccessEMailSubject));
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(APLC.requestAccessEMailSubject));
         
         emailText = servletConfig.getServletContext().getInitParameter(APLC.requestAccessEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.requestAccessEMailText));
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(APLC.requestAccessEMailText));
     }
     
     @GET

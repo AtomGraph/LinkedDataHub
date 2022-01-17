@@ -58,7 +58,6 @@ import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -483,7 +482,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("Error writing file: {}", file);
-            throw new WebApplicationException(ex);
+            throw new InternalServerErrorException(ex);
         }
     }
     
@@ -519,7 +518,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         catch (IOException ex)
         {
             if (log.isErrorEnabled()) log.error("File I/O error", ex);
-            throw new WebApplicationException(ex);
+            throw new InternalServerErrorException(ex);
         }
     }
     

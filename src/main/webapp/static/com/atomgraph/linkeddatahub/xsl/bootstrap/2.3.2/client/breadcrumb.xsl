@@ -89,10 +89,12 @@ exclude-result-prefixes="#all"
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
+<!--                <xsl:result-document href="#{$id}" method="ixsl:replace-content">
                     <p class="alert">Error loading breadcrumbs</p>
-                </xsl:result-document>
-                <!--<xsl:value-of select="ixsl:call(ixsl:window(), 'alert', [ ?message ])"/>-->
+                </xsl:result-document>-->
+                <xsl:message>
+                    Error loading breadcrumbs for URI :<xsl:value-of select="$uri"/>
+                </xsl:message>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>

@@ -67,7 +67,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -140,17 +140,17 @@ public class SignUp extends GraphStoreImpl
         }
         catch (IOException ex)
         {
-            throw new WebApplicationException(ex);
+            throw new InternalServerErrorException(ex);
         }
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
-        if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(APLC.signUpEMailSubject));
 
         emailText = servletConfig.getServletContext().getInitParameter(APLC.webIDSignUpEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.webIDSignUpEMailText));
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(APLC.webIDSignUpEMailText));
         
         if (servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()) == null)
-            throw new WebApplicationException(new ConfigurationException(APLC.signUpCertValidity));
+            throw new InternalServerErrorException(new ConfigurationException(APLC.signUpCertValidity));
         validityDays = Integer.parseInt(servletConfig.getServletContext().getInitParameter(APLC.signUpCertValidity.getURI()));
         
         download = uriInfo.getQueryParameters().containsKey("download"); // debug param that allows downloading the certificate
@@ -224,7 +224,7 @@ public class SignUp extends GraphStoreImpl
                 if (publicKeyResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                 {
                     if (log.isErrorEnabled()) log.error("Cannot create PublicKey");
-                    throw new WebApplicationException("Cannot create PublicKey");
+                    throw new InternalServerErrorException("Cannot create PublicKey");
                 }
 
                 NodeIterator publicKeyIt = publicKeyModel.listObjectsOfProperty(ResourceFactory.createResource(publicKeyGraphUri.toString()), FOAF.primaryTopic);
@@ -239,7 +239,7 @@ public class SignUp extends GraphStoreImpl
                     if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                        throw new WebApplicationException("Cannot create Agent");
+                        throw new InternalServerErrorException("Cannot create Agent");
                     }
 
                     URI authGraphUri = getUriInfo().getBaseUriBuilder().path(AUTHORIZATION_PATH).path("{slug}/").build(UUID.randomUUID().toString());
@@ -255,7 +255,7 @@ public class SignUp extends GraphStoreImpl
                     if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                        throw new WebApplicationException("Cannot create Authorization");
+                        throw new InternalServerErrorException("Cannot create Authorization");
                     }
 
                     // remove secretary WebID from cache
@@ -357,7 +357,6 @@ public class SignUp extends GraphStoreImpl
         
         Resource publicKeyRes = model.createResource().
             addProperty(RDF.type, LACL.PublicKey).
-            addLiteral(DH.slug, UUID.randomUUID().toString()). // TO-DO: get rid of slug properties!
             addLiteral(Cert.exponent, publicKey.getPublicExponent()).
             addLiteral(Cert.modulus, ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDhexBinary));
         

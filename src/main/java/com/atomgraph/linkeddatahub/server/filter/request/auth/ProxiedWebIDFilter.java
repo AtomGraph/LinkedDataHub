@@ -25,8 +25,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import javax.annotation.Priority;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.Priorities;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.PreMatching;
 
@@ -52,7 +52,7 @@ public class ProxiedWebIDFilter extends WebIDFilter
         }
         catch (CertificateException ex)
         {
-            throw new WebApplicationException(ex);
+            throw new InternalServerErrorException(ex);
         }
     }
     

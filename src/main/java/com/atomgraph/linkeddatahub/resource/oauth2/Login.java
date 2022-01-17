@@ -55,7 +55,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
@@ -112,10 +112,10 @@ public class Login extends GraphStoreImpl
         this.application = application;
         
         emailSubject = servletConfig.getServletContext().getInitParameter(APLC.signUpEMailSubject.getURI());
-        if (emailSubject == null) throw new WebApplicationException(new ConfigurationException(APLC.signUpEMailSubject));
+        if (emailSubject == null) throw new InternalServerErrorException(new ConfigurationException(APLC.signUpEMailSubject));
 
         emailText = servletConfig.getServletContext().getInitParameter(APLC.oAuthSignUpEMailText.getURI());
-        if (emailText == null) throw new WebApplicationException(new ConfigurationException(APLC.oAuthSignUpEMailText));
+        if (emailText == null) throw new InternalServerErrorException(new ConfigurationException(APLC.oAuthSignUpEMailText));
         
         userAccountQuery = system.getUserAccountQuery();
         clientID = (String)system.getProperty(Google.clientID.getURI());
@@ -130,11 +130,10 @@ public class Login extends GraphStoreImpl
         if (getClientSecret() == null) throw new ConfigurationException(Google.clientSecret);
         
         String error = getUriInfo().getQueryParameters().getFirst("error");
-        
         if (error != null)
         {
             if (log.isErrorEnabled()) log.error("OAuth callback error: {}", error);
-            throw new WebApplicationException(error);
+            throw new InternalServerErrorException(error);
         }
 
         String code = getUriInfo().getQueryParameters().getFirst("code");
@@ -156,7 +155,7 @@ public class Login extends GraphStoreImpl
             if (response.containsKey("error"))
             {
                 if (log.isErrorEnabled()) log.error("OAuth error: '{}'", response.getString("error"));
-                throw new WebApplicationException(response.getString("error"));
+                throw new InternalServerErrorException(response.getString("error"));
             }
 
             String idToken = response.getString("id_token");
@@ -205,7 +204,7 @@ public class Login extends GraphStoreImpl
                     if (userAccountResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                     {
                         if (log.isErrorEnabled()) log.error("Cannot create UserAccount");
-                        throw new WebApplicationException("Cannot create UserAccount");
+                        throw new InternalServerErrorException("Cannot create UserAccount");
                     }
                     if (log.isDebugEnabled()) log.debug("Created UserAccount for user ID: {}", jwt.getSubject());
 
@@ -221,7 +220,7 @@ public class Login extends GraphStoreImpl
                         if (agentResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {
                             if (log.isErrorEnabled()) log.error("Cannot create Agent");
-                            throw new WebApplicationException("Cannot create Agent");
+                            throw new InternalServerErrorException("Cannot create Agent");
                         }
 
                         Model authModel = ModelFactory.createDefaultModel();
@@ -238,7 +237,7 @@ public class Login extends GraphStoreImpl
                         if (authResponse.getStatus() != Response.Status.CREATED.getStatusCode())
                         {
                             if (log.isErrorEnabled()) log.error("Cannot create Authorization");
-                            throw new WebApplicationException("Cannot create Authorization");
+                            throw new InternalServerErrorException("Cannot create Authorization");
                         }
 
                         // remove secretary WebID from cache
@@ -252,7 +251,7 @@ public class Login extends GraphStoreImpl
                         userAccountIt.close();
                     }
                 }
-                catch (UnsupportedEncodingException | MessagingException | WebApplicationException ex)
+                catch (UnsupportedEncodingException | MessagingException | InternalServerErrorException ex)
                 {
                     throw new MappableException(ex);
                 }
@@ -294,8 +293,7 @@ public class Login extends GraphStoreImpl
             addProperty(RDF.type, LACL.Agent).
             addLiteral(FOAF.givenName, givenName).
             addLiteral(FOAF.familyName, familyName).
-            addProperty(FOAF.mbox, model.createResource("mailto:" + email)).
-            addLiteral(DH.slug, UUID.randomUUID().toString()); // TO-DO: get rid of slug properties!
+            addProperty(FOAF.mbox, model.createResource("mailto:" + email));
         if (imgUrl != null) agent.addProperty(FOAF.img, model.createResource(imgUrl));
             
         item.addProperty(FOAF.primaryTopic, agent);
