@@ -31,13 +31,13 @@ import javax.ws.rs.container.ResourceContext;
  */
 public class ModelExceptionMapper extends com.atomgraph.server.mapper.ModelExceptionMapper
 {
-    private final ResourceContext resourceContext;
 
+    @Context ResourceContext resourceContext;
+            
     @Inject
-    public ModelExceptionMapper(MediaTypes mediaTypes, @Context ResourceContext resourceContext)
+    public ModelExceptionMapper(MediaTypes mediaTypes)
     {
         super(mediaTypes);
-        this.resourceContext = resourceContext;
     }
 
     @Override

@@ -45,8 +45,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
 {
     
     @Context SecurityContext securityContext;
-    @Inject Application application;
-    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
     @Inject
     public AuthorizationExceptionMapper(MediaTypes mediaTypes)
@@ -89,7 +88,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
     
     public Application getApplication()
     {
-        return application;
+        return application.get();
     }
     
 }

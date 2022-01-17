@@ -17,7 +17,6 @@
 package com.atomgraph.linkeddatahub.server.mapper.auth.oauth2;
 
 import com.atomgraph.core.MediaTypes;
-import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
 import static com.atomgraph.linkeddatahub.resource.oauth2.google.Authorize.REFERER_PARAM_NAME;
 import com.atomgraph.linkeddatahub.server.filter.request.auth.IDTokenFilter;
@@ -42,15 +41,13 @@ import org.apache.jena.rdf.model.ResourceFactory;
 public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements ExceptionMapper<TokenExpiredException>
 {
 
-    private final UriInfo uriInfo;
-    private final Application app;
+    @Context UriInfo uriInfo;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> application;
 
     @Inject
-    public TokenExpiredExceptionMapper(MediaTypes mediaTypes, @Context UriInfo uriInfo, Application app)
+    public TokenExpiredExceptionMapper(MediaTypes mediaTypes)
     {
         super(mediaTypes);
-        this.uriInfo = uriInfo;
-        this.app = app;
     }
 
     @Override
@@ -86,7 +83,7 @@ public class TokenExpiredExceptionMapper extends ExceptionMapperBase implements 
     
     public com.atomgraph.linkeddatahub.apps.model.Application getApplication()
     {
-        return app;
+        return application.get();
     }
     
     @Override
