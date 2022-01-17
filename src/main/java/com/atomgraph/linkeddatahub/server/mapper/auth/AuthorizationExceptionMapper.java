@@ -16,7 +16,6 @@
  */
 package com.atomgraph.linkeddatahub.server.mapper.auth;
 
-import com.atomgraph.client.vocabulary.AC;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.apps.model.Application;
 import com.atomgraph.linkeddatahub.apps.model.EndUserApplication;
@@ -25,7 +24,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import com.atomgraph.linkeddatahub.server.exception.auth.AuthorizationException;
-import com.atomgraph.linkeddatahub.vocabulary.ADM;
 import com.atomgraph.linkeddatahub.vocabulary.LACL;
 import com.atomgraph.server.mapper.ExceptionMapperBase;
 import com.atomgraph.server.vocabulary.HTTP;
@@ -36,7 +34,6 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.rdf.model.Resource;
-import org.glassfish.jersey.uri.UriComponent;
 
 /**
  * JAX-RS mapper for authorization exceptions.
@@ -72,13 +69,8 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
             {
                 Resource adminBase = getApplication().as(EndUserApplication.class).getAdminApplication().getBase();
 
-                // we URI-encode values ourselves because Jersey 1.x UriBuilder fails to do so: https://java.net/jira/browse/JERSEY-1717
-                String encodedRequestClassURI = UriComponent.encode(ADM.AuthorizationRequest.getURI(), UriComponent.Type.UNRESERVED);
-                //String encodedRequestURI = UriComponent.encode(ex.getAbsolutePath().toString(), UriComponent.Type.UNRESERVED);
-
                 URI requestAccessURI = UriBuilder.fromUri(adminBase.getURI()).
                     path(com.atomgraph.linkeddatahub.Application.REQUEST_ACCESS_PATH).
-                    queryParam(AC.forClass.getLocalName(), encodedRequestClassURI).
                     build();
 
                 exRes.addProperty(LACL.requestAccess, exRes.getModel().createResource(requestAccessURI.toString()));
