@@ -46,6 +46,7 @@ public class AuthorizationExceptionMapper extends ExceptionMapperBase implements
     
     @Context SecurityContext securityContext;
     @Inject Application application;
+    @Inject javax.inject.Provider<com.atomgraph.linkeddatahub.apps.model.Application> app;
 
     @Inject
     public AuthorizationExceptionMapper(MediaTypes mediaTypes)
