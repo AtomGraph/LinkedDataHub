@@ -51,7 +51,7 @@
 <sign%20up>
 {
 
-    <sign%20up> a adm:SignUp ;
+    <sign%20up> a adm:Item ;
         dct:title "Sign up" ;
         apl:content <sign%20up#content> .
 
@@ -72,7 +72,7 @@
 <request%20access>
 {
 
-    <request%20access> a adm:RequestAccess ;
+    <request%20access> a adm:Item ;
         dct:title "Request access" ;
         apl:content <request%20access#id023e3fee-a546-4209-b52c-7b65ebb52aa4> .
 
@@ -89,7 +89,7 @@
 <oauth2/login>
 {
 
-    <oauth2/login> a adm:OAuth2Login ;
+    <oauth2/login> a adm:Item ;
         dct:title "OAuth 2.0 login" .
 
 }
@@ -97,7 +97,7 @@
 <oauth2/authorize/google>
 {
 
-    <oauth2/authorize/google> a adm:AuthorizeGoogle ;
+    <oauth2/authorize/google> a adm:Item ;
         dct:title "Google OAuth2.0 authorization" .
 
 }
@@ -186,7 +186,7 @@
         dct:title "Public access" ;
         foaf:primaryTopic <acl/authorizations/public/#this> .
 
-    <acl/authorizations/public/#this> a adm:Authorization ;
+    <acl/authorizations/public/#this> a lacl:Authorization ;
         rdfs:label "Public access" ;
         rdfs:comment "Allows non-authenticated access" ;
         acl:accessTo <model/ontologies/namespace/> ; # end-user ontologies are public
@@ -205,10 +205,10 @@
         dct:title "Signup access" ;
         foaf:primaryTopic <acl/authorizations/sign-up/#this> .
 
-    <acl/authorizations/sign-up/#this> a adm:Authorization ;
+    <acl/authorizations/sign-up/#this> a lacl:Authorization ;
         rdfs:label "Signup access" ;
         rdfs:comment "Required to enable public signup" ;
-        acl:accessToClass adm:SignUp ;
+        acl:accessToClass <sign%20up> ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass foaf:Agent .
 
@@ -224,10 +224,10 @@
         dct:title "Authorization request access" ;
         foaf:primaryTopic <acl/authorizations/request-access/#this> .
 
-    <acl/authorizations/request-access/#this> a adm:Authorization ;
+    <acl/authorizations/request-access/#this> a lacl:Authorization ;
         rdfs:label "Request access" ;
         rdfs:comment "Required to enable authorization requests" ;
-        acl:accessToClass adm:RequestAccess ;
+        acl:accessToClass <request%20access> ;
         acl:mode acl:Read, acl:Append ;
         acl:agentClass acl:AuthenticatedAgent . # not public, Agent must be authenticated
 
@@ -243,10 +243,10 @@
         dct:title "OAuth2 login access" ;
         foaf:primaryTopic <acl/authorizations/oauth2-login/#this> .
 
-    <acl/authorizations/oauth2-login/#this> a adm:Authorization ;
+    <acl/authorizations/oauth2-login/#this> a lacl:Authorization ;
         rdfs:label "OAuth2 login access" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessToClass adm:OAuth2Login ;
+        acl:accessToClass <oauth2/login> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
@@ -262,10 +262,10 @@
         dct:title "Google's OAuth2 authorization" ;
         foaf:primaryTopic <acl/authorizations/authorize-google/#this> .
 
-    <acl/authorizations/authorize-google/#this> a adm:Authorization ;
+    <acl/authorizations/authorize-google/#this> a lacl:Authorization ;
         rdfs:label "Google's OAuth2 authorization" ;
         rdfs:comment "Required to enable public OAuth2 login" ;
-        acl:accessToClass adm:AuthorizeGoogle ;
+        acl:accessToClass <oauth2/authorize/google> ;
         acl:mode acl:Read ;
         acl:agentClass foaf:Agent .
 
@@ -281,7 +281,7 @@
         dct:title "Append authorization request" ;
         foaf:primaryTopic <acl/authorizations/append-request/#this> .
 
-    <acl/authorizations/append-request/#this> a adm:Authorization ;
+    <acl/authorizations/append-request/#this> a lacl:Authorization ;
         rdfs:label "Append authorization request" ;
         rdfs:comment "Required to enable authorization requests" ;
         acl:accessTo <acl/authorization-requests/> ;
@@ -301,7 +301,7 @@
         dct:title "Full control" ;
         foaf:primaryTopic <acl/authorizations/full-control/#this> .
 
-    <acl/authorizations/full-control/#this> a adm:Authorization ;
+    <acl/authorizations/full-control/#this> a lacl:Authorization ;
         rdfs:label "Full control" ;
         rdfs:comment "Allows full read/write access to all application resources" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
@@ -321,7 +321,7 @@
         dct:title "Write/append access" ;
         foaf:primaryTopic <acl/authorizations/write-append/#this> .
 
-    <acl/authorizations/write-append/#this> a adm:Authorization ;
+    <acl/authorizations/write-append/#this> a lacl:Authorization ;
         rdfs:label "Write/append access" ;
         rdfs:comment "Allows write access to all documents and containers" ;
         acl:accessToClass def:Item, def:Container, def:Root ;
@@ -341,7 +341,7 @@
         dct:title "Read access" ;
         foaf:primaryTopic <acl/authorizations/read/#this> .
 
-    <acl/authorizations/read/#this> a adm:Authorization ;
+    <acl/authorizations/read/#this> a lacl:Authorization ;
         rdfs:label "Read access" ;
         rdfs:comment "Allows read access to all resources" ;
         acl:accessToClass def:Item, def:Container, def:Root, def:File ;
@@ -361,7 +361,7 @@
         dct:title "Creator access" ;
         foaf:primaryTopic <acl/authorizations/creator/#this> .
 
-    <acl/authorizations/creator/#this> a adm:CreatorAuthorization ;
+    <acl/authorizations/creator/#this> a lacl:CreatorAuthorization ;
         rdfs:label "Creator access" ;
         rdfs:comment "Creators have full control of their created resources" ;
         lacl:accessProperty foaf:maker ;
@@ -382,7 +382,7 @@
         dct:title "Owners" ;
         foaf:primaryTopic <acl/groups/owners/#this> .
 
-    <acl/groups/owners/#this> a adm:Group ;
+    <acl/groups/owners/#this> a lacl:Group ;
         foaf:name "Owners" ;
         dct:description "Group of agents that own the application" .
 
@@ -398,7 +398,7 @@
         dct:title "Writers" ;
         foaf:primaryTopic <acl/groups/writers/#this> .
 
-    <acl/groups/writers/#this> a adm:Group ;
+    <acl/groups/writers/#this> a lacl:Group ;
         foaf:name "Writers" ;
         dct:description "Group of agents that have write access" .
 
@@ -414,7 +414,7 @@
         dct:title "Readers" ;
         foaf:primaryTopic <acl/groups/readers/#this> .
 
-    <acl/groups/readers/#this> a adm:Group ;
+    <acl/groups/readers/#this> a lacl:Group ;
         foaf:name "Readers" ;
         dct:description "Group of agents that have read access" .
 
@@ -456,7 +456,7 @@
         dct:title "Namespace" ;
         foaf:primaryTopic ns: .
 
-    ns: a adm:Ontology ;
+    ns: a lsm:Ontology ;
         rdfs:label "Namespace" ;
         rdfs:comment "Namespace of the application" ;
         owl:imports <https://w3id.org/atomgraph/linkeddatahub/default#> ;

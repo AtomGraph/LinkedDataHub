@@ -95,9 +95,9 @@ if [ -z "$1" ]; then
 fi
 
 args+=("-f")
-args+=("${cert_pem_file}")
+args+=("$cert_pem_file")
 args+=("-p")
-args+=("${cert_password}")
+args+=("$cert_password")
 args+=("-t")
 args+=("text/turtle")
 

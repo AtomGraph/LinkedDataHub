@@ -2,6 +2,7 @@
 <!DOCTYPE xsl:stylesheet [
     <!ENTITY lapp       "https://w3id.org/atomgraph/linkeddatahub/apps/domain#">
     <!ENTITY def        "https://w3id.org/atomgraph/linkeddatahub/default#">
+    <!ENTITY lsm        "https://w3id.org/atomgraph/linkeddatahub/admin/sitemap/domain#">
     <!ENTITY adm        "https://w3id.org/atomgraph/linkeddatahub/admin#">
     <!ENTITY apl        "https://w3id.org/atomgraph/linkeddatahub/domain#">
     <!ENTITY ac         "https://w3id.org/atomgraph/client#">
