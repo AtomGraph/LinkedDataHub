@@ -86,6 +86,7 @@ exclude-result-prefixes="#all">
         <xsl:message>
             $doc: <xsl:copy-of select="$doc"/>
             $constructor: <xsl:copy-of select="$constructor"/>
+            key('resources-by-type', '&adm;Item'): <xsl:copy-of select="key('resources-by-type', '&adm;Item', $doc)"/>
         </xsl:message>
         
         <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
