@@ -69,9 +69,6 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF[ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:ModeTabs" priority="2"/>
 
-    <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
-    <xsl:template match="*[@rdf:nodeID][not(rdf:type/@rdf:resource = ('&adm;AuthorizationRequest', '&def;Item'))]" mode="bs2:RowBlock" priority="3"/>
-
     <xsl:template match="*[@rdf:about = resolve-uri('request%20access', $ldt:base)][$ac:method = 'GET']" mode="bs2:RowBlock" priority="2">
         <xsl:variable name="constructor" as="document-node()">
             <xsl:document>
@@ -114,6 +111,9 @@ exclude-result-prefixes="#all">
 
     <!-- suppress other resources -->
     <xsl:template match="*[ac:uri() = resolve-uri('request%20access', $ldt:base)][$ac:method = 'POST'][not(key('resources-by-type', '&http;Response'))]" mode="bs2:RowBlock" priority="2"/>
+
+    <!-- hide object blank nodes (that only have a single rdf:type property) from constructed models -->
+    <xsl:template match="*[@rdf:nodeID][not(rdf:type/@rdf:resource = ('&adm;AuthorizationRequest', '&def;Item'))]" mode="bs2:RowForm" priority="3"/>
 
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID][ac:uri() = resolve-uri('request%20access', $ldt:base)]" mode="bs2:FormControl" priority="1">
         <xsl:next-match>
