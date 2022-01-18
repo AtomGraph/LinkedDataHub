@@ -1465,7 +1465,7 @@ WHERE
                 <xsl:apply-templates select="$content" mode="apl:Content">
                     <xsl:with-param name="uri" select="$uri"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="state" select="$state"/>
+                    <!--<xsl:with-param name="state" select="$state"/>-->
                 </xsl:apply-templates>
             </xsl:when>
             <!-- content could not be loaded as RDF -->
@@ -1498,7 +1498,7 @@ WHERE
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <xsl:param name="state" as="item()?"/>
+        <!--<xsl:param name="state" as="item()?"/>-->
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
         <xsl:message>
@@ -1522,7 +1522,7 @@ WHERE
                     <xsl:with-param name="fragment" select="$fragment"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <xsl:with-param name="state" select="$state"/>
+                    <!--<xsl:with-param name="state" select="$state"/>-->
                     <xsl:with-param name="push-state" select="$push-state"/>
                 </xsl:apply-templates>
             </xsl:when>
@@ -1727,7 +1727,7 @@ WHERE
                             <xsl:call-template name="onDocumentLoad">
                                 <xsl:with-param name="href" select="$href"/>
                                 <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
-                                <xsl:with-param name="state" select="$state"/>
+                                <!--<xsl:with-param name="state" select="$state"/>-->
                                 <!-- we don't want to push the same state we just popped back to -->
                                 <xsl:with-param name="push-state" select="false()"/>
                             </xsl:call-template>
