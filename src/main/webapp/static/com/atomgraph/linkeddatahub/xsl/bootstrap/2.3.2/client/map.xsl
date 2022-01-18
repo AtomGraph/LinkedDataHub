@@ -64,10 +64,10 @@ exclude-result-prefixes="#all"
             <!-- use template literals because the query is multi-line https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals -->
             <xsl:choose>
                 <xsl:when test="$graph-var-name">
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.contents['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}', '{$graph-var-name}')"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
+                    <root statement="new SPARQLMap.Geo(window.LinkedDataHub.contents['{$content-uri}'].map, new URL('{$base}'), new URL('{$endpoint}'), `{$select-string}`, '{$focus-var-name}')"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
@@ -78,7 +78,7 @@ exclude-result-prefixes="#all"
         <xsl:param name="content-uri" as="xs:anyURI"/>
 
         <xsl:variable name="js-statement" as="element()">
-            <root statement="window.LinkedDataHub['{$content-uri}'].map.addListener('idle', function() {{ window.LinkedDataHub['{$content-uri}'].geo.loadMarkers(window.LinkedDataHub['{$content-uri}'].geo.addMarkers); }})"/>
+            <root statement="window.LinkedDataHub.contents['{$content-uri}'].map.addListener('idle', function() {{ window.LinkedDataHub.contents['{$content-uri}'].geo.loadMarkers(window.LinkedDataHub.contents['{$content-uri}'].geo.addMarkers); }})"/>
         </xsl:variable>
         <xsl:sequence select="ixsl:eval(string($js-statement/@statement))"/>
     </xsl:template>
