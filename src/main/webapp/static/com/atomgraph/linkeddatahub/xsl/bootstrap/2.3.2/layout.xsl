@@ -1022,13 +1022,13 @@ exclude-result-prefixes="#all">
                 </a>
             </div>
             
-            <div class="pull-right">
+<!--            <div class="pull-right">
                 <button type="button" title="{ac:label(key('resources', 'skolemize-title', document('translations.rdf')))}">
                     <xsl:apply-templates select="key('resources', 'skolemize', document('translations.rdf'))" mode="apl:logo">
                         <xsl:with-param name="class" select="'btn'"/>
                     </xsl:apply-templates>
                 </button>
-            </div>
+            </div>-->
             
             <div class="pull-right">
                 <button type="button" title="{key('resources', 'save-as-title', document('translations.rdf'))}">

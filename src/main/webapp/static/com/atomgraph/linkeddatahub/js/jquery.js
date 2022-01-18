@@ -116,7 +116,7 @@ var addGoogleMapsListener = function(object, type, options, templateName, map, m
             SaxonJS.transform({
                 "stylesheetLocation": contextUri + "static/com/atomgraph/linkeddatahub/xsl/client.xsl.sef.json",
                 "initialTemplate": templateName,
-                "stylesheetParams": { "Q{https://w3id.org/atomgraph/linkeddatahub/domain#}base": baseUri },
+                "stylesheetParams": { "Q{https://www.w3.org/ns/ldt#}base": baseUri },
                 "templateParams": { "event": event, "marker": marker, "map": map, "uri": uri }
             });
         },
