@@ -532,26 +532,17 @@ WHERE
         <xsl:param name="container" as="element()"/>
         <!-- replace dots with dashes to avoid Saxon-JS treating them as field separators: https://saxonica.plan.io/issues/5031 -->
         <xsl:param name="content-uri" select="xs:anyURI(translate(@rdf:about, '.', '-'))" as="xs:anyURI"/>
-        <xsl:param name="state" as="item()?"/>
         <!-- set ?this variable value unless getting the query string from state -->
-        <xsl:variable name="select-string" select="if ($state?content-uri = $content-uri) then string(map:get($state, 'query-string')) else replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
+        <xsl:variable name="select-string" select="replace(sp:text, '\?this', concat('&lt;', $uri, '&gt;'))" as="xs:string"/>
         <xsl:variable name="select-json" as="item()">
-            <xsl:choose>
-                <!-- override $select-json with the query taken from $state -->
-                <xsl:when test="$state?content-uri = $content-uri">
-                    <xsl:sequence select="map:get($state, 'query')"/>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
-                    <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:variable name="select-builder" select="ixsl:call(ixsl:get(ixsl:get(ixsl:window(), 'SPARQLBuilder'), 'SelectBuilder'), 'fromString', [ $select-string ])"/>
+            <xsl:sequence select="ixsl:call($select-builder, 'build', [])"/>
         </xsl:variable>
         <xsl:variable name="select-json-string" select="ixsl:call(ixsl:get(ixsl:window(), 'JSON'), 'stringify', [ $select-json ])" as="xs:string"/>
         <xsl:variable name="select-xml" select="json-to-xml($select-json-string)" as="document-node()"/>
         <xsl:variable name="focus-var-name" select="$select-xml/json:map/json:array[@key = 'variables']/json:string[1]/substring-after(., '?')" as="xs:string"/>
         <!-- service can be explicitly specified on content using apl:service -->
-        <xsl:variable name="service-uri" select="if ($state?content-uri = $content-uri) then xs:anyURI(map:get($state, 'service-uri')) else xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
+        <xsl:variable name="service-uri" select="xs:anyURI(apl:service/@rdf:resource)" as="xs:anyURI?"/>
         <xsl:variable name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
         <xsl:variable name="endpoint" select="($service/sd:endpoint/@rdf:resource/xs:anyURI(.), ac:endpoint())[1]" as="xs:anyURI"/>
         
@@ -853,7 +844,7 @@ WHERE
     <xsl:template name="apl:LoadContents">
         <xsl:param name="uri" as="xs:anyURI"/>
         <xsl:param name="content-ids" as="xs:string*"/> <!-- workaround for Saxon-JS bug: https://saxonica.plan.io/issues/5036 -->
-        <xsl:param name="state" as="item()?"/>
+        <!--<xsl:param name="state" as="item()?"/>-->
 
 <!--        <xsl:for-each select="key('elements-by-class', 'resource-content', ixsl:page())">-->
         <xsl:if test="exists($content-ids)">
@@ -880,7 +871,7 @@ WHERE
                             <xsl:with-param name="uri" select="$uri"/>
                             <xsl:with-param name="content-uri" select="$content-uri"/>
                             <xsl:with-param name="container" select="$container"/>
-                            <xsl:with-param name="state" select="$state"/>
+                            <!--<xsl:with-param name="state" select="$state"/>-->
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1448,7 +1439,7 @@ WHERE
         <xsl:param name="content-uri" as="xs:anyURI"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="container-id" select="ixsl:get($container, 'id')" as="xs:string"/>
-        <xsl:param name="state" as="item()?"/>
+        <!--<xsl:param name="state" as="item()?"/>-->
 
         <xsl:message>
             onContentLoad
@@ -1462,9 +1453,9 @@ WHERE
                 <!-- replace dots which have a special meaning in Saxon-JS -->
                 <xsl:variable name="escaped-content-uri" select="xs:anyURI(translate($content-uri, '.', '-'))" as="xs:anyURI"/>
                 <!-- create new cache entry using content URI as key -->
-                <ixsl:set-property name="{$escaped-content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub')"/>
+                <ixsl:set-property name="{$escaped-content-uri}" select="apl:new-object()" object="ixsl:get(ixsl:window(), 'LinkedDataHub.contents')"/>
                 <!-- store this content element -->
-                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub'), $escaped-content-uri)"/>
+                <ixsl:set-property name="content" select="$content" object="ixsl:get(ixsl:get(ixsl:window(), 'LinkedDataHub.contents'), $escaped-content-uri)"/>
 
                 <xsl:for-each select="$container//div[@class = 'bar']">
                     <!-- update progress bar -->
@@ -1569,7 +1560,7 @@ WHERE
         <xsl:param name="uri" select="apl:absolute-path($href)" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
-        <xsl:param name="state" as="item()?"/>
+        <!--<xsl:param name="state" as="item()?"/>-->
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
@@ -1675,7 +1666,7 @@ WHERE
             <xsl:call-template name="apl:LoadContents">
                 <xsl:with-param name="uri" select="$uri"/>
                 <xsl:with-param name="content-ids" select="$content-ids"/>
-                <xsl:with-param name="state" select="$state"/>
+                <!--<xsl:with-param name="state" select="$state"/>-->
             </xsl:call-template>
         </xsl:if>
         
