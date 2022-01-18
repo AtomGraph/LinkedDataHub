@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
+@Deprecated
 public class Skolemize extends GraphStoreImpl
 {
 
