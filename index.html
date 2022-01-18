@@ -16,7 +16,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- schema.org metadata -->
     <script type="application/ld+json">
-        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "Knowledge Graph management system", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
+        { "@context": "https://schema.org", "@type": "WebApplication", "name": "LinkedDataHub", "description": "The Knowledge Graph notebook", "url": "https://atomgraph.github.io/LinkedDataHub/", "operatingSystem": "Docker", "applicationCategory": [ "Data management", "Browser", "Analytics" ], "screenshot": "LDHChartMode.png", "downloadUrl": "https://github.com/AtomGraph/LinkedDataHub", "license": "https://www.apache.org/licenses/LICENSE-2.0", "keywords": [ "RDF", "SPARQL", "Linked Data", "Linked Data Templates", "Linked Open Data", "Knowledge Graph", "declarative", "triplestore", "Semantic Web", "XSLT", "LDT", "ontology", "OWL", "hypermedia", "WebID", "data driven" ] , "publisher": { "@type": "Organization", "name": "AtomGraph", "url": "https://atomgraph.com" } }
     </script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -62,7 +62,7 @@
 
         .footer { margin-top: 4em; margin-bottom: 3em; }
     </style>
-    <title>LinkedDataHub - The Knowledge Graph management system</title>
+    <title>LinkedDataHub - The Knowledge Graph notebook</title>
 </head>
 
 <body>
@@ -88,7 +88,7 @@
 
     <div class="jumbotron jumbotron-fluid">
         <div class="container text-center">
-            <h1 class="display-4">The Knowledge Graph<br/> management system</h1>
+            <h1 class="display-4">The Knowledge Graph<br/> notebook</h1>
             <p class="lead">LinkedDataHub is open source software you can use to manage data,
                 <br/> create visualizations and build apps on RDF Knowledge Graphs</p>
              <a href="linkeddatahub/docs/get-started/" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Get started</a>
@@ -98,28 +98,17 @@
 
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm-4">
+            <div class="col-sm-4 offset-sm-2">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">For developers</h5>
-                        <p class="card-text lead">Build applications without writing code</p>
+                        <h5 class="card-title">For researchers and data scientists</h5>
+                        <p class="card-text lead">RDF-native notebook environment</p>
                         <ul>
-                            <li>Data-driven UI and API provided out ouf the box</li>
-                            <li>Reuse, configure, customize and extend declarative components</li>
-                            <li>Exploit the flexibility of RDF data and SPARQL query</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">For data engineers</h5>
-                        <p class="card-text lead">Get answers to your questions</p>
-                        <ul>
+                            <li>Copy Linked Data resources into your personal dataspace</li>
+                            <li>Create data-driven content from local and remote datasources</li>
+                            <li>Create customized collections backed by SPARQL queries</li>
+                            <li>Navigate SPARQL results intuitively using the parallax navigation</li>
                             <li>Import tabular data and turn it into Linked Data</li>
-                            <li>Analyze local and remote data using SPARQL query</li>
-                            <li>Visualize query results</li>
                         </ul>
                     </div>
                 </div>
@@ -127,12 +116,14 @@
             <div class="col-sm-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">For business managers</h5>
-                        <p class="card-text lead">Create value from your company's data</p>
+                        <h5 class="card-title">For developers and data publishers</h5>
+                        <p class="card-text lead">Application development without writing code</p>
                         <ul>
-                            <li>Manage existing Knowledge Graph or build one from scratch</li>
-                            <li>Get an overview using faceted search and visualizations</li>
-                            <li>Launch applications faster than ever</li>
+                            <li>Customize the layout with few lines of declarative stylesheets</li>
+                            <li>Configure data editing forms using SPARQL-based templates</li>
+                            <li>Create or import ontologies to model your domain</li>
+                            <li>Use the standard SPARQL 1.1 APIs to query and manage data</li>
+                            <li>Control access using built-in authentication and authorization</li>
                         </ul>
                     </div>
                 </div>
@@ -191,9 +182,11 @@
                     <h5 class="card-header">User interface</h5>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Graph editing</li>
-                            <li class="list-group-item">Visualizations</li>
-                            <li class="list-group-item">Faceted search</li>
+                            <li class="list-group-item">Form-based RDF editing</li>
+                            <li class="list-group-item">Multiple layout modes</li>
+                            <li class="list-group-item">SPARQL-based charts</li>
+                            <li class="list-group-item">Parallax navigation</li>
+                            <li class="list-group-item">Faceted filters for SPARQL results</li>
                         </ul>
                     </div>
                 </div>
@@ -205,7 +198,7 @@
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">Access control</li>
                             <li class="list-group-item">Quality control</li>
-                            <li class="list-group-item">Data imports</li>
+                            <li class="list-group-item">Imports of CSV and RDF data</li>
                         </ul>
                     </div>
                 </div>
@@ -244,14 +237,14 @@
           <thead>
             <tr>
               <th scope="col" style="width: 25%"></th>
-              <th scope="col" style="width: 25%">Content Management System</th>
+              <th scope="col" style="width: 25%">Jupyter notebook</th>
               <th scope="col" style="width: 25%">Web framework</th>
               <th scope="col" style="width: 25%">LinkedDataHub</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th scope="row">Change domain model</th>
+              <th scope="row">Store or publish Linked Data</th>
               <td class="table-warning">Write code</td>
               <td class="table-warning">Write code</td>
               <td class="table-success">Use UI or CLI</td>
