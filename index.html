@@ -105,7 +105,7 @@
                         <p class="card-text lead">RDF-native notebook environment</p>
                         <ul>
                             <li>Copy Linked Data resources into your personal dataspace</li>
-                            <li>Create data-driven content from local and remote datasources</li>
+                            <li>Create data-driven content interactively</li>
                             <li>Create customized collections backed by SPARQL queries</li>
                             <li>Navigate SPARQL results intuitively using the parallax navigation</li>
                             <li>Import tabular data and turn it into Linked Data</li>
@@ -117,7 +117,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">For developers and data publishers</h5>
-                        <p class="card-text lead">Application development without writing code</p>
+                        <p class="card-text lead">Low code application development</p>
                         <ul>
                             <li>Customize the layout with few lines of declarative stylesheets</li>
                             <li>Configure data editing forms using SPARQL-based templates</li>
@@ -183,8 +183,9 @@
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">Form-based RDF editing</li>
-                            <li class="list-group-item">Multiple layout modes</li>
-                            <li class="list-group-item">SPARQL-based charts</li>
+                            <li class="list-group-item">Text search and resource lookup</li>
+                            <li class="list-group-item">HTML and SPARQL editors</li>
+                            <li class="list-group-item">SPARQL-based interactive charts</li>
                             <li class="list-group-item">Parallax navigation</li>
                             <li class="list-group-item">Faceted filters for SPARQL results</li>
                         </ul>
@@ -196,9 +197,12 @@
                     <h5 class="card-header">Data management</h5>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Access control</li>
-                            <li class="list-group-item">Quality control</li>
+                            <li class="list-group-item">Integrated Linked Data browser</li>
+                            <li class="list-group-item">RDF resource copy into the local triplestore</li>
+                            <li class="list-group-item">Decentralized access between instances</li>
+                            <li class="list-group-item">SPIN and SHACL data quality constraints</li>
                             <li class="list-group-item">Imports of CSV and RDF data</li>
+                            <li class="list-group-item">File uploads</li>
                         </ul>
                     </div>
                 </div>
@@ -208,8 +212,11 @@
                     <h5 class="card-header">Development</h5>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Low code</li>
-                            <li class="list-group-item">Full extensibility</li>
+                            <li class="list-group-item">WebID and OpenID Connect authentication</li>
+                            <li class="list-group-item">Graph-level access control and requests</li>
+                            <li class="list-group-item">Rich library of of extensible UI components</li>
+                            <li class="list-group-item">Ontology-driven domain model</li>
+                            <li class="list-group-item">SPARQL-based templates for editing forms</li>
                             <li class="list-group-item">Command line interface</li>
                         </ul>
                     </div>
@@ -221,8 +228,11 @@
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">SPARQL endpoint</li>
-                            <li class="list-group-item">Linked Data API</li>
+                            <li class="list-group-item">Read-write Linked Data API</li>
+                            <li class="list-group-item">Linked Data proxy</li>
+                            <li class="list-group-item">SPARQL result cache</li>
                             <li class="list-group-item">Docker-based deployment</li>
+                            <li class="list-group-item">AWS-based deployment</li>
                         </ul>
                     </div>
                 </div>
@@ -238,40 +248,46 @@
             <tr>
               <th scope="col" style="width: 25%"></th>
               <th scope="col" style="width: 25%">Jupyter notebook</th>
-              <th scope="col" style="width: 25%">Web framework</th>
+              <th scope="col" style="width: 25%">Wikibase</th>
               <th scope="col" style="width: 25%">LinkedDataHub</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th scope="row">Store or publish Linked Data</th>
-              <td class="table-warning">Write code</td>
-              <td class="table-warning">Write code</td>
-              <td class="table-success">Use UI or CLI</td>
-            </tr>
-            <tr>
-              <th scope="row">Change UI layout</th>
-              <td class="table-success">&#10004;</td>
-              <td class="table-success">&#10004;</td>
-              <td class="table-success">&#10004;</td>
-            </tr>
-            <tr>
-              <th scope="row">Change API logic</th>
-              <td class="table-warning">Write code</td>
-              <td class="table-warning">Write code</td>
-              <td class="table-success">Single generic API</td>
-            </tr>
-            <tr>
-              <th scope="row">Edit documents</th>
-              <td class="table-success">&#10004;</td>
-              <td class="table-warning">Write code</td>
-              <td class="table-success">&#10004;</td>
-            </tr>
-            <tr>
-              <th scope="row">Edit metadata</th>
+              <th scope="row">Store and publish Linked Data</th>
               <td class="table-danger">&#10008;</td>
-              <td class="table-warning">Write code</td>
+              <td class="table-warning">With extensions</td>
               <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Edit RDF data</th>
+              <td class="table-danger">&#10008;</td>
+              <td class="table-danger">&#10008;</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Query with SPARQL</th>
+              <td class="table-warning">With extensions</td>
+              <td class="table-warning">With extensions</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Create and import ontologies</th>
+              <td class="table-danger">&#10008;</td>
+              <td class="table-danger">&#10008;</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Create data-driven content</th>
+              <td class="table-success">&#10004;</td>
+              <td class="table-warning">With extensions</td>
+              <td class="table-success">&#10004;</td>
+            </tr>
+            <tr>
+              <th scope="row">Customize UI layout</th>
+              <td class="table-warning">With product-specific code</td>
+              <td class="table-warning">With product-specific code</td>
+              <td class="table-success">With W3C standard stylesheets</td>
             </tr>
           </tbody>
         </table>
