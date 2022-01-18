@@ -214,7 +214,7 @@ WHERE
     <xsl:function name="apl:absolute-path" as="xs:anyURI">
         <xsl:param name="href" as="xs:anyURI"/>
         
-        <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else $href)"/>
+        <xsl:sequence select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else if (contains($href, '#')) then substring-before($href, '#') else $href)"/>
     </xsl:function>
 
     <xsl:function name="ac:uri" as="xs:anyURI">
@@ -1566,7 +1566,7 @@ WHERE
     <!-- cannot be a named template because overriding templates need to be able to call xsl:next-match (cannot use xsl:origin with Saxon-JS because of XSLT 3.0 packages) -->
     <xsl:template match="/" mode="apl:LoadedHTMLDocument">
         <xsl:param name="href" as="xs:anyURI?"/>
-        <xsl:param name="uri" select="xs:anyURI(if (contains($href, '?')) then substring-before($href, '?') else $href)" as="xs:anyURI?"/>
+        <xsl:param name="uri" select="apl:absolute-path($href)" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
         <xsl:param name="state" as="item()?"/>
