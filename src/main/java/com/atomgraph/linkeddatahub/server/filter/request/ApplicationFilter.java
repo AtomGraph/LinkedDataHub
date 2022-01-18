@@ -80,7 +80,7 @@ public class ApplicationFilter implements ContainerRequestFilter
         else request.setProperty(AC.mode.getURI(), Collections.emptyList());
 
         // TO-DO: move Dataset logic to a separate ContainerRequestFilter?
-        Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getRequestUri());
+        Resource datasetResource = getSystem().matchDataset(LAPP.Dataset, request.getUriInfo().getAbsolutePath());
         if (datasetResource != null)
         {
             // instead of InfModel, do faster explicit checks for subclasses and add rdf:type

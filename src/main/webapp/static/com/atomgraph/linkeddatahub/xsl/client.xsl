@@ -181,11 +181,11 @@ WHERE
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
-        <xsl:if test="id('content-body', ixsl:page()) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+<!--        <xsl:if test="id('content-body', ixsl:page()) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:result-document href="#content-body" method="ixsl:append-content">
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
-        </xsl:if>
+        </xsl:if>-->
         <!-- initialize wymeditor textareas -->
         <xsl:apply-templates select="key('elements-by-class', 'wymeditor', ixsl:page())" mode="apl:PostConstruct"/>
         <!-- append typeahead list after the search/URI input -->
