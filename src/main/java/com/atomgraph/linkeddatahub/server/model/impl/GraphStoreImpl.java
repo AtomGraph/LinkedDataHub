@@ -183,20 +183,15 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
     {
         if (graphUri == null) throw new InternalServerErrorException("Named graph not specified");
 
-//        getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
-        
         model.createResource(graphUri.toString()).
             removeAll(DCTerms.modified).
             addLiteral(DCTerms.modified, ResourceFactory.createTypedLiteral(GregorianCalendar.getInstance()));
         
+        skolemize(model, graphUri);
+        
         return super.put(model, defaultGraph, graphUri);
     }
-    
-//    public Skolemizer getSkolemizer(UriBuilder baseUriBuilder, UriBuilder absolutePathBuilder)
-//    {
-//        return new Skolemizer(getOntology(), baseUriBuilder, absolutePathBuilder);
-//    }
-    
+
     @PATCH
     public Response patch(UpdateRequest updateRequest)
     {
@@ -302,13 +297,13 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
             Model model = parseModel(multiPart);
             MessageBodyReader<Model> reader = getProviders().getMessageBodyReader(Model.class, null, null, com.atomgraph.core.MediaType.APPLICATION_NTRIPLES_TYPE);
             if (reader instanceof ValidatingModelProvider) model = ((ValidatingModelProvider)reader).process(model);
-            
-//            getSkolemizer(getUriInfo().getBaseUriBuilder(), UriBuilder.fromUri(graphUri)).build(model);
             if (log.isDebugEnabled()) log.debug("POSTed Model size: {}", model.size());
 
             int fileCount = writeFiles(model, getFileNameBodyPartMap(multiPart));
             if (log.isDebugEnabled()) log.debug("# of files uploaded: {} ", fileCount);
             
+            skolemize(model, graphUri);
+        
             return put(model, defaultGraph, graphUri);
         }
         catch (URISyntaxException ex)
