@@ -1498,12 +1498,11 @@ WHERE
         <xsl:param name="fallback" select="false()" as="xs:boolean"/>
         <xsl:param name="service-uri" select="if (id('search-service', ixsl:page())) then xs:anyURI(ixsl:get(id('search-service', ixsl:page()), 'value')) else ()" as="xs:anyURI?"/>
         <xsl:param name="service" select="key('resources', $service-uri, ixsl:get(ixsl:window(), 'LinkedDataHub.apps'))" as="element()?"/>
-        <!--<xsl:param name="state" as="item()?"/>-->
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         
         <xsl:message>
             onDocumentLoad
-            $href: <xsl:value-of select="$href"/>
+            $href: <xsl:value-of select="$href"/> $fragment: <xsl:value-of select="$fragment"/>
             $container/@id: <xsl:value-of select="$container/@id"/>
             $push-state: <xsl:value-of select="$push-state"/>
             ?status: <xsl:value-of select="?status"/>
@@ -1518,11 +1517,9 @@ WHERE
 
                 <xsl:apply-templates select="?body" mode="apl:LoadedHTMLDocument">
                     <xsl:with-param name="href" select="$href"/>
-                    <!--<xsl:with-param name="uri" select="$href"/>-->
                     <xsl:with-param name="fragment" select="$fragment"/>
                     <xsl:with-param name="endpoint" select="$endpoint"/>
                     <xsl:with-param name="container" select="$container"/>
-                    <!--<xsl:with-param name="state" select="$state"/>-->
                     <xsl:with-param name="push-state" select="$push-state"/>
                 </xsl:apply-templates>
             </xsl:when>
@@ -1560,7 +1557,6 @@ WHERE
         <xsl:param name="uri" select="apl:absolute-path($href)" as="xs:anyURI?"/>
         <xsl:param name="fragment" as="xs:string?"/>
         <xsl:param name="container" as="element()"/>
-        <!--<xsl:param name="state" as="item()?"/>-->
         <xsl:param name="push-state" select="true()" as="xs:boolean"/>
         <xsl:param name="endpoint" as="xs:anyURI?"/>
         <xsl:param name="replace-content" select="true()" as="xs:boolean"/>
@@ -1642,6 +1638,10 @@ WHERE
             <xsl:choose>
                 <!-- scroll fragment-identified element into view if fragment is provided-->
                 <xsl:when test="$fragment">
+                    <xsl:message>
+                        exists(id($fragment, ixsl:page())): <xsl:value-of select="exists(id($fragment, ixsl:page()))"/>
+                    </xsl:message>
+                    
                     <xsl:for-each select="id($fragment, ixsl:page())">
                         <xsl:sequence select="ixsl:call(., 'scrollIntoView', [])[current-date() lt xs:date('2000-01-01')]"/>
                     </xsl:for-each >
