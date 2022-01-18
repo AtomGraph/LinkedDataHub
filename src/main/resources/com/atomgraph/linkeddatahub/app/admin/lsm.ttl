@@ -84,6 +84,16 @@ WHERE {}""" ;
     rdfs:label "CONSTRUCT" ;
     rdfs:isDefinedBy : .
 
+:Ask a rdfs:Class ;
+    rdfs:subClassOf :Query, sp:Select ;
+    rdfs:label "ASK" ;
+    rdfs:isDefinedBy : .
+
+:Select a rdfs:Class ;
+    rdfs:subClassOf :Query, sp:Select ;
+    rdfs:label "SELECT" ;
+    rdfs:isDefinedBy : .
+
 :Describe a rdfs:Class ;
     rdfs:subClassOf :Query, sp:Describe ;
     rdfs:label "DESCRIBE" ;

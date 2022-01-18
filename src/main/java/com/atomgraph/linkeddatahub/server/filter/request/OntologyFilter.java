@@ -76,6 +76,7 @@ public class OntologyFilter implements ContainerRequestFilter
         }
 
         @Override
+        // TO-DO: is this class required? Doesn't DataManager do this by default?
         public Model getModel(String uri)
         {
             FileManager fileManager = getOntModelSpec().getDocumentManager().getFileManager();
