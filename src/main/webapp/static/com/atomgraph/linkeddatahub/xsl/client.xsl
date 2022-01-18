@@ -170,8 +170,8 @@ WHERE
             <xsl:call-template name="onOntologyLoad"/>
         </ixsl:schedule-action>-->
         <xsl:apply-templates select="ixsl:page()" mode="apl:LoadedHTMLDocument">
-            <xsl:with-param name="href" select="xs:anyURI(ixsl:get(ixsl:window(), 'location.href'))"/>
-            <xsl:with-param name="fragment" select="substring-after(ixsl:get(ixsl:window(), 'location.hash'), '#')"/>
+            <xsl:with-param name="href" select="apl:href()"/>
+            <xsl:with-param name="fragment" select="encode-for-uri(apl:href())"/>
             <xsl:with-param name="endpoint" select="$ac:endpoint"/>
             <xsl:with-param name="container" select="id('content-body', ixsl:page())"/>
             <xsl:with-param name="replace-content" select="false()"/>
@@ -181,7 +181,7 @@ WHERE
             <ixsl:set-attribute name="type" select="'button'"/> <!-- instead of "submit" -->
         </xsl:for-each>
         <!-- only show first time message for authenticated agents -->
-        <xsl:if test="id('main-content', ixsl:page()) and not(ixsl:page()//div[contains-token(@class, 'navbar')]//a[contains-token(@class, 'btn-primary')][text() = 'Sign up']) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
+        <xsl:if test="id('content-body', ixsl:page()) and not(contains(ixsl:get(ixsl:page(), 'cookie'), 'LinkedDataHub.first-time-message'))">
             <xsl:result-document href="#content-body" method="ixsl:append-content">
                 <xsl:call-template name="first-time-message"/>
             </xsl:result-document>
@@ -1726,7 +1726,7 @@ WHERE
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
                                 <xsl:with-param name="href" select="$href"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($href)"/>
                                 <!--<xsl:with-param name="state" select="$state"/>-->
                                 <!-- we don't want to push the same state we just popped back to -->
                                 <xsl:with-param name="push-state" select="false()"/>
@@ -1763,7 +1763,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
                     <xsl:with-param name="href" select="$href"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($href)"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -1793,7 +1793,7 @@ WHERE
                 <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                     <xsl:call-template name="onDocumentLoad">
                         <xsl:with-param name="href" select="ac:document-uri($uri)"/>
-                        <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
+                        <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                     </xsl:call-template>
                 </ixsl:schedule-action>
             </xsl:variable>
@@ -1818,7 +1818,7 @@ WHERE
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="$href"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($href)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1845,7 +1845,7 @@ WHERE
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="$href"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($href)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -1941,7 +1941,7 @@ WHERE
                         <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                             <xsl:call-template name="onDocumentLoad">
                                 <xsl:with-param name="href" select="ac:document-uri($uri)"/>
-                                <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
+                                <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                             </xsl:call-template>
                         </ixsl:schedule-action>
                     </xsl:variable>
@@ -1998,7 +1998,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $request-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
                     <xsl:with-param name="href" select="ac:document-uri($uri)"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>
@@ -2290,7 +2290,7 @@ WHERE
             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $href, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                 <xsl:call-template name="onDocumentLoad">
                     <xsl:with-param name="href" select="$href"/>
-                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($href))"/>
+                    <xsl:with-param name="fragment" select="encode-for-uri($href)"/>
                 </xsl:call-template>
             </ixsl:schedule-action>
         </xsl:variable>

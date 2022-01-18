@@ -719,7 +719,7 @@ exclude-result-prefixes="#all"
                     <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                         <xsl:call-template name="onDocumentLoad">
                             <xsl:with-param name="href" select="apl:absolute-path($uri)"/>
-                            <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
+                            <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                         </xsl:call-template>
                     </ixsl:schedule-action>
                 </xsl:variable>
@@ -751,7 +751,7 @@ exclude-result-prefixes="#all"
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
                                     <xsl:with-param name="href" select="$uri"/>
-                                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($uri))"/>
+                                    <xsl:with-param name="fragment" select="encode-for-uri($uri)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
@@ -782,7 +782,7 @@ exclude-result-prefixes="#all"
                             <ixsl:schedule-action http-request="map{ 'method': 'GET', 'href': $created-uri, 'headers': map{ 'Accept': 'application/xhtml+xml' } }">
                                 <xsl:call-template name="onDocumentLoad">
                                     <xsl:with-param name="href" select="apl:absolute-path($created-uri)"/>
-                                    <xsl:with-param name="fragment" select="encode-for-uri(apl:absolute-path($created-uri))"/>
+                                    <xsl:with-param name="fragment" select="encode-for-uri($created-uri)"/>
                                 </xsl:call-template>
                             </ixsl:schedule-action>
                         </xsl:variable>
