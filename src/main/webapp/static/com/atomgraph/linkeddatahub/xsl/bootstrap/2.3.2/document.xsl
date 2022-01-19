@@ -524,9 +524,11 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:RowForm" priority="1">
         <xsl:param name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
+        <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
 
         <xsl:next-match>
             <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="classes" select="$classes"/>
         </xsl:next-match>
     </xsl:template>
     
