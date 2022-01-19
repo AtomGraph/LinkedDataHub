@@ -38,34 +38,25 @@ exclude-result-prefixes="#all">
     <xsl:include href="acl/layout.xsl"/>
     <xsl:include href="sitemap/layout.xsl"/>
 
-    <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
-        <!--<xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>-->
-        <xsl:param name="constructor" as="document-node()">
-            <xsl:choose>
-                <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
-                <xsl:when test="not($ac:forClass = ('&adm;Container', '&adm;Item'))">
-                    <xsl:document>
-                        <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&adm;Item')), $ldt:base)">
-                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
-                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)/@rdf:nodeID" tunnel="yes"/>
-                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
-                            </xsl:apply-templates>
-                        </xsl:for-each>
-                    </xsl:document>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:copy-of select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:param>
-        
-        <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-            <xsl:sort select="ac:label(.)"/>
-        </xsl:apply-templates>
-<!--        <xsl:next-match>
-            <xsl:with-param name="classes" select="$classes"/>
-            <xsl:with-param name="constructor" select="$constructor"/>
-        </xsl:next-match>-->
+    <xsl:template match="rdf:RDF" mode="apl:Constructor" as="document-node()">
+        <xsl:param name="forClass" as="xs:anyURI"/>
+
+        <xsl:choose>
+            <!-- if $forClass is not a document class, then pair the instance with a document instance -->
+            <xsl:when test="not($forClass = ('&adm;Container', '&adm;Item'))">
+                <xsl:document>
+                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
+                        <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&adm;Item')/@rdf:nodeID" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:document>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ac:construct($ldt:ontology, $forClass, $ldt:base)"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">

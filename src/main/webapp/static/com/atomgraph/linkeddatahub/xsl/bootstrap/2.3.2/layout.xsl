@@ -620,23 +620,9 @@ exclude-result-prefixes="#all">
                 <xsl:choose>
                     <xsl:when test="$ac:forClass and $ac:method = 'GET'">
                         <xsl:variable name="constructor" as="document-node()">
-                            <xsl:choose>
-                                <!-- if $ac:forClass is not a document class or content, then pair the instance with a document instance -->
-                                <xsl:when test="not($ac:forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
-                                    <xsl:document>
-                                        <xsl:for-each select="ac:construct($ldt:ontology, ($ac:forClass, xs:anyURI('&def;Item')), $ldt:base)">
-                                            <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
-                                                <!-- avoid selecting object blank nodes which only have rdf:type -->
-                                                <xsl:with-param name="topic-id" select="key('resources-by-type', $ac:forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
-                                                <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item')/@rdf:nodeID" tunnel="yes"/>
-                                            </xsl:apply-templates>
-                                        </xsl:for-each>
-                                    </xsl:document>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:copy-of select="ac:construct($ldt:ontology, $ac:forClass, $ldt:base)"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
+                            <xsl:apply-templates select="." mode="apl:Constructor">
+                                <xsl:with-param name="forClass" select="$ac:forClass"/>
+                            </xsl:apply-templates>
                         </xsl:variable>
                         
                         <xsl:choose>

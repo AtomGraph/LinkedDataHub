@@ -424,6 +424,30 @@ extension-element-prefixes="ixsl"
         </xsl:if>
     </xsl:template>
 
+    <!-- CONSTRUCTOR -->
+    
+    <xsl:template match="rdf:RDF" mode="apl:Constructor" as="document-node()">
+        <xsl:param name="forClass" as="xs:anyURI"/>
+        
+        <xsl:choose>
+            <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
+            <xsl:when test="not($forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
+                <xsl:document>
+                    <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&def;Item')), $ldt:base)">
+                        <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
+                            <!-- avoid selecting object blank nodes which only have rdf:type -->
+                            <xsl:with-param name="topic-id" select="key('resources-by-type', $forClass)[* except rdf:type]/@rdf:nodeID" tunnel="yes"/>
+                            <xsl:with-param name="doc-id" select="key('resources-by-type', '&def;Item')/@rdf:nodeID" tunnel="yes"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:document>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:sequence select="ac:construct($ldt:ontology, $forClass, $ldt:base)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
     <!-- MODAL FORM -->
 
     <xsl:template match="rdf:RDF[$ac:forClass][$ac:method = 'GET']" mode="bs2:ModalForm" priority="1">
