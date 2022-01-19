@@ -59,7 +59,7 @@ exclude-result-prefixes="#all">
         </xsl:choose>
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
+    <xsl:template match="rdf:RDF[$ac:forClass or $ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
         <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
         <xsl:next-match>
             <xsl:with-param name="classes" select="$classes"/>
