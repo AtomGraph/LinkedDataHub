@@ -517,7 +517,7 @@ public class GraphStoreImpl extends com.atomgraph.core.model.impl.GraphStoreImpl
         }
     }
     
-    public Model skolemize(Model model, URI graphUri)
+    public static Model skolemize(Model model, URI graphUri)
     {
         Set<Resource> bnodes = new HashSet<>();
         

@@ -30,11 +30,13 @@ import com.atomgraph.linkeddatahub.model.Import;
 import com.atomgraph.linkeddatahub.model.RDFImport;
 import com.atomgraph.linkeddatahub.model.Service;
 import com.atomgraph.linkeddatahub.server.exception.ImportException;
+import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
 import com.atomgraph.linkeddatahub.vocabulary.PROV;
 import com.atomgraph.linkeddatahub.vocabulary.VoID;
 import com.atomgraph.server.vocabulary.HTTP;
 import com.atomgraph.spinrdf.vocabulary.SPIN;
 import com.univocity.parsers.common.TextParsingException;
+import java.net.URI;
 import java.util.Calendar;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -46,6 +48,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.Query;
@@ -87,7 +90,7 @@ public class Executor
         this.threadPool = threadPool;
     }
     
-    public void start(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (csvImport == null) throw new IllegalArgumentException("CSVImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", csvImport.toString());
@@ -105,11 +108,11 @@ public class Executor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(csvImport,
                 graphStoreClient, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(csvImport, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(csvImport, provImport, provGraph, service));
+            thenAcceptAsync(success(csvImport, provImport, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(csvImport, provImport, service));
     }
 
-    public void start(RDFImport rdfImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
+    public void start(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager, GraphStoreClient graphStoreClient)
     {
         if (rdfImport == null) throw new IllegalArgumentException("RDFImport cannot be null");
         if (log.isDebugEnabled()) log.debug("Submitting new import to thread pool: {}", rdfImport.toString());
@@ -133,11 +136,11 @@ public class Executor
         // skip validation because it will be done during final POST anyway
         CompletableFuture.supplyAsync(fileSupplier, getExecutorService()).thenApplyAsync(getStreamRDFOutputWriter(rdfImport,
                 graphStoreClient, baseURI, query), getExecutorService()).
-            thenAcceptAsync(success(rdfImport, provImport, provGraph, service, adminService, dataManager), getExecutorService()).
-            exceptionally(failure(rdfImport, provImport, provGraph, service));
+            thenAcceptAsync(success(rdfImport, provImport, service, adminService, dataManager), getExecutorService()).
+            exceptionally(failure(rdfImport, provImport, service));
     }
     
-    protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<CSVGraphStoreOutput> success(final CSVImport csvImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (CSVGraphStoreOutput output) ->
         {
@@ -148,7 +151,7 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-//            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+            appendProvGraph(provImport, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
             if (service.getProxy() != null) ban(dataManager, service.getProxy(), csvImport.getContainer().getURI());
@@ -156,7 +159,7 @@ public class Executor
         };
     }
     
-    protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Resource provGraph, final Service service, final Service adminService, final DataManager dataManager)
+    protected Consumer<RDFGraphStoreOutput> success(final RDFImport rdfImport, final Resource provImport, final Service service, final Service adminService, final DataManager dataManager)
     {
         return (RDFGraphStoreOutput output) ->
         {
@@ -167,7 +170,7 @@ public class Executor
                 addProperty(PROV.wasGeneratedBy, provImport); // connect Response to dataset
             provImport.addProperty(PROV.endedAtTime, provImport.getModel().createTypedLiteral(Calendar.getInstance()));
             
-//            appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+            appendProvGraph(provImport, service.getDatasetAccessor());
             
             // purge cache entries that include the target container URL
             if (service.getProxy() != null)
@@ -183,7 +186,7 @@ public class Executor
         };
     }
 
-    protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Resource provGraph, final Service service)
+    protected Function<Throwable, Void> failure(final Import importInst, final Resource provImport, final Service service)
     {
         return new Function<Throwable, Void>()
         {
@@ -203,7 +206,8 @@ public class Executor
                             addLiteral(DCTerms.description, tpe.getMessage()).
                             addProperty(PROV.wasGeneratedBy, provImport); // connect Response to exception
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+                        
+                        appendProvGraph(provImport, service.getDatasetAccessor());
                     }
                     
                     if (t.getCause() instanceof ImportException) // could not save RDF
@@ -218,7 +222,8 @@ public class Executor
                             response.addProperty(PROV.wasGeneratedBy, provImport); // connect Response to Import
                         }
                         provImport.addProperty(PROV.endedAtTime, importInst.getModel().createTypedLiteral(Calendar.getInstance()));
-                        appendProvGraph(provImport, provGraph, service.getDatasetAccessor());
+                        
+                        appendProvGraph(provImport, service.getDatasetAccessor());
                     }
                 }
                 
@@ -243,10 +248,13 @@ public class Executor
         };
     }
 
-    protected void appendProvGraph(Resource provImport, Resource provGraph, DatasetAccessor accessor)
+    protected void appendProvGraph(Resource provImport, DatasetAccessor accessor)
     {
-        if (log.isDebugEnabled()) log.debug("Appending import metadata to provenance graph: {}", provGraph);
-        accessor.add(provGraph.getURI(), provImport.getModel());
+        URI graphURI = UriBuilder.fromUri(provImport.getURI()).fragment(null).build(); // skip fragment from the Import URI to get its graph URI
+        if (log.isDebugEnabled()) log.debug("Appending import metadata to graph: {}", graphURI);
+        
+        GraphStoreImpl.skolemize(provImport.getModel(), graphURI); // make sure we don't store blank nodes
+        accessor.add(graphURI.toString(), provImport.getModel());
     }
 
     protected Function<Response, CSVGraphStoreOutput> getStreamRDFOutputWriter(CSVImport imp, GraphStoreClient graphStoreClient, String baseURI, Query query)

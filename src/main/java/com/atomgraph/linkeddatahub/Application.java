@@ -960,14 +960,14 @@ public class Application extends ResourceConfig
         return lengthMap;
     }
 
-    public void submitImport(CSVImport csvImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(CSVImport csvImport, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(csvImport, provGraph, service, adminService, baseURI, dataManager);
+        ImportListener.submit(csvImport, service, adminService, baseURI, dataManager);
     }
     
-    public void submitImport(RDFImport rdfImport, Resource provGraph, Service service, Service adminService, String baseURI, DataManager dataManager)
+    public void submitImport(RDFImport rdfImport, Service service, Service adminService, String baseURI, DataManager dataManager)
     {
-        ImportListener.submit(rdfImport, provGraph, service, adminService, baseURI, dataManager);
+        ImportListener.submit(rdfImport, service, adminService, baseURI, dataManager);
     }
     
     public static Client getClient(KeyStore keyStore, String keyStorePassword, KeyStore trustStore, Integer maxConnPerRoute, Integer maxTotalConn, ConnectionKeepAliveStrategy keepAliveStrategy) throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException

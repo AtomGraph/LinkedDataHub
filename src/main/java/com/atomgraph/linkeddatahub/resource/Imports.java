@@ -115,9 +115,9 @@ public class Imports extends GraphStoreImpl
                         Service adminService = getApplication().canAs(EndUserApplication.class) ? getApplication().as(EndUserApplication.class).getAdminApplication().getService() : null;
                         // start the import asynchroniously
                         if (topic.canAs(CSVImport.class))
-                            getSystem().submitImport(topic.as(CSVImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(CSVImport.class), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                         if (topic.canAs(RDFImport.class))
-                            getSystem().submitImport(topic.as(RDFImport.class), null, getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
+                            getSystem().submitImport(topic.as(RDFImport.class), getApplication().getService(), adminService, getUriInfo().getBaseUri().toString(), getDataManager());
                     }
                     else
                         if (log.isErrorEnabled()) log.error("Topic '{}' cannot be cast to Import", topic);
