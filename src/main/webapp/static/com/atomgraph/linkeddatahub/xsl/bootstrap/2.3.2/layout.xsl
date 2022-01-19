@@ -641,18 +641,12 @@ exclude-result-prefixes="#all">
                         
                         <xsl:choose>
                             <xsl:when test="$ac:mode = '&ac;ModalMode'">
-                                <xsl:variable name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
-
                                 <xsl:apply-templates select="$constructor" mode="bs2:ModalForm">
-                                    <xsl:with-param name="action" select="$action"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:variable name="action" select="ac:build-uri($a:graphStore, map{ 'forClass': string($ac:forClass), 'mode': '&ac;EditMode' })" as="xs:anyURI"/>
-                                
                                 <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
-                                    <xsl:with-param name="action" select="$action"/>
                                     <xsl:sort select="ac:label(.)"/>
                                 </xsl:apply-templates>
                             </xsl:otherwise>
