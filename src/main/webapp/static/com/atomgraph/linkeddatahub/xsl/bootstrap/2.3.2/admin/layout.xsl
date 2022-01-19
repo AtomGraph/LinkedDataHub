@@ -39,7 +39,7 @@ exclude-result-prefixes="#all">
     <xsl:include href="sitemap/layout.xsl"/>
 
     <xsl:template match="rdf:RDF[$ac:forClass]" mode="xhtml:Body" priority="1">
-        <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
+        <!--<xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>-->
         <xsl:param name="constructor" as="document-node()">
             <xsl:choose>
                 <!-- if $ac:forClass is not a document class, then pair the instance with a document instance -->
@@ -59,13 +59,16 @@ exclude-result-prefixes="#all">
             </xsl:choose>
         </xsl:param>
         
-        <xsl:next-match>
+        <xsl:apply-templates select="$constructor" mode="bs2:RowForm">
+            <xsl:sort select="ac:label(.)"/>
+        </xsl:apply-templates>
+<!--        <xsl:next-match>
             <xsl:with-param name="classes" select="$classes"/>
             <xsl:with-param name="constructor" select="$constructor"/>
-        </xsl:next-match>
+        </xsl:next-match>-->
     </xsl:template>
     
-    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="xhtml:Body" priority="1">
+    <xsl:template match="rdf:RDF[$ac:mode = '&ac;EditMode']" mode="bs2:RowForm" priority="1">
         <xsl:param name="classes" select="key('resources', ('&lsm;Construct', '&lsm;Class', '&lsm;Select', '&lsm;MissingPropertyValue', '&lsm;Property'), document(ac:document-uri('&lsm;')))" as="element()*"/>
         <xsl:next-match>
             <xsl:with-param name="classes" select="$classes"/>
