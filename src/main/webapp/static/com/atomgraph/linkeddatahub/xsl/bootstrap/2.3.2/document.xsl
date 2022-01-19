@@ -481,6 +481,32 @@ extension-element-prefixes="ixsl"
     </xsl:template>
     
     <!-- ROW FORM -->
+
+    <xsl:template match="rdf:RDF[$ac:forClass = ('&def;CSVImport', '&def;RDFImport')][$ac:method = 'GET']" mode="bs2:RowForm" priority="1">
+        <xsl:param name="method" select="'post'" as="xs:string"/>
+        <xsl:param name="action" select="ac:build-uri(resolve-uri('imports', $ldt:base), map{ 'forClass': string($ac:forClass), 'mode': ('&ac;EditMode', '&ac;ModalMode') })" as="xs:anyURI"/>
+        <xsl:param name="id" select="concat('form-', generate-id())" as="xs:string?"/>
+        <xsl:param name="class" select="'form-horizontal'" as="xs:string?"/>
+        <xsl:param name="accept-charset" select="'UTF-8'" as="xs:string?"/>
+        <xsl:param name="enctype" select="'multipart/form-data'" as="xs:string?"/>
+        <xsl:param name="button-class" select="'btn btn-primary wymupdate'" as="xs:string?"/>
+        <xsl:param name="create-resource" select="true()" as="xs:boolean"/>
+        <xsl:param name="classes" select="document(ac:document-uri($ldt:ontology))/rdf:RDF/*[@rdf:about][rdfs:isDefinedBy/@rdf:resource = $ldt:ontology][spin:constructor or (rdfs:subClassOf and apl:listSuperClasses(@rdf:about)/../../spin:constructor)]" as="element()*"/>
+        <xsl:param name="default-classes" select="(key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))])" as="element()*"/>
+
+        <xsl:next-match>
+            <xsl:with-param name="method" select="$method"/>
+            <xsl:with-param name="action" select="$action"/>
+            <xsl:with-param name="id" select="$id"/>
+            <xsl:with-param name="class" select="$class"/>
+            <xsl:with-param name="accept-charset" select="$accept-charset"/>
+            <xsl:with-param name="enctype" select="$enctype"/>
+            <xsl:with-param name="button-class" select="$button-class"/>
+            <xsl:with-param name="create-resource" select="$create-resource"/>
+            <xsl:with-param name="classes" select="$classes"/>
+            <xsl:with-param name="default-classes" select="$default-classes"/>
+        </xsl:next-match>
+    </xsl:template>
     
     <xsl:template match="rdf:RDF" mode="bs2:RowForm">
         <xsl:param name="method" select="'post'" as="xs:string"/>
