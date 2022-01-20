@@ -624,7 +624,7 @@ exclude-result-prefixes="#all">
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="." mode="apl:Constructor">
                                 <xsl:with-param name="forClass" select="$ac:forClass"/>
-                                <xsl:with-param name="createGraph" select="$ac:createGraph"/>
+                                <xsl:with-param name="createGraph" select="$apl:createGraph"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         
