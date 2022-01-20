@@ -438,6 +438,7 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:Create">
                 <xsl:with-param name="class" select="'btn-group pull-left'"/>
                 <xsl:with-param name="classes" select="$classes"/>
+                <xsl:with-param name="create-graph" select="true()"/>
             </xsl:apply-templates>
             
             <xsl:apply-templates select="." mode="bs2:AddData"/>
