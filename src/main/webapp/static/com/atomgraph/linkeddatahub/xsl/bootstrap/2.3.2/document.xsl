@@ -428,10 +428,11 @@ extension-element-prefixes="ixsl"
     
     <xsl:template match="rdf:RDF" mode="apl:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="createGraph" as="xs:boolean"/>
         
         <xsl:choose>
             <!-- if $forClass is not a document class or content, then pair the instance with a document instance -->
-            <xsl:when test="not($forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
+            <xsl:when test="$createGraph and not($forClass = ('&def;Container', '&def;Item', '&apl;Content'))">
                 <xsl:document>
                     <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&def;Item')), $ldt:base)">
                         <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
@@ -684,6 +685,7 @@ extension-element-prefixes="ixsl"
         <xsl:param name="default-classes" select="key('resources-by-type', '&rdfs;Class', document(ac:document-uri('&def;')))[not(@rdf:about = ('&def;Root', '&def;Container', '&def;Item'))]" as="element()*"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="show-document-classes" select="true()" as="xs:boolean"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
         <div>
             <xsl:if test="$class">
@@ -707,6 +709,7 @@ extension-element-prefixes="ixsl"
                         <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
                         <xsl:with-param name="classes" select="$classes"/>
                         <xsl:with-param name="visited-classes" select="($default-classes, $default-classes/apl:listSuperClasses(@rdf:about)/../..)"/>
+                        <xsl:with-param name="create-graph" select="$create-graph"/>
                     </xsl:call-template>
                 </xsl:variable>
 
@@ -722,6 +725,7 @@ extension-element-prefixes="ixsl"
                     <!-- current resource is a container -->
                     <xsl:if test="exists($document-classes) and key('resources', ac:uri())/rdf:type/@rdf:resource = ('&def;Root', '&def;Container')">
                         <xsl:apply-templates select="$document-classes" mode="bs2:ConstructorListItem">
+                            <xsl:with-param name="create-graph" select="$create-graph"/>
                             <xsl:sort select="ac:label(.)"/>
                         </xsl:apply-templates>
 
@@ -744,10 +748,12 @@ extension-element-prefixes="ixsl"
         <xsl:param name="ontology" as="element()"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
         <xsl:variable name="constructor-list" as="element()*">
             <!-- eliminate matches where a class is a subclass of itself (happens in inferenced ontology models) -->
             <xsl:apply-templates select="$classes[not(@rdf:about = $visited-classes/@rdf:about)][let $about := @rdf:about return not(@rdf:about = ($classes, $visited-classes)[not(@rdf:about = $about)]/rdfs:subClassOf/@rdf:resource)]" mode="bs2:ConstructorListItem">
+                <xsl:with-param name="create-graph" select="$create-graph"/>
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
 
@@ -763,6 +769,7 @@ extension-element-prefixes="ixsl"
                             <xsl:with-param name="ontology" select="key('resources', $import-uri)"/>
                             <xsl:with-param name="classes" select="$classes"/>
                             <xsl:with-param name="visited-classes" select="($visited-classes, $classes)"/>
+                            <xsl:with-param name="create-graph" select="$create-graph"/>
                         </xsl:call-template>
                     </xsl:if>
                 </xsl:for-each>

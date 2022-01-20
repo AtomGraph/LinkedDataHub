@@ -88,5 +88,6 @@ public class APL
 
     public static final ObjectProperty absolutePath = m_model.createObjectProperty(NS + "absolutePath");
     
+    public static final DatatypeProperty createGraph = m_model.createDatatypeProperty( NS + "createGraph" );
 
 }

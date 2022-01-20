@@ -145,6 +145,10 @@ public abstract class ModelXSLTWriterBase extends com.atomgraph.client.writer.Mo
                     getXsltExecutable().getProcessor().newDocumentBuilder().build(source));
             }
 
+            if (getUriInfo().getQueryParameters().containsKey(APL.createGraph.getLocalName()))
+                params.put(new QName("apl", APL.createGraph.getNameSpace(), APL.createGraph.getLocalName()),
+                    new XdmAtomicValue(Boolean.valueOf(getUriInfo().getQueryParameters().getFirst(APL.createGraph.getLocalName()))));
+
             // TO-DO: move to client-side?
             if (getUriInfo().getQueryParameters().containsKey(APL.access_to.getLocalName()))
                 params.put(new QName("apl", APL.access_to.getNameSpace(), APL.access_to.getLocalName()),

@@ -105,7 +105,9 @@ exclude-result-prefixes="#all">
     <xsl:param name="ac:googleMapsKey" select="'AIzaSyCQ4rt3EnNCmGTpBN0qoZM1Z_jXhUnrTpQ'" as="xs:string"/>
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$acl:Agent[doc-available($apl:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
+    <xsl:param name="apl:createGraph" select="false()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
+    
     <!-- the query has to support services that do not belong to any app -->
     <xsl:variable name="app-query" as="xs:string">
         DESCRIBE  ?resource
@@ -622,6 +624,7 @@ exclude-result-prefixes="#all">
                         <xsl:variable name="constructor" as="document-node()">
                             <xsl:apply-templates select="." mode="apl:Constructor">
                                 <xsl:with-param name="forClass" select="$ac:forClass"/>
+                                <xsl:with-param name="createGraph" select="$ac:createGraph"/>
                             </xsl:apply-templates>
                         </xsl:variable>
                         

@@ -40,10 +40,11 @@ exclude-result-prefixes="#all">
 
     <xsl:template match="rdf:RDF" mode="apl:Constructor" as="document-node()">
         <xsl:param name="forClass" as="xs:anyURI"/>
+        <xsl:param name="createGraph" as="xs:boolean"/>
 
         <xsl:choose>
             <!-- if $forClass is not a document class, then pair the instance with a document instance -->
-            <xsl:when test="not($forClass = ('&adm;Container', '&adm;Item'))">
+            <xsl:when test="$createGraph and not($forClass = ('&adm;Container', '&adm;Item'))">
                 <xsl:document>
                     <xsl:for-each select="ac:construct($ldt:ontology, ($forClass, xs:anyURI('&adm;Item')), $ldt:base)">
                         <xsl:apply-templates select="." mode="apl:SetPrimaryTopic">
@@ -82,12 +83,14 @@ exclude-result-prefixes="#all">
             <xsl:apply-templates select="." mode="bs2:Create">
                 <xsl:with-param name="class" select="'btn-group pull-left'"/>
                 <xsl:with-param name="classes" select="$classes"/>
+                <xsl:with-param name="create-graph" select="true()"/>
             </xsl:apply-templates>
         </div>
     </xsl:template>
     
     <xsl:template match="rdf:RDF[$acl:Agent]" mode="bs2:Create" priority="1">
         <xsl:param name="classes" as="element()*"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
         <div class="btn-group pull-left">
             <button type="button" title="{ac:label(key('resources', 'create-instance-title', document('../translations.rdf')))}">
@@ -105,6 +108,7 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="ontology" select="key('resources', $ldt:ontology, document(ac:document-uri($ldt:ontology)))"/>
                 <xsl:with-param name="classes" select="$classes"/>
                 <xsl:with-param name="visited-classes" select="()"/>
+                <xsl:with-param name="create-graph" select="$create-graph"/>
             </xsl:call-template>
         </div>
     </xsl:template>
@@ -114,9 +118,11 @@ exclude-result-prefixes="#all">
         <xsl:param name="ontology" as="element()"/>
         <xsl:param name="classes" as="element()*"/>
         <xsl:param name="visited-classes" as="element()*"/>
+        <xsl:param name="create-graph" select="false()" as="xs:boolean"/>
 
         <ul class="dropdown-menu">
             <xsl:apply-templates select="$classes" mode="bs2:ConstructorListItem">
+                <xsl:with-param name="create-graph" select="$create-graph"/>
                 <xsl:sort select="ac:label(.)"/>
             </xsl:apply-templates>
         </ul>
