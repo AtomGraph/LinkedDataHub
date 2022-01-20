@@ -736,6 +736,7 @@ extension-element-prefixes="ixsl"
                 </xsl:if>
                 
                 <xsl:apply-templates select="$default-classes" mode="bs2:ConstructorListItem">
+                    <xsl:with-param name="create-graph" select="$create-graph"/>
                     <xsl:sort select="ac:label(.)"/>
                 </xsl:apply-templates>
             </ul>
