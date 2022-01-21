@@ -81,14 +81,14 @@ public class Namespace extends SPARQLEndpointImpl
         if (query.isSelectType())
         {
             if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
-            return getResponseBuilder(new ResultSetMem(QueryExecution.create().dataset(getDataset()).query(query).build().execSelect()));
+            return getResponseBuilder(new ResultSetMem(QueryExecution.create(query, getDataset()).execSelect()));
         }
         if (query.isAskType())
         {
             Model model = ModelFactory.createDefaultModel();
             model.createResource().
                 addProperty(RDF.type, ResultSetGraphVocab.ResultSet).
-                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create().dataset(getDataset()).query(query).build().execAsk());
+                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create(query, getDataset()).execAsk());
                 
             if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
             return getResponseBuilder(ResultSetFactory.copyResults(ResultSetFactory.makeResults(model)));
@@ -97,13 +97,13 @@ public class Namespace extends SPARQLEndpointImpl
         if (query.isDescribeType())
         {
             if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-            return getResponseBuilder(QueryExecution.create().dataset(getDataset()).query(query).build().execDescribe());
+            return getResponseBuilder(QueryExecution.create(query, getDataset()).execDescribe());
         }
         
         if (query.isConstructType())
         {
             if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
-            return getResponseBuilder(QueryExecution.create().dataset(getDataset()).query(query).build().execConstruct());
+            return getResponseBuilder(QueryExecution.create(query, getDataset()).execConstruct());
         }
         
         if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);

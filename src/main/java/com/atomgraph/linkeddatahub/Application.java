@@ -156,7 +156,6 @@ import org.apache.jena.ontology.Ontology;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.RDFDataMgr;
@@ -838,7 +837,7 @@ public class Application extends ResourceConfig
         if (dataset == null) throw new IllegalArgumentException("Dataset cannot be null");
         if (query == null) throw new IllegalArgumentException("Query cannot be null");
         
-        try (QueryExecution qex = QueryExecutionFactory.create(query, dataset))
+        try (QueryExecution qex = QueryExecution.create(query, dataset))
         {
             if (query.isDescribeType()) return qex.execDescribe();
             if (query.isConstructType()) return qex.execConstruct();

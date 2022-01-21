@@ -50,7 +50,6 @@ import javax.ws.rs.core.SecurityContext;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.query.ParameterizedSparqlString;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -195,7 +194,7 @@ public class WebIDFilter extends AuthenticationFilter
         pss.setLiteral("exp", ResourceFactory.createTypedLiteral(publicKey.getPublicExponent()));
         pss.setLiteral("mod", ResourceFactory.createTypedLiteral(publicKey.getModulus().toString(16), XSDDatatype.XSDhexBinary));
 
-        try (QueryExecution qex = QueryExecutionFactory.create(pss.asQuery(), webIDModel))
+        try (QueryExecution qex = QueryExecution.create(pss.asQuery(), webIDModel))
         {
             ResultSet resultSet = qex.execSelect();
             if (resultSet.hasNext())

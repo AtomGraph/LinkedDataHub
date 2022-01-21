@@ -22,7 +22,6 @@ import java.util.Iterator;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.Syntax;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -61,7 +60,7 @@ public class RDFGraphStoreOutput
         if (getQuery() != null)
         {
             // use extended SPARQL syntax to allow CONSTRUCT GRAPH form
-            try (QueryExecution qex = QueryExecutionFactory.create(getQuery().toString(), Syntax.syntaxARQ, model))
+            try (QueryExecution qex = QueryExecution.create().query(getQuery().toString(), Syntax.syntaxARQ).model(model).build())
             {
                 Dataset dataset = qex.execConstructDataset();
 
