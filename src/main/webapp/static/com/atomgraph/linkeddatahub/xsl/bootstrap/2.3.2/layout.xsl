@@ -471,7 +471,7 @@ exclude-result-prefixes="#all">
 
                 <xsl:if test="not($apl:ajaxRendering)">
                     <!-- render breadcrumbs server-side -->
-                    <xsl:apply-templates select="key('resources, ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                    <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
                 </xsl:if>
             </div>
         </div>
