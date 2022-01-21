@@ -19,22 +19,30 @@ package com.atomgraph.linkeddatahub.resource;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Providers;
 import com.atomgraph.core.MediaTypes;
 import com.atomgraph.linkeddatahub.model.Service;
-import com.atomgraph.client.util.DataManager;
-import com.atomgraph.linkeddatahub.server.model.impl.GraphStoreImpl;
+import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
+import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
+import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
+import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
+import com.atomgraph.linkeddatahub.server.util.FileManagerDataset;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.servlet.ServletConfig;
-import javax.ws.rs.DefaultValue;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.UriInfo;
-import org.apache.jena.ontology.Ontology;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.sparql.resultset.ResultSetMem;
+import org.apache.jena.sparql.vocabulary.ResultSetGraphVocab;
+import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,41 +51,68 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Martynas Jusevičius {@literal <martynas@atomgraph.com>}
  */
-public class Namespace extends GraphStoreImpl
+public class Namespace extends SPARQLEndpointImpl
 {
 
     private static final Logger log = LoggerFactory.getLogger(Namespace.class);
 
-    private final URI uri;
+    private final Dataset dataset;
     
     @Inject
-    public Namespace(@Context Request request, @Context UriInfo uriInfo, MediaTypes mediaTypes,
-            Optional<Ontology> ontology, Optional<Service> service,
-            DataManager dataManager,
-            @Context Providers providers, com.atomgraph.linkeddatahub.Application system, @Context ServletConfig servletConfig)
+    public Namespace(@Context Request request, Optional<Service> service, MediaTypes mediaTypes, com.atomgraph.linkeddatahub.Application system)
     {
-        super(request, uriInfo, mediaTypes, ontology, service, providers, system);
-        this.uri = uriInfo.getAbsolutePath();
-        if (log.isDebugEnabled()) log.debug("Constructing {}", getClass());
+        super(request, service, mediaTypes);
+        dataset = new FileManagerDataset((FileManager)system.getDataManager());
     }
-    
-    @GET
-    @Override
-    public Response get(@QueryParam("default") @DefaultValue("false") Boolean defaultGraph, @QueryParam("graph") URI graphUri)
-    {
-        //Resource ontology = getOntResource().getPropertyResourceValue(FOAF.primaryTopic);
-        // To-DO: hard-coding "#" is not great
-        String ontologyURI = getURI().toString() + "#";
 
-        Model model = ModelFactory.createDefaultModel();
-        getSystem().getOntModelSpec().getDocumentManager().getFileManager().readModel(model, ontologyURI);
-        
-        return getResponse(model, getURI());
+    @Override
+    @GET
+    public Response get(@QueryParam(QUERY) Query query,
+            @QueryParam(DEFAULT_GRAPH_URI) List<URI> defaultGraphUris, @QueryParam(NAMED_GRAPH_URI) List<URI> namedGraphUris)
+    {
+        return getResponseBuilder(query, defaultGraphUris, namedGraphUris).build();
     }
     
-    public URI getURI()
+    @Override
+    public Response.ResponseBuilder getResponseBuilder(Query query, List<URI> defaultGraphUris, List<URI> namedGraphUris)
     {
-        return uri;
+        if (query == null) throw new BadRequestException("Query string not provided");
+
+        if (query.isSelectType())
+        {
+            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
+            return getResponseBuilder(new ResultSetMem(QueryExecution.create().dataset(getDataset()).query(query).build().execSelect()));
+        }
+        if (query.isAskType())
+        {
+            Model model = ModelFactory.createDefaultModel();
+            model.createResource().
+                addProperty(RDF.type, ResultSetGraphVocab.ResultSet).
+                addLiteral(ResultSetGraphVocab.p_boolean, QueryExecution.create().dataset(getDataset()).query(query).build().execAsk());
+                
+            if (log.isDebugEnabled()) log.debug("Loading ResultSet using SELECT/ASK query: {}", query);
+            return getResponseBuilder(ResultSetFactory.copyResults(ResultSetFactory.makeResults(model)));
+        }
+
+        if (query.isDescribeType())
+        {
+            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
+            return getResponseBuilder(QueryExecution.create().dataset(getDataset()).query(query).build().execDescribe());
+        }
+        
+        if (query.isConstructType())
+        {
+            if (log.isDebugEnabled()) log.debug("Loading Model using CONSTRUCT/DESCRIBE query: {}", query);
+            return getResponseBuilder(QueryExecution.create().dataset(getDataset()).query(query).build().execConstruct());
+        }
+        
+        if (log.isWarnEnabled()) log.warn("SPARQL endpoint received unknown type of query: {}", query);
+        throw new BadRequestException("Unknown query type");
+    }
+    
+    public Dataset getDataset()
+    {
+        return dataset;
     }
     
 }
