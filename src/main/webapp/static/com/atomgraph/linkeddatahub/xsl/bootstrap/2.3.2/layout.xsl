@@ -233,7 +233,7 @@ exclude-result-prefixes="#all">
         <xsl:param name="saxon-js-log-level" select="10" as="xs:integer"/>
         <xsl:param name="load-wymeditor" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-yasqe" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
-        <xsl:param name="load-saxon-js" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
+        <xsl:param name="load-saxon-js" select="$apl:ajaxRendering and not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-builder" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-sparql-map" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
         <xsl:param name="load-google-charts" select="not($ac:mode = ('&ac;ModalMode', '&aplt;InfoWindowMode'))" as="xs:boolean"/>
