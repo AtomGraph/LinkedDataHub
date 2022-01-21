@@ -266,6 +266,26 @@ extension-element-prefixes="ixsl"
         <xsl:sequence select="ac:label(.)"/>
     </xsl:template>
 
+    <!-- BREADCRUMBS -->
+
+    <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
+        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
+        
+        <li>
+            <xsl:variable name="class" as="xs:string?">
+                <xsl:apply-templates select="." mode="apl:logo"/>
+            </xsl:variable>
+            <xsl:apply-templates select="." mode="xhtml:Anchor">
+                <xsl:with-param name="id" select="()"/>
+                <xsl:with-param name="class" select="$class"/>
+            </xsl:apply-templates>
+
+            <xsl:if test="not($leaf)">
+                <span class="divider">/</span>
+            </xsl:if>
+        </li>
+    </xsl:template>
+    
     <!-- LEFT NAV -->
     
     <xsl:template match="*[*][@rdf:about or @rdf:nodeID]" mode="bs2:Left" priority="1">
@@ -582,9 +602,18 @@ extension-element-prefixes="ixsl"
             <div class="left-nav span2"></div>
             
             <div class="span7">
-                <xsl:if test="doc-available(ac:document-uri(rdf:first/@rdf:resource))">
-                    <xsl:apply-templates select="key('resources', rdf:first/@rdf:resource, document(ac:document-uri(rdf:first/@rdf:resource)))" mode="apl:ContentHeader"/>
-                </xsl:if>
+                <xsl:choose>
+                    <xsl:when test="doc-available(ac:document-uri(rdf:first/@rdf:resource))">
+                        <xsl:apply-templates select="key('resources', rdf:first/@rdf:resource, document(ac:document-uri(rdf:first/@rdf:resource)))" mode="apl:ContentHeader"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <h2>
+                            <a href="{ac:build-uri(ac:uri(), map{ 'uri': string(rdf:first/@rdf:resource) }) }">
+                                <xsl:value-of select="rdf:first/@rdf:resource"/>
+                            </a>
+                        </h2>
+                    </xsl:otherwise>
+                </xsl:choose>
             </div>
             
             <div class="right-nav span3"></div>

@@ -142,4 +142,10 @@ $(document).ready(function()
         if (!($(event.target).parent().is(dropdown))) dropdown.toggleClass("open");
     });
     
+    // handled by Saxon-JS when it's loaded
+    $(".dropdown-toggle").on("click", function(event)
+    {
+        $(event.target).dropdown("toggle");
+    });
+    
 });

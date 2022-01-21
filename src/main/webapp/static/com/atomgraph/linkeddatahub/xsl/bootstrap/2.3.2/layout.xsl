@@ -106,6 +106,7 @@ exclude-result-prefixes="#all">
     <xsl:param name="acl:agent" as="xs:anyURI?"/>
     <xsl:param name="acl:mode" select="$acl:Agent[doc-available($apl:absolutePath)]//*[acl:accessToClass/@rdf:resource = (key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource, key('resources', $apl:absolutePath, document($apl:absolutePath))/rdf:type/@rdf:resource/apl:listSuperClasses(.))]/acl:mode/@rdf:resource" as="xs:anyURI*"/>
     <xsl:param name="apl:createGraph" select="false()" as="xs:boolean"/>
+    <xsl:param name="apl:ajaxRendering" select="true()" as="xs:boolean"/>
     <xsl:param name="google:clientID" as="xs:string?"/>
     
     <!-- the query has to support services that do not belong to any app -->
@@ -372,7 +373,9 @@ exclude-result-prefixes="#all">
                     <xsl:apply-templates select="." mode="bs2:Brand"/>
 
                     <div id="collapsing-top-navbar" class="nav-collapse collapse" style="margin-left: 17%;">
-                        <xsl:apply-templates select="." mode="bs2:SearchBar"/>
+                        <xsl:if test="$apl:ajaxRendering">
+                            <xsl:apply-templates select="." mode="bs2:SearchBar"/>
+                        </xsl:if>
 
                         <xsl:apply-templates select="." mode="bs2:NavBarNavList"/>
                     </div>
@@ -441,7 +444,9 @@ exclude-result-prefixes="#all">
                 <xsl:with-param name="create-graph" select="true()"/>
             </xsl:apply-templates>
             
-            <xsl:apply-templates select="." mode="bs2:AddData"/>
+            <xsl:if test="$apl:ajaxRendering">
+                <xsl:apply-templates select="." mode="bs2:AddData"/>
+            </xsl:if>
         </div>
     </xsl:template>
     
@@ -463,6 +468,11 @@ exclude-result-prefixes="#all">
 
             <div id="breadcrumb-nav">
                 <!-- placeholder for client.xsl callbacks -->
+
+                <xsl:if test="not($apl:ajaxRendering)">
+                    <!-- render breadcrumbs server-side -->
+                    <xsl:apply-templates select="key('resources, ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                </xsl:if>
             </div>
         </div>
     </xsl:template>
@@ -1014,18 +1024,20 @@ exclude-result-prefixes="#all">
                 </button>
             </div>-->
             
-            <div class="pull-right">
-                <button type="button" title="{key('resources', 'save-as-title', document('translations.rdf'))}">
-                    <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="apl:logo">
-                        <xsl:with-param name="class" select="'btn'"/>
-                    </xsl:apply-templates>
+            <xsl:if test="$apl:ajaxRendering">
+                <div class="pull-right">
+                    <button type="button" title="{key('resources', 'save-as-title', document('translations.rdf'))}">
+                        <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="apl:logo">
+                            <xsl:with-param name="class" select="'btn'"/>
+                        </xsl:apply-templates>
 
-                    <xsl:value-of>
-                        <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ac:label"/>
-                        <xsl:text>...</xsl:text>
-                    </xsl:value-of>
-                </button>
-            </div>
+                        <xsl:value-of>
+                            <xsl:apply-templates select="key('resources', 'save-as', document('translations.rdf'))" mode="ac:label"/>
+                            <xsl:text>...</xsl:text>
+                        </xsl:value-of>
+                    </button>
+                </div>
+            </xsl:if>
             
 <!--            <div class="pull-right">
                 <form action="{ac:uri()}?ban=true" method="post">
