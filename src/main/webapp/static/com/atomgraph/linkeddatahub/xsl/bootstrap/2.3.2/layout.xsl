@@ -470,8 +470,10 @@ exclude-result-prefixes="#all">
                 <!-- placeholder for client.xsl callbacks -->
 
                 <xsl:if test="not($apl:ajaxRendering)">
-                    <!-- render breadcrumbs server-side -->
-                    <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                    <ul class="breadcrumb pull-left">
+                        <!-- render breadcrumbs server-side -->
+                        <xsl:apply-templates select="key('resources', ac:uri())" mode="bs2:BreadCrumbListItem"/>
+                    </ul>
                 </xsl:if>
             </div>
         </div>
@@ -726,11 +728,13 @@ exclude-result-prefixes="#all">
                         <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
                     </xsl:apply-templates>
                 </xsl:for-each>
-                <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
-                    <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
-                        <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
-                    </xsl:apply-templates>
-                </xsl:for-each>
+                <xsl:if test="$apl:ajaxRendering">
+                    <xsl:for-each select="key('resources', '&ac;ChartMode', document(ac:document-uri('&ac;')))">
+                        <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
+                            <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
+                        </xsl:apply-templates>
+                    </xsl:for-each>
+                </xsl:if>
                 <xsl:for-each select="key('resources', '&ac;GraphMode', document(ac:document-uri('&ac;')))">
                     <xsl:apply-templates select="." mode="bs2:ModeTabsItem">
                         <xsl:with-param name="active" select="@rdf:about = $ac:mode"/>
@@ -969,7 +973,7 @@ exclude-result-prefixes="#all">
     <!-- CONTENT HEADER -->
 
     <!-- hide the header of def:SelectChildren content -->
-    <xsl:template match="*[*][@rdf:about = '&def;SelectChildren']" mode="apl:ContentHeader"/>
+    <xsl:template match="*[*][$apl:ajaxRendering][@rdf:about = '&def;SelectChildren']" mode="apl:ContentHeader"/>
 
     <!-- FORM CONTROL -->
     

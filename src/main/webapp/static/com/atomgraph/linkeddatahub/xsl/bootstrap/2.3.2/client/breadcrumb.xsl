@@ -27,26 +27,6 @@ extension-element-prefixes="ixsl"
 exclude-result-prefixes="#all"
 >
 
-    <!-- TEMPLATES -->
-
-    <xsl:template match="*[@rdf:about]" mode="bs2:BreadCrumbListItem">
-        <xsl:param name="leaf" select="true()" as="xs:boolean"/>
-        
-        <li>
-            <xsl:variable name="class" as="xs:string?">
-                <xsl:apply-templates select="." mode="apl:logo"/>
-            </xsl:variable>
-            <xsl:apply-templates select="." mode="xhtml:Anchor">
-                <xsl:with-param name="id" select="()"/>
-                <xsl:with-param name="class" select="$class"/>
-            </xsl:apply-templates>
-
-            <xsl:if test="not($leaf)">
-                <span class="divider">/</span>
-            </xsl:if>
-        </li>
-    </xsl:template>
-
     <!-- CALLBACKS -->
     
     <xsl:template name="apl:BreadCrumbResourceLoad">
