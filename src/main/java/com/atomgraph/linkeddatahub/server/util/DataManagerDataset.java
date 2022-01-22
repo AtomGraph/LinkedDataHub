@@ -16,7 +16,9 @@
  */
 package com.atomgraph.linkeddatahub.server.util;
 
+import com.atomgraph.core.util.jena.DataManager;
 import java.util.Iterator;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.TxnType;
@@ -25,21 +27,27 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.util.Context;
-import org.apache.jena.util.FileManager;
 
 /**
  *
  * @author {@literal Martynas Jusevičius <martynas@atomgraph.com>}
  */
-public class FileManagerDataset implements Dataset
+public class DataManagerDataset implements Dataset
 {
     
-    private final FileManager fileManager;
+    private final DataManager dataManager;
+    private final DatasetGraph datasetGraph;
     
-    public FileManagerDataset(FileManager fileManager)
+    public DataManagerDataset(DataManager dataManager)
     {
-        this.fileManager = fileManager;
+        this.dataManager = dataManager;
+        this.datasetGraph = DatasetGraphFactory.createGeneral();
+        // add models to the dataset from the cache map
+        dataManager.getModelCache().entrySet().forEach(entry -> {
+            this.datasetGraph.addGraph(NodeFactory.createURI(entry.getKey()), entry.getValue().getGraph());
+        });
     }
 
     @Override
@@ -63,25 +71,25 @@ public class FileManagerDataset implements Dataset
     @Override
     public Model getNamedModel(String uri)
     {
-        return getFileManager().getFromCache(uri);
+        return getDataManager().getModelCache().get(uri);
     }
 
     @Override
     public Model getNamedModel(Resource resource)
     {
-        return getFileManager().getFromCache(resource.getURI());
+        return getDataManager().getModelCache().get(resource.getURI());
     }
 
     @Override
     public boolean containsNamedModel(String uri)
     {
-        return getFileManager().getFromCache(uri) != null;
+        return getDataManager().getModelCache().get(uri) != null;
     }
 
     @Override
     public boolean containsNamedModel(Resource resource)
     {
-        return getFileManager().getFromCache(resource.getURI()) != null;
+        return getDataManager().getModelCache().get(resource.getURI()) != null;
     }
 
     @Override
@@ -189,7 +197,7 @@ public class FileManagerDataset implements Dataset
     @Override
     public DatasetGraph asDatasetGraph()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return datasetGraph;
     }
 
     @Override
@@ -228,9 +236,9 @@ public class FileManagerDataset implements Dataset
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public FileManager getFileManager()
+    public DataManager getDataManager()
     {
-        return fileManager;
+        return dataManager;
     }
     
 }

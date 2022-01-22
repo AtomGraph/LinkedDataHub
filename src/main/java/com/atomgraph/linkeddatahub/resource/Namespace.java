@@ -25,7 +25,7 @@ import static com.atomgraph.core.model.SPARQLEndpoint.DEFAULT_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.NAMED_GRAPH_URI;
 import static com.atomgraph.core.model.SPARQLEndpoint.QUERY;
 import com.atomgraph.linkeddatahub.server.model.impl.SPARQLEndpointImpl;
-import com.atomgraph.linkeddatahub.server.util.FileManagerDataset;
+import com.atomgraph.linkeddatahub.server.util.DataManagerDataset;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +41,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.resultset.ResultSetMem;
 import org.apache.jena.sparql.vocabulary.ResultSetGraphVocab;
-import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +61,7 @@ public class Namespace extends SPARQLEndpointImpl
     public Namespace(@Context Request request, Optional<Service> service, MediaTypes mediaTypes, com.atomgraph.linkeddatahub.Application system)
     {
         super(request, service, mediaTypes);
-        dataset = new FileManagerDataset((FileManager)system.getDataManager());
+        dataset = new DataManagerDataset(system.getDataManager());
     }
 
     @Override
