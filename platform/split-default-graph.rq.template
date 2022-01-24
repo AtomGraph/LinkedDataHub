@@ -1,4 +1,4 @@
-PREFIX apl:     <https://w3id.org/atomgraph/linkeddatahub/domain#>
+PREFIX ldh:     <https://w3id.org/atomgraph/linkeddatahub#>
 PREFIX acl:     <http://www.w3.org/ns/auth/acl#>
 PREFIX dh:      <https://www.w3.org/ns/ldt/document-hierarchy/domain#>
 PREFIX prov:    <http://www.w3.org/ns/prov#>

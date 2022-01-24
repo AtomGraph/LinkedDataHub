@@ -1,7 +1,7 @@
 PREFIX ldt:     <https://www.w3.org/ns/ldt#>
 PREFIX sd:      <http://www.w3.org/ns/sparql-service-description#>
 PREFIX a:       <https://w3id.org/atomgraph/core#>
-PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps/domain#>
+PREFIX lapp:    <https://w3id.org/atomgraph/linkeddatahub/apps#>
 PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
 
 SELECT ?endUserApp ?endUserQuadStore ?endUserAuthUser ?endUserAuthPwd ?endUserMaker ?adminApp ?adminBaseUri ?adminQuadStore ?adminAuthUser ?adminAuthPwd ?adminMaker
