@@ -1,0 +1,709 @@
+@prefix nid3:  <http://www.semanticdesktop.org/ontologies/2007/05/10/nid3#> .
+@prefix nfo:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
+@prefix nmo:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
+@prefix nie:   <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#> .
+@prefix exif:  <http://www.kanzaki.com/ns/exif#> .
+@prefix nao:   <http://www.semanticdesktop.org/ontologies/2007/08/15/nao#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix protege: <http://protege.stanford.edu/system#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ncal:  <http://www.semanticdesktop.org/ontologies/2007/04/02/ncal#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix nrl:   <http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#> .
+@prefix pimo:  <http://www.semanticdesktop.org/ontologies/2007/11/01/pimo#> .
+@prefix geo:   <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix tmo:   <http://www.semanticdesktop.org/ontologies/2008/05/20/tmo#> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix nco:   <http://www.semanticdesktop.org/ontologies/2007/03/22/nco#> .
+@prefix nexif: <http://www.semanticdesktop.org/ontologies/2007/05/10/nexif#> .
+
+nfo:RemotePortAddress
+        rdf:type         rdfs:Class ;
+        rdfs:label       "RemotePortAddress" ;
+        rdfs:comment     "An address specifying a remote host and port. Such an address can be interpreted in many ways (examples of such interpretations include mailboxes, websites, remote calendars or filesystems), depending on an interpretation, various kinds of data may be extracted from such an address." ;
+        rdfs:subClassOf  nie:DataObject .
+
+nfo:TextDocument  rdf:type  rdfs:Class ;
+        rdfs:comment  "A text document" ;
+        rdfs:label    "TextDocument" .
+
+nfo:Document  rdf:type  rdfs:Class .
+
+nfo:TextDocument  rdfs:subClassOf  nfo:Document .
+
+nfo:MediaFileListEntry
+        rdf:type         rdfs:Class ;
+        rdfs:label       "MediaFileListEntry" ;
+        rdfs:comment     "A single node in the list of media files contained within an MediaList instance. This class is intended to provide a type all those links have. In valid NRL untyped resources cannot be linked. There are no properties defined for this class but the application may expect rdf:first and rdf:last links. The former points to the DataObject instance, interpreted as Media the latter points at another MediaFileListEntr. At the end of the list there is a link to rdf:nil." ;
+        rdfs:subClassOf  rdfs:Resource .
+
+nfo:VectorImage  rdf:type  rdfs:Class ;
+        rdfs:label  "VectorImage" .
+
+nfo:Image  rdf:type  rdfs:Class .
+
+nfo:VectorImage  rdfs:subClassOf  nfo:Image .
+
+nfo:Audio  rdf:type   rdfs:Class ;
+        rdfs:comment  "A file containing audio content" ;
+        rdfs:label    "Audio" .
+
+nfo:Media  rdf:type  rdfs:Class .
+
+nfo:Audio  rdfs:subClassOf  nfo:Media .
+
+nfo:CompressionType  rdf:type  rdfs:Class ;
+        rdfs:label       "CompressionType" ;
+        rdfs:comment     "Type of compression. Instances of this class represent the limited set of values allowed for the nfo:compressionType property." ;
+        rdfs:subClassOf  rdfs:Resource .
+
+nfo:Icon  rdf:type    rdfs:Class ;
+        rdfs:label    "Icon" ;
+        rdfs:comment  "An Icon (regardless of whether it's a raster or a vector icon. A resource representing an icon could have two types (Icon and Raster, or Icon and Vector) if required." .
+
+nfo:Image  rdf:type  rdfs:Class .
+
+nfo:Icon  rdfs:subClassOf  nfo:Image .
+
+nfo:HtmlDocument  rdf:type  rdfs:Class ;
+        rdfs:comment  "A HTML document, may contain links to other files." ;
+        rdfs:label    "HtmlDocument" .
+
+nfo:PlainTextDocument
+        rdf:type  rdfs:Class .
+
+nfo:HtmlDocument  rdfs:subClassOf  nfo:PlainTextDocument .
+
+nfo:Image  rdf:type   rdfs:Class ;
+        rdfs:comment  "A file containing an image." ;
+        rdfs:label    "Image" .
+
+nfo:Visual  rdf:type  rdfs:Class .
+
+nfo:Image  rdfs:subClassOf  nfo:Visual .
+
+nfo:Software  rdf:type   rdfs:Class ;
+        rdfs:label       "Software" ;
+        rdfs:comment     "A piece of software. Examples may include applications and the operating system. This interpretation most commonly applies to SoftwareItems." ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:OperatingSystem  rdf:type  rdfs:Class ;
+        rdfs:comment     "An OperatingSystem" ;
+        rdfs:label       "OperatingSystem" ;
+        rdfs:subClassOf  nfo:Software .
+
+nfo:MediaList  rdf:type  rdfs:Class ;
+        rdfs:comment     "A file containing a list of media files.e.g. a playlist" ;
+        rdfs:label       "MediaList" ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:Executable  rdf:type  rdfs:Class ;
+        rdfs:comment     "An executable file." ;
+        rdfs:label       "Executable" ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:FileDataObject  rdf:type  rdfs:Class ;
+        rdfs:label       "FileDataObject" ;
+        rdfs:comment     "A resource containing a finite sequence of bytes with arbitrary information, that is available to a computer program and is usually based on some kind of durable storage. A file is durable in the sense that it remains available for programs to use after the current program has finished." ;
+        rdfs:subClassOf  nie:DataObject .
+
+nfo:Folder  rdf:type  rdfs:Class ;
+        rdfs:label    "Folder" ;
+        rdfs:comment  "A folder/directory. Examples of folders include folders on a filesystem and message folders in a mailbox." .
+
+nfo:DataContainer  rdf:type  rdfs:Class .
+
+nfo:Folder  rdfs:subClassOf  nfo:DataContainer .
+
+nfo:Font  rdf:type       rdfs:Class ;
+        rdfs:comment     "A font." ;
+        rdfs:label       "Font" ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:Filesystem  rdf:type  rdfs:Class ;
+        rdfs:label    "Filesystem" ;
+        rdfs:comment  "A filesystem. Examples of filesystems include hard disk partitions, removable media, but also images thereof stored in files." .
+
+nfo:DataContainer  rdf:type  rdfs:Class .
+
+nfo:Filesystem  rdfs:subClassOf  nfo:DataContainer .
+
+nfo:SoftwareService  rdf:type  rdfs:Class ;
+        rdfs:label       "SoftwareService" ;
+        rdfs:comment     "A service published by a piece of software, either by an operating system or an application. Examples of such services may include calendar, addresbook and mailbox managed by a PIM application. This category is introduced to distinguish between data available directly from the applications (Via some Interprocess Communication Mechanisms) and data available from files on a disk. In either case both DataObjects would receive a similar interpretation (e.g. a Mailbox) and wouldn't differ on the content level." ;
+        rdfs:subClassOf  nie:DataObject .
+
+nfo:SoftwareItem  rdf:type  rdfs:Class ;
+        rdfs:label       "SoftwareItem" ;
+        rdfs:comment     "A DataObject representing a piece of software. Examples of interpretations of a SoftwareItem include an Application and an OperatingSystem." ;
+        rdfs:subClassOf  nie:DataObject .
+
+nfo:Presentation  rdf:type  rdfs:Class ;
+        rdfs:label    "Presentation" ;
+        rdfs:comment  "A Presentation made by some presentation software (Corel Presentations, OpenOffice Impress, MS Powerpoint etc.)" .
+
+nfo:Document  rdf:type  rdfs:Class .
+
+nfo:Presentation  rdfs:subClassOf  nfo:Document .
+
+nfo:RemoteDataObject  rdf:type  rdfs:Class ;
+        rdfs:label       "RemoteDataObject" ;
+        rdfs:comment     "A file data object stored at a remote location. Don't confuse this class with a RemotePortAddress. This one applies to a particular resource, RemotePortAddress applies to an address, that can have various interpretations." ;
+        rdfs:subClassOf  nfo:FileDataObject .
+
+nfo:PaginatedTextDocument
+        rdf:type         rdfs:Class ;
+        rdfs:label       "PaginatedTextDocument" ;
+        rdfs:comment     "A file containing a text document, that is unambiguously divided into pages. Examples might include PDF, DOC, PS, DVI etc." ;
+        rdfs:subClassOf  nfo:TextDocument .
+
+nfo:Video  rdf:type   rdfs:Class ;
+        rdfs:comment  "A video file." ;
+        rdfs:label    "Video" .
+
+nfo:Visual  rdf:type  rdfs:Class .
+
+nfo:Video  rdfs:subClassOf  nfo:Visual .
+
+nfo:DataContainer  rdf:type  rdfs:Class ;
+        rdfs:label       "DataContainer" ;
+        rdfs:comment     "A superclass for all entities, whose primary purpose is to serve as containers for other data object. They usually don't have any \"meaning\" by themselves. Examples include folders, archives and optical disc images." ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:Spreadsheet  rdf:type  rdfs:Class ;
+        rdfs:label    "Spreadsheet" ;
+        rdfs:comment  "A spreadsheet, created by a spreadsheet application. Examples might include Gnumeric, OpenOffice Calc or MS Excel." .
+
+nfo:Document  rdf:type  rdfs:Class .
+
+nfo:Spreadsheet  rdfs:subClassOf  nfo:Document .
+
+nfo:Trash  rdf:type      rdfs:Class ;
+        rdfs:label       "Trash" ;
+        rdfs:comment     "Represents a container for deleted files, a feature common in modern operating systems." ;
+        rdfs:subClassOf  nfo:DataContainer .
+
+nfo:FileHash  rdf:type   rdfs:Class ;
+        rdfs:label       "FileHash" ;
+        rdfs:comment     "A fingerprint of the file, generated by some hashing function." ;
+        rdfs:subClassOf  rdfs:Resource .
+
+nfo:SourceCode  rdf:type  rdfs:Class ;
+        rdfs:comment  "Code in a compilable or interpreted programming language." ;
+        rdfs:label    "SourceCode" .
+
+nfo:PlainTextDocument
+        rdf:type  rdfs:Class .
+
+nfo:SourceCode  rdfs:subClassOf  nfo:PlainTextDocument .
+
+nfo:Application  rdf:type  rdfs:Class ;
+        rdfs:comment     "An application" ;
+        rdfs:label       "Application" ;
+        rdfs:subClassOf  nfo:Software .
+
+nfo:Visual  rdf:type  rdfs:Class ;
+        rdfs:comment  "File containing visual content." ;
+        rdfs:label    "Visual" .
+
+nfo:Media  rdf:type  rdfs:Class .
+
+nfo:Visual  rdfs:subClassOf  nfo:Media .
+
+nfo:EmbeddedFileDataObject
+        rdf:type         rdfs:Class ;
+        rdfs:label       "EmbeddedFileDataObject" ;
+        rdfs:comment     "A file embedded in another data object. There are many ways in which a file may be embedded in another one. Use this class directly only in cases if none of the subclasses gives a better description of your case." ;
+        rdfs:subClassOf  nfo:FileDataObject .
+
+nfo:Attachment  rdf:type  rdfs:Class ;
+        rdfs:label       "Attachment" ;
+        rdfs:comment     "A file attached to another data object. Many data formats allow for attachments: emails, vcards, ical events, id3 and exif..." ;
+        rdfs:subClassOf  nfo:EmbeddedFileDataObject .
+
+nfo:ArchiveItem  rdf:type  rdfs:Class ;
+        rdfs:comment     "A file entity inside an archive." ;
+        rdfs:label       "ArchiveItem" ;
+        rdfs:subClassOf  nfo:EmbeddedFileDataObject .
+
+nfo:Archive  rdf:type    rdfs:Class ;
+        rdfs:label       "Archive" ;
+        rdfs:comment     "A compressed file. May contain other files or folder inside. " ;
+        rdfs:subClassOf  nfo:DataContainer .
+
+nfo:MindMap  rdf:type  rdfs:Class ;
+        rdfs:label    "MindMap" ;
+        rdfs:comment  "A MindMap, created by a mind-mapping utility. Examples might include FreeMind or mind mapper." .
+
+nfo:Document  rdf:type  rdfs:Class .
+
+nfo:MindMap  rdfs:subClassOf  nfo:Document .
+
+nfo:MediaStream  rdf:type  rdfs:Class ;
+        rdfs:label       "MediaStream" ;
+        rdfs:comment     "A stream of multimedia content, usually contained within a media container such as a movie (containing both audio and video) or a DVD (possibly containing many streams of audio and video). Most common interpretations for such a DataObject include Audio and Video." ;
+        rdfs:subClassOf  nie:DataObject .
+
+nfo:BookmarkFolder  rdf:type  rdfs:Class ;
+        rdfs:comment     "A folder with bookmarks of a webbrowser. Use nfo:containsBookmark to relate Bookmarks. Folders can contain subfolders, use containsBookmarkFolder to relate them." ;
+        rdfs:label       "Bookmark Folder" ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:FilesystemImage  rdf:type  rdfs:Class ;
+        rdfs:label       "FilesystemImage" ;
+        rdfs:comment     "An image of a filesystem. Instances of this class may include CD images, DVD images or hard disk partition images created by various pieces of software (e.g. Norton Ghost)" ;
+        rdfs:subClassOf  nfo:Filesystem .
+
+nfo:Document  rdf:type   rdfs:Class ;
+        rdfs:label       "Document" ;
+        rdfs:comment     "A generic document. A common superclass for all documents on the desktop." ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:HardDiskPartition
+        rdf:type         rdfs:Class ;
+        rdfs:comment     "A partition on a hard disk" ;
+        rdfs:label       "HardDiskPartition" ;
+        rdfs:subClassOf  nie:DataObject .
+
+nfo:Cursor  rdf:type  rdfs:Class ;
+        rdfs:comment  "A Cursor." ;
+        rdfs:label    "Cursor" .
+
+nfo:RasterImage  rdf:type  rdfs:Class .
+
+nfo:Cursor  rdfs:subClassOf  nfo:RasterImage .
+
+nfo:Bookmark  rdf:type   rdfs:Class ;
+        rdfs:comment     "A bookmark of a webbrowser. Use nie:title for the name/label, nie:contentCreated to represent the date when the user added the bookmark, and nie:contentLastModified for modifications. nfo:bookmarks to store the link." ;
+        rdfs:label       "Bookmark" ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:PlainTextDocument
+        rdf:type         rdfs:Class ;
+        rdfs:label       "PlainTextDocument" ;
+        rdfs:comment     "A file containing plain text (ASCII, Unicode or other encodings). Examples may include TXT, HTML, XML, program source code etc." ;
+        rdfs:subClassOf  nfo:TextDocument .
+
+nfo:DeletedResource  rdf:type  rdfs:Class ;
+        rdfs:label       "DeletedResource" ;
+        rdfs:comment     "A file entity that has been deleted from the original source. Usually such entities are stored within various kinds of 'Trash' or 'Recycle Bin' folders." ;
+        rdfs:subClassOf  nfo:FileDataObject .
+
+nfo:Website  rdf:type    rdfs:Class ;
+        rdfs:label       "Website" ;
+        rdfs:comment     "A website, usually a container for remote resources, that may be interpreted as HTMLDocuments, images or other types of content." ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:Media  rdf:type      rdfs:Class ;
+        rdfs:label       "Media" ;
+        rdfs:comment     "A piece of media content. This class may be used to express complex media containers with many streams of various media content (both aural and visual)." ;
+        rdfs:subClassOf  nie:InformationElement .
+
+nfo:RasterImage  rdf:type  rdfs:Class ;
+        rdfs:comment     "A raster image." ;
+        rdfs:label       "RasterImage" ;
+        rdfs:subClassOf  nfo:Image .
+
+nfo:sideChannels  rdf:type  rdf:Property ;
+        rdfs:comment  "Number of side channels" ;
+        rdfs:label    "sideChannels" .
+
+nfo:channels  rdf:type  rdf:Property .
+
+nfo:sideChannels  rdfs:subPropertyOf  nfo:channels ;
+        rdfs:range          xsd:integer .
+
+nfo:frameRate  rdf:type  rdf:Property ;
+        rdfs:comment  "Amount of video frames per second." ;
+        rdfs:label    "frameRate" ;
+        rdfs:domain   nfo:Video .
+
+nfo:rate  rdf:type  rdf:Property .
+
+nfo:frameRate  rdfs:subPropertyOf  nfo:rate ;
+        rdfs:range          xsd:float .
+
+nfo:commentCharacterCount
+        rdf:type      rdf:Property ;
+        rdfs:label    "commentCharacterCount" ;
+        rdfs:comment  "The amount of character in comments i.e. characters ignored by the compiler/interpreter." ;
+        rdfs:domain   nfo:SourceCode ;
+        rdfs:range    xsd:integer .
+
+nfo:duration  rdf:type  rdf:Property ;
+        rdfs:comment  "Duration of a media piece." ;
+        rdfs:label    "duration" ;
+        rdfs:domain   nfo:Media ;
+        rdfs:range    xsd:duration .
+
+nfo:wordCount  rdf:type  rdf:Property ;
+        rdfs:comment  "The amount of words in a text document." ;
+        rdfs:label    "wordCount" ;
+        rdfs:domain   nfo:TextDocument ;
+        rdfs:range    xsd:integer .
+
+nfo:fileLastAccessed  rdf:type  rdf:Property ;
+        rdfs:comment        "Time when the file was last accessed." ;
+        rdfs:label          "fileLastAccessed" ;
+        rdfs:domain         nfo:FileDataObject ;
+        rdfs:subPropertyOf  dc:date ;
+        rdfs:range          xsd:dateTime .
+
+nfo:fileCreated  rdf:type   rdf:Property ;
+        rdfs:comment        "File creation date" ;
+        rdfs:label          "fileCreated" ;
+        rdfs:subPropertyOf  nie:created ;
+        rdfs:domain         nfo:FileDataObject ;
+        rdfs:range          xsd:dateTime .
+
+nfo:channels  rdf:type  rdf:Property ;
+        rdfs:label    "channels" ;
+        rdfs:comment  "Number of channels. This property is to be used directly if no detailed information is necessary. Otherwise use more detailed subproperties." ;
+        rdfs:domain   nfo:Audio ;
+        rdfs:range    xsd:integer .
+
+nfo:belongsToContainer
+        rdf:type            rdf:Property ;
+        rdfs:label          "belongsToContainer" ;
+        rdfs:comment        "Models the containment relations between Files and Folders (or CompressedFiles)." ;
+        rdfs:subPropertyOf  nie:isPartOf ;
+        rdfs:domain         nie:DataObject ;
+        rdfs:range          nfo:DataContainer .
+
+nfo:aspectRatio  rdf:type  rdf:Property ;
+        rdfs:comment  "Visual content aspect ratio. (Width divided by Height)" ;
+        rdfs:label    "aspectRatio" ;
+        rdfs:domain   nfo:Visual ;
+        rdfs:range    xsd:float .
+
+nfo:fileSize  rdf:type      rdf:Property ;
+        rdfs:label          "fileSize" ;
+        rdfs:comment        "The size of the file in bytes. For compressed files it means the size of the packed file, not of the contents. For folders it means the aggregated size of all contained files and folders " ;
+        rdfs:subPropertyOf  nie:byteSize ;
+        rdfs:domain         nfo:FileDataObject ;
+        rdfs:range          xsd:integer .
+
+nfo:conflicts  rdf:type  rdf:Property ;
+        rdfs:label    "conflicts" ;
+        rdfs:comment  "States that a piece of software is in conflict with another piece of software." ;
+        rdfs:domain   nfo:Software ;
+        rdfs:range    nfo:Software .
+
+nfo:hashValue  rdf:type  rdf:Property ;
+        rdfs:comment  "The actual value of the hash." ;
+        rdfs:label    "hashValue" ;
+        rdfs:domain   nfo:FileHash ;
+        rdfs:range    xsd:string .
+
+nfo:pageCount  rdf:type  rdf:Property ;
+        rdfs:comment  "Number of pages." ;
+        rdfs:label    "pageCount" ;
+        rdfs:domain   nfo:PaginatedTextDocument ;
+        rdfs:range    xsd:integer .
+
+nfo:programmingLanguage
+        rdf:type      rdf:Property ;
+        rdfs:label    "programmingLanguage" ;
+        rdfs:comment  "Indicates the name of the programming language this source code file is written in. Examples might include 'C', 'C++', 'Java' etc." ;
+        rdfs:domain   nfo:SourceCode ;
+        rdfs:range    xsd:string .
+
+nfo:definesClass  rdf:type  rdf:Property ;
+        rdfs:comment  "Name of a class defined in the source code file." ;
+        rdfs:label    "definesClass" ;
+        rdfs:domain   nfo:SourceCode ;
+        rdfs:range    xsd:string .
+
+nfo:interlaceMode  rdf:type  rdf:Property ;
+        rdfs:comment  "True if the image is interlaced, false if not." ;
+        rdfs:label    "interlaceMode" ;
+        rdfs:domain   nfo:Visual ;
+        rdfs:range    xsd:boolean .
+
+nfo:permissions  rdf:type  rdf:Property ;
+        rdfs:label    "permissions" ;
+        rdfs:comment  "A string containing the permissions of a file. A feature common in many UNIX-like operating systems." ;
+        rdfs:domain   nfo:FileDataObject ;
+        rdfs:range    xsd:string .
+
+nfo:count  rdf:type   rdf:Property ;
+        rdfs:label    "count" ;
+        rdfs:comment  "A common superproperty for all properties signifying the amount of atomic media data units. Examples of subproperties may include sampleCount and frameCount." ;
+        rdfs:domain   nfo:Media ;
+        rdfs:range    xsd:integer .
+
+nfo:lfeChannels  rdf:type   rdf:Property ;
+        rdfs:comment        "Number of Low Frequency Expansion (subwoofer) channels." ;
+        rdfs:label          "lfeChannels" ;
+        rdfs:subPropertyOf  nfo:channels ;
+        rdfs:range          xsd:integer .
+
+nfo:supercedes  rdf:type  rdf:Property ;
+        rdfs:label    "supercedes" ;
+        rdfs:comment  "States that a piece of software supercedes another piece of software." ;
+        rdfs:range    nfo:Software ;
+        rdfs:domain   nfo:Software .
+
+nfo:definesFunction  rdf:type  rdf:Property ;
+        rdfs:label    "definesFunction" ;
+        rdfs:comment  "A name of a function/method defined in the given source code file." ;
+        rdfs:domain   nfo:SourceCode ;
+        rdfs:range    xsd:string .
+
+nfo:hasMediaFileListEntry
+        rdf:type      rdf:Property ;
+        rdfs:label    "hasMediaFileListEntry" ;
+        rdfs:comment  "This property is intended to point to an RDF list of MediaFiles." ;
+        rdfs:range    nfo:MediaFileListEntry ;
+        rdfs:domain   nfo:MediaList .
+
+nfo:height  rdf:type  rdf:Property ;
+        rdfs:comment  "Visual content height in pixels." ;
+        rdfs:label    "height" ;
+        rdfs:domain   nfo:Visual ;
+        rdfs:range    xsd:integer .
+
+nfo:hashAlgorithm  rdf:type  rdf:Property ;
+        rdfs:label    "hashAlgorithm" ;
+        rdfs:comment  "Name of the algorithm used to compute the hash value. Examples might include CRC32, MD5, SHA, TTH etc." ;
+        rdfs:domain   nfo:FileHash ;
+        rdfs:range    xsd:string .
+
+nfo:fileName  rdf:type  rdf:Property ;
+        rdfs:label    "fileName" ;
+        rdfs:comment  "Name of the file, together with the extension" ;
+        rdfs:domain   nfo:FileDataObject ;
+        rdfs:range    xsd:string .
+
+nfo:encoding  rdf:type  rdf:Property ;
+        rdfs:label    "encoding" ;
+        rdfs:comment  "The encoding used for the Embedded File. Examples might include BASE64 or UUEncode" ;
+        rdfs:domain   nfo:EmbeddedFileDataObject ;
+        rdfs:range    xsd:string .
+
+nfo:verticalResolution
+        rdf:type      rdf:Property ;
+        rdfs:label    "verticalResolution" ;
+        rdfs:comment  "Vertical resolution of an Image (if printed). Expressed in DPI" ;
+        rdfs:domain   nfo:Image ;
+        rdfs:range    xsd:integer .
+
+nfo:definesGlobalVariable
+        rdf:type      rdf:Property ;
+        rdfs:label    "definesGlobalVariable" ;
+        rdfs:comment  "Name of a global variable defined within the source code file." ;
+        rdfs:domain   nfo:SourceCode ;
+        rdfs:range    xsd:string .
+
+nfo:compressionType  rdf:type  rdf:Property ;
+        rdfs:label    "compressionType" ;
+        rdfs:comment  "The type of the compression. Values include, 'lossy' and 'lossless'." ;
+        rdfs:range    nfo:CompressionType ;
+        rdfs:domain   nfo:Media .
+
+nfo:hasMediaStream  rdf:type  rdf:Property ;
+        rdfs:label          "hasMediaStream" ;
+        rdfs:comment        "Connects a media container with a single media stream contained within." ;
+        rdfs:range          nie:DataObject ;
+        rdfs:subPropertyOf  nie:hasPart ;
+        rdfs:domain         nfo:Media .
+
+nfo:fileUrl  rdf:type  rdf:Property ;
+        rdfs:label    "fileUrl" ;
+        rdfs:comment  "URL of the file. It points at the location of the file. In cases where creating a simple file:// or http:// URL for a file is difficult (e.g. for files inside compressed archives) the applications are encouraged to use conventions defined by Apache Commons VFS Project at http://jakarta.apache.org/  commons/ vfs/ filesystems.html." ;
+        rdfs:domain   nfo:FileDataObject ;
+        rdfs:range    rdfs:Resource .
+
+nfo:width  rdf:type   rdf:Property ;
+        rdfs:comment  "Visual content width in pixels." ;
+        rdfs:label    "width" ;
+        rdfs:domain   nfo:Visual ;
+        rdfs:range    xsd:integer .
+
+nfo:sampleCount  rdf:type   rdf:Property ;
+        rdfs:comment        "The amount of samples in an audio clip." ;
+        rdfs:label          "sampleCount" ;
+        rdfs:domain         nfo:Audio ;
+        rdfs:subPropertyOf  nfo:count ;
+        rdfs:range          xsd:integer .
+
+nfo:lineCount  rdf:type  rdf:Property ;
+        rdfs:comment  "The amount of lines in a text document" ;
+        rdfs:label    "lineCount" ;
+        rdfs:domain   nfo:TextDocument ;
+        rdfs:range    xsd:integer .
+
+nfo:bitsPerSample  rdf:type  rdf:Property ;
+        rdfs:comment  "Amount of bits in each audio sample." ;
+        rdfs:label    "bitsPerSample" ;
+        rdfs:domain   nfo:Audio .
+
+nfo:bitDepth  rdf:type  rdf:Property .
+
+nfo:bitsPerSample  rdfs:subPropertyOf  nfo:bitDepth ;
+        rdfs:range          xsd:integer .
+
+nfo:bitDepth  rdf:type  rdf:Property ;
+        rdfs:label    "bitDepth" ;
+        rdfs:comment  "A common superproperty for all properties signifying the amount of bits for an atomic unit of data. Examples of subproperties may include bitsPerSample and bitsPerPixel" ;
+        rdfs:domain   nfo:Media ;
+        rdfs:range    rdfs:Literal .
+
+nfo:hasHash  rdf:type  rdf:Property ;
+        rdfs:comment  "Links the file with it's hash value." ;
+        rdfs:label    "hasHash" ;
+        rdfs:domain   nfo:FileDataObject ;
+        rdfs:range    nfo:FileHash .
+
+nfo:fileOwner  rdf:type  rdf:Property ;
+        rdfs:label    "fileOwner" ;
+        rdfs:comment  "The owner of the file as defined by the file system access rights feature." ;
+        rdfs:range    nco:Contact ;
+        rdfs:domain   nfo:FileDataObject .
+
+nfo:rate  rdf:type    rdf:Property ;
+        rdfs:label    "rate" ;
+        rdfs:comment  "A common superproperty for all properties specifying the media rate. Examples of subproperties may include frameRate for video and sampleRate for audio. This property is expressed in units per second." ;
+        rdfs:domain   nfo:Media ;
+        rdfs:range    xsd:float .
+
+nfo:containsBookmarkFolder
+        rdf:type            rdf:Property ;
+        rdfs:label          "contains folder" ;
+        rdfs:comment        "The folder contains a bookmark folder." ;
+        rdfs:domain         nfo:BookmarkFolder ;
+        rdfs:range          nfo:BookmarkFolder ;
+        rdfs:subPropertyOf  nie:hasLogicalPart .
+
+nfo:codec  rdf:type   rdf:Property ;
+        rdfs:comment  "The name of the codec necessary to decode a piece of media." ;
+        rdfs:label    "codec" ;
+        rdfs:domain   nfo:Media ;
+        rdfs:range    rdfs:Literal .
+
+nfo:fontFamily  rdf:type  rdf:Property ;
+        rdfs:comment  "The name of the font family." ;
+        rdfs:label    "fontFamily" ;
+        rdfs:domain   nfo:Font ;
+        rdfs:range    xsd:string .
+
+nfo:frontChannels  rdf:type  rdf:Property ;
+        rdfs:comment        "Number of front channels." ;
+        rdfs:label          "frontChannels" ;
+        rdfs:subPropertyOf  nfo:channels ;
+        rdfs:range          xsd:integer .
+
+nfo:originalLocation  rdf:type  rdf:Property ;
+        rdfs:comment  "The original location of the deleted resource." ;
+        rdfs:label    "originalLocation" ;
+        rdfs:domain   nfo:DeletedResource ;
+        rdfs:range    xsd:string .
+
+nfo:foundry  rdf:type       rdf:Property ;
+        rdfs:comment        "The foundry, the organization that created the font." ;
+        rdfs:label          "foundry" ;
+        rdfs:range          nco:Contact ;
+        rdfs:subPropertyOf  nco:creator ;
+        rdfs:domain         nfo:Font .
+
+nfo:colorDepth  rdf:type    rdf:Property ;
+        rdfs:comment        "Amount of bits used to express the color of each pixel." ;
+        rdfs:label          "colorDepth" ;
+        rdfs:domain         nfo:Visual ;
+        rdfs:subPropertyOf  nfo:bitDepth ;
+        rdfs:range          xsd:integer .
+
+nfo:frameCount  rdf:type    rdf:Property ;
+        rdfs:comment        "The amount of frames in a video sequence." ;
+        rdfs:label          "frameCount" ;
+        rdfs:domain         nfo:Video ;
+        rdfs:subPropertyOf  nfo:count ;
+        rdfs:range          xsd:integer .
+
+nfo:horizontalResolution
+        rdf:type      rdf:Property ;
+        rdfs:label    "horizontalResolution" ;
+        rdfs:comment  "Horizontal resolution of an image (if printed). Expressed in DPI." ;
+        rdfs:domain   nfo:Image ;
+        rdfs:range    xsd:integer .
+
+nfo:characterCount  rdf:type  rdf:Property ;
+        rdfs:comment  "The amount of characters in the document." ;
+        rdfs:label    "characterCount" ;
+        rdfs:domain   nfo:TextDocument ;
+        rdfs:range    xsd:integer .
+
+nfo:bitrateType  rdf:type  rdf:Property ;
+        rdfs:comment  "The type of the bitrate. Examples may include CBR and VBR." ;
+        rdfs:label    "bitrateType" ;
+        rdfs:domain   nfo:Media ;
+        rdfs:range    xsd:string .
+
+nfo:isPasswordProtected
+        rdf:type      rdf:Property ;
+        rdfs:comment  "States if a given resource is password-protected." ;
+        rdfs:label    "isPasswordProtected" ;
+        rdfs:domain   nfo:ArchiveItem ;
+        rdfs:range    xsd:boolean .
+
+nfo:sampleRate  rdf:type    rdf:Property ;
+        rdfs:comment        "The amount of audio samples per second." ;
+        rdfs:label          "sampleRate" ;
+        rdfs:domain         nfo:Audio ;
+        rdfs:subPropertyOf  nfo:rate ;
+        rdfs:range          xsd:float .
+
+nfo:fileLastModified  rdf:type  rdf:Property ;
+        rdfs:comment        "last modification date" ;
+        rdfs:label          "fileLastModified" ;
+        rdfs:domain         nfo:FileDataObject ;
+        rdfs:subPropertyOf  dc:date ;
+        rdfs:range          xsd:dateTime .
+
+nfo:containsBookmark  rdf:type  rdf:Property ;
+        rdfs:label          "contains bookmark" ;
+        rdfs:comment        "The folder contains a bookmark." ;
+        rdfs:domain         nfo:BookmarkFolder ;
+        rdfs:range          nfo:Bookmark ;
+        rdfs:subPropertyOf  nie:hasLogicalPart .
+
+nfo:averageBitrate  rdf:type  rdf:Property ;
+        rdfs:label          "averageBitrate" ;
+        rdfs:comment        "The average overall bitrate of a media container. (i.e. the size of the piece of media in bits, divided by it's duration expressed in seconds)." ;
+        rdfs:domain         nfo:Media ;
+        rdfs:subPropertyOf  nfo:rate ;
+        rdfs:range          xsd:float .
+
+nfo:deletionDate  rdf:type  rdf:Property ;
+        rdfs:comment  "The date and time of the deletion." ;
+        rdfs:label    "deletionDate" ;
+        rdfs:domain   nfo:DeletedResource ;
+        rdfs:range    xsd:dateTime .
+
+nfo:bookmarks  rdf:type     rdf:Property ;
+        rdfs:comment        "The address of the linked object. Usually a web URI." ;
+        rdfs:label          "link" ;
+        rdfs:domain         nfo:Bookmark ;
+        rdfs:subPropertyOf  nie:links ;
+        rdfs:range          nie:DataObject .
+
+nfo:uncompressedSize  rdf:type  rdf:Property ;
+        rdfs:comment  "Uncompressed size of the content of a compressed file." ;
+        rdfs:label    "uncompressedSize" ;
+        rdfs:domain   nfo:Archive ;
+        rdfs:range    xsd:integer .
+
+nfo:rearChannels  rdf:type  rdf:Property ;
+        rdfs:comment        "Number of rear channels." ;
+        rdfs:label          "rearChannels" ;
+        rdfs:subPropertyOf  nfo:channels ;
+        rdfs:range          xsd:integer .
+
+nfo:lossyCompressionType
+        rdf:type    nfo:CompressionType ;
+        rdfs:label  "lossyCompressionType" .
+
+nfo:losslessCompressionType
+        rdf:type    nfo:CompressionType ;
+        rdfs:label  "losslessCompressionType" .
